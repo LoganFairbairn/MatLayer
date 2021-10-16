@@ -8,6 +8,11 @@ class COATER_OT_image_editor_export(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Exports the select image layer to the image editor defined in Blender's preferences"
 
+    @ classmethod
+    def poll(cls, context):
+        #return context.scene.coater_layers
+        False
+
     def execute(self, context):
         # TODO: Export the selected image layer to the image editor defined in Blender's preferences.
         return {'FINISHED'}

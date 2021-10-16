@@ -13,19 +13,33 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+# This file imports and registers all required modules.
+
 import bpy
+
+# Import layer functionality.
 from . layers import *
+from . add_layer_menu import *
+from . add_mask_menu import *
+from . layer_properties import *
+
+# Import baking functionality.
 from . baking import *
-from . display import *
+
+# Import UI.
 from . coater_panel import *
+from . coater_tools import *
+
+# Import additional functions.
 from . export_to_image_editor import *
+from . toggle_texture_paint_mode import *
 
 
 bl_info = {
     "name": "Coater",
     "author": "Logan Fairbairn",
     "version": (0, 1),
-    "blender": (2, 91, 2),
+    "blender": (2, 93, 5),
     "location": "View3D > Sidebar > Coater",
     "description": "Replaces node based texturing workflow with a layer stack workflow.",
     "warning": "",
@@ -38,40 +52,48 @@ bl_info = {
 classes = (
     COATER_properties,
     COATER_OT_apply_color_grid,
+    COATER_OT_bake_common_maps,
     COATER_OT_bake_ambient_occlusion,
-    COATER_OT_set_hand_painted,
+    COATER_OT_bake_curvature,
+    COATER_OT_bake_edges,
 
     # Layer Stack
-    LayerProperties,
+    COATER_layer_stack,
+    COATER_layers,
+    COATER_OT_add_layer_menu,
+    COATER_OT_add_mask_menu,
+    COATER_OT_edit_layer_properties,
     COATER_UL_layer_list,
     COATER_OT_add_layer,
-    COATER_OT_add_color_layer,
+    COATER_OT_add_mask,
     COATER_OT_delete_layer,
     COATER_OT_move_layer,
     COATER_OT_merge_layer,
     COATER_OT_duplicate_layer,
+    COATER_OT_toggle_channel_preview,
 
     # Main Panel & General Settings
     COATER_PT_Panel,
 
-    # Additional functions.
-    COATER_OT_image_editor_export
+    # Tool Settings
+    COATER_OT_swap_primary_color,
+    
+    # Misc functions
+    COATER_OT_image_editor_export,
+    COATER_OT_toggle_texture_paint_mode
 )
-
 
 def register():
     # Register properties, operators and pannels.
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    bpy.types.Scene.coater_properties = bpy.props.PointerProperty(
-        type=COATER_properties)
+    # Coater Properties
+    bpy.types.Scene.coater_properties = bpy.props.PointerProperty(type=COATER_properties)
 
-    bpy.types.Scene.my_list = bpy.props.CollectionProperty(
-        type=LayerProperties, name="layers 4123")
-
-    bpy.types.Scene.layer_index = bpy.props.IntProperty(name="Index for my_list",
-                                                        default=0)
+    # Layer Stack Properties
+    bpy.types.Scene.coater_layer_stack = bpy.props.PointerProperty(type=COATER_layer_stack)
+    bpy.types.Scene.coater_layers = bpy.props.CollectionProperty(type=COATER_layers)
 
 
 def unregister():

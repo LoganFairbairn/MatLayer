@@ -21,9 +21,7 @@ class COATER_properties(bpy.types.PropertyGroup):
     coater_sections: bpy.props.EnumProperty(
         items=[('SECTION_LAYERS', "Layers", "Layers category."),
                ('SECTION_BAKING', "Baking", ""),
-               ('SECTION_DISPLAY', "Display", ""),
-               ('SECTION_COATER_SETTINGS', "Settings", "")
-               ],
+               ('SECTION_COATER_SETTINGS', "Settings", "")],
         name="Coater Sections",
         description="Current coater category"
     )
@@ -39,66 +37,107 @@ class COATER_PT_Panel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
+        active_object = bpy.context.active_object
         coater_properties = scene.coater_properties
-
-        # Color Picker
-
-        # Brush Presets (seperate panel)
-
+        
+        ###################################################################################################
         if coater_properties.coater_sections == "SECTION_LAYERS":
             # Draw add-on section buttons.
             row = layout.row()
-            layout.prop(coater_properties, "coater_sections", expand=True)
+            row.prop(coater_properties, "coater_sections", expand=True)
+            row.scale_y = 2.0
 
-            # TODO: Show the currently selected material name.
+            # Draw Color Picker
             row = layout.row()
-            layout.label(text=bpy.context.active_object.active_material.name)
+            row.template_color_picker(bpy.context.scene.tool_settings.unified_paint_settings, "color")
 
-            # Export to image editor.
+            # Draw Color Palette
+            if context.tool_settings.image_paint.palette:
+                layout.template_palette(context.tool_settings.image_paint, "palette", color=True)
+
+            # Draw Primary & Secondary Colors
+            row = layout.row(align=True)
+            row.prop(scene.tool_settings.unified_paint_settings, "color", text="")
+            row.prop(scene.tool_settings.unified_paint_settings, "color", text="")
+            row.operator("coater.swap_primary_color", icon='UV_SYNC_SELECT')
+
+            # TODO: Draw Brush *Presets* ONLY
+
+            # TODO: Draw curently selected material AND dropdown list of all materials.
             row = layout.row()
-            row.operator("coater.image_editor_export", icon="EXPORT")
+            if active_object != None:
+                if active_object.active_material != None:
+                    row.template_ID(active_object, "active_material")
 
-            # TODO: Draw selected material.
+                else:
+                    layout.label(text="No active material")
 
-            # TODO: Layers Channel
+            else:
+                layout.label(text="No object selected.")
 
             # Layer Operations
-            row = layout.row()
-            row.operator("coater.add_color_layer", icon="COLOR")
-            row.operator("coater.merge_layer", icon="TRIA_DOWN_BAR")
+            row = layout.row(align=True)
+            row.operator("coater.add_layer_menu", icon="ADD")
+            row.operator("coater.add_mask_menu", icon="MOD_MASK")
+            row.operator("coater.edit_layer_properties", icon='PROPERTIES')
+            row.operator("coater.move_layer", icon="TRIA_UP")
+            row.operator("coater.move_layer", icon="TRIA_DOWN")
             row.operator("coater.duplicate_layer", icon="DUPLICATE")
-            row.operator("coater.move_layer",
-                         icon="TRIA_UP").direction = 'UP'
-            row.operator("coater.move_layer",
-                         icon="TRIA_DOWN").direction = 'DOWN'
+            row.operator("coater.merge_layer", icon="AUTOMERGE_OFF")
+            row.operator("coater.image_editor_export", icon="EXPORT")
             row.operator("coater.delete_layer", icon="TRASH")
             row.scale_y = 2.0
-            row.alignment = 'EXPAND'
+            row.scale_x = 2
+
+            # Channels
+            row = layout.row()
+            row.prop(scene.coater_layer_stack, "channel")
+            if scene.coater_layer_stack.channel_preview == False:
+                row.operator("coater.toggle_channel_preview", icon='MATERIAL')
+
+            elif scene.coater_layer_stack.channel_preview == True:
+                row.operator("coater.toggle_channel_preview", icon='MATERIAL', depress=True)
+            row.scale_x = 2
+            row.scale_y = 1.4
 
             # Draw Layer Stack
             row = layout.row()
-            row.template_list("COATER_UL_layer_list", "The_List",
-                              scene, "my_list", scene, "layer_index")
+            row.template_list("COATER_UL_layer_list", "The_List", scene, "coater_layers", scene.coater_layer_stack, "layer_index")
+            row.scale_y = 2
 
+        ###################################################################################################
         if coater_properties.coater_sections == "SECTION_BAKING":
             # Draw add-on section buttons.
-            layout.prop(coater_properties, "coater_sections", expand=True)
+            row = layout.row()
+            row.prop(coater_properties, "coater_sections", expand=True)
+            row.scale_y = 2.0
 
             # Color Grid
+            scale = 1.4
             row = layout.row()
             row.operator("coater.apply_color_grid")
+            row.scale_y = scale
+
+            row = layout.row()
+            row.operator("coater.bake_common_maps")
+            row.scale_y = scale
 
             # Ambient Occlusion
             row = layout.row()
             row.operator("coater.bake_ambient_occlusion")
-
-        if coater_properties.coater_sections == "SECTION_DISPLAY":
-            # Draw add-on section buttons.
-            layout.prop(coater_properties, "coater_sections", expand=True)
+            row.scale_y = scale
 
             row = layout.row()
-            row.operator("material.set_hand_painted")
+            row.operator("coater.bake_curvature")
+            row.scale_y = scale
 
+            row = layout.row()
+            row.operator("coater.bake_edges")
+            row.scale_y = scale
+
+        ###################################################################################################
         if coater_properties.coater_sections == "SECTION_COATER_SETTINGS":
             # Draw add-on section buttons.
-            layout.prop(coater_properties, "coater_sections", expand=True)
+            row = layout.row()
+            row.prop(coater_properties, "coater_sections", expand=True)
+            row.scale_y = 2.0
