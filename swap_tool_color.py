@@ -17,13 +17,17 @@
 
 import bpy
 
-
-
-# Swaps the primary color with the secondary color.
 class COATER_OT_swap_primary_color(bpy.types.Operator):
+    '''Swaps the primary color with the secondary color'''
     bl_idname = "coater.swap_primary_color"
     bl_label = ""
     bl_description = "Swaps the primary color with the secondary color."
 
     def execute(self, context):
+        scene = context.scene
+        color = scene.tool_settings.unified_paint_settings.color
+        primary_color = (color.r, color.g, color.b)
+        scene.tool_settings.unified_paint_settings.color = scene.tool_settings.unified_paint_settings.secondary_color
+        scene.tool_settings.unified_paint_settings.secondary_color = primary_color
+        
         return{'FINISHED'}

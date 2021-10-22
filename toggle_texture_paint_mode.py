@@ -1,6 +1,5 @@
 import bpy
 
-
 class COATER_OT_toggle_texture_paint_mode(bpy.types.Operator):
     bl_idname = "coater.toggle_texture_paint_mode"
     bl_label = " "

@@ -15,35 +15,27 @@
 
 import bpy
 
-class COATER_OT_add_mask_menu(bpy.types.Operator):
-    '''Opens a menu of mask types that can be added to the selected layer.'''
+class COATER_OT_add_layer_menu(bpy.types.Operator):
+    '''Opens a menu of layer types that can be added the the layer stack.'''
     bl_label = ""
-    bl_idname = "coater.add_mask_menu"
-    bl_description = "Opens a menu of mask types that can be added to the selected layer"
-
-    mask_type: bpy.props.EnumProperty(
-        items=[('IMAGE_MASK', "Image Mask", "Adds a layer filled with an image assigned to it."),
-               ('COLOR_MASK', "Color Mask", "Adds a layer filled with a solid color.")],
-        name="",
-        description="Type of the layer",
-        default='IMAGE_MASK',
-        options={'HIDDEN'}
-    )
+    bl_idname = "coater.add_layer_menu"
+    bl_description = "Opens a menu of layer types that can be added to the layer stack"
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
-        if self.mask_type == "COLOR_MASK":
-            self.report({'INFO'}, "COLOR MASK")
-
-        elif self.mask_type == "IMAGE_MASK":
-            self.report({'INFO'}, "IMAGE MASK")
         return {'FINISHED'}
 
     # Opens the popup when the add layer button is clicked.
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self)
+        return context.window_manager.invoke_popup(self, width=150)
 
     # Draws the properties in the popup.
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, "mask_type")
+
+        split = layout.split()
+        col = split.column(align=True)
+        col.scale_y = 2
+        col.operator("coater.add_image_layer", icon='IMAGE_DATA')
+        col.operator("coater.add_blank_image_layer", icon='IMAGE_DATA')
+        col.operator("coater.add_color_layer", icon='COLOR')

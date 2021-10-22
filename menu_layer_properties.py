@@ -24,17 +24,33 @@ class COATER_OT_edit_layer_properties(bpy.types.Operator):
 
     @ classmethod
     def poll(cls, context):
-        return context.scene.coater_layers
+        return bpy.context.scene.coater_layers
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
-        self.report({'INFO'}, "Layer Properties Edited")
+        return {'FINISHED'}
 
     # Opens the popup when the add layer button is clicked.
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self)
+        return context.window_manager.invoke_popup(self, width=300)
 
     # Draws the properties in the popup.
     def draw(self, context):
+        layers = context.scene.coater_layers
+        layer_index = context.scene.coater_layer_stack.layer_index
+
         layout = self.layout
-        layout.label("Layer Properties")
+        row = layout.row()
+        row.label(text="Layer Properties")
+
+        # Image Layer Properties
+        if(layers[layer_index].layer_type == 'IMAGE_LAYER'):
+            row = layout.row(align=True)
+            row.template_ID(layers[layer_index], "color_image", open="color_image.open")
+
+        # Color Layer Properties
+        if(layers[layer_index].layer_type == 'COLOR_LAYER'):
+            row = layout.row()
+            row.prop(layers[layer_index], "color")
+
+            

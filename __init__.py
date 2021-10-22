@@ -17,23 +17,28 @@
 
 import bpy
 
+# Import addon preferences (settings).
+from . coater_preferences import *
+
 # Import layer functionality.
 from . layers import *
-from . add_layer_menu import *
-from . add_mask_menu import *
-from . layer_properties import *
+from . layer_stack import *
+from . layer_operations import *
+from . draw_layer_stack import *
+from . menu_add_layer import *
+from . menu_add_mask import *
+from . menu_layer_properties import *
 
 # Import baking functionality.
 from . baking import *
 
 # Import UI.
-from . coater_panel import *
-from . coater_tools import *
+from . coater_ui import *
+from . swap_tool_color import *
 
 # Import additional functions.
 from . export_to_image_editor import *
 from . toggle_texture_paint_mode import *
-
 
 bl_info = {
     "name": "Coater",
@@ -47,35 +52,49 @@ bl_info = {
     "category": "Material Editing",
 }
 
-
 # List of classes to be registered.
 classes = (
-    COATER_properties,
+    #Addon Preferences
+    COATER_AddonPreferences,
+    COATER_OT_addon_preferences,
+    
+    # Baking
     COATER_OT_apply_color_grid,
     COATER_OT_bake_common_maps,
     COATER_OT_bake_ambient_occlusion,
     COATER_OT_bake_curvature,
     COATER_OT_bake_edges,
 
-    # Layer Stack
+    # Layers
     COATER_layer_stack,
     COATER_layers,
+
+    # Layer Menus
     COATER_OT_add_layer_menu,
     COATER_OT_add_mask_menu,
+
+    # Layer Operations
     COATER_OT_edit_layer_properties,
     COATER_UL_layer_list,
-    COATER_OT_add_layer,
-    COATER_OT_add_mask,
+    COATER_OT_add_color_layer,
+    COATER_OT_add_image_layer,
+    COATER_OT_add_blank_image_layer,
+    COATER_OT_add_image_mask,
     COATER_OT_delete_layer,
-    COATER_OT_move_layer,
+    COATER_OT_move_layer_up,
+    COATER_OT_move_layer_down,
     COATER_OT_merge_layer,
     COATER_OT_duplicate_layer,
     COATER_OT_toggle_channel_preview,
+    COATER_OT_import_color_image,
+    COATER_OT_refresh_layers,
+    COATER_OT_add_layer_slot,
 
     # Main Panel & General Settings
+    COATER_panel_properties,
     COATER_PT_Panel,
 
-    # Tool Settings
+    # Color Swap
     COATER_OT_swap_primary_color,
     
     # Misc functions
@@ -88,20 +107,18 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    # Coater Properties
-    bpy.types.Scene.coater_properties = bpy.props.PointerProperty(type=COATER_properties)
+    # Panel Properties
+    bpy.types.Scene.coater_panel_properties = bpy.props.PointerProperty(type=COATER_panel_properties)
 
     # Layer Stack Properties
     bpy.types.Scene.coater_layer_stack = bpy.props.PointerProperty(type=COATER_layer_stack)
     bpy.types.Scene.coater_layers = bpy.props.CollectionProperty(type=COATER_layers)
 
-
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
-    del bpy.types.Scene.coater_properties
-
+    # TODO: Unregister pointers??
 
 if __name__ == "__main__":
     register()
