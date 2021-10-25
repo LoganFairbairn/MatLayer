@@ -32,10 +32,8 @@ class COATER_OT_add_layer_menu(bpy.types.Operator):
     # Draws the properties in the popup.
     def draw(self, context):
         layout = self.layout
-
         split = layout.split()
         col = split.column(align=True)
-        col.scale_y = 2
         col.operator("coater.add_image_layer", icon='IMAGE_DATA')
-        col.operator("coater.add_blank_image_layer", icon='IMAGE_DATA')
+        col.operator("coater.add_empty_image_layer", icon='IMAGE_DATA')
         col.operator("coater.add_color_layer", icon='COLOR')

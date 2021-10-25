@@ -7,16 +7,13 @@ def update_layer_index(self, context):
     active_material = context.object.active_material
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
-
-    # TODO: Set the active paint layer.
+    
     bpy.context.scene.tool_settings.image_paint.mode = 'MATERIAL'
 
-    for i in range(0, len(active_material.texture_paint_images)):
-        if layers[layer_index].color_image == active_material.texture_paint_images[i]:
-            print("Match at: " + str(i))
-            active_material.paint_active_slot = i
-        
-    #active_material.paint_active_slot = len(active_material.texture_paint_slots) - 1
+    if active_material != None:
+        for i in range(0, len(active_material.texture_paint_images)):
+            if layers[layer_index].color_image == active_material.texture_paint_images[i]:
+                active_material.paint_active_slot = i
 
 class COATER_layer_stack(bpy.types.PropertyGroup):
     '''Properties for the layer stack.'''

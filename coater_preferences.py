@@ -18,14 +18,13 @@ class COATER_AddonPreferences(AddonPreferences):
     use_32_bit: bpy.props.BoolProperty(default=False, name="Use 32-bit by default.")
     pack_images: bpy.props.BoolProperty(default=False, name="Pack Images", description="When this option is enabled, images will be saved with the .blend file by default. Packed images can not use the 'export to external image edit' function.")
     organize_nodes: bpy.props.BoolProperty(default=False, name="Organize Nodes", description="Automatically organize nodes when the layer stack is changed.")
+    show_color_picker: bpy.props.BoolProperty(default=False, name="Show Color Picker")
+    show_color_palette: bpy.props.BoolProperty(default=False, name="Show Color Palette")
+    show_brush_colors: bpy.props.BoolProperty(default=True, name="Show Brush Colors")
 
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "image_folder")
-        layout.prop(self, "image_size_presets")
-        layout.prop(self, "use_32_bit")
-        layout.prop(self, "pack_images")
-        layout.prop(self, "organize_nodes")
         
 # TODO: EXAMPLE DELETE LATER
 class COATER_OT_addon_preferences(Operator):
@@ -35,8 +34,7 @@ class COATER_OT_addon_preferences(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        preferences = context.preferences
-        addon_preferences = preferences.addons["Coater"].preferences
+        addon_preferences = context.preferences.addons["Coater"].preferences
         
         info = "Image Folder: " + addon_preferences.image_folder
 

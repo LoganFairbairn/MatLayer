@@ -50,6 +50,7 @@ def draw_layer_stack_ui(self, context):
     scene = context.scene
     panel_properties = context.scene.coater_panel_properties
     active_object = context.active_object
+    addon_preferences = context.preferences.addons["Coater"].preferences
 
     # Draw add-on section buttons.
     row = layout.row()
@@ -57,18 +58,21 @@ def draw_layer_stack_ui(self, context):
     row.scale_y = 2.0
 
     # Draw Color Picker
-    row = layout.row()
-    row.template_color_picker(bpy.context.scene.tool_settings.unified_paint_settings, "color")
+    if addon_preferences.show_color_picker:
+        row = layout.row()
+        row.template_color_picker(bpy.context.scene.tool_settings.unified_paint_settings, "color")
 
     # Draw Color Palette
-    if context.tool_settings.image_paint.palette:
-        layout.template_palette(context.tool_settings.image_paint, "palette", color=True)
+    if addon_preferences.show_color_palette:
+        if context.tool_settings.image_paint.palette:
+            layout.template_palette(context.tool_settings.image_paint, "palette", color=True)
 
     # Draw Primary & Secondary Colors
-    row = layout.row(align=True)
-    row.prop(scene.tool_settings.unified_paint_settings, "color", text="")
-    row.prop(scene.tool_settings.unified_paint_settings, "secondary_color", text="")
-    row.operator("coater.swap_primary_color", icon='UV_SYNC_SELECT')
+    if addon_preferences.show_brush_colors:
+        row = layout.row(align=True)
+        row.prop(scene.tool_settings.unified_paint_settings, "color", text="")
+        row.prop(scene.tool_settings.unified_paint_settings, "secondary_color", text="")
+        row.operator("coater.swap_primary_color", icon='UV_SYNC_SELECT')
 
     # TODO: Draw Brush *Presets* ONLY
 
@@ -84,7 +88,8 @@ def draw_layer_stack_ui(self, context):
     else:
         layout.label(text="No object selected.")
 
-    row.operator("coater.refresh_layers", icon='FILE_REFRESH')
+    if active_object.active_material != None:
+        row.operator("coater.refresh_layers", icon='FILE_REFRESH')
 
     # Layer Operations
     row = layout.row(align=True)
@@ -104,12 +109,12 @@ def draw_layer_stack_ui(self, context):
     row = layout.row()
     row.prop(scene.coater_layer_stack, "channel")
     if scene.coater_layer_stack.channel_preview == False:
-        row.operator("coater.toggle_channel_preview", icon='MATERIAL')
+        row.operator("coater.toggle_channel_preview", text="", icon='MATERIAL')
 
     elif scene.coater_layer_stack.channel_preview == True:
-        row.operator("coater.toggle_channel_preview", icon='MATERIAL', depress=True)
-        row.scale_x = 2
-        row.scale_y = 1.4
+        row.operator("coater.toggle_channel_preview", text="", icon='MATERIAL', depress=True)
+    row.scale_x = 2
+    row.scale_y = 1.4
 
     # Draw Layer Stack
     row = layout.row(align=True)
@@ -154,10 +159,18 @@ def draw_baking_ui(self, context):
 def draw_setting_ui(self, context):
     layout = self.layout
     panel_properties = context.scene.coater_panel_properties
+    addon_preferences = context.preferences.addons["Coater"].preferences
 
     # Draw add-on section buttons.
     row = layout.row()
     row.prop(panel_properties, "sections", expand=True)
     row.scale_y = 2.0
 
-    # TODO: Draw coater settings (addon preferences)
+    layout.prop(addon_preferences, "image_folder")
+    layout.prop(addon_preferences, "image_size_presets")
+    layout.prop(addon_preferences, "use_32_bit")
+    layout.prop(addon_preferences, "pack_images")
+    layout.prop(addon_preferences, "organize_nodes")
+    layout.prop(addon_preferences, "show_color_picker")
+    layout.prop(addon_preferences, "show_color_palette")
+    layout.prop(addon_preferences, "show_brush_colors")
