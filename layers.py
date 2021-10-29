@@ -69,19 +69,63 @@ def update_layer_image(self, context):
     node_group = bpy.data.node_groups.get(group_node_name)
 
     color_node = node_group.nodes.get(layers[layer_index].color_node_name)
-    if color_node != None:
+    if color_node != None and color_node.bl_static_type == 'TEX_IMAGE':
         color_node.image = layers[layer_index].color_image
+
+def update_layer_name(self, context):
+    layers = context.scene.coater_layers
+    layer_index = context.scene.coater_layer_stack.layer_index
+
+    if layer_index != -1:
+        if len(layers) > 1:
+            print("New Layer Name: " + layers[layer_index].layer_name)
+
+            # If another layer has the new name already, rename that layer.
+            duplicate_index = -1
+            for i in range(len(layers)):
+
+                # Do not check the renamed layer index.
+                if i != layer_index:
+                    if layers[layer_index].layer_name == layers[i].layer_name:
+                        duplicate_layers_previous_name = layers[i].layer_name
+                        layers[i].layer_name = layers[i].layer_name + " copy"
+                        duplicate_index = i
+                        break
+            
+            
+            # Make sure the renamed layer doesn't have another layer name already.
+            if duplicate_index != -1:
+                duplicate_layer_name = layers[duplicate_index].layer_name
+                layer_number = 0
+                name_exists = True
+                number_of_layers = len(layers)
+                i = 0
+
+                while(name_exists):
+                    for i in range(number_of_layers):
+
+                        # Do not check the duplicate layer index.
+                        if i != duplicate_index:
+                            if layers[i].layer_name == duplicate_layer_name:
+                                layer_number += 1
+                                duplicate_layer_name = duplicate_layer_name + str(layer_number)
+                                break
+                        
+                        if i == number_of_layers - 1:
+                            name_exists = False
+                            layers[duplicate_index].layer_name = duplicate_layer_name
 
 class COATER_layers(bpy.types.PropertyGroup):
     '''Layer stack item.'''
     layer_name: bpy.props.StringProperty(
         name="",
         description="The name of the layer",
-        default="Layer naming error")
+        default="Layer naming error",
+        update=update_layer_name)
 
     layer_type: bpy.props.EnumProperty(
-        items=[('IMAGE_LAYER', "", ""),
-               ('COLOR_LAYER', "", "")],
+        items=[('IMAGE_LAYER', "Image Layer", ""),
+               ('COLOR_LAYER', "Color Layer", "")],
         name="",
         description="Type of the layer",
         default='IMAGE_LAYER',
@@ -126,6 +170,7 @@ class COATER_layers(bpy.types.PropertyGroup):
                                            update=update_layer_opactity)
 
     # Store nodes.
+    frame_name: bpy.props.StringProperty(default="")
     uv_map_node_name: bpy.props.StringProperty(default="")
     mapping_node_name: bpy.props.StringProperty(default="")
     color_node_name: bpy.props.StringProperty(default="")

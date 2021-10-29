@@ -14,13 +14,14 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import sys
 import random
 import bpy
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper
 
 # Adds a image layer with a blank image.
-class COATER_OT_add_image_layer(bpy.types.Operator):
+class COATER_OT_add_image_layer(Operator):
     '''Adds a new blank image layer to the layer stack'''
     bl_idname = "coater.add_image_layer"
     bl_label = "Add Blank Image Layer"
@@ -34,7 +35,7 @@ class COATER_OT_add_image_layer(bpy.types.Operator):
         create_layer_nodes(self, context, 'IMAGE_LAYER')
         organize_nodes(self, context)
         link_layers(self, context)
-
+        
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
         layers[layer_index].layer_type = 'IMAGE_LAYER'
@@ -80,7 +81,7 @@ class COATER_OT_add_image_layer(bpy.types.Operator):
         return {'FINISHED'}
 
 # Adds an empty image layer.
-class COATER_OT_add_empty_image_layer(bpy.types.Operator):
+class COATER_OT_add_empty_image_layer(Operator):
     '''Adds a new layer to the layer stack'''
     bl_idname = "coater.add_empty_image_layer"
     bl_label = "Add Empty Image Layer"
@@ -90,7 +91,6 @@ class COATER_OT_add_empty_image_layer(bpy.types.Operator):
     def execute(self, context):
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
-        layer_stack = context.scene.coater_layer_stack
 
         bpy.ops.coater.add_layer_slot()
         ready_coater_material(self, context)
@@ -139,7 +139,7 @@ class COATER_OT_add_color_layer(Operator):
         return {'FINISHED'}
 
 # Adds an image mask nodes to the selected layer.
-class COATER_OT_add_image_mask(bpy.types.Operator):
+class COATER_OT_add_image_mask(Operator):
     bl_idname = "coater.add_image_mask"
     bl_label = "Add Mask"
     bl_description = "Adds an image mask to the selected layer."
@@ -153,7 +153,7 @@ class COATER_OT_add_image_mask(bpy.types.Operator):
         return{'FINISHED'}
 
 # Deletes the selected layer.
-class COATER_OT_delete_layer(bpy.types.Operator):
+class COATER_OT_delete_layer(Operator):
     '''Deletes the selected layer from the layer stack.'''
     bl_idname = "coater.delete_layer"
     bl_label = ""
@@ -170,7 +170,7 @@ class COATER_OT_delete_layer(bpy.types.Operator):
         layer_stack = context.scene.coater_layer_stack
         layer_index = context.scene.coater_layer_stack.layer_index
 
-        node_group = get_channel_node_group(self, context)
+        channel_node = get_channel_node(self, context)
 
         # If there is an image assigned to the layer, delete the image too.
         if layers[layer_index].color_image != None:
@@ -179,7 +179,12 @@ class COATER_OT_delete_layer(bpy.types.Operator):
         # Remove all nodes for this layer if they exist.
         node_list = get_layer_nodes(self, context, layer_index)
         for node in node_list:
-            node_group.nodes.remove(node)
+            channel_node.node_tree.nodes.remove(node)
+
+        # TODO: Remove node frame
+        frame = channel_node.node_tree.nodes.get(layers[layer_index].frame_name)
+        if frame != None:
+            channel_node.node_tree.nodes.remove(frame)
 
         # Remove the layer from the list.
         layers.remove(layer_stack.layer_index)
@@ -205,13 +210,13 @@ class COATER_OT_delete_layer(bpy.types.Operator):
             if node_group != None:
                 bpy.data.node_groups.remove(node_group)
 
-        # Update the node lables.
-        update_node_labels(self, context)
+        update_node_labels(self, context)   # Update the node lables.
+        organize_nodes(self, context)       # Organize nodes
 
         return {'FINISHED'}
 
 # Moves the layer up on the layer stack.
-class COATER_OT_move_layer_up(bpy.types.Operator):
+class COATER_OT_move_layer_up(Operator):
     """Moves the selected layer up on the layer stack."""
     bl_idname = "coater.move_layer_up"
     bl_label = ""
@@ -228,7 +233,7 @@ class COATER_OT_move_layer_up(bpy.types.Operator):
         return{'FINISHED'}
 
 # Moves the selected layer down on the layer stack.
-class COATER_OT_move_layer_down(bpy.types.Operator):
+class COATER_OT_move_layer_down(Operator):
     """Moves the selected layer down the layer stack."""
     bl_idname = "coater.move_layer_down"
     bl_label = ""
@@ -245,7 +250,7 @@ class COATER_OT_move_layer_down(bpy.types.Operator):
         return{'FINISHED'}
 
 # Merges the selected layer with the layer below.
-class COATER_OT_merge_layer(bpy.types.Operator):
+class COATER_OT_merge_layer(Operator):
     """Merges the selected layer with the layer below."""
     bl_idname = "coater.merge_layer"
     bl_label = ""
@@ -261,7 +266,7 @@ class COATER_OT_merge_layer(bpy.types.Operator):
         return{'FINISHED'}
 
 # Duplicates the selected layer.
-class COATER_OT_duplicate_layer(bpy.types.Operator):
+class COATER_OT_duplicate_layer(Operator):
     """Duplicates the selected layer."""
     bl_idname = "coater.duplicate_layer"
     bl_label = ""
@@ -277,7 +282,7 @@ class COATER_OT_duplicate_layer(bpy.types.Operator):
         return{'FINISHED'}
 
 # Toggles the channel preview on and off.
-class COATER_OT_toggle_channel_preview(bpy.types.Operator):
+class COATER_OT_toggle_channel_preview(Operator):
     bl_idname = "coater.toggle_channel_preview"
     bl_label = "Toggle Channel Preview"
     bl_description = "Toggles the preview for the current material channel"
@@ -309,16 +314,15 @@ class COATER_OT_toggle_channel_preview(bpy.types.Operator):
                 node_links.new(base_color_group.outputs[0], principled_bsdf_node.inputs[0])
                 
             if metallic_group != None:
-                node_links.new(metallic_group.outputs[0], principled_bsdf_node.inputs[7])
+                node_links.new(metallic_group.outputs[0], principled_bsdf_node.inputs[4])
 
             if roughness_group != None:
-                node_links.new(roughness_group.outputs[0], principled_bsdf_node.inputs[4])
+                node_links.new(roughness_group.outputs[0], principled_bsdf_node.inputs[7])
 
             if height_group != None:
                 node_links.new(height_group.outputs[0], principled_bsdf_node.inputs[20])
 
             node_links.new(principled_bsdf_node.outputs[0], material_output_node.inputs[0])
-                    
 
         # Toggle preview on.
         elif layer_stack.channel_preview == False:
@@ -382,66 +386,72 @@ class COATER_OT_refresh_layers(Operator):
 
     def execute(self, context):
         layers = context.scene.coater_layers
-        layer_index = context.scene.coater_layer_stack.layer_index
+        layer_stack = context.scene.coater_layer_stack
+        material_nodes = context.active_object.active_material.node_tree.nodes
 
         # Clear all layers.
         layers.clear()
+        layer_stack.layer_index = -1
 
-        # Check to see if there's nodes in the selected layer channel group node.
-        node_group = get_channel_node_group(self, context)
-        if node_group != None:
+        # TODO: Make sure this is a coater material before rebuilding the layer stack.
+        principled_bsdf = material_nodes.get('Principled BSDF')
 
-            # Get the total number of layers.
-            total_layers = 0
-            for x in range(0, 100):
-                node = node_group.nodes.get("MixLayer_" + str(x)) # ERROR Incorrect name.
-                if(node != None):
-                    total_layers += 1
-                else:
-                    break
+        if principled_bsdf.label == "Coater PBR":
+            # Check to see if there's nodes in the selected layer channel group node.
+            node_group = get_channel_node_group(self, context)
+            if node_group != None:
 
-            # Rebuild each layer in the layer stack.
-            for i in range(0, int(total_layers)):
-                # Add a layer slot.
-                bpy.ops.coater.add_layer_slot()
+                # Get the total number of layers using mix nodes.
+                total_layers = 0
+                for x in range(0, 100):
+                    node = node_group.nodes.get("MixLayer_" + str(x))
+                    if(node != None):
+                        total_layers += 1
+                    else:
+                        break
 
-                # Get nodes using their names and store the nodes in the layer.
-                color_node = node_group.nodes.get("Color_" + str(i))
-                opacity_node = node_group.nodes.get("Opacity_" + str(i))
-                mix_layer_node = node_group.nodes.get("MixLayer_" + str(i))
-                uv_map_node = node_group.nodes.get("UVMap_" + str(i))
-                mapping_node = node_group.nodes.get("Mapping_" + str(i))
+                # Add a layer slot for each layer.
+                for i in range(total_layers):
+                    bpy.ops.coater.add_layer_slot()
 
-                # If the node exists, store the node and it's values.
-                if color_node != None:
-                    # Store values based on node type.
-                    if color_node.bl_static_type == 'TEX_IMAGE':
-                        layers[layer_index].color_node_name = color_node.name
-                        layers[layer_index].color_image = color_node.image
+                # Read and store node values.
+                for i in range(0, total_layers):
+                    # Get nodes using their names and store the nodes in the layer.
+                    color_node = node_group.nodes.get("Color_" + str(i))
+                    opacity_node = node_group.nodes.get("Opacity_" + str(i))
+                    mix_layer_node = node_group.nodes.get("MixLayer_" + str(i))
+                    uv_map_node = node_group.nodes.get("UVMap_" + str(i))
+                    mapping_node = node_group.nodes.get("Mapping_" + str(i))
 
-                    if color_node.bl_static_type == 'RGB':
-                        layers[layer_index].color_node_name = color_node.name
-                        color = color_node.outputs[0].default_value
-                        layers[layer_index].color = (color[0], color[1], color[2])
+                    # If the node exists, store the node and it's values.
+                    if color_node != None:
+                        if color_node.bl_static_type == 'TEX_IMAGE':
+                            layers[i].color_node_name = color_node.name
+                            layers[i].color_image = color_node.image
+                            layers[i].layer_type = 'IMAGE_LAYER'
 
-                if opacity_node != None:
-                    layers[layer_index].opacity_node_name = opacity_node.name
-                    opacity = opacity_node.inputs[1].default_value
-                    layers[layer_index].layer_opacity = opacity
+                        if color_node.bl_static_type == 'RGB':
+                            layers[i].color_node_name = color_node.name
+                            color = color_node.outputs[0].default_value
+                            layers[i].color = (color[0], color[1], color[2])
+                            layers[i].layer_type = 'COLOR_LAYER'
 
-                if mix_layer_node != None:
-                    layers[layer_index].mix_layer_node_name = mix_layer_node.name
-                    blend_mode = mix_layer_node.blend_type
-                    layers[layer_index].blend_mode = blend_mode
+                    if opacity_node != None:
+                        layers[i].opacity_node_name = opacity_node.name
+                        layers[i].layer_opacity = opacity_node.inputs[1].default_value
 
-                if uv_map_node != None:
-                    layers[layer_index].uv_map_node_name = uv_map_node.name
+                    if mix_layer_node != None:
+                        layers[i].mix_layer_node_name = mix_layer_node.name
+                        layers[i].blend_mode = mix_layer_node.blend_type
 
-                if mapping_node != None:
-                    layers[layer_index].mapping_node_name = mapping_node.name
+                    if uv_map_node != None:
+                        layers[i].uv_map_node_name = uv_map_node.name
 
-                # Organize the nodes for good measure.
-                organize_nodes(self, context)
+                    if mapping_node != None:
+                        layers[i].mapping_node_name = mapping_node.name
+
+                    # Organize the nodes for good measure.
+                    organize_nodes(self, context)
 
         return {'FINISHED'}
 
@@ -459,21 +469,36 @@ class COATER_OT_add_layer_slot(Operator):
         # Add a new layer slot.
         layers.add()
 
-        # TODO: Assign the layer a unique name.
-        layers[len(layers) - 1].layer_name = "Layer"
+        # Assign the layer a unique name.
+        new_layer_name = "Layer 0"
+        layer_number = 0
+        name_exists = True
+        number_of_layers = len(layers)
+
+        while (name_exists):
+            for i in range(number_of_layers):
+                if layers[i].layer_name == new_layer_name:
+                    layer_number += 1
+                    new_layer_name = "Layer " + str(layer_number)
+                    break
+
+                if i == (number_of_layers - 1):
+                    name_exists = False
+                    layers[len(layers) - 1].layer_name = new_layer_name
 
         # Moves the new layer above the currently selected layer and selects it.
         if(layer_index != -1):
             move_index = len(layers) - 1
             move_to_index = max(0, min(layer_index, len(layers) - 1))
             layers.move(move_index, move_to_index)
-            layer_index = move_to_index
+            layer_stack.layer_index = move_to_index
 
+        # If there is no layer selected, move the layer to the top of the stack.
         else:
             move_index = len(layers) - 1
             move_to_index = 0
             layers.move(move_index, move_to_index)
-            layer_stack.layer_index = move_to_index 
+            layer_stack.layer_index = move_to_index
 
         return {'FINISHED'}
 
@@ -481,10 +506,11 @@ class COATER_OT_add_layer_slot(Operator):
 def organize_nodes(self, context):
     '''Organizes all nodes in the material node editor.'''
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
     layer_stack = context.scene.coater_layer_stack
     active_material = context.active_object.active_material
     node_spacing = layer_stack.node_spacing
+    active_material = context.active_object.active_material
+    material_nodes = context.active_object.active_material.node_tree.nodes
 
     # Organize channel nodes.
     group_nodes = get_channel_nodes(self, context)
@@ -492,12 +518,13 @@ def organize_nodes(self, context):
     for node in group_nodes:
         if node != None:
             node.location = (-node.width + -node_spacing, header_position[1])
-            header_position[1] -= node.height
+            header_position[1] -= (node.height + layer_stack.node_spacing)
 
     # Organize group output node.
     channel_node = get_channel_node(self, context)
-    group_output_node = channel_node.node_tree.nodes.get('Group Output')
-    group_output_node.location = (0.0, 0.0)
+    if channel_node != None:
+        group_output_node = channel_node.node_tree.nodes.get('Group Output')
+        group_output_node.location = (0.0, 0.0)
 
     # TODO: Organize all layer nodes.
     header_position = [0.0, 0.0]
@@ -505,7 +532,6 @@ def organize_nodes(self, context):
         header_position[0] -= layer_stack.node_default_width + node_spacing
         header_position[1] = 0.0
 
-        # Organize all nodes in the layer.
         node_list = get_layer_nodes(self, context, i)
         for node in node_list:
             node.width = layer_stack.node_default_width
@@ -522,7 +548,19 @@ def link_layers(self, context):
 
     group_output_node = node_group.nodes.get('Group Output')
     
-    for x in range(len(layers), 0, -1):
+    number_of_layers = len(layers)
+
+    # Remove all existing output links if they exist.
+    for x in range(number_of_layers - 1):
+        mix_layer_node = node_group.nodes.get(layers[x].mix_layer_node_name)
+        output = mix_layer_node.outputs[0]
+
+        for l in output.links:
+            if l != 0:
+                node_group.links.remove(l)
+    
+    # Connect all mix layer nodes.
+    for x in range(number_of_layers, 0, -1):
         mix_layer_node = node_group.nodes.get(layers[x - 1].mix_layer_node_name)
         next_mix_layer_node = node_group.nodes.get(layers[x - 2].mix_layer_node_name)
 
@@ -532,11 +570,6 @@ def link_layers(self, context):
 
         # Connect to the color output if there are no more mix layer nodes.
         else:
-            output = mix_layer_node.outputs[0]
-            
-            for l in output.links:
-                if l != 0:
-                    node_group.links.remove(l)
             node_group.links.new(mix_layer_node.outputs[0], group_output_node.inputs[0])
 
     # TODO: Link to alpha to calculate alpha nodes if required.
@@ -770,19 +803,46 @@ def create_layer_nodes(self, context, layer_type):
         link(mapping_node.outputs[0], color_node.inputs[0])
 
     # TODO: Frame nodes.
-    #material_nodes = context.active_object.active_material.node_tree.nodes
-    #group_node_name = active_material.name + "_" + str(layer_stack.channel)
+    material_nodes = context.active_object.active_material.node_tree.nodes
+    group_node_name = active_material.name + "_" + str(layer_stack.channel)
+    channel_node = material_nodes.get(group_node_name)
 
-    #group_node = material_nodes.get(group_node_name)
-    #if group_node != None:
-    #    material_nodes.active = group_node
+    print("Context Before: " + str(context.area.type) + " - " + str(context.area.ui_type) + " - " + str(context.region) + " - " + str(context.space_data))
 
-    #bpy.context.area.type = 'NODE_EDITOR'
-    #color_node.select = True
-    #opacity_node.select = True
-    #mix_layer_node.select = True
-    #bpy.ops.node.join()
-    #bpy.context.area.ui_type = 'VIEW_3D'
+    previous_area = context.area.type
+    previous_ui = context.area.ui_type
+    context.area.type = 'NODE_EDITOR'
+    context.area.ui_type = 'ShaderNodeTree'
+    
+    # Deselect all nodes.
+    bpy.ops.node.select_all(action='DESELECT')
+
+    # Select the channel node and edit it.
+    material_nodes.active = channel_node
+    channel_node.select = True
+    bpy.ops.node.group_edit()
+
+    # Deselect all nodes in the group.
+    bpy.ops.node.select_all(action='DESELECT')
+
+    # Select layer nodes.
+    layer_nodes = get_layer_nodes(self, context, layer_index)
+    for node in layer_nodes:
+        node.select = True
+
+    # Join layer nodes.
+    bpy.ops.node.join()
+
+    frame = channel_node.node_tree.nodes.get('Frame')
+    frame.name = layers[layer_index].layer_name
+    frame.label = layers[layer_index].layer_name
+    layers[layer_index].frame_name = layers[layer_index].layer_name
+
+    print("Context After: " + str(context.area.type) + " - " + str(context.area.ui_type) + " - " + str(context.region) + " - " + str(context.space_data))
+
+    bpy.ops.node.group_edit()
+    context.area.ui_type = previous_ui
+    context.area.type = previous_area
 
     # If there is another layer already, add a group node to help calculate alpha blending.
     #if len(layers) > 1:
@@ -848,7 +908,8 @@ def create_calculate_alpha_node(self, context):
 
 # Sets the material shading mode to 'Material'.
 def set_material_shading(context):
-    context.space_data.shading.type = 'MATERIAL'
+    if context.space_data.type == 'VIEW_3D':
+        context.space_data.shading.type = 'MATERIAL'
 
 # Returns the current channel node or None if one doesn't exist.
 def get_channel_node(self, context):
