@@ -134,6 +134,9 @@ def draw_layers_section_ui(self, context):
         row.prop(layers[layer_index], "layer_opacity")
     row.scale_y = 1.4
 
+    # Draw Layer Base Values
+    draw_base_channel_value(self, context)
+
     # Draw Layer Properties
     if len(layers) > 0:
         # Draw Layer Stack
@@ -191,13 +194,31 @@ def draw_export_section_ui(self, context):
     layout.prop(addon_preferences, "export_emission")
     layout.prop(addon_preferences, "export_ao")
 
-def draw_base_value(self, context):
+def draw_base_channel_value(self, context):
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
-    channel_node = layer_functions.get_channel_node(self, context)
-
-    layout = self.layout()
+    layer_stack = context.scene.coater_layer_stack
+    material_nodes = context.active_object.active_material.node_tree.nodes
+    
+    layout = self.layout
     row = layout.row()
+
+    if len(layers) == 0:
+        principled_bsdf = material_nodes.get('Principled BSDF')
+
+        if layer_stack.channel == 'BASE_COLOR':
+            row.prop(principled_bsdf.inputs[0], "default_value", text="")
+
+        if layer_stack.channel == 'METALLIC':
+            row.prop(principled_bsdf.inputs[4], "default_value", text="")
+
+        if layer_stack.channel == 'ROUGHNESS':
+            row.prop(principled_bsdf.inputs[7], "default_value", text="")
+
+    else:
+        channel_node = layer_functions.get_channel_node(self, context)
+        
+        if layer_stack.channel == 'BASE_COLOR':
+            row.prop(channel_node.inputs[0], "default_value", text="")
 
 def draw_layer_properties(self, context):
     layers = context.scene.coater_layers
@@ -206,7 +227,7 @@ def draw_layer_properties(self, context):
 
     layout = self.layout
     row = layout.row()
-    row.label(text="Layer Properties:")
+    row.label(text="Layer Properties")
     
     # Image Layer Properties
     if(layers[layer_index].layer_type == 'IMAGE_LAYER'):
@@ -219,6 +240,9 @@ def draw_layer_properties(self, context):
 
             row = layout.row()
             row.prop(color_node, "extension")
+
+            row = layout.row()
+            row.prop(color_node, "interpolation")
 
             row = layout.row()
             row.prop(color_node, "projection")
@@ -247,9 +271,9 @@ def draw_layer_properties(self, context):
 def draw_effect_properties(self, context):
     layout = self.layout
     row = layout.row()
-    row.label(text="Effect Properties:")
+    row.label(text="Effect Properties")
 
 def draw_mask_properties(self, context):
     layout = self.layout
     row = layout.row()
-    row.label(text="Mask Properties:")
+    row.label(text="Mask Properties")

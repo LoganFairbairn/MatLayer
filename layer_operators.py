@@ -20,7 +20,7 @@ from . import layer_functions
 
 import bpy
 from bpy.types import Operator
-from bpy_extras.io_utils import ImportHelper
+from bpy_extras.io_utils import ImportHelper        # For importing images.
 
 class COATER_OT_add_image_layer(Operator):
     '''Adds a new blank image layer to the layer stack'''
@@ -168,18 +168,18 @@ class COATER_OT_add_image_mask(Operator):
             layers[layer_index].mask_mapping_name = mask_mapping_node.name
             layers[layer_index].mask_levels_node = mask_levels_node.name
 
-        layer_functions.update_node_labels(self, context)
-        layer_functions.organize_nodes(self, context)
-        layer_functions.link_layers(self, context)
+            layer_functions.update_node_labels(self, context)
+            layer_functions.organize_nodes(self, context)
+            layer_functions.link_layers(self, context)
 
-        # Add the nodes to the frame.
-        frame = channel_node.node_tree.nodes.get(layers[layer_index].frame_name)
-        if frame != None:
-            mask_node.parent = frame
-            mask_mix_node.parent = frame
-            mask_coord_node.parent = frame
-            mask_mapping_node.parent = frame
-            mask_levels_node.parent = frame
+            # Add the nodes to the frame.
+            frame = channel_node.node_tree.nodes.get(layers[layer_index].frame_name)
+            if frame != None:
+                mask_node.parent = frame
+                mask_mix_node.parent = frame
+                mask_coord_node.parent = frame
+                mask_mapping_node.parent = frame
+                mask_levels_node.parent = frame
 
         return{'FINISHED'}
 

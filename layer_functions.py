@@ -348,13 +348,27 @@ def create_channel_group_node(self, context):
         new_node_group = bpy.data.node_groups.new(group_node_name, 'ShaderNodeTree')
 
         group_input_node = new_node_group.nodes.new('NodeGroupInput')
-        new_node_group.inputs.new('NodeSocketColor', 'Base Color')
-
+        group_input_node.width = layer_stack.node_default_width
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
-        new_node_group.outputs.new('NodeSocketColor', 'Base Color')
-        new_node_group.outputs.new('NodeSocketFloat', 'Alpha')
-
         group_output_node.width = layer_stack.node_default_width
+
+        # TODO: Add a socket based on channel
+        if layer_stack.channel == 'BASE_COLOR':
+            new_node_group.inputs.new('NodeSocketColor', 'Base Color')
+            new_node_group.outputs.new('NodeSocketColor', 'Base Color')
+            new_node_group.outputs.new('NodeSocketFloat', 'Alpha')
+        
+        if layer_stack.channel == 'METALLIC':
+            new_node_group.inputs.new('NodeSocketFloat', 'Metallic')
+            new_node_group.outputs.new('NodeSocketFloat', 'Metallic')
+
+        if layer_stack.channel == 'ROUGHNESS':
+            new_node_group.inputs.new('NodeSocketFloat', 'Roughness')
+            new_node_group.outputs.new('NodeSocketFloat', 'Roughness')
+
+        if layer_stack.channel == 'HEIGHT':
+            new_node_group.inputs.new('NodeSocketFloat', 'Height')
+            new_node_group.outputs.new('NodeSocketFloat', 'Height')
 
     # Add the group node to the active material if there is there isn't a group node already.
     if material_nodes.get(group_node_name) == None:
@@ -373,11 +387,11 @@ def create_channel_group_node(self, context):
             if layer_stack.channel == "BASE_COLOR":
                 node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[0])
 
-            if layer_stack.channel == "ROUGHNESS":
-                node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[7])
-
             if layer_stack.channel == "METALLIC":
                 node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[4])
+
+            if layer_stack.channel == "ROUGHNESS":
+                node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[7])
 
             if layer_stack.channel == "HEIGHT":
                 node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[20])
