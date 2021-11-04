@@ -7,12 +7,12 @@ def update_layer_channel(self, context):
 def update_layer_index(self, context):
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
-    active_material = context.active_object.active_material
     
     bpy.context.scene.tool_settings.image_paint.mode = 'IMAGE'
 
-    if layers[layer_index].color_image != None:
-        bpy.context.scene.tool_settings.image_paint.canvas = layers[layer_index].color_image
+    if layer_index != -1:
+        if layers[layer_index].color_image != None:
+            bpy.context.scene.tool_settings.image_paint.canvas = layers[layer_index].color_image
 
 class COATER_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''

@@ -23,22 +23,26 @@ from . coater_preferences import *
 # Import layer functionality.
 from . layers import *
 from . layer_stack import *
-from . layer_operations import *
+from . layer_operators import *
 from . draw_layer_stack import *
 from . menu_add_layer import *
 from . menu_add_mask import *
-from . menu_layer_properties import *
 
 # Import baking functionality.
 from . baking import *
+
+# Import Exporting functionality.
+from . coater_export import *
 
 # Import UI.
 from . coater_ui import *
 from . swap_tool_color import *
 
 # Import additional functions.
+from . apply_color_grid import COATER_OT_apply_color_grid
 from . export_to_image_editor import *
 from . toggle_texture_paint_mode import *
+from . coater_settings import *
 
 bl_info = {
     "name": "Coater",
@@ -56,14 +60,19 @@ bl_info = {
 classes = (
     #Addon Preferences
     COATER_AddonPreferences,
-    COATER_OT_addon_preferences,
     
     # Baking
-    COATER_OT_apply_color_grid,
-    COATER_OT_bake_common_maps,
+    COATER_OT_bake,
     COATER_OT_bake_ambient_occlusion,
     COATER_OT_bake_curvature,
     COATER_OT_bake_edges,
+
+    # Exporting
+    COATER_OT_export,
+    COATER_OT_export_base_color,
+    COATER_OT_export_roughness,
+    COATER_OT_export_metallic,
+    COATER_OT_export_normals,
 
     # Layers
     COATER_layer_stack,
@@ -74,7 +83,6 @@ classes = (
     COATER_OT_add_mask_menu,
 
     # Layer Operations
-    COATER_OT_edit_layer_properties,
     COATER_UL_layer_list,
     COATER_OT_add_color_layer,
     COATER_OT_add_image_layer,
@@ -88,7 +96,6 @@ classes = (
     COATER_OT_toggle_channel_preview,
     COATER_OT_import_color_image,
     COATER_OT_refresh_layers,
-    COATER_OT_add_layer_slot,
 
     # Main Panel & General Settings
     COATER_panel_properties,
@@ -99,7 +106,9 @@ classes = (
     
     # Misc functions
     COATER_OT_image_editor_export,
-    COATER_OT_toggle_texture_paint_mode
+    COATER_OT_toggle_texture_paint_mode,
+    COATER_OT_apply_color_grid,
+    COATER_OT_open_settings
 )
 
 def register():

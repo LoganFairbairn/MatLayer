@@ -14,6 +14,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import bpy
+import random   # For random layer numbers.
 
 # When a property in the Coater UI is changed, these functions are triggered and their respective properties are updated.
 def update_layer_color(self, context):
@@ -75,11 +76,30 @@ def update_layer_image(self, context):
 def update_layer_name(self, context):
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
+    channel_node = get_channel_node(self, context)
 
     if layer_index != -1:
-        if len(layers) > 1:
-            print("New Layer Name: " + layers[layer_index].layer_name)
 
+        # Rename the layer's frame node.
+        frame = channel_node.node_tree.nodes.get(layers[layer_index].frame_name)
+        if frame != None:
+            frame.name = layers[layer_index].layer_name + "_" + str(layer_index)
+            frame.label = frame.name
+            layers[layer_index].frame_name = frame.name
+
+        # If the layer has an image, rename the image to the layer's name.
+        if layers[layer_index].color_image != None:
+            image_name = layers[layer_index].layer_name + "_" + str(random.randint(0, 99999))
+
+            while bpy.data.images.get(image_name) != None:
+                image_name = layers[layer_index].layer_name + "_" + str(random.randint(0, 99999))
+
+            layers[layer_index].color_image.name = image_name
+
+            # TODO: Remame the saved image too!
+
+        # Rename layers with duplicate names.
+        if len(layers) > 1:
             # If another layer has the new name already, rename that layer.
             duplicate_index = -1
             for i in range(len(layers)):
@@ -87,11 +107,16 @@ def update_layer_name(self, context):
                 # Do not check the renamed layer index.
                 if i != layer_index:
                     if layers[layer_index].layer_name == layers[i].layer_name:
-                        duplicate_layers_previous_name = layers[i].layer_name
                         layers[i].layer_name = layers[i].layer_name + " copy"
                         duplicate_index = i
+
+                        # Rename the frame node.
+                        frame = channel_node.nodes.get(layers[i].frame_name)
+                        if frame != None:
+                            frame.name = layers[i].layer_name + " copy" + "_" + str(i)
+                            frame.label = frame.name
+                            layers[layer_index].frame_name = frame.name
                         break
-            
             
             # Make sure the renamed layer doesn't have another layer name already.
             if duplicate_index != -1:
@@ -114,6 +139,13 @@ def update_layer_name(self, context):
                         if i == number_of_layers - 1:
                             name_exists = False
                             layers[duplicate_index].layer_name = duplicate_layer_name
+
+                            # TODO: Rename layer's frame node.
+                            frame = channel_node.nodes.get(layers[duplicate_index].frame_name)
+                            if frame != None:
+                                frame.name = duplicate_layer_name + "_" + str(duplicate_index)
+                                frame.label = frame.name
+                                layers[duplicate_index].frame_name = frame.name
 
 class COATER_layers(bpy.types.PropertyGroup):
     '''Layer stack item.'''
@@ -171,13 +203,17 @@ class COATER_layers(bpy.types.PropertyGroup):
 
     # Store nodes.
     frame_name: bpy.props.StringProperty(default="")
-    uv_map_node_name: bpy.props.StringProperty(default="")
+    coord_node_name: bpy.props.StringProperty(default="")
     mapping_node_name: bpy.props.StringProperty(default="")
     color_node_name: bpy.props.StringProperty(default="")
     opacity_node_name: bpy.props.StringProperty(default="")
     mix_layer_node_name: bpy.props.StringProperty(default="")
+
     mask_node_name: bpy.props.StringProperty(default="")
-    mix_mask_node_name: bpy.props.StringProperty(default="")
+    mask_mix_node_name: bpy.props.StringProperty(default="")
+    mask_coord_node_name: bpy.props.StringProperty(default="")
+    mask_mapping_node_name: bpy.props.StringProperty(default="")
+    mask_levels_node_name: bpy.props.StringProperty(default="")
 
     # TODO: These might be possible to access directly instead of storing them!
     # Store layer properties.
@@ -191,3 +227,10 @@ def get_current_group_node(self, context):
     group_node_name = active_material.name + "_" + str(layer_stack.channel)
     node_group = bpy.data.node_groups.get(group_node_name)
     return node_group
+
+def get_channel_node(self, context):
+    active_material = context.active_object.active_material
+    material_nodes = context.active_object.active_material.node_tree.nodes
+    layer_stack = context.scene.coater_layer_stack
+
+    return material_nodes.get(active_material.name + "_" + str(layer_stack.channel))
