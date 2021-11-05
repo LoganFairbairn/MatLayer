@@ -49,17 +49,13 @@ class COATER_PT_Panel(bpy.types.Panel):
 def draw_layers_section_ui(self, context):
     layout = self.layout
     scene = context.scene
-    panel_properties = context.scene.coater_panel_properties
     active_object = context.active_object
     addon_preferences = context.preferences.addons["Coater"].preferences
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
 
     # Draw add-on section buttons.
-    row = layout.row(align=True)
-    row.prop(panel_properties, "sections", expand=True)
-    row.operator("coater.open_settings", text="", icon='SETTINGS')
-    row.scale_y = 2.0
+    draw_section_buttons(self, context)
 
     # Layer Folder
     layout.prop(addon_preferences, "layer_folder")
@@ -85,7 +81,6 @@ def draw_layers_section_ui(self, context):
 
     # Draw curently selected material AND dropdown list of attached materials.
     row = layout.row(align=True)
-
 
     if active_object != None:
         if active_object.active_material != None:
@@ -136,27 +131,26 @@ def draw_layers_section_ui(self, context):
 
     # Draw Layer Base Values
     draw_base_channel_value(self, context)
-
-    # Draw Layer Properties
+    
     if len(layers) > 0:
         # Draw Layer Stack
         row = layout.row(align=True)
         row.template_list("COATER_UL_layer_list", "The_List", scene, "coater_layers", scene.coater_layer_stack, "layer_index")
         row.scale_y = 2
 
+        # Draw Layer Properties
         draw_layer_properties(self, context)
-        #draw_effect_properties(self, context)
-        #draw_mask_properties(self, context)
+
+        # Draw Layer Properties
+        if layers[layer_index].mask_node_name != "":
+            draw_mask_properties(self, context)
 
 def draw_baking_section_ui(self, context):
     layout = self.layout
     panel_properties = context.scene.coater_panel_properties
     addon_preferences = context.preferences.addons["Coater"].preferences
 
-    # Draw add-on section buttons.
-    row = layout.row()
-    row.prop(panel_properties, "sections", expand=True)
-    row.scale_y = 2.0
+    draw_section_buttons(self, context)       # Draw section buttons.
 
     layout.prop(addon_preferences, "bake_folder")
 
@@ -171,15 +165,27 @@ def draw_baking_section_ui(self, context):
     layout.prop(addon_preferences, "bake_edges")
     layout.prop(addon_preferences, "bake_normals")
 
-def draw_export_section_ui(self, context):
+
+
+
+
+def draw_section_buttons(self, context):
     layout = self.layout
     panel_properties = context.scene.coater_panel_properties
     addon_preferences = context.preferences.addons["Coater"].preferences
 
     # Draw add-on section buttons.
-    row = layout.row()
+    row = layout.row(align=True)
     row.prop(panel_properties, "sections", expand=True)
+    row.operator("coater.open_settings", text="", icon='SETTINGS')
     row.scale_y = 2.0
+
+def draw_export_section_ui(self, context):
+    layout = self.layout
+    addon_preferences = context.preferences.addons["Coater"].preferences
+
+    # Draw add-on section buttons.
+    draw_section_buttons(self, context)
 
     layout.prop(addon_preferences, "export_folder")
 
@@ -216,7 +222,7 @@ def draw_base_channel_value(self, context):
 
     else:
         channel_node = layer_functions.get_channel_node(self, context)
-        
+
         if layer_stack.channel == 'BASE_COLOR':
             row.prop(channel_node.inputs[0], "default_value", text="")
 
@@ -235,8 +241,9 @@ def draw_layer_properties(self, context):
         mapping_node = channel_node.node_tree.nodes.get(layers[layer_index].mapping_node_name)
 
         if color_node != None:
-            row = layout.row()
+            row = layout.row(align=True)
             row.prop(color_node, "image")
+            row.operator("coater.import_color_image", text="", icon="IMPORT")
 
             row = layout.row()
             row.prop(color_node, "extension")
@@ -268,12 +275,42 @@ def draw_layer_properties(self, context):
         row = layout.row()
         row.prop(color_node.outputs[0], "default_value", text="Color")
 
-def draw_effect_properties(self, context):
-    layout = self.layout
-    row = layout.row()
-    row.label(text="Effect Properties")
-
 def draw_mask_properties(self, context):
+    layers = context.scene.coater_layers
+    layer_index = context.scene.coater_layer_stack.layer_index
+    channel_node = layer_functions.get_channel_node(self, context)
+
     layout = self.layout
     row = layout.row()
     row.label(text="Mask Properties")
+    row.operator("coater.delete_layer_mask", icon="X", text="")
+
+    mask_node = channel_node.node_tree.nodes.get(layers[layer_index].mask_node_name)
+
+    row = layout.row(align=True)
+    row.prop(mask_node, "image")
+    row.operator("coater.import_mask_image", text="", icon="IMPORT")
+
+    row = layout.row()
+    row.prop(mask_node, "extension")
+
+    row = layout.row()
+    row.prop(mask_node, "interpolation")
+
+    row = layout.row()
+    row.prop(mask_node, "projection")
+
+    if mask_node.projection == 'BOX':
+        row = layout.row()
+        row.prop(mask_node, "projection_blend")
+
+    mask_mapping_node = channel_node.node_tree.nodes.get(layers[layer_index].mask_mapping_node_name)
+    if mask_mapping_node != None:
+        row = layout.row()
+        row.prop(mask_mapping_node.inputs[1], "default_value", text="Location")
+            
+        row = layout.row()
+        row.prop(mask_mapping_node.inputs[2], "default_value", text="Rotation")
+            
+        row = layout.row()
+        row.prop(mask_mapping_node.inputs[3], "default_value", text="Scale")

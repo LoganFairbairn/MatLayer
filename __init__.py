@@ -87,6 +87,8 @@ classes = (
     COATER_OT_add_color_layer,
     COATER_OT_add_image_layer,
     COATER_OT_add_image_mask,
+    COATER_OT_delete_layer_mask,
+    COATER_OT_import_mask_image,
     COATER_OT_add_empty_image_layer,
     COATER_OT_delete_layer,
     COATER_OT_move_layer_up,

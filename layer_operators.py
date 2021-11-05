@@ -152,34 +152,93 @@ class COATER_OT_add_image_mask(Operator):
         layer_index = context.scene.coater_layer_stack.layer_index
 
         # Create mask nodes.
-        channel_node = layer_functions.get_channel_node(self, context)
+        channel_node = layer_functions.get_channel_node_group(self, context)
 
         if channel_node != None:
-            mask_node = channel_node.node_tree.nodes.new('ShaderNodeTexImage')
-            mask_mix_node = channel_node.node_tree.nodes.new('ShaderNodeMixRGB')
-            mask_coord_node = channel_node.node_tree.nodes.new(type='ShaderNodeTexCoord')
-            mask_mapping_node = channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
-            mask_levels_node = channel_node.node_tree.nodes.new(type='ShaderNodeValToRGB')
+            mask_node = channel_node.nodes.new('ShaderNodeTexImage')
+            mask_mix_node = channel_node.nodes.new('ShaderNodeMixRGB')
+            mask_coord_node = channel_node.nodes.new(type='ShaderNodeTexCoord')
+            mask_mapping_node = channel_node.nodes.new(type='ShaderNodeMapping')
+            mask_levels_node = channel_node.nodes.new(type='ShaderNodeValToRGB')
 
             # Store mask nodes.
             layers[layer_index].mask_node_name = mask_node.name
             layers[layer_index].mask_mix_node_name = mask_mix_node.name
             layers[layer_index].mask_coord_node_name = mask_coord_node.name
-            layers[layer_index].mask_mapping_name = mask_mapping_node.name
-            layers[layer_index].mask_levels_node = mask_levels_node.name
+            layers[layer_index].mask_mapping_node_name = mask_mapping_node.name
+            layers[layer_index].mask_levels_node_name = mask_levels_node.name
+
+            # Link new nodes.
+            channel_node.links.new(mask_coord_node.outputs[2], mask_mapping_node.inputs[0])
+            channel_node.links.new(mask_mapping_node.outputs[0], mask_node.inputs[0])
+            channel_node.links.new(mask_node.outputs[0], mask_levels_node.inputs[0])
+            channel_node.links.new(mask_levels_node.outputs[0], mask_mix_node.inputs[0])
+
+            # Link mix layer node to the mix mask node.
+            mix_layer_node = channel_node.nodes.get(layers[layer_index].mix_layer_node_name)
+            channel_node.links.new(mix_layer_node.outputs[0], mask_mix_node.inputs[2])
 
             layer_functions.update_node_labels(self, context)
             layer_functions.organize_nodes(self, context)
             layer_functions.link_layers(self, context)
 
             # Add the nodes to the frame.
-            frame = channel_node.node_tree.nodes.get(layers[layer_index].frame_name)
+            frame = channel_node.nodes.get(layers[layer_index].frame_name)
             if frame != None:
                 mask_node.parent = frame
                 mask_mix_node.parent = frame
                 mask_coord_node.parent = frame
                 mask_mapping_node.parent = frame
                 mask_levels_node.parent = frame
+
+        return{'FINISHED'}
+
+class COATER_OT_delete_layer_mask(Operator):
+    bl_idname = "coater.delete_layer_mask"
+    bl_label = "Delete Layer Mask"
+    bl_description = "Deletes the mask for the selected layer if one exists"
+
+    # Disable the button when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return bpy.context.scene.coater_layers
+
+    def execute(self, context):
+        layers = context.scene.coater_layers
+        layer_index = context.scene.coater_layer_stack.layer_index
+
+        channel_node_group = layer_functions.get_channel_node_group(self, context)
+
+        # Delete mask nodes for the selected layer if they exist.
+        mask_node = channel_node_group.nodes.get(layers[layer_index].mask_node_name)
+        if mask_node != None:
+            channel_node_group.nodes.remove(mask_node)
+
+        mask_mix_node = channel_node_group.nodes.get(layers[layer_index].mask_mix_node_name)
+        if mask_mix_node != None:
+            channel_node_group.nodes.remove(mask_mix_node)
+
+        mask_coord_node = channel_node_group.nodes.get(layers[layer_index].mask_coord_node_name)
+        if mask_coord_node != None:
+            channel_node_group.nodes.remove(mask_coord_node)
+
+        mask_mapping_node = channel_node_group.nodes.get(layers[layer_index].mask_mapping_node_name)
+        if mask_mapping_node != None:
+            channel_node_group.nodes.remove(mask_mapping_node)
+
+        mask_levels_node = channel_node_group.nodes.get(layers[layer_index].mask_levels_node_name)
+        if mask_levels_node != None:
+            channel_node_group.nodes.remove(mask_levels_node)
+
+        # Clear mask node names.
+        layers[layer_index].mask_node_name = ""
+        layers[layer_index].mask_mix_node_name = ""
+        layers[layer_index].mask_coord_node_name = ""
+        layers[layer_index].mask_mapping_node_name = ""
+        layers[layer_index].mask_levels_node_name = ""
+
+        # Relink nodes.
+        layer_functions.link_layers(self, context)
 
         return{'FINISHED'}
 
@@ -371,7 +430,7 @@ class COATER_OT_toggle_channel_preview(Operator):
 
 class COATER_OT_import_color_image(Operator, ImportHelper):
     bl_idname = "coater.import_color_image"
-    bl_label = ""
+    bl_label = "Import Color Image"
     bl_description = "Opens a menu that allows the user to import a color image."
 
     filter_glob: bpy.props.StringProperty(
@@ -390,7 +449,7 @@ class COATER_OT_import_color_image(Operator, ImportHelper):
 
         layers[layer_index].color_image_name = self.filepath
 
-        # Update the image node's value.
+        # Put the image in the node.
         group_node = layer_functions.get_channel_node_group(self, context)
         color_node_name = layers[layer_index].color_node_name
         color_node = group_node.nodes.get(color_node_name)
@@ -400,6 +459,15 @@ class COATER_OT_import_color_image(Operator, ImportHelper):
 
         layer_functions.organize_nodes(self, context)
         
+        return {'FINISHED'}
+
+class COATER_OT_import_mask_image(Operator, ImportHelper):
+    bl_idname = "coater.import_mask_image"
+    bl_label = "Import Mask Image"
+    bl_description = "Opens a menu that allows the user to import an image to use as a mask"
+
+    def execute(self, context):
+
         return {'FINISHED'}
 
 class COATER_OT_refresh_layers(Operator):
@@ -456,11 +524,6 @@ class COATER_OT_refresh_layers(Operator):
 
                     # Get nodes using their names and store the nodes in the layer.
                     color_node = node_group.nodes.get("Color_" + str(i))
-                    opacity_node = node_group.nodes.get("Opacity_" + str(i))
-                    mix_layer_node = node_group.nodes.get("MixLayer_" + str(i))
-                    coord_node_name = node_group.nodes.get("Coord_" + str(i))
-                    mapping_node = node_group.nodes.get("Mapping_" + str(i))
-
                     if color_node != None:
                         if color_node.bl_static_type == 'TEX_IMAGE':
                             layers[i].color_node_name = color_node.name
@@ -473,19 +536,43 @@ class COATER_OT_refresh_layers(Operator):
                             layers[i].color = (color[0], color[1], color[2])
                             layers[i].layer_type = 'COLOR_LAYER'
 
+                    opacity_node = node_group.nodes.get("Opacity_" + str(i))
                     if opacity_node != None:
                         layers[i].opacity_node_name = opacity_node.name
                         layers[i].layer_opacity = opacity_node.inputs[1].default_value
 
+                    mix_layer_node = node_group.nodes.get("MixLayer_" + str(i))
                     if mix_layer_node != None:
                         layers[i].mix_layer_node_name = mix_layer_node.name
                         layers[i].blend_mode = mix_layer_node.blend_type
 
+                    coord_node_name = node_group.nodes.get("Coord_" + str(i))
                     if coord_node_name != None:
                         layers[i].coord_node_name = coord_node_name.name
 
+                    mapping_node = node_group.nodes.get("Mapping_" + str(i))
                     if mapping_node != None:
                         layers[i].mapping_node_name = mapping_node.name
+
+                    mask_node = node_group.nodes.get("Mask_" + str(i))
+                    if mask_node != None:
+                        layers[i].mask_node_name = mask_node.name
+
+                    mask_mix_node = node_group.nodes.get("MaskMix_" + str(i))
+                    if mask_mix_node != None:
+                        layers[i].mask_mix_node_name = mask_mix_node.name
+
+                    mask_coord_node = node_group.nodes.get("MaskCoords_" + str(i))
+                    if mask_coord_node != None:
+                        layers[i].mask_coord_node_name = mask_coord_node.name
+
+                    mask_mapping_node = node_group.nodes.get("MaskMapping_" + str(i))
+                    if mask_mapping_node != None:
+                        layers[i].mask_mapping_node_name = mask_mapping_node.name
+
+                    mask_levels_node = node_group.nodes.get("MaskLevels_" + str(i))
+                    if mask_levels_node != None:
+                        layers[i].mask_levels_node_name = mask_levels_node.name
 
                     # Organize the nodes for good measure.
                     layer_functions.organize_nodes(self, context)

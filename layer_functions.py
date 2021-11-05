@@ -73,10 +73,6 @@ def get_layer_nodes(self, context, layer_index):
     if mask_node != None:
         nodes.append(mask_node)
 
-    mask_mix_node = node_group.nodes.get("MaskMix_" + str(layer_index))
-    if mask_mix_node != None:
-        nodes.append(mask_mix_node)
-
     mask_coord_node = node_group.nodes.get("MaskCoords_" + str(layer_index))
     if mask_coord_node != None:
         nodes.append(mask_coord_node)
@@ -88,6 +84,10 @@ def get_layer_nodes(self, context, layer_index):
     mask_levels_node = node_group.nodes.get("MaskLevels_" + str(layer_index))
     if mask_levels_node != None:
         nodes.append(mask_levels_node)
+
+    mask_mix_node = node_group.nodes.get("MaskMix_" + str(layer_index))
+    if mask_mix_node != None:
+        nodes.append(mask_mix_node)
 
     return nodes
 
@@ -150,7 +150,7 @@ def update_node_labels(self, context):
                 if mask_node != None:
                     mask_node.name = "Mask_" + str(index)
                     mask_node.label = mask_node.name
-                    layers[index].mask_mix_node_name = mask_node.name
+                    layers[index].mask_node_name = mask_node.name
 
                 mask_mix_node = node_group.nodes.get(layers[index].mask_mix_node_name)
                 if mask_mix_node != None:
@@ -190,15 +190,22 @@ def link_layers(self, context):
     group_input_node = node_group.nodes.get('Group Input')
     group_output_node = node_group.nodes.get('Group Output')
 
-    # Remove all existing output links if they exist.
+    # Remove all existing output links for mix layer or mix mask nodes.
     number_of_layers = len(layers)
     for x in range(number_of_layers - 1):
         mix_layer_node = node_group.nodes.get(layers[x].mix_layer_node_name)
-        output = mix_layer_node.outputs[0]
+        if mix_layer_node != None:
+            output = mix_layer_node.outputs[0]
+            for l in output.links:
+                if l != 0:
+                    node_group.links.remove(l)
 
-        for l in output.links:
-            if l != 0:
-                node_group.links.remove(l)
+        mix_mask_node = node_group.nodes.get(layers[x].mask_mix_node_name)
+        if mix_mask_node != None:
+            output = mix_mask_node.outputs[0]
+            for l in output.links:
+                if l != 0:
+                    node_group.links.remove(l)
     
     # Connect mix layer nodes.
     for x in range(number_of_layers, 0, -1):
@@ -209,17 +216,44 @@ def link_layers(self, context):
         mix_mask_node = node_group.nodes.get(layers[x - 1].mask_mix_node_name)
         next_mix_mask_node = node_group.nodes.get(layers[x - 2].mask_mix_node_name)
 
-        # TODO: Connect the group input color to the first mix node.
+        # Connect the group input color to the first mix layer node or mix mask node (prioritize mask node connections).
         if x == number_of_layers:
-            node_group.links.new(group_input_node.outputs[0], mix_layer_node.inputs[1])
+            if mix_mask_node != None:
+                node_group.links.new(group_input_node.outputs[0], mix_layer_node.inputs[1])
+                node_group.links.new(group_input_node.outputs[0], mix_mask_node.inputs[1])
 
-        # Connect to the next mix layer node if one exists.
+            else:
+                node_group.links.new(group_input_node.outputs[0], mix_layer_node.inputs[1])
+
+        # Connect to the next mix layer node or mix mask node (prioritize mask node connections).
         if x - 2 >= 0:
-            node_group.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
+            if mix_mask_node != None:
+                if next_mix_mask_node != None:
+                    node_group.links.new(mix_mask_node.outputs[0], next_mix_layer_node.inputs[1])
+                    node_group.links.new(mix_mask_node.outputs[0], next_mix_mask_node.inputs[1])
 
-        # Connect the mix layer or mix mask node to the output if there are no more layers to connect.
+                else:
+                    node_group.links.new(mix_mask_node.outputs[0], next_mix_layer_node.inputs[1])
+
+            else:
+                if next_mix_mask_node != None:
+                    node_group.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
+                    node_group.links.new(mix_layer_node.outputs[0], next_mix_mask_node.inputs[1])
+
+                else:
+                    node_group.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
+
+        # For the last layer, connect the layer mix node or the mask mix node to the output (prioritize mask node connections).
         else:
-            node_group.links.new(mix_layer_node.outputs[0], group_output_node.inputs[0])
+            if mix_mask_node != None:
+                node_group.links.new(mix_mask_node.outputs[0], group_output_node.inputs[0])
+
+            else:
+                node_group.links.new(mix_layer_node.outputs[0], group_output_node.inputs[0])
+
+        # Connect the mix layer node to the mix mask node if a mask exists.
+        if mix_mask_node != None:
+            node_group.links.new(mix_layer_node.outputs[0], mix_mask_node.inputs[2])
 
     # TODO: Link to alpha to calculate alpha nodes if required.
 
