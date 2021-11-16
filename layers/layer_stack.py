@@ -1,18 +1,18 @@
 import bpy
 from bpy.types import PropertyGroup
+from .. import layer_functions
 
 def update_layer_channel(self, context):
     bpy.ops.coater.refresh_layers()
 
 def update_layer_index(self, context):
-    layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
     
     bpy.context.scene.tool_settings.image_paint.mode = 'IMAGE'
-
-    if layer_index != -1:
-        if layers[layer_index].color_image != None:
-            bpy.context.scene.tool_settings.image_paint.canvas = layers[layer_index].color_image
+    
+    layer_image = layer_functions.get_layer_image(context, layer_index)
+    if layer_image != None:
+        context.scene.tool_settings.image_paint.canvas = layer_image
 
 class COATER_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''
@@ -24,8 +24,9 @@ class COATER_layer_stack(PropertyGroup):
         items=[('BASE_COLOR', "Base Color", "Set to show all layers for the base color channel"),
                ('ROUGHNESS', "Roughness", "Set to show all layers in the roughness channel"),
                ('METALLIC', "Metallic", "Set to show all layers in the metallic channel"),
-               ('HEIGHT', "Height", "Set to show all layers in the height channel")],
-        name="",
+               ('HEIGHT', "Height", "Set to show all layers in the height channel"),
+               ('EMISSION', 'Emission', "Set to show all layers in the emission channel")],
+        name="Layer Stack",
         description="Type of the layer",
         default=None,
         options={'HIDDEN'},

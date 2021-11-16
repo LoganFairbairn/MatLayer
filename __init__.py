@@ -17,32 +17,31 @@
 
 import bpy
 
-# Import addon preferences (settings).
-from . coater_preferences import *
+# Import add-on preferences.
+from .preferences.coater_preferences import *
 
 # Import layer functionality.
-from . layers import *
-from . layer_stack import *
-from . layer_operators import *
-from . draw_layer_stack import *
-from . menu_add_layer import *
-from . menu_add_mask import *
+from .layers.layers import *
+from .layers.layer_stack import *
+from .layers.layer_operators import *
+from .layers.draw_layer_stack import *
+from .ui.menu_add_layer import *
+from .ui.menu_add_mask import *
+from .ui.coater_ui import *
 
 # Import baking functionality.
-from . baking import *
+from .baking.baking import *
 
-# Import Exporting functionality.
-from . coater_export import *
+# Import exporting functioality.
+from .exporting.coater_export import *
+from .exporting.export_to_image_editor import *
 
-# Import UI.
-from . coater_ui import *
-from . swap_tool_color import *
+# Import tool functionality.
+from .swap_tool_color import *
 
-# Import additional functions.
-from . apply_color_grid import COATER_OT_apply_color_grid
-from . export_to_image_editor import *
-from . toggle_texture_paint_mode import *
-from . coater_settings import *
+# Improt extra features.
+from .extra_features.toggle_texture_paint_mode import *
+from .extra_features.apply_color_grid import COATER_OT_apply_color_grid
 
 bl_info = {
     "name": "Coater",
@@ -98,6 +97,8 @@ classes = (
     COATER_OT_toggle_channel_preview,
     COATER_OT_import_color_image,
     COATER_OT_refresh_layers,
+    COATER_OT_select_layer_image,
+    COATER_OT_select_layer_mask,
 
     # Main Panel & General Settings
     COATER_panel_properties,
@@ -110,7 +111,6 @@ classes = (
     COATER_OT_image_editor_export,
     COATER_OT_toggle_texture_paint_mode,
     COATER_OT_apply_color_grid,
-    COATER_OT_open_settings
 )
 
 def register():

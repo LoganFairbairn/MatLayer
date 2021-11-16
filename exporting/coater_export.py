@@ -11,6 +11,10 @@ class COATER_OT_export(Operator):
         return context.active_object.active_material
     
     def execute(self, context):
+        bpy.ops.coater.export_base_color()
+        bpy.ops.coater.export_roughness()
+        bpy.ops.coater.export_metallic()
+        bpy.ops.coater.export_normals()
         return {'FINISHED'}
 
 class COATER_OT_export_base_color(Operator):

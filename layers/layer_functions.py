@@ -1,6 +1,6 @@
 import bpy
 
-def get_channel_nodes(self, context):
+def get_channel_nodes(context):
     active_material = context.active_object.active_material
     material_nodes = context.active_object.active_material.node_tree.nodes
 
@@ -8,6 +8,7 @@ def get_channel_nodes(self, context):
     metallic_group = material_nodes.get(active_material.name + "_" + "METALLIC")
     roughness_group = material_nodes.get(active_material.name + "_" + "ROUGHNESS")
     height_group = material_nodes.get(active_material.name + "_" + "HEIGHT")
+    emission_group = material_nodes.get(active_material.name + "_" + "EMISSION")
 
     group_nodes = []
     if base_color_group != None:
@@ -22,9 +23,12 @@ def get_channel_nodes(self, context):
     if height_group != None:
         group_nodes.append(height_group)
 
+    if emission_group != None:
+        group_nodes.append(emission_group)
+
     return group_nodes
 
-def get_channel_node_group(self, context):
+def get_channel_node_group(context):
     layer_stack = context.scene.coater_layer_stack
     active_material = context.active_object.active_material
 
@@ -36,15 +40,19 @@ def get_channel_node_group(self, context):
     else:
         return None
 
-def get_channel_node(self, context):
+def get_channel_node(context):
     active_material = context.active_object.active_material
-    material_nodes = context.active_object.active_material.node_tree.nodes
-    layer_stack = context.scene.coater_layer_stack
 
-    return material_nodes.get(active_material.name + "_" + str(layer_stack.channel))
+    if active_material != None:
+        material_nodes = context.active_object.active_material.node_tree.nodes
+        layer_stack = context.scene.coater_layer_stack
 
-def get_layer_nodes(self, context, layer_index):
-    node_group = get_channel_node_group(self, context)
+        return material_nodes.get(active_material.name + "_" + str(layer_stack.channel))
+
+    return None
+
+def get_layer_nodes(context, layer_index):
+    node_group = get_channel_node_group(context)
     nodes = []
 
     # Color nodes.
@@ -91,7 +99,70 @@ def get_layer_nodes(self, context, layer_index):
 
     return nodes
 
-def update_node_labels(self, context):
+def get_node(context, node_name):
+    layers = context.scene.coater_layers
+    layer_index = context.scene.coater_layer_stack.layer_index
+    channel_node_group = get_channel_node_group(context)
+
+    if channel_node_group != None:
+        if node_name == 'COLOR':
+            return channel_node_group.nodes.get(layers[layer_index].color_node_name)
+
+        if node_name == 'OPACITY':
+            return channel_node_group.nodes.get(layers[layer_index].opacity_node_name)
+
+        if node_name == 'MIX':
+            return channel_node_group.nodes.get(layers[layer_index].mix_layer_node_name)
+        
+        if node_name == 'MASK':
+            return channel_node_group.nodes.get(layers[layer_index].mask_node_name)
+
+    else:
+        return None
+
+def get_node(context, node_name, index):
+    layers = context.scene.coater_layers
+    channel_node_group = get_channel_node_group(context)
+
+    if channel_node_group != None:
+        if node_name == 'COLOR':
+            return channel_node_group.nodes.get(layers[index].color_node_name)
+
+        if node_name == 'OPACITY':
+            return channel_node_group.nodes.get(layers[index].opacity_node_name)
+
+        if node_name == 'MIX':
+            return channel_node_group.nodes.get(layers[index].mix_layer_node_name)
+        
+        if node_name == 'MASK':
+            return channel_node_group.nodes.get(layers[index].mask_node_name)
+
+    else:
+        return None
+
+def get_layer_image(context):
+    color_node = get_node(context, 'COLOR')
+
+    if color_node != None:
+        if color_node.bl_static_type == 'TEX_IMAGE':
+            return color_node.image
+        else:
+            return None
+    else:
+        return None
+
+def get_layer_image(context, index):
+    color_node = get_node(context, 'COLOR', index)
+
+    if color_node != None:
+        if color_node.bl_static_type == 'TEX_IMAGE':
+            return color_node.image
+        else:
+            return None
+    else:
+        return None
+
+def update_node_labels(context):
     '''Update the labels for all layer nodes.'''
     layers = context.scene.coater_layers
     layer_stack = context.scene.coater_layer_stack
@@ -180,17 +251,29 @@ def set_material_shading(context):
     if context.space_data.type == 'VIEW_3D':
         context.space_data.shading.type = 'MATERIAL'
 
-def link_layers(self, context):
+def link_layers(context):
     layers = context.scene.coater_layers
     layer_stack = context.scene.coater_layer_stack
     active_material = context.active_object.active_material
     group_node_name = active_material.name + "_" + str(layer_stack.channel)
     node_group = bpy.data.node_groups.get(group_node_name)
-
     group_input_node = node_group.nodes.get('Group Input')
     group_output_node = node_group.nodes.get('Group Output')
 
     # Remove all existing output links for mix layer or mix mask nodes.
+    group_input = node_group.nodes.get('Group Input')
+    output = group_input.outputs[0]
+    for l in output.links:
+        if l != 0:
+            node_group.links.remove(l)
+
+    group_output = node_group.nodes.get('Group Output')
+    output = group_output.inputs[0]
+
+    for l in output.links:
+        if l != 0:
+            node_group.links.remove(l)
+
     number_of_layers = len(layers)
     for x in range(number_of_layers - 1):
         mix_layer_node = node_group.nodes.get(layers[x].mix_layer_node_name)
@@ -209,81 +292,114 @@ def link_layers(self, context):
     
     # Connect mix layer nodes.
     for x in range(number_of_layers, 0, -1):
-        mix_layer_node = node_group.nodes.get(layers[x - 1].mix_layer_node_name)
-        next_mix_layer_node = node_group.nodes.get(layers[x - 2].mix_layer_node_name)
+        current_layer_index = x - 1
+        next_layer_index = x - 2
 
-        # Get mix mask nodes.
-        mix_mask_node = node_group.nodes.get(layers[x - 1].mask_mix_node_name)
-        next_mix_mask_node = node_group.nodes.get(layers[x - 2].mask_mix_node_name)
-
-        # Connect the group input color to the first mix layer node or mix mask node (prioritize mask node connections).
+        # Connect the group input value to the first mix layer node or mix mask node (prioritize mask node connections).
         if x == number_of_layers:
-            if mix_mask_node != None:
-                node_group.links.new(group_input_node.outputs[0], mix_layer_node.inputs[1])
-                node_group.links.new(group_input_node.outputs[0], mix_mask_node.inputs[1])
+            for i in range(number_of_layers, 0, -1):
+                mix_mask_node = node_group.nodes.get(layers[i - 1].mask_mix_node_name)
+                if layers[i - 1].hidden == False:
+                    if mix_mask_node != None:
+                        mix_layer_node = node_group.nodes.get(layers[i - 1].mix_layer_node_name)
+                        mix_mask_node = node_group.nodes.get(layers[i - 1].mask_mix_node_name)
+                        node_group.links.new(group_input_node.outputs[0], mix_layer_node.inputs[1])
+                        node_group.links.new(group_input_node.outputs[0], mix_mask_node.inputs[1])
+                    else:
+                        mix_layer_node = node_group.nodes.get(layers[i - 1].mix_layer_node_name)
+                        node_group.links.new(group_input_node.outputs[0], mix_layer_node.inputs[1])
+                    break
 
-            else:
-                node_group.links.new(group_input_node.outputs[0], mix_layer_node.inputs[1])
+        # Only connect layers that are not hidden.
+        if layers[current_layer_index].hidden == False:
+            mix_layer_node = node_group.nodes.get(layers[current_layer_index].mix_layer_node_name)
+            mix_mask_node = node_group.nodes.get(layers[current_layer_index].mask_mix_node_name)
+            next_mix_layer_node = node_group.nodes.get(layers[next_layer_index].mix_layer_node_name)
+            next_mix_mask_node = node_group.nodes.get(layers[next_layer_index].mask_mix_node_name)
 
-        # Connect to the next mix layer node or mix mask node (prioritize mask node connections).
-        if x - 2 >= 0:
-            if mix_mask_node != None:
-                if next_mix_mask_node != None:
-                    node_group.links.new(mix_mask_node.outputs[0], next_mix_layer_node.inputs[1])
-                    node_group.links.new(mix_mask_node.outputs[0], next_mix_mask_node.inputs[1])
+            # Deal with hidden layers.
+            while layers[next_layer_index].hidden:
+                next_layer_index -= 1
+
+                if next_layer_index < 0:
+                    next_mix_layer_node = None
+                    next_mix_mask_node = None
+                    break
 
                 else:
-                    node_group.links.new(mix_mask_node.outputs[0], next_mix_layer_node.inputs[1])
+                    next_mix_layer_node = node_group.nodes.get(layers[next_layer_index].mix_layer_node_name)
+                    next_mix_mask_node = node_group.nodes.get(layers[next_layer_index].mask_mix_node_name)
 
-            else:
-                if next_mix_mask_node != None:
-                    node_group.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
-                    node_group.links.new(mix_layer_node.outputs[0], next_mix_mask_node.inputs[1])
+            # Connect to the next mix layer node or mix mask node (prioritize mask node connections).
+            if next_layer_index >= 0:
+                if mix_mask_node != None:
+                    if next_mix_mask_node != None:
+                        node_group.links.new(mix_mask_node.outputs[0], next_mix_layer_node.inputs[1])
+                        node_group.links.new(mix_mask_node.outputs[0], next_mix_mask_node.inputs[1])
+
+                    else:
+                        node_group.links.new(mix_mask_node.outputs[0], next_mix_layer_node.inputs[1])
 
                 else:
-                    node_group.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
+                    if next_mix_mask_node != None:
+                        node_group.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
+                        node_group.links.new(mix_layer_node.outputs[0], next_mix_mask_node.inputs[1])
 
-        # For the last layer, connect the layer mix node or the mask mix node to the output (prioritize mask node connections).
-        else:
-            if mix_mask_node != None:
-                node_group.links.new(mix_mask_node.outputs[0], group_output_node.inputs[0])
+                    else:
+                        node_group.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
 
+            # For the last layer, connect the layer mix node or the mask mix node to the output (prioritize mask node connections).
             else:
-                node_group.links.new(mix_layer_node.outputs[0], group_output_node.inputs[0])
+                # If the channel is a Height channel, connect to the bump node first before connecting to the output.
+                if layer_stack.channel == 'HEIGHT':
+                    bump_node = node_group.nodes.get("Bump")
 
-        # Connect the mix layer node to the mix mask node if a mask exists.
-        if mix_mask_node != None:
-            node_group.links.new(mix_layer_node.outputs[0], mix_mask_node.inputs[2])
+                    if bump_node != None:
+                        if mix_mask_node != None:
+                            node_group.links.new(mix_mask_node.outputs[0], bump_node.inputs[2])
+                            node_group.links.new(mix_mask_node.outputs[0], group_output_node.inputs[1])
+                            node_group.links.new(bump_node.outputs[0], group_output_node.inputs[0])
 
-    # TODO: Link to alpha to calculate alpha nodes if required.
+                        else:
+                            node_group.links.new(mix_layer_node.outputs[0], bump_node.inputs[2])
+                            node_group.links.new(mix_layer_node.outputs[0], group_output_node.inputs[1])
+                            node_group.links.new(bump_node.outputs[0], group_output_node.inputs[0])
+                else:
+                    if mix_mask_node != None:
+                        node_group.links.new(mix_mask_node.outputs[0], group_output_node.inputs[0])
 
-def organize_nodes(self, context):
-    '''Organizes all nodes in the material node editor.'''
+                    else:
+                        node_group.links.new(mix_layer_node.outputs[0], group_output_node.inputs[0])
+
+            # Connect the mix layer node to the mix mask node if a mask exists.
+            if mix_mask_node != None:
+                node_group.links.new(mix_layer_node.outputs[0], mix_mask_node.inputs[2])
+
+        # TODO: Link to alpha to calculate alpha nodes if required.
+
+def organize_nodes(context):
+    '''Organizes all coater nodes in the material node editor.'''
     layers = context.scene.coater_layers
     layer_stack = context.scene.coater_layer_stack
     node_spacing = layer_stack.node_spacing
 
     # Organize channel nodes.
-    group_nodes = get_channel_nodes(self, context)
+    channel_nodes = get_channel_nodes(context)
     header_position = [0.0, 0.0]
-    for node in group_nodes:
+    for node in channel_nodes:
         if node != None:
             node.location = (-node.width + -node_spacing, header_position[1])
             header_position[1] -= (node.height + (layer_stack.node_spacing * 0.5))
 
-    # Organize group output node.
-    channel_node = get_channel_node(self, context)
-    if channel_node != None:
-        group_output_node = channel_node.node_tree.nodes.get('Group Output')
-        group_output_node.location = (0.0, 0.0)
 
     # Organize all layer nodes.
+    channel_node = get_channel_node(context)
     header_position = [0.0, 0.0]
     for i in range(0, len(layers)):
         header_position[0] -= layer_stack.node_default_width + node_spacing
         header_position[1] = 0.0
 
-        node_list = get_layer_nodes(self, context, i)
+        node_list = get_layer_nodes(context, i)
         for node in node_list:
             node.width = layer_stack.node_default_width
             node.location = (header_position[0], header_position[1])
@@ -294,8 +410,21 @@ def organize_nodes(self, context):
         header_position[0] -= layer_stack.node_default_width + node_spacing
         group_input_node = channel_node.node_tree.nodes.get('Group Input')
         group_input_node.location = (header_position[0], 0.0)
+    
+    # Organize group output node.
+    if channel_node != None:
+        group_output_node = channel_node.node_tree.nodes.get('Group Output')
+        group_output_node.location = (0.0, 0.0)
 
-def move_layer(self, context, direction):
+    # TODO: If the current channel is a height channel, organize the bump node too.
+    if layer_stack.channel == 'HEIGHT':
+        if channel_node != None:
+            bump_node = channel_node.node_tree.nodes.get('Bump')
+
+            if bump_node != None:
+                bump_node.location = (0.0, -group_input_node.dimensions.y - node_spacing)
+
+def move_layer(context, direction):
     layers = context.scene.coater_layers
     layer_stack = context.scene.coater_layer_stack
     layer_index = context.scene.coater_layer_stack.layer_index
@@ -304,11 +433,11 @@ def move_layer(self, context, direction):
     layers.move(layer_index, index_to_move_to)
     layer_stack.layer_index = index_to_move_to
 
-    update_node_labels(self, context)   # Re-name nodes.
-    organize_nodes(self, context)       # Re-organize nodes.
-    link_layers(self, context)          # Re-connect layers.
+    update_node_labels(context)   # Re-name nodes.
+    organize_nodes(context)       # Re-organize nodes.
+    link_layers(context)          # Re-connect layers.
 
-def ready_coater_material(self, context):
+def ready_coater_material(context):
     active_object = context.active_object
     active_material = context.active_object.active_material
 
@@ -318,18 +447,18 @@ def ready_coater_material(self, context):
         # There is no active material, make one.
         if active_material == None:
             remove_all_material_slots()
-            create_coater_material(self, context, active_object)
+            create_coater_material(context, active_object)
 
         # There is a material, make sure it's a Coater material.
         else:
             # If the material is a coater material, it's good to go!
-            if active_material.node_tree.nodes.get('Principled BSDF').label == "Coater PBR":
+            if check_coater_material(context):
                 return {'FINISHED'}
 
             # If the material isn't a coater material, make a new material.
             else:
                 remove_all_material_slots()
-                create_coater_material(self, context, active_object)
+                create_coater_material(context, active_object)
             
     else:
         self.report({'WARNING'}, "There is no active object, select an object.")
@@ -340,7 +469,7 @@ def remove_all_material_slots():
         bpy.context.object.active_material_index = 0
         bpy.ops.object.material_slot_remove()
 
-def create_coater_material(self, context, active_object):
+def create_coater_material(context, active_object):
     new_material = bpy.data.materials.new(name=active_object.name)
     active_object.data.materials.append(new_material)
     layer_stack = context.scene.coater_layer_stack
@@ -364,13 +493,19 @@ def create_coater_material(self, context, active_object):
     # Set the label of the Principled BSDF node (allows this material to be identified as a Coater material).
     principled_bsdf_node.label = "Coater PBR"
 
+    # Set the default value for emission to 5, this makes the emission easier to see.
+    principled_bsdf_node.inputs[18].default_value = 5
+
+    # Turn Eevee bloom on, this also makes emission easier to see.
+    context.scene.eevee.use_bloom = True
+
     # Adjust nodes locations.
     node_spacing = context.scene.coater_layer_stack.node_spacing
     principled_bsdf_node.location = (0.0, 0.0)
     material_output_node.location = (principled_bsdf_node.width + node_spacing, 0.0)
     emission_node.location = (0.0, emission_node.height + node_spacing)
 
-def create_channel_group_node(self, context):
+def create_channel_group_node(context):
     active_material = context.active_object.active_material
     material_nodes = context.active_object.active_material.node_tree.nodes
     layer_stack = context.scene.coater_layer_stack
@@ -386,7 +521,7 @@ def create_channel_group_node(self, context):
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
         group_output_node.width = layer_stack.node_default_width
 
-        # TODO: Add a socket based on channel
+        # Add a socket based on channel
         if layer_stack.channel == 'BASE_COLOR':
             new_node_group.inputs.new('NodeSocketColor', 'Base Color')
             new_node_group.outputs.new('NodeSocketColor', 'Base Color')
@@ -401,9 +536,14 @@ def create_channel_group_node(self, context):
             new_node_group.outputs.new('NodeSocketFloat', 'Roughness')
 
         if layer_stack.channel == 'HEIGHT':
-            new_node_group.inputs.new('NodeSocketFloat', 'Height')
+            new_node_group.outputs.new('NodeSocketVector', 'Height (Vector)')
             new_node_group.outputs.new('NodeSocketFloat', 'Height')
+            new_node_group.nodes.new('ShaderNodeBump')
 
+        if layer_stack.channel == 'EMISSION':
+            new_node_group.inputs.new('NodeSocketColor', 'Emission')
+            new_node_group.outputs.new('NodeSocketColor', 'Emission')
+            
     # Add the group node to the active material if there is there isn't a group node already.
     if material_nodes.get(group_node_name) == None:
         group_node = material_nodes.new('ShaderNodeGroup')
@@ -427,10 +567,13 @@ def create_channel_group_node(self, context):
             if layer_stack.channel == "ROUGHNESS":
                 node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[7])
 
+            if layer_stack.channel == "EMISSION":
+                node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[17])
+
             if layer_stack.channel == "HEIGHT":
                 node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[20])
 
-def create_layer_nodes(self, context, layer_type):
+def create_layer_nodes(context, layer_type):
     active_material = context.active_object.active_material
     layers = context.scene.coater_layers
     layer_stack = context.scene.coater_layer_stack
@@ -461,11 +604,10 @@ def create_layer_nodes(self, context, layer_type):
         layers[layer_index].mapping_node_name = mapping_node.name
 
     # Update node labels.
-    update_node_labels(self, context)
+    update_node_labels(context)
 
     # Set node default values.
-    default_color = layers[layer_index].color
-    color_node.outputs[0].default_value = (default_color[0], default_color[1], default_color[2], 1.0)
+    color_node.outputs[0].default_value = (0, 0, 0, 1.0)
     opacity_node.operation = 'MULTIPLY'
     opacity_node.use_clamp = True
     opacity_node.inputs[0].default_value = 1
@@ -486,7 +628,7 @@ def create_layer_nodes(self, context, layer_type):
 
     # Frame nodes.
     frame = node_group.nodes.new(type='NodeFrame')
-    layer_nodes = get_layer_nodes(self, context, layer_index)
+    layer_nodes = get_layer_nodes(context, layer_index)
     for n in layer_nodes:
         n.parent = frame
 
@@ -499,9 +641,9 @@ def create_layer_nodes(self, context, layer_type):
     #if len(layers) > 1:
     #    create_calculate_alpha_node(self, context)
 
-def create_calculate_alpha_node(self, context):
+def create_calculate_alpha_node(context):
     layer_stack = context.scene.coater_layer_stack
-    channel_node = get_channel_node(self, context)
+    channel_node = get_channel_node(context)
 
     group_node_name = "Coater Calculate Alpha"
     if bpy.data.node_groups.get(group_node_name) == None:
@@ -554,7 +696,7 @@ def create_calculate_alpha_node(self, context):
             n.location = (header_position[0], header_position[1])
             header_position[0] -= (layer_stack.node_default_width + layer_stack.node_spacing)
 
-def add_layer_slot(self, context):
+def add_layer_slot(context):
     layers = context.scene.coater_layers
     layer_stack = context.scene.coater_layer_stack
     layer_index = context.scene.coater_layer_stack.layer_index
@@ -592,3 +734,30 @@ def add_layer_slot(self, context):
         move_to_index = 0
         layers.move(move_index, move_to_index)
         layer_stack.layer_index = move_to_index
+
+def check_coater_material(context):
+    active_material = context.active_object.active_material
+
+    principled_bsdf = active_material.node_tree.nodes.get('Principled BSDF')
+
+    if principled_bsdf != None:
+        if principled_bsdf.label == "Coater PBR":
+            return True
+        else:
+            return False
+    else:
+        return False
+
+def delete_layer_image(context, image):
+    layers = context.scene.coater_layers
+    layer_index = context.scene.coater_layer_stack.layer_index
+
+    layer_exist = False
+    for l in range(0, layers):
+        if l != layer_index:
+            if get_layer_image(context, l):
+                layer_exist = True
+                break
+
+    if layer_exist == False:
+        bpy.data.images.remove(image)

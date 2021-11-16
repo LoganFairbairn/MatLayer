@@ -210,7 +210,7 @@ class COATER_OT_bake_curvature(Operator):
 
         # Remove the material.
         bpy.data.materials.remove(bake_material)
-        bpy.context.scene.render.engine = 'BLENDER_EEVEE'
+        context.scene.render.engine = 'BLENDER_EEVEE'
 
         return {'FINISHED'}
 
@@ -275,19 +275,31 @@ class COATER_OT_bake_edges(Operator):
         material_output_node = nodes.get("Material Output")
         image_node = nodes.new(type='ShaderNodeTexImage')
         emission_node = nodes.new(type='ShaderNodeEmission')
+        vector_math_node = nodes.new(type='ShaderNodeVectorMath')
+        math_node = nodes.new(type='ShaderNodeMath')
         geometry_node = nodes.new(type='ShaderNodeNewGeometry')
-        invert_node = nodes.new(types='ShaderNodeInvert')
-        bevel_node = nodes.new(types='ShaderNodeBevel')
+        invert_node = nodes.new(type='ShaderNodeInvert')
+        bevel_node = nodes.new(type='ShaderNodeBevel')
 
         # Set node values.
         image_node.image = bpy.data.images[bake_image_name]
-
+        bevel_node.inputs[0].default_value = 0.01
+        math_node.operation = 'MULTIPLY'
+        math_node.inputs[0].default_value = 1.0
+        vector_math_node.operation = 'DOT_PRODUCT'
 
         # Link Nodes
         links = bake_material.node_tree.links
 
-        links.new(emission_node.outputs[0], material_output_node.inputs[0])
+        links.new(material_output_node.inputs[0], emission_node.outputs[0])
+        links.new(emission_node.inputs[0], invert_node.outputs[0])
+        links.new(invert_node.inputs[1], math_node.outputs[0])
 
+        # This node never links to math node.
+        links.new(math_node.inputs[1], vector_math_node.outputs[1])
+        links.new(vector_math_node.inputs[1], geometry_node.outputs[1])
+        links.new(vector_math_node.inputs[0], bevel_node.outputs[0])
+        
         # Bake
         image_node.select = True
         bpy.context.scene.render.engine = 'CYCLES'
