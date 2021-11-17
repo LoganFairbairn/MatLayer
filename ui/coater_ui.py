@@ -15,7 +15,8 @@
 # This file handles the coater user interface.
 
 import bpy
-from ..import layer_functions
+from ..layers import coater_material_functions
+from ..layers import coater_node_info
 
 class COATER_panel_properties(bpy.types.PropertyGroup):
     sections: bpy.props.EnumProperty(
@@ -57,7 +58,7 @@ def draw_layers_section_ui(self, context):
     if context.active_object != None:
         active_material = context.active_object.active_material
         if active_material != None:
-            if layer_functions.check_coater_material(context):
+            if coater_material_functions.check_coater_material(context):
                 draw_material_channel(self, context)            # Draw material channel.
                 draw_opacity_and_blending(self, context)        # Draw layer blending mode and layer opacity.
             
@@ -69,9 +70,7 @@ def draw_layers_section_ui(self, context):
 
                 if len(layers) > 0:
                     draw_layer_properties(self, context)    # Draw layer properties
-                    draw_mask_properties(self, context)     # Draw mask properties.
-            
-        
+                    draw_mask_properties(self, context)     # Draw mask properties.  
 
 def draw_baking_section_ui(self, context):
     layout = self.layout
@@ -122,7 +121,6 @@ def draw_section_buttons(self, context):
     # Draw add-on section buttons.
     row = layout.row(align=True)
     row.prop(panel_properties, "sections", expand=True)
-    row.operator("coater.open_settings", text="", icon='SETTINGS')
     row.scale_y = 2.0
 
 def draw_layer_folder(self, context):
@@ -205,8 +203,8 @@ def draw_opacity_and_blending(self, context):
     layout = self.layout
     row = layout.row()
 
-    opacity_node = layer_functions.get_node(context, 'OPACITY', layer_index)
-    mix_node = layer_functions.get_node(context, 'MIX', layer_index)
+    opacity_node = coater_node_info.get_node(context, 'OPACITY', layer_index)
+    mix_node = coater_node_info.get_node(context, 'MIX', layer_index)
 
     if opacity_node != None and mix_node != None:
         row = layout.row(align=True)
@@ -244,7 +242,7 @@ def draw_base_channel_value(self, context):
             row.prop(principled_bsdf.inputs[17], "default_value", text="")
 
     else:
-        channel_node = layer_functions.get_channel_node(context)
+        channel_node = coater_node_info.get_channel_node(context)
 
         if layer_stack.channel == 'BASE_COLOR':
             row.prop(channel_node.inputs[0], "default_value", text="")
@@ -255,7 +253,7 @@ def draw_base_channel_value(self, context):
 def draw_layer_properties(self, context):
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
-    channel_node = layer_functions.get_channel_node(context)
+    channel_node = coater_node_info.get_channel_node(context)
 
     layout = self.layout
     row = layout.row()
@@ -308,7 +306,7 @@ def draw_mask_properties(self, context):
     if layers[layer_index].mask_node_name != "":
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
-        channel_node = layer_functions.get_channel_node(context)
+        channel_node = coater_node_info.get_channel_node(context)
 
         layout = self.layout
         row = layout.row()

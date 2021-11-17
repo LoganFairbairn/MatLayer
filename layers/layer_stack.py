@@ -1,6 +1,21 @@
+# Copyright (c) 2021 Logan Fairbairn
+# logan-fairbairn@outlook.com
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTIBILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 import bpy
 from bpy.types import PropertyGroup
-from .. import layer_functions
+from .import coater_node_info
 
 def update_layer_channel(self, context):
     bpy.ops.coater.refresh_layers()
@@ -10,7 +25,7 @@ def update_layer_index(self, context):
     
     bpy.context.scene.tool_settings.image_paint.mode = 'IMAGE'
     
-    layer_image = layer_functions.get_layer_image(context, layer_index)
+    layer_image = coater_node_info.get_layer_image(context, layer_index)
     if layer_image != None:
         context.scene.tool_settings.image_paint.canvas = layer_image
 

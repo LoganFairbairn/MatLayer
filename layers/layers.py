@@ -15,14 +15,15 @@
 
 import bpy
 from bpy.types import PropertyGroup
-import random   # For random layer numbers.
-from .import layer_functions
+import random
+from .import coater_node_info
+from .import link_layers
 
 # When a property in the Coater UI is changed, these functions are triggered and their respective properties are updated.
 def update_layer_name(self, context):
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
-    channel_node = layer_functions.get_channel_node(self, context)
+    channel_node = coater_node_info.get_channel_node(self, context)
 
     if layer_index != -1:
 
@@ -34,7 +35,7 @@ def update_layer_name(self, context):
             layers[layer_index].frame_name = frame.name
 
         # If the layer has an image, rename the image to the layer's name.
-        if layer_functions.get_layer_image(self, context) != None:
+        if coater_node_info.get_layer_image(self, context) != None:
             image_name = layers[layer_index].layer_name + "_" + str(random.randint(0, 99999))
 
             while bpy.data.images.get(image_name) != None:
@@ -92,7 +93,7 @@ def update_layer_name(self, context):
 def update_layer_coord(self, context):
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
-    channel_node_group = layer_functions.get_channel_node_group(self, context)
+    channel_node_group = coater_node_info.get_channel_node_group(context)
     color_node = channel_node_group.nodes.get(layers[layer_index].color_node_name)
     coord_node = channel_node_group.nodes.get(layers[layer_index].coord_node_name)
     mapping_node = channel_node_group.nodes.get(layers[layer_index].mapping_node_name)
@@ -124,7 +125,7 @@ def update_layer_coord(self, context):
 def update_mapping_coord(self, context):
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
-    channel_node_group = layer_functions.get_channel_node_group(self, context)
+    channel_node_group = coater_node_info.get_channel_node_group(context)
     mask_node = channel_node_group.nodes.get(layers[layer_index].mask_node_name)
     mask_coord_node = channel_node_group.nodes.get(layers[layer_index].mask_coord_node_name)
     mask_mapping_node = channel_node_group.nodes.get(layers[layer_index].mask_mapping_node_name)
@@ -156,7 +157,7 @@ def update_mapping_coord(self, context):
 def update_layer_opacity(self, context):
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
-    opacity_node = layer_functions.get_node(self, context, 'OPACITY')
+    opacity_node = coater_node_info.get_node(context, 'OPACITY', layer_index)
 
     if opacity_node != None:
         opacity_node.inputs[1].default_value = layers[layer_index].layer_opacity
@@ -164,7 +165,7 @@ def update_layer_opacity(self, context):
 def update_hidden(self, context):
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
-    layer_nodes = layer_functions.get_layer_nodes(context, layer_index)
+    layer_nodes = coater_node_info.get_layer_nodes(context, layer_index)
 
     if layers[layer_index].hidden == True:
         for n in layer_nodes:
@@ -174,7 +175,7 @@ def update_hidden(self, context):
         for n in layer_nodes:
             n.mute = False
 
-    layer_functions.link_layers(context)
+    link_layers.link_layers(context)
 
 class COATER_layers(PropertyGroup):
     '''Layer stack item.'''
@@ -234,6 +235,7 @@ class COATER_layers(PropertyGroup):
     opacity_node_name: bpy.props.StringProperty(default="")
     mix_layer_node_name: bpy.props.StringProperty(default="")
 
+    # Store mask nodes.
     mask_node_name: bpy.props.StringProperty(default="")
     mask_mix_node_name: bpy.props.StringProperty(default="")
     mask_coord_node_name: bpy.props.StringProperty(default="")

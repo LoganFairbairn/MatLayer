@@ -23,11 +23,17 @@ from .preferences.coater_preferences import *
 # Import layer functionality.
 from .layers.layers import *
 from .layers.layer_stack import *
-from .layers.layer_operators import *
-from .layers.draw_layer_stack import *
-from .ui.menu_add_layer import *
-from .ui.menu_add_mask import *
-from .ui.coater_ui import *
+from .layers.add_image_layer import COATER_OT_add_image_layer, COATER_OT_add_empty_image_layer
+from .layers.add_color_layer import COATER_OT_add_color_layer
+from .layers.layer_masking import COATER_OT_add_image_mask, COATER_OT_delete_layer_mask
+from .layers.refresh_layers import COATER_OT_refresh_layers
+from .layers.merge_layers import COATER_OT_merge_layer
+from .layers.duplicate_layers import COATER_OT_duplicate_layer
+from .layers.import_layer_image import COATER_OT_import_color_image, COATER_OT_import_mask_image
+from .layers.select_layer import COATER_OT_select_layer_image, COATER_OT_select_layer_mask
+from .layers.move_layer import COATER_OT_move_layer_up, COATER_OT_move_layer_down
+from .layers.toggle_channel_preview import COATER_OT_toggle_channel_preview
+from .layers.delete_layer import COATER_OT_delete_layer
 
 # Import baking functionality.
 from .baking.baking import *
@@ -38,6 +44,12 @@ from .exporting.export_to_image_editor import *
 
 # Import tool functionality.
 from .swap_tool_color import *
+
+# Import user interface functionality.
+from .ui.menu_add_layer import *
+from .ui.menu_add_mask import *
+from .ui.coater_ui import *
+from .ui.draw_layer_stack import *
 
 # Improt extra features.
 from .extra_features.toggle_texture_paint_mode import *
