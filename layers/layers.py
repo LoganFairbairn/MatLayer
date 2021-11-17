@@ -23,7 +23,7 @@ from .import link_layers
 def update_layer_name(self, context):
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
-    channel_node = coater_node_info.get_channel_node(self, context)
+    channel_node = coater_node_info.get_channel_node(context)
 
     if layer_index != -1:
 
@@ -35,7 +35,7 @@ def update_layer_name(self, context):
             layers[layer_index].frame_name = frame.name
 
         # If the layer has an image, rename the image to the layer's name.
-        if coater_node_info.get_layer_image(self, context) != None:
+        if coater_node_info.get_layer_image(context, layer_index) != None:
             image_name = layers[layer_index].layer_name + "_" + str(random.randint(0, 99999))
 
             while bpy.data.images.get(image_name) != None:

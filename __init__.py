@@ -73,6 +73,7 @@ classes = (
     COATER_AddonPreferences,
     
     # Baking
+    COATER_baking_properties,
     COATER_OT_bake,
     COATER_OT_bake_ambient_occlusion,
     COATER_OT_bake_curvature,
@@ -137,6 +138,9 @@ def register():
     bpy.types.Scene.coater_layer_stack = bpy.props.PointerProperty(type=COATER_layer_stack)
     bpy.types.Scene.coater_layers = bpy.props.CollectionProperty(type=COATER_layers)
 
+    # Baking Properties
+    bpy.types.Scene.coater_baking_properties = bpy.props.PointerProperty(type=COATER_baking_properties)
+    
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)

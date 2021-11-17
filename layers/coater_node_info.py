@@ -17,6 +17,7 @@
 
 import bpy
 
+# Returns a list of all channel nodes that exist.
 def get_channel_nodes(context):
     active_material = context.active_object.active_material
     material_nodes = context.active_object.active_material.node_tree.nodes
@@ -45,6 +46,7 @@ def get_channel_nodes(context):
 
     return group_nodes
 
+# Returns the active channel node group.
 def get_channel_node_group(context):
     layer_stack = context.scene.coater_layer_stack
     active_material = context.active_object.active_material
@@ -57,6 +59,7 @@ def get_channel_node_group(context):
     else:
         return None
 
+# Returns the active channel node (Node that connects to Principled BSDF).
 def get_channel_node(context):
     active_material = context.active_object.active_material
 
@@ -68,6 +71,7 @@ def get_channel_node(context):
 
     return None
 
+# Returns a list of all layer nodes that exist.
 def get_layer_nodes(context, layer_index):
     node_group = get_channel_node_group(context)
     nodes = []
@@ -144,6 +148,18 @@ def get_layer_image(context, layer_index):
     if color_node != None:
         if color_node.bl_static_type == 'TEX_IMAGE':
             return color_node.image
+        else:
+            return None
+    else:
+        return None
+
+# Returns the image used as a mask for the selected layer if one exists.
+def get_layer_mask_image(context, layer_index):
+    mask_node = get_node(context, 'MASK', layer_index)
+
+    if mask_node != None:
+        if mask_node.bl_static_type == 'TEX_IMAGE':
+            return mask_node.image
         else:
             return None
     else:

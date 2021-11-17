@@ -15,6 +15,7 @@
 
 import bpy
 from bpy.types import Operator
+from .import coater_node_info
 
 class COATER_OT_select_layer_image(Operator):
     bl_idname = "coater.select_layer_image"
@@ -24,7 +25,7 @@ class COATER_OT_select_layer_image(Operator):
     def execute(self, context):
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
-        channel_node_group = layer_functions.get_channel_node_group(context)
+        channel_node_group = coater_node_info.get_channel_node_group(context)
 
         if layers[layer_index].layer_type == 'IMAGE_LAYER':
             if channel_node_group != None:
@@ -42,7 +43,7 @@ class COATER_OT_select_layer_mask(Operator):
     def execute(self, context):
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
-        channel_node_group = layer_functions.get_channel_node_group(context)
+        channel_node_group = coater_node_info.get_channel_node_group(context)
 
         if channel_node_group != None:
             mask_node = channel_node_group.nodes.get(layers[layer_index].mask_node_name)

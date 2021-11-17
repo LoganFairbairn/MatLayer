@@ -19,16 +19,30 @@ from bpy.types import Operator
 
 # Baking settings.
 class COATER_baking_properties(bpy.types.PropertyGroup):
-    ao_image_name: bpy.props.StringProperty(name="", description="The baking AO image", default="")
-    
-    ambient_occlusion_intensity: bpy.props.FloatProperty(default=0.0, name="Ambient Occlusion Intensity")
-    curvature_edge_radius: bpy.props.FloatProperty(default=0.0, name="Edge Radius")
+    bake_type: bpy.props.EnumProperty(
+        items=[('AMBIENT_OCCLUSION', "Ambient Occlusion", ""),
+               ('CURVATURE', "Curvature", ""),
+               ('EDGES', 'Edges', "")],
+        name="Bake Types",
+        description="Projection type of the image attached to the selected layer",
+        default='AMBIENT_OCCLUSION',
+    )
+
+    ambient_occlusion_image_name: bpy.props.StringProperty(name="", description="The baking AO image", default="")
+    ambient_occlusion_intensity: bpy.props.FloatProperty(default=1.0, name="Ambient Occlusion Intensity")
+
+    curvature_image_name: bpy.props.StringProperty(name="", description="The baked curvature for object", default="")
+    curvature_edge_intensity: bpy.props.FloatProperty(default=1.0, name="Curvature Edge Radius")
+    curvature_edge_radius: bpy.props.FloatProperty(default=0.01, name="Curvature Edge Radius")
+
+    edge_image_name: bpy.props.StringProperty(name="Edge Image", description="Edge texture map.", default="")
+    edge_intensity: bpy.props.FloatProperty(default=1.0, name="Edge Intensity")
+    edge_radius: bpy.props.FloatProperty(default=0.01, name="Edge Radius")
 
 # Bakes all selected texture maps.
 class COATER_OT_bake(Operator):
     bl_idname = "coater.bake"
     bl_label = "Bake"
-    bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
@@ -43,7 +57,6 @@ class COATER_OT_bake(Operator):
 class COATER_OT_bake_ambient_occlusion(Operator):
     bl_idname = "coater.bake_ambient_occlusion"
     bl_label = "Bake Ambient Occlusion"
-    bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
@@ -127,11 +140,21 @@ class COATER_OT_bake_ambient_occlusion(Operator):
 
         return {'FINISHED'}
 
+class COATER_OT_preview_ambient_occlusion(Operator):
+    bl_idname = "coater.preview_ambient_occlusion"
+    bl_label = "Preview Coater"
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        return {'FINISHED'}
+
 # Bakes low poly curvature texture map for the active object.
 class COATER_OT_bake_curvature(Operator):
     bl_idname = "coater.bake_curvature"
     bl_label = "Bake Curvature"
-    bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
@@ -218,7 +241,6 @@ class COATER_OT_bake_curvature(Operator):
 class COATER_OT_bake_edges(Operator):
     bl_idname = "coater.bake_edges"
     bl_label = "Bake Edges"
-    bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
