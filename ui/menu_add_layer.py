@@ -14,8 +14,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import bpy
+from bpy.types import Operator
 
-class COATER_OT_add_layer_menu(bpy.types.Operator):
+class COATER_OT_add_layer_menu(Operator):
     '''Opens a menu of layer types that can be added the the layer stack.'''
     bl_label = ""
     bl_idname = "coater.add_layer_menu"

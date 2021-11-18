@@ -17,8 +17,9 @@
 import bpy
 from ..layers import coater_material_functions
 from ..layers import coater_node_info
-from .import baking_ui
 from .import draw_section_buttons
+from .import baking_section_ui
+from .import export_section_ui
 
 class COATER_panel_properties(bpy.types.PropertyGroup):
     sections: bpy.props.EnumProperty(
@@ -44,17 +45,17 @@ class COATER_PT_Panel(bpy.types.Panel):
             draw_layers_section_ui(self, context)
 
         if panel_properties.sections == "SECTION_BAKE":
-            baking_ui.draw_baking_section_ui(self, context)
+            baking_section_ui.draw_baking_section_ui(self, context)
 
         if panel_properties.sections == 'SECTION_EXPORT':
-            draw_export_section_ui(self, context)
+            export_section_ui.draw_export_section_ui(self, context)
 
 # Sections
 def draw_layers_section_ui(self, context):
     layout = self.layout
     draw_section_buttons.draw_section_buttons(self, context)             # Draw add-on section buttons.
     draw_layer_folder(self, context)                # Draw the layer folder location.
-    draw_tools(layout, context)                       # Draw coater specific tools.
+    draw_tools(layout, context)                     # Draw coater specific tools.
     draw_material_selector(self, context)           # Draw a material selector.
     draw_layer_operations(self)                     # Draw layer operations.
 
@@ -63,7 +64,7 @@ def draw_layers_section_ui(self, context):
         if active_material != None:
             if coater_material_functions.check_coater_material(context):
                 draw_material_channel(self, context)            # Draw material channel.
-                draw_base_channel_value(layout, context)          # Draw Layer Base Values
+                draw_base_channel_value(layout, context)        # Draw Layer Base Values
                 draw_opacity_and_blending(self, context)        # Draw layer blending mode and layer opacity.
             
                 layers = context.scene.coater_layers
@@ -75,25 +76,7 @@ def draw_layers_section_ui(self, context):
                     draw_layer_properties(self, context)    # Draw layer properties
                     draw_mask_properties(self, context)     # Draw mask properties.  
 
-def draw_export_section_ui(self, context):
-    layout = self.layout
-    addon_preferences = context.preferences.addons["Coater"].preferences
 
-    # Draw add-on section buttons.
-    draw_section_buttons.draw_section_buttons(self, context)
-
-    layout.prop(addon_preferences, "export_folder")
-
-    row = layout.row()
-    row.operator("coater.export")
-    row.scale_y = 2.0
-
-    layout.prop(addon_preferences, "export_base_color")
-    layout.prop(addon_preferences, "export_roughness")
-    layout.prop(addon_preferences, "export_metallic")
-    layout.prop(addon_preferences, "export_normals")
-    layout.prop(addon_preferences, "export_emission")
-    #layout.prop(addon_preferences, "export_ao")
 
 # Sub-sections.
 def draw_layer_folder(self, context):

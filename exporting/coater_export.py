@@ -1,5 +1,5 @@
 import bpy
-from bpy.types import Operator
+from bpy.types import Operator, PropertyGroup
 
 class COATER_OT_export(Operator):
     bl_idname = "coater.export"
@@ -57,6 +57,19 @@ class COATER_OT_export_normals(Operator):
     bl_idname = "coater.export_normals"
     bl_label = "Export Normals"
     bl_options = {'REGISTER', 'UNDO'}
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object.active_material
+    
+    def execute(self, context):
+        return {'FINISHED'}
+
+class COATER_OT_export_emission(Operator):
+    bl_idname = "coater.export_emission"
+    bl_label = "Export Emission"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Bakes the coater emission channel and saves the result to the export folder"
 
     @ classmethod
     def poll(cls, context):

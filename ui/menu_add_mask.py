@@ -14,8 +14,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import bpy
+from bpy.types import Operator
 
-class COATER_OT_add_mask_menu(bpy.types.Operator):
+class COATER_OT_add_mask_menu(Operator):
     '''Opens a menu of mask types that can be added to the selected layer.'''
     bl_label = ""
     bl_idname = "coater.add_mask_menu"

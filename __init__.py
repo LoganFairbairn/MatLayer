@@ -36,7 +36,11 @@ from .layers.toggle_channel_preview import COATER_OT_toggle_channel_preview
 from .layers.delete_layer import COATER_OT_delete_layer
 
 # Import baking functionality.
-from .baking.baking import *
+from .baking.baking_properties import COATER_baking_properties
+from .baking.bake_ambient_occlusion import COATER_OT_bake_ambient_occlusion
+from .baking.bake_curvature import COATER_OT_bake_curvature
+from .baking.bake_edges import COATER_OT_bake_edges
+from .baking.bake_functions import *
 
 # Import exporting functioality.
 from .exporting.coater_export import *
@@ -85,6 +89,7 @@ classes = (
     COATER_OT_export_roughness,
     COATER_OT_export_metallic,
     COATER_OT_export_normals,
+    COATER_OT_export_emission,
 
     # Layers
     COATER_layer_stack,
