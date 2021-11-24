@@ -33,7 +33,12 @@ def check_coater_material(context):
 def create_coater_material(context, active_object):
     new_material = bpy.data.materials.new(name=active_object.name)
     active_object.data.materials.append(new_material)
+    layers = context.scene.coater_layers
     layer_stack = context.scene.coater_layer_stack
+
+    # Clear all layers.
+    layers.clear()
+    layer_stack.layer_index = -1
     
     # The active material MUST use nodes.
     new_material.use_nodes = True

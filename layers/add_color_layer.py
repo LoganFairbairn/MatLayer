@@ -39,9 +39,9 @@ class COATER_OT_add_color_layer(Operator):
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
 
-        add_layer_slot.add_layer_slot(context)
         coater_material_functions.ready_coater_material(context)
         create_channel_group_node.create_channel_group_node(context)
+        add_layer_slot.add_layer_slot(context)
         create_layer_nodes.create_layer_nodes(context, 'COLOR_LAYER')
         organize_layer_nodes.organize_layer_nodes(context)
         link_layers.link_layers(context)

@@ -14,10 +14,17 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import bpy
-from bpy.types import Operator
+from bpy.types import Operator, PropertyGroup
 from .import coater_node_info
 from .import add_layer_slot
 from .import organize_layer_nodes
+
+def update_active_object(self, context):
+    print("Refreshed Layer Stack")
+    bpy.ops.coater.refresh_layers()
+
+class COATER_PT_refresh_properties(PropertyGroup):
+    coater_object: bpy.props.PointerProperty(type=bpy.types.Object, update=update_active_object)
 
 class COATER_OT_refresh_layers(Operator):
     bl_idname = "coater.refresh_layers"
@@ -36,94 +43,105 @@ class COATER_OT_refresh_layers(Operator):
         # Make sure this is a coater material before rebuilding the layer stack.
         principled_bsdf = material_nodes.get('Principled BSDF')
 
-        if principled_bsdf.label == "Coater PBR":
-            # Check to see if there's nodes in the selected layer channel group node.
-            node_group = coater_node_info.get_channel_node_group(context)
-            if node_group != None:
+        if principled_bsdf.label != "Coater PBR":
+            return {'FINISHED'}
+        
+        # Check to see if there's nodes in the selected layer channel group node.
+        node_group = coater_node_info.get_channel_node_group(context)
+        if node_group != None:
 
-                # Get the total number of layers using mix nodes.
-                total_layers = 0
-                for x in range(0, 100):
-                    node = node_group.nodes.get("MixLayer_" + str(x))
-                    if(node != None):
-                        total_layers += 1
-                    else:
+            # Get the total number of layers using mix nodes.
+            total_layers = 0
+            for x in range(0, 100):
+                node = node_group.nodes.get("MixLayer_" + str(x))
+                if(node != None):
+                    total_layers += 1
+                else:
+                    break
+
+            # Add a layer slot for each layer.
+            for i in range(total_layers):
+                add_layer_slot.add_layer_slot(context)
+
+            # Get all of the frame nodes.
+            frame_nodes = []
+            for n in node_group.nodes:
+                if n.bl_static_type == 'FRAME':
+                    frame_nodes.append(n)
+
+            # Read and store node values.
+            for i in range(0, total_layers):
+
+                # Get the layer name from the frame node.
+                for f in frame_nodes:
+                    frame_name_split = f.name.split('_')
+                    if frame_name_split[1] == str(i):
+                        layers[i].layer_name = frame_name_split[0]
+                        layers[i].frame_name = f.name
                         break
 
-                # Add a layer slot for each layer.
-                for i in range(total_layers):
-                    add_layer_slot.add_layer_slot(context)
+                # Get nodes using their names and store the nodes in the layer.
+                color_node = node_group.nodes.get("Color_" + str(i))
+                if color_node != None:
+                    if color_node.bl_static_type == 'TEX_IMAGE':
+                        layers[i].color_node_name = color_node.name
+                        layers[i].color_image = color_node.image
+                        layers[i].layer_type = 'IMAGE_LAYER'
+                        layers[i].layer_projection = color_node.projection
 
-                # Get all of the frame nodes.
-                frame_nodes = []
-                for n in node_group.nodes:
-                    if n.bl_static_type == 'FRAME':
-                        frame_nodes.append(n)
+                    if color_node.bl_static_type == 'RGB':
+                        layers[i].color_node_name = color_node.name
+                        color = color_node.outputs[0].default_value
+                        layers[i].color = (color[0], color[1], color[2])
+                        layers[i].layer_type = 'COLOR_LAYER'
 
-                # Read and store node values.
-                for i in range(0, total_layers):
+                # TODO: Read hidden layers.
+                if color_node.mute:
+                    layers[i].hidden = True
 
-                    # Get the layer name from the frame node.
-                    for f in frame_nodes:
-                        frame_name_split = f.name.split('_')
-                        if frame_name_split[1] == str(i):
-                            layers[i].layer_name = frame_name_split[0]
-                            layers[i].frame_name = f.name
-                            break
+                opacity_node = node_group.nodes.get("Opacity_" + str(i))
+                if opacity_node != None:
+                    layers[i].opacity_node_name = opacity_node.name
+                    layers[i].layer_opacity = opacity_node.inputs[1].default_value
 
-                    # Get nodes using their names and store the nodes in the layer.
-                    color_node = node_group.nodes.get("Color_" + str(i))
-                    if color_node != None:
-                        if color_node.bl_static_type == 'TEX_IMAGE':
-                            layers[i].color_node_name = color_node.name
-                            layers[i].color_image = color_node.image
-                            layers[i].layer_type = 'IMAGE_LAYER'
+                mix_layer_node = node_group.nodes.get("MixLayer_" + str(i))
+                if mix_layer_node != None:
+                    layers[i].mix_layer_node_name = mix_layer_node.name
+                    layers[i].blend_mode = mix_layer_node.blend_type
 
-                        if color_node.bl_static_type == 'RGB':
-                            layers[i].color_node_name = color_node.name
-                            color = color_node.outputs[0].default_value
-                            layers[i].color = (color[0], color[1], color[2])
-                            layers[i].layer_type = 'COLOR_LAYER'
+                coord_node_name = node_group.nodes.get("Coord_" + str(i))
+                if coord_node_name != None:
+                    layers[i].coord_node_name = coord_node_name.name
 
-                    opacity_node = node_group.nodes.get("Opacity_" + str(i))
-                    if opacity_node != None:
-                        layers[i].opacity_node_name = opacity_node.name
-                        layers[i].layer_opacity = opacity_node.inputs[1].default_value
+                mapping_node = node_group.nodes.get("Mapping_" + str(i))
+                if mapping_node != None:
+                    layers[i].mapping_node_name = mapping_node.name
 
-                    mix_layer_node = node_group.nodes.get("MixLayer_" + str(i))
-                    if mix_layer_node != None:
-                        layers[i].mix_layer_node_name = mix_layer_node.name
-                        layers[i].blend_mode = mix_layer_node.blend_type
+                mask_node = node_group.nodes.get("Mask_" + str(i))
+                if mask_node != None:
+                    layers[i].mask_node_name = mask_node.name
+                    layers[i].masked = True
 
-                    coord_node_name = node_group.nodes.get("Coord_" + str(i))
-                    if coord_node_name != None:
-                        layers[i].coord_node_name = coord_node_name.name
+                    if mask_node.bl_static_type == 'TEX_IMAGE':
+                        layers[i].mask_projection = mask_node.projection
 
-                    mapping_node = node_group.nodes.get("Mapping_" + str(i))
-                    if mapping_node != None:
-                        layers[i].mapping_node_name = mapping_node.name
+                mask_mix_node = node_group.nodes.get("MaskMix_" + str(i))
+                if mask_mix_node != None:
+                    layers[i].mask_mix_node_name = mask_mix_node.name
 
-                    mask_node = node_group.nodes.get("Mask_" + str(i))
-                    if mask_node != None:
-                        layers[i].mask_node_name = mask_node.name
+                mask_coord_node = node_group.nodes.get("MaskCoords_" + str(i))
+                if mask_coord_node != None:
+                    layers[i].mask_coord_node_name = mask_coord_node.name
 
-                    mask_mix_node = node_group.nodes.get("MaskMix_" + str(i))
-                    if mask_mix_node != None:
-                        layers[i].mask_mix_node_name = mask_mix_node.name
+                mask_mapping_node = node_group.nodes.get("MaskMapping_" + str(i))
+                if mask_mapping_node != None:
+                    layers[i].mask_mapping_node_name = mask_mapping_node.name
 
-                    mask_coord_node = node_group.nodes.get("MaskCoords_" + str(i))
-                    if mask_coord_node != None:
-                        layers[i].mask_coord_node_name = mask_coord_node.name
+                mask_levels_node = node_group.nodes.get("MaskLevels_" + str(i))
+                if mask_levels_node != None:
+                    layers[i].mask_levels_node_name = mask_levels_node.name
 
-                    mask_mapping_node = node_group.nodes.get("MaskMapping_" + str(i))
-                    if mask_mapping_node != None:
-                        layers[i].mask_mapping_node_name = mask_mapping_node.name
-
-                    mask_levels_node = node_group.nodes.get("MaskLevels_" + str(i))
-                    if mask_levels_node != None:
-                        layers[i].mask_levels_node_name = mask_levels_node.name
-
-                    # Organize the nodes for good measure.
-                    organize_layer_nodes.organize_layer_nodes(context)
+                # Organize the nodes for good measure.
+                organize_layer_nodes.organize_layer_nodes(context)
 
         return {'FINISHED'}

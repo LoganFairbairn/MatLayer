@@ -26,7 +26,7 @@ from .layers.layer_stack import *
 from .layers.add_image_layer import COATER_OT_add_image_layer, COATER_OT_add_empty_image_layer
 from .layers.add_color_layer import COATER_OT_add_color_layer
 from .layers.layer_masking import COATER_OT_add_image_mask, COATER_OT_delete_layer_mask
-from .layers.refresh_layers import COATER_OT_refresh_layers
+from .layers.refresh_layers import COATER_OT_refresh_layers, COATER_PT_refresh_properties
 from .layers.merge_layers import COATER_OT_merge_layer
 from .layers.duplicate_layers import COATER_OT_duplicate_layer
 from .layers.import_layer_image import COATER_OT_import_color_image, COATER_OT_import_mask_image
@@ -73,6 +73,8 @@ bl_info = {
 
 # List of classes to be registered.
 classes = (
+    COATER_PT_refresh_properties,
+
     #Addon Preferences
     COATER_AddonPreferences,
     
@@ -145,6 +147,8 @@ def register():
 
     # Baking Properties
     bpy.types.Scene.coater_baking_properties = bpy.props.PointerProperty(type=COATER_baking_properties)
+
+    bpy.types.Scene.refresh_properties = bpy.props.PointerProperty(type=COATER_PT_refresh_properties)
     
 def unregister():
     for cls in classes:

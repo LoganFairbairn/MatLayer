@@ -38,8 +38,8 @@ class COATER_OT_bake_edges(Operator):
 
         # Make a new bake image.
         image = bpy.ops.image.new(name=bake_image_name,
-                                  width=1024,
-                                  height=1024,
+                                  width=2048,
+                                  height=2048,
                                   color=(0.0, 0.0, 0.0, 1.0),
                                   alpha=False,
                                   generated_type='BLANK',
