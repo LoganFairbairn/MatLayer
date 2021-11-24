@@ -28,7 +28,6 @@ class COATER_OT_bake_curvature(Operator):
     def execute(self, context):
         # Store the active object.
         active_object = bpy.context.active_object
-
         bake_image_name = active_object.name + "_Curvature"
 
         # Delete existing bake image if it exists.
@@ -73,22 +72,82 @@ class COATER_OT_bake_curvature(Operator):
         if bsdf_node != None:
             nodes.remove(bsdf_node)
 
+        # Required Nodes
         material_output_node = nodes.get("Material Output")
         image_node = nodes.new(type='ShaderNodeTexImage')
         emission_node = nodes.new(type='ShaderNodeEmission')
-        geometry_node = nodes.new(type='ShaderNodeNewGeometry')
-        color_ramp_node = nodes.new(type='ShaderNodeValToRGB')
+
+        # Ambient Occlusion Mask Nodes
+        ao_node = nodes.new(type='ShaderNodeAmbientOcclusion')
+        ao_color_ramp_node = nodes.new(type='ShaderNodeValToRGB')
+        ao_invert_node = nodes.new(type='ShaderNodeInvert')
+        ao_masking_node = nodes.new(type='ShaderNodeMath')
+
+        # Edge Nodes
+        edge_bevel_node = nodes.new(type='ShaderNodeBevel')
+        edge_geometry_node = nodes.new(type='ShaderNodeNewGeometry')
+        edge_vector_math_node = nodes.new(type='ShaderNodeVectorMath')
+        edge_invert_node = nodes.new(type='ShaderNodeInvert')
+        edge_intensity_node = nodes.new(type='ShaderNodeMath')
+
+        # Ambient Occlusion Masking
+        ao_mix_mask_node = nodes.new(type='ShaderNodeMixRGB')
+
+        # Pointiness Nodes
+        curvature_geometry_node = nodes.new(type='ShaderNodeNewGeometry')
+        curvature_color_ramp_node = nodes.new(type='ShaderNodeValToRGB')
+
+        # Pointiness Edges Mix
+        pointiness_mix_node = nodes.new(type='ShaderNodeMixRGB')
 
         # Set node values.
+        baking_properties = context.scene.coater_baking_properties
+
         image_node.image = bpy.data.images[bake_image_name]
-        color_ramp_node.color_ramp.elements[0].position = 0.4
-        color_ramp_node.color_ramp.elements[0].color = (0.132868, 0.132868, 0.132868, 1.0)
+
+        ao_node.only_local = True
+        ao_node.samples = baking_properties.ambient_occlusion_samples
+        ao_masking_node.operation = 'MULTIPLY'
+
+        edge_bevel_node.inputs[0].default_value = baking_properties.curvature_edge_radius
+        edge_vector_math_node.operation = 'DOT_PRODUCT'
+        edge_intensity_node.operation = 'MULTIPLY'
+        edge_intensity_node.inputs[1].default_value = baking_properties.curvature_edge_intensity
+
+        ao_masking_node.inputs[1].default_value = baking_properties.curvature_ao_masking
+        ao_mix_mask_node.inputs[2].default_value = (0.0, 0.0, 0.0, 1.0)
+        ao_color_ramp_node.color_ramp.elements[0].position = 0.2
+        ao_color_ramp_node.color_ramp.elements[0].color = (0.0, 0.0, 0.0, 1.0)
+
+        curvature_color_ramp_node.color_ramp.elements[0].position = 0.5
+        curvature_color_ramp_node.color_ramp.elements[0].color = (0.25, 0.25, 0.25, 1.0)
+
+        pointiness_mix_node.blend_type = 'SCREEN'
+        pointiness_mix_node.inputs[0].default_value = 1
 
         # Link Nodes
         links = bake_material.node_tree.links
-        links.new(geometry_node.outputs[7], color_ramp_node.inputs[0])
-        links.new(color_ramp_node.outputs[0], emission_node.inputs[0])
-        links.new(emission_node.outputs[0], material_output_node.inputs[0])
+
+        links.new(material_output_node.inputs[0], emission_node.outputs[0])
+        links.new(emission_node.inputs[0], pointiness_mix_node.outputs[0])
+        
+        links.new(pointiness_mix_node.inputs[1], curvature_color_ramp_node.outputs[0])
+        links.new(pointiness_mix_node.inputs[2], ao_mix_mask_node.outputs[0])
+
+        links.new(curvature_color_ramp_node.inputs[0], curvature_geometry_node.outputs[7])
+
+        links.new(ao_mix_mask_node.inputs[0], ao_masking_node.outputs[0])
+        links.new(ao_mix_mask_node.inputs[1], edge_intensity_node.outputs[0])
+
+        links.new(ao_masking_node.inputs[0], ao_invert_node.outputs[0])
+        links.new(ao_invert_node.inputs[1], ao_color_ramp_node.outputs[0])
+        links.new(ao_color_ramp_node.inputs[0], ao_node.outputs[0])
+
+        links.new(edge_intensity_node.inputs[0], edge_invert_node.outputs[0])
+        links.new(edge_invert_node.inputs[1], edge_vector_math_node.outputs[1])
+        links.new(edge_vector_math_node.inputs[0], edge_bevel_node.outputs[0])
+        links.new(edge_vector_math_node.inputs[1], edge_geometry_node.outputs[1])
+        
 
         # Bake
         image_node.select = True
@@ -101,4 +160,3 @@ class COATER_OT_bake_curvature(Operator):
         context.scene.render.engine = 'BLENDER_EEVEE'
 
         return {'FINISHED'}
-

@@ -95,7 +95,7 @@ class COATER_OT_refresh_layers(Operator):
                         layers[i].color = (color[0], color[1], color[2])
                         layers[i].layer_type = 'COLOR_LAYER'
 
-                # TODO: Read hidden layers.
+                # Read hidden layers.
                 if color_node.mute:
                     layers[i].hidden = True
 
@@ -143,5 +143,10 @@ class COATER_OT_refresh_layers(Operator):
 
                 # Organize the nodes for good measure.
                 organize_layer_nodes.organize_layer_nodes(context)
+
+            # If the top layer is a layer image, select the image as the active paint image.
+            image = coater_node_info.get_layer_image(context, 0)
+            if image != None:
+                context.scene.tool_settings.image_paint.canvas = image
 
         return {'FINISHED'}

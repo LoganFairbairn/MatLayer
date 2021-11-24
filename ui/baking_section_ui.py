@@ -29,12 +29,6 @@ def draw_baking_section_ui(self, context):
     row.operator("coater.bake_curvature", text="", icon='RENDER_STILL')
     row.scale_y = scale_y
 
-    row = layout.row()
-    row.prop(addon_preferences, "bake_edges", text="")
-    row.prop_enum(baking_properties, "bake_type", 'EDGES')
-    row.operator("coater.bake_edges", text="", icon='RENDER_STILL')
-    row.scale_y = scale_y
-
     # Draw global bake settings.
     layout.label(text="Global Bake Settings:")
 
@@ -59,8 +53,15 @@ def draw_baking_section_ui(self, context):
 
     if baking_properties.bake_type == 'CURVATURE':
         layout.label(text="Curvature Bake Settings:")
-        layout.prop(baking_properties, "curvature_edge_intensity", slider=True)
         layout.prop(baking_properties, "curvature_edge_radius", slider=True)
+        layout.prop(baking_properties, "curvature_edge_intensity", slider=True)
+
+        # Ambient Occlusion Settings (if not baked already).
+        layout.prop(baking_properties, "ambient_occlusion_intensity", slider=True)
+        layout.prop(baking_properties, "ambient_occlusion_samples", slider=True)
+        row = layout.row()
+        row.prop(baking_properties, "ambient_occlusion_local")
+        row.prop(baking_properties, "ambient_occlusion_inside")
 
     if baking_properties.bake_type == 'EDGES':
         layout.label(text="Edge Bake Settings")

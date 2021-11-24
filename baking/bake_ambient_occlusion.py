@@ -79,7 +79,6 @@ class COATER_OT_bake_ambient_occlusion(Operator):
         emission_node = nodes.new(type='ShaderNodeEmission')
         ao_node = nodes.new(type='ShaderNodeAmbientOcclusion')
         color_ramp_node = nodes.new(type='ShaderNodeValToRGB')
-        intensity_node = nodes.new(type='ShaderNodeMath')
 
         # Set node values.
         baking_properties = context.scene.coater_baking_properties
@@ -88,16 +87,13 @@ class COATER_OT_bake_ambient_occlusion(Operator):
         ao_node.only_local = baking_properties.ambient_occlusion_local
         ao_node.samples = baking_properties.ambient_occlusion_samples
         ao_node.inside = baking_properties.ambient_occlusion_inside
-        intensity_node.inputs[1].default_value = baking_properties.ambient_occlusion_intensity
-        intensity_node.operation = 'MULTIPLY'
-        color_ramp_node.color_ramp.elements[0].position = 0.1
+        color_ramp_node.color_ramp.elements[0].position = baking_properties.ambient_occlusion_intensity
         color_ramp_node.color_ramp.interpolation = 'EASE'
 
         # Link Nodes
         links = bake_material.node_tree.links
         links.new(ao_node.outputs[0], color_ramp_node.inputs[0])
-        links.new(color_ramp_node.outputs[0], intensity_node.inputs[0])
-        links.new(intensity_node.outputs[0], emission_node.inputs[0])
+        links.new(color_ramp_node.outputs[0], emission_node.inputs[0])
         links.new(emission_node.outputs[0], material_output_node.inputs[0])
 
         # Bake
