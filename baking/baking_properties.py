@@ -53,10 +53,10 @@ class COATER_baking_properties(bpy.types.PropertyGroup):
 
     edge_image_name: bpy.props.StringProperty(name="Edge Image", description="Edge texture map", default="")
     edge_intensity: bpy.props.FloatProperty(name="Edge Intensity", description="", min=0.0, max=10.0, default=1.0)
-    edge_radius: bpy.props.FloatProperty(name="Edge Radius", description="Adjusts the radius of the edges", min=0.01, max=2.0, default=0.02)
+    edge_radius: bpy.props.FloatProperty(name="Edge Radius", description="Adjusts the radius of the edges", min=0.001, max=2.0, default=0.02)
     edge_ao_masking: bpy.props.FloatProperty(name="Ambient Occlusion Masking", description="Uses the ambient occlusion to mask edges", min=0, max=1, default=1)
 
     curvature_image_name: bpy.props.StringProperty(name="", description="The baked curvature for object", default="")
     curvature_edge_intensity: bpy.props.FloatProperty(name="Edge Intensity", description="Brightens edges", min=0.0, max=10.0, default=3.0)
-    curvature_edge_radius: bpy.props.FloatProperty(name="Edge Thickness", description="Edge thickness", min=0.01, max=0.1, default=0.01)
+    curvature_edge_radius: bpy.props.FloatProperty(name="Edge Thickness", description="Edge thickness", min=0.001, max=0.1, default=0.01)
     curvature_ao_masking: bpy.props.FloatProperty(name="AO Masking", description="Mask the curvature edges using ambient occlusion.", min=0.0, max=1.0, default=1.0)
