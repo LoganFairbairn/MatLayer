@@ -15,12 +15,18 @@
 
 import bpy
 
-# Checks if the active material is a Coater specific material.
+# Makes sure the material on the active object is Coater compatible.
+# Returns true if compatable, returns false if not.
 def check_coater_material(context):
+    active_object = context.active_object
+    if active_object == None:
+        return False
+    
     active_material = context.active_object.active_material
+    if active_material == None:
+        return False
 
     principled_bsdf = active_material.node_tree.nodes.get('Principled BSDF')
-
     if principled_bsdf != None:
         if principled_bsdf.label == "Coater PBR":
             return True
@@ -40,11 +46,8 @@ def create_coater_material(context, active_object):
     layers.clear()
     layer_stack.layer_index = -1
     
-    # The active material MUST use nodes.
-    new_material.use_nodes = True
-
-    # Use alpha clip blend mode to make the material transparent.
-    new_material.blend_method = 'CLIP'
+    new_material.use_nodes = True           # The active material MUST use nodes (as of Blender version 2.8).
+    new_material.blend_method = 'CLIP'      # Use alpha clip blend mode to make the material transparent.
 
     # Make a new emission node (used for channel previews).
     material_nodes = new_material.node_tree.nodes

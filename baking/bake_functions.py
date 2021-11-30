@@ -27,7 +27,11 @@ class COATER_OT_bake(Operator):
         return context.active_object
 
     def execute(self, context):
-        bpy.ops.coater.bake_ambient_occlusion()
-        bpy.ops.coater.bake_curvature()
-        bpy.ops.coater.bake_edges()
+        addon_preferences = context.preferences.addons["Coater"].preferences
+
+        if addon_preferences.bake_ao:
+            bpy.ops.coater.bake_ambient_occlusion()
+
+        if addon_preferences.bake_curvature:
+            bpy.ops.coater.bake_curvature()
         return {'FINISHED'}

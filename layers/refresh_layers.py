@@ -18,6 +18,7 @@ from bpy.types import Operator, PropertyGroup
 from .import coater_node_info
 from .import add_layer_slot
 from .import organize_layer_nodes
+from .import coater_material_functions
 
 def update_active_object(self, context):
     print("Refreshed Layer Stack")
@@ -32,6 +33,10 @@ class COATER_OT_refresh_layers(Operator):
     bl_description = "Reads the layers in the active material and updates the layer stack based on that"
 
     def execute(self, context):
+        # Make sure the active material is a Coater material before attempting to refresh the layer stack.
+        if coater_material_functions.check_coater_material(context) == False:
+            return {'FINISHED'}
+
         layers = context.scene.coater_layers
         layer_stack = context.scene.coater_layer_stack
         material_nodes = context.active_object.active_material.node_tree.nodes
@@ -40,12 +45,6 @@ class COATER_OT_refresh_layers(Operator):
         layers.clear()
         layer_stack.layer_index = -1
 
-        # Make sure this is a coater material before rebuilding the layer stack.
-        principled_bsdf = material_nodes.get('Principled BSDF')
-
-        if principled_bsdf.label != "Coater PBR":
-            return {'FINISHED'}
-        
         # Check to see if there's nodes in the selected layer channel group node.
         node_group = coater_node_info.get_channel_node_group(context)
         if node_group != None:

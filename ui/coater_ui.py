@@ -76,8 +76,6 @@ def draw_layers_section_ui(self, context):
                     draw_layer_properties(self, context)    # Draw layer properties
                     draw_mask_properties(self, context)     # Draw mask properties.  
 
-
-
 # Sub-sections.
 def draw_layer_folder(self, context):
     layout = self.layout
@@ -120,7 +118,7 @@ def draw_material_selector(self, context):
 
     if active_object != None:
         if active_object.active_material != None:
-            row.operator("coater.refresh_layers", icon='FILE_REFRESH')
+            row.operator("coater.refresh_layers", text="", icon='FILE_REFRESH')
     row.scale_y = 1.5
 
 def draw_layer_operations(self):

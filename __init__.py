@@ -133,6 +133,13 @@ classes = (
     COATER_OT_apply_color_grid,
 )
 
+def obj_selected_callback():
+    bpy.ops.coater.refresh_layers()
+
+subscribe_to = bpy.types.LayerObjects, "active"
+bpy.types.Scene.coater_object_selection_updater = object()
+bpy.msgbus.subscribe_rna(key=subscribe_to, owner=bpy.types.Scene.coater_object_selection_updater, args=(), notify=obj_selected_callback)
+
 def register():
     # Register properties, operators and pannels.
     for cls in classes:
@@ -155,6 +162,7 @@ def unregister():
         bpy.utils.unregister_class(cls)
 
     # TODO: Unregister pointers??
+
 
 if __name__ == "__main__":
     register()

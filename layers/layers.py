@@ -19,7 +19,6 @@ import random
 from .import coater_node_info
 from .import link_layers
 
-# When a property in the Coater UI is changed, these functions are triggered and their respective properties are updated.
 def update_layer_name(self, context):
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
@@ -99,28 +98,30 @@ def update_layer_coord(self, context):
     mapping_node = channel_node_group.nodes.get(layers[layer_index].mapping_node_name)
 
     # Delink coordinate node.
-    outputs = coord_node.outputs
-    for o in outputs:
-        for l in o.links:
-            if l != 0:
-                channel_node_group.links.remove(l)
+    if coord_node != None:
+        outputs = coord_node.outputs
+        for o in outputs:
+            for l in o.links:
+                if l != 0:
+                    channel_node_group.links.remove(l)
 
-    # Connect nodes based on projection type.
-    if layers[layer_index].layer_projection == 'FLAT':
-        channel_node_group.links.new(coord_node.outputs[2], mapping_node.inputs[0])
-        color_node.projection = 'FLAT'
+        if layer_index > -1:
+            # Connect nodes based on projection type.
+            if layers[layer_index].layer_projection == 'FLAT':
+                channel_node_group.links.new(coord_node.outputs[2], mapping_node.inputs[0])
+                color_node.projection = 'FLAT'
 
-    if layers[layer_index].layer_projection == 'BOX':
-        channel_node_group.links.new(coord_node.outputs[0], mapping_node.inputs[0])
-        color_node.projection = 'BOX'
+            if layers[layer_index].layer_projection == 'BOX':
+                channel_node_group.links.new(coord_node.outputs[0], mapping_node.inputs[0])
+                color_node.projection = 'BOX'
 
-    if layers[layer_index].layer_projection == 'SPHERE':
-        channel_node_group.links.new(coord_node.outputs[0], mapping_node.inputs[0])
-        color_node.projection = 'SPHERE'
+            if layers[layer_index].layer_projection == 'SPHERE':
+                channel_node_group.links.new(coord_node.outputs[0], mapping_node.inputs[0])
+                color_node.projection = 'SPHERE'
 
-    if layers[layer_index].layer_projection == 'TUBE':
-        channel_node_group.links.new(coord_node.outputs[0], mapping_node.inputs[0])
-        color_node.projection = 'TUBE'
+            if layers[layer_index].layer_projection == 'TUBE':
+                channel_node_group.links.new(coord_node.outputs[0], mapping_node.inputs[0])
+                color_node.projection = 'TUBE'
 
 def update_mapping_coord(self, context):
     layers = context.scene.coater_layers
@@ -131,28 +132,30 @@ def update_mapping_coord(self, context):
     mask_mapping_node = channel_node_group.nodes.get(layers[layer_index].mask_mapping_node_name)
 
     # Delink coordinate node.
-    outputs = mask_coord_node.outputs
-    for o in outputs:
-        for l in o.links:
-            if l != 0:
-                channel_node_group.links.remove(l)
+    if mask_coord_node != None:
+        outputs = mask_coord_node.outputs
+        for o in outputs:
+            for l in o.links:
+                if l != 0:
+                    channel_node_group.links.remove(l)
 
-    # Connect nodes based on projection type.
-    if layers[layer_index].mask_projection == 'FLAT':
-        channel_node_group.links.new(mask_coord_node.outputs[2], mask_mapping_node.inputs[0])
-        mask_node.projection = 'FLAT'
+        # Connect nodes based on projection type.
+        if layer_index > -1:
+            if layers[layer_index].mask_projection == 'FLAT':
+                channel_node_group.links.new(mask_coord_node.outputs[2], mask_mapping_node.inputs[0])
+                mask_node.projection = 'FLAT'
 
-    if layers[layer_index].mask_projection == 'BOX':
-        channel_node_group.links.new(mask_coord_node.outputs[0], mask_mapping_node.inputs[0])
-        mask_node.projection = 'BOX'
+            if layers[layer_index].mask_projection == 'BOX':
+                channel_node_group.links.new(mask_coord_node.outputs[0], mask_mapping_node.inputs[0])
+                mask_node.projection = 'BOX'
 
-    if layers[layer_index].mask_projection == 'SPHERE':
-        channel_node_group.links.new(mask_coord_node.outputs[0], mask_mapping_node.inputs[0])
-        mask_node.projection = 'SPHERE'
+            if layers[layer_index].mask_projection == 'SPHERE':
+                channel_node_group.links.new(mask_coord_node.outputs[0], mask_mapping_node.inputs[0])
+                mask_node.projection = 'SPHERE'
 
-    if layers[layer_index].mask_projection == 'TUBE':
-        channel_node_group.links.new(mask_coord_node.outputs[0], mask_mapping_node.inputs[0])
-        mask_node.projection = 'TUBE'
+            if layers[layer_index].mask_projection == 'TUBE':
+                channel_node_group.links.new(mask_coord_node.outputs[0], mask_mapping_node.inputs[0])
+                mask_node.projection = 'TUBE'
 
 def update_layer_opacity(self, context):
     layers = context.scene.coater_layers

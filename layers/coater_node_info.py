@@ -17,8 +17,9 @@
 
 import bpy
 
-# Returns a list of all channel nodes that exist.
+
 def get_channel_nodes(context):
+    # Returns a list of all channel nodes that exist.
     active_material = context.active_object.active_material
     material_nodes = context.active_object.active_material.node_tree.nodes
 
@@ -46,8 +47,8 @@ def get_channel_nodes(context):
 
     return group_nodes
 
-# Returns the active channel node group.
 def get_channel_node_group(context):
+    # Returns the active channel node group.
     layer_stack = context.scene.coater_layer_stack
     active_material = context.active_object.active_material
 
@@ -59,8 +60,8 @@ def get_channel_node_group(context):
     else:
         return None
 
-# Returns the active channel node (Node that connects to Principled BSDF).
 def get_channel_node(context):
+    # Returns the active channel node (Node that connects to Principled BSDF).
     active_material = context.active_object.active_material
 
     if active_material != None:
@@ -71,8 +72,9 @@ def get_channel_node(context):
 
     return None
 
-# Returns a list of all layer nodes that exist.
+
 def get_layer_nodes(context, layer_index):
+    # Returns a list of all layer nodes that exist.
     node_group = get_channel_node_group(context)
     nodes = []
 
@@ -120,12 +122,12 @@ def get_layer_nodes(context, layer_index):
 
     return nodes
 
-# Returns a specific coater node from a specific layer index. Returns None if it does not exist.
 def get_node(context, node_name, index):
+    # Returns a specific coater node from a specific layer index. Returns None if it does not exist.
     layers = context.scene.coater_layers
     channel_node_group = get_channel_node_group(context)
 
-    if channel_node_group != None:
+    if channel_node_group != None and index > -1:
         if node_name == 'COLOR':
             return channel_node_group.nodes.get(layers[index].color_node_name)
 
@@ -141,8 +143,8 @@ def get_node(context, node_name, index):
     else:
         return None
 
-# Returns a layer image from the given layer index, returns None if it does not exist.
 def get_layer_image(context, layer_index):
+    # Returns a layer image from the given layer index, returns None if it does not exist.
     color_node = get_node(context, 'COLOR', layer_index)
 
     if color_node != None:
@@ -153,8 +155,8 @@ def get_layer_image(context, layer_index):
     else:
         return None
 
-# Returns the image used as a mask for the selected layer if one exists.
 def get_layer_mask_image(context, layer_index):
+    # Returns the image used as a mask for the selected layer if one exists.
     mask_node = get_node(context, 'MASK', layer_index)
 
     if mask_node != None:
