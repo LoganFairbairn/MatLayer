@@ -13,8 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import json     # For reading resolution mapping.
 import bpy
 from bpy.types import Operator
+from .import bake_functions
 
 # Bakes ambient occlusion for the active object.
 class COATER_OT_bake_ambient_occlusion(Operator):
@@ -26,83 +28,43 @@ class COATER_OT_bake_ambient_occlusion(Operator):
         return context.active_object
 
     def execute(self, context):
-        # Store the active object.
-        active_object = bpy.context.active_object
-        bake_image_name = active_object.name + "_AO"
-
-        # Delete existing bake image if it exists.
-        image = bpy.data.images.get(bake_image_name)
-        if image != None:
-            bpy.data.images.remove(image)
-
-
-        # TODO: Set image size.
-
-        # Make a new bake image.
-        image = bpy.ops.image.new(name=bake_image_name,
-                                  width=1024,
-                                  height=1024,
-                                  color=(0.0, 0.0, 0.0, 1.0),
-                                  alpha=False,
-                                  generated_type='BLANK',
-                                  float=False,
-                                  use_stereo_3d=False,
-                                  tiled=False)
-
-        # Create a material for baking.
-        bake_material_name = "Coater_Bake_AmbientOcclusion"
-        bake_material = bpy.data.materials.get(bake_material_name)
-
-        if bake_material != None:
-            bpy.data.materials.remove(bake_material)
-
-        bake_material = bpy.data.materials.new(name=bake_material_name)
-        bake_material.use_nodes = True
-
-        # Remove existing material slots from the object.
-        for x in context.object.material_slots:
-            context.object.active_material_index = 0
-            bpy.ops.object.material_slot_remove()
-
-        # Add the bake material to the active object's material slots.
-        active_object.data.materials.append(bake_material)
-
-        # Add nodes.
-        nodes = bake_material.node_tree.nodes
-
-        bsdf_node = nodes.get("Principled BSDF")
-        if bsdf_node != None:
-            nodes.remove(bsdf_node)
-
-        material_output_node = nodes.get("Material Output")
-        image_node = nodes.new(type='ShaderNodeTexImage')
-        emission_node = nodes.new(type='ShaderNodeEmission')
-        ao_node = nodes.new(type='ShaderNodeAmbientOcclusion')
-        color_ramp_node = nodes.new(type='ShaderNodeValToRGB')
-
-        # Set node values.
-        baking_properties = context.scene.coater_baking_properties
-
-        image_node.image = bpy.data.images[bake_image_name]
-        ao_node.only_local = baking_properties.ambient_occlusion_local
-        ao_node.samples = baking_properties.ambient_occlusion_samples
-        ao_node.inside = baking_properties.ambient_occlusion_inside
-        color_ramp_node.color_ramp.elements[0].position = baking_properties.ambient_occlusion_intensity
-        color_ramp_node.color_ramp.interpolation = 'EASE'
-
-        # Link Nodes
-        links = bake_material.node_tree.links
-        links.new(ao_node.outputs[0], color_ramp_node.inputs[0])
-        links.new(color_ramp_node.outputs[0], emission_node.inputs[0])
-        links.new(emission_node.outputs[0], material_output_node.inputs[0])
-
-        # Bake
-        bpy.context.scene.render.engine = 'CYCLES'
-        bpy.context.scene.cycles.bake_type = 'EMIT'
-        bpy.ops.object.bake(type='EMIT')
-
-        # Remove the material.
-        bpy.data.materials.remove(bake_material)
-        bpy.context.scene.render.engine = 'BLENDER_EEVEE'
-
+        bake_type = "AO"
+        bake_functions.verify_bake_object(self, context)
+        bake_image_name = bake_functions.create_bake_image(context, bake_type)
+        original_material = bake_functions.empty_material_slots(context)
+        bake_material = bake_functions.add_new_bake_material(context)
+        add_ambient_occlusion_nodes(context, bake_material, bake_image_name)
+        bake_functions.start_bake()
+        bake_functions.set_output_quality()
+        bake_functions.end_bake(bake_material, original_material)
+        bake_functions.save_bake(bake_image_name)
         return {'FINISHED'}
+
+def add_ambient_occlusion_nodes(context, bake_material, bake_image_name):
+    # Add nodes.
+    nodes = bake_material.node_tree.nodes
+
+    bsdf_node = nodes.get("Principled BSDF")
+    if bsdf_node != None:
+        nodes.remove(bsdf_node)
+
+    material_output_node = nodes.get("Material Output")
+    image_node = nodes.new(type='ShaderNodeTexImage')
+    emission_node = nodes.new(type='ShaderNodeEmission')
+    ao_node = nodes.new(type='ShaderNodeAmbientOcclusion')
+    color_ramp_node = nodes.new(type='ShaderNodeValToRGB')
+
+    # Set node values.
+    baking_properties = context.scene.coater_baking_properties
+    image_node.image = bpy.data.images[bake_image_name]
+    ao_node.only_local = baking_properties.ambient_occlusion_local
+    ao_node.samples = baking_properties.ambient_occlusion_samples
+    ao_node.inside = baking_properties.ambient_occlusion_inside
+    color_ramp_node.color_ramp.elements[0].position = baking_properties.ambient_occlusion_intensity
+    color_ramp_node.color_ramp.interpolation = 'EASE'
+
+    # Link Nodes
+    links = bake_material.node_tree.links
+    links.new(ao_node.outputs[0], color_ramp_node.inputs[0])
+    links.new(color_ramp_node.outputs[0], emission_node.inputs[0])
+    links.new(emission_node.outputs[0], material_output_node.inputs[0])

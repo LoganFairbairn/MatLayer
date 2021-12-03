@@ -15,6 +15,19 @@
 
 import bpy
 
+def update_match_output_resolution(self, context):
+    baking_properties = context.scene.coater_baking_properties
+
+    if baking_properties.match_output_resolution:
+        baking_properties.output_height = baking_properties.output_width
+
+def update_output_width(self, context):
+    baking_properties = context.scene.coater_baking_properties
+
+    if baking_properties.match_output_resolution:
+        if baking_properties.output_height != baking_properties.output_width:
+            baking_properties.output_height = baking_properties.output_width
+
 # Baking settings.
 class COATER_baking_properties(bpy.types.PropertyGroup):
     bake_type: bpy.props.EnumProperty(
@@ -29,32 +42,40 @@ class COATER_baking_properties(bpy.types.PropertyGroup):
     output_quality: bpy.props.EnumProperty(
         items=[('LOW_QUALITY', "Low Quality", ""),
                ('RECOMMENDED_QUALITY', "Recommended Quality", ""),
-               ('HIGH QUALITY', 'High Quality', "")],
+               ('HIGH_QUALITY', 'High Quality', "")],
         name="Output Quality",
         description="Output quality of the bake.",
         default='RECOMMENDED_QUALITY'
     )
 
-    output_size: bpy.props.EnumProperty(
+    output_width: bpy.props.EnumProperty(
         items=[('FIVE_TWELVE', "512", ""),
                ('ONEK', "1024", ""),
                ('TWOK', "2048", ""),
                ('FOURK', "4096", "")],
-        name="Output Size",
+        name="Output Height",
         description="Image size for the baked texure map result(s).",
-        default='TWOK'
+        default='FIVE_TWELVE',
+        update=update_output_width
     )
+
+    output_height: bpy.props.EnumProperty(
+        items=[('FIVE_TWELVE', "512", ""),
+               ('ONEK', "1024", ""),
+               ('TWOK', "2048", ""),
+               ('FOURK', "4096", "")],
+        name="Output Height",
+        description="Image size for the baked texure map result(s).",
+        default='FIVE_TWELVE'
+    )
+
+    match_output_resolution: bpy.props.BoolProperty(name="Match Output Resoltion", description="Match the output resoltion", default=True, update=update_match_output_resolution)
 
     ambient_occlusion_image_name: bpy.props.StringProperty(name="", description="The baking AO image", default="")
     ambient_occlusion_intensity: bpy.props.FloatProperty(name="Ambient Occlusion Intensity", description="", min=0.0, max=1.0, default=0.5)
     ambient_occlusion_samples: bpy.props.FloatProperty(name="Ambient Occlusion Samples", description="The amount of samples for ambient occlusion taken", min=1.0, max=128.0, default=64.0)
     ambient_occlusion_local: bpy.props.BoolProperty(name="Local AO", description="Ambient occlusion will not bake shadow cast by other objects", default=True)
     ambient_occlusion_inside: bpy.props.BoolProperty(name="Inside AO", description="Ambient occlusion will trace rays towards the inside of the object", default=False)
-
-    edge_image_name: bpy.props.StringProperty(name="Edge Image", description="Edge texture map", default="")
-    edge_intensity: bpy.props.FloatProperty(name="Edge Intensity", description="", min=0.0, max=10.0, default=1.0)
-    edge_radius: bpy.props.FloatProperty(name="Edge Radius", description="Adjusts the radius of the edges", min=0.001, max=2.0, default=0.02)
-    edge_ao_masking: bpy.props.FloatProperty(name="Ambient Occlusion Masking", description="Uses the ambient occlusion to mask edges", min=0, max=1, default=1)
 
     curvature_image_name: bpy.props.StringProperty(name="", description="The baked curvature for object", default="")
     curvature_edge_intensity: bpy.props.FloatProperty(name="Edge Intensity", description="Brightens edges", min=0.0, max=10.0, default=3.0)

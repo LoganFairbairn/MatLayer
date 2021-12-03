@@ -39,7 +39,6 @@ from .layers.delete_layer import COATER_OT_delete_layer
 from .baking.baking_properties import COATER_baking_properties
 from .baking.bake_ambient_occlusion import COATER_OT_bake_ambient_occlusion
 from .baking.bake_curvature import COATER_OT_bake_curvature
-from .baking.bake_edges import COATER_OT_bake_edges
 from .baking.bake_functions import *
 
 # Import exporting functioality.
@@ -50,10 +49,10 @@ from .exporting.export_to_image_editor import *
 from .swap_tool_color import *
 
 # Import user interface functionality.
-from .ui.menu_add_layer import *
-from .ui.menu_add_mask import *
 from .ui.coater_ui import *
-from .ui.draw_layer_stack import *
+from .ui.popup_add_layer import *
+from .ui.popup_add_mask import *
+from .ui.ui_layer_stack import *
 
 # Improt extra features.
 from .extra_features.toggle_texture_paint_mode import *
@@ -62,7 +61,7 @@ from .extra_features.apply_color_grid import COATER_OT_apply_color_grid
 bl_info = {
     "name": "Coater",
     "author": "Logan Fairbairn",
-    "version": (0, 1),
+    "version": (0, 6),
     "blender": (2, 93, 5),
     "location": "View3D > Sidebar > Coater",
     "description": "Replaces node based texturing workflow with a layer stack workflow.",
@@ -83,7 +82,6 @@ classes = (
     COATER_OT_bake,
     COATER_OT_bake_ambient_occlusion,
     COATER_OT_bake_curvature,
-    COATER_OT_bake_edges,
 
     # Exporting
     COATER_OT_export,
@@ -154,7 +152,6 @@ def register():
 
     # Baking Properties
     bpy.types.Scene.coater_baking_properties = bpy.props.PointerProperty(type=COATER_baking_properties)
-
     bpy.types.Scene.refresh_properties = bpy.props.PointerProperty(type=COATER_PT_refresh_properties)
     
 def unregister():
@@ -163,6 +160,7 @@ def unregister():
 
     # TODO: Unregister pointers??
 
-
 if __name__ == "__main__":
     register()
+
+        

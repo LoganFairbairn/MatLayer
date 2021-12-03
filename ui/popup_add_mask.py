@@ -28,7 +28,6 @@ class COATER_OT_add_mask_menu(Operator):
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
-        
         return {'FINISHED'}
 
     # Opens the popup when the add layer button is clicked.

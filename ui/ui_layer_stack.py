@@ -24,7 +24,6 @@ class COATER_UL_layer_list(bpy.types.UIList):
         self.use_filter_show = False
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-
             # Draw the layer hide icon.
             row = layout.row()
             if item.hidden == True:
@@ -33,28 +32,18 @@ class COATER_UL_layer_list(bpy.types.UIList):
             elif item.hidden == False:
                 row.prop(item, "hidden", text="", emboss=False, icon='HIDE_OFF')
 
-            # Draw the layer's type.
+            # Draw an icon to represent the layer's type
             row = layout.row(align=True)
             if item.layer_type == 'IMAGE_LAYER':
-                row.operator("coater.select_layer_image", text="", emboss=False, icon='IMAGE_DATA')
+                row.label(text="", icon="IMAGE_DATA")
 
             elif item.layer_type == 'COLOR_LAYER':
                 row.label(text="", icon="COLOR")
 
-            # Draw if the layer is masked.
-            row = layout.row()
+            # Draw masked icon if the layer is masked.
             if item.mask_node_name != "":
-                layer_index = context.scene.coater_layer_stack.layer_index
-                mask_node = coater_node_info.get_node(context, 'MASK', layer_index)
-                if mask_node != None:
-                    if context.scene.tool_settings.image_paint.canvas == mask_node.image:
-                        row.operator("coater.select_layer_mask", text="", emboss=True, depress=True, icon='MOD_MASK')
-
-                    else:
-                        row.operator("coater.select_layer_mask", text="", emboss=True, icon='MOD_MASK')
-
-                else:
-                    row.operator("coater.select_layer_mask", text="", emboss=True, icon='MOD_MASK')
+                row = layout.row()
+                row.label(text="", icon="MOD_MASK")
 
             # Draw the layer's name.
             row.prop(item, "layer_name", text="", emboss=False)

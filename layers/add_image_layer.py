@@ -16,6 +16,7 @@
 import bpy
 from bpy.types import Operator
 import random
+import os       # For saving layer images.
 from .import add_layer_slot
 from .import create_channel_group_node
 from .import coater_material_functions
@@ -60,10 +61,15 @@ class COATER_OT_add_image_layer(Operator):
                           use_stereo_3d=False,
                           tiled=False)
 
-        # Auto-save the image to the image folder (defined in addon preferences).
-        bpy.data.images[layer_name].filepath = "G:/Projects/Coater/Layers/" + layer_name + ".png"
-        bpy.data.images[layer_name].file_format = 'PNG'
-        bpy.data.images[layer_name].save()
+        # Auto-save the image to the layer folder.
+        bake_path = bpy.path.abspath("//") + 'Layers'
+        if os.path.exists(bake_path) == False:
+            os.mkdir(bake_path)
+
+        layer_image = bpy.data.images[layer_name]
+        layer_image.filepath = bake_path + "/" + layer_name + ".png"
+        layer_image.file_format = 'PNG'
+        layer_image.save()
 
         # Put the image in the image node.
         node_group = coater_node_info.get_channel_node_group(context)

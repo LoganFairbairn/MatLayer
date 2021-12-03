@@ -15,6 +15,7 @@
 
 import bpy
 from bpy.types import Operator
+from .import bake_functions
 
 # Bakes low poly curvature texture map for the active object.
 class COATER_OT_bake_curvature(Operator):
@@ -26,19 +27,28 @@ class COATER_OT_bake_curvature(Operator):
         return context.active_object
 
     def execute(self, context):
-        # Store the active object.
+        # Make sure the selected object is a Mesh.
         active_object = bpy.context.active_object
-        bake_image_name = active_object.name + "_Curvature"
+        if active_object.type != 'MESH':
+            self.report({'INFO'}, "Active object must be a mesh")
+            return {'FINISHED'}
+
+        # Make sure the active object has a UV map.
+        if active_object.data.uv_layers.active == None:
+            self.report({'INFO'}, "Active object has no active UV layer")
+            return {'FINISHED'}
 
         # Delete existing bake image if it exists.
+        bake_image_name = active_object.name + "_Curvature"
         image = bpy.data.images.get(bake_image_name)
         if image != None:
             bpy.data.images.remove(image)
 
         # Make a new bake image.
+        output_size = bake_functions.set_bake_size(context)
         image = bpy.ops.image.new(name=bake_image_name,
-                                  width=1024,
-                                  height=1024,
+                                  width=output_size[0],
+                                  height=output_size[1],
                                   color=(0.0, 0.0, 0.0, 1.0),
                                   alpha=False,
                                   generated_type='BLANK',
@@ -49,7 +59,6 @@ class COATER_OT_bake_curvature(Operator):
         # Create a material for baking.
         bake_material_name = "Coater_Bake_Curvature"
         bake_material = bpy.data.materials.get(bake_material_name)
-        
 
         if bake_material != None:
             bpy.data.materials.remove(bake_material)

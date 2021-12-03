@@ -14,28 +14,23 @@ class COATER_AddonPreferences(AddonPreferences):
         description="Preset Sizes for images",
     )
 
-    # General Settings
-    use_32_bit: bpy.props.BoolProperty(default=False, name="Use 32-bit by default.")
-    pack_images: bpy.props.BoolProperty(default=False, name="Pack Images", description="When this option is enabled, images will be saved with the .blend file by default. Packed images can not use the 'export to external image edit' function.")
-    organize_nodes: bpy.props.BoolProperty(default=False, name="Organize Nodes", description="Automatically organize nodes when the layer stack is changed.")
-
     # Interface Settings
     show_color_picker: bpy.props.BoolProperty(default=False, name="Show Color Picker")
     show_color_palette: bpy.props.BoolProperty(default=False, name="Show Color Palette")
-    show_brush_colors: bpy.props.BoolProperty(default=True, name="Show Brush Colors")
+    show_brush_settings: bpy.props.BoolProperty(default=True, name="Show Brush Settings")
 
     # Layer Settings
-    layer_folder: bpy.props.StringProperty(default="", name="Layer Folder")
+    layer_folder: bpy.props.StringProperty(default="", name="Layers")
 
     # Bake Settings
-    bake_folder: bpy.props.StringProperty(default="", name="Bake Folder")
+    bake_folder: bpy.props.StringProperty(default="", name="Bakes")
     bake_ao: bpy.props.BoolProperty(default=True, name="Bake Ambient Occlusion")
     bake_curvature: bpy.props.BoolProperty(default=True, name="Bake Curvature")
     bake_edges: bpy.props.BoolProperty(default=False, name="Bake Edges")
     bake_normals: bpy.props.BoolProperty(default=False, name="Bake Normals")
 
     # Export Settings
-    export_folder: bpy.props.StringProperty(default="", name="Export Folder")
+    export_textures_folder: bpy.props.StringProperty(default="", name="Exports")
     export_base_color: bpy.props.BoolProperty(default=True, name="Export Base Color")
     export_roughness: bpy.props.BoolProperty(default=False, name="Export Roughness")
     export_metallic: bpy.props.BoolProperty(default=False, name="Export Metallic")

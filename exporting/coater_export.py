@@ -27,6 +27,7 @@ class COATER_OT_export_base_color(Operator):
         return context.active_object.active_material
     
     def execute(self, context):
+        bpy.ops.coater.toggle_channel_preview()
         return {'FINISHED'}
 
 class COATER_OT_export_roughness(Operator):
