@@ -8,7 +8,7 @@ class COATER_OT_export(Operator):
 
     @ classmethod
     def poll(cls, context):
-        return context.active_object.active_material
+        return False
     
     def execute(self, context):
         bpy.ops.coater.export_base_color()

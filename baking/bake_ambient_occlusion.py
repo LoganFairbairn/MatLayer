@@ -32,7 +32,7 @@ class COATER_OT_bake_ambient_occlusion(Operator):
         bake_functions.verify_bake_object(self, context)
         bake_image_name = bake_functions.create_bake_image(context, bake_type)
         original_material = bake_functions.empty_material_slots(context)
-        bake_material = bake_functions.add_new_bake_material(context)
+        bake_material = bake_functions.add_new_bake_material(context, "Coater_Bake_AmbientOcclusion")
         add_ambient_occlusion_nodes(context, bake_material, bake_image_name)
         bake_functions.start_bake()
         bake_functions.set_output_quality()

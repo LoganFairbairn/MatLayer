@@ -132,16 +132,16 @@ def empty_material_slots(context):
 
     return original_material
 
-def add_new_bake_material(context):
+def add_new_bake_material(context, material_name):
     '''Adds a new material for baking.'''
+
     # Create a material for baking.
-    bake_material_name = "Coater_Bake_AmbientOcclusion"
-    bake_material = bpy.data.materials.get(bake_material_name)
+    bake_material = bpy.data.materials.get(material_name)
 
     if bake_material != None:
         bpy.data.materials.remove(bake_material)
 
-    bake_material = bpy.data.materials.new(name=bake_material_name)
+    bake_material = bpy.data.materials.new(name=material_name)
     bake_material.use_nodes = True
 
     # Add the bake material to the active object's material slots.

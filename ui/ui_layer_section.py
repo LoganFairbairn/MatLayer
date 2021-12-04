@@ -47,8 +47,8 @@ def draw_paint_tools(layout, context):
     # Only draw paint tools in Texture Paint mode.
     if context.mode == 'PAINT_TEXTURE':
         # Draw color picker.
-        row = layout.row()
-        row.template_color_picker(context.scene.tool_settings.unified_paint_settings, "color")
+        #row = layout.row()
+        #row.template_color_picker(context.scene.tool_settings.unified_paint_settings, "color")
 
         # Draw Primary & Secondary Colors
         row = layout.row()
@@ -151,13 +151,13 @@ def draw_base_channel_value(layout, context):
             row.prop(principled_bsdf.inputs[0], "default_value", text="")
 
         if layer_stack.channel == 'METALLIC':
-            row.prop(principled_bsdf.inputs[4], "default_value", text="")
+            row.prop(principled_bsdf.inputs[6], "default_value", text="")
 
         if layer_stack.channel == 'ROUGHNESS':
-            row.prop(principled_bsdf.inputs[7], "default_value", text="")
+            row.prop(principled_bsdf.inputs[9], "default_value", text="")
 
         if layer_stack.channel == 'EMISSION':
-            row.prop(principled_bsdf.inputs[17], "default_value", text="")
+            row.prop(principled_bsdf.inputs[19], "default_value", text="")
 
     else:
         channel_node = coater_node_info.get_channel_node(context)
@@ -166,7 +166,7 @@ def draw_base_channel_value(layout, context):
             row.prop(channel_node.inputs[0], "default_value", text="")
 
     if layer_stack.channel == 'EMISSION':
-        row.prop(principled_bsdf.inputs[18], "default_value", text="")
+        row.prop(principled_bsdf.inputs[20], "default_value", text="")
 
 def draw_layer_properties(self, context):
     layers = context.scene.coater_layers

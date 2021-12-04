@@ -73,13 +73,13 @@ def create_channel_group_node(context):
                 node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[0])
 
             if layer_stack.channel == "METALLIC":
-                node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[4])
+                node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[6])
 
             if layer_stack.channel == "ROUGHNESS":
-                node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[7])
+                node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[9])
 
             if layer_stack.channel == "EMISSION":
-                node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[17])
+                node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[19])
 
             if layer_stack.channel == "HEIGHT":
-                node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[20])
+                node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[22])

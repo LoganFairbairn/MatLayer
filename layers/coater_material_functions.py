@@ -63,7 +63,7 @@ def create_coater_material(context, active_object):
     principled_bsdf_node.label = "Coater PBR"
 
     # Set the default value for emission to 5, this makes the emission easier to see.
-    principled_bsdf_node.inputs[18].default_value = 5
+    principled_bsdf_node.inputs[20].default_value = 5
 
     # Turn Eevee bloom on, this also makes emission easier to see.
     context.scene.eevee.use_bloom = True
