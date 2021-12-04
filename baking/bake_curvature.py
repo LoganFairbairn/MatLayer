@@ -110,20 +110,20 @@ class COATER_OT_bake_curvature(Operator):
         pointiness_mix_node = nodes.new(type='ShaderNodeMixRGB')
 
         # Set node values.
-        baking_properties = context.scene.coater_baking_properties
+        baking_settings = context.scene.coater_baking_settings
 
         image_node.image = bpy.data.images[bake_image_name]
 
         ao_node.only_local = True
-        ao_node.samples = baking_properties.ambient_occlusion_samples
+        ao_node.samples = baking_settings.ambient_occlusion_samples
         ao_masking_node.operation = 'MULTIPLY'
 
-        edge_bevel_node.inputs[0].default_value = baking_properties.curvature_edge_radius
+        edge_bevel_node.inputs[0].default_value = baking_settings.curvature_edge_radius
         edge_vector_math_node.operation = 'DOT_PRODUCT'
         edge_intensity_node.operation = 'MULTIPLY'
-        edge_intensity_node.inputs[1].default_value = baking_properties.curvature_edge_intensity
+        edge_intensity_node.inputs[1].default_value = baking_settings.curvature_edge_intensity
 
-        ao_masking_node.inputs[1].default_value = baking_properties.curvature_ao_masking
+        ao_masking_node.inputs[1].default_value = baking_settings.curvature_ao_masking
         ao_mix_mask_node.inputs[2].default_value = (0.0, 0.0, 0.0, 1.0)
         ao_color_ramp_node.color_ramp.elements[0].position = 0.2
         ao_color_ramp_node.color_ramp.elements[0].color = (0.0, 0.0, 0.0, 1.0)

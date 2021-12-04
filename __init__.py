@@ -154,13 +154,13 @@ def register():
     bpy.types.Scene.coater_layer_stack = bpy.props.PointerProperty(type=COATER_layer_stack)
     bpy.types.Scene.coater_layers = bpy.props.CollectionProperty(type=COATER_layers)
 
-    # Baking Properties
+    # Baking Settings
     bpy.types.Scene.coater_baking_settings = bpy.props.PointerProperty(type=COATER_baking_settings)
 
     # TODO: WHAT THE FUCK IS THIS???
     bpy.types.Scene.refresh_properties = bpy.props.PointerProperty(type=COATER_PT_refresh_properties)
     
-    # Exporting Properties
+    # Exporting Settings
     bpy.types.Scene.coater_export_settings = bpy.props.PointerProperty(type=COATER_exporting_settings)
 
 def unregister():

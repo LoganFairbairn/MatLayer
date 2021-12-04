@@ -24,6 +24,8 @@ def draw_export_section_ui(self, context):
     # Draw export settings.
     export_settings = context.scene.coater_export_settings
     
+    layout.label(text="NOT YET IMPLEMENTED")
+
     scale_y = 1.4
 
     row = layout.row()

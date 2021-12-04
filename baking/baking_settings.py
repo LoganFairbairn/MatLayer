@@ -16,17 +16,17 @@
 import bpy
 
 def update_match_output_resolution(self, context):
-    baking_properties = context.scene.coater_baking_properties
+    baking_settings = context.scene.coater_baking_settings
 
-    if baking_properties.match_output_resolution:
-        baking_properties.output_height = baking_properties.output_width
+    if baking_settings.match_output_resolution:
+        baking_settings.output_height = baking_settings.output_width
 
 def update_output_width(self, context):
-    baking_properties = context.scene.coater_baking_properties
+    baking_settings = context.scene.coater_baking_settings
 
-    if baking_properties.match_output_resolution:
-        if baking_properties.output_height != baking_properties.output_width:
-            baking_properties.output_height = baking_properties.output_width
+    if baking_settings.match_output_resolution:
+        if baking_settings.output_height != baking_settings.output_width:
+            baking_settings.output_height = baking_settings.output_width
 
 # Baking settings.
 class COATER_baking_settings(bpy.types.PropertyGroup):

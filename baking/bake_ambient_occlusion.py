@@ -55,12 +55,12 @@ def add_ambient_occlusion_nodes(context, bake_material, bake_image_name):
     color_ramp_node = nodes.new(type='ShaderNodeValToRGB')
 
     # Set node values.
-    baking_properties = context.scene.coater_baking_properties
+    baking_settings = context.scene.coater_baking_settings
     image_node.image = bpy.data.images[bake_image_name]
-    ao_node.only_local = baking_properties.ambient_occlusion_local
-    ao_node.samples = baking_properties.ambient_occlusion_samples
-    ao_node.inside = baking_properties.ambient_occlusion_inside
-    color_ramp_node.color_ramp.elements[0].position = baking_properties.ambient_occlusion_intensity
+    ao_node.only_local = baking_settings.ambient_occlusion_local
+    ao_node.samples = baking_settings.ambient_occlusion_samples
+    ao_node.inside = baking_settings.ambient_occlusion_inside
+    color_ramp_node.color_ramp.elements[0].position = baking_settings.ambient_occlusion_intensity
     color_ramp_node.color_ramp.interpolation = 'EASE'
 
     # Link Nodes

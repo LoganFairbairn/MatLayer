@@ -28,12 +28,12 @@ class COATER_OT_bake(Operator):
         return context.active_object
 
     def execute(self, context):
-        addon_preferences = context.preferences.addons["Coater"].preferences
+        baking_settings = context.scene.coater_baking_settings
 
-        if addon_preferences.bake_ao:
+        if baking_settings.bake_ambient_occlusion:
             bpy.ops.coater.bake_ambient_occlusion()
 
-        if addon_preferences.bake_curvature:
+        if baking_settings.bake_curvature:
             bpy.ops.coater.bake_curvature()
         return {'FINISHED'}
 
@@ -52,31 +52,31 @@ def verify_bake_object(self, context):
         return False
 
 def set_bake_size(context):
-    '''Sets the size of the bake image based on baking properties.'''
-    baking_properties = context.scene.coater_baking_properties
+    '''Sets the size of the bake image based on baking settings.'''
+    baking_settings = context.scene.coater_baking_settings
 
-    if baking_properties.output_width == 'FIVE_TWELVE':
+    if baking_settings.output_width == 'FIVE_TWELVE':
         output_width = 512
 
-    if baking_properties.output_width == 'ONEK':
+    if baking_settings.output_width == 'ONEK':
         output_width = 1024
 
-    if baking_properties.output_width == 'TWOK':
+    if baking_settings.output_width == 'TWOK':
         output_width = 2048
         
-    if baking_properties.output_width == 'FOURK':
+    if baking_settings.output_width == 'FOURK':
         output_width = 4096
 
-    if baking_properties.output_height == 'FIVE_TWELVE':
+    if baking_settings.output_height == 'FIVE_TWELVE':
         output_height = 512
 
-    if baking_properties.output_height == 'ONEK':
+    if baking_settings.output_height == 'ONEK':
         output_height = 1024
         
-    if baking_properties.output_height == 'TWOK':
+    if baking_settings.output_height == 'TWOK':
         output_height = 2048
 
-    if baking_properties.output_height == 'FOURK':
+    if baking_settings.output_height == 'FOURK':
         output_height = 4096
 
     output_size = [output_width, output_height]
@@ -150,16 +150,16 @@ def add_new_bake_material(context):
     return bake_material
 
 def set_output_quality():
-    '''Sets the quality based on baking properties.'''
-    baking_properties = bpy.context.scene.coater_baking_properties
+    '''Sets the quality based on baking settings.'''
+    baking_settings = bpy.context.scene.coater_baking_settings
 
-    if baking_properties.output_quality == 'LOW_QUALITY':
+    if baking_settings.output_quality == 'LOW_QUALITY':
         bpy.data.scenes["Scene"].cycles.samples = 1
 
-    if baking_properties.output_quality == 'RECOMMENDED_QUALITY':
+    if baking_settings.output_quality == 'RECOMMENDED_QUALITY':
         bpy.data.scenes["Scene"].cycles.samples = 64
 
-    if baking_properties.output_quality == 'HIGH_QUALITY':
+    if baking_settings.output_quality == 'HIGH_QUALITY':
         bpy.data.scenes["Scene"].cycles.samples = 128
 
 def start_bake():

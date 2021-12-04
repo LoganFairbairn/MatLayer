@@ -46,27 +46,22 @@ def draw_layers_section_ui(self, context):
 def draw_paint_tools(layout, context):
     # Only draw paint tools in Texture Paint mode.
     if context.mode == 'PAINT_TEXTURE':
-        addon_preferences = context.preferences.addons["Coater"].preferences
-
         # Draw color picker.
         row = layout.row()
-        if addon_preferences.show_color_picker:
-            row.template_color_picker(context.scene.tool_settings.unified_paint_settings, "color")
+        row.template_color_picker(context.scene.tool_settings.unified_paint_settings, "color")
 
         # Draw Primary & Secondary Colors
         row = layout.row()
         row.scale_y = 1.4
-        if addon_preferences.show_brush_settings:
-            row = layout.row(align=True)
-            row.prop(context.scene.tool_settings.unified_paint_settings, "color", text="")
-            row.prop(context.scene.tool_settings.unified_paint_settings, "secondary_color", text="")
-            row.operator("coater.swap_primary_color", icon='UV_SYNC_SELECT')
+        row = layout.row(align=True)
+        row.prop(context.scene.tool_settings.unified_paint_settings, "color", text="")
+        row.prop(context.scene.tool_settings.unified_paint_settings, "secondary_color", text="")
+        row.operator("coater.swap_primary_color", icon='UV_SYNC_SELECT')
 
         row.prop(context.tool_settings.image_paint.brush, "blend", text="")
 
         # Draw Color Palette
-        if addon_preferences.show_color_palette:
-            layout.template_palette(context.tool_settings.image_paint, "palette", color=True)
+        layout.template_palette(context.tool_settings.image_paint, "palette", color=True)
 
         # Draw brush presets.
         row = layout.row()
