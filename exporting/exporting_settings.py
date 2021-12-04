@@ -12,17 +12,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
-# This file draws section tabs.
 
 import bpy
 
-def draw_section_tabs(self, context):
-    layout = self.layout
-    panel_properties = context.scene.coater_panel_properties
-
-    # Draw add-on section buttons.
-    row = layout.row(align=True)
-    row.prop_enum(panel_properties, "sections", 'SECTION_LAYERS')
-    row.prop_enum(panel_properties, "sections", 'SECTION_BAKE')
-    row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT')
-    row.scale_y = 2.0
+# Exporting settings.
+class COATER_exporting_settings(bpy.types.PropertyGroup):
+    bake_ambient_occlusion: bpy.props.BoolProperty(name="Bake Ambient Occlusion", description="Bake ambient occlusion", default=True)
+    export_base_color: bpy.props.BoolProperty(default=True, name="Export Base Color")
+    export_roughness: bpy.props.BoolProperty(default=False, name="Export Roughness")
+    export_metallic: bpy.props.BoolProperty(default=False, name="Export Metallic")
+    export_normals: bpy.props.BoolProperty(default=False, name="Export Normals")
+    export_emission: bpy.props.BoolProperty(default=False, name="Export Emission")

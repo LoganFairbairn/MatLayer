@@ -12,17 +12,19 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
-# This file draws section tabs.
 
 import bpy
+from bpy.types import Operator
 
-def draw_section_tabs(self, context):
-    layout = self.layout
-    panel_properties = context.scene.coater_panel_properties
+class COATER_OT_bake_layer(Operator):
+    '''Bakes the selected layer to an image layer.'''
+    bl_idname = "coater.bake_layer"
+    bl_label = "Bake Layer"
+    bl_description = "Bakes the selected layer to an image layer."
 
-    # Draw add-on section buttons.
-    row = layout.row(align=True)
-    row.prop_enum(panel_properties, "sections", 'SECTION_LAYERS')
-    row.prop_enum(panel_properties, "sections", 'SECTION_BAKE')
-    row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT')
-    row.scale_y = 2.0
+    @ classmethod
+    def poll(cls, context):
+        return False
+
+    def execute(self, context):
+        return {'FINISHED'}

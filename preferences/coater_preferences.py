@@ -14,26 +14,32 @@ class COATER_AddonPreferences(AddonPreferences):
         description="Preset Sizes for images",
     )
 
+    # Output Folders
+    layer_folder: bpy.props.StringProperty(default="", name="Layers")
+    bake_folder: bpy.props.StringProperty(default="", name="Bakes")
+    export_textures_folder: bpy.props.StringProperty(default="", name="Exports")
+
     # Interface Settings
     show_color_picker: bpy.props.BoolProperty(default=False, name="Show Color Picker")
     show_color_palette: bpy.props.BoolProperty(default=False, name="Show Color Palette")
     show_brush_settings: bpy.props.BoolProperty(default=True, name="Show Brush Settings")
 
     # Layer Settings
-    layer_folder: bpy.props.StringProperty(default="", name="Layers")
+    auto_delete_images: bpy.props.BoolProperty(default=True, name="Auto Delete Images")
 
-    # Bake Settings
-    bake_folder: bpy.props.StringProperty(default="", name="Bakes")
-    bake_ao: bpy.props.BoolProperty(default=True, name="Bake Ambient Occlusion")
-    bake_curvature: bpy.props.BoolProperty(default=True, name="Bake Curvature")
-    bake_edges: bpy.props.BoolProperty(default=False, name="Bake Edges")
-    bake_normals: bpy.props.BoolProperty(default=False, name="Bake Normals")
+    def draw(self, context):
+        layout = self.layout
+        addon_preferences = context.preferences.addons["Coater"].preferences
+        
+        layout.label(text="Custom output folders: ")
+        layout.prop(addon_preferences, "layer_folder")
+        layout.prop(addon_preferences, "bake_folder")
+        layout.prop(addon_preferences, "export_textures_folder")
 
-    # Export Settings
-    export_textures_folder: bpy.props.StringProperty(default="", name="Exports")
-    export_base_color: bpy.props.BoolProperty(default=True, name="Export Base Color")
-    export_roughness: bpy.props.BoolProperty(default=False, name="Export Roughness")
-    export_metallic: bpy.props.BoolProperty(default=False, name="Export Metallic")
-    export_normals: bpy.props.BoolProperty(default=False, name="Export Normals")
-    export_emission: bpy.props.BoolProperty(default=False, name="Export Emission")
-    export_ao: bpy.props.BoolProperty(default=False, name="Export Ambient Occlusion")
+        layout.label(text="Tools")
+        layout.prop(addon_preferences, "show_brush_settings")
+        layout.prop(addon_preferences, "show_color_picker")
+        layout.prop(addon_preferences, "show_color_palette")
+        
+        layout.label(text="Layers")
+        layout.prop(addon_preferences, "auto_delete_images")

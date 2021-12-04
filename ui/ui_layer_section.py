@@ -147,7 +147,7 @@ def draw_base_channel_value(layout, context):
     layers = context.scene.coater_layers
     layer_stack = context.scene.coater_layer_stack
     material_nodes = context.active_object.active_material.node_tree.nodes
-
+    
     row = layout.row()
 
     principled_bsdf = material_nodes.get('Principled BSDF')

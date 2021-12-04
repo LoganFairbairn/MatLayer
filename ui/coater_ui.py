@@ -18,14 +18,12 @@ import bpy
 from .import ui_layer_section
 from .import ui_baking_section
 from .import ui_export_section
-from .import ui_settings_section
 
 class COATER_panel_properties(bpy.types.PropertyGroup):
     sections: bpy.props.EnumProperty(
-        items=[('SECTION_LAYERS', "Layers", "This section contains a layer stack for the active material."),
-               ('SECTION_BAKE', "Bake", "This section contains operations to quickly bake common texture maps for your model."),
-               ('SECTION_EXPORT', "Export", "This section contains operations to quickly export textures made with Coater."),
-               ('SECTION_SETTINGS', "Settings", "This section contains Coater Settings.")],
+        items=[('SECTION_BAKE', "Bake", "This section contains operations to quickly bake common texture maps for your model."),
+               ('SECTION_LAYERS', "Layers", "This section contains a layer stack for the active material."),
+               ('SECTION_EXPORT', "Export", "This section contains operations to quickly export textures made with Coater.")],
         name="Coater Sections",
         description="Current coater category",
         default='SECTION_LAYERS'
@@ -42,17 +40,14 @@ class COATER_PT_Panel(bpy.types.Panel):
         panel_properties = context.scene.coater_panel_properties
 
         if check_blend_saved():
+            if panel_properties.sections == "SECTION_BAKE":
+                ui_baking_section.draw_baking_section_ui(self, context)
+                
             if panel_properties.sections == "SECTION_LAYERS":
                 ui_layer_section.draw_layers_section_ui(self, context)
 
-            if panel_properties.sections == "SECTION_BAKE":
-                ui_baking_section.draw_baking_section_ui(self, context)
-
             if panel_properties.sections == 'SECTION_EXPORT':
                 ui_export_section.draw_export_section_ui(self, context)
-
-            if panel_properties.sections == 'SECTION_SETTINGS':
-                ui_settings_section.draw_settings_ui(self, context)
 
         else:
             layout = self.layout

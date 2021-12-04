@@ -62,12 +62,12 @@ class COATER_OT_add_image_layer(Operator):
                           tiled=False)
 
         # Auto-save the image to the layer folder.
-        bake_path = bpy.path.abspath("//") + 'Layers'
-        if os.path.exists(bake_path) == False:
-            os.mkdir(bake_path)
+        layer_folder_path = bpy.path.abspath("//") + 'Layers'
+        if os.path.exists(layer_folder_path) == False:
+            os.mkdir(layer_folder_path)
 
         layer_image = bpy.data.images[layer_name]
-        layer_image.filepath = bake_path + "/" + layer_name + ".png"
+        layer_image.filepath = layer_folder_path + "/" + layer_name + ".png"
         layer_image.file_format = 'PNG'
         layer_image.save()
 

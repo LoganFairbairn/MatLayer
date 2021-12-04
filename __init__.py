@@ -34,9 +34,10 @@ from .layers.select_layer import COATER_OT_select_layer_image, COATER_OT_select_
 from .layers.move_layer import COATER_OT_move_layer_up, COATER_OT_move_layer_down
 from .layers.toggle_channel_preview import COATER_OT_toggle_channel_preview
 from .layers.delete_layer import COATER_OT_delete_layer
+from .layers.bake_layer import COATER_OT_bake_layer
 
 # Import baking functionality.
-from .baking.baking_properties import COATER_baking_properties
+from .baking.baking_settings import COATER_baking_settings
 from .baking.bake_ambient_occlusion import COATER_OT_bake_ambient_occlusion
 from .baking.bake_curvature import COATER_OT_bake_curvature
 from .baking.bake_functions import *
@@ -44,6 +45,7 @@ from .baking.bake_functions import *
 # Import exporting functioality.
 from .exporting.coater_export import *
 from .exporting.export_to_image_editor import *
+from .exporting.exporting_settings import COATER_exporting_settings
 
 # Import tool functionality.
 from .swap_tool_color import *
@@ -78,12 +80,13 @@ classes = (
     COATER_AddonPreferences,
     
     # Baking
-    COATER_baking_properties,
+    COATER_baking_settings,
     COATER_OT_bake,
     COATER_OT_bake_ambient_occlusion,
     COATER_OT_bake_curvature,
 
     # Exporting
+    COATER_exporting_settings,
     COATER_OT_export,
     COATER_OT_export_base_color,
     COATER_OT_export_roughness,
@@ -117,6 +120,7 @@ classes = (
     COATER_OT_refresh_layers,
     COATER_OT_select_layer_image,
     COATER_OT_select_layer_mask,
+    COATER_OT_bake_layer,
 
     # Main Panel & General Settings
     COATER_panel_properties,
@@ -151,9 +155,14 @@ def register():
     bpy.types.Scene.coater_layers = bpy.props.CollectionProperty(type=COATER_layers)
 
     # Baking Properties
-    bpy.types.Scene.coater_baking_properties = bpy.props.PointerProperty(type=COATER_baking_properties)
+    bpy.types.Scene.coater_baking_settings = bpy.props.PointerProperty(type=COATER_baking_settings)
+
+    # TODO: WHAT THE FUCK IS THIS???
     bpy.types.Scene.refresh_properties = bpy.props.PointerProperty(type=COATER_PT_refresh_properties)
     
+    # Exporting Properties
+    bpy.types.Scene.coater_export_settings = bpy.props.PointerProperty(type=COATER_exporting_settings)
+
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)

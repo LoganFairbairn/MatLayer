@@ -18,28 +18,28 @@ from .import ui_section_tabs
 
 def draw_baking_section_ui(self, context):
     layout = self.layout
-    addon_preferences = context.preferences.addons["Coater"].preferences
-    baking_properties = context.scene.coater_baking_properties
+    baking_settings = context.scene.coater_baking_settings
 
-    ui_section_tabs.draw_section_tabs(self, context)    # Draw section buttons.
+    # Draw section tabs.
+    ui_section_tabs.draw_section_tabs(self, context)
 
-    # Bake
+    # Draw bake button.
     row = layout.row()
     row.operator("coater.bake")
     row.scale_y = 2.0
 
-    # Toggles
+    # Draw baking types.
     scale_y = 1.4
 
     row = layout.row()
-    row.prop(addon_preferences, "bake_ao", text="")
-    row.prop_enum(baking_properties, "bake_type", 'AMBIENT_OCCLUSION')
+    row.prop(baking_settings, "bake_ambient_occlusion", text="")
+    row.prop_enum(baking_settings, "bake_type", 'AMBIENT_OCCLUSION')
     row.operator("coater.bake_ambient_occlusion", text="", icon='RENDER_STILL')
     row.scale_y = scale_y
 
     row = layout.row()
-    row.prop(addon_preferences, "bake_curvature", text="")
-    row.prop_enum(baking_properties, "bake_type", 'CURVATURE')
+    row.prop(baking_settings, "bake_curvature", text="")
+    row.prop_enum(baking_settings, "bake_type", 'CURVATURE')
     row.operator("coater.bake_curvature", text="", icon='RENDER_STILL')
     row.scale_y = scale_y
 
@@ -49,26 +49,26 @@ def draw_baking_section_ui(self, context):
     split = layout.split()
     col = split.column()
     col.scale_y = scale_y
-    col.prop(baking_properties, "output_width", text="")
+    col.prop(baking_settings, "output_width", text="")
 
     col = split.column()
     col.scale_y = scale_y
-    if baking_properties.match_output_resolution:
-        col.prop(baking_properties, "match_output_resolution", text="", icon="LOCKED")
+    if baking_settings.match_output_resolution:
+        col.prop(baking_settings, "match_output_resolution", text="", icon="LOCKED")
 
     else:
-        col.prop(baking_properties, "match_output_resolution", text="", icon="UNLOCKED")
+        col.prop(baking_settings, "match_output_resolution", text="", icon="UNLOCKED")
 
     col = split.column()
     col.scale_y = scale_y
-    if baking_properties.match_output_resolution:
+    if baking_settings.match_output_resolution:
         col.enabled = False
         
-    col.prop(baking_properties, "output_height", text="")
+    col.prop(baking_settings, "output_height", text="")
 
     row = layout.row()
     row.scale_y = scale_y
-    row.prop(baking_properties, "output_quality", text="")
+    row.prop(baking_settings, "output_quality", text="")
 
     row = layout.row()
     row.scale_y = scale_y
@@ -76,22 +76,22 @@ def draw_baking_section_ui(self, context):
     row.prop(bpy.data.scenes["Scene"].render.bake, "margin", slider=True)
 
     # Draw specific bake settings based on selected bake type.
-    if baking_properties.bake_type == 'AMBIENT_OCCLUSION':
+    if baking_settings.bake_type == 'AMBIENT_OCCLUSION':
         layout.label(text="Ambient Occlusion Bake Settings:")
-        layout.prop(baking_properties, "ambient_occlusion_intensity", slider=True)
-        layout.prop(baking_properties, "ambient_occlusion_samples", slider=True)
+        layout.prop(baking_settings, "ambient_occlusion_intensity", slider=True)
+        layout.prop(baking_settings, "ambient_occlusion_samples", slider=True)
         row = layout.row()
-        row.prop(baking_properties, "ambient_occlusion_local")
-        row.prop(baking_properties, "ambient_occlusion_inside")
+        row.prop(baking_settings, "ambient_occlusion_local")
+        row.prop(baking_settings, "ambient_occlusion_inside")
 
-    if baking_properties.bake_type == 'CURVATURE':
+    if baking_settings.bake_type == 'CURVATURE':
         layout.label(text="Curvature Bake Settings:")
-        layout.prop(baking_properties, "curvature_edge_radius", slider=True)
-        layout.prop(baking_properties, "curvature_edge_intensity", slider=True)
+        layout.prop(baking_settings, "curvature_edge_radius", slider=True)
+        layout.prop(baking_settings, "curvature_edge_intensity", slider=True)
 
-        # Ambient Occlusion Settings (show only if not baked already).
-        layout.prop(baking_properties, "ambient_occlusion_intensity", slider=True)
-        layout.prop(baking_properties, "ambient_occlusion_samples", slider=True)
+        # Ambient Occlusion Settings.
+        layout.prop(baking_settings, "ambient_occlusion_intensity", slider=True)
+        layout.prop(baking_settings, "ambient_occlusion_samples", slider=True)
         row = layout.row()
-        row.prop(baking_properties, "ambient_occlusion_local")
-        row.prop(baking_properties, "ambient_occlusion_inside")
+        row.prop(baking_settings, "ambient_occlusion_local")
+        row.prop(baking_settings, "ambient_occlusion_inside")

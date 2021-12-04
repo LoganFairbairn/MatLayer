@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from os import link
+import os
 import bpy
 from bpy.types import Operator
 from .import coater_node_info
@@ -104,6 +104,12 @@ def delete_unused_image(context, image):
                     break
 
         if layer_exist == False:
-            bpy.data.images.remove(image)
+            # Delete the image from the layer folder.
+            addon_preferences = context.preferences.addons["Coater"].preferences
+            if addon_preferences.auto_delete_images:
+                image_path = bpy.path.abspath("//") + 'Layers' + "/" + image.name + "." + image.file_format
+                if os.path.exists(image_path):
+                    os.remove(image_path)
 
-            # TODO: Delete the image from the folder too!
+            # Remove the image from the .blend file.
+            bpy.data.images.remove(image)

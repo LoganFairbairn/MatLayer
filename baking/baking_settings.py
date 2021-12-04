@@ -29,7 +29,7 @@ def update_output_width(self, context):
             baking_properties.output_height = baking_properties.output_width
 
 # Baking settings.
-class COATER_baking_properties(bpy.types.PropertyGroup):
+class COATER_baking_settings(bpy.types.PropertyGroup):
     bake_type: bpy.props.EnumProperty(
         items=[('AMBIENT_OCCLUSION', "Ambient Occlusion", ""),
                ('CURVATURE', "Curvature", ""),
@@ -71,12 +71,14 @@ class COATER_baking_properties(bpy.types.PropertyGroup):
 
     match_output_resolution: bpy.props.BoolProperty(name="Match Output Resoltion", description="Match the output resoltion", default=True, update=update_match_output_resolution)
 
+    bake_ambient_occlusion: bpy.props.BoolProperty(name="Bake Ambient Occlusion", description="Bake ambient occlusion", default=True)
     ambient_occlusion_image_name: bpy.props.StringProperty(name="", description="The baking AO image", default="")
     ambient_occlusion_intensity: bpy.props.FloatProperty(name="Ambient Occlusion Intensity", description="", min=0.0, max=1.0, default=0.5)
     ambient_occlusion_samples: bpy.props.FloatProperty(name="Ambient Occlusion Samples", description="The amount of samples for ambient occlusion taken", min=1.0, max=128.0, default=64.0)
     ambient_occlusion_local: bpy.props.BoolProperty(name="Local AO", description="Ambient occlusion will not bake shadow cast by other objects", default=True)
     ambient_occlusion_inside: bpy.props.BoolProperty(name="Inside AO", description="Ambient occlusion will trace rays towards the inside of the object", default=False)
 
+    bake_curvature: bpy.props.BoolProperty(name="Bake Curvature", description="Bake Curvature", default=True)
     curvature_image_name: bpy.props.StringProperty(name="", description="The baked curvature for object", default="")
     curvature_edge_intensity: bpy.props.FloatProperty(name="Edge Intensity", description="Brightens edges", min=0.0, max=10.0, default=3.0)
     curvature_edge_radius: bpy.props.FloatProperty(name="Edge Thickness", description="Edge thickness", min=0.001, max=0.1, default=0.01)

@@ -18,10 +18,11 @@ from .import ui_section_tabs
 
 def draw_export_section_ui(self, context):
     layout = self.layout
-    addon_preferences = context.preferences.addons["Coater"].preferences
 
-    # Draw add-on section buttons.
     ui_section_tabs.draw_section_tabs(self, context)
+
+    # Draw export settings.
+    export_settings = context.scene.coater_export_settings
     
     scale_y = 1.4
 
@@ -31,25 +32,25 @@ def draw_export_section_ui(self, context):
 
     row = layout.row()
     row.scale_y = scale_y
-    row.prop(addon_preferences, "export_base_color")
+    row.prop(export_settings, "export_base_color")
     row.operator("coater.export_base_color", text="", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
-    row.prop(addon_preferences, "export_roughness")
+    row.prop(export_settings, "export_roughness")
     row.operator("coater.export_roughness", text="", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
-    row.prop(addon_preferences, "export_metallic")
+    row.prop(export_settings, "export_metallic")
     row.operator("coater.export_metallic", text="", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
-    row.prop(addon_preferences, "export_normals")
+    row.prop(export_settings, "export_normals")
     row.operator("coater.export_normals", text="", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
-    row.prop(addon_preferences, "export_emission")
+    row.prop(export_settings, "export_emission")
     row.operator("coater.export_emission", text="", icon='RENDER_STILL')
