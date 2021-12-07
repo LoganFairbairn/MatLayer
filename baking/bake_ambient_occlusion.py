@@ -29,20 +29,41 @@ class COATER_OT_bake_ambient_occlusion(Operator):
 
     def execute(self, context):
         bake_type = "AO"
-        bake_functions.verify_bake_object(self, context)
-        bake_image_name = bake_functions.create_bake_image(context, bake_type)
-        original_material = bake_functions.empty_material_slots(context)
-        bake_material = bake_functions.add_new_bake_material(context, "Coater_Bake_AmbientOcclusion")
-        add_ambient_occlusion_nodes(context, bake_material, bake_image_name)
-        bake_functions.start_bake()
-        bake_functions.set_output_quality()
-        bake_functions.end_bake(bake_material, original_material)
-        bake_functions.save_bake(bake_image_name)
+        if bake_functions.verify_bake_object(self, context):
+            bake_image_name = bake_functions.create_bake_image(context, bake_type)
+            original_material = bake_functions.empty_material_slots(context)
+            bake_material = bake_functions.add_new_bake_material(context, "Coater_AmbientOcclusion")
+            add_ambient_occlusion_nodes(context, bake_material, bake_image_name)
+            bake_functions.start_bake()
+            bake_functions.set_output_quality()
+            bake_functions.end_bake(bake_material, original_material)
+            bake_functions.save_bake(bake_image_name)
+            return {'FINISHED'}
+
+class COATER_OT_toggle_ambient_occlusion_preview(Operator):
+    bl_idname = "coater.toggle_ambient_occlusion_preview"
+    bl_label = "Preview Ambient Occlusion"
+    bl_description = "Previews ambient occlusion bake result on the active object"
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        material_name = "Coater_AmbientOcclusion"
+
+        if bake_functions.verify_bake_object(self, context):
+            bake_functions.empty_material_slots(context)
+            preview_material = bake_functions.add_new_bake_material(context, material_name)
+            add_ambient_occlusion_nodes(context, preview_material, "")
+            bpy.context.scene.render.engine = 'CYCLES'
+            if context.space_data.type == 'VIEW_3D':
+                context.space_data.shading.type = 'RENDERED'
         return {'FINISHED'}
 
-def add_ambient_occlusion_nodes(context, bake_material, bake_image_name):
+def add_ambient_occlusion_nodes(context, material, image_name):
     # Add nodes.
-    nodes = bake_material.node_tree.nodes
+    nodes = material.node_tree.nodes
 
     bsdf_node = nodes.get("Principled BSDF")
     if bsdf_node != None:
@@ -56,7 +77,8 @@ def add_ambient_occlusion_nodes(context, bake_material, bake_image_name):
 
     # Set node values.
     baking_settings = context.scene.coater_baking_settings
-    image_node.image = bpy.data.images[bake_image_name]
+    if image_name != "":
+        image_node.image = bpy.data.images[image_name]
     ao_node.only_local = baking_settings.ambient_occlusion_local
     ao_node.samples = baking_settings.ambient_occlusion_samples
     ao_node.inside = baking_settings.ambient_occlusion_inside
@@ -64,7 +86,7 @@ def add_ambient_occlusion_nodes(context, bake_material, bake_image_name):
     color_ramp_node.color_ramp.interpolation = 'EASE'
 
     # Link Nodes
-    links = bake_material.node_tree.links
+    links = material.node_tree.links
     links.new(ao_node.outputs[0], color_ramp_node.inputs[0])
     links.new(color_ramp_node.outputs[0], emission_node.inputs[0])
     links.new(emission_node.outputs[0], material_output_node.inputs[0])

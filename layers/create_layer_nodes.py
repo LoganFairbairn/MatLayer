@@ -77,7 +77,7 @@ def create_layer_nodes(context, layer_type):
         n.parent = frame
 
     # Store the frame.
-    frame.name = layers[layer_index].layer_name + "_" + str(layer_index)
+    frame.name = layers[layer_index].name + "_" + str(layers[layer_index].id) + "_" + str(layer_index)
     frame.label = frame.name
     layers[layer_index].frame_name = frame.name
 

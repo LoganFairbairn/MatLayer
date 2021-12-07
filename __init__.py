@@ -16,6 +16,7 @@
 # This file imports and registers all required modules.
 
 import bpy
+from bpy.app.handlers import persistent
 
 # Import add-on preferences.
 from .preferences.coater_preferences import *
@@ -23,10 +24,12 @@ from .preferences.coater_preferences import *
 # Import layer functionality.
 from .layers.layers import *
 from .layers.layer_stack import *
+from .layers.layer_settings import COATER_layer_settings
 from .layers.add_image_layer import COATER_OT_add_image_layer, COATER_OT_add_empty_image_layer
 from .layers.add_color_layer import COATER_OT_add_color_layer
+from .layers.add_group_layer import COATER_OT_add_group_layer
 from .layers.layer_masking import COATER_OT_add_image_mask, COATER_OT_delete_layer_mask
-from .layers.refresh_layers import COATER_OT_refresh_layers, COATER_PT_refresh_properties
+from .layers.refresh_layers import COATER_OT_refresh_layers
 from .layers.merge_layers import COATER_OT_merge_layer
 from .layers.duplicate_layers import COATER_OT_duplicate_layer
 from .layers.import_layer_image import COATER_OT_import_color_image, COATER_OT_import_mask_image
@@ -38,8 +41,8 @@ from .layers.bake_layer import COATER_OT_bake_layer
 
 # Import baking functionality.
 from .baking.baking_settings import COATER_baking_settings
-from .baking.bake_ambient_occlusion import COATER_OT_bake_ambient_occlusion
-from .baking.bake_curvature import COATER_OT_bake_curvature
+from .baking.bake_ambient_occlusion import COATER_OT_bake_ambient_occlusion, COATER_OT_toggle_ambient_occlusion_preview
+from .baking.bake_curvature import COATER_OT_bake_curvature, COATER_OT_toggle_curvature_preview
 from .baking.bake_functions import *
 
 # Import exporting functioality.
@@ -63,7 +66,7 @@ from .extra_features.apply_color_grid import COATER_OT_apply_color_grid
 bl_info = {
     "name": "Coater",
     "author": "Logan Fairbairn",
-    "version": (0, 6),
+    "version": (0, 7),
     "blender": (3, 0, 0),
     "location": "View3D > Sidebar > Coater",
     "description": "Replaces node based texturing workflow with a layer stack workflow.",
@@ -74,15 +77,15 @@ bl_info = {
 
 # List of classes to be registered.
 classes = (
-    COATER_PT_refresh_properties,
-
     #Addon Preferences
     COATER_AddonPreferences,
     
     # Baking
     COATER_baking_settings,
     COATER_OT_bake,
+    COATER_OT_toggle_ambient_occlusion_preview,
     COATER_OT_bake_ambient_occlusion,
+    COATER_OT_toggle_curvature_preview,
     COATER_OT_bake_curvature,
 
     # Exporting
@@ -104,8 +107,10 @@ classes = (
 
     # Layer Operations
     COATER_UL_layer_list,
+    COATER_layer_settings,
     COATER_OT_add_color_layer,
     COATER_OT_add_image_layer,
+    COATER_OT_add_group_layer,
     COATER_OT_add_image_mask,
     COATER_OT_delete_layer_mask,
     COATER_OT_import_mask_image,
@@ -136,11 +141,16 @@ classes = (
 )
 
 def obj_selected_callback():
+    '''Updates coater layers when a the active object selection changes.'''
     bpy.ops.coater.refresh_layers()
 
-subscribe_to = bpy.types.LayerObjects, "active"
-bpy.types.Scene.coater_object_selection_updater = object()
-bpy.msgbus.subscribe_rna(key=subscribe_to, owner=bpy.types.Scene.coater_object_selection_updater, args=(), notify=obj_selected_callback)
+@persistent
+def load_handler(dummy):
+    subscribe_to = bpy.types.LayerObjects, "active"
+    bpy.types.Scene.coater_object_selection_updater = object()
+    bpy.msgbus.subscribe_rna(key=subscribe_to, owner=bpy.types.Scene.coater_object_selection_updater, args=(), notify=obj_selected_callback)
+
+bpy.app.handlers.load_post.append(load_handler)
 
 def register():
     # Register properties, operators and pannels.
@@ -153,12 +163,10 @@ def register():
     # Layer Stack Properties
     bpy.types.Scene.coater_layer_stack = bpy.props.PointerProperty(type=COATER_layer_stack)
     bpy.types.Scene.coater_layers = bpy.props.CollectionProperty(type=COATER_layers)
+    bpy.types.Scene.coater_layer_settings = bpy.props.PointerProperty(type=COATER_layer_settings)
 
     # Baking Settings
     bpy.types.Scene.coater_baking_settings = bpy.props.PointerProperty(type=COATER_baking_settings)
-
-    # TODO: WHAT THE FUCK IS THIS???
-    bpy.types.Scene.refresh_properties = bpy.props.PointerProperty(type=COATER_PT_refresh_properties)
     
     # Exporting Settings
     bpy.types.Scene.coater_export_settings = bpy.props.PointerProperty(type=COATER_exporting_settings)

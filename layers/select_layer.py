@@ -27,7 +27,7 @@ class COATER_OT_select_layer_image(Operator):
         layer_index = context.scene.coater_layer_stack.layer_index
         channel_node_group = coater_node_info.get_channel_node_group(context)
 
-        if layers[layer_index].layer_type == 'IMAGE_LAYER':
+        if layers[layer_index].type == 'IMAGE_LAYER':
             if channel_node_group != None:
                 color_node = channel_node_group.nodes.get(layers[layer_index].color_node_name)
                 

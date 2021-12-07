@@ -39,6 +39,5 @@ class COATER_OT_add_mask_menu(Operator):
         layout = self.layout
         split = layout.split()
         col = split.column(align=True)
-        row = layout.row()
-        row.alignment = 'LEFT'
+        col.scale_y = 1.4
         col.operator("coater.add_image_mask", icon='IMAGE')

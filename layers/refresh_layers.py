@@ -20,13 +20,6 @@ from .import add_layer_slot
 from .import organize_layer_nodes
 from .import coater_material_functions
 
-def update_active_object(self, context):
-    print("Refreshed Layer Stack")
-    bpy.ops.coater.refresh_layers()
-
-class COATER_PT_refresh_properties(PropertyGroup):
-    coater_object: bpy.props.PointerProperty(type=bpy.types.Object, update=update_active_object)
-
 class COATER_OT_refresh_layers(Operator):
     bl_idname = "coater.refresh_layers"
     bl_label = "Refresh Layers"
@@ -74,8 +67,10 @@ class COATER_OT_refresh_layers(Operator):
                 # Get the layer name from the frame node.
                 for f in frame_nodes:
                     frame_name_split = f.name.split('_')
-                    if frame_name_split[1] == str(i):
-                        layers[i].layer_name = frame_name_split[0]
+                    if frame_name_split[2] == str(i):
+                        id = int(frame_name_split[1])
+                        layers[i].id = id
+                        layers[i].name = frame_name_split[0]
                         layers[i].frame_name = f.name
                         break
 
@@ -85,14 +80,14 @@ class COATER_OT_refresh_layers(Operator):
                     if color_node.bl_static_type == 'TEX_IMAGE':
                         layers[i].color_node_name = color_node.name
                         layers[i].color_image = color_node.image
-                        layers[i].layer_type = 'IMAGE_LAYER'
-                        layers[i].layer_projection = color_node.projection
+                        layers[i].type = 'IMAGE_LAYER'
+                        layers[i].projection = color_node.projection
 
                     if color_node.bl_static_type == 'RGB':
                         layers[i].color_node_name = color_node.name
                         color = color_node.outputs[0].default_value
                         layers[i].color = (color[0], color[1], color[2])
-                        layers[i].layer_type = 'COLOR_LAYER'
+                        layers[i].type = 'COLOR_LAYER'
 
                 # Read hidden layers.
                 if color_node.mute:

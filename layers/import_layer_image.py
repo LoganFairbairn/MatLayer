@@ -76,8 +76,9 @@ class COATER_OT_import_mask_image(Operator, ImportHelper):
         mask_node = group_node.nodes.get(layers[layer_index].mask_node_name)
 
         if mask_node != None:
-            mask_node.image = bpy.data.images[image_name]
+            mask_image = bpy.data.images[image_name]
+            mask_node.image = mask_image
 
-        organize_layer_nodes.organize_layer_nodes(context)
+            organize_layer_nodes.organize_layer_nodes(context)
         
         return {'FINISHED'}

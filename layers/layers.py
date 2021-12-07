@@ -13,83 +13,39 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import os   # For renaming layer images.
 import bpy
 from bpy.types import PropertyGroup
-import random
 from .import coater_node_info
 from .import link_layers
 
+def layer_image_path_error(self, context):
+    self.layout.label(text="Layer image path does not exist, so the image can't be renamed! Manually save the image to the layer folder to resolve the error.")
+
 def update_layer_name(self, context):
+    '''Updates layer nodes, frames when the layer name is changed.'''
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
     channel_node = coater_node_info.get_channel_node(context)
 
     if layer_index != -1:
-
-        # Rename the layer's frame node.
+        # Rename the layer's frame node. The frame name must be unique, so the layer's ID is added.
         frame = channel_node.node_tree.nodes.get(layers[layer_index].frame_name)
         if frame != None:
-            frame.name = layers[layer_index].layer_name + "_" + str(layer_index)
+            frame.name = layers[layer_index].name + "_" + str(layers[layer_index].id) + "_" + str(layer_index)
             frame.label = frame.name
             layers[layer_index].frame_name = frame.name
 
-        # If the layer has an image, rename the image to the layer's name.
-        if coater_node_info.get_layer_image(context, layer_index) != None:
-            image_name = layers[layer_index].layer_name + "_" + str(random.randint(0, 99999))
+        # If the image assigned to this layer is an image layer, rename the image too.
+        image = coater_node_info.get_layer_image(context, layer_index)
+        if image != None:
+            image_name_split = image.name.split('_')
 
-            while bpy.data.images.get(image_name) != None:
-                image_name = layers[layer_index].layer_name + "_" + str(random.randint(0, 99999))
-
-        # Rename layers with duplicate names.
-        if len(layers) > 1:
-            # If another layer has the new name already, rename that layer.
-            duplicate_index = -1
-            for i in range(len(layers)):
-
-                # Do not check the renamed layer index.
-                if i != layer_index:
-                    if layers[layer_index].layer_name == layers[i].layer_name:
-                        layers[i].layer_name = layers[i].layer_name + " copy"
-                        duplicate_index = i
-
-                        # Rename the frame node.
-                        frame = channel_node.nodes.get(layers[i].frame_name)
-                        if frame != None:
-                            frame.name = layers[i].layer_name + " copy" + "_" + str(i)
-                            frame.label = frame.name
-                            layers[layer_index].frame_name = frame.name
-                        break
-            
-            # Make sure the renamed layer doesn't have another layer name already.
-            if duplicate_index != -1:
-                duplicate_layer_name = layers[duplicate_index].layer_name
-                layer_number = 0
-                name_exists = True
-                number_of_layers = len(layers)
-                i = 0
-
-                while(name_exists):
-                    for i in range(number_of_layers):
-
-                        # Do not check the duplicate layer index.
-                        if i != duplicate_index:
-                            if layers[i].layer_name == duplicate_layer_name:
-                                layer_number += 1
-                                duplicate_layer_name = duplicate_layer_name + str(layer_number)
-                                break
-                        
-                        if i == number_of_layers - 1:
-                            name_exists = False
-                            layers[duplicate_index].layer_name = duplicate_layer_name
-
-                            # TODO: Rename layer's frame node.
-                            frame = channel_node.nodes.get(layers[duplicate_index].frame_name)
-                            if frame != None:
-                                frame.name = duplicate_layer_name + "_" + str(duplicate_index)
-                                frame.label = frame.name
-                                layers[duplicate_index].frame_name = frame.name
-
-def update_layer_coord(self, context):
+            if image_name_split[0] == 'l':
+                image.name = "l_" + layers[layer_index].name + "_" + str(layers[layer_index].id)
+        
+def update_layer_projection(self, context):
+    '''Changes the layer projection by reconnecting nodes.'''
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
     channel_node_group = coater_node_info.get_channel_node_group(context)
@@ -107,23 +63,24 @@ def update_layer_coord(self, context):
 
         if layer_index > -1:
             # Connect nodes based on projection type.
-            if layers[layer_index].layer_projection == 'FLAT':
+            if layers[layer_index].projection == 'FLAT':
                 channel_node_group.links.new(coord_node.outputs[2], mapping_node.inputs[0])
                 color_node.projection = 'FLAT'
 
-            if layers[layer_index].layer_projection == 'BOX':
+            if layers[layer_index].projection == 'BOX':
                 channel_node_group.links.new(coord_node.outputs[0], mapping_node.inputs[0])
                 color_node.projection = 'BOX'
 
-            if layers[layer_index].layer_projection == 'SPHERE':
+            if layers[layer_index].projection == 'SPHERE':
                 channel_node_group.links.new(coord_node.outputs[0], mapping_node.inputs[0])
                 color_node.projection = 'SPHERE'
 
-            if layers[layer_index].layer_projection == 'TUBE':
+            if layers[layer_index].projection == 'TUBE':
                 channel_node_group.links.new(coord_node.outputs[0], mapping_node.inputs[0])
                 color_node.projection = 'TUBE'
 
-def update_mapping_coord(self, context):
+def update_mask_projection(self, context):
+    '''Changes the mask projection by reconnecting nodes.'''
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
     channel_node_group = coater_node_info.get_channel_node_group(context)
@@ -158,37 +115,147 @@ def update_mapping_coord(self, context):
                 mask_node.projection = 'TUBE'
 
 def update_layer_opacity(self, context):
-    layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
-    opacity_node = coater_node_info.get_node(context, 'OPACITY', layer_index)
+    '''Updates the layer opacity node values when the opacity is changed.'''
+    opacity_node = coater_node_info.get_self_node(self, context, 'OPACITY')
 
     if opacity_node != None:
-        opacity_node.inputs[1].default_value = layers[layer_index].layer_opacity
+        opacity_node.inputs[1].default_value = self.opacity
 
 def update_hidden(self, context):
-    layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
-    layer_nodes = coater_node_info.get_layer_nodes(context, layer_index)
+    '''Updates node values when the layer hidden property is changed.'''
 
-    if layers[layer_index].hidden == True:
-        for n in layer_nodes:
+    if self.hidden == True:
+        nodes = coater_node_info.get_self_layer_nodes(self, context)
+        for n in nodes:
             n.mute = True
-
     else:
-        for n in layer_nodes:
+        nodes = coater_node_info.get_self_layer_nodes(self, context)
+        for n in nodes:
             n.mute = False
+
 
     link_layers.link_layers(context)
 
+def update_projected_offset_x(self, context):
+    layers = context.scene.coater_layers
+    layer_index = context.scene.coater_layer_stack.layer_index
+
+    # Get the mapping node.
+    mapping_node = coater_node_info.get_node(context, 'MAPPING', layer_index)
+
+    # Set the mapping node value.
+    if mapping_node != None:
+        mapping_node.inputs[1].default_value[0] = layers[layer_index].projected_offset_x
+
+def update_projected_offset_y(self, context):
+    layers = context.scene.coater_layers
+    layer_index = context.scene.coater_layer_stack.layer_index
+
+    # Get the mapping node.
+    mapping_node = coater_node_info.get_node(context, 'MAPPING', layer_index)
+
+    # Set the mapping node value.
+    if mapping_node != None:
+        mapping_node.inputs[1].default_value[1] = layers[layer_index].projected_offset_y
+
+def update_projected_rotation(self, context):
+    layers = context.scene.coater_layers
+    layer_index = context.scene.coater_layer_stack.layer_index
+
+    # Get the mapping node.
+    mapping_node = coater_node_info.get_node(context, 'MAPPING', layer_index)
+
+    # Set the mapping node value.
+    if mapping_node != None:
+        mapping_node.inputs[2].default_value[2] = layers[layer_index].projected_rotation
+
+def update_projected_scale_x(self, context):
+    layers = context.scene.coater_layers
+    layer_index = context.scene.coater_layer_stack.layer_index
+
+    # Get the mapping node.
+    mapping_node = coater_node_info.get_node(context, 'MAPPING', layer_index)
+
+    # Set the mapping node value.
+    if mapping_node != None:
+        mapping_node.inputs[3].default_value[0] = layers[layer_index].projected_scale_x
+
+def update_projected_scale_y(self, context):
+    layers = context.scene.coater_layers
+    layer_index = context.scene.coater_layer_stack.layer_index
+
+    # Get the mapping node.
+    mapping_node = coater_node_info.get_node(context, 'MAPPING', layer_index)
+
+    # Set the mapping node value.
+    if mapping_node != None:
+        mapping_node.inputs[3].default_value[1] = layers[layer_index].projected_scale_y
+
+def update_projected_mask_offset_x(self, context):
+    layers = context.scene.coater_layers
+    layer_index = context.scene.coater_layer_stack.layer_index
+
+    # Get the mapping node.
+    mask_mapping_node = coater_node_info.get_node(context, 'MASK_MAPPING', layer_index)
+
+    # Set the mapping node value.
+    if mask_mapping_node != None:
+        mask_mapping_node.inputs[1].default_value[0] = layers[layer_index].projected_mask_offset_x
+
+def update_projected_mask_offset_y(self, context):
+    layers = context.scene.coater_layers
+    layer_index = context.scene.coater_layer_stack.layer_index
+
+    # Get the mapping node.
+    mask_mapping_node = coater_node_info.get_node(context, 'MASK_MAPPING', layer_index)
+
+    # Set the mapping node value.
+    if mask_mapping_node != None:
+        mask_mapping_node.inputs[1].default_value[1] = layers[layer_index].projected_mask_offset_y
+
+def update_projected_mask_rotation(self, context):
+    layers = context.scene.coater_layers
+    layer_index = context.scene.coater_layer_stack.layer_index
+
+    # Get the mapping node.
+    mask_mapping_node = coater_node_info.get_node(context, 'MASK_MAPPING', layer_index)
+
+    # Set the mapping node value.
+    if mask_mapping_node != None:
+        mask_mapping_node.inputs[2].default_value[2] = layers[layer_index].projected_mask_rotation
+
+def update_projected_mask_scale_x(self, context):
+    layers = context.scene.coater_layers
+    layer_index = context.scene.coater_layer_stack.layer_index
+
+    # Get the mapping node.
+    mask_mapping_node = coater_node_info.get_node(context, 'MASK_MAPPING', layer_index)
+
+    # Set the mapping node value.
+    if mask_mapping_node != None:
+        mask_mapping_node.inputs[3].default_value[0] = layers[layer_index].projected_mask_scale_x
+
+def update_projected_mask_scale_y(self, context):
+    layers = context.scene.coater_layers
+    layer_index = context.scene.coater_layer_stack.layer_index
+
+    # Get the mapping node.
+    mask_mapping_node = coater_node_info.get_node(context, 'MASK_MAPPING', layer_index)
+
+    # Set the mapping node value.
+    if mask_mapping_node != None:
+        mask_mapping_node.inputs[3].default_value[1] = layers[layer_index].projected_mask_scale_y
+
 class COATER_layers(PropertyGroup):
-    '''Layer stack item.'''
-    layer_name: bpy.props.StringProperty(
+    id: bpy.props.IntProperty(name="ID", description="Numeric ID for the selected layer.", default=0)
+
+    name: bpy.props.StringProperty(
         name="",
         description="The name of the layer",
         default="Layer naming error",
         update=update_layer_name)
 
-    layer_type: bpy.props.EnumProperty(
+    type: bpy.props.EnumProperty(
         items=[('IMAGE_LAYER', "Image Layer", ""),
                ('COLOR_LAYER', "Color Layer", "")],
         name="",
@@ -197,7 +264,8 @@ class COATER_layers(PropertyGroup):
         options={'HIDDEN'},
     )
 
-    layer_projection: bpy.props.EnumProperty(
+    # Projection Settings
+    projection: bpy.props.EnumProperty(
         items=[('FLAT', "Flat", ""),
                ('BOX', "Box", ""),
                ('SPHERE', "Sphere", ""),
@@ -205,9 +273,16 @@ class COATER_layers(PropertyGroup):
         name="Projection",
         description="Projection type of the image attached to the selected layer",
         default='FLAT',
-        update=update_layer_coord
+        update=update_layer_projection
     )
 
+    projected_offset_x: bpy.props.FloatProperty(name="Offset X", description="Projected x offset of the selected layer.", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_offset_x)
+    projected_offset_y: bpy.props.FloatProperty(name="Offset Y", description="Projected y offset of the selected layer.", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_offset_y)
+    projected_rotation: bpy.props.FloatProperty(name="Rotation", description="Projected rotation of the selected layer.", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projected_rotation)
+    projected_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected layer.", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_scale_x)
+    projected_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected layer.", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_scale_y)
+
+    # Mask Projection Settings
     mask_projection: bpy.props.EnumProperty(
         items=[('FLAT', "Flat", ""),
                ('BOX', "Box", ""),
@@ -216,16 +291,22 @@ class COATER_layers(PropertyGroup):
         name="Projection",
         description="Projection type of the mask attached to the selected layer",
         default='FLAT',
-        update=update_mapping_coord
+        update=update_mask_projection
     )
 
-    layer_opacity: bpy.props.FloatProperty(name="Opacity",
-                                           description="Opacity of the currently selected layer.",
-                                           default=1.0,
-                                           min=0.0,
-                                           max=1.0,
-                                           subtype='FACTOR',
-                                           update=update_layer_opacity)
+    projected_mask_offset_x: bpy.props.FloatProperty(name="Offset X", description="Projected x offset of the selected mask.", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_mask_offset_x)
+    projected_mask_offset_y: bpy.props.FloatProperty(name="Offset Y", description="Projected y offset of the selected mask.", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_mask_offset_y)
+    projected_mask_rotation: bpy.props.FloatProperty(name="Rotation", description="Projected rotation of the selected mask.", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projected_mask_rotation)
+    projected_mask_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected mask.", default=1.0, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_mask_scale_x)
+    projected_mask_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected mask.", default=1.0, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_mask_scale_y)
+
+    opacity: bpy.props.FloatProperty(name="Opacity",
+                                     description="Opacity of the currently selected layer.",
+                                     default=1.0,
+                                     min=0.0,
+                                     soft_max=1.0,
+                                     subtype='FACTOR',
+                                     update=update_layer_opacity)
 
     hidden: bpy.props.BoolProperty(name="", update=update_hidden)
     masked: bpy.props.BoolProperty(name="", default=True)

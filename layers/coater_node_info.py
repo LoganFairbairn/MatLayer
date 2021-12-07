@@ -17,9 +17,8 @@
 
 import bpy
 
-
 def get_channel_nodes(context):
-    # Returns a list of all channel nodes that exist.
+    '''Returns a list of all channel nodes that exist.'''
     active_material = context.active_object.active_material
     material_nodes = context.active_object.active_material.node_tree.nodes
 
@@ -48,7 +47,7 @@ def get_channel_nodes(context):
     return group_nodes
 
 def get_channel_node_group(context):
-    # Returns the active channel node group.
+    '''Returns the active channel node group.'''
     layer_stack = context.scene.coater_layer_stack
     active_material = context.active_object.active_material
 
@@ -61,7 +60,7 @@ def get_channel_node_group(context):
         return None
 
 def get_channel_node(context):
-    # Returns the active channel node (Node that connects to Principled BSDF).
+    '''Returns the active channel node (Node that connects to Principled BSDF).'''
     active_material = context.active_object.active_material
 
     if active_material != None:
@@ -72,9 +71,8 @@ def get_channel_node(context):
 
     return None
 
-
 def get_layer_nodes(context, layer_index):
-    # Returns a list of all layer nodes that exist.
+    '''Returns a list of all layer nodes that exist within the specified layer'''
     node_group = get_channel_node_group(context)
     nodes = []
 
@@ -122,8 +120,55 @@ def get_layer_nodes(context, layer_index):
 
     return nodes
 
+def get_self_layer_nodes(self, context):
+    '''Gets layer nodes using the self object.'''
+    node_group = get_channel_node_group(context)
+    nodes = []
+
+    coord_node = node_group.nodes.get(self.coord_node_name)
+    if coord_node != None:
+        nodes.append(coord_node)
+
+    mapping_node = node_group.nodes.get(self.mapping_node_name)
+    if mapping_node != None:
+        nodes.append(mapping_node)
+
+    color_node = node_group.nodes.get(self.color_node_name)
+    if color_node != None:
+        nodes.append(color_node)
+
+    opacity_node = node_group.nodes.get(self.opacity_node_name)
+    if opacity_node != None:
+        nodes.append(opacity_node)
+        
+    mix_layer_node = node_group.nodes.get(self.mix_layer_node_name)
+    if mix_layer_node != None:
+        nodes.append(mix_layer_node)
+
+    mask_node = node_group.nodes.get(self.mask_node_name)
+    if mask_node != None:
+        nodes.append(mask_node)
+        
+    mask_mix_node = node_group.nodes.get(self.mask_mix_node_name)
+    if mask_mix_node != None:
+        nodes.append(mask_mix_node)
+
+    mask_coord_node = node_group.nodes.get(self.mask_coord_node_name)
+    if mask_coord_node != None:
+        nodes.append(mask_coord_node)
+
+    mask_mapping_node = node_group.nodes.get(self.mask_mapping_node_name)
+    if mask_mapping_node != None:
+        nodes.append(mask_mapping_node)
+
+    mask_levels_node = node_group.nodes.get(self.mask_levels_node_name)
+    if mask_levels_node != None:
+        nodes.append(mask_levels_node)
+
+    return nodes
+
 def get_node(context, node_name, index):
-    # Returns a specific coater node from a specific layer index. Returns None if it does not exist.
+    '''Returns a specific coater node from a specific layer index. Returns None if it doesn't exist.'''
     layers = context.scene.coater_layers
     channel_node_group = get_channel_node_group(context)
 
@@ -140,8 +185,25 @@ def get_node(context, node_name, index):
         if node_name == 'MASK':
             return channel_node_group.nodes.get(layers[index].mask_node_name)
 
+        if node_name == 'MAPPING':
+            return channel_node_group.nodes.get(layers[index].mapping_node_name)
+
+        if node_name == 'MASK_MAPPING':
+            return channel_node_group.nodes.get(layers[index].mask_mapping_node_name)
+
     else:
         return None
+
+def get_self_node(self, context, node_name):
+    '''Returns a specific node from the self object. Returns none if it doesn't exist.'''
+    channel_node_group = get_channel_node_group(context)
+
+    if channel_node_group != None:
+        if node_name == 'OPACITY':
+            return channel_node_group.nodes.get(self.opacity_node_name)
+
+        if node_name == 'MIX':
+            return channel_node_group.nodes.get(self.mix_layer_node_name)
 
 def get_layer_image(context, layer_index):
     # Returns a layer image from the given layer index, returns None if it does not exist.

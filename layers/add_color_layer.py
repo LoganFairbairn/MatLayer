@@ -36,9 +36,6 @@ class COATER_OT_add_color_layer(Operator):
         return bpy.context.active_object
 
     def execute(self, context):
-        layers = context.scene.coater_layers
-        layer_index = context.scene.coater_layer_stack.layer_index
-
         coater_material_functions.ready_coater_material(context)
         create_channel_group_node.create_channel_group_node(context)
         add_layer_slot.add_layer_slot(context)
@@ -46,8 +43,9 @@ class COATER_OT_add_color_layer(Operator):
         organize_layer_nodes.organize_layer_nodes(context)
         link_layers.link_layers(context)
 
-        # Update the layer's type.
-        layers[layer_index].layer_type = 'COLOR_LAYER'
+        layers = context.scene.coater_layers
+        layer_index = context.scene.coater_layer_stack.layer_index
+        layers[layer_index].type = 'COLOR_LAYER'
 
         set_material_shading.set_material_shading(context)
 

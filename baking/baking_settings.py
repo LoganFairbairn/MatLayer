@@ -73,7 +73,7 @@ class COATER_baking_settings(bpy.types.PropertyGroup):
 
     bake_ambient_occlusion: bpy.props.BoolProperty(name="Bake Ambient Occlusion", description="Bake ambient occlusion", default=True)
     ambient_occlusion_image_name: bpy.props.StringProperty(name="", description="The baking AO image", default="")
-    ambient_occlusion_intensity: bpy.props.FloatProperty(name="Ambient Occlusion Intensity", description="", min=0.0, max=1.0, default=0.5)
+    ambient_occlusion_intensity: bpy.props.FloatProperty(name="Ambient Occlusion Intensity", description="", min=0.1, max=0.99, default=0.5)
     ambient_occlusion_samples: bpy.props.FloatProperty(name="Ambient Occlusion Samples", description="The amount of samples for ambient occlusion taken", min=1.0, max=128.0, default=64.0)
     ambient_occlusion_local: bpy.props.BoolProperty(name="Local AO", description="Ambient occlusion will not bake shadow cast by other objects", default=True)
     ambient_occlusion_inside: bpy.props.BoolProperty(name="Inside AO", description="Ambient occlusion will trace rays towards the inside of the object", default=False)

@@ -38,13 +38,8 @@ class COATER_OT_delete_layer(Operator):
         layer_stack = context.scene.coater_layer_stack
         layer_index = context.scene.coater_layer_stack.layer_index
 
-        channel_node = coater_node_info.get_channel_node(context)
-
-        # If there is an image assigned to the layer, delete the image too.
-        layer_image = coater_node_info.get_layer_image(context, layer_index)
-        delete_unused_image(context, layer_image)
-
         # Remove all nodes for this layer if they exist.
+        channel_node = coater_node_info.get_channel_node(context)
         node_list = coater_node_info.get_layer_nodes(context, layer_index)
         for node in node_list:
             channel_node.node_tree.nodes.remove(node)
@@ -82,34 +77,3 @@ class COATER_OT_delete_layer(Operator):
         organize_layer_nodes.organize_layer_nodes(context)      # Organize nodes
 
         return {'FINISHED'}
-
-# Deletes the layer image if exists, and it's not being used in another layer.
-def delete_unused_image(context, image):
-    layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
-
-    # Only attempt to delete the image if it exists.
-    if image != None:
-        layer_exist = False
-
-        # Check all layers and all masks to see if this image is in use.
-        for l in range(len(layers)):
-            if l != layer_index:
-                if coater_node_info.get_layer_image(context, l):
-                    layer_exist = True
-                    break
-
-                if coater_node_info.get_layer_mask_image(context, l):
-                    layer_exist = True
-                    break
-
-        if layer_exist == False:
-            # Delete the image from the layer folder.
-            addon_preferences = context.preferences.addons["Coater"].preferences
-            if addon_preferences.auto_delete_images:
-                image_path = bpy.path.abspath("//") + 'Layers' + "/" + image.name + "." + image.file_format
-                if os.path.exists(image_path):
-                    os.remove(image_path)
-
-            # Remove the image from the .blend file.
-            bpy.data.images.remove(image)

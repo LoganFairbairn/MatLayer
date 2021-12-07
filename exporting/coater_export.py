@@ -24,7 +24,7 @@ class COATER_OT_export_base_color(Operator):
 
     @ classmethod
     def poll(cls, context):
-        return context.active_object.active_material
+        return False
     
     def execute(self, context):
         #bpy.ops.coater.toggle_channel_preview()
@@ -37,7 +37,7 @@ class COATER_OT_export_roughness(Operator):
 
     @ classmethod
     def poll(cls, context):
-        return context.active_object.active_material
+        return False
     
     def execute(self, context):
         return {'FINISHED'}
@@ -49,7 +49,7 @@ class COATER_OT_export_metallic(Operator):
 
     @ classmethod
     def poll(cls, context):
-        return context.active_object.active_material
+        return False
     
     def execute(self, context):
         return {'FINISHED'}
@@ -61,7 +61,7 @@ class COATER_OT_export_normals(Operator):
 
     @ classmethod
     def poll(cls, context):
-        return context.active_object.active_material
+        return False
     
     def execute(self, context):
         return {'FINISHED'}
@@ -74,7 +74,7 @@ class COATER_OT_export_emission(Operator):
 
     @ classmethod
     def poll(cls, context):
-        return context.active_object.active_material
+        return False
     
     def execute(self, context):
         return {'FINISHED'}

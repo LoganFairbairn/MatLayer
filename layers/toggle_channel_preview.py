@@ -53,16 +53,16 @@ class COATER_OT_toggle_channel_preview(Operator):
                     node_links.new(base_color_group.outputs[0], principled_bsdf_node.inputs[0])
                     
                 if metallic_group != None:
-                    node_links.new(metallic_group.outputs[0], principled_bsdf_node.inputs[4])
+                    node_links.new(metallic_group.outputs[0], principled_bsdf_node.inputs[6])
 
                 if roughness_group != None:
-                    node_links.new(roughness_group.outputs[0], principled_bsdf_node.inputs[7])
+                    node_links.new(roughness_group.outputs[0], principled_bsdf_node.inputs[9])
 
                 if emission_group != None:
-                    node_links.new(emission_group.outputs[0], principled_bsdf_node.inputs[17])
+                    node_links.new(emission_group.outputs[0], principled_bsdf_node.inputs[19])
 
                 if height_group != None:
-                    node_links.new(height_group.outputs[0], principled_bsdf_node.inputs[20])
+                    node_links.new(height_group.outputs[0], principled_bsdf_node.inputs[22])
 
                 node_links.new(principled_bsdf_node.outputs[0], material_output_node.inputs[0])
 

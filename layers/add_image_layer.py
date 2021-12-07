@@ -29,7 +29,7 @@ from .import set_material_shading
 class COATER_OT_add_image_layer(Operator):
     '''Adds a new blank image layer to the layer stack'''
     bl_idname = "coater.add_image_layer"
-    bl_label = "Add Blank Image Layer"
+    bl_label = "Add Image Layer"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Adds an image layer with a new blank image assigned to it"
 
@@ -43,15 +43,11 @@ class COATER_OT_add_image_layer(Operator):
         
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
-        layers[layer_index].layer_type = 'IMAGE_LAYER'
+        layers[layer_index].type = 'IMAGE_LAYER'
         
-        # Assign the image the name of the layer and a random number.
-        layer_name = layers[layer_index].layer_name + "_" + str(random.randint(0, 99999))
-        while bpy.data.images.get(layer_name) != None:
-            layer_name = layers[layer_index].layer_name + "_" + str(random.randint(0, 99999))
-
         # Create a new image, assign it to the node.
-        bpy.ops.image.new(name=layer_name,
+        image_name = "l_" + layers[layer_index].name + "_" + str(layers[layer_index].id)
+        bpy.ops.image.new(name=image_name,
                           width=1024,
                           height=1024,
                           color=(0.0, 0.0, 0.0, 0.0),
@@ -62,25 +58,27 @@ class COATER_OT_add_image_layer(Operator):
                           tiled=False)
 
         # Auto-save the image to the layer folder.
+        '''
         layer_folder_path = bpy.path.abspath("//") + 'Layers'
         if os.path.exists(layer_folder_path) == False:
             os.mkdir(layer_folder_path)
 
-        layer_image = bpy.data.images[layer_name]
-        layer_image.filepath = layer_folder_path + "/" + layer_name + ".png"
+        layer_image = bpy.data.images[image_name]
+        layer_image.filepath = layer_folder_path + "/" + image_name + ".png"
         layer_image.file_format = 'PNG'
         layer_image.save()
-
+        '''
+        
         # Put the image in the image node.
         node_group = coater_node_info.get_channel_node_group(context)
         color_node = node_group.nodes.get(layers[layer_index].color_node_name)
-        color_node.image = bpy.data.images[layer_name]
+        color_node.image = bpy.data.images[image_name]
 
         # Store the active image in the layer.
-        layers[layer_index].color_image = bpy.data.images[layer_name]
+        layers[layer_index].color_image = bpy.data.images[image_name]
 
         # Update the active paint slot to the new image.
-        context.scene.tool_settings.image_paint.canvas = bpy.data.images[layer_name]
+        context.scene.tool_settings.image_paint.canvas = bpy.data.images[image_name]
 
         # Set the material shading mode, so the user can see the changes.
         set_material_shading.set_material_shading(context)
@@ -107,7 +105,7 @@ class COATER_OT_add_empty_image_layer(Operator):
         set_material_shading.set_material_shading(context)
 
         # Update the layer's type.
-        layers[layer_index].layer_type = 'IMAGE_LAYER'
+        layers[layer_index].type = 'IMAGE_LAYER'
 
         return {'FINISHED'}
 

@@ -51,6 +51,8 @@ def verify_bake_object(self, context):
         self.report({'INFO'}, "Active object has no active UV layer")
         return False
 
+    return True
+
 def set_bake_size(context):
     '''Sets the size of the bake image based on baking settings.'''
     baking_settings = context.scene.coater_baking_settings
@@ -109,7 +111,6 @@ def create_bake_image(context, bake_type):
     bake_path = bpy.path.abspath("//") + 'Bakes'
     
     if os.path.exists(bake_path) == False:
-        print("made a new path")
         os.mkdir(bake_path)
 
     bake_image = bpy.data.images[bake_image_name]

@@ -34,7 +34,7 @@ def update_node_labels(context):
                 # Update every nodes name and label only if they exist.
                 frame = node_group.nodes.get(layers[index].frame_name)
                 if frame != None:
-                    frame.name = layers[index].layer_name  + "_" + str(index)
+                    frame.name = layers[index].name + "_" + str(layers[index].id) + "_" + str(index)
                     frame.label = frame.name
                     layers[index].frame_name = frame.name
 

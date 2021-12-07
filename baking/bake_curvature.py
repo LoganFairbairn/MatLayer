@@ -28,19 +28,40 @@ class COATER_OT_bake_curvature(Operator):
 
     def execute(self, context):
         bake_type = "Curvature"
-        bake_functions.verify_bake_object(self, context)
-        bake_image_name = bake_functions.create_bake_image(context, bake_type)
-        original_material = bake_functions.empty_material_slots(context)
-        bake_material = bake_functions.add_new_bake_material(context, "Coater_Bake_Curvature")
-        add_curvature_nodes(context, bake_material, bake_image_name)
-        bake_functions.start_bake()
-        bake_functions.set_output_quality()
-        bake_functions.end_bake(bake_material, original_material)
-        bake_functions.save_bake(bake_image_name)
+        if bake_functions.verify_bake_object(self, context):
+            bake_image_name = bake_functions.create_bake_image(context, bake_type)
+            original_material = bake_functions.empty_material_slots(context)
+            bake_material = bake_functions.add_new_bake_material(context, "Coater_Curvature")
+            add_curvature_nodes(context, bake_material, bake_image_name)
+            bake_functions.start_bake()
+            bake_functions.set_output_quality()
+            bake_functions.end_bake(bake_material, original_material)
+            bake_functions.save_bake(bake_image_name)
+            return {'FINISHED'}
+
+class COATER_OT_toggle_curvature_preview(Operator):
+    bl_idname = "coater.toggle_curvature_preview"
+    bl_label = "Preview Curvature"
+    bl_description = "Previews curvature bake result on the active object"
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        material_name  = "Coater_Curvature"
+        
+        if bake_functions.verify_bake_object(self, context):
+            bake_functions.empty_material_slots(context)
+            preview_material = bake_functions.add_new_bake_material(context, material_name)
+            add_curvature_nodes(context, preview_material, "")
+            bpy.context.scene.render.engine = 'CYCLES'
+            if context.space_data.type == 'VIEW_3D':
+                context.space_data.shading.type = 'RENDERED'
         return {'FINISHED'}
 
-def add_curvature_nodes(context, bake_material, bake_image_name):
-    nodes = bake_material.node_tree.nodes
+def add_curvature_nodes(context, material, image_name):
+    nodes = material.node_tree.nodes
 
     bsdf_node = nodes.get("Principled BSDF")
     if bsdf_node != None:
@@ -77,7 +98,8 @@ def add_curvature_nodes(context, bake_material, bake_image_name):
     # Set node values.
     baking_settings = context.scene.coater_baking_settings
 
-    image_node.image = bpy.data.images[bake_image_name]
+    if image_name != "":
+        image_node.image = bpy.data.images[image_name]
 
     ao_node.only_local = True
     ao_node.samples = baking_settings.ambient_occlusion_samples
@@ -100,7 +122,7 @@ def add_curvature_nodes(context, bake_material, bake_image_name):
     pointiness_mix_node.inputs[0].default_value = 1
 
     # Link Nodes
-    links = bake_material.node_tree.links
+    links = material.node_tree.links
 
     links.new(material_output_node.inputs[0], emission_node.outputs[0])
     links.new(emission_node.inputs[0], pointiness_mix_node.outputs[0])

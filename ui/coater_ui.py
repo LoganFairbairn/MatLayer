@@ -30,7 +30,7 @@ class COATER_panel_properties(bpy.types.PropertyGroup):
     )
 
 class COATER_PT_Panel(bpy.types.Panel):
-    bl_label = "Coater " + "0.6"
+    bl_label = "Coater " + "0.7"
     bl_idname = "COATER_PT_main_panel"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"

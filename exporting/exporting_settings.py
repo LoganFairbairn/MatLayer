@@ -15,7 +15,6 @@
 
 import bpy
 
-# Exporting settings.
 class COATER_exporting_settings(bpy.types.PropertyGroup):
     bake_ambient_occlusion: bpy.props.BoolProperty(name="Bake Ambient Occlusion", description="Bake ambient occlusion", default=True)
     export_base_color: bpy.props.BoolProperty(default=True, name="Export Base Color")
