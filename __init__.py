@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Logan Fairbairn
+# Copyright (c) 2021-2022 Logan Fairbairn
 # logan-fairbairn@outlook.com
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# This file imports and registers all required modules.
+# This file imports and registers all required modules for Coater (Blender add-on).
 
 import bpy
 from bpy.app.handlers import persistent

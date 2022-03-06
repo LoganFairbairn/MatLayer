@@ -1,3 +1,5 @@
+# Coater preferences are defined and drawn to the add-on preferences window here.
+
 import bpy
 from bpy.types import Operator, AddonPreferences
 from bpy.props import StringProperty, IntProperty, BoolProperty
