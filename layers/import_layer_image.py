@@ -6,6 +6,7 @@ from .import coater_node_info
 from .import organize_layer_nodes
 
 class COATER_OT_import_color_image(Operator, ImportHelper):
+    '''Imports a color image to use for the selected layer.'''
     bl_idname = "coater.import_color_image"
     bl_label = "Import Color Image"
     bl_description = "Opens a menu that allows the user to import a color image."
@@ -39,6 +40,7 @@ class COATER_OT_import_color_image(Operator, ImportHelper):
         return {'FINISHED'}
 
 class COATER_OT_import_mask_image(Operator, ImportHelper):
+    '''Imports an image to use as a mask for the selected layer.'''
     bl_idname = "coater.import_mask_image"
     bl_label = "Import Mask Image"
     bl_description = "Opens a menu that allows the user to import an image to use as a mask"

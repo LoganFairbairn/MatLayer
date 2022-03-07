@@ -6,9 +6,10 @@ from .import link_layers
 from .import organize_layer_nodes
 
 class COATER_OT_add_image_mask(Operator):
+    '''Adds an image mask to the selected layer'''
     bl_idname = "coater.add_image_mask"
     bl_label = "Add Image Mask"
-    bl_description = "Adds an image mask to the selected layer."
+    bl_description = "Adds an image mask to the selected layer"
 
     # Disable the button when there is no active object.
     @ classmethod

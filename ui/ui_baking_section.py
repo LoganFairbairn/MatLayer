@@ -7,9 +7,6 @@ def draw_baking_section_ui(self, context):
     layout = self.layout
     baking_settings = context.scene.coater_baking_settings
 
-    # Draw section tabs.
-    ui_section_tabs.draw_section_tabs(self, context)
-
     # Draw bake button.
     row = layout.row()
     row.operator("coater.bake")

@@ -27,31 +27,5 @@ class COATER_OT_add_layer_menu(Operator):
         col = split.column(align=True)
         col.scale_y = scale_y
         col.operator("coater.add_image_layer", icon='IMAGE_DATA')
-        col.operator("coater.add_empty_image_layer", icon='IMAGE_DATA')
         col.operator("coater.add_color_layer", icon='COLOR')
         col.operator("coater.add_group_layer", icon='GROUP_UVS')
-
-        split = layout.split()
-        col = split.column()
-        col.scale_y = scale_y
-        col.prop(layer_settings, "image_width", text="")
-
-        col = split.column()
-        col.scale_y = scale_y
-        if layer_settings.match_image_resolution:
-            col.prop(layer_settings, "match_image_resolution", text="", icon="LOCKED")
-
-        else:
-            col.prop(layer_settings, "match_image_resolution", text="", icon="UNLOCKED")
-
-        col = split.column()
-        col.scale_y = scale_y
-        if layer_settings.match_image_resolution:
-            col.enabled = False
-
-        col.prop(layer_settings, "image_height", text="")
-
-        row = layout.row()
-        row.scale_y = scale_y
-        row.prop(layer_settings, "thirty_two_bit")
-

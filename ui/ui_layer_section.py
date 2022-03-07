@@ -4,7 +4,6 @@ import bpy
 from .import ui_section_tabs
 from ..layers import coater_node_info
 from ..layers import coater_material_functions
-from ..tools import coater_tools
 
 def draw_layers_section_ui(self, context):
     '''Draws the layer section UI.'''
@@ -123,7 +122,7 @@ def draw_layer_properties(self, context):
 
     layout = self.layout
     row = layout.row()
-    row.label(text="Layer Properties")
+    row.label(text="LAYER PROPERTIES:")
     
     # Draw Image Layer Properties
     if(layers[layer_index].type == 'IMAGE_LAYER'):
@@ -136,6 +135,8 @@ def draw_layer_properties(self, context):
             row = layout.row(align=True)
             row.scale_y = scale_y
             row.prop(color_node, "image", text="")
+            row.operator("coater.add_layer_image", text="", icon="ADD")
+            row.operator("coater.delete_layer_image", text="", icon="REMOVE")
             row.operator("coater.import_color_image", text="", icon="IMPORT")
 
             row = layout.row()

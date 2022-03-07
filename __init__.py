@@ -21,11 +21,14 @@ from bpy.app.handlers import persistent
 # Import add-on preferences.
 from .preferences.coater_preferences import *
 
+# Import texture set settings.
+from .texture_set.texture_set_settings import COATER_texture_set_settings
+
 # Import layer functionality.
 from .layers.layers import *
 from .layers.layer_stack import *
 from .layers.layer_settings import COATER_layer_settings
-from .layers.add_image_layer import COATER_OT_add_image_layer, COATER_OT_add_empty_image_layer
+from .layers.add_image_layer import COATER_OT_add_image_layer, COATER_OT_add_layer_image, COATER_OT_delete_layer_image
 from .layers.add_color_layer import COATER_OT_add_color_layer
 from .layers.add_group_layer import COATER_OT_add_group_layer
 from .layers.layer_masking import COATER_OT_add_image_mask, COATER_OT_delete_layer_mask
@@ -66,7 +69,7 @@ from .extra_features.apply_color_grid import COATER_OT_apply_color_grid
 bl_info = {
     "name": "Coater",
     "author": "Logan Fairbairn",
-    "version": (0, 7),
+    "version": (0, 71),
     "blender": (3, 0, 0),
     "location": "View3D > Sidebar > Coater",
     "description": "Replaces node based texturing workflow with a layer stack workflow.",
@@ -79,6 +82,9 @@ bl_info = {
 classes = (
     #Addon Preferences
     COATER_AddonPreferences,
+
+    # Texture Set Settings
+    COATER_texture_set_settings,
     
     # Baking
     COATER_baking_settings,
@@ -110,11 +116,12 @@ classes = (
     COATER_layer_settings,
     COATER_OT_add_color_layer,
     COATER_OT_add_image_layer,
+    COATER_OT_add_layer_image,
+    COATER_OT_delete_layer_image,
     COATER_OT_add_group_layer,
     COATER_OT_add_image_mask,
     COATER_OT_delete_layer_mask,
     COATER_OT_import_mask_image,
-    COATER_OT_add_empty_image_layer,
     COATER_OT_delete_layer,
     COATER_OT_move_layer_up,
     COATER_OT_move_layer_down,
@@ -159,6 +166,9 @@ def register():
 
     # Panel Properties
     bpy.types.Scene.coater_panel_properties = bpy.props.PointerProperty(type=COATER_panel_properties)
+
+    # Texture Set Settings
+    bpy.types.Scene.coater_texture_set_settings = bpy.props.PointerProperty(type=COATER_texture_set_settings)
 
     # Layer Stack Properties
     bpy.types.Scene.coater_layer_stack = bpy.props.PointerProperty(type=COATER_layer_stack)

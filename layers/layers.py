@@ -252,7 +252,7 @@ class COATER_layers(PropertyGroup):
     # Projection Settings
     projection: bpy.props.EnumProperty(
         items=[('FLAT', "Flat", ""),
-               ('BOX', "Box", ""),
+               ('BOX', "Box (Tri-Planar)", ""),
                ('SPHERE', "Sphere", ""),
                ('TUBE', "Tube", "")],
         name="Projection",
@@ -270,7 +270,7 @@ class COATER_layers(PropertyGroup):
     # Mask Projection Settings
     mask_projection: bpy.props.EnumProperty(
         items=[('FLAT', "Flat", ""),
-               ('BOX', "Box", ""),
+               ('BOX', "Box (Tri-Planar)", ""),
                ('SPHERE', "Sphere", ""),
                ('TUBE', "Tube", "")],
         name="Projection",
