@@ -4,6 +4,7 @@ from .import coater_node_info
 from .import update_node_labels
 from .import link_layers
 from .import organize_layer_nodes
+from .import image_file_handling
 
 class COATER_OT_add_image_mask(Operator):
     '''Adds an image mask to the selected layer'''
@@ -110,3 +111,63 @@ class COATER_OT_delete_layer_mask(Operator):
         link_layers.link_layers(context)
 
         return{'FINISHED'}
+
+class COATER_OT_add_layer_image_mask(Operator):
+    '''Creates an image and adds it as the selected layer's mask'''
+    bl_idname = "coater.add_layer_image_mask"
+    bl_label = "Add Layer Image Mask"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Creates an image and adds it to the selected layer's mask"
+
+    def execute(self, context):
+        layers = context.scene.coater_layers
+        layer_index = context.scene.coater_layer_stack.layer_index
+
+        # Assign the new image a unique name.
+        layer_name = layers[layer_index].name.replace(" ", "")
+        image_mask_name = layer_name + "_" + "Mask_" + image_file_handling.get_random_image_id()
+
+        while bpy.data.images.get(image_mask_name) != None:
+            image_mask_name = layer_name + "_" + "Mask_" + image_file_handling.get_random_image_id()
+
+        image = bpy.ops.image.new(name=image_mask_name,
+                                  width=1024,
+                                  height=1024,
+                                  color=(0.0, 0.0, 0.0, 1.0),
+                                  alpha=False,
+                                  generated_type='BLANK',
+                                  float=False,
+                                  use_stereo_3d=False,
+                                  tiled=False)
+
+        group_node = coater_node_info.get_channel_node_group(context)
+        mask_node_name = layers[layer_index].mask_node_name
+        mask_node = group_node.nodes.get(mask_node_name)
+
+        if (mask_node != None):
+            mask_node.image = bpy.data.images[image_mask_name]
+        
+        return {'FINISHED'}
+
+class COATER_OT_delete_layer_image_mask(Operator):
+    '''Deletes the image from Blender's data used for the layer's mask if one exists'''
+    bl_idname = "coater.delete_layer_image_mask"
+    bl_label = "Delete Layer Image Mask"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Deletes the image from Blender's data used for the layer's mask if one exists"
+
+    def execute(self, context):
+        layers = context.scene.coater_layers
+        layer_index = context.scene.coater_layer_stack.layer_index
+
+        group_node = coater_node_info.get_channel_node_group(context)
+        mask_node_name = layers[layer_index].mask_node_name
+        mask_node = group_node.nodes.get(mask_node_name)
+
+        if (mask_node != None):
+            mask_image = mask_node.image
+
+            if mask_image != None:
+                bpy.data.images.remove(mask_image)
+        
+        return {'FINISHED'}

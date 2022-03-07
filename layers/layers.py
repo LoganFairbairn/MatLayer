@@ -64,6 +64,13 @@ def update_layer_projection(self, context):
                 channel_node_group.links.new(coord_node.outputs[0], mapping_node.inputs[0])
                 color_node.projection = 'TUBE'
 
+def update_projection_blend(self, context):
+    '''Updates the projection blend node values when the cube projection blend value is changed.'''
+    layers = context.scene.coater_layers
+    layer_index = context.scene.coater_layer_stack.layer_index
+    channel_node_group = coater_node_info.get_channel_node_group(context)
+    mask_node = channel_node_group.nodes.get(layers[layer_index].mask_node_name)
+
 def update_mask_projection(self, context):
     '''Changes the mask projection by reconnecting nodes.'''
     layers = context.scene.coater_layers

@@ -122,7 +122,7 @@ def draw_layer_properties(self, context):
 
     layout = self.layout
     row = layout.row()
-    row.label(text="LAYER PROPERTIES:")
+    row.label(text="Layer Properties:")
     
     # Draw Image Layer Properties
     if(layers[layer_index].type == 'IMAGE_LAYER'):
@@ -201,6 +201,8 @@ def draw_mask_properties(self, context):
         row.scale_y = scale_y
         row.operator("coater.select_layer_mask", icon="SELECT_SET", text="")
         row.prop(mask_node, "image", text="")
+        row.operator("coater.add_layer_image_mask", text="", icon="ADD")
+        row.operator("coater.delete_layer_image_mask", text="", icon="REMOVE")
         row.operator("coater.import_mask_image", text="", icon="IMPORT")
 
         row = layout.row()

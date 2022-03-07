@@ -10,6 +10,7 @@ from .import create_layer_nodes
 from .import organize_layer_nodes
 from .import set_material_shading
 from .import coater_node_info
+from .import image_file_handling
 
 class COATER_OT_add_image_layer(Operator):
     '''Adds an empty image layer to the layer stack.'''
@@ -46,9 +47,14 @@ class COATER_OT_add_layer_image(Operator):
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
 
-        layer_name = "Something"
+        # Assign the new image a unique name.
+        layer_name = layers[layer_index].name.replace(" ", "")
+        image_name = layer_name + "_" + image_file_handling.get_random_image_id()
 
-        image = bpy.ops.image.new(name=layer_name,
+        while bpy.data.images.get(image_name) != None:
+            image_name = layer_name + "_" + image_file_handling.get_random_image_id()
+
+        image = bpy.ops.image.new(name=image_name,
                                   width=1024,
                                   height=1024,
                                   color=(0.0, 0.0, 0.0, 1.0),
@@ -63,9 +69,7 @@ class COATER_OT_add_layer_image(Operator):
         color_node = group_node.nodes.get(color_node_name)
 
         if (color_node != None):
-            color_node.image = bpy.data.images[layer_name]
-
-        organize_layer_nodes.organize_layer_nodes(context)
+            color_node.image = bpy.data.images[image_name]
         
         return {'FINISHED'}
 
