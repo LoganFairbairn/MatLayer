@@ -154,7 +154,7 @@ def draw_layer_properties(self, context):
             if layers[layer_index].projection == 'BOX':
                 row = layout.row()
                 row.scale_y = scale_y
-                row.prop(color_node, "projection_blend")
+                row.prop(layers[layer_index], "projection_blend")
 
         if mapping_node != None:
             row = layout.row()
@@ -220,7 +220,7 @@ def draw_mask_properties(self, context):
         if layers[layer_index].mask_projection == 'BOX':
             row = layout.row()
             row.scale_y = scale_y
-            row.prop(mask_node, "projection_blend")
+            row.prop(layers[layer_index], "mask_projection_blend")
 
         mask_mapping_node = channel_node.node_tree.nodes.get(layers[layer_index].mask_mapping_node_name)
         if mask_mapping_node != None:

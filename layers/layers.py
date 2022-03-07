@@ -1,4 +1,4 @@
-import os   # For renaming layer images.
+import os
 import bpy
 from bpy.types import PropertyGroup
 from .import coater_node_info
@@ -69,7 +69,20 @@ def update_projection_blend(self, context):
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
     channel_node_group = coater_node_info.get_channel_node_group(context)
+    color_node = channel_node_group.nodes.get(layers[layer_index].color_node_name)
+    
+    if color_node != None:
+        color_node.projection_blend = layers[layer_index].projection_blend
+
+def update_mask_projection_blend(self, context):
+    '''Updates the mask projection blend node values when the cube projection blend value is changed.'''
+    layers = context.scene.coater_layers
+    layer_index = context.scene.coater_layer_stack.layer_index
+    channel_node_group = coater_node_info.get_channel_node_group(context)
     mask_node = channel_node_group.nodes.get(layers[layer_index].mask_node_name)
+
+    if mask_node != None:
+        mask_node.projection_blend = layers[layer_index].mask_projection_blend
 
 def update_mask_projection(self, context):
     '''Changes the mask projection by reconnecting nodes.'''
@@ -268,6 +281,8 @@ class COATER_layers(PropertyGroup):
         update=update_layer_projection
     )
 
+    projection_blend: bpy.props.FloatProperty(name="Projection Blend", description="The projection blend amount.", default=0.5, min=0.0, max=1.0, subtype='FACTOR', update=update_projection_blend)
+
     projected_offset_x: bpy.props.FloatProperty(name="Offset X", description="Projected x offset of the selected layer.", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_offset_x)
     projected_offset_y: bpy.props.FloatProperty(name="Offset Y", description="Projected y offset of the selected layer.", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_offset_y)
     projected_rotation: bpy.props.FloatProperty(name="Rotation", description="Projected rotation of the selected layer.", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projected_rotation)
@@ -285,6 +300,8 @@ class COATER_layers(PropertyGroup):
         default='FLAT',
         update=update_mask_projection
     )
+
+    mask_projection_blend: bpy.props.FloatProperty(name="Mask Projection Blend", description="The mask projection blend amount.", default=0.5, min=0.0, max=1.0, subtype='FACTOR', update=update_mask_projection_blend)
 
     projected_mask_offset_x: bpy.props.FloatProperty(name="Offset X", description="Projected x offset of the selected mask.", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_mask_offset_x)
     projected_mask_offset_y: bpy.props.FloatProperty(name="Offset Y", description="Projected y offset of the selected mask.", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_mask_offset_y)
