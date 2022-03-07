@@ -130,9 +130,31 @@ class COATER_OT_add_layer_image_mask(Operator):
         while bpy.data.images.get(image_mask_name) != None:
             image_mask_name = layer_name + "_" + "Mask_" + image_file_handling.get_random_image_id()
 
+        texture_set_settings = context.scene.coater_texture_set_settings
+
+        image_width = 128
+        if texture_set_settings.image_width == 'FIVE_TWELVE':
+            image_width = 512
+        if texture_set_settings.image_width == 'ONEK':
+            image_width = 1024
+        if texture_set_settings.image_width == 'TWOK':
+            image_width = 2048
+        if texture_set_settings.image_width == 'FOURK':
+            image_width = 4096
+
+        image_height = 128
+        if texture_set_settings.image_height == 'FIVE_TWELVE':
+            image_height = 512
+        if texture_set_settings.image_height == 'ONEK':
+            image_height = 1024
+        if texture_set_settings.image_height == 'TWOK':
+            image_height = 2048
+        if texture_set_settings.image_height == 'FOURK':
+            image_height = 4096
+
         image = bpy.ops.image.new(name=image_mask_name,
-                                  width=1024,
-                                  height=1024,
+                                  width=image_width,
+                                  height=image_height,
                                   color=(0.0, 0.0, 0.0, 1.0),
                                   alpha=False,
                                   generated_type='BLANK',

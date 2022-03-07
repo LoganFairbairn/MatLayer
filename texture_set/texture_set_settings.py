@@ -3,17 +3,17 @@
 import bpy
 
 def update_match_image_resolution(self, context):
-    layer_settings = context.scene.coater_layer_settings
+    texture_set_settings = context.scene.coater_texture_set_settings
 
-    if layer_settings.match_image_resolution:
-        layer_settings.image_height = layer_settings.image_width
+    if texture_set_settings.match_image_resolution:
+        texture_set_settings.image_height = texture_set_settings.image_width
 
 def update_image_width(self, context):
-    layer_settings = context.scene.coater_layer_settings
+    texture_set_settings = context.scene.coater_texture_set_settings
 
-    if layer_settings.match_image_resolution:
-        if layer_settings.image_height != layer_settings.image_width:
-            layer_settings.image_height = layer_settings.image_width
+    if texture_set_settings.match_image_resolution:
+        if texture_set_settings.image_height != texture_set_settings.image_width:
+            texture_set_settings.image_height = texture_set_settings.image_width
 
 class COATER_texture_set_settings(bpy.types.PropertyGroup):
     image_width: bpy.props.EnumProperty(
