@@ -185,6 +185,10 @@ def update_projected_scale_x(self, context):
     if mapping_node != None:
         mapping_node.inputs[3].default_value[0] = layers[layer_index].projected_scale_x
 
+    layer_settings = context.scene.coater_layer_settings
+    if layer_settings.match_layer_scale:
+        layers[layer_index].projected_scale_y = layers[layer_index].projected_scale_x
+
 def update_projected_scale_y(self, context):
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
@@ -240,6 +244,10 @@ def update_projected_mask_scale_x(self, context):
     if mask_mapping_node != None:
         mask_mapping_node.inputs[3].default_value[0] = layers[layer_index].projected_mask_scale_x
 
+    layer_settings = context.scene.coater_layer_settings
+    if layer_settings.match_layer_mask_scale:
+        layers[layer_index].projected_mask_scale_y = layers[layer_index].projected_mask_scale_x
+
 def update_projected_mask_scale_y(self, context):
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
@@ -283,11 +291,11 @@ class COATER_layers(PropertyGroup):
 
     projection_blend: bpy.props.FloatProperty(name="Projection Blend", description="The projection blend amount.", default=0.5, min=0.0, max=1.0, subtype='FACTOR', update=update_projection_blend)
 
-    projected_offset_x: bpy.props.FloatProperty(name="Offset X", description="Projected x offset of the selected layer.", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_offset_x)
-    projected_offset_y: bpy.props.FloatProperty(name="Offset Y", description="Projected y offset of the selected layer.", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_offset_y)
-    projected_rotation: bpy.props.FloatProperty(name="Rotation", description="Projected rotation of the selected layer.", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projected_rotation)
-    projected_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected layer.", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_scale_x)
-    projected_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected layer.", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_scale_y)
+    projected_offset_x: bpy.props.FloatProperty(name="Offset X", description="Projected x offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_offset_x)
+    projected_offset_y: bpy.props.FloatProperty(name="Offset Y", description="Projected y offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_offset_y)
+    projected_rotation: bpy.props.FloatProperty(name="Rotation", description="Projected rotation of the selected layer", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projected_rotation)
+    projected_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_scale_x)
+    projected_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_scale_y)
 
     # Mask Projection Settings
     mask_projection: bpy.props.EnumProperty(
@@ -303,11 +311,11 @@ class COATER_layers(PropertyGroup):
 
     mask_projection_blend: bpy.props.FloatProperty(name="Mask Projection Blend", description="The mask projection blend amount.", default=0.5, min=0.0, max=1.0, subtype='FACTOR', update=update_mask_projection_blend)
 
-    projected_mask_offset_x: bpy.props.FloatProperty(name="Offset X", description="Projected x offset of the selected mask.", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_mask_offset_x)
-    projected_mask_offset_y: bpy.props.FloatProperty(name="Offset Y", description="Projected y offset of the selected mask.", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_mask_offset_y)
-    projected_mask_rotation: bpy.props.FloatProperty(name="Rotation", description="Projected rotation of the selected mask.", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projected_mask_rotation)
-    projected_mask_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected mask.", default=1.0, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_mask_scale_x)
-    projected_mask_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected mask.", default=1.0, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_mask_scale_y)
+    projected_mask_offset_x: bpy.props.FloatProperty(name="Offset X", description="Projected x offset of the selected mask", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_mask_offset_x)
+    projected_mask_offset_y: bpy.props.FloatProperty(name="Offset Y", description="Projected y offset of the selected mask", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_mask_offset_y)
+    projected_mask_rotation: bpy.props.FloatProperty(name="Rotation", description="Projected rotation of the selected mask", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projected_mask_rotation)
+    projected_mask_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected mask", default=1.0, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_mask_scale_x)
+    projected_mask_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected mask", default=1.0, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_mask_scale_y)
 
     opacity: bpy.props.FloatProperty(name="Opacity",
                                      description="Opacity of the currently selected layer.",

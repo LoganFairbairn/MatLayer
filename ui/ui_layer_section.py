@@ -159,17 +159,39 @@ def draw_layer_properties(self, context):
         if mapping_node != None:
             row = layout.row()
             row.scale_y = scale_y
+
+            # Draw Layer Offset
             row.prop(layers[layer_index], "projected_offset_x")
             row.prop(layers[layer_index], "projected_offset_y")
             
+            # Draw Layer Rotation
             row = layout.row()
             row.scale_y = scale_y
             row.prop(layers[layer_index], "projected_rotation", slider=True)
-            
-            row = layout.row()
-            row.scale_y = scale_y
-            row.prop(layers[layer_index], "projected_scale_x")
-            row.prop(layers[layer_index], "projected_scale_y")
+
+            # Draw Layer Scale
+            split = layout.split()
+            col = split.column()
+            col.ui_units_x = 1
+            col.scale_y = scale_y
+            col.prop(layers[layer_index], "projected_scale_x")
+
+            col = split.column()
+            col.ui_units_x = 0.1
+            col.scale_y = scale_y
+            layer_settings = context.scene.coater_layer_settings
+            if layer_settings.match_layer_scale:
+                col.prop(layer_settings, "match_layer_scale", text="", icon="LOCKED")
+
+            else:
+                col.prop(layer_settings, "match_layer_scale", text="", icon="UNLOCKED")
+           
+            col = split.column()
+            col.ui_units_x = 2
+            col.scale_y = scale_y
+            if layer_settings.match_layer_scale:
+                col.enabled = False
+            col.prop(layers[layer_index], "projected_scale_y")
 
     # Draw Color Layer Properties
     if(layers[layer_index].type == 'COLOR_LAYER'):
@@ -233,10 +255,30 @@ def draw_mask_properties(self, context):
             row.scale_y = scale_y
             row.prop(layers[layer_index], "projected_mask_rotation", slider=True)
             
-            row = layout.row()
-            row.scale_y = scale_y
-            row.prop(layers[layer_index], "projected_mask_scale_x")
-            row.prop(layers[layer_index], "projected_mask_scale_y")
+
+            # Draw Mask Scale
+            split = layout.split()
+            col = split.column()
+            col.ui_units_x = 1
+            col.scale_y = scale_y
+            col.prop(layers[layer_index], "projected_mask_scale_x")
+
+            col = split.column()
+            col.ui_units_x = 0.1
+            col.scale_y = scale_y
+            layer_settings = context.scene.coater_layer_settings
+            if layer_settings.match_layer_mask_scale:
+                col.prop(layer_settings, "match_layer_mask_scale", text="", icon="LOCKED")
+
+            else:
+                col.prop(layer_settings, "match_layer_mask_scale", text="", icon="UNLOCKED")
+           
+            col = split.column()
+            col.ui_units_x = 2
+            col.scale_y = scale_y
+            if layer_settings.match_layer_mask_scale:
+                col.enabled = False
+            col.prop(layers[layer_index], "projected_mask_scale_y")
 
         levels_node = channel_node.node_tree.nodes.get(layers[layer_index].mask_levels_node_name)
         row = layout.row()
