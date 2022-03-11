@@ -9,6 +9,7 @@ from .import ui_texture_set_section
 class COATER_panel_properties(bpy.types.PropertyGroup):
     sections: bpy.props.EnumProperty(
         items=[('SECTION_TEXTURE_SET', "TEXTURE SET", "This section contains texture set settings and mesh map baking options."),
+               ('SECTION_BAKING', "BAKING", "This section contains operations to quickly bake mesh maps for your models."),
                ('SECTION_LAYERS', "LAYERS", "This section contains a layer stack for the active material."),
                ('SECTION_EXPORT', "EXPORT", "This section contains operations to quickly export textures made with Coater.")],
         name="Coater Sections",
@@ -29,6 +30,9 @@ class COATER_PT_Panel(bpy.types.Panel):
         if check_blend_saved():
             if panel_properties.sections == 'SECTION_TEXTURE_SET':
                 ui_texture_set_section.draw_texture_set_section_ui(self, context)
+
+            if panel_properties.sections == 'SECTION_BAKING':
+                ui_baking_section.draw_baking_section_ui(self, context)
                 
             if panel_properties.sections == "SECTION_LAYERS":
                 ui_layer_section.draw_layers_section_ui(self, context)

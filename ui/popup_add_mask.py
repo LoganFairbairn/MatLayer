@@ -25,4 +25,5 @@ class COATER_OT_add_mask_menu(Operator):
         split = layout.split()
         col = split.column(align=True)
         col.scale_y = 1.4
-        col.operator("coater.add_image_mask", icon='IMAGE_DATA')
+        col.operator("coater.add_black_mask", icon='IMAGE_DATA')
+        col.operator("coater.add_white_mask", icon='IMAGE_DATA')

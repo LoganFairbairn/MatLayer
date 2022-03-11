@@ -1,15 +1,15 @@
 import bpy
 
-def update_match_output_resolution(self, context):
+def update_match_bake_resolution(self, context):
     baking_settings = context.scene.coater_baking_settings
 
-    if baking_settings.match_output_resolution:
+    if baking_settings.match_bake_resolution:
         baking_settings.output_height = baking_settings.output_width
 
-def update_output_width(self, context):
+def update_bake_width(self, context):
     baking_settings = context.scene.coater_baking_settings
 
-    if baking_settings.match_output_resolution:
+    if baking_settings.match_bake_resolution:
         if baking_settings.output_height != baking_settings.output_width:
             baking_settings.output_height = baking_settings.output_width
 
@@ -40,8 +40,8 @@ class COATER_baking_settings(bpy.types.PropertyGroup):
                ('FOURK', "4096", "")],
         name="Output Height",
         description="Image size for the baked texure map result(s).",
-        default='FIVE_TWELVE',
-        update=update_output_width
+        default='TWOK',
+        update=update_bake_width
     )
 
     output_height: bpy.props.EnumProperty(
@@ -54,7 +54,7 @@ class COATER_baking_settings(bpy.types.PropertyGroup):
         default='FIVE_TWELVE'
     )
 
-    match_output_resolution: bpy.props.BoolProperty(name="Match Output Resoltion", description="Match the output resoltion", default=True, update=update_match_output_resolution)
+    match_bake_resolution: bpy.props.BoolProperty(name="Match Bake Resoltion", description="When toggled on, the bake resolution's width and height will be synced", default=True, update=update_match_bake_resolution)
 
     bake_ambient_occlusion: bpy.props.BoolProperty(name="Bake Ambient Occlusion", description="Bake ambient occlusion", default=True)
     ambient_occlusion_image_name: bpy.props.StringProperty(name="", description="The baking AO image", default="")

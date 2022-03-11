@@ -31,7 +31,7 @@ from .layers.layer_settings import COATER_layer_settings
 from .layers.add_image_layer import COATER_OT_add_image_layer, COATER_OT_add_layer_image, COATER_OT_delete_layer_image
 from .layers.add_color_layer import COATER_OT_add_color_layer
 from .layers.add_group_layer import COATER_OT_add_group_layer
-from .layers.layer_masking import COATER_OT_add_image_mask, COATER_OT_delete_layer_mask, COATER_OT_add_layer_image_mask, COATER_OT_delete_layer_image_mask
+from .layers.layer_masking import COATER_OT_add_image_mask, COATER_OT_delete_layer_mask, COATER_OT_delete_layer_image_mask, COATER_OT_add_black_mask, COATER_OT_add_white_mask
 from .layers.refresh_layers import COATER_OT_refresh_layers
 from .layers.merge_layers import COATER_OT_merge_layer
 from .layers.duplicate_layers import COATER_OT_duplicate_layer
@@ -121,7 +121,8 @@ classes = (
     COATER_OT_add_group_layer,
     COATER_OT_add_image_mask,
     COATER_OT_delete_layer_mask,
-    COATER_OT_add_layer_image_mask,
+    COATER_OT_add_black_mask,
+    COATER_OT_add_white_mask,
     COATER_OT_delete_layer_image_mask,
     COATER_OT_import_mask_image,
     COATER_OT_delete_layer,

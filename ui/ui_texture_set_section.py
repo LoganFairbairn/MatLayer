@@ -6,11 +6,9 @@ def draw_texture_set_section_ui(self, context):
     '''Draws the layer section UI.'''
     ui_section_tabs.draw_section_tabs(self, context)
 
-    
+    # Draw texture set settings.
     layout = self.layout
     scale_y = 1.4
-
-    # Draw texture set settings.
     texture_set_settings = context.scene.coater_texture_set_settings
     layout.label(text="TEXTURE SET SETTINGS:")
 
@@ -37,10 +35,8 @@ def draw_texture_set_section_ui(self, context):
     row = layout.row()
     row.scale_y = scale_y
     row.prop(texture_set_settings, "thirty_two_bit")
+    row.prop(texture_set_settings, "pack_images")
 
-    # Draw baking options.
-    layout.label(text="BAKING SETTINGS: ")
-    ui_baking_section.draw_baking_section_ui(self, context)
-
-    # Draw existing mesh maps.
-    layout.label(text="MESH MAPS: ")
+    # TODO: Draw material channels.
+    layout.label(text="MATERIAL CHANNELS: ")
+    

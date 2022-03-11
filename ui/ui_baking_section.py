@@ -4,6 +4,9 @@ import bpy
 from .import ui_section_tabs
 
 def draw_baking_section_ui(self, context):
+    '''Draws the baking section user interface'''
+    ui_section_tabs.draw_section_tabs(self, context)
+
     layout = self.layout
     baking_settings = context.scene.coater_baking_settings
 
@@ -46,16 +49,16 @@ def draw_baking_section_ui(self, context):
     col = split.column()
     col.ui_units_x = 0.1
     col.scale_y = scale_y
-    if baking_settings.match_output_resolution:
-        col.prop(baking_settings, "match_output_resolution", text="", icon="LOCKED")
+    if baking_settings.match_bake_resolution:
+        col.prop(baking_settings, "match_bake_resolution", text="", icon="LOCKED")
 
     else:
-        col.prop(baking_settings, "match_output_resolution", text="", icon="UNLOCKED")
+        col.prop(baking_settings, "match_bake_resolution", text="", icon="UNLOCKED")
 
     col = split.column()
     col.ui_units_x = 2
     col.scale_y = scale_y
-    if baking_settings.match_output_resolution:
+    if baking_settings.match_bake_resolution:
         col.enabled = False
         
     col.prop(baking_settings, "output_height", text="")
@@ -102,3 +105,6 @@ def draw_baking_section_ui(self, context):
         row.scale_y = scale_y
         row.prop(baking_settings, "ambient_occlusion_local")
         row.prop(baking_settings, "ambient_occlusion_inside")
+
+    # TODO: Draw existing mesh maps.
+    layout.label(text="MESH MAPS: ")
