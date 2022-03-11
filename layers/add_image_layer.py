@@ -46,7 +46,6 @@ class COATER_OT_add_layer_image(Operator):
     def execute(self, context):
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
-        
 
         # Assign the new image a unique name.
         layer_name = layers[layer_index].name.replace(" ", "")
@@ -86,6 +85,10 @@ class COATER_OT_add_layer_image(Operator):
                                   float=False,
                                   use_stereo_3d=False,
                                   tiled=False)
+
+        # If images are not being packed into the blend file, save them to a layer images folder.
+        if texture_set_settings.pack_images == False:
+            image.save()
 
         group_node = coater_node_info.get_channel_node_group(context)
         color_node_name = layers[layer_index].color_node_name

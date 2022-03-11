@@ -318,7 +318,7 @@ class COATER_layers(PropertyGroup):
     projected_mask_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected mask", default=1.0, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_mask_scale_y)
 
     opacity: bpy.props.FloatProperty(name="Opacity",
-                                     description="Opacity of the currently selected layer.",
+                                     description="Layers Opacity",
                                      default=1.0,
                                      min=0.0,
                                      soft_max=1.0,
