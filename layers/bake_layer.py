@@ -12,4 +12,9 @@ class COATER_OT_bake_layer(Operator):
         return False
 
     def execute(self, context):
+        # TODO: Turn off all layers excluding the selected one.
+
+        # TODO: Create an image to bake to.
+
+        # TODO: Create an image layer and add the image to it.
         return {'FINISHED'}

@@ -38,5 +38,5 @@ def draw_texture_set_section_ui(self, context):
     row.prop(texture_set_settings, "pack_images")
 
     # TODO: Draw material channels.
-    layout.label(text="MATERIAL CHANNELS: ")
+    #layout.label(text="MATERIAL CHANNELS: ")
     

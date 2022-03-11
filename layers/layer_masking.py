@@ -7,10 +7,10 @@ from .import link_layers
 from .import organize_layer_nodes
 from .import image_file_handling
 
-class COATER_OT_add_image_mask(Operator):
-    '''Adds an image mask to the selected layer'''
-    bl_idname = "coater.add_image_mask"
-    bl_label = "Add Image Mask"
+class COATER_OT_add_empty_mask(Operator):
+    '''Adds an empty image mask to the selected layer'''
+    bl_idname = "coater.add_empty_mask"
+    bl_label = "Add Empty Mask"
     bl_description = "Adds an image mask to the selected layer"
 
     # Disable the button when there is no active object.
@@ -121,7 +121,7 @@ class COATER_OT_add_black_mask(Operator):
     bl_description = "Creates a fully black image and adds it as the selected layer's mask"
 
     def execute(self, context):
-        bpy.ops.coater.add_image_mask()
+        bpy.ops.coater.add_empty_mask()
 
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
@@ -182,7 +182,7 @@ class COATER_OT_add_white_mask(Operator):
     bl_description = "Creates a fully white image and adds it as the selected layer's mask"
 
     def execute(self, context):
-        bpy.ops.coater.add_image_mask()
+        bpy.ops.coater.add_empty_mask()
         
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
