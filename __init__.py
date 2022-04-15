@@ -18,58 +18,58 @@
 import bpy
 from bpy.app.handlers import persistent
 
-# Import add-on preferences.
-from .preferences.coater_preferences import *
+# Import texture set modules.
+from .texture_set_settings.texture_set_settings import COATER_texture_set_settings
 
-# Import texture set settings.
-from .texture_set.texture_set_settings import COATER_texture_set_settings
-
-# Import layer functionality.
+# Import layer modules.
 from .layers.layers import *
 from .layers.layer_stack import *
 from .layers.layer_settings import COATER_layer_settings
-from .layers.add_image_layer import COATER_OT_add_image_layer, COATER_OT_add_layer_image, COATER_OT_delete_layer_image
-from .layers.add_color_layer import COATER_OT_add_color_layer
-from .layers.add_group_layer import COATER_OT_add_group_layer
 from .layers.layer_masking import COATER_OT_add_empty_mask, COATER_OT_delete_layer_mask, COATER_OT_delete_layer_image_mask, COATER_OT_add_black_mask, COATER_OT_add_white_mask
 from .layers.refresh_layers import COATER_OT_refresh_layers
-from .layers.merge_layers import COATER_OT_merge_layer
-from .layers.duplicate_layers import COATER_OT_duplicate_layer
 from .layers.import_layer_image import COATER_OT_import_color_image, COATER_OT_import_mask_image
 from .layers.select_layer import COATER_OT_select_layer_image, COATER_OT_select_layer_mask
-from .layers.move_layer import COATER_OT_move_layer_up, COATER_OT_move_layer_down
 from .layers.toggle_channel_preview import COATER_OT_toggle_channel_preview
-from .layers.delete_layer import COATER_OT_delete_layer
-from .layers.bake_layer import COATER_OT_bake_layer
 
-# Import baking functionality.
+# Import layer operation modules.
+from .layers.layer_operations.add_layer import COATER_OT_add_layer
+from .layers.layer_operations.delete_layer import COATER_OT_delete_layer
+from .layers.layer_operations.bake_layer import COATER_OT_bake_layer
+from .layers.layer_operations.move_layer import COATER_OT_move_layer_up, COATER_OT_move_layer_down
+from .layers.layer_operations.merge_layers import COATER_OT_merge_layer
+from .layers.layer_operations.duplicate_layers import COATER_OT_duplicate_layer
+from .layers.layer_operations.merge_layers import COATER_OT_merge_layer
+from .layers.layer_operations.duplicate_layers import COATER_OT_duplicate_layer
+from .layers.layer_operations.merge_layers import COATER_OT_merge_layer
+from .layers.layer_operations.duplicate_layers import COATER_OT_duplicate_layer
+
+# Import baking modules.
 from .baking.baking_settings import COATER_baking_settings
 from .baking.bake_ambient_occlusion import COATER_OT_bake_ambient_occlusion, COATER_OT_toggle_ambient_occlusion_preview
 from .baking.bake_curvature import COATER_OT_bake_curvature, COATER_OT_toggle_curvature_preview
+from .baking.bake_thickness import COATER_OT_toggle_thickness_preview, COATER_OT_bake_thickness
 from .baking.bake_functions import *
 
-# Import exporting functioality.
+# Import exporting modules.
 from .exporting.coater_export import *
 from .exporting.export_to_image_editor import *
 from .exporting.exporting_settings import COATER_exporting_settings
 
-# Import tool functionality.
+# Import tool modules.
 from .swap_tool_color import *
 
-# Import user interface functionality.
+# Import user interface modules.
 from .ui.coater_ui import *
-from .ui.popup_add_layer import *
 from .ui.popup_add_mask import *
 from .ui.ui_layer_stack import *
 
-# Improt extra features.
-from .extra_features.toggle_texture_paint_mode import *
+# Import extra features.
 from .extra_features.apply_color_grid import COATER_OT_apply_color_grid
 
 bl_info = {
     "name": "Coater",
     "author": "Logan Fairbairn",
-    "version": (0, 71),
+    "version": (0, 8),
     "blender": (3, 0, 0),
     "location": "View3D > Sidebar > Coater",
     "description": "Replaces node based texturing workflow with a layer stack workflow.",
@@ -80,9 +80,6 @@ bl_info = {
 
 # List of classes to be registered.
 classes = (
-    #Addon Preferences
-    COATER_AddonPreferences,
-
     # Texture Set Settings
     COATER_texture_set_settings,
     
@@ -93,32 +90,31 @@ classes = (
     COATER_OT_bake_ambient_occlusion,
     COATER_OT_toggle_curvature_preview,
     COATER_OT_bake_curvature,
+    COATER_OT_bake_thickness,
+    COATER_OT_toggle_thickness_preview,
 
     # Exporting
     COATER_exporting_settings,
     COATER_OT_export,
     COATER_OT_export_base_color,
-    COATER_OT_export_roughness,
     COATER_OT_export_metallic,
+    COATER_OT_export_roughness,
     COATER_OT_export_normals,
+    COATER_OT_export_height,
     COATER_OT_export_emission,
+    COATER_OT_export_scattering,
 
     # Layers
     COATER_layer_stack,
     COATER_layers,
 
     # Layer Menus
-    COATER_OT_add_layer_menu,
     COATER_OT_add_mask_menu,
 
     # Layer Operations
     COATER_UL_layer_list,
     COATER_layer_settings,
-    COATER_OT_add_color_layer,
-    COATER_OT_add_image_layer,
-    COATER_OT_add_layer_image,
-    COATER_OT_delete_layer_image,
-    COATER_OT_add_group_layer,
+    COATER_OT_add_layer,
     COATER_OT_add_empty_mask,
     COATER_OT_delete_layer_mask,
     COATER_OT_add_black_mask,
@@ -146,7 +142,6 @@ classes = (
     
     # Misc functions
     COATER_OT_image_editor_export,
-    COATER_OT_toggle_texture_paint_mode,
     COATER_OT_apply_color_grid,
 )
 
@@ -167,28 +162,20 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    # Panel Properties
+    # Properties
     bpy.types.Scene.coater_panel_properties = bpy.props.PointerProperty(type=COATER_panel_properties)
-
-    # Texture Set Settings
     bpy.types.Scene.coater_texture_set_settings = bpy.props.PointerProperty(type=COATER_texture_set_settings)
-
-    # Layer Stack Properties
     bpy.types.Scene.coater_layer_stack = bpy.props.PointerProperty(type=COATER_layer_stack)
     bpy.types.Scene.coater_layers = bpy.props.CollectionProperty(type=COATER_layers)
     bpy.types.Scene.coater_layer_settings = bpy.props.PointerProperty(type=COATER_layer_settings)
-
-    # Baking Settings
     bpy.types.Scene.coater_baking_settings = bpy.props.PointerProperty(type=COATER_baking_settings)
-    
-    # Exporting Settings
     bpy.types.Scene.coater_export_settings = bpy.props.PointerProperty(type=COATER_exporting_settings)
 
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
-    # TODO: Unregister pointers??
+    # TODO: Unregister pointers????????
 
 if __name__ == "__main__":
     register()

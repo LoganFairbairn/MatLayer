@@ -1,7 +1,7 @@
 # This file handles the coater user interface.
 
 import bpy
-from ..layers import coater_node_info
+from ..layers import material_channels
 
 class COATER_UL_layer_list(bpy.types.UIList):
     '''Draws the layer stack.'''
@@ -20,28 +20,22 @@ class COATER_UL_layer_list(bpy.types.UIList):
             elif item.hidden == False:
                 row.prop(item, "hidden", text="", emboss=False, icon='HIDE_OFF')
 
-            # Draw an icon to represent the layer's type
-            if item.type == 'IMAGE_LAYER':
-                row.label(text="", icon="IMAGE_DATA")
-
-            elif item.type == 'COLOR_LAYER':
-                row.label(text="", icon="COLOR")
-
-            # Draw masked icon if the layer is masked.
-            if item.mask_node_name != "":
-                row.label(text="", icon="MOD_MASK")
+            # TODO: Draw masked icon if the layer is masked.
+            #if item.mask_node_name != "":
+            #    row.label(text="", icon="MOD_MASK")
 
             # Draw the layer's name.
             row.prop(item, "name", text="", emboss=False)
 
-            # Draw the layers opacity and blend mode.
+            # Draw layer's opacity.
             split = layout.split()
             col = split.column(align=True)
             col.ui_units_x = 1.6
             col.scale_y = 0.5
             col.prop(item, "opacity", text="", emboss=True)
 
-            mix_node = coater_node_info.get_self_node(item, context, 'MIX')
-            col.prop(mix_node, "blend_type", text="")
-
-
+            # Draw mix layer.
+            material_channel_node = material_channels.get_material_channel_node(context, "COLOR")
+            mix_layer_node = material_channel_node.node_tree.nodes.get(item.mix_layer_node_name)
+            if mix_layer_node:
+                col.prop(mix_layer_node, "blend_type", text="")

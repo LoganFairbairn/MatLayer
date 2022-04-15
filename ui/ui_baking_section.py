@@ -19,18 +19,26 @@ def draw_baking_section_ui(self, context):
     scale_y = 1.4
 
     row = layout.row()
+    row.scale_y = scale_y
     row.prop(baking_settings, "bake_ambient_occlusion", text="")
     row.prop_enum(baking_settings, "bake_type", 'AMBIENT_OCCLUSION')
     row.operator("coater.toggle_ambient_occlusion_preview", text="", icon='NODE_MATERIAL')
     row.operator("coater.bake_ambient_occlusion", text="", icon='RENDER_STILL')
-    row.scale_y = scale_y
 
     row = layout.row()
+    row.scale_y = scale_y
     row.prop(baking_settings, "bake_curvature", text="")
     row.prop_enum(baking_settings, "bake_type", 'CURVATURE')
     row.operator("coater.toggle_curvature_preview", text="", icon='NODE_MATERIAL')
     row.operator("coater.bake_curvature", text="", icon='RENDER_STILL')
+
+    row = layout.row()
     row.scale_y = scale_y
+    row.prop(baking_settings, "bake_thickness", text="")
+    row.prop_enum(baking_settings, "bake_type", 'THICKNESS')
+    row.operator("coater.toggle_thickness_preview", text="", icon='NODE_MATERIAL')
+    row.operator("coater.bake_curvature", text="", icon='RENDER_STILL')
+
 
     # Draw global bake settings.
     layout.label(text="Global Bake Settings:")
@@ -106,5 +114,26 @@ def draw_baking_section_ui(self, context):
         row.prop(baking_settings, "ambient_occlusion_local")
         row.prop(baking_settings, "ambient_occlusion_inside")
 
-    # TODO: Draw existing mesh maps.
+    # TODO: Draw thickness maps.
+    if baking_settings.bake_type == 'THICKNESS':
+        layout.label(text="Thickness Bake Settings")
+
+    # Draw existing mesh maps that exist within the blend file.
     layout.label(text="MESH MAPS: ")
+
+    active_object = context.active_object
+
+    row = layout.row()
+    row.scale_y = scale_y
+    if bpy.data.images.get(active_object.name + "_AO") != None:
+        layout.label(text=active_object.name + "_AO")
+    
+    row = layout.row()
+    row.scale_y = scale_y
+    if bpy.data.images.get(active_object.name + "_Curvature") != None:
+        layout.label(text=active_object.name + "_Curvature")
+
+    row = layout.row()
+    row.scale_y = scale_y
+    if bpy.data.images.get(active_object.name + "_Thickness") != None:
+        layout.label(text=active_object.name + "_Thickness")

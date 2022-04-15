@@ -2,8 +2,7 @@ import os
 import bpy
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper        # For importing images.
-from .import coater_node_info
-from .import organize_layer_nodes
+from . import layer_nodes
 
 class COATER_OT_import_color_image(Operator, ImportHelper):
     '''Imports a color image to use for the selected layer.'''
@@ -28,7 +27,7 @@ class COATER_OT_import_color_image(Operator, ImportHelper):
         layers[layer_index].color_image_name = self.filepath
 
         # Put the image in the node.
-        group_node = coater_node_info.get_channel_node_group(context)
+        group_node = layer_nodes.get_channel_node_group(context)
         color_node_name = layers[layer_index].color_node_name
         color_node = group_node.nodes.get(color_node_name)
 
@@ -59,7 +58,7 @@ class COATER_OT_import_mask_image(Operator, ImportHelper):
 
         bpy.ops.image.open(filepath=self.filepath)
         
-        group_node = coater_node_info.get_channel_node_group(context)
+        group_node = layer_nodes.get_channel_node_group(context)
         mask_node = group_node.nodes.get(layers[layer_index].mask_node_name)
 
         if mask_node != None:

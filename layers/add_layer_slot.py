@@ -3,9 +3,10 @@ import bpy
 import random
 
 def add_layer_slot(context):
+    '''Creates a layer node.'''
     layers = context.scene.coater_layers
     layer_stack = context.scene.coater_layer_stack
-    layer_index = context.scene.coater_layer_stack.layer_index
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
 
     # Add a new layer slot.
     layers.add()
@@ -28,9 +29,9 @@ def add_layer_slot(context):
                 layers[len(layers) - 1].name = new_layer_name
 
     # Moves the new layer above the currently selected layer and selects it.
-    if(layer_index != -1):
+    if(selected_layer_index != -1):
         move_index = len(layers) - 1
-        move_to_index = max(0, min(layer_index, len(layers) - 1))
+        move_to_index = max(0, min(selected_layer_index, len(layers) - 1))
         layers.move(move_index, move_to_index)
         layer_stack.layer_index = move_to_index
 
@@ -41,7 +42,7 @@ def add_layer_slot(context):
         layers.move(move_index, move_to_index)
         layer_stack.layer_index = move_to_index
 
-    # Assign a unique random ID number.
+    # Assign the layer a unique random ID number.
     number_of_layers = len(layers)
     new_id = random.randint(100000, 999999)
     id_exists = True
@@ -54,4 +55,4 @@ def add_layer_slot(context):
 
             if i == number_of_layers - 1:
                 id_exists = False
-    layers[layer_index].id = new_id
+    layers[selected_layer_index].id = new_id

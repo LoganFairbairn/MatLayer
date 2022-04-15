@@ -18,9 +18,9 @@ class COATER_baking_settings(bpy.types.PropertyGroup):
     bake_type: bpy.props.EnumProperty(
         items=[('AMBIENT_OCCLUSION', "Ambient Occlusion", ""),
                ('CURVATURE', "Curvature", ""),
-               ('EDGES', 'Edges', "")],
+               ('THICKNESS', 'Thickness', "")],
         name="Bake Types",
-        description="Projection type of the image attached to the selected layer",
+        description="Bake type currently selected.",
         default='AMBIENT_OCCLUSION'
     )
 
@@ -51,7 +51,7 @@ class COATER_baking_settings(bpy.types.PropertyGroup):
                ('FOURK', "4096", "")],
         name="Output Height",
         description="Image size for the baked texure map result(s).",
-        default='FIVE_TWELVE'
+        default='TWOK'
     )
 
     match_bake_resolution: bpy.props.BoolProperty(name="Match Bake Resoltion", description="When toggled on, the bake resolution's width and height will be synced", default=True, update=update_match_bake_resolution)
@@ -68,3 +68,6 @@ class COATER_baking_settings(bpy.types.PropertyGroup):
     curvature_edge_intensity: bpy.props.FloatProperty(name="Edge Intensity", description="Brightens edges", min=0.0, max=10.0, default=3.0)
     curvature_edge_radius: bpy.props.FloatProperty(name="Edge Thickness", description="Edge thickness", min=0.001, max=0.1, default=0.01)
     curvature_ao_masking: bpy.props.FloatProperty(name="AO Masking", description="Mask the curvature edges using ambient occlusion.", min=0.0, max=1.0, default=1.0)
+
+    bake_thickness: bpy.props.BoolProperty(name="Bake Thickness", description="Bake Thickness", default=True)
+    

@@ -11,8 +11,6 @@ def draw_export_section_ui(self, context):
     # Draw export settings.
     export_settings = context.scene.coater_export_settings
     
-    layout.label(text="NOT YET IMPLEMENTED")
-
     scale_y = 1.4
 
     row = layout.row()
@@ -21,13 +19,12 @@ def draw_export_section_ui(self, context):
 
     row = layout.row()
     row.scale_y = scale_y
-    row.prop(export_settings, "export_base_color")
-    row.operator("coater.export_base_color", text="", icon='RENDER_STILL')
+    row.prop(export_settings, "export_folder")
 
     row = layout.row()
     row.scale_y = scale_y
-    row.prop(export_settings, "export_roughness")
-    row.operator("coater.export_roughness", text="", icon='RENDER_STILL')
+    row.prop(export_settings, "export_base_color")
+    row.operator("coater.export_base_color", text="", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
@@ -36,10 +33,25 @@ def draw_export_section_ui(self, context):
 
     row = layout.row()
     row.scale_y = scale_y
+    row.prop(export_settings, "export_roughness")
+    row.operator("coater.export_roughness", text="", icon='RENDER_STILL')
+
+    row = layout.row()
+    row.scale_y = scale_y
     row.prop(export_settings, "export_normals")
     row.operator("coater.export_normals", text="", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
+    row.prop(export_settings, "export_height")
+    row.operator("coater.export_height", text="", icon='RENDER_STILL')
+
+    row = layout.row()
+    row.scale_y = scale_y
     row.prop(export_settings, "export_emission")
     row.operator("coater.export_emission", text="", icon='RENDER_STILL')
+
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(export_settings, "export_scattering")
+    row.operator("coater.export_scattering", text="", icon='RENDER_STILL')

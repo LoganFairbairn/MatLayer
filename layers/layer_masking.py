@@ -1,10 +1,7 @@
-from cgitb import text
+import os
 import bpy
 from bpy.types import Operator
-from .import coater_node_info
-from .import update_node_labels
-from .import link_layers
-from .import organize_layer_nodes
+from . import layer_nodes
 from .import image_file_handling
 
 class COATER_OT_add_empty_mask(Operator):
@@ -23,7 +20,7 @@ class COATER_OT_add_empty_mask(Operator):
         layer_index = context.scene.coater_layer_stack.layer_index
 
         # Create mask nodes.
-        channel_node = coater_node_info.get_channel_node_group(context)
+        channel_node = layer_nodes.get_channel_node_group(context)
 
         if channel_node != None:
             mask_node = channel_node.nodes.new('ShaderNodeTexImage')
@@ -78,7 +75,7 @@ class COATER_OT_delete_layer_mask(Operator):
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
 
-        channel_node_group = coater_node_info.get_channel_node_group(context)
+        channel_node_group = layer_nodes.get_channel_node_group(context)
 
         # Delete mask nodes for the selected layer if they exist.
         mask_node = channel_node_group.nodes.get(layers[layer_index].mask_node_name)
@@ -165,7 +162,24 @@ class COATER_OT_add_black_mask(Operator):
                                   use_stereo_3d=False,
                                   tiled=False)
 
-        group_node = coater_node_info.get_channel_node_group(context)
+        # If images are not being packed into the blend file, save them to a layer images folder.
+        if texture_set_settings.pack_images == False:
+            layers_folder_path = bpy.path.abspath("//") + 'Layers'
+
+            if os.path.exists(layers_folder_path) == False:
+                os.mkdir(layers_folder_path)
+
+            layer_image = bpy.data.images[image_mask_name]
+            layer_image.filepath = layers_folder_path + "/" + image_mask_name + ".png"
+            layer_image.file_format = 'PNG'
+
+            layer_image.pixels[0] = 1
+
+            if layer_image != None:
+                if layer_image.is_dirty:
+                    layer_image.save()
+
+        group_node = layer_nodes.get_channel_node_group(context)
         mask_node_name = layers[layer_index].mask_node_name
         mask_node = group_node.nodes.get(mask_node_name)
 
@@ -226,7 +240,7 @@ class COATER_OT_add_white_mask(Operator):
                                   use_stereo_3d=False,
                                   tiled=False)
 
-        group_node = coater_node_info.get_channel_node_group(context)
+        group_node = layer_nodes.get_channel_node_group(context)
         mask_node_name = layers[layer_index].mask_node_name
         mask_node = group_node.nodes.get(mask_node_name)
 
@@ -245,7 +259,7 @@ class COATER_OT_delete_layer_image_mask(Operator):
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
 
-        group_node = coater_node_info.get_channel_node_group(context)
+        group_node = layer_nodes.get_channel_node_group(context)
         mask_node_name = layers[layer_index].mask_node_name
         mask_node = group_node.nodes.get(mask_node_name)
 

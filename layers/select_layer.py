@@ -1,16 +1,17 @@
 import bpy
 from bpy.types import Operator
-from .import coater_node_info
+from . import layer_nodes
 
 class COATER_OT_select_layer_image(Operator):
+    '''Selects the layer image for the selected layer if one exists'''
     bl_idname = "coater.select_layer_image"
     bl_label = "Select Layer Image"
-    bl_description = "Selects the layer image for the selected layer if one exists."
+    bl_description = "Selects the layer image for the selected layer if one exists"
 
     def execute(self, context):
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
-        channel_node_group = coater_node_info.get_channel_node_group(context)
+        channel_node_group = layer_nodes.get_channel_node_group(context)
 
         if layers[layer_index].type == 'IMAGE_LAYER':
             if channel_node_group != None:
@@ -21,14 +22,15 @@ class COATER_OT_select_layer_image(Operator):
         return {'FINISHED'}
 
 class COATER_OT_select_layer_mask(Operator):
+    '''Selects the layer's mask image if one exists'''
     bl_idname = "coater.select_layer_mask"
     bl_label = "Select Layer Mask"
-    bl_description = "Selects the layer mask image if one exists."
+    bl_description = "Selects the layer mask image if one exists"
 
     def execute(self, context):
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
-        channel_node_group = coater_node_info.get_channel_node_group(context)
+        channel_node_group = layer_nodes.get_channel_node_group(context)
 
         if channel_node_group != None:
             mask_node = channel_node_group.nodes.get(layers[layer_index].mask_node_name)

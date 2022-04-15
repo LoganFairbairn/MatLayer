@@ -1,6 +1,5 @@
 import bpy
 from .import ui_section_tabs
-from .import ui_baking_section
 
 def draw_texture_set_section_ui(self, context):
     '''Draws the layer section UI.'''
@@ -10,9 +9,18 @@ def draw_texture_set_section_ui(self, context):
     layout = self.layout
     scale_y = 1.4
     texture_set_settings = context.scene.coater_texture_set_settings
-    layout.label(text="TEXTURE SET SETTINGS:")
+    layout.label(text="TEXTURE SET SETTINGS")
 
-    split = layout.split()
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(texture_set_settings, "layer_folder")
+
+    split = layout.split(align=True)
+
+    col = split.column(align=True)
+    col.scale_y = scale_y
+    col.label(text="Size: ")
+
     col = split.column()
     col.scale_y = scale_y
     col.prop(texture_set_settings, "image_width", text="")
@@ -37,6 +45,34 @@ def draw_texture_set_section_ui(self, context):
     row.prop(texture_set_settings, "thirty_two_bit")
     row.prop(texture_set_settings, "pack_images")
 
-    # TODO: Draw material channels.
-    #layout.label(text="MATERIAL CHANNELS: ")
+    # Draw material channel toggles.
+    layout.label(text="MATERIAL CHANNELS")
+    
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(texture_set_settings, "color_channel_toggle", text="Color", toggle=1)
+
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(texture_set_settings, "metallic_channel_toggle", text="Metallic", toggle=1)
+
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(texture_set_settings, "roughness_channel_toggle", text="Roughness", toggle=1)
+
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(texture_set_settings, "normal_channel_toggle", text="Normal", toggle=1)
+
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(texture_set_settings, "height_channel_toggle", text="Height", toggle=1)
+
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(texture_set_settings, "scattering_channel_toggle", text="Scattering", toggle=1)
+
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(texture_set_settings, "emission_channel_toggle", text="Emission" , toggle=1)
     

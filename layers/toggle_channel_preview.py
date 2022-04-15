@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import Operator
-from .import coater_node_info
+from . import layer_nodes
 
 class COATER_OT_toggle_channel_preview(Operator):
     bl_idname = "coater.toggle_channel_preview"
@@ -24,7 +24,7 @@ class COATER_OT_toggle_channel_preview(Operator):
                 material_output_node = material_nodes.get('Material Output')
 
                 # Remove all links.
-                channel_nodes = coater_node_info.get_channel_nodes(context)
+                channel_nodes = layer_nodes.get_channel_nodes(context)
                 for node in channel_nodes:
                     node_links.clear()
 
@@ -56,7 +56,7 @@ class COATER_OT_toggle_channel_preview(Operator):
                 layer_stack.channel_preview = True
 
                 # De-attach all channels from Principled BSDF shader.
-                channel_nodes = coater_node_info.get_channel_nodes(context)
+                channel_nodes = layer_nodes.get_channel_nodes(context)
                 for node in channel_nodes:
                     node_links.clear()
 
