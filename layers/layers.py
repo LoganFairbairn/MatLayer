@@ -7,8 +7,12 @@ from bpy.types import PropertyGroup
 from . import layer_nodes
 
 TEXTURE_NODE_TYPES = [
-    ("COLOR", "", ""), 
-    ("NOISE", "", "")
+    ("COLOR", "Color", ""), 
+    ("VALUE", "Value", ""),
+    ("TEXTURE", "Texture", ""),
+    ("NOISE", "Noise", ""),
+    ("VORONOI", "Voronoi", ""),
+    ("MUSGRAVE", "Musgrave", "")
     ]
 
 def layer_image_path_error(self, context):
@@ -337,9 +341,9 @@ class COATER_layers(PropertyGroup):
 
     # Node Types (used for properly drawing user interface for node properties)
     color_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Color Texture Node Type", description="The node type for the color channel texture.", default='COLOR')
-    metallic_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Metallic Texture Node Type", description="The node type for the roughness channel texture.", default='COLOR')
+    metallic_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Metallic Texture Node Type", description="The node type for the roughness channel texture.", default='COLOR')
     roughness_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Roughness Texture Node Type", description="The node type for roughness channel texture.", default='COLOR')
-    normal_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Normal Texture Node Type", description="The node type for the texture.", default='COLOR')
-    height_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Height Texture Node Type", description="The node type for the texture.", default='COLOR')
-    scattering_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Scattering Texture Node Type", description="The node type for the texture.", default='COLOR')
-    emission_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Emission Texture Node Type", description="The node type for the texture.", default='COLOR')
+    normal_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Normal Texture Node Type", description="The node type for the texture.", default='COLOR')
+    height_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Height Texture Node Type", description="The node type for the texture.", default='COLOR')
+    scattering_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Scattering Texture Node Type", description="The node type for the texture.", default='COLOR')
+    emission_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Emission Texture Node Type", description="The node type for the texture.", default='COLOR')

@@ -272,7 +272,7 @@ def link_new_default_nodes(material_channel_node, texture_node, general_nodes):
     link = material_channel_node.node_tree.links.new
     link(texture_node.outputs[0], general_nodes["MIXLAYER"].inputs[1])
     link(general_nodes["OPACITY"].outputs[0], general_nodes["MIXLAYER"].inputs[0])
-    link(general_nodes["COORD"].outputs[0], general_nodes["MAPPING"].inputs[0])
+    link(general_nodes["COORD"].outputs[2], general_nodes["MAPPING"].inputs[0])
 
 def add_general_layer_nodes(material_channel_node, layers, layer_index):
     '''Adds general layer nodes that should be present in all layers.'''

@@ -59,7 +59,6 @@ def update_layer_node_indicies(context, channel):
             mapping_node.label = mapping_node.name
             layers[index].mapping_node_name = mapping_node.name
 
-
 def organize_all_nodes(context):
     '''Organizes all Coater nodes.'''
 
@@ -72,6 +71,13 @@ def organize_all_nodes(context):
             header_position[1] -= (node.height + (NODE_SPACING * 0.5))
     
     # Organize all layers nodes for all material channels.
+    organize_material_channel_nodes(context, "COLOR")
+    organize_material_channel_nodes(context, "METALLIC")
+    organize_material_channel_nodes(context, "ROUGHNESS")
+    organize_material_channel_nodes(context, "NORMAL")
+    organize_material_channel_nodes(context, "HEIGHT")
+    organize_material_channel_nodes(context, "EMISSION")
+    organize_material_channel_nodes(context, "SCATTERING")
 
     '''
     # Organize group input node.
@@ -93,11 +99,11 @@ def organize_all_nodes(context):
             if bump_node != None:
                 bump_node.location = (0.0, -group_input_node.dimensions.y - node_spacing)'''
 
-def organize_material_channel_nodes(context):
+def organize_material_channel_nodes(context, channel):
     '''Oranizes all material channel nodes.'''
     layers = context.scene.coater_layers
     layer_index = context.scene.coater_layer_stack.layer_index
-    color_channel_node = material_channels.get_material_channel_node(context, "COLOR")
+    material_channel_node = material_channels.get_material_channel_node(context, channel)
 
     # Organizes all nodes.
     header_position = [0.0, 0.0]
@@ -105,7 +111,7 @@ def organize_material_channel_nodes(context):
         header_position[0] -= NODE_WIDTH + NODE_SPACING
         header_position[1] = 0.0
 
-        node_list = layer_nodes.get_all_layer_nodes(color_channel_node, layers, layer_index)
+        node_list = layer_nodes.get_all_layer_nodes(material_channel_node, layers, layer_index)
         for node in node_list:
             node.width = NODE_WIDTH
             node.location = (header_position[0], header_position[1])

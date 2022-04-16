@@ -99,11 +99,10 @@ def draw_projection_settings(self, context):
     layout = self.layout
     row = layout.row()
     row.label(text="PROJECTION SETTINGS")
-
-    # TODO: Draw layer projection settings.
+    
     row = layout.row()
     row.scale_y = SCALE_Y
-    row.prop(layers[selected_layer_index], "projection_mode")
+    row.prop(layers[selected_layer_index], "projection_mode", text="")
 
     if layers[selected_layer_index].projection_mode == 'BOX':
         row = layout.row()
@@ -147,6 +146,10 @@ def draw_material_channels(self, context):
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     layout = self.layout
+
+    row = layout.row()
+    row.label(text="")
+
     row = layout.row()
     row.label(text="MATERIAL CHANNELS")
     row = layout.row(align=False)
@@ -160,10 +163,16 @@ def draw_material_channels(self, context):
 
 def draw_layer_properties(self, context):
     layout = self.layout
+    layers = context.scene.coater_layers
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+
+    row = layout.row()
+    row.label(text="")
+    
     row = layout.row()
     row.label(text="LAYER PROPERTIES")
 
-    # TODO: Draw layer properties for each active channel.
+    # Draw layer properties for each active channel.
     draw_channel_node_value("Color", "COLOR", layout, context)
     draw_channel_node_value("Metallic", "METALLIC", layout, context)
     draw_channel_node_value("Roughness", "ROUGHNESS", layout, context)
@@ -259,15 +268,51 @@ def draw_mask_properties(self, context):
 
 def draw_channel_node_value(name, channel, layout, context):
     '''Draws the channels node value.'''
-    layer_index = context.scene.coater_layer_stack.layer_index
+    layers = context.scene.coater_layers
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
 
-    texture_node = layer_nodes.get_node("TEXTURE", channel, layer_index, context)
-   
+    texture_node = layer_nodes.get_node("TEXTURE", channel, selected_layer_index, context)
+
     if texture_node:
         row = layout.row()
         row.alignment = 'CENTER'
         row.label(text=name)
 
+        if channel == "COLOR":
+            row = layout.row()
+            row.scale_y = SCALE_Y
+            row.prop(layers[selected_layer_index], "color_texture_node_type", text="")
+
+        if channel == "METALLIC":
+            row = layout.row()
+            row.scale_y = SCALE_Y
+            row.prop(layers[selected_layer_index], "metallic_texture_node_type", text="")
+
+        if channel == "ROUGHNESS":
+            row = layout.row()
+            row.scale_y = SCALE_Y
+            row.prop(layers[selected_layer_index], "roughness_texture_node_type", text="")
+
+        if channel == "NORMAL":
+            row = layout.row()
+            row.scale_y = SCALE_Y
+            row.prop(layers[selected_layer_index], "normal_texture_node_type", text="")
+
+        if channel == "HEIGHT":
+            row = layout.row()
+            row.scale_y = SCALE_Y
+            row.prop(layers[selected_layer_index], "height_texture_node_type", text="")
+
+        if channel == "SCATTERING":
+            row = layout.row()
+            row.scale_y = SCALE_Y
+            row.prop(layers[selected_layer_index], "scattering_texture_node_type", text="")
+
+        if channel == "EMISSION":
+            row = layout.row()
+            row.scale_y = SCALE_Y
+            row.prop(layers[selected_layer_index], "emission_texture_node_type", text="")
+
         row = layout.row()
         row.scale_y = SCALE_Y
-        row.prop(texture_node.outputs[0], "default_value", text="")
+        row.prop(texture_node.outputs[0], "default_value", text="", slider=True)
