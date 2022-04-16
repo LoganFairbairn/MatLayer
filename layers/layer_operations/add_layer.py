@@ -79,11 +79,13 @@ def add_default_metallic_channel_nodes(context):
     general_nodes = add_general_layer_nodes(material_channel_node, layers, selected_layer_index)
 
     # Create and setup nodes specific to this material channel.
-    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
+    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeClamp')
     texture_node.name = "TEXTURE_"
     texture_node.label = texture_node.name
     layers[selected_layer_index].texture_node_name = texture_node.name
-    texture_node.outputs[0].default_value = 1.0
+    texture_node.inputs[0].default_value = 0.0
+    texture_node.inputs[1].default_value = 0.0
+    texture_node.inputs[2].default_value = 1.0
 
     # Link newly created nodes.
     link_new_default_nodes(material_channel_node, texture_node, general_nodes)
@@ -93,6 +95,9 @@ def add_default_metallic_channel_nodes(context):
     
     # Update node layer indicies.
     update_layer_nodes.update_layer_node_indicies(context, "METALLIC")
+
+    # Set the texture node type.
+    layers[selected_layer_index].metallic_texture_node_type = 'VALUE'
 
 def add_default_roughness_channel_nodes(context):
     material_channel_node = material_channels.get_material_channel_node(context, "ROUGHNESS")
@@ -106,11 +111,16 @@ def add_default_roughness_channel_nodes(context):
     general_nodes = add_general_layer_nodes(material_channel_node, layers, selected_layer_index)
 
     # Create and setup nodes specific to this material channel.
-    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
+    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeClamp')
     texture_node.name = "TEXTURE_"
     texture_node.label = texture_node.name
     layers[selected_layer_index].texture_node_name = texture_node.name
-    texture_node.outputs[0].default_value = 1.0
+    texture_node.inputs[0].default_value = 0.0
+    texture_node.inputs[1].default_value = 0.0
+    texture_node.inputs[2].default_value = 1.0
+
+    # Set the texture node type.
+    layers[selected_layer_index].roughness_texture_node_type = 'VALUE'
 
     # Link newly created nodes.
     link_new_default_nodes(material_channel_node, texture_node, general_nodes)
@@ -160,11 +170,16 @@ def add_default_height_channel_nodes(context):
     general_nodes = add_general_layer_nodes(material_channel_node, layers, selected_layer_index)
 
     # Create and setup nodes specific to this material channel.
-    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
+    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeClamp')
     texture_node.name = "TEXTURE_"
     texture_node.label = texture_node.name
     layers[selected_layer_index].texture_node_name = texture_node.name
-    texture_node.outputs[0].default_value = 0.5
+    texture_node.inputs[0].default_value = 0.0
+    texture_node.inputs[1].default_value = -1.0
+    texture_node.inputs[2].default_value = 1.0
+
+    # Set the texture node type.
+    layers[selected_layer_index].height_texture_node_type = 'VALUE'
 
     # Link newly created nodes.
     link_new_default_nodes(material_channel_node, texture_node, general_nodes)

@@ -41,8 +41,8 @@ class COATER_layer_stack(PropertyGroup):
     )
 
     layer_properties_tab: bpy.props.EnumProperty(
-        items=[('PROJECTION', "Projection", "Layer Projection Properties"),
-               ('MATERIAL', "Material", "Layer Material Properties")],
+        items=[('PROJECTION', "PROJECTION", "Layer Projection Properties"),
+               ('MATERIAL', "MATERIAL", "Layer Material Properties")],
         name="Layer Properties Tab",
         description="Currently selected layer properties user interface tab to display",
         default=None,
