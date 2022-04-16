@@ -26,10 +26,20 @@ def draw_layers_section_ui(self, context):
                     draw_layer_stack(self, context)
 
                 if len(layers) > 0:
-                    draw_projection_settings(self, context)
-                    draw_material_channels(self, context)
-                    draw_layer_properties(self, context)
-                    #draw_mask_properties(self, context)
+                    layer_stack = context.scene.coater_layer_stack
+
+                    row = layout.row(align=True)
+                    row.scale_y = SCALE_Y
+                    row.prop_enum(layer_stack, "layer_properties_tab", 'MATERIAL')
+                    row.prop_enum(layer_stack, "layer_properties_tab", 'PROJECTION')
+
+                    if layer_stack.layer_properties_tab == "PROJECTION":
+                        draw_projection_settings(self, context)
+
+                    if layer_stack.layer_properties_tab == "MATERIAL":
+                        draw_material_channels(self, context)
+                        draw_layer_properties(self, context)
+                        #draw_mask_properties(self, context)
     else:
         layout = self.layout
         layout.label(text="Select an object.")
@@ -97,12 +107,18 @@ def draw_projection_settings(self, context):
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     layout = self.layout
-    row = layout.row()
-    row.label(text="PROJECTION SETTINGS")
     
     row = layout.row()
     row.scale_y = SCALE_Y
-    row.prop(layers[selected_layer_index], "projection_mode", text="")
+    row.prop(layers[selected_layer_index], "projection_mode", text="Projection")
+
+    row = layout.row()
+    row.scale_y = SCALE_Y
+    row.prop(layers[selected_layer_index], "texture_interpolation", text="Interpolation")
+
+    row = layout.row()
+    row.scale_y = SCALE_Y
+    row.prop(layers[selected_layer_index], "texture_extension", text="Extension")
 
     if layers[selected_layer_index].projection_mode == 'BOX':
         row = layout.row()
