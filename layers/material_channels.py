@@ -4,6 +4,13 @@ import bpy
 # Set of all channel names.
 MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", "EMISSION", "SCATTERING")
 
+def verify_material_channel(material_channel_node):
+    '''Verifies that a material channel exists.'''
+    if material_channel_node == None:
+        print("Error, no material channel found.")
+        return False
+    return True
+
 def get_material_channel_list():
     '''Returns a set of all material channel names.'''
     return MATERIAL_CHANNEL_NAMES

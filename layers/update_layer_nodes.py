@@ -8,12 +8,24 @@ NODE_SPACING = 50
 
 # TODO: Make a function that updates node indicies AND organizes all nodes, as they should always be called in conjunction.
 
-#def update_layer_nodes(context):
-#    update_layer_node_indicies(context, channel)
-#    organize_all_nodes(context)
-#    link_layers(context)
+def update_layer_nodes(context):
+    '''Updates all layer nodes. Call this after making changes to the layer nodes.'''
+    update_layer_node_indicies(context)
+    organize_all_nodes(context)
+    link_layers(context)
 
-# TODO: This shouldn't take a material channel argument.
+def update_all_layer_node_indicies(context):
+    '''Updates all layer node indicies'''
+
+    # TODO: Use a for loop here ya lazy bastard.
+    update_layer_node_indicies(context, "COLOR")
+    update_layer_node_indicies(context, "METALLIC")
+    update_layer_node_indicies(context, "ROUGHNESS")
+    update_layer_node_indicies(context, "NORMAL")
+    update_layer_node_indicies(context, "HEIGHT")
+    update_layer_node_indicies(context, "EMISSION")
+    update_layer_node_indicies(context, "SCATTERING")
+
 def update_layer_node_indicies(context, channel):
     '''Updates the layer node names and labels with the correct layer index. This allows the layer nodes to be read to determine their spot in the layer stack.'''
     material_channel_node = material_channels.get_material_channel_node(context, channel)
@@ -144,7 +156,9 @@ def organize_material_channel_nodes(context, channel):
             if bump_node != None:
                 bump_node.location = (0.0, -group_input_node.dimensions.y - node_spacing)'''
 
-def link_layers(context):
+
+
+def old_link_layers(context):
     '''Links all mix layer nodes together.'''
     layers = context.scene.coater_layers
     layer_stack = context.scene.coater_layer_stack

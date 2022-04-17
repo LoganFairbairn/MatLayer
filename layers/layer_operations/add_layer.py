@@ -41,7 +41,7 @@ def create_default_layer_nodes(context):
 def add_default_color_channel_nodes(context):
     material_channel_node = material_channels.get_material_channel_node(context, "COLOR")
 
-    if verify_material_channel(material_channel_node) == False:
+    if material_channels.verify_material_channel(material_channel_node) == False:
         return
 
     # Add nodes that will be in all layers.
@@ -61,9 +61,9 @@ def add_default_color_channel_nodes(context):
 
     # Frame new nodes.
     frame_new_default_nodes(material_channel_node, layers, selected_layer_index)
-    
-    # Update node layer indicies.
-    update_layer_nodes.update_layer_node_indicies(context, "COLOR")
+
+    # Update layer nodes.
+    update_layer_nodes.update_layer_nodes(context)
 
     # TODO: Mute layer nodes based on layer channel toggle settings.
 
@@ -71,7 +71,7 @@ def add_default_color_channel_nodes(context):
 def add_default_metallic_channel_nodes(context):
     material_channel_node = material_channels.get_material_channel_node(context, "METALLIC")
 
-    if verify_material_channel(material_channel_node) == False:
+    if material_channels.verify_material_channel(material_channel_node) == False:
         return
 
     # Add nodes that will be in all layers.
@@ -103,7 +103,7 @@ def add_default_metallic_channel_nodes(context):
 def add_default_roughness_channel_nodes(context):
     material_channel_node = material_channels.get_material_channel_node(context, "ROUGHNESS")
 
-    if verify_material_channel(material_channel_node) == False:
+    if material_channels.verify_material_channel(material_channel_node) == False:
         return
 
     # Add nodes that will be in all layers.
@@ -128,14 +128,17 @@ def add_default_roughness_channel_nodes(context):
 
     # Frame new nodes.
     frame_new_default_nodes(material_channel_node, layers, selected_layer_index)
+
+    # TODO: Change the mix layer blend mode to linear dodge.
+    general_nodes["MIXLAYER"].blend_type = 'DODGE'
     
     # Update node layer indicies.
-    update_layer_nodes.update_layer_node_indicies(context, "ROUGHNESS")
+    update_layer_nodes.update_layer_node_indicies(context)
 
 def add_default_normal_channel_nodes(context):
     material_channel_node = material_channels.get_material_channel_node(context, "NORMAL")
 
-    if verify_material_channel(material_channel_node) == False:
+    if material_channels.verify_material_channel(material_channel_node) == False:
         return
 
     # Add nodes that will be in all layers.
@@ -162,7 +165,7 @@ def add_default_normal_channel_nodes(context):
 def add_default_height_channel_nodes(context):
     material_channel_node = material_channels.get_material_channel_node(context, "HEIGHT")
 
-    if verify_material_channel(material_channel_node) == False:
+    if material_channels.verify_material_channel(material_channel_node) == False:
         return
 
     # Add nodes that will be in all layers.
@@ -194,7 +197,7 @@ def add_default_height_channel_nodes(context):
 def add_default_scattering_channel_nodes(context):
     material_channel_node = material_channels.get_material_channel_node(context, "SCATTERING")
 
-    if verify_material_channel(material_channel_node) == False:
+    if material_channels.verify_material_channel(material_channel_node) == False:
         return
 
     # Add nodes that will be in all layers.
@@ -221,7 +224,7 @@ def add_default_scattering_channel_nodes(context):
 def add_default_emission_channel_nodes(context):
     material_channel_node = material_channels.get_material_channel_node(context, "EMISSION")
 
-    if verify_material_channel(material_channel_node) == False:
+    if material_channels.verify_material_channel(material_channel_node) == False:
         return
 
     # Add nodes that will be in all layers.
@@ -244,14 +247,6 @@ def add_default_emission_channel_nodes(context):
     
     # Update node layer indicies.
     update_layer_nodes.update_layer_node_indicies(context, "EMISSION")
-
-
-# TODO: Move this to the material channel module.
-def verify_material_channel(material_channel_node):
-    if material_channel_node == None:
-        print("Error, no material channel found.")
-        return False
-    return True
 
 def add_default_color_channel_nodes(context):
     layers = context.scene.coater_layers
@@ -281,7 +276,7 @@ def add_default_color_channel_nodes(context):
     frame_new_default_nodes(color_material_channel_node, layers, selected_layer_index)
     
     # Update node layer indicies.
-    update_layer_nodes.update_layer_node_indicies(context, "COLOR")
+    update_layer_nodes.update_layer_node_indicies(context)
 
 def link_new_default_nodes(material_channel_node, texture_node, general_nodes):
     '''Links newly created default nodes together.'''

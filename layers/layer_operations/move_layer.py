@@ -44,6 +44,5 @@ def move_layer(context, direction):
     layers.move(layer_index, index_to_move_to)
     layer_stack.layer_index = index_to_move_to
 
-    update_layer_nodes.update_layer_node_indicies(context, "COLOR")
-    update_layer_nodes.organize_all_nodes(context)
-    # TODO: Link layers here.
+    # Update layer nodes.
+    update_layer_nodes.update_layer_nodes(context)
