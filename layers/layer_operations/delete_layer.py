@@ -1,8 +1,8 @@
-import os
 import bpy
 from bpy.types import Operator
 from .. import layer_nodes
 from ..import material_channels
+from ..import update_layer_nodes
 
 class COATER_OT_delete_layer(Operator):
     '''Deletes the selected layer from the layer stack.'''
@@ -18,28 +18,31 @@ class COATER_OT_delete_layer(Operator):
     def execute(self, context):
         layers = context.scene.coater_layers
         layer_stack = context.scene.coater_layer_stack
-        layer_index = context.scene.coater_layer_stack.layer_index
+        selected_layer_index = context.scene.coater_layer_stack.layer_index
 
         # Remove all nodes for all channels.
-        channel_node = layer_nodes.get_channel_node(context)
-        node_list = layer_nodes.get_layer_nodes(context, layer_index)
+        material_channel_node = material_channels.get_material_channel_node(context, "COLOR")
+        node_list = layer_nodes.get_all_layer_nodes(material_channel_node, layers, selected_layer_index)
         for node in node_list:
-            channel_node.node_tree.nodes.remove(node)
+            material_channel_node.node_tree.nodes.remove(node)
 
         # Remove node frame if it exists.
-        frame = channel_node.node_tree.nodes.get(layers[layer_index].frame_name)
+        frame = layer_nodes.get_layer_frame(material_channel_node, layers, selected_layer_index)
         if frame != None:
-            channel_node.node_tree.nodes.remove(frame)
+            material_channel_node.node_tree.nodes.remove(frame)
 
         # Remove the layer from the list.
         layers.remove(layer_stack.layer_index)
         layer_stack.layer_index = min(max(0, layer_stack.layer_index - 1), len(layers) - 1)
 
-        
-        #link_layers.link_layers(context)                        # Re-link layers.
-        #organize_layer_nodes.organize_layer_nodes(context)      # Re-organize all nodes.
-        #update_node_labels.update_node_labels(context)          # Update the node labels.
-        #organize_layer_nodes.organize_layer_nodes(context)      # Organize nodes
+        # TODO: Re-link layers.
+        #link_layers.link_layers(context)
+
+        # Organize all layer nodes.
+        update_layer_nodes.organize_all_nodes(context)
+
+        # Correct layer node indicies.
+        update_layer_nodes.update_layer_node_indicies(context, "COLOR")
 
         return {'FINISHED'}
 
