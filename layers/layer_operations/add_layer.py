@@ -248,7 +248,7 @@ def add_default_emission_channel_nodes(context):
     update_layer_nodes.update_layer_node_indicies(context, "EMISSION")
 
 
-
+# TODO: Move this to the material channel module.
 def verify_material_channel(material_channel_node):
     if material_channel_node == None:
         print("Error, no material channel found.")
@@ -292,7 +292,7 @@ def link_new_default_nodes(material_channel_node, texture_node, general_nodes):
     link(general_nodes["OPACITY"].outputs[0], general_nodes["MIXLAYER"].inputs[0])
     link(general_nodes["COORD"].outputs[2], general_nodes["MAPPING"].inputs[0])
 
-def add_general_layer_nodes(material_channel_node, layers, layer_index):
+def add_general_layer_nodes(context, material_channel_node):
     '''Adds general layer nodes that should be present in all layers.'''
 
     if material_channel_node == None:
@@ -327,6 +327,8 @@ def add_general_layer_nodes(material_channel_node, layers, layer_index):
     mix_layer_node.use_clamp = True
 
     # Store the node names in the layer so they can be accessed.
+    layers = context.scene.coater_layers
+    layer_index = context.scene.coater_layer_stack.layer_index
     layers[layer_index].opacity_node_name = opacity_node.name
     layers[layer_index].mix_layer_node_name = mix_layer_node.name
     layers[layer_index].coord_node_name = coord_node.name
