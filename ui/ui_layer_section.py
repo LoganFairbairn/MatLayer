@@ -39,7 +39,6 @@ def draw_layers_section_ui(self, context):
                     if layer_stack.layer_properties_tab == "MATERIAL":
                         draw_material_channels(self, context)
                         draw_layer_properties(self, context)
-                        #draw_mask_properties(self, context)
     else:
         layout = self.layout
         layout.label(text="Select an object.")

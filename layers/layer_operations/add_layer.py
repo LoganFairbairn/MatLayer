@@ -26,16 +26,14 @@ class COATER_OT_add_layer(Operator):
         return {'FINISHED'}
 
 def create_default_layer_nodes(context):
-    '''Creates default nodes in all material channels for a layer and mutes node that are not active.'''
+    '''Creates default nodes in all material channels for a layer.'''
     add_default_color_channel_nodes(context)
-    add_default_metallic_channel_nodes(context)
-    add_default_roughness_channel_nodes(context)
-    add_default_normal_channel_nodes(context)
-    add_default_height_channel_nodes(context)
-    add_default_scattering_channel_nodes(context)
-    add_default_emission_channel_nodes(context)
-
-
+    #add_default_metallic_channel_nodes(context)
+    #add_default_roughness_channel_nodes(context)
+    #add_default_normal_channel_nodes(context)
+    #add_default_height_channel_nodes(context)
+    #add_default_scattering_channel_nodes(context)
+    #add_default_emission_channel_nodes(context)
 
 
 
@@ -66,6 +64,11 @@ def add_default_color_channel_nodes(context):
     
     # Update node layer indicies.
     update_layer_nodes.update_layer_node_indicies(context, "COLOR")
+
+    # TODO: Mute layer nodes based on texture set settings.
+    #texture_set_settings = context.scene.coater_texture_set_settings
+    #if texture_set_settings.color_channel_toggle == False:
+
 
 def add_default_metallic_channel_nodes(context):
     material_channel_node = material_channels.get_material_channel_node(context, "METALLIC")

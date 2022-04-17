@@ -14,8 +14,9 @@ class COATER_OT_refresh_layers(Operator):
             self.report({'ERROR'}, "Material is not a Coater material, can't read layer stack.")
             return {'FINISHED'}
 
-        # TODO: Read the layer stack nodes indicies.
+        # TODO: Read the layer stack nodes and update values.
 
+        # Organize all nodes.
         update_layer_nodes.organize_all_nodes(context)
 
         return {'FINISHED'}

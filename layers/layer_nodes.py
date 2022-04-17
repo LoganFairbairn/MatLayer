@@ -19,8 +19,8 @@ def get_node(node_name, material_channel, layer_index, context):
 
     material_channel_node = material_channels.get_material_channel_node(context, material_channel)
 
-    if material_channel_node == None:
-        print("No material channel node found.")
+    if not material_channel_node:
+        print("Error: No material channel node found.")
         return
 
     if node_name in LAYER_NODE_NAMES:
