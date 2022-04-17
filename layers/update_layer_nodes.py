@@ -1,6 +1,4 @@
 # This file contains functions used to update layer nodes after they are edited.
-from cgitb import text
-from email import header
 import bpy
 from .import layer_nodes
 from .import material_channels
@@ -8,6 +6,14 @@ from .import material_channels
 NODE_WIDTH = 300
 NODE_SPACING = 50
 
+# TODO: Make a function that updates node indicies AND organizes all nodes, as they should always be called in conjunction.
+
+#def update_layer_nodes(context):
+#    update_layer_node_indicies(context, channel)
+#    organize_all_nodes(context)
+#    link_layers(context)
+
+# TODO: This shouldn't take a material channel argument.
 def update_layer_node_indicies(context, channel):
     '''Updates the layer node names and labels with the correct layer index. This allows the layer nodes to be read to determine their spot in the layer stack.'''
     material_channel_node = material_channels.get_material_channel_node(context, channel)
@@ -28,6 +34,7 @@ def update_layer_node_indicies(context, channel):
         else:
             print("Error: Missing layer frame.")
 
+        # TODO: Use a for loop here to cycle through all layer nodes.
         # Re-index layer nodes.
         material_channel = "COLOR"
         texture_node = layer_nodes.get_node("TEXTURE", material_channel, index, context)

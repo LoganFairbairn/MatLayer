@@ -47,7 +47,7 @@ def add_default_color_channel_nodes(context):
     # Add nodes that will be in all layers.
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
-    general_nodes = add_general_layer_nodes(material_channel_node, layers, selected_layer_index)
+    general_nodes = add_general_layer_nodes(context, material_channel_node)
 
     # Create and setup nodes specific to this material channel.
     texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
@@ -65,9 +65,7 @@ def add_default_color_channel_nodes(context):
     # Update node layer indicies.
     update_layer_nodes.update_layer_node_indicies(context, "COLOR")
 
-    # TODO: Mute layer nodes based on texture set settings.
-    #texture_set_settings = context.scene.coater_texture_set_settings
-    #if texture_set_settings.color_channel_toggle == False:
+    # TODO: Mute layer nodes based on layer channel toggle settings.
 
 
 def add_default_metallic_channel_nodes(context):
@@ -265,7 +263,7 @@ def add_default_color_channel_nodes(context):
         return
 
     # Add nodes that will be in all layers.
-    general_nodes = add_general_layer_nodes(color_material_channel_node, layers, selected_layer_index)
+    general_nodes = add_general_layer_nodes(context, color_material_channel_node)
 
     # Add nodes specific to this color channel.
     texture_node = color_material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')

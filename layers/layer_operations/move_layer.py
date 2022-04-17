@@ -1,5 +1,6 @@
 import bpy
 from bpy.types import Operator
+from ..import update_layer_nodes
 
 class COATER_OT_move_layer_up(Operator):
     """Moves the selected layer up on the layer stack."""
@@ -34,6 +35,7 @@ class COATER_OT_move_layer_down(Operator):
         return{'FINISHED'}
 
 def move_layer(context, direction):
+    '''Moves a layer up or down the layer stack.'''
     layers = context.scene.coater_layers
     layer_stack = context.scene.coater_layer_stack
     layer_index = context.scene.coater_layer_stack.layer_index
@@ -42,6 +44,6 @@ def move_layer(context, direction):
     layers.move(layer_index, index_to_move_to)
     layer_stack.layer_index = index_to_move_to
 
-    update_node_labels.update_node_labels(context)          # Re-name nodes.
-    organize_layer_nodes.organize_layer_nodes(context)      # Re-organize nodes.
-    link_layers.link_layers(context)                        # Re-connect layers.
+    update_layer_nodes.update_layer_node_indicies(context, "COLOR")
+    update_layer_nodes.organize_all_nodes(context)
+    # TODO: Link layers here.

@@ -295,6 +295,7 @@ def update_projected_mask_scale_y(self, context):
 
 def update_color_channel_toggle(self, context):
     print("Updated color channel.")
+    # TODO: Mute or un-mute all color channel nodes.
 
 def update_metallic_channel_toggle(self, context):
     print("Updated metallic channel.")
