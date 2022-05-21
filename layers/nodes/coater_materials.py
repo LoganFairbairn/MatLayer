@@ -1,9 +1,8 @@
-# This file contains functions for creating and verifying Coater materials.
+# This file contains functions for creating and verifying materials made with this add-on.
 
 import bpy
 
-# Makes sure the material on the active object is Coater compatible.
-# Returns true if the material is compatable with Coater, returns false if not.
+# Returns true if the material on the active object is compatible with this add-on.
 def check_coater_material(context):
     active_object = context.active_object
     if active_object == None:

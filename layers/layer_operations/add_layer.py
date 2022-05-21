@@ -5,8 +5,8 @@ from ..nodes import layer_nodes
 from ..nodes import material_channel_nodes
 from ..nodes import update_layer_nodes
 from ..layer_stack import add_layer_slot
-from ..import coater_material_functions
-from ..import set_material_shading
+from ..nodes import coater_materials
+from ...viewport_settings import viewport_setting_adjuster
 
 class COATER_OT_add_layer(Operator):
     '''Adds a layer with default numeric material values to the layer stack'''
@@ -16,13 +16,13 @@ class COATER_OT_add_layer(Operator):
     bl_description = "Adds a layer with default numeric material values to the layer stack"
 
     def execute(self, context):
-        coater_material_functions.ready_coater_material(context)
+        coater_materials.ready_coater_material(context)
         material_channel_nodes.create_channel_group_nodes(context)
         add_layer_slot.add_layer_slot(context)
         create_default_layer_nodes(context)
         update_layer_nodes.organize_all_nodes(context)
         update_layer_nodes.link_layers(context)
-        set_material_shading.set_material_shading(context)
+        viewport_setting_adjuster.set_material_shading(context)
         return {'FINISHED'}
 
 def create_default_layer_nodes(context):

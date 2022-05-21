@@ -1,7 +1,7 @@
 import bpy
 from bpy.types import Operator, PropertyGroup
 from . import update_layer_nodes
-from ..import coater_material_functions
+from . import coater_materials
 
 class COATER_OT_read_layer_stack(Operator):
     bl_idname = "coater.refresh_layers"
@@ -10,7 +10,7 @@ class COATER_OT_read_layer_stack(Operator):
 
     def execute(self, context):
         # Make sure the active material is a Coater material before attempting to refresh the layer stack.
-        if coater_material_functions.check_coater_material(context) == False:
+        if coater_materials.check_coater_material(context) == False:
             self.report({'ERROR'}, "Material is not a Coater material, can't read layer stack.")
             return {'FINISHED'}
 

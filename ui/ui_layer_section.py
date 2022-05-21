@@ -2,7 +2,7 @@
 
 import bpy
 from .import ui_section_tabs
-from ..layers import coater_material_functions
+from ..layers.nodes import coater_materials
 from ..layers.nodes import layer_nodes
 
 SCALE_Y = 1.4
@@ -18,7 +18,7 @@ def draw_layers_section_ui(self, context):
     if context.active_object:
         active_material = context.active_object.active_material
         if active_material:
-            if coater_material_functions.check_coater_material(context):
+            if coater_materials.check_coater_material(context):
                 draw_material_channel(self, context)
                 
                 layers = context.scene.coater_layers
