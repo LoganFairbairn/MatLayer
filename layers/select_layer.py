@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import Operator
-from . import layer_nodes
+from .nodes import layer_nodes
 
 class COATER_OT_select_layer_image(Operator):
     '''Selects the layer image for the selected layer if one exists'''

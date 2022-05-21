@@ -1,9 +1,9 @@
 import bpy
 from bpy.types import Operator
 
-from ..import layer_nodes
-from ..import material_channels
-from ..import update_layer_nodes
+from ..nodes import layer_nodes
+from ..nodes import material_channel_nodes
+from ..nodes import update_layer_nodes
 from ..import add_layer_slot
 from ..import coater_material_functions
 from ..import set_material_shading
@@ -17,7 +17,7 @@ class COATER_OT_add_layer(Operator):
 
     def execute(self, context):
         coater_material_functions.ready_coater_material(context)
-        material_channels.create_channel_group_nodes(context)
+        material_channel_nodes.create_channel_group_nodes(context)
         add_layer_slot.add_layer_slot(context)
         create_default_layer_nodes(context)
         update_layer_nodes.organize_all_nodes(context)
@@ -39,9 +39,9 @@ def create_default_layer_nodes(context):
 
 
 def add_default_color_channel_nodes(context):
-    material_channel_node = material_channels.get_material_channel_node(context, "COLOR")
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
 
-    if material_channels.verify_material_channel(material_channel_node) == False:
+    if material_channel_nodes.verify_material_channel(material_channel_node) == False:
         return
 
     # Add nodes that will be in all layers.
@@ -68,9 +68,9 @@ def add_default_color_channel_nodes(context):
     # TODO: Mute layer nodes based on layer channel toggle settings.
 
 def add_default_metallic_channel_nodes(context):
-    material_channel_node = material_channels.get_material_channel_node(context, "METALLIC")
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, "METALLIC")
 
-    if material_channels.verify_material_channel(material_channel_node) == False:
+    if material_channel_nodes.verify_material_channel(material_channel_node) == False:
         return
 
     # Add nodes that will be in all layers.
@@ -100,9 +100,9 @@ def add_default_metallic_channel_nodes(context):
     layers[selected_layer_index].metallic_texture_node_type = 'VALUE'
 
 def add_default_roughness_channel_nodes(context):
-    material_channel_node = material_channels.get_material_channel_node(context, "ROUGHNESS")
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, "ROUGHNESS")
 
-    if material_channels.verify_material_channel(material_channel_node) == False:
+    if material_channel_nodes.verify_material_channel(material_channel_node) == False:
         return
 
     # Add nodes that will be in all layers.
@@ -135,9 +135,9 @@ def add_default_roughness_channel_nodes(context):
     update_layer_nodes.update_layer_node_indicies(context)
 
 def add_default_normal_channel_nodes(context):
-    material_channel_node = material_channels.get_material_channel_node(context, "NORMAL")
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, "NORMAL")
 
-    if material_channels.verify_material_channel(material_channel_node) == False:
+    if material_channel_nodes.verify_material_channel(material_channel_node) == False:
         return
 
     # Add nodes that will be in all layers.
@@ -162,9 +162,9 @@ def add_default_normal_channel_nodes(context):
     update_layer_nodes.update_layer_node_indicies(context, "NORMAL")
 
 def add_default_height_channel_nodes(context):
-    material_channel_node = material_channels.get_material_channel_node(context, "HEIGHT")
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, "HEIGHT")
 
-    if material_channels.verify_material_channel(material_channel_node) == False:
+    if material_channel_nodes.verify_material_channel(material_channel_node) == False:
         return
 
     # Add nodes that will be in all layers.
@@ -194,9 +194,9 @@ def add_default_height_channel_nodes(context):
     update_layer_nodes.update_layer_node_indicies(context, "HEIGHT")
 
 def add_default_scattering_channel_nodes(context):
-    material_channel_node = material_channels.get_material_channel_node(context, "SCATTERING")
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, "SCATTERING")
 
-    if material_channels.verify_material_channel(material_channel_node) == False:
+    if material_channel_nodes.verify_material_channel(material_channel_node) == False:
         return
 
     # Add nodes that will be in all layers.
@@ -221,9 +221,9 @@ def add_default_scattering_channel_nodes(context):
     update_layer_nodes.update_layer_node_indicies(context, "SCATTERING")
 
 def add_default_emission_channel_nodes(context):
-    material_channel_node = material_channels.get_material_channel_node(context, "EMISSION")
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, "EMISSION")
 
-    if material_channels.verify_material_channel(material_channel_node) == False:
+    if material_channel_nodes.verify_material_channel(material_channel_node) == False:
         return
 
     # Add nodes that will be in all layers.

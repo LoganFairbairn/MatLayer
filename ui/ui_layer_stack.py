@@ -1,7 +1,7 @@
 # This file handles the coater user interface.
 
 import bpy
-from ..layers import material_channels
+from ..layers.nodes import material_channel_nodes
 
 class COATER_UL_layer_list(bpy.types.UIList):
     '''Draws the layer stack.'''
@@ -35,7 +35,7 @@ class COATER_UL_layer_list(bpy.types.UIList):
             col.prop(item, "opacity", text="", emboss=True)
 
             # Draw mix layer.
-            material_channel_node = material_channels.get_material_channel_node(context, "COLOR")
+            material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
             mix_layer_node = material_channel_node.node_tree.nodes.get(item.mix_layer_node_name)
             if mix_layer_node:
                 col.prop(mix_layer_node, "blend_type", text="")

@@ -1,7 +1,7 @@
-# This module provides functions to easily access Coater layer nodes.
+# This module provides functions to easily access layer nodes make with this add-on.
 
 import bpy
-from .import material_channels
+from ..nodes import material_channel_nodes
 
 # Set of node names.
 LAYER_NODE_NAMES = ("TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER")

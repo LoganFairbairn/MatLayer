@@ -1,8 +1,8 @@
 import bpy
 from bpy.types import Operator
-from .. import layer_nodes
-from ..import material_channels
-from ..import update_layer_nodes
+from ..nodes import layer_nodes
+from ..nodes import material_channel_nodes
+from ..nodes import update_layer_nodes
 
 class COATER_OT_delete_layer(Operator):
     '''Deletes the selected layer from the layer stack.'''
@@ -21,7 +21,7 @@ class COATER_OT_delete_layer(Operator):
         selected_layer_index = context.scene.coater_layer_stack.layer_index
 
         # Remove all nodes for all channels.
-        material_channel_node = material_channels.get_material_channel_node(context, "COLOR")
+        material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
         node_list = layer_nodes.get_all_layer_nodes(material_channel_node, layers, selected_layer_index)
         for node in node_list:
             material_channel_node.node_tree.nodes.remove(node)
@@ -48,7 +48,7 @@ class COATER_OT_delete_layer(Operator):
 
 def remove_color_channel_layer_nodes(context):
     '''Delete all nodes for the color channel.'''
-    color_material_channel_node = material_channels.get_material_channel_node("BASECOLOR")
+    color_material_channel_node = material_channel_nodes.get_material_channel_node("BASECOLOR")
 
     #if color_material_channel_node != None:
     #   nodes = get_all_layer_nodes(context, layer_index)

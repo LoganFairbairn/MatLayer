@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import Operator, PropertyGroup
-from .import update_layer_nodes
+from .nodes import update_layer_nodes
 from .import coater_material_functions
 
 class COATER_OT_refresh_layers(Operator):

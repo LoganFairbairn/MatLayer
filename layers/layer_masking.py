@@ -1,10 +1,10 @@
 import os
 import bpy
 from bpy.types import Operator
-from . import layer_nodes
+from .nodes import layer_nodes
 from .import image_file_handling
-from .import update_layer_nodes
-from .import material_channels
+from .nodes import update_layer_nodes
+from .nodes import material_channel_nodes
 
 class COATER_OT_add_empty_mask(Operator):
     '''Adds an empty image mask to the selected layer'''
@@ -22,7 +22,7 @@ class COATER_OT_add_empty_mask(Operator):
         layer_index = context.scene.coater_layer_stack.layer_index
 
         # Create mask nodes.
-        channel_node = material_channels.get_material_channel_node(context, "COLOR")
+        channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
 
         if channel_node != None:
             mask_node = channel_node.node_tree.nodes.new('ShaderNodeTexImage')
@@ -95,7 +95,7 @@ class COATER_OT_delete_layer_mask(Operator):
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
 
-        material_channel_node = material_channels.get_material_channel_node(context, "COLOR")
+        material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
 
         # Delete mask nodes for the selected layer if they exist.
         mask_node = material_channel_node.node_tree.nodes.get(layers[layer_index].mask_node_name)

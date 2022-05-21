@@ -3,7 +3,7 @@
 import bpy
 from .import ui_section_tabs
 from ..layers import coater_material_functions
-from ..layers import layer_nodes
+from ..layers.nodes import layer_nodes
 
 SCALE_Y = 1.4
 

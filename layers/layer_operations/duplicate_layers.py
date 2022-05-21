@@ -1,9 +1,8 @@
 import bpy
 from bpy.types import Operator
 from ..import add_layer_slot
-from ..import layer_nodes
-from ..import material_channels
-from ..import update_layer_nodes
+from ..nodes import material_channel_nodes
+from ..nodes import update_layer_nodes
 from .import add_layer
 
 class COATER_OT_duplicate_layer(Operator):
@@ -30,7 +29,7 @@ class COATER_OT_duplicate_layer(Operator):
         layers[new_layer_index] = layers[original_layer_index]
 
         # TODO: Create general nodes for the duplicated layer.
-        material_channel_node = material_channels.get_material_channel_node(context, "COLOR")
+        material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
         add_layer.add_general_layer_nodes(context, material_channel_node)
 
         # TODO: Add texture node for the duplicated layer based on the layer being copied.

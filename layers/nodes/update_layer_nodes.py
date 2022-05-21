@@ -1,7 +1,7 @@
 # This file contains functions used to update layer nodes after they are edited.
 import bpy
-from .import layer_nodes
-from .import material_channels
+from . import layer_nodes
+from . import material_channel_nodes
 
 NODE_WIDTH = 300
 NODE_SPACING = 50

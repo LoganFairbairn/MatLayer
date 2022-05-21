@@ -1,7 +1,7 @@
-# This file contains texture set settings.
+# This file contains settings for the users texture set.
 
 import bpy
-from ..layers import material_channels
+from ..layers.nodes import material_channel_nodes
 
 def update_match_image_resolution(self, context):
     texture_set_settings = context.scene.coater_texture_set_settings
@@ -26,57 +26,57 @@ def update_color_channel_toggle(self, context):
     texture_set_settings = context.scene.coater_texture_set_settings
 
     if texture_set_settings.color_channel_toggle == True:
-        material_channels.mute_material_channel(context, "BASECOLOR", False)
+        material_channel_nodes.mute_material_channel(context, "BASECOLOR", False)
     else:
-        material_channels.mute_material_channel(context, "BASECOLOR", True)
+        material_channel_nodes.mute_material_channel(context, "BASECOLOR", True)
         
 def update_metallic_channel_toggle(self, context):
     texture_set_settings = context.scene.coater_texture_set_settings
 
     if texture_set_settings.metallic_channel_toggle == True:
-        material_channels.mute_material_channel(context, "METALLIC", False)
+        material_channel_nodes.mute_material_channel(context, "METALLIC", False)
     else:
-        material_channels.mute_material_channel(context, "METALLIC", True)
+        material_channel_nodes.mute_material_channel(context, "METALLIC", True)
 
 def update_roughness_channel_toggle(self, context):
     texture_set_settings = context.scene.coater_texture_set_settings
 
     if texture_set_settings.roughness_channel_toggle == True:
-        material_channels.mute_material_channel(context, "ROUGHNESS", False)
+        material_channel_nodes.mute_material_channel(context, "ROUGHNESS", False)
     else:
-        material_channels.mute_material_channel(context, "ROUGHNESS", True)
+        material_channel_nodes.mute_material_channel(context, "ROUGHNESS", True)
 
 def update_normal_channel_toggle(self, context):
     texture_set_settings = context.scene.coater_texture_set_settings
 
     if texture_set_settings.normal_channel_toggle == True:
-        material_channels.mute_material_channel(context, "NORMAL", False)
+        material_channel_nodes.mute_material_channel(context, "NORMAL", False)
     else:
-        material_channels.mute_material_channel(context, "NORMAL", True)
+        material_channel_nodes.mute_material_channel(context, "NORMAL", True)
 
 def update_height_channel_toggle(self, context):
     texture_set_settings = context.scene.coater_texture_set_settings
 
     if texture_set_settings.height_channel_toggle == True:
-        material_channels.mute_material_channel(context, "HEIGHT", False)
+        material_channel_nodes.mute_material_channel(context, "HEIGHT", False)
     else:
-        material_channels.mute_material_channel(context, "HEIGHT", True)
+        material_channel_nodes.mute_material_channel(context, "HEIGHT", True)
 
 def update_scattering_channel_toggle(self, context):
     texture_set_settings = context.scene.coater_texture_set_settings
 
     if texture_set_settings.scattering_channel_toggle == True:
-        material_channels.mute_material_channel(context, "SCATTERING", False)
+        material_channel_nodes.mute_material_channel(context, "SCATTERING", False)
     else:
-        material_channels.mute_material_channel(context, "SCATTERING", True)
+        material_channel_nodes.mute_material_channel(context, "SCATTERING", True)
 
 def update_emission_channel_toggle(self, context):
     texture_set_settings = context.scene.coater_texture_set_settings
 
     if texture_set_settings.emission_channel_toggle == True:
-        material_channels.mute_material_channel(context, "EMISSION", False)
+        material_channel_nodes.mute_material_channel(context, "EMISSION", False)
     else:
-        material_channels.mute_material_channel(context, "EMISSION", True)
+        material_channel_nodes.mute_material_channel(context, "EMISSION", True)
 
 class COATER_texture_set_settings(bpy.types.PropertyGroup):
     image_width: bpy.props.EnumProperty(

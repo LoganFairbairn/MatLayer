@@ -1,4 +1,5 @@
-# This module provides functions to edit Coater material channels.
+# This module provides functions to edit material channel nodes made with this add-on.
+
 import bpy
 
 # Set of all channel names.

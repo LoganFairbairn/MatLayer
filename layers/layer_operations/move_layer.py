@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import Operator
-from ..import update_layer_nodes
+from ..nodes import update_layer_nodes
 
 class COATER_OT_move_layer_up(Operator):
     """Moves the selected layer up on the layer stack."""

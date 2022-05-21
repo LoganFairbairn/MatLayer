@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import os
 import bpy
 from bpy.types import PropertyGroup
-from . import layer_nodes
+from .nodes import layer_nodes
 
 TEXTURE_NODE_TYPES = [
     ("COLOR", "Color", ""), 
@@ -171,9 +171,6 @@ def update_hidden(self, context):
         nodes = layer_nodes.get_self_layer_nodes(self, context)
         for n in nodes:
             n.mute = False
-
-
-   #link_layers.link_layers(context)
 
 def update_projected_offset_x(self, context):
     layers = context.scene.coater_layers
