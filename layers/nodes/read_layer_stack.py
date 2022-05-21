@@ -1,9 +1,9 @@
 import bpy
 from bpy.types import Operator, PropertyGroup
-from .nodes import update_layer_nodes
-from .import coater_material_functions
+from . import update_layer_nodes
+from ..import coater_material_functions
 
-class COATER_OT_refresh_layers(Operator):
+class COATER_OT_read_layer_stack(Operator):
     bl_idname = "coater.refresh_layers"
     bl_label = "Refresh Layers"
     bl_description = "Reads the layers in the active material and updates the layer stack based on that"
