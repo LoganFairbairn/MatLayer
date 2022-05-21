@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import Operator
-from .nodes import layer_nodes
+from ..nodes import layer_nodes
 
 class COATER_OT_toggle_channel_preview(Operator):
     bl_idname = "coater.toggle_channel_preview"

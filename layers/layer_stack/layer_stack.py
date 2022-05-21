@@ -2,7 +2,6 @@
 
 import bpy
 from bpy.types import PropertyGroup
-from .nodes import layer_nodes
 
 def update_layer_channel(self, context):
     bpy.ops.coater.refresh_layers()

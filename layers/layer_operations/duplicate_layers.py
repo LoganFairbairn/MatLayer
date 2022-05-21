@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import Operator
-from ..import add_layer_slot
+from ..layer_stack import add_layer_slot
 from ..nodes import material_channel_nodes
 from ..nodes import update_layer_nodes
 from .import add_layer

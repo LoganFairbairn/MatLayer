@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import os
 import bpy
 from bpy.types import PropertyGroup
-from .nodes import layer_nodes
+from ..nodes import layer_nodes
 
 TEXTURE_NODE_TYPES = [
     ("COLOR", "Color", ""), 

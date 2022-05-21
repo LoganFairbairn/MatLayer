@@ -4,7 +4,7 @@ from bpy.types import Operator
 from ..nodes import layer_nodes
 from ..nodes import material_channel_nodes
 from ..nodes import update_layer_nodes
-from ..import add_layer_slot
+from ..layer_stack import add_layer_slot
 from ..import coater_material_functions
 from ..import set_material_shading
 
