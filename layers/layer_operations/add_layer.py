@@ -21,12 +21,12 @@ class COATER_OT_add_layer(Operator):
         add_layer_slot.add_layer_slot(context)
         create_default_layer_nodes(context)
         update_layer_nodes.organize_all_nodes(context)
-        update_layer_nodes.link_layers(context)
+        update_layer_nodes.link_all_layers(context)
         viewport_setting_adjuster.set_material_shading(context)
         return {'FINISHED'}
 
 def create_default_layer_nodes(context):
-    '''Creates default nodes in all material channels for a layer.'''
+    '''Creates all default nodes for a material layer.'''
     add_default_color_channel_nodes(context)
     #add_default_metallic_channel_nodes(context)
     #add_default_roughness_channel_nodes(context)
@@ -35,8 +35,6 @@ def create_default_layer_nodes(context):
     #add_default_scattering_channel_nodes(context)
     #add_default_emission_channel_nodes(context)
 
-
-#TODO: Create a single function for adding default nodes for the specified channel.
 
 def add_default_color_channel_nodes(context):
     material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
@@ -76,7 +74,7 @@ def add_default_metallic_channel_nodes(context):
     # Add nodes that will be in all layers.
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
-    general_nodes = add_general_layer_nodes(material_channel_node, layers, selected_layer_index)
+    general_nodes = add_general_layer_nodes(context, material_channel_node)
 
     # Create and setup nodes specific to this material channel.
     texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeClamp')
@@ -108,7 +106,7 @@ def add_default_roughness_channel_nodes(context):
     # Add nodes that will be in all layers.
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
-    general_nodes = add_general_layer_nodes(material_channel_node, layers, selected_layer_index)
+    general_nodes = add_general_layer_nodes(context, material_channel_node)
 
     # Create and setup nodes specific to this material channel.
     texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeClamp')
@@ -132,7 +130,7 @@ def add_default_roughness_channel_nodes(context):
     general_nodes["MIXLAYER"].blend_type = 'DODGE'
     
     # Update node layer indicies.
-    update_layer_nodes.update_layer_node_indicies(context)
+    update_layer_nodes.update_layer_node_indicies(context, "ROUGHNESS")
 
 def add_default_normal_channel_nodes(context):
     material_channel_node = material_channel_nodes.get_material_channel_node(context, "NORMAL")
@@ -143,7 +141,7 @@ def add_default_normal_channel_nodes(context):
     # Add nodes that will be in all layers.
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
-    general_nodes = add_general_layer_nodes(material_channel_node, layers, selected_layer_index)
+    general_nodes = add_general_layer_nodes(context, material_channel_node)
 
     # Create and setup nodes specific to this material channel.
     texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
@@ -170,7 +168,7 @@ def add_default_height_channel_nodes(context):
     # Add nodes that will be in all layers.
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
-    general_nodes = add_general_layer_nodes(material_channel_node, layers, selected_layer_index)
+    general_nodes = add_general_layer_nodes(context, material_channel_node)
 
     # Create and setup nodes specific to this material channel.
     texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeClamp')
@@ -202,7 +200,7 @@ def add_default_scattering_channel_nodes(context):
     # Add nodes that will be in all layers.
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
-    general_nodes = add_general_layer_nodes(material_channel_node, layers, selected_layer_index)
+    general_nodes = add_general_layer_nodes(context, material_channel_node)
 
     # Create and setup nodes specific to this material channel.
     texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
@@ -229,7 +227,7 @@ def add_default_emission_channel_nodes(context):
     # Add nodes that will be in all layers.
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
-    general_nodes = add_general_layer_nodes(material_channel_node, layers, selected_layer_index)
+    general_nodes = add_general_layer_nodes(context, material_channel_node)
 
     # Create and setup nodes specific to this material channel.
     texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
@@ -251,7 +249,7 @@ def add_default_emission_channel_nodes(context):
 def link_new_default_nodes(material_channel_node, texture_node, general_nodes):
     '''Links newly created default nodes together.'''
     link = material_channel_node.node_tree.links.new
-    link(texture_node.outputs[0], general_nodes["MIXLAYER"].inputs[2])
+    link(texture_node.outputs[0], general_nodes["MIXLAYER"].inputs[1])
     link(general_nodes["OPACITY"].outputs[0], general_nodes["MIXLAYER"].inputs[0])
     link(general_nodes["COORD"].outputs[2], general_nodes["MAPPING"].inputs[0])
 

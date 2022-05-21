@@ -1,4 +1,4 @@
-# This module provides functions to easily access layer nodes make with this add-on.
+# This module provides functions to access layer nodes make with this add-on.
 
 import bpy
 from ..nodes import material_channel_nodes
@@ -14,13 +14,13 @@ def get_layer_frame(material_channel_node, layers, layer_index):
     '''Returns the layer frame if one exists.'''
     return material_channel_node.node_tree.nodes.get(layers[layer_index].frame_name)
 
-def get_node(node_name, material_channel, layer_index, context):
-    '''Returns the desired shader node if it exists.'''
+def get_layer_node(node_name, material_channel, layer_index, context):
+    '''Returns the desired layer node.'''
 
-    material_channel_node = material_channels.get_material_channel_node(context, material_channel)
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
 
     if not material_channel_node:
-        print("Error: No material channel node found.")
+        print("Error: Missing material channel node when trying to get a layer node.")
         return
 
     if node_name in LAYER_NODE_NAMES:
@@ -41,7 +41,7 @@ def get_node(node_name, material_channel, layer_index, context):
         if node_name == "MIXLAYER":
             return material_channel_node.node_tree.nodes.get(layers[layer_index].mix_layer_node_name)
     else:
-        print("ERROR: Name not found in layer node list.")
+        print("ERROR: Layer node name not found in layer node list.")
 
 def get_all_layer_nodes(material_channel_node, layers, layer_index):
     '''Returns a list of all layer nodes that belong to the specified layer within the specified material channel.'''

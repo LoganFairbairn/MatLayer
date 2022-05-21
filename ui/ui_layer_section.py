@@ -276,7 +276,7 @@ def draw_channel_node_value(name, channel, layout, context):
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
 
-    texture_node = layer_nodes.get_node("TEXTURE", channel, selected_layer_index, context)
+    texture_node = layer_nodes.get_layer_node("TEXTURE", channel, selected_layer_index, context)
 
     if texture_node:
         row = layout.row(align=True)

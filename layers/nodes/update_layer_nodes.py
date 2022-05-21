@@ -10,7 +10,7 @@ def update_layer_nodes(context):
     '''Updates all layer nodes. Call this after making changes to the layer nodes.'''
     update_all_layer_node_indicies(context)
     organize_all_nodes(context)
-    link_layers(context)
+    link_all_layers(context)
 
 def update_all_layer_node_indicies(context):
     '''Updates all layer node indicies'''
@@ -21,7 +21,7 @@ def update_all_layer_node_indicies(context):
 
 def update_layer_node_indicies(context, channel):
     '''Updates the layer node names and labels with the correct layer index. This allows the layer nodes to be read to determine their spot in the layer stack.'''
-    material_channel_node = material_channels.get_material_channel_node(context, channel)
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, channel)
     layers = context.scene.coater_layers
 
     for i in range(len(layers), 0, -1):
@@ -42,31 +42,31 @@ def update_layer_node_indicies(context, channel):
         # TODO: Use a for loop here to cycle through all layer nodes.
         # Re-index layer nodes.
         material_channel = "COLOR"
-        texture_node = layer_nodes.get_node("TEXTURE", material_channel, index, context)
+        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel, index, context)
         if texture_node:
             texture_node.name = "TEXTURE_" + str(index)
             texture_node.label = texture_node.name
             layers[index].texture_node_name = texture_node.name
 
-        opacity_node = layer_nodes.get_node("OPACITY", material_channel, index, context)
+        opacity_node = layer_nodes.get_layer_node("OPACITY", material_channel, index, context)
         if opacity_node:
             opacity_node.name = "OPACITY_" + str(index)
             opacity_node.label = opacity_node.name
             layers[index].opacity_node_name = opacity_node.name
 
-        mix_layer_node = layer_nodes.get_node("MIXLAYER", material_channel, index, context)
+        mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel, index, context)
         if mix_layer_node:
             mix_layer_node.name = "MIXLAYER_" + str(index)
             mix_layer_node.label = mix_layer_node.name
             layers[index].mix_layer_node_name = mix_layer_node.name
 
-        coord_node = layer_nodes.get_node("COORD", material_channel, index, context)
+        coord_node = layer_nodes.get_layer_node("COORD", material_channel, index, context)
         if coord_node:
             coord_node.name = "COORD_" + str(index)
             coord_node.label = coord_node.name
             layers[index].coord_node_name = coord_node.name
 
-        mapping_node = layer_nodes.get_node("MAPPING", material_channel, index, context)
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel, index, context)
         if mapping_node:
             mapping_node.name = "MAPPING_" + str(index)
             mapping_node.label = mapping_node.name
@@ -76,7 +76,7 @@ def organize_all_nodes(context):
     '''Organizes all Coater nodes.'''
 
     # Organize all channel nodes.
-    active_material_channel_nodes = material_channels.get_active_material_channel_nodes(context)
+    active_material_channel_nodes = material_channel_nodes.get_active_material_channel_nodes(context)
     header_position = [0.0, 0.0]
     for node in active_material_channel_nodes:
         if node != None:
@@ -85,17 +85,17 @@ def organize_all_nodes(context):
     
     # Organize all layers nodes for all material channels.
     organize_material_channel_nodes(context, "COLOR")
-    organize_material_channel_nodes(context, "METALLIC")
-    organize_material_channel_nodes(context, "ROUGHNESS")
-    organize_material_channel_nodes(context, "NORMAL")
-    organize_material_channel_nodes(context, "HEIGHT")
-    organize_material_channel_nodes(context, "EMISSION")
-    organize_material_channel_nodes(context, "SCATTERING")
+    #organize_material_channel_nodes(context, "METALLIC")
+    #organize_material_channel_nodes(context, "ROUGHNESS")
+    #organize_material_channel_nodes(context, "NORMAL")
+    #organize_material_channel_nodes(context, "HEIGHT")
+    #organize_material_channel_nodes(context, "EMISSION")
+    #organize_material_channel_nodes(context, "SCATTERING")
 
 def organize_material_channel_nodes(context, channel):
     '''Oranizes all material channel nodes.'''
     layers = context.scene.coater_layers
-    material_channel_node = material_channels.get_material_channel_node(context, channel)
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, channel)
 
     # Organize the output node.
     group_output_node = material_channel_node.node_tree.nodes.get('Group Output')
@@ -133,44 +133,18 @@ def organize_material_channel_nodes(context, channel):
         # Add spacing between layers.
         header_position[0] -= NODE_SPACING
 
-    '''
-    # TODO: Organize group output node.
-    if channel_node != None:
-        group_output_node = channel_node.node_tree.nodes.get('Group Output')
-        group_output_node.location = (0.0, 0.0)
 
-    # TODO: If the current channel is a normal channel, organize the normal node.
-
-    # TODO: If the current channel is a height channel, organize the bump node.
-    if layer_stack.channel == 'HEIGHT':
-        if channel_node != None:
-            bump_node = channel_node.node_tree.nodes.get('Bump')
-
-            if bump_node != None:
-                bump_node.location = (0.0, -group_input_node.dimensions.y - node_spacing)'''
-
-'''
-def link_layers(context):
+def link_material_channel_layers(context, material_channel):
+    '''Links all layers together by linking the mix layer and mix mask nodes together for a specified material channel.'''
     layers = context.scene.coater_layers
-    layer_stack = context.scene.coater_layer_stack
-    material_channel_node = material_channels.get_material_channel_node(context, "COLOR")
-
-    # Remove all existing output links.
-'''
-
-
-def link_layers(context):
-    '''Links all mix layer nodes together.'''
-    layers = context.scene.coater_layers
-    layer_stack = context.scene.coater_layer_stack
-    material_channel_node = material_channels.get_material_channel_node(context, "COLOR")
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
 
     group_output_node = material_channel_node.node_tree.nodes.get("Group Output")
 
     # Remove all existing output links for mix layer or mix mask nodes.
     number_of_layers = len(layers)
     for x in range(number_of_layers - 1):
-        mix_layer_node = material_channel_node.node_tree.nodes.get(layers[x].mix_layer_node_name)
+        mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel, x, context)
         if mix_layer_node != None:
             output = mix_layer_node.outputs[0]
             for l in output.links:
@@ -184,22 +158,10 @@ def link_layers(context):
                 if l != 0:
                     material_channel_node.node_tree.links.remove(l)
     
-    # Connect mix layer nodes.
+    # Connect mix layer nodes for every layer.
     for x in range(number_of_layers, 0, -1):
         current_layer_index = x - 1
         next_layer_index = x - 2
-
-        # Connect the group input value to the first mix layer node or mix mask node (prioritize mask node connections).
-        if x == number_of_layers:
-            for i in range(number_of_layers, 0, -1):
-                mix_mask_node = material_channel_node.node_tree.nodes.get(layers[i - 1].mask_mix_node_name)
-                if layers[i - 1].hidden == False:
-                    if mix_mask_node != None:
-                        mix_layer_node = material_channel_node.node_tree.nodes.get(layers[i - 1].mix_layer_node_name)
-                        mix_mask_node = material_channel_node.node_tree.nodes.get(layers[i - 1].mask_mix_node_name)
-                    else:
-                        mix_layer_node = material_channel_node.node_tree.nodes.get(layers[i - 1].mix_layer_node_name)
-                    break
 
         # Only connect layers that are not hidden.
         if layers[current_layer_index].hidden == False:
@@ -208,7 +170,7 @@ def link_layers(context):
             next_mix_layer_node = material_channel_node.node_tree.nodes.get(layers[next_layer_index].mix_layer_node_name)
             next_mix_mask_node = material_channel_node.node_tree.nodes.get(layers[next_layer_index].mask_mix_node_name)
 
-            # Deal with hidden layers.
+            # Skip hidden layers.
             while layers[next_layer_index].hidden:
                 next_layer_index -= 1
 
@@ -221,38 +183,47 @@ def link_layers(context):
                     next_mix_layer_node = material_channel_node.node_tree.nodes.get(layers[next_layer_index].mix_layer_node_name)
                     next_mix_mask_node = material_channel_node.node_tree.nodes.get(layers[next_layer_index].mask_mix_node_name)
 
-            # Connect to the next mix layer node or mix mask node (prioritize mask node connections).
+            # If another layer above this layer exists, connect to the next mix layer or mix mask node (prioritize mask node connections).
             if next_layer_index >= 0:
                 if mix_mask_node != None:
                     if next_mix_mask_node != None:
-                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_layer_node.inputs[1])
-                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_mask_node.inputs[1])
+                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_layer_node.inputs[2])
+                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_mask_node.inputs[2])
 
                     else:
-                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_layer_node.inputs[1])
+                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_layer_node.inputs[2])
 
                 else:
                     if next_mix_mask_node != None:
-                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
-                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], next_mix_mask_node.inputs[1])
+                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[2])
+                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], next_mix_mask_node.inputs[2])
 
                     else:
-                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
+                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[2])
 
-            
-            # For the last layer, connect the layer mix node or the mask mix node to the output (prioritize mask node connections).
+            # For the last layer, connect to the group output node.
             else:
                 if mix_mask_node != None:
-                    material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], group_output_node.inputs[0])
+                     material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], group_output_node.inputs[0])
 
                 else:
                     material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], group_output_node.inputs[0])
-            
-            '''
-            # Connect the mix layer node to the mix mask node if a mask exists.
-            if mix_mask_node != None:
-                material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], mix_mask_node.inputs[2])
-            '''
+
+        
+
+
+
+def link_all_layers(context):
+    '''Links all layers in all material_channels.'''
+    material_channel_list = material_channel_nodes.get_material_channel_list()
+
+    link_material_channel_layers(context, "COLOR")
+    #for material_channel in material_channel_list:
+    #    link_material_channel_layers(context, material_channel)
+
+
+
+
 
 def create_calculate_alpha_node(context):
     '''Creates a group node aimed used to calculate alpha blending properly between layers.'''
