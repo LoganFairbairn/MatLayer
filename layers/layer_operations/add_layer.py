@@ -16,7 +16,7 @@ class COATER_OT_add_layer(Operator):
     bl_description = "Adds a layer with default numeric material values to the layer stack"
 
     def execute(self, context):
-        coater_materials.ready_coater_material(context)
+        coater_materials.prepare_material(context)
         material_channel_nodes.create_channel_group_nodes(context)
         add_layer_slot.add_layer_slot(context)
         create_default_layer_nodes(context)

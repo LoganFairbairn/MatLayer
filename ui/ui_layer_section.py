@@ -18,7 +18,7 @@ def draw_layers_section_ui(self, context):
     if context.active_object:
         active_material = context.active_object.active_material
         if active_material:
-            if coater_materials.check_coater_material(context):
+            if coater_materials.verify_material(context):
                 draw_material_channel(self, context)
                 
                 layers = context.scene.coater_layers
