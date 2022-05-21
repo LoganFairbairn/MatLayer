@@ -10,7 +10,7 @@ NODE_SPACING = 50
 
 def update_layer_nodes(context):
     '''Updates all layer nodes. Call this after making changes to the layer nodes.'''
-    update_layer_node_indicies(context)
+    update_all_layer_node_indicies(context)
     organize_all_nodes(context)
     link_layers(context)
 
@@ -156,14 +156,23 @@ def organize_material_channel_nodes(context, channel):
             if bump_node != None:
                 bump_node.location = (0.0, -group_input_node.dimensions.y - node_spacing)'''
 
+'''
+def link_layers(context):
+    layers = context.scene.coater_layers
+    layer_stack = context.scene.coater_layer_stack
+    material_channel_node = material_channels.get_material_channel_node(context, "COLOR")
+
+    # Remove all existing output links.
+'''
 
 
-def old_link_layers(context):
+def link_layers(context):
     '''Links all mix layer nodes together.'''
     layers = context.scene.coater_layers
     layer_stack = context.scene.coater_layer_stack
-
     material_channel_node = material_channels.get_material_channel_node(context, "COLOR")
+
+    group_output_node = material_channel_node.node_tree.nodes.get("Group Output")
 
     # Remove all existing output links for mix layer or mix mask nodes.
     number_of_layers = len(layers)
@@ -237,32 +246,20 @@ def old_link_layers(context):
                     else:
                         material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
 
+            
             # For the last layer, connect the layer mix node or the mask mix node to the output (prioritize mask node connections).
             else:
-                # If the channel is a Height channel, connect to the bump node first before connecting to the output.
-                if layer_stack.channel == 'HEIGHT':
-                    bump_node = material_channel_node.node_tree.nodes.get("Bump")
+                if mix_mask_node != None:
+                    material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], group_output_node.inputs[0])
 
-                    if bump_node != None:
-                        if mix_mask_node != None:
-                            material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], bump_node.inputs[2])
-                            material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], group_output_node.inputs[1])
-                            material_channel_node.node_tree.links.new(bump_node.outputs[0], group_output_node.inputs[0])
-
-                        else:
-                            material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], bump_node.inputs[2])
-                            material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], group_output_node.inputs[1])
-                            material_channel_node.node_tree.links.new(bump_node.outputs[0], group_output_node.inputs[0])
                 else:
-                    if mix_mask_node != None:
-                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], group_output_node.inputs[0])
-
-                    else:
-                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], group_output_node.inputs[0])
-
+                    material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], group_output_node.inputs[0])
+            
+            '''
             # Connect the mix layer node to the mix mask node if a mask exists.
             if mix_mask_node != None:
                 material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], mix_mask_node.inputs[2])
+            '''
 
 def create_calculate_alpha_node(context):
     '''Creates a group node aimed used to calculate alpha blending properly between layers.'''

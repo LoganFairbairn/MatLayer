@@ -21,7 +21,7 @@ class COATER_OT_add_layer(Operator):
         add_layer_slot.add_layer_slot(context)
         create_default_layer_nodes(context)
         update_layer_nodes.organize_all_nodes(context)
-        #update_layer_nodes.link_layers(context)
+        update_layer_nodes.link_layers(context)
         set_material_shading.set_material_shading(context)
         return {'FINISHED'}
 
@@ -63,10 +63,9 @@ def add_default_color_channel_nodes(context):
     frame_new_default_nodes(material_channel_node, layers, selected_layer_index)
 
     # Update layer nodes.
-    update_layer_nodes.update_layer_nodes(context)
+    update_layer_nodes.update_layer_node_indicies(context, "COLOR")
 
     # TODO: Mute layer nodes based on layer channel toggle settings.
-
 
 def add_default_metallic_channel_nodes(context):
     material_channel_node = material_channels.get_material_channel_node(context, "METALLIC")
@@ -248,40 +247,11 @@ def add_default_emission_channel_nodes(context):
     # Update node layer indicies.
     update_layer_nodes.update_layer_node_indicies(context, "EMISSION")
 
-def add_default_color_channel_nodes(context):
-    layers = context.scene.coater_layers
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-    color_material_channel_node = material_channels.get_material_channel_node(context, "COLOR")
-
-    if color_material_channel_node == None:
-        print("Error, no material channel found.")
-        return
-
-    # Add nodes that will be in all layers.
-    general_nodes = add_general_layer_nodes(context, color_material_channel_node)
-
-    # Add nodes specific to this color channel.
-    texture_node = color_material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
-    texture_node.name = "TEXTURE_"
-    texture_node.label = texture_node.name
-
-    # Store the new node names in the layer.
-    layers[selected_layer_index].texture_node_name = texture_node.name
-    texture_node.outputs[0].default_value = (0.25, 0.25, 0.25, 1.0)
-
-    # Link newly created nodes.
-    link_new_default_nodes(color_material_channel_node, texture_node, general_nodes)
-
-    # Frame new nodes.
-    frame_new_default_nodes(color_material_channel_node, layers, selected_layer_index)
-    
-    # Update node layer indicies.
-    update_layer_nodes.update_layer_node_indicies(context)
 
 def link_new_default_nodes(material_channel_node, texture_node, general_nodes):
     '''Links newly created default nodes together.'''
     link = material_channel_node.node_tree.links.new
-    link(texture_node.outputs[0], general_nodes["MIXLAYER"].inputs[1])
+    link(texture_node.outputs[0], general_nodes["MIXLAYER"].inputs[2])
     link(general_nodes["OPACITY"].outputs[0], general_nodes["MIXLAYER"].inputs[0])
     link(general_nodes["COORD"].outputs[2], general_nodes["MAPPING"].inputs[0])
 

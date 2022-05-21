@@ -332,6 +332,16 @@ class COATER_layers(PropertyGroup):
     scattering_channel_toggle: bpy.props.BoolProperty(default=True, update=update_scattering_channel_toggle)
     emission_channel_toggle: bpy.props.BoolProperty(default=True, update=update_emission_channel_toggle)
 
+    # Layer Node Names (used to quickly access nodes for a layer)
+    frame_name: bpy.props.StringProperty(name="Frame Node Name", default="")
+    texture_node_name: bpy.props.StringProperty(name="Texture Node Name", default="")
+    opacity_node_name: bpy.props.StringProperty(name="Opacity Node Name", default="")
+    mix_layer_node_name: bpy.props.StringProperty(name="Mix Layer Node Name", default="")
+    coord_node_name: bpy.props.StringProperty(name="Coord Node Name", default="")
+    mapping_node_name: bpy.props.StringProperty(name="Mapping Node Name", default="")
+
+    # List of nodes??
+
     # Projection Settings
     projection_mode: bpy.props.EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT', update=update_layer_projection)
     texture_extension: bpy.props.EnumProperty(items=TEXTURE_EXTENSION_MODES, name="Extension", description="", default='REPEAT')
@@ -343,6 +353,13 @@ class COATER_layers(PropertyGroup):
     projection_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_scale_x)
     projection_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_scale_y)
 
+    # Mask Nodes
+    mask_node_name: bpy.props.StringProperty(name="Mask Node Name", default="")
+    mask_mix_node_name: bpy.props.StringProperty(name="Mix Mask Node Name", default="")
+    mask_coord_node_name: bpy.props.StringProperty(name="Mask Coord Node Name", default="")
+    mask_mapping_node_name = bpy.props.StringProperty(name="Mask Mapping Node Name", default="")
+    mask_levels_node_name = bpy.props.StringProperty(name="Mask Levels Node Name", default="")
+
     # Mask Projection Settings
     mask_projection_mode: bpy.props.EnumProperty(items=[('FLAT', "Flat", ""), ('BOX', "Box (Tri-Planar)", ""), ('SPHERE', "Sphere", ""),('TUBE', "Tube", "")],
                                             name="Projection", description="Projection type of the mask attached to the selected layer", default='FLAT', update=update_mask_projection)
@@ -352,14 +369,6 @@ class COATER_layers(PropertyGroup):
     projection_mask_rotation: bpy.props.FloatProperty(name="Rotation", description="Projected rotation of the selected mask", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projected_mask_rotation)
     projection_mask_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected mask", default=1.0, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_mask_scale_x)
     projection_mask_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected mask", default=1.0, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_mask_scale_y)
-
-    # Node Names
-    frame_name: bpy.props.StringProperty(name="Frame Node Name", default="")
-    texture_node_name: bpy.props.StringProperty(name="Texture Node Name", default="")
-    opacity_node_name: bpy.props.StringProperty(name="Opacity Node Name", default="")
-    mix_layer_node_name: bpy.props.StringProperty(name="Mix Layer Node Name", default="")
-    coord_node_name: bpy.props.StringProperty(name="Coord Node Name", default="")
-    mapping_node_name: bpy.props.StringProperty(name="Mapping Node Name", default="")
 
     # Node Types (used for properly drawing user interface for node properties)
     color_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Color Texture Node Type", description="The node type for the color channel texture", default='COLOR')
