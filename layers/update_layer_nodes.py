@@ -6,8 +6,6 @@ from .import material_channels
 NODE_WIDTH = 300
 NODE_SPACING = 50
 
-# TODO: Make a function that updates node indicies AND organizes all nodes, as they should always be called in conjunction.
-
 def update_layer_nodes(context):
     '''Updates all layer nodes. Call this after making changes to the layer nodes.'''
     update_all_layer_node_indicies(context)
@@ -16,15 +14,10 @@ def update_layer_nodes(context):
 
 def update_all_layer_node_indicies(context):
     '''Updates all layer node indicies'''
+    layer_node_names = layer_nodes.get_layer_node_names()
 
-    # TODO: Use a for loop here ya lazy bastard.
-    update_layer_node_indicies(context, "COLOR")
-    update_layer_node_indicies(context, "METALLIC")
-    update_layer_node_indicies(context, "ROUGHNESS")
-    update_layer_node_indicies(context, "NORMAL")
-    update_layer_node_indicies(context, "HEIGHT")
-    update_layer_node_indicies(context, "EMISSION")
-    update_layer_node_indicies(context, "SCATTERING")
+    for node_name in layer_node_names:
+        update_layer_node_indicies(context, node_name)
 
 def update_layer_node_indicies(context, channel):
     '''Updates the layer node names and labels with the correct layer index. This allows the layer nodes to be read to determine their spot in the layer stack.'''
