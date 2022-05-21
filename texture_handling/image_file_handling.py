@@ -1,4 +1,4 @@
-# This file provides functions to assist working with Coater image files.
+# This file provides functions to assist with importing and editing with image files made with this add-on.
 
 import bpy
 from bpy.types import Operator

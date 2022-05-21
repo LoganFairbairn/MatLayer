@@ -36,7 +36,7 @@ def create_default_layer_nodes(context):
     #add_default_emission_channel_nodes(context)
 
 
-
+#TODO: Create a single function for adding default nodes for the specified channel.
 
 def add_default_color_channel_nodes(context):
     material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")

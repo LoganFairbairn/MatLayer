@@ -2,7 +2,7 @@ import os
 import bpy
 from bpy.types import Operator
 from .nodes import layer_nodes
-from .import image_file_handling
+from ..texture_handling import image_file_handling
 from .nodes import update_layer_nodes
 from .nodes import material_channel_nodes
 
