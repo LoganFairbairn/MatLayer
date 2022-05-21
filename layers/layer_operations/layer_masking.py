@@ -1,10 +1,10 @@
 import os
 import bpy
 from bpy.types import Operator
-from .nodes import layer_nodes
-from ..texture_handling import image_file_handling
-from .nodes import update_layer_nodes
-from .nodes import material_channel_nodes
+from ..nodes import layer_nodes
+from ...texture_handling import image_file_handling
+from ..nodes import update_layer_nodes
+from ..nodes import material_channel_nodes
 
 class COATER_OT_add_empty_mask(Operator):
     '''Adds an empty image mask to the selected layer'''
