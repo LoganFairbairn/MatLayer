@@ -31,6 +31,7 @@ def draw_layers_section_ui(self, context):
                     row = layout.row(align=True)
                     row.scale_y = 2.0
                     row.prop_enum(layer_stack, "layer_properties_tab", 'MATERIAL')
+                    row.prop_enum(layer_stack, "layer_properties_tab", 'MASKS')
                     row.prop_enum(layer_stack, "layer_properties_tab", 'PROJECTION')
 
                     if layer_stack.layer_properties_tab == "PROJECTION":
