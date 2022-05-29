@@ -19,10 +19,6 @@ def get_layer_node(node_name, material_channel, layer_index, context):
 
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
 
-    if not material_channel_node:
-        print("Error: Missing material channel node when trying to get a layer node.")
-        return
-
     if node_name in LAYER_NODE_NAMES:
         layers = context.scene.coater_layers
 
@@ -42,6 +38,22 @@ def get_layer_node(node_name, material_channel, layer_index, context):
             return material_channel_node.node_tree.nodes.get(layers[layer_index].mix_layer_node_name)
     else:
         print("ERROR: Layer node name not found in layer node list.")
+
+
+def get_layer_node_from_name(node_name, material_channel, context):
+    '''Gets the desired layer node using it's name.'''
+
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+
+    node = material_channel_node.node_tree.nodes.get(node_name)
+
+    if node:
+        return node
+
+    else:
+        print("Error: Failed to get layer node from name.")
+
+
 
 def get_all_layer_nodes(material_channel_node, layers, layer_index):
     '''Returns a list of all layer nodes that belong to the specified layer within the specified material channel.'''
@@ -68,3 +80,12 @@ def get_all_layer_nodes(material_channel_node, layers, layer_index):
         nodes.append(mix_layer_node)
 
     return nodes
+
+def rename_layer_frame(layer_index, context):
+    '''Renames the layer frame in all material channels.'''
+
+    material_channel_list = material_channel_nodes.get_material_channel_list()
+
+    for material_channel in material_channel_list:
+        material_channel_nodes.get_material_channel_node(context)
+        get_layer_frame()

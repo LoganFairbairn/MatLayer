@@ -3,6 +3,7 @@ from bpy.types import Operator, PropertyGroup
 from . import update_layer_nodes
 from . import coater_materials
 
+# TODO: Rename this to refresh layer stack.
 class COATER_OT_read_layer_stack(Operator):
     bl_idname = "coater.refresh_layers"
     bl_label = "Refresh Layers"

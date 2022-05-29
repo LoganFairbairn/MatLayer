@@ -5,6 +5,7 @@ import os
 import bpy
 from bpy.types import PropertyGroup
 from ..nodes import layer_nodes
+from ..nodes import material_channel_nodes
 
 TEXTURE_NODE_TYPES = [
     ("COLOR", "Color", ""), 
@@ -155,11 +156,17 @@ def update_mask_projection(self, context):
 
 def update_layer_opacity(self, context):
     '''Updates the layer opacity node values when the opacity is changed.'''
-    opacity_node = layer_nodes.get_self_node(self, context, 'OPACITY')
+
+    selected_material_channel = context.scene.coater_layer_stack.channel    # error here
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+
+    opacity_node = layer_nodes.get_layer_node_from_name(self.opacity_node_name, "COLOR", context)
 
     if opacity_node != None:
         opacity_node.inputs[1].default_value = self.opacity
 
+
+# TODO: Fix this.
 def update_hidden(self, context):
     '''Updates node values when the layer hidden property is changed.'''
 
@@ -336,8 +343,6 @@ class COATER_layers(PropertyGroup):
     mix_layer_node_name: bpy.props.StringProperty(name="Mix Layer Node Name", default="")
     coord_node_name: bpy.props.StringProperty(name="Coord Node Name", default="")
     mapping_node_name: bpy.props.StringProperty(name="Mapping Node Name", default="")
-
-    # List of nodes??
 
     # Projection Settings
     projection_mode: bpy.props.EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT', update=update_layer_projection)
