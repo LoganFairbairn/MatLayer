@@ -10,12 +10,18 @@ def get_layer_node_names():
     '''Returns a list of all layer node names.'''
     return LAYER_NODE_NAMES
 
+# TODO: This should take a material channel and a layer index only.
 def get_layer_frame(material_channel_node, layers, layer_index):
     '''Returns the layer frame if one exists.'''
-    return material_channel_node.node_tree.nodes.get(layers[layer_index].frame_name)
+    if material_channel_node:
+        return material_channel_node.node_tree.nodes.get(layers[layer_index].frame_name)
+
+    else:
+        print("Error: Failed to get layer frame.")
+        return None
 
 def get_layer_node(node_name, material_channel, layer_index, context):
-    '''Returns the desired layer node.'''
+    '''Finds the desired layer node using it's name and returns it.'''
 
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
 
@@ -81,11 +87,13 @@ def get_all_layer_nodes(material_channel_node, layers, layer_index):
 
     return nodes
 
+
+# TODO: fix this
 def rename_layer_frame(layer_index, context):
     '''Renames the layer frame in all material channels.'''
+    print("Rename layer frame.")
+    #material_channel_list = material_channel_nodes.get_material_channel_list()
 
-    material_channel_list = material_channel_nodes.get_material_channel_list()
-
-    for material_channel in material_channel_list:
-        material_channel_nodes.get_material_channel_node(context)
-        get_layer_frame()
+    #for material_channel in material_channel_list:
+    #    material_channel_nodes.get_material_channel_node(context)
+    #    get_layer_frame()

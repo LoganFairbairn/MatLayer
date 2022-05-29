@@ -35,14 +35,8 @@ class COATER_OT_delete_layer(Operator):
         layers.remove(layer_stack.layer_index)
         layer_stack.layer_index = min(max(0, layer_stack.layer_index - 1), len(layers) - 1)
 
-        # TODO: Re-link layers.
-        #link_layers.link_layers(context)
-
-        # Organize all layer nodes.
-        update_layer_nodes.organize_all_nodes(context)
-
-        # Correct layer node indicies.
-        update_layer_nodes.update_layer_node_indicies(context, "COLOR")
+        # Update the layer nodes.
+        update_layer_nodes.update_layer_nodes(context)
 
         return {'FINISHED'}
 

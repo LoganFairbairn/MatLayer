@@ -17,7 +17,7 @@ class COATER_OT_read_layer_stack(Operator):
 
         # TODO: Read the layer stack nodes and update values.
 
-        # Organize all nodes.
-        update_layer_nodes.organize_all_nodes(context)
+        # Update layer nodes.
+        update_layer_nodes.update_layer_nodes(context)
 
         return {'FINISHED'}

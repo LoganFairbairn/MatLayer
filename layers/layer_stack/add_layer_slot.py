@@ -12,21 +12,9 @@ def add_layer_slot(context):
     layers.add()
     
     # Assign the layer a unique name.
-    new_layer_name = "Layer 0"
-    layer_number = 0
-    name_exists = True
-    number_of_layers = len(layers)
+    new_layer_name = "Layer"
 
-    while (name_exists):
-        for i in range(number_of_layers):
-            if layers[i].name == new_layer_name:
-                layer_number += 1
-                new_layer_name = "Layer " + str(layer_number)
-                break
-
-            if i == (number_of_layers - 1):
-                name_exists = False
-                layers[len(layers) - 1].name = new_layer_name
+    layers[len(layers) - 1].name = new_layer_name
 
     # Moves the new layer above the currently selected layer and selects it.
     if(selected_layer_index != -1):

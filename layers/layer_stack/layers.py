@@ -320,9 +320,16 @@ def update_emission_channel_toggle(self, context):
     print("Updated emission channel.")
 
 class COATER_layers(PropertyGroup):
-    # General Properties
+    # Index within the layer stack (stored here for convenience).
+    layer_stack_index: bpy.props.IntProperty(name="Layer Stack Index", description="Layer stack index.", default=-1)
+
+    # Layer ID used as a unique identifier.
     id: bpy.props.IntProperty(name="ID", description="Numeric ID for the selected layer.", default=0)
+
+    # Layer name for organization purposes.
     name: bpy.props.StringProperty(name="", description="The name of the layer", default="Layer naming error", update=update_layer_name)
+
+    # General layer settings (all layers have these).
     opacity: bpy.props.FloatProperty(name="Opacity", description="Layers Opacity", default=1.0, min=0.0, soft_max=1.0, subtype='FACTOR', update=update_layer_opacity)
     hidden: bpy.props.BoolProperty(name="", update=update_hidden)
     masked: bpy.props.BoolProperty(name="", default=True)

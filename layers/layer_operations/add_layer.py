@@ -16,43 +16,49 @@ class COATER_OT_add_layer(Operator):
     bl_description = "Adds a layer with default numeric material values to the layer stack"
 
     def execute(self, context):
+        # Prepare the material.
         coater_materials.prepare_material(context)
         material_channel_nodes.create_channel_group_nodes(context)
+
+        # Add a layer slot and layer nodes.
         add_layer_slot.add_layer_slot(context)
-        create_default_layer_nodes(context)
-        update_layer_nodes.organize_all_nodes(context)
-        update_layer_nodes.link_all_layers(context)
+
+        # TODO: Add default layer nodes for every material channel.
+        add_default_layer_nodes("COLOR", context)
+
+        # Set the viewport to material shading mode.
         viewport_setting_adjuster.set_material_shading(context)
         return {'FINISHED'}
 
-def create_default_layer_nodes(context):
-    '''Creates all default nodes for a material layer.'''
-    add_default_color_channel_nodes(context)
-    #add_default_metallic_channel_nodes(context)
-    #add_default_roughness_channel_nodes(context)
-    #add_default_normal_channel_nodes(context)
-    #add_default_height_channel_nodes(context)
-    #add_default_scattering_channel_nodes(context)
-    #add_default_emission_channel_nodes(context)
 
 
-def add_default_color_channel_nodes(context):
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
+
+
+def add_default_layer_nodes(material_channel, context):
+    '''Adds default layer nodes for the given material channel.'''
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
 
     if material_channel_nodes.verify_material_channel(material_channel_node) == False:
         return
 
-    # Add nodes that will be in all layers.
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
+
+
+    # Add nodes that will be in all layers.
     general_nodes = add_general_layer_nodes(context, material_channel_node)
 
-    # Create and setup nodes specific to this material channel.
-    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
-    texture_node.name = "TEXTURE_"
-    texture_node.label = texture_node.name
-    layers[selected_layer_index].texture_node_name = texture_node.name
-    texture_node.outputs[0].default_value = (0.25, 0.25, 0.25, 1.0)
+
+
+    # Create nodes specific for this material channel.
+    if material_channel == "COLOR":
+        texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
+        texture_node.name = "TEXTURE_"
+        texture_node.label = texture_node.name
+        layers[selected_layer_index].texture_node_name = texture_node.name
+        texture_node.outputs[0].default_value = (0.25, 0.25, 0.25, 1.0)
+
+
 
     # Link newly created nodes.
     link_new_default_nodes(material_channel_node, texture_node, general_nodes)
@@ -61,9 +67,9 @@ def add_default_color_channel_nodes(context):
     frame_new_default_nodes(material_channel_node, layers, selected_layer_index)
 
     # Update layer nodes.
-    update_layer_nodes.update_layer_node_indicies(context, "COLOR")
+    update_layer_nodes.update_layer_nodes(context)
 
-    # TODO: Mute layer nodes based on layer channel toggle settings.
+
 
 def add_default_metallic_channel_nodes(context):
     material_channel_node = material_channel_nodes.get_material_channel_node(context, "METALLIC")
@@ -244,6 +250,8 @@ def add_default_emission_channel_nodes(context):
     
     # Update node layer indicies.
     update_layer_nodes.update_layer_node_indicies(context, "EMISSION")
+
+
 
 
 def link_new_default_nodes(material_channel_node, texture_node, general_nodes):

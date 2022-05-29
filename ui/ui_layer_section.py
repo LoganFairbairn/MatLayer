@@ -100,7 +100,9 @@ def draw_material_channel(self, context):
 def draw_layer_stack(self, context):
     layout = self.layout
     row = layout.row(align=True)
-    row.template_list("COATER_UL_layer_list", "The_List", context.scene, "coater_layers", context.scene.coater_layer_stack, "layer_index")
+    layers = context.scene.coater_layer_stack
+    # TODO: Rename The_List
+    row.template_list("COATER_UL_layer_list", "The_List", context.scene, "coater_layers", layers, "layer_index", sort_reverse=True)
     row.scale_y = 2
 
 def draw_projection_settings(self, context):

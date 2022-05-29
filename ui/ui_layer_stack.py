@@ -24,6 +24,8 @@ class COATER_UL_layer_list(bpy.types.UIList):
             #if item.mask_node_name != "":
             #    row.label(text="", icon="MOD_MASK")
 
+            row.prop(item, "layer_stack_index", text="", emboss=False)
+
             # Draw the layer's name.
             row.prop(item, "name", text="", emboss=False)
 
