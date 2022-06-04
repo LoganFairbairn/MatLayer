@@ -85,9 +85,24 @@ def get_layer_frame(material_channel_node, layers, layer_index):
         return None
 
 # TODO: fix this
-def rename_layer_frame(layer_index, context):
+def rename_layer_frame(name, layer_index, context):
     '''Renames the layer frame in all material channels.'''
-    print("Rename layer frame.")
+
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
+    layers = context.scene.coater_layers
+    layer_frame = get_layer_frame(material_channel_node, layers, layer_index)
+
+    # Set the new frame name.
+    new_name = name + "_" + str(layers[layer_index].id) + "_" + str(layer_index)
+
+    # Rename the layers name & label.
+    layer_frame.name = new_name
+    layer_frame.label = layer_frame.name
+
+    # Store the frames name in the layer.
+    layers[layer_index].frame_name = layer_frame.name
+
+
     #material_channel_list = material_channel_nodes.get_material_channel_list()
 
     #for material_channel in material_channel_list:

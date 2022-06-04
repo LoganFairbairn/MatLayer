@@ -41,29 +41,11 @@ def layer_image_path_error(self, context):
 
 def update_layer_name(self, context):
     '''Updates layer nodes, frames when the layer name is changed.'''
-    layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
-    #channel_node = layer_nodes.get_channel_node(context)
+    selected_layer_stack_index = context.scene.coater_layer_stack.layer_index
 
-    # What the fuck it this shit?
-    # TODO: Rename layer frame when the layer is renamed.
-    '''
-    if layer_index != -1:
-        # Rename the layer's frame node (the frame name must be unique, so the layer's ID is added).
-        frame = channel_node.node_tree.nodes.get(layers[layer_index].frame_name)
-        if frame != None:
-            frame.name = layers[layer_index].name + "_" + str(layers[layer_index].id) + "_" + str(layer_index)
-            frame.label = frame.name
-            layers[layer_index].frame_name = frame.name
+    # Rename layer frame when the layer is renamed.
+    layer_nodes.rename_layer_frame(self.name, selected_layer_stack_index, context)
 
-        # If the image assigned to this layer is an image layer, rename the image too.
-        image = layer_nodes.get_layer_image(context, layer_index)
-        if image != None:
-            image_name_split = image.name.split('_')
-
-            if image_name_split[0] == 'l':
-                image.name = "l_" + layers[layer_index].name + "_" + str(layers[layer_index].id)
-    '''
         
 def update_layer_projection(self, context):
     '''Changes the layer projection by reconnecting nodes.'''
@@ -158,14 +140,13 @@ def update_mask_projection(self, context):
 def update_layer_opacity(self, context):
     '''Updates the layer opacity node values when the opacity is changed.'''
 
-    selected_material_channel = context.scene.coater_layer_stack.channel    # error here
+    selected_material_channel = context.scene.coater_layer_stack.channel    # error here, wrong material channel.
     selected_layer_index = context.scene.coater_layer_stack.layer_index
 
     opacity_node = layer_nodes.get_layer_node_from_name(self.opacity_node_name, "COLOR", context)
 
     if opacity_node != None:
         opacity_node.inputs[1].default_value = self.opacity
-
 
 # TODO: Fix this.
 def update_hidden(self, context):
@@ -333,10 +314,11 @@ def update_color_texture_node_type(self, context):
 def replace_texture_node(texture_node_type, material_channel, self, context):
     '''Replaced the texture node with a new texture node based on the given node type.'''
 
+    selected_layer_stack_index = context.scene.coater_layer_stack.layer_index
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
-
+    
     # Delete the old layer node.
-    old_texture_node = layer_nodes.get_layer_node("TEXTURE", "COLOR", self.layer_stack_index, context)
+    old_texture_node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_stack_index, context)
     material_channel_node.node_tree.nodes.remove(old_texture_node)
 
     # Add the new node.
@@ -360,18 +342,18 @@ def replace_texture_node(texture_node_type, material_channel, self, context):
         texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexMusgrave')
 
     # Match the texture node name and label.
-    texture_node.name = "TEXTURE_" + str(self.layer_stack_index)
+    texture_node.name = "TEXTURE_" + str(selected_layer_stack_index)
     texture_node.label = texture_node.name
     self.texture_node_name = texture_node.name
 
     # Link the new texture node to the mix layer node.
     link = material_channel_node.node_tree.links.new
-    mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel, self.layer_stack_index, context)
+    mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel, selected_layer_stack_index, context)
     link(texture_node.outputs[0], mix_layer_node.inputs[1])
 
     # Parent the new node to the layer's frame.
     layers = context.scene.coater_layers
-    layer_frame = layer_nodes.get_layer_frame(material_channel_node, layers, self.layer_stack_index)
+    layer_frame = layer_nodes.get_layer_frame(material_channel_node, layers, selected_layer_stack_index)
     texture_node.parent = layer_frame
 
     # Update the layer nodes because they were changed.
