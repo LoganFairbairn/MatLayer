@@ -327,20 +327,17 @@ def update_emission_channel_toggle(self, context):
 
 # UPDATE TEXTURE NODE TYPES (for each material channel) #
 def update_color_texture_node_type(self, context):
-    update_texture_node_type(self.color_texture_node_type, "COLOR", self, context)
+    replace_texture_node(self.color_texture_node_type, "COLOR", self, context)
 
 
-def update_texture_node_type(texture_node_type, material_channel, self, context):
-    '''Updates the texture node type.'''
+def replace_texture_node(texture_node_type, material_channel, self, context):
+    '''Replaced the texture node with a new texture node based on the given node type.'''
 
-    
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
-
 
     # Delete the old layer node.
     old_texture_node = layer_nodes.get_layer_node("TEXTURE", "COLOR", self.layer_stack_index, context)
     material_channel_node.node_tree.nodes.remove(old_texture_node)
-
 
     # Add the new node.
     texture_node = None
