@@ -28,7 +28,9 @@ def update_layer_nodes(context):
 
     # TODO: TEMPORARY FOR TESTING REMOVE LATER
     update_layer_node_indicies("COLOR", context)
+    update_layer_node_indicies("COLOR", context)
     organize_layer_nodes_in_material_channel("COLOR", context)
+    link_layers_in_material_channel("COLOR", context)
 
     
 

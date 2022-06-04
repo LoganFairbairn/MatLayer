@@ -1,12 +1,12 @@
 # This file contains layer properties and functions for updating layer properties.
 
-from dataclasses import dataclass
-import os
 import bpy
 from bpy.types import PropertyGroup
 from ..nodes import layer_nodes
 from ..nodes import material_channel_nodes
+from ..nodes import update_layer_nodes
 
+# TODO: Support other texture node types.
 TEXTURE_NODE_TYPES = [
     ("COLOR", "Color", ""), 
     ("VALUE", "Value", ""),
@@ -45,6 +45,7 @@ def update_layer_name(self, context):
     layer_index = context.scene.coater_layer_stack.layer_index
     #channel_node = layer_nodes.get_channel_node(context)
 
+    # What the fuck it this shit?
     # TODO: Rename layer frame when the layer is renamed.
     '''
     if layer_index != -1:
@@ -297,6 +298,9 @@ def update_projected_mask_scale_y(self, context):
     if mask_mapping_node != None:
         mask_mapping_node.inputs[3].default_value[1] = layers[layer_index].projected_mask_scale_y
 
+
+
+# MUTE / UNMUTE MATERIAL CHANNELS #
 def update_color_channel_toggle(self, context):
     print("Updated color channel.")
     # TODO: Mute or un-mute all color channel nodes.
@@ -318,6 +322,65 @@ def update_scattering_channel_toggle(self, context):
 
 def update_emission_channel_toggle(self, context):
     print("Updated emission channel.")
+
+
+
+# UPDATE TEXTURE NODE TYPES (for each material channel) #
+def update_color_texture_node_type(self, context):
+    update_texture_node_type(self.color_texture_node_type, "COLOR", self, context)
+
+
+def update_texture_node_type(texture_node_type, material_channel, self, context):
+    '''Updates the texture node type.'''
+
+    
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+
+
+    # Delete the old layer node.
+    old_texture_node = layer_nodes.get_layer_node("TEXTURE", "COLOR", self.layer_stack_index, context)
+    material_channel_node.node_tree.nodes.remove(old_texture_node)
+
+
+    # Add the new node.
+    texture_node = None
+    if texture_node_type == "COLOR":
+        texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
+
+    if texture_node_type == "VALUE":
+        texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
+
+    if texture_node_type == "TEXTURE":
+        texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexImage')
+
+    if texture_node_type == "NOISE":
+        texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexNoise')
+
+    if texture_node_type == "VORONOI":
+        texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexVoronoi')
+
+    if texture_node_type == "MUSGRAVE":
+        texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexMusgrave')
+
+    # Match the texture node name and label.
+    texture_node.name = "TEXTURE_" + str(self.layer_stack_index)
+    texture_node.label = texture_node.name
+    self.texture_node_name = texture_node.name
+
+    # Link the new texture node to the mix layer node.
+    link = material_channel_node.node_tree.links.new
+    mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel, self.layer_stack_index, context)
+    link(texture_node.outputs[0], mix_layer_node.inputs[1])
+
+    # Parent the new node to the layer's frame.
+    layers = context.scene.coater_layers
+    layer_frame = layer_nodes.get_layer_frame(material_channel_node, layers, self.layer_stack_index)
+    texture_node.parent = layer_frame
+
+    # Update the layer nodes because they were changed.
+    update_layer_nodes.update_layer_nodes(context)
+
+
 
 class COATER_layers(PropertyGroup):
     # Index within the layer stack (stored here for convenience).
@@ -380,7 +443,7 @@ class COATER_layers(PropertyGroup):
     projection_mask_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected mask", default=1.0, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_mask_scale_y)
 
     # Node Types (used for properly drawing user interface for node properties)
-    color_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Color Texture Node Type", description="The node type for the color channel texture", default='COLOR')
+    color_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Color Texture Node Type", description="The node type for the color channel texture", default='COLOR', update=update_color_texture_node_type)
     metallic_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Metallic Texture Node Type", description="The node type for the roughness channel texture", default='COLOR')
     roughness_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Roughness Texture Node Type", description="The node type for roughness channel texture", default='COLOR')
     normal_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Normal Texture Node Type", description="The node type for the texture", default='COLOR')
