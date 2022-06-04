@@ -36,17 +36,37 @@ TEXTURE_INTERPOLATION_MODES = [
     ("SMART", "Smart", "")
     ]
 
-def layer_image_path_error(self, context):
-    self.layout.label(text="Layer image path does not exist, so the image can't be renamed! Manually save the image to the layer folder to resolve the error.")
-
+# UPDATE FUNCTIONS FOR GENERAL LAYER SETTNGS #
 def update_layer_name(self, context):
     '''Updates layer nodes, frames when the layer name is changed.'''
     selected_layer_stack_index = context.scene.coater_layer_stack.layer_index
-
-    # Rename layer frame when the layer is renamed.
     layer_nodes.rename_layer_frame(self.name, selected_layer_stack_index, context)
 
-        
+def update_layer_opacity(self, context):
+    '''Updates the layer opacity node values when the opacity is changed.'''
+
+    # TODO: Make this use the currently selected material channel instead of just COLOR.
+    opacity_node = layer_nodes.get_layer_node_from_name(self.opacity_node_name, "COLOR", context)
+
+    if opacity_node != None:
+        opacity_node.inputs[1].default_value = self.opacity
+
+def update_hidden(self, context):
+    '''Updates node values when the layer hidden property is changed.'''
+
+    # TODO: Make this use the currently selected material channel instead of just COLOR.
+    if self.hidden == False:
+        layer_nodes.unmute_layer(self.layer_stack_array_index, "COLOR", context)
+
+    else:
+        layer_nodes.mute_layer(self.layer_stack_array_index, "COLOR", context)
+
+    # Update the layer nodes.
+    update_layer_nodes.update_layer_nodes(context)
+
+
+
+# UPDATE PROJECTION SETTINGS #
 def update_layer_projection(self, context):
     '''Changes the layer projection by reconnecting nodes.'''
     layers = context.scene.coater_layers
@@ -136,30 +156,6 @@ def update_mask_projection(self, context):
             if layers[layer_index].mask_projection == 'TUBE':
                 channel_node_group.links.new(mask_coord_node.outputs[0], mask_mapping_node.inputs[0])
                 mask_node.projection = 'TUBE'
-
-def update_layer_opacity(self, context):
-    '''Updates the layer opacity node values when the opacity is changed.'''
-
-    selected_material_channel = context.scene.coater_layer_stack.channel    # error here, wrong material channel.
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-
-    opacity_node = layer_nodes.get_layer_node_from_name(self.opacity_node_name, "COLOR", context)
-
-    if opacity_node != None:
-        opacity_node.inputs[1].default_value = self.opacity
-
-# TODO: Fix this.
-def update_hidden(self, context):
-    '''Updates node values when the layer hidden property is changed.'''
-
-    if self.hidden == True:
-        nodes = layer_nodes.get_self_layer_nodes(self, context)
-        for n in nodes:
-            n.mute = True
-    else:
-        nodes = layer_nodes.get_self_layer_nodes(self, context)
-        for n in nodes:
-            n.mute = False
 
 def update_projected_offset_x(self, context):
     layers = context.scene.coater_layers
@@ -310,7 +306,6 @@ def update_emission_channel_toggle(self, context):
 def update_color_texture_node_type(self, context):
     replace_texture_node(self.color_texture_node_type, "COLOR", self, context)
 
-
 def replace_texture_node(texture_node_type, material_channel, self, context):
     '''Replaced the texture node with a new texture node based on the given node type.'''
 
@@ -364,6 +359,7 @@ def replace_texture_node(texture_node_type, material_channel, self, context):
 class COATER_layers(PropertyGroup):
     # Index within the layer stack (stored here for convenience).
     layer_stack_index: bpy.props.IntProperty(name="Layer Stack Index", description="Layer stack index.", default=-1)
+    layer_stack_array_index: bpy.props.IntProperty(name="Array Index", description="Array Index", default=-1)
 
     # Layer ID used as a unique identifier.
     id: bpy.props.IntProperty(name="ID", description="Numeric ID for the selected layer.", default=0)

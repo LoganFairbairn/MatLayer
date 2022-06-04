@@ -48,7 +48,7 @@ def get_layer_node_from_name(node_name, material_channel, context):
     else:
         print("Error: Failed to get layer node from name.")
 
-def get_all_layer_nodes(material_channel_node, layers, layer_index):
+def get_all_nodes_in_layer(material_channel_node, layers, layer_index):
     '''Returns a list of all layer nodes that belong to the specified layer within the specified material channel.'''
     nodes = []
 
@@ -84,7 +84,6 @@ def get_layer_frame(material_channel_node, layers, layer_index):
         print("Error: Failed to get layer frame.")
         return None
 
-# TODO: fix this
 def rename_layer_frame(name, layer_index, context):
     '''Renames the layer frame in all material channels.'''
 
@@ -108,3 +107,21 @@ def rename_layer_frame(name, layer_index, context):
     #for material_channel in material_channel_list:
     #    material_channel_nodes.get_material_channel_node(context)
     #    get_layer_frame()
+
+def mute_layer(layer_index, material_channel, context):
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+    layers = context.scene.coater_layers
+
+    nodes = get_all_nodes_in_layer(material_channel_node, layers, layer_index)
+
+    for n in nodes:
+        n.mute = True
+
+def unmute_layer(layer_index, material_channel, context):
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+    layers = context.scene.coater_layers
+
+    nodes = get_all_nodes_in_layer(material_channel_node, layers, layer_index)
+
+    for n in nodes:
+        n.mute = False

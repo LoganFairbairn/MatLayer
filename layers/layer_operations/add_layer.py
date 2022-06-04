@@ -323,6 +323,6 @@ def frame_new_default_nodes(material_channel_node, layers, layer_index):
     layers[layer_index].frame_name = frame.name
 
     # Frame all the nodes in the given layer in the newly created frame.
-    nodes = layer_nodes.get_all_layer_nodes(material_channel_node, layers, layer_index)
+    nodes = layer_nodes.get_all_nodes_in_layer(material_channel_node, layers, layer_index)
     for n in nodes:
         n.parent = frame

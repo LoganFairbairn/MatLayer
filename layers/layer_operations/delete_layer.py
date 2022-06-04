@@ -22,7 +22,7 @@ class COATER_OT_delete_layer(Operator):
 
         # Remove all nodes for all channels.
         material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
-        node_list = layer_nodes.get_all_layer_nodes(material_channel_node, layers, selected_layer_index)
+        node_list = layer_nodes.get_all_nodes_in_layer(material_channel_node, layers, selected_layer_index)
         for node in node_list:
             material_channel_node.node_tree.nodes.remove(node)
 

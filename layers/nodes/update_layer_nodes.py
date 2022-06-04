@@ -41,16 +41,17 @@ def update_layer_node_indicies(material_channel, context):
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
     layers = context.scene.coater_layers
 
-    # TODO: This needs to be done in the opposite order.
     # Update the layer stack indicies stored in layers.
     layers = context.scene.coater_layers
 
-    #for i in range(len(layers), 0, -1):
-    #    layers[i].layer_stack_index = i
-
+    # Update the layer stack index stored in layers (this is the index shown in material node names).
     for i in range(0, len(layers)):
         index = len(layers) - i - 1
         layers[i].layer_stack_index = index
+
+    # Update the layer stack array index stored in layers (this is the index used for the specific array).
+    for i in range(0, len(layers)):
+        layers[i].layer_stack_array_index = i
 
     # Update layer node indicies.
     for i in range(0, len(layers)):
@@ -124,7 +125,7 @@ def organize_layer_nodes_in_material_channel(material_channel, context):
             material_channel_node.node_tree.nodes.remove(frame)
 
         # Organize the layer nodes.
-        node_list = layer_nodes.get_all_layer_nodes(material_channel_node, layers, i)
+        node_list = layer_nodes.get_all_nodes_in_layer(material_channel_node, layers, i)
         for c in range(0, len(node_list)):
             node_list[c].width = NODE_WIDTH
             node_list[c].location = (header_position[0], header_position[1])
@@ -137,7 +138,7 @@ def organize_layer_nodes_in_material_channel(material_channel, context):
         layers[i].frame_name = frame.name
 
         # Frame all the nodes in the given layer in the newly created frame.
-        nodes = layer_nodes.get_all_layer_nodes(material_channel_node, layers, i)
+        nodes = layer_nodes.get_all_nodes_in_layer(material_channel_node, layers, i)
         for n in nodes:
             n.parent = frame
 
@@ -185,7 +186,7 @@ def link_layers_in_material_channel(material_channel, context):
             next_mix_mask_node = material_channel_node.node_tree.nodes.get(layers[next_layer_index].mask_mix_node_name)
 
             # Skip hidden layers.
-            while layers[next_layer_index].hidden:
+            while layers[next_layer_index].hidden == True:
                 next_layer_index -= 1
 
                 if next_layer_index < 0:
