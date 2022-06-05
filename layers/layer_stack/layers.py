@@ -54,12 +54,12 @@ def update_layer_opacity(self, context):
 def update_hidden(self, context):
     '''Updates node values when the layer hidden property is changed.'''
 
-    # TODO: Make this use the currently selected material channel instead of just COLOR.
+    # TODO: Make this use the currently selected material channel instead of just the COLOR channel.
     if self.hidden == False:
-        layer_nodes.unmute_layer(self.layer_stack_array_index, "COLOR", context)
+        layer_nodes.unmute_layer(self.layer_stack_array_index, context)
 
     else:
-        layer_nodes.mute_layer(self.layer_stack_array_index, "COLOR", context)
+        layer_nodes.mute_layer(self.layer_stack_array_index, context)
 
     # Update the layer nodes.
     update_layer_nodes.update_layer_nodes(context)
@@ -280,7 +280,8 @@ def update_projected_mask_scale_y(self, context):
 # MUTE / UNMUTE MATERIAL CHANNELS #
 def update_color_channel_toggle(self, context):
     print("Updated color channel.")
-    # TODO: Mute or un-mute all color channel nodes.
+    # TODO: Mute or un-mute all color channel nodes for the selected layer.
+
 
 def update_metallic_channel_toggle(self, context):
     print("Updated metallic channel.")

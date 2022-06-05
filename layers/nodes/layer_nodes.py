@@ -86,7 +86,6 @@ def get_layer_frame(material_channel_node, layers, layer_index):
 
 def rename_layer_frame(name, layer_index, context):
     '''Renames the layer frame in all material channels.'''
-
     material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
     layers = context.scene.coater_layers
     layer_frame = get_layer_frame(material_channel_node, layers, layer_index)
@@ -101,27 +100,32 @@ def rename_layer_frame(name, layer_index, context):
     # Store the frames name in the layer.
     layers[layer_index].frame_name = layer_frame.name
 
-
     #material_channel_list = material_channel_nodes.get_material_channel_list()
 
     #for material_channel in material_channel_list:
     #    material_channel_nodes.get_material_channel_node(context)
     #    get_layer_frame()
 
-def mute_layer(layer_index, material_channel, context):
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+def mute_layer(layer_index, context):
+    '''Mutes all nodes in the given layer.'''
     layers = context.scene.coater_layers
+    material_channels = material_channel_nodes.get_material_channel_list()
+    for material_channel in material_channels:
+        material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
 
-    nodes = get_all_nodes_in_layer(material_channel_node, layers, layer_index)
+        nodes = get_all_nodes_in_layer(material_channel_node, layers, layer_index)
 
-    for n in nodes:
-        n.mute = True
+        for n in nodes:
+            n.mute = True
 
-def unmute_layer(layer_index, material_channel, context):
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+def unmute_layer(layer_index, context):
+    '''Mutes all nodes in the given layer.'''
     layers = context.scene.coater_layers
+    material_channels = material_channel_nodes.get_material_channel_list()
+    for material_channel in material_channels:
+        material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
 
-    nodes = get_all_nodes_in_layer(material_channel_node, layers, layer_index)
+        nodes = get_all_nodes_in_layer(material_channel_node, layers, layer_index)
 
-    for n in nodes:
-        n.mute = False
+        for n in nodes:
+            n.mute = False
