@@ -32,14 +32,13 @@ def draw_layers_section_ui(self, context):
                     row.scale_y = 2.0
                     row.prop_enum(layer_stack, "layer_properties_tab", 'MATERIAL')
                     row.prop_enum(layer_stack, "layer_properties_tab", 'MASKS')
-                    row.prop_enum(layer_stack, "layer_properties_tab", 'PROJECTION')
-
-                    if layer_stack.layer_properties_tab == "PROJECTION":
-                        draw_projection_settings(self, context)
 
                     if layer_stack.layer_properties_tab == "MATERIAL":
+                        draw_material_projection_settings(self, context)
                         draw_material_channels(self, context)
                         draw_layer_properties(self, context)
+
+                    # TODO: Draw the mask properties here.
     else:
         layout = self.layout
         layout.label(text="Select an object.")
@@ -85,6 +84,7 @@ def draw_layer_operations(self):
     row.scale_x = 2
 
 def draw_material_channel(self, context):
+    '''Draws the currently selected material channel.'''
     layout = self.layout
     row = layout.row(align=True)
     row.prop(context.scene.coater_layer_stack, "channel", text="")
@@ -105,7 +105,7 @@ def draw_layer_stack(self, context):
     row.template_list("COATER_UL_layer_list", "The_List", context.scene, "coater_layers", layers, "layer_index", sort_reverse=True)
     row.scale_y = 2
 
-def draw_projection_settings(self, context):
+def draw_material_projection_settings(self, context):
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     layout = self.layout
@@ -160,6 +160,9 @@ def draw_projection_settings(self, context):
         col.enabled = False
         col.prop(layers[selected_layer_index], "projection_scale_y")
 
+    row = layout.row()
+    row.label(text="---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+
 def draw_material_channels(self, context):
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
@@ -177,109 +180,27 @@ def draw_material_channels(self, context):
 
 def draw_layer_properties(self, context):
     layout = self.layout
-    layers = context.scene.coater_layers
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
 
     # Draw layer properties for each active channel.
-    draw_channel_node_value("Color", "COLOR", layout, context)
-    draw_channel_node_value("Metallic", "METALLIC", layout, context)
-    draw_channel_node_value("Roughness", "ROUGHNESS", layout, context)
-    draw_channel_node_value("Normal", "NORMAL", layout, context)
-    draw_channel_node_value("Height", "HEIGHT", layout, context)
-    draw_channel_node_value("Scattering", "SCATTERING", layout, context)
-    draw_channel_node_value("Emission", "EMISSION", layout, context)
+    draw_channel_texture_settings("Color", "COLOR", layout, context)
+    draw_channel_texture_settings("Metallic", "METALLIC", layout, context)
+    draw_channel_texture_settings("Roughness", "ROUGHNESS", layout, context)
+    draw_channel_texture_settings("Normal", "NORMAL", layout, context)
+    draw_channel_texture_settings("Height", "HEIGHT", layout, context)
+    draw_channel_texture_settings("Scattering", "SCATTERING", layout, context)
+    draw_channel_texture_settings("Emission", "EMISSION", layout, context)
 
-'''
-def draw_mask_properties(self, context):
-    layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
-    scale_y = 1.4
 
-    if layers[layer_index].mask_node_name != "":
-        layers = context.scene.coater_layers
-        layer_index = context.scene.coater_layer_stack.layer_index
-        channel_node = layer_nodes.get_channel_node(context)
 
-        layout = self.layout
-        row = layout.row()
-        row.scale_y = scale_y
-        row.label(text="Mask Properties")
-        row.operator("coater.delete_layer_mask", icon="X", text="")
 
-        mask_node = channel_node.node_tree.nodes.get(layers[layer_index].mask_node_name)
 
-        row = layout.row(align=True)
-        row.scale_y = scale_y
-        row.operator("coater.select_layer_mask", icon="SELECT_SET", text="")
-        row.prop(mask_node, "image", text="")
-        row.operator("coater.delete_layer_image_mask", text="", icon="REMOVE")
-        row.operator("coater.import_mask_image", text="", icon="IMPORT")
 
-        #row = layout.row()
-        #row.scale_y = scale_y
-        #row.prop(mask_node, "extension")
-
-        #row = layout.row()
-        #row.scale_y = scale_y
-        #row.prop(mask_node, "interpolation")
-
-        row = layout.row()
-        row.scale_y = scale_y
-        row.prop(layers[layer_index], "mask_projection")
-
-        if layers[layer_index].mask_projection == 'BOX':
-            row = layout.row()
-            row.scale_y = scale_y
-            row.prop(layers[layer_index], "mask_projection_blend")
-
-        mask_mapping_node = channel_node.node_tree.nodes.get(layers[layer_index].mask_mapping_node_name)
-        if mask_mapping_node != None:
-            row = layout.row()
-            row.scale_y = scale_y
-            row.prop(layers[layer_index], "projected_mask_offset_x")
-            row.prop(layers[layer_index], "projected_mask_offset_y")
-            
-            row = layout.row()
-            row.scale_y = scale_y
-            row.prop(layers[layer_index], "projected_mask_rotation", slider=True)
-            
-
-            # Draw Mask Scale
-            split = layout.split()
-            col = split.column()
-            col.ui_units_x = 1
-            col.scale_y = scale_y
-            col.prop(layers[layer_index], "projected_mask_scale_x")
-
-            col = split.column()
-            col.ui_units_x = 0.1
-            col.scale_y = scale_y
-            layer_settings = context.scene.coater_layer_settings
-            if layer_settings.match_layer_mask_scale:
-                col.prop(layer_settings, "match_layer_mask_scale", text="", icon="LOCKED")
-
-            else:
-                col.prop(layer_settings, "match_layer_mask_scale", text="", icon="UNLOCKED")
-           
-            col = split.column()
-            col.ui_units_x = 2
-            col.scale_y = scale_y
-            if layer_settings.match_layer_mask_scale:
-                col.enabled = False
-            col.prop(layers[layer_index], "projected_mask_scale_y")
-
-        levels_node = channel_node.node_tree.nodes.get(layers[layer_index].mask_levels_node_name)
-        row = layout.row()
-        layout.template_color_ramp(levels_node, "color_ramp")
-
-'''
-
-def draw_channel_node_value(name, channel, layout, context):
-    '''Draws the channels node value.'''
+def draw_channel_texture_settings(name, material_channel, layout, context):
+    '''Draws settings for the currently selected texture node in the specified material channel.'''
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
 
-    texture_node = layer_nodes.get_layer_node("TEXTURE", channel, selected_layer_index, context)
+    texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel, selected_layer_index, context)
 
     if texture_node:
         row = layout.row(align=True)
@@ -287,14 +208,18 @@ def draw_channel_node_value(name, channel, layout, context):
 
         row.label(text=name)
         
-        if channel == "COLOR":
+        if material_channel == "COLOR":
             row.prop(layers[selected_layer_index], "color_texture_node_type", text="")
 
             row = layout.row()
-            row.scale_y = SCALE_Y
-            row.prop(texture_node.outputs[0], "default_value", text="")
+            row.scale_y = 1.4
+            row.prop(texture_node, "image", text="")
+            
 
-        if channel == "METALLIC":
+
+            
+
+        if material_channel == "METALLIC":
             row.prop(layers[selected_layer_index], "metallic_texture_node_type", text="")
 
             row = layout.row()
@@ -306,7 +231,7 @@ def draw_channel_node_value(name, channel, layout, context):
             else:
                 row.prop(texture_node.outputs[0], "default_value", text="")
 
-        if channel == "ROUGHNESS":
+        if material_channel == "ROUGHNESS":
             row.prop(layers[selected_layer_index], "roughness_texture_node_type", text="")
 
             row = layout.row()
@@ -317,14 +242,14 @@ def draw_channel_node_value(name, channel, layout, context):
             else:
                 row.prop(texture_node.outputs[0], "default_value", text="")
 
-        if channel == "NORMAL":
+        if material_channel == "NORMAL":
             row.prop(layers[selected_layer_index], "normal_texture_node_type", text="")
 
             row = layout.row()
             row.scale_y = SCALE_Y
             row.prop(texture_node.outputs[0], "default_value", text="")  
 
-        if channel == "HEIGHT":
+        if material_channel == "HEIGHT":
             row.prop(layers[selected_layer_index], "height_texture_node_type", text="")
 
             row = layout.row()
@@ -335,14 +260,14 @@ def draw_channel_node_value(name, channel, layout, context):
             else:
                 row.prop(texture_node.outputs[0], "default_value", text="")
 
-        if channel == "SCATTERING":
+        if material_channel == "SCATTERING":
             row.prop(layers[selected_layer_index], "scattering_texture_node_type", text="")
 
             row = layout.row()
             row.scale_y = SCALE_Y
             row.prop(texture_node.outputs[0], "default_value", text="")  
 
-        if channel == "EMISSION":
+        if material_channel == "EMISSION":
             row.prop(layers[selected_layer_index], "emission_texture_node_type", text="")
 
             row = layout.row()

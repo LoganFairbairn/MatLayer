@@ -314,6 +314,24 @@ def update_emission_channel_toggle(self, context):
 def update_color_texture_node_type(self, context):
     replace_texture_node(self.color_texture_node_type, "COLOR", self, context)
 
+def update_metallic_texture_node_type(self, context):
+    replace_texture_node(self.color_texture_node_type, "METALLIC", self, context)
+
+def update_roughness_texture_node_type(self, context):
+    replace_texture_node(self.color_texture_node_type, "ROUGHNESS", self, context)
+
+def update_normal_texture_node_type(self, context):
+    replace_texture_node(self.color_texture_node_type, "NORMAL", self, context)
+
+def update_height_texture_node_type(self, context):
+    replace_texture_node(self.color_texture_node_type, "HEIGHT", self, context)
+
+def update_scattering_texture_node_type(self, context):
+    replace_texture_node(self.color_texture_node_type, "SCATTERING", self, context)
+
+def update_emission_texture_node_type(self, context):
+    replace_texture_node(self.color_texture_node_type, "EMISSION", self, context)
+
 def replace_texture_node(texture_node_type, material_channel, self, context):
     '''Replaced the texture node with a new texture node based on the given node type.'''
 
@@ -352,7 +370,15 @@ def replace_texture_node(texture_node_type, material_channel, self, context):
     # Link the new texture node to the mix layer node.
     link = material_channel_node.node_tree.links.new
     mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel, selected_layer_stack_index, context)
-    link(texture_node.outputs[0], mix_layer_node.inputs[1])
+    link(texture_node.outputs[0], mix_layer_node.inputs[2])
+
+    # For some texture types, connect texture node outputs to the mapping or opacity nodes.
+    if texture_node_type == "TEXTURE":
+        opacity_node = layer_nodes.get_layer_node("OPACITY", material_channel, selected_layer_stack_index, context)
+        link(texture_node.outputs[1], opacity_node.inputs[0])
+
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel, selected_layer_stack_index, context)
+        link(mapping_node.outputs[0], texture_node.inputs[0])
 
     # TODO: For some texture types, connect the mapping node to the texture vector input.
 
