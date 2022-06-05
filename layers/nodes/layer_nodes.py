@@ -106,8 +106,8 @@ def rename_layer_frame(name, layer_index, context):
     #    material_channel_nodes.get_material_channel_node(context)
     #    get_layer_frame()
 
-def mute_layer(layer_index, context):
-    '''Mutes all nodes in the given layer.'''
+def mute_layer(mute, layer_index, context):
+    '''Mutes (hides) all nodes in all material channels.'''
     layers = context.scene.coater_layers
     material_channels = material_channel_nodes.get_material_channel_list()
     for material_channel in material_channels:
@@ -116,16 +116,15 @@ def mute_layer(layer_index, context):
         nodes = get_all_nodes_in_layer(material_channel_node, layers, layer_index)
 
         for n in nodes:
-            n.mute = True
+            n.mute = mute
 
-def unmute_layer(layer_index, context):
-    '''Mutes all nodes in the given layer.'''
+def mute_material_channel(mute, material_channel, context):
+    '''Mutes (hides) or unmutes all nodes in all layers in the specified material channel.'''
     layers = context.scene.coater_layers
-    material_channels = material_channel_nodes.get_material_channel_list()
-    for material_channel in material_channels:
-        material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
 
-        nodes = get_all_nodes_in_layer(material_channel_node, layers, layer_index)
+    for i in range(0, len(layers)):
+        nodes = get_all_nodes_in_layer(material_channel_node, layers, i)
 
         for n in nodes:
-            n.mute = False
+            n.mute = mute
