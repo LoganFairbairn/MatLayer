@@ -56,7 +56,9 @@ def update_hidden(self, context):
 
     # TODO: Make this use the currently selected material channel instead of just the COLOR channel.
     if self.hidden == False:
-        layer_nodes.mute_layer(False, self.layer_stack_array_index, context)
+        # Only unmute the layer if the channel is toggled on.
+        if self.color_channel_toggle == True:
+            layer_nodes.mute_layer(False, self.layer_stack_array_index, context)
 
     else:
         layer_nodes.mute_layer(True, self.layer_stack_array_index, context)

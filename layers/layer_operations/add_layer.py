@@ -292,6 +292,7 @@ def add_general_layer_nodes(context, material_channel_node):
     opacity_node.inputs[1].default_value = 1.0
     opacity_node.use_clamp = True
     opacity_node.operation = 'MULTIPLY'
+    mix_layer_node.inputs[1].default_value = (0.0, 0.0, 0.0, 1.0)
     mix_layer_node.inputs[2].default_value = (0.0, 0.0, 0.0, 1.0)
     mix_layer_node.use_clamp = True
 
