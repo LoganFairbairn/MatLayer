@@ -347,4 +347,4 @@ def draw_channel_node_value(name, channel, layout, context):
 
             row = layout.row()
             row.scale_y = SCALE_Y
-            row.prop(texture_node.outputs[0], "default_value", text="")  
+            row.prop(texture_node.outputs[0], "default_value", text="")

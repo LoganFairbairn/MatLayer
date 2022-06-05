@@ -2,6 +2,7 @@
 
 import bpy
 from ..layers.nodes import material_channel_nodes
+from ..layers.nodes import layer_nodes
 
 class COATER_UL_layer_list(bpy.types.UIList):
     '''Draws the layer stack.'''
@@ -12,31 +13,45 @@ class COATER_UL_layer_list(bpy.types.UIList):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             # Draw the layer hide icon.
             row = layout.row(align=True)
-            row.ui_units_x = 4
-            
+            row.ui_units_x = 1
             if item.hidden == True:
                 row.prop(item, "hidden", text="", emboss=False, icon='HIDE_ON')
 
             elif item.hidden == False:
                 row.prop(item, "hidden", text="", emboss=False, icon='HIDE_OFF')
 
-            # TODO: Draw masked icon if the layer is masked.
-            #if item.mask_node_name != "":
-            #    row.label(text="", icon="MOD_MASK")
+            # Draw the texture preview.
+            row = layout.row(align=True)
+            row.ui_units_x = 0.8
 
-            row.prop(item, "layer_stack_index", text="", emboss=False)
+            texture_node = layer_nodes.get_layer_node("TEXTURE", "COLOR", item.layer_stack_array_index, context)
 
+            # Draw the layer preview.
+            row.prop(texture_node.outputs[0], "default_value", text="")
+
+            # TODO: If the layer has a mask, draw a preview.
+
+
+            
             # Draw the layer's name.
+            row = layout.row(align=True)
+            row.ui_units_x = 4
             row.prop(item, "name", text="", emboss=False)
 
+
+
+
             # Draw layer's opacity.
+            row = layout.row(align=True)
+            row.ui_units_x = 2
+
             split = layout.split()
             col = split.column(align=True)
             col.ui_units_x = 1.6
             col.scale_y = 0.5
             col.prop(item, "opacity", text="", emboss=True)
 
-            # Draw mix layer.
+            # Draw the layer's blend mode.
             material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
             mix_layer_node = material_channel_node.node_tree.nodes.get(item.mix_layer_node_name)
             if mix_layer_node:
