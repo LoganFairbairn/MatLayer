@@ -3,6 +3,7 @@
 import bpy
 from .import ui_section_tabs
 from ..layers.nodes import coater_materials
+from ..layers.nodes import material_channel_nodes
 from ..layers.nodes import layer_nodes
 
 SCALE_Y = 1.4
@@ -31,11 +32,10 @@ def draw_layers_section_ui(self, context):
                     row = layout.row(align=True)
                     row.scale_y = 2.0
                     row.prop_enum(layer_stack, "layer_properties_tab", 'MATERIAL')
-                    row.prop_enum(layer_stack, "layer_properties_tab", 'MASKS')
+                    row.prop_enum(layer_stack, "layer_properties_tab", 'MASK')
 
                     if layer_stack.layer_properties_tab == "MATERIAL":
-                        draw_material_projection_settings(self, context)
-                        draw_material_channels(self, context)
+                        
                         draw_layer_properties(self, context)
 
                     # TODO: Draw the mask properties here.
@@ -87,7 +87,7 @@ def draw_material_channel(self, context):
     '''Draws the currently selected material channel.'''
     layout = self.layout
     row = layout.row(align=True)
-    row.prop(context.scene.coater_layer_stack, "channel", text="")
+    row.prop(context.scene.coater_layer_stack, "selected_material_channel", text="")
     if context.scene.coater_layer_stack.channel_preview == False:
         row.operator("coater.toggle_channel_preview", text="", icon='MATERIAL')
 
@@ -105,7 +105,13 @@ def draw_layer_stack(self, context):
     row.template_list("COATER_UL_layer_list", "The_List", context.scene, "coater_layers", layers, "layer_index", sort_reverse=True)
     row.scale_y = 2
 
+
+
+
+
+# DRAW LAYER PROPERTIES #
 def draw_material_projection_settings(self, context):
+    '''Draws material projection settings.'''
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     layout = self.layout
@@ -161,9 +167,11 @@ def draw_material_projection_settings(self, context):
         col.prop(layers[selected_layer_index], "projection_scale_y")
 
     row = layout.row()
-    row.label(text="---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+    row.alignment = 'CENTER'
+    row.label(text="------------------------------------------------------------------------------------------------------------------------------------------")
 
-def draw_material_channels(self, context):
+def draw_material_channel_toggles(self, context):
+    '''Draws options to quickly toggle material channels on and off.'''
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     layout = self.layout
@@ -178,98 +186,110 @@ def draw_material_channels(self, context):
     row.prop(layers[selected_layer_index], "height_channel_toggle", text="Height", toggle=1)
     row.prop(layers[selected_layer_index], "scattering_channel_toggle", text="Scatt", toggle=1)
 
-def draw_layer_properties(self, context):
-    layout = self.layout
-
-    # Draw layer properties for each active channel.
-    draw_channel_texture_settings("Color", "COLOR", layout, context)
-    draw_channel_texture_settings("Metallic", "METALLIC", layout, context)
-    draw_channel_texture_settings("Roughness", "ROUGHNESS", layout, context)
-    draw_channel_texture_settings("Normal", "NORMAL", layout, context)
-    draw_channel_texture_settings("Height", "HEIGHT", layout, context)
-    draw_channel_texture_settings("Scattering", "SCATTERING", layout, context)
-    draw_channel_texture_settings("Emission", "EMISSION", layout, context)
-
-
-
-
-
-
-def draw_channel_texture_settings(name, material_channel, layout, context):
-    '''Draws settings for the currently selected texture node in the specified material channel.'''
+def draw_material_channel_texture_settings(layout, context):
+    '''Draws settings for the currently selected texture node in the each active material channel.'''
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
 
-    texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel, selected_layer_index, context)
+    # Get a list of all the material channels.
+    material_channels = material_channel_nodes.get_material_channel_list()
 
-    if texture_node:
-        row = layout.row(align=True)
-        row.scale_y = SCALE_Y
+    # Draw the texture node settings for every material channel.
+    for i in range(0, len(material_channels)):
+        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channels[i], selected_layer_index, context)
 
-        row.label(text=name)
-        
-        if material_channel == "COLOR":
+        # If the texture node exists in the material channel, draw the texture settings.
+        if texture_node:
+            # Draw a divider between texture node settings.
+            row = layout.row()
+            row.alignment = 'CENTER'
+            row.label(text="------------------------------------------------------------------------------------------------------------------------------------------")
+
+            # Draw the material channels label and texture type.
+            row = layout.row(align=True)
+            row.scale_y = SCALE_Y
+            row.label(text=material_channels[i])
             row.prop(layers[selected_layer_index], "color_texture_node_type", text="")
 
-            row = layout.row()
-            row.scale_y = 1.4
-            row.prop(texture_node, "image", text="")
+            # TODO: If the texture node types can be stored in a list / array, this code can be simplified.
+            # Get the texture node type.
+            if material_channels[i] == "COLOR":
+                texture_node_type = layers[selected_layer_index].color_texture_node_type
+
+            if material_channels[i] == "METALLIC":
+                texture_node_type = layers[selected_layer_index].metallic_texture_node_type
+
+            if material_channels[i] == "ROUGHNESS":
+                texture_node_type = layers[selected_layer_index].roughness_texture_node_type
+
+            if material_channels[i] == "NORMAL":
+                texture_node_type = layers[selected_layer_index].normal_texture_node_type
+
+            if material_channels[i] == "HEIGHT":
+                texture_node_type = layers[selected_layer_index].height_texture_node_type
+
+            if material_channels[i] == "EMISSION":
+                texture_node_type = layers[selected_layer_index].emission_texture_node_type
+
+            if material_channels[i] == "SCATTERING":
+                texture_node_type = layers[selected_layer_index].scattering_texture_node_type
+
+            # Draw settings for the specified texture node type.
+            if texture_node_type == "COLOR":
+                row = layout.row(align=True)
+                row.scale_y = SCALE_Y
+                row.prop(texture_node.outputs[0], "default_value", text="")
             
-
-
-            
-
-        if material_channel == "METALLIC":
-            row.prop(layers[selected_layer_index], "metallic_texture_node_type", text="")
-
-            row = layout.row()
-            row.scale_y = SCALE_Y
-
-            if layers[selected_layer_index].metallic_texture_node_type == 'VALUE':
-                row.prop(texture_node.inputs[0], "default_value", slider=True, text="")
-
-            else:
+            if texture_node_type == "VALUE":
+                row = layout.row(align=True)
+                row.scale_y = SCALE_Y
                 row.prop(texture_node.outputs[0], "default_value", text="")
 
-        if material_channel == "ROUGHNESS":
-            row.prop(layers[selected_layer_index], "roughness_texture_node_type", text="")
+            if texture_node_type == "TEXTURE":
+                row = layout.row(align=True)
+                row.scale_y = SCALE_Y
+                row.prop(texture_node, "image", text="")
 
-            row = layout.row()
-            row.scale_y = SCALE_Y
-            if layers[selected_layer_index].roughness_texture_node_type == 'VALUE':
-                row.prop(texture_node.inputs[0], "default_value", slider=True, text="")
+            if texture_node_type == "NOISE":
+                row = layout.row(align=True)
+                row.scale_y = SCALE_Y
+                row.prop(texture_node.inputs[2], "default_value", text="Scale")
+                row = layout.row(align=True)
+                row.scale_y = SCALE_Y
+                row.prop(texture_node.inputs[3], "default_value", text="Detail")
+                row = layout.row(align=True)
+                row.scale_y = SCALE_Y
+                row.prop(texture_node.inputs[4], "default_value", text="Roughness")
+                row = layout.row(align=True)
+                row.scale_y = SCALE_Y
+                row.prop(texture_node.inputs[5], "default_value", text="Distortion")
 
-            else:
-                row.prop(texture_node.outputs[0], "default_value", text="")
+            if texture_node_type == "VORONOI":
+                row = layout.row(align=True)
+                row.scale_y = SCALE_Y
+                row.prop(texture_node.inputs[2], "default_value", text="Scale")
 
-        if material_channel == "NORMAL":
-            row.prop(layers[selected_layer_index], "normal_texture_node_type", text="")
+                row = layout.row(align=True)
+                row.scale_y = SCALE_Y
+                row.prop(texture_node.inputs[3], "default_value", text="Randomness")
 
-            row = layout.row()
-            row.scale_y = SCALE_Y
-            row.prop(texture_node.outputs[0], "default_value", text="")  
+            if texture_node_type == "MUSGRAVE":
+                row = layout.row(align=True)
+                row.scale_y = SCALE_Y
+                row.prop(texture_node.inputs[2], "default_value", text="Scale")
+                row = layout.row(align=True)
+                row.scale_y = SCALE_Y
+                row.prop(texture_node.inputs[3], "default_value", text="Detail")
+                row = layout.row(align=True)
+                row.scale_y = SCALE_Y
+                row.prop(texture_node.inputs[4], "default_value", text="Dimension")
+                row = layout.row(align=True)
+                row.scale_y = SCALE_Y
+                row.prop(texture_node.inputs[5], "default_value", text="Lacunarity")
+    
 
-        if material_channel == "HEIGHT":
-            row.prop(layers[selected_layer_index], "height_texture_node_type", text="")
-
-            row = layout.row()
-            row.scale_y = SCALE_Y
-            if layers[selected_layer_index].height_texture_node_type == 'VALUE':
-                row.prop(texture_node.inputs[0], "default_value", slider=True, text="")
-
-            else:
-                row.prop(texture_node.outputs[0], "default_value", text="")
-
-        if material_channel == "SCATTERING":
-            row.prop(layers[selected_layer_index], "scattering_texture_node_type", text="")
-
-            row = layout.row()
-            row.scale_y = SCALE_Y
-            row.prop(texture_node.outputs[0], "default_value", text="")  
-
-        if material_channel == "EMISSION":
-            row.prop(layers[selected_layer_index], "emission_texture_node_type", text="")
-
-            row = layout.row()
-            row.scale_y = SCALE_Y
-            row.prop(texture_node.outputs[0], "default_value", text="")
+def draw_layer_properties(self, context):
+    '''Draws layer properties such as projection settings, active material channels, and texture settings.'''
+    draw_material_projection_settings(self, context)
+    draw_material_channel_toggles(self, context)
+    draw_material_channel_texture_settings(self.layout, context)

@@ -2,8 +2,19 @@
 
 import bpy
 
-# Set of all channel names.
+# List of all channel names.
 MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", "EMISSION", "SCATTERING")
+
+# Enum property item of material channels.
+MATERIAL_CHANNELS = [
+    ("COLOR", "Color", ""), 
+    ("METALLIC", "Metallic", ""),
+    ("ROUGHNESS", "Roughness", ""),
+    ("NORMAL", "Normal", ""),
+    ("HEIGHT", "Height", ""),
+    ("EMISSION", "Emission", ""),
+    ("SCATTERING", "Scattering", "")
+    ]
 
 def verify_material_channel(material_channel_node):
     '''Verifies that a material channel exists.'''

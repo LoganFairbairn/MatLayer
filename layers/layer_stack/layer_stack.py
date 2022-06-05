@@ -2,6 +2,9 @@
 
 import bpy
 from bpy.types import PropertyGroup
+from ..nodes import material_channel_nodes
+
+MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", "EMISSION", "SCATTERING")
 
 def update_layer_channel(self, context):
     bpy.ops.coater.refresh_layers()
@@ -25,28 +28,20 @@ class COATER_layer_stack(PropertyGroup):
     channel_preview: bpy.props.BoolProperty(name="", default=False)
     node_default_width: bpy.props.IntProperty(default=250)
     node_spacing: bpy.props.IntProperty(default=80)
-
-    # TODO: Rename this material_channel, change the enum value to the enum defined in material_channel_nodes module.
-    channel: bpy.props.EnumProperty(
-        items=[('BASE_COLOR', "Base Color", "Set to show all layers for the materials base color channel"),
-               ('METALLIC', "Metallic", "Set to show all layers in the materials metallic channel"),
-               ('ROUGHNESS', "Roughness", "Set to show all layers in the materials roughness channel"),
-               ('NORMAL', "Normal", "Set to show all layers in the materials normal channel"),
-               ('HEIGHT', "Height", "Set to show all layers in the materials height channel"),
-               ('EMISSION', 'Emission', "Set to show all layers in the materials emission channel"),
-               ('SCATTERING', 'Scattering', "Set to show all layers in the materials scattering channel")],
+    
+    selected_material_channel: bpy.props.EnumProperty(
+        items=material_channel_nodes.MATERIAL_CHANNELS,
         name="Material Channel",
-        description="Type of the layer",
-        default=None,
-        options={'HIDDEN'},
+        description="The currently selected material channel",
+        default='COLOR',
         update=update_layer_channel
     )
 
+
     # Tabs for layer properties.
     layer_properties_tab: bpy.props.EnumProperty(
-        items=[('PROJECTION', "PROJECTION", "Layer Projection Properties"),
-               ('MATERIAL', "MATERIAL", "Layer Material Properties"),
-               ('MASKS', "MASKS", "Layer Mask Properties")],
+        items=[('MATERIAL', "MATERIAL", "Layer Material Properties"),
+               ('MASK', "MASK", "Layer Mask Properties")],
         name="Layer Properties Tab",
         description="Currently selected layer properties user interface tab to display",
         default=None,
