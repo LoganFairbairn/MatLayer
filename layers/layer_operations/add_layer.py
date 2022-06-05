@@ -257,7 +257,7 @@ def add_default_emission_channel_nodes(context):
 def link_new_default_nodes(material_channel_node, texture_node, general_nodes):
     '''Links newly created default nodes together.'''
     link = material_channel_node.node_tree.links.new
-    link(texture_node.outputs[0], general_nodes["MIXLAYER"].inputs[1])
+    link(texture_node.outputs[0], general_nodes["MIXLAYER"].inputs[2])
     link(general_nodes["OPACITY"].outputs[0], general_nodes["MIXLAYER"].inputs[0])
     link(general_nodes["COORD"].outputs[2], general_nodes["MAPPING"].inputs[0])
 
@@ -291,7 +291,7 @@ def add_general_layer_nodes(context, material_channel_node):
     opacity_node.inputs[0].default_value = 1.0
     opacity_node.inputs[1].default_value = 1.0
     opacity_node.use_clamp = True
-    opacity_node.operation = 'SUBTRACT'
+    opacity_node.operation = 'MULTIPLY'
     mix_layer_node.inputs[2].default_value = (0.0, 0.0, 0.0, 1.0)
     mix_layer_node.use_clamp = True
 

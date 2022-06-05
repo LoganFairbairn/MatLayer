@@ -346,6 +346,8 @@ def replace_texture_node(texture_node_type, material_channel, self, context):
     mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel, selected_layer_stack_index, context)
     link(texture_node.outputs[0], mix_layer_node.inputs[1])
 
+    # TODO: For some texture types, connect the mapping node to the texture vector input.
+
     # Parent the new node to the layer's frame.
     layers = context.scene.coater_layers
     layer_frame = layer_nodes.get_layer_frame(material_channel_node, layers, selected_layer_stack_index)

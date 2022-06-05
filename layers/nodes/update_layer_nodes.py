@@ -172,7 +172,14 @@ def link_layers_in_material_channel(material_channel, context):
             for l in output.links:
                 if l != 0:
                     material_channel_node.node_tree.links.remove(l)
-    
+                    
+    # Connect the first texture node to the mix layer node.
+    if len(layers) > 0:
+        first_mix_layer_node_index = number_of_layers - 1
+        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel, first_mix_layer_node_index, context)
+        mix_layer_node = material_channel_node.node_tree.nodes.get(layers[first_mix_layer_node_index].mix_layer_node_name)
+        material_channel_node.node_tree.links.new(texture_node.outputs[0], mix_layer_node.inputs[2])
+
     # Connect mix layer nodes for every layer.
     for x in range(number_of_layers, 0, -1):
         current_layer_index = x - 1
@@ -202,19 +209,19 @@ def link_layers_in_material_channel(material_channel, context):
             if next_layer_index >= 0:
                 if mix_mask_node != None:
                     if next_mix_mask_node != None:
-                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_layer_node.inputs[2])
-                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_mask_node.inputs[2])
+                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_layer_node.inputs[1])
+                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_mask_node.inputs[1])
 
                     else:
-                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_layer_node.inputs[2])
+                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_layer_node.inputs[1])
 
                 else:
                     if next_mix_mask_node != None:
-                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[2])
-                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], next_mix_mask_node.inputs[2])
+                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
+                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], next_mix_mask_node.inputs[1])
 
                     else:
-                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[2])
+                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
 
             # For the last layer, connect to the group output node.
             else:
