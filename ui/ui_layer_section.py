@@ -35,16 +35,13 @@ def draw_layers_section_ui(self, context):
                     row.prop_enum(layer_stack, "layer_properties_tab", 'MASK')
 
                     if layer_stack.layer_properties_tab == "MATERIAL":
-                        
                         draw_layer_properties(self, context)
-
-                    # TODO: Draw the mask properties here.
     else:
         layout = self.layout
         layout.label(text="Select an object.")
 
 def draw_paint_tools(layout, context):
-    # Only draw paint tools in Texture Paint mode.
+    # Only draw paint tools in texture paint mode.
     if context.mode == 'PAINT_TEXTURE':
         # Draw brush presets.
         row = layout.row()
@@ -168,7 +165,7 @@ def draw_material_projection_settings(self, context):
 
     row = layout.row()
     row.alignment = 'CENTER'
-    row.label(text="------------------------------------------------------------------------------------------------------------------------------------------")
+    row.label(text="-------------------------------------------------------------------------------------------------------------")
 
 def draw_material_channel_toggles(self, context):
     '''Draws options to quickly toggle material channels on and off.'''
@@ -203,36 +200,45 @@ def draw_material_channel_texture_settings(layout, context):
             # Draw a divider between texture node settings.
             row = layout.row()
             row.alignment = 'CENTER'
-            row.label(text="------------------------------------------------------------------------------------------------------------------------------------------")
+            row.label(text="-------------------------------------------------------------------------------------------------------------")
 
             # Draw the material channels label and texture type.
             row = layout.row(align=True)
             row.scale_y = SCALE_Y
             row.label(text=material_channels[i])
-            row.prop(layers[selected_layer_index], "color_texture_node_type", text="")
+            
 
             # TODO: If the texture node types can be stored in a list / array, this code can be simplified.
             # Get the texture node type.
             if material_channels[i] == "COLOR":
                 texture_node_type = layers[selected_layer_index].color_texture_node_type
+                row.prop(layers[selected_layer_index], "color_texture_node_type", text="")
 
             if material_channels[i] == "METALLIC":
                 texture_node_type = layers[selected_layer_index].metallic_texture_node_type
+                row.prop(layers[selected_layer_index], "metallic_texture_node_type", text="")
 
             if material_channels[i] == "ROUGHNESS":
                 texture_node_type = layers[selected_layer_index].roughness_texture_node_type
+                row.prop(layers[selected_layer_index], "roughness_texture_node_type", text="")
 
             if material_channels[i] == "NORMAL":
                 texture_node_type = layers[selected_layer_index].normal_texture_node_type
+                row.prop(layers[selected_layer_index], "normal_texture_node_type", text="")
 
             if material_channels[i] == "HEIGHT":
                 texture_node_type = layers[selected_layer_index].height_texture_node_type
+                row.prop(layers[selected_layer_index], "height_texture_node_type", text="")
 
             if material_channels[i] == "EMISSION":
                 texture_node_type = layers[selected_layer_index].emission_texture_node_type
+                row.prop(layers[selected_layer_index], "emission_texture_node_type", text="")
 
             if material_channels[i] == "SCATTERING":
                 texture_node_type = layers[selected_layer_index].scattering_texture_node_type
+                row.prop(layers[selected_layer_index], "scattering_texture_node_type", text="")
+
+            
 
             # Draw settings for the specified texture node type.
             if texture_node_type == "COLOR":

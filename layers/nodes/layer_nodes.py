@@ -86,25 +86,19 @@ def get_layer_frame(material_channel_node, layers, layer_index):
 
 def rename_layer_frame(name, layer_index, context):
     '''Renames the layer frame in all material channels.'''
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
     layers = context.scene.coater_layers
-    layer_frame = get_layer_frame(material_channel_node, layers, layer_index)
+    material_channel_list = material_channel_nodes.get_material_channel_list()
+    for i in range(0, len(material_channel_list)):
 
-    # Set the new frame name.
-    new_name = name + "_" + str(layers[layer_index].id) + "_" + str(layer_index)
+        material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_list[i])
+        layer_frame = get_layer_frame(material_channel_node, layers, layer_index)
 
-    # Rename the layers name & label.
-    layer_frame.name = new_name
-    layer_frame.label = layer_frame.name
-
-    # Store the frames name in the layer.
-    layers[layer_index].frame_name = layer_frame.name
-
-    #material_channel_list = material_channel_nodes.get_material_channel_list()
-
-    #for material_channel in material_channel_list:
-    #    material_channel_nodes.get_material_channel_node(context)
-    #    get_layer_frame()
+        # Set the new frame name.
+        if layer_frame:
+            new_name = name + "_" + str(layers[layer_index].id) + "_" + str(layer_index)
+            layer_frame.name = new_name
+            layer_frame.label = layer_frame.name
+            layers[layer_index].frame_name = layer_frame.name
 
 def mute_layer(mute, layer_index, context):
     '''Mutes (hides) all nodes in all material channels.'''

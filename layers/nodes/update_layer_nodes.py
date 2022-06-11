@@ -7,41 +7,27 @@ NODE_WIDTH = 300
 NODE_SPACING = 50
 
 def update_layer_nodes(context):
-    '''Updates all layer node indicies, organizes all nodes and links all nodes together.'''
+    '''Organizes all nodes in all material channels for every layer and links them all nodes together.'''
     '''Call this after making any change to the layer stack or layer nodes.'''
 
     # Organize all material channel group nodes.
     organize_material_channel_nodes(context)
 
     # Update all layer organize and link all layer nodes.
-    #material_channel_names = material_channel_nodes.get_material_channel_list()
-    #for material_channel in material_channel_names:
+    material_channel_names = material_channel_nodes.get_material_channel_list()
+    for material_channel in material_channel_names:
 
         # Update all layer node indicies.
-        #update_layer_node_indicies(material_channel, context)
+        update_layer_node_indicies(material_channel, context)
+        update_layer_node_indicies(material_channel, context)
 
         # Organize all layer nodes.
-        #organize_layer_nodes_in_material_channel(material_channel, context)
+        organize_layer_nodes_in_material_channel(material_channel, context)
 
         # Link all layers.
-        #link_layers_in_material_channel(material_channel, context)
+        link_layers_in_material_channel(material_channel, context)
 
-    # TODO: TEMPORARY FOR TESTING REMOVE LATER
-    update_layer_node_indicies("COLOR", context)
-    update_layer_node_indicies("COLOR", context)
-    organize_layer_nodes_in_material_channel("COLOR", context)
-    link_layers_in_material_channel("COLOR", context)
-
-    
-
-
-
-def update_layer_node_indicies(material_channel, context):
-    '''Updates the layer node names and labels with the correct layer index. This allows the layer nodes to be read to determine their spot in the layer stack.'''
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
-    layers = context.scene.coater_layers
-
-    # Update the layer stack indicies stored in layers.
+def update_layer_indicies(context):
     layers = context.scene.coater_layers
 
     # Update the layer stack index stored in layers (this is the index shown in material node names).
@@ -52,6 +38,16 @@ def update_layer_node_indicies(material_channel, context):
     # Update the layer stack array index stored in layers (this is the index used for the specific array).
     for i in range(0, len(layers)):
         layers[i].layer_stack_array_index = i
+
+def update_layer_node_indicies(material_channel, context):
+    '''Updates the layer node names and labels with the layer index. This allows the layer nodes to be read to determine their spot in the layer stack.'''
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+    layers = context.scene.coater_layers
+
+    # Update the layer stack indicies stored in layers.
+    layers = context.scene.coater_layers
+
+    update_layer_indicies(context)
 
     # Update layer node indicies.
     for i in range(0, len(layers)):
@@ -70,23 +66,25 @@ def update_layer_node_indicies(material_channel, context):
         layer_node_names = layer_nodes.get_layer_node_names()
         for node_name in layer_node_names:
             node = layer_nodes.get_layer_node(node_name, material_channel, i, context)
-            node.name = node_name + "_" + str(layer_stack_index)
-            node.label = node.name
 
-            if node_name == "TEXTURE":
-                layers[i].texture_node_name = node.name
+            if node != None:
+                node.name = node_name + "_" + str(layer_stack_index)
+                node.label = node.name
 
-            if node_name == "OPACITY":
-                layers[i].opacity_node_name = node.name
+                if node_name == "TEXTURE":
+                    layers[i].texture_node_name = node.name
 
-            if node_name == "COORD":
-                layers[i].coord_node_name = node.name
+                if node_name == "OPACITY":
+                    layers[i].opacity_node_name = node.name
 
-            if node_name == "MAPPING":
-                layers[i].mapping_node_name = node.name
+                if node_name == "COORD":
+                    layers[i].coord_node_name = node.name
 
-            if node_name == "MIXLAYER":
-                layers[i].mix_layer_node_name = node.name
+                if node_name == "MAPPING":
+                    layers[i].mapping_node_name = node.name
+
+                if node_name == "MIXLAYER":
+                    layers[i].mix_layer_node_name = node.name
 
 
 

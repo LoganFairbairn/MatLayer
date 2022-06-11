@@ -23,11 +23,9 @@ class COATER_UL_layer_list(bpy.types.UIList):
             # Draw the texture preview.
             row = layout.row(align=True)
             row.ui_units_x = 0.8
-
             texture_node = layer_nodes.get_layer_node("TEXTURE", "COLOR", item.layer_stack_array_index, context)
-
-            # Draw the layer preview.
-            row.prop(texture_node.outputs[0], "default_value", text="")
+            if texture_node:
+                row.prop(texture_node.outputs[0], "default_value", text="")
 
             # TODO: If the layer has a mask, draw a preview.
 
