@@ -171,18 +171,33 @@ def draw_material_channel_toggles(self, context):
     '''Draws options to quickly toggle material channels on and off.'''
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
+    texture_set_settings = context.scene.coater_texture_set_settings
     layout = self.layout
 
     row = layout.row()
     row = layout.row(align=False)
     row.scale_y = 1.4
-    row.prop(layers[selected_layer_index], "color_channel_toggle", text="Color", toggle=1)
-    row.prop(layers[selected_layer_index], "metallic_channel_toggle", text="Metal", toggle=1)
-    row.prop(layers[selected_layer_index], "roughness_channel_toggle", text="Rough", toggle=1)
-    row.prop(layers[selected_layer_index], "normal_channel_toggle", text="Nrm", toggle=1)
-    row.prop(layers[selected_layer_index], "height_channel_toggle", text="Height", toggle=1)
-    row.prop(layers[selected_layer_index], "emission_channel_toggle", text="Emit", toggle=1)
-    row.prop(layers[selected_layer_index], "scattering_channel_toggle", text="Scatt", toggle=1)
+
+    if texture_set_settings.color_channel_toggle:
+        row.prop(layers[selected_layer_index], "color_channel_toggle", text="Color", toggle=1)
+
+    if texture_set_settings.metallic_channel_toggle:
+        row.prop(layers[selected_layer_index], "metallic_channel_toggle", text="Metal", toggle=1)
+
+    if texture_set_settings.roughness_channel_toggle:
+        row.prop(layers[selected_layer_index], "roughness_channel_toggle", text="Rough", toggle=1)
+
+    if texture_set_settings.normal_channel_toggle:
+        row.prop(layers[selected_layer_index], "normal_channel_toggle", text="Nrm", toggle=1)
+
+    if texture_set_settings.height_channel_toggle:
+        row.prop(layers[selected_layer_index], "height_channel_toggle", text="Height", toggle=1)
+
+    if texture_set_settings.emission_channel_toggle:
+        row.prop(layers[selected_layer_index], "emission_channel_toggle", text="Emit", toggle=1)
+
+    if texture_set_settings.scattering_channel_toggle:
+        row.prop(layers[selected_layer_index], "scattering_channel_toggle", text="Scatt", toggle=1)
 
 
 
@@ -192,6 +207,7 @@ def draw_material_channel_texture_settings(layout, context):
     '''Draws settings for the currently selected texture node in the each active material channel.'''
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
+    texture_set_settings = context.scene.coater_texture_set_settings
 
     # Get a list of all the material channels.
     material_channels = material_channel_nodes.get_material_channel_list()
@@ -202,128 +218,119 @@ def draw_material_channel_texture_settings(layout, context):
 
         # If the texture node exists in the material channel, draw the texture settings.
         if texture_node:
-            
-
             # TODO: If the texture node types can be stored in a list / array, this code can be greatly simplified.
             # Get the texture node type.
             if material_channels[i] == "COLOR":
                 if layers[selected_layer_index].color_channel_toggle:
-                    # Draw a divider between texture node settings.
-                    row = layout.row()
-                    row.alignment = 'CENTER'
-                    row.label(text="-------------------------------------------------------------------------------------------------------------")
+                    if texture_set_settings.color_channel_toggle:
+                        # Draw a divider between texture node settings.
+                        draw_divider(layout)
 
-                    # Draw the material channel name.
-                    row = layout.row(align=True)
-                    row.scale_y = SCALE_Y
-                    row.label(text=material_channels[i])
+                        # Draw the material channel name.
+                        row = layout.row(align=True)
+                        row.scale_y = SCALE_Y
+                        row.label(text=material_channels[i])
 
-                    # Draw the texture settings.
-                    texture_node_type = layers[selected_layer_index].color_texture_node_type
-                    row.prop(layers[selected_layer_index], "color_texture_node_type", text="")
-                    draw_texture_settings(layout, texture_node, texture_node_type)
+                        # Draw the texture settings.
+                        texture_node_type = layers[selected_layer_index].color_texture_node_type
+                        row.prop(layers[selected_layer_index], "color_texture_node_type", text="")
+                        draw_texture_settings(layout, texture_node, texture_node_type)
 
             if material_channels[i] == "METALLIC":
                 if layers[selected_layer_index].metallic_channel_toggle:
-                    # Draw a divider between texture node settings.
-                    row = layout.row()
-                    row.alignment = 'CENTER'
-                    row.label(text="-------------------------------------------------------------------------------------------------------------")
+                    if texture_set_settings.metallic_channel_toggle:
+                        # Draw a divider between texture node settings.
+                        draw_divider(layout)
 
-                    # Draw the material channel name.
-                    row = layout.row(align=True)
-                    row.scale_y = SCALE_Y
-                    row.label(text=material_channels[i])
+                        # Draw the material channel name.
+                        row = layout.row(align=True)
+                        row.scale_y = SCALE_Y
+                        row.label(text=material_channels[i])
 
-                    # Draw the texture node settings
-                    texture_node_type = layers[selected_layer_index].metallic_texture_node_type
-                    row.prop(layers[selected_layer_index], "metallic_texture_node_type", text="")
-                    draw_texture_settings(layout, texture_node, texture_node_type)
+                        # Draw the texture node settings
+                        texture_node_type = layers[selected_layer_index].metallic_texture_node_type
+                        row.prop(layers[selected_layer_index], "metallic_texture_node_type", text="")
+                        draw_texture_settings(layout, texture_node, texture_node_type)
 
             if material_channels[i] == "ROUGHNESS":
                 if layers[selected_layer_index].roughness_channel_toggle:
-                    # Draw a divider between texture node settings.
-                    row = layout.row()
-                    row.alignment = 'CENTER'
-                    row.label(text="-------------------------------------------------------------------------------------------------------------")
+                    if texture_set_settings.roughness_channel_toggle:
+                        # Draw a divider between texture node settings.
+                        draw_divider(layout)
 
-                    # Draw the material channel name.
-                    row = layout.row(align=True)
-                    row.scale_y = SCALE_Y
-                    row.label(text=material_channels[i])
+                        # Draw the material channel name.
+                        row = layout.row(align=True)
+                        row.scale_y = SCALE_Y
+                        row.label(text=material_channels[i])
 
-                    # Draw the texture node settings
-                    texture_node_type = layers[selected_layer_index].roughness_texture_node_type
-                    row.prop(layers[selected_layer_index], "roughness_texture_node_type", text="")
-                    draw_texture_settings(layout, texture_node, texture_node_type)
+                        # Draw the texture node settings
+                        texture_node_type = layers[selected_layer_index].roughness_texture_node_type
+                        row.prop(layers[selected_layer_index], "roughness_texture_node_type", text="")
+                        draw_texture_settings(layout, texture_node, texture_node_type)
 
             if material_channels[i] == "NORMAL":
                 if layers[selected_layer_index].normal_channel_toggle:
-                    # Draw a divider between texture node settings.
-                    row = layout.row()
-                    row.alignment = 'CENTER'
-                    row.label(text="-------------------------------------------------------------------------------------------------------------")
+                    if texture_set_settings.normal_channel_toggle:
+                        # Draw a divider between texture node settings.
+                        draw_divider(layout)
 
-                    # Draw the material channel name.
-                    row = layout.row(align=True)
-                    row.scale_y = SCALE_Y
-                    row.label(text=material_channels[i])
+                        # Draw the material channel name.
+                        row = layout.row(align=True)
+                        row.scale_y = SCALE_Y
+                        row.label(text=material_channels[i])
 
-                    # Draw the texture node settings
-                    texture_node_type = layers[selected_layer_index].normal_texture_node_type
-                    row.prop(layers[selected_layer_index], "normal_texture_node_type", text="")
-                    draw_texture_settings(layout, texture_node, texture_node_type)
+                        # Draw the texture node settings
+                        texture_node_type = layers[selected_layer_index].normal_texture_node_type
+                        row.prop(layers[selected_layer_index], "normal_texture_node_type", text="")
+                        draw_texture_settings(layout, texture_node, texture_node_type)
 
             if material_channels[i] == "HEIGHT":
                 if layers[selected_layer_index].height_channel_toggle:
-                    # Draw a divider between texture node settings.
-                    row = layout.row()
-                    row.alignment = 'CENTER'
-                    row.label(text="-------------------------------------------------------------------------------------------------------------")
+                    if texture_set_settings.height_channel_toggle:
+                        # Draw a divider between texture node settings.
+                        draw_divider(layout)
 
-                    # Draw the material channel name.
-                    row = layout.row(align=True)
-                    row.scale_y = SCALE_Y
-                    row.label(text=material_channels[i])
+                        # Draw the material channel name.
+                        row = layout.row(align=True)
+                        row.scale_y = SCALE_Y
+                        row.label(text=material_channels[i])
 
-                    # Draw the texture node settings.
-                    texture_node_type = layers[selected_layer_index].height_texture_node_type
-                    row.prop(layers[selected_layer_index], "height_texture_node_type", text="")
-                    draw_texture_settings(layout, texture_node, texture_node_type)
+                        # Draw the texture node settings.
+                        texture_node_type = layers[selected_layer_index].height_texture_node_type
+                        row.prop(layers[selected_layer_index], "height_texture_node_type", text="")
+                        draw_texture_settings(layout, texture_node, texture_node_type)
 
             if material_channels[i] == "EMISSION":
                 if layers[selected_layer_index].emission_channel_toggle:
-                    # Draw a divider between texture node settings.
-                    row = layout.row()
-                    row.alignment = 'CENTER'
-                    row.label(text="-------------------------------------------------------------------------------------------------------------")
+                    if texture_set_settings.emission_channel_toggle:
+                        # Draw a divider between texture node settings.
+                        draw_divider(layout)
 
-                    # Draw the material channel name.
-                    row = layout.row(align=True)
-                    row.scale_y = SCALE_Y
-                    row.label(text=material_channels[i])
+                        # Draw the material channel name.
+                        row = layout.row(align=True)
+                        row.scale_y = SCALE_Y
+                        row.label(text=material_channels[i])
 
-                    # Draw the texture node settings
-                    texture_node_type = layers[selected_layer_index].emission_texture_node_type
-                    row.prop(layers[selected_layer_index], "emission_texture_node_type", text="")
-                    draw_texture_settings(layout, texture_node, texture_node_type)
+                        # Draw the texture node settings
+                        texture_node_type = layers[selected_layer_index].emission_texture_node_type
+                        row.prop(layers[selected_layer_index], "emission_texture_node_type", text="")
+                        draw_texture_settings(layout, texture_node, texture_node_type)
 
             if material_channels[i] == "SCATTERING":
                 if layers[selected_layer_index].scattering_channel_toggle:
-                    # Draw a divider between texture node settings.
-                    row = layout.row()
-                    row.alignment = 'CENTER'
-                    row.label(text="-------------------------------------------------------------------------------------------------------------")
+                    if texture_set_settings.scattering_channel_toggle:
+                        # Draw a divider between texture node settings.
+                        draw_divider(layout)
 
-                    # Draw the material channel name.
-                    row = layout.row(align=True)
-                    row.scale_y = SCALE_Y
-                    row.label(text=material_channels[i])
+                        # Draw the material channel name.
+                        row = layout.row(align=True)
+                        row.scale_y = SCALE_Y
+                        row.label(text=material_channels[i])
 
-                    # Draw the texture node settings
-                    texture_node_type = layers[selected_layer_index].scattering_texture_node_type
-                    row.prop(layers[selected_layer_index], "scattering_texture_node_type", text="")
-                    draw_texture_settings(layout, texture_node, texture_node_type)
+                        # Draw the texture node settings
+                        texture_node_type = layers[selected_layer_index].scattering_texture_node_type
+                        row.prop(layers[selected_layer_index], "scattering_texture_node_type", text="")
+                        draw_texture_settings(layout, texture_node, texture_node_type)
 
 
 def draw_texture_settings(layout, texture_node, texture_node_type):
@@ -379,6 +386,12 @@ def draw_texture_settings(layout, texture_node, texture_node_type):
         row = layout.row(align=True)
         row.scale_y = SCALE_Y
         row.prop(texture_node.inputs[5], "default_value", text="Lacunarity")
+
+def draw_divider(layout):
+    row = layout.row()
+    row.alignment = 'CENTER'
+    row.label(text="-------------------------------------------------------------------------------------------------------------")
+
 
 def draw_layer_properties(self, context):
     '''Draws layer properties such as projection settings, active material channels, and texture settings.'''
