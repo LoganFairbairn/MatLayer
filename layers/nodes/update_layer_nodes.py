@@ -111,6 +111,16 @@ def organize_layer_nodes_in_material_channel(material_channel, context):
     if group_output_node:
         group_output_node.location = (0.0, 0.0)
 
+    # Organize the normal map node.
+    if material_channel == 'NORMAL':
+        normal_map_node = material_channel_node.node_tree.nodes.get("Normal Map")
+        normal_map_node.location = (0.0, -100.0)
+
+    # Organize the bump node.
+    if material_channel == 'HEIGHT':
+        bump_node = material_channel_node.node_tree.nodes.get("Bump")
+        bump_node.location = (0.0, -100.0)
+
     # Organizes all nodes.
     header_position = [0.0, 0.0]
     for i in range(0, len(layers)):
@@ -151,8 +161,6 @@ def link_layers_in_material_channel(material_channel, context):
     '''Links all layers in the given material channel together by linking the mix layer and mix mask nodes together.'''
     layers = context.scene.coater_layers
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
-
-    group_output_node = material_channel_node.node_tree.nodes.get("Group Output")
 
     # Remove all existing output links for mix layer or mix mask nodes.
     number_of_layers = len(layers)
@@ -215,12 +223,33 @@ def link_layers_in_material_channel(material_channel, context):
                         material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
 
             # For the last layer, connect to the group output node.
+            # For height and normal channels, connect to the bump / normal map node instead.
             else:
+                group_output_node = material_channel_node.node_tree.nodes.get("Group Output")
+
                 if mix_mask_node != None:
-                     material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], group_output_node.inputs[0])
+                    if material_channel == 'HEIGHT':
+                        bump_node = material_channel_node.node_tree.nodes.get("Bump")
+                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], bump_node.inputs[2])
+
+                    elif material_channel == 'NORMAL':
+                        normal_map_node = material_channel_node.node_tree.nodes.get("Normal Map")
+                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], normal_map_node.inputs[0])
+
+                    else:
+                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], group_output_node.inputs[0])
 
                 else:
-                    material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], group_output_node.inputs[0])
+                    if material_channel == 'HEIGHT':
+                        bump_node = material_channel_node.node_tree.nodes.get("Bump")
+                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], bump_node.inputs[2])
+
+                    elif material_channel == 'NORMAL':
+                        normal_map_node = material_channel_node.node_tree.nodes.get("Normal Map")
+                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], normal_map_node.inputs[0])
+
+                    else:
+                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], group_output_node.inputs[0])
 
         
 

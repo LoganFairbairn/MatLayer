@@ -200,9 +200,11 @@ def create_channel_group_nodes(context):
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
         group_output_node.width = layer_stack.node_default_width
         new_node_group.outputs.new('NodeSocketVector', 'Normal')
-
-        # Set default normal value.
         group_output_node.inputs[0].default_value = (0.0, 0.0, 1.0)
+
+        # Create normal map node and connect it to the output.
+        normal_map_node = new_node_group.nodes.new('ShaderNodeNormalMap')
+        new_node_group.links.new(normal_map_node.outputs[0], group_output_node.inputs[0])
 
     # Create height group node.
     height_group_node_name  = active_material.name + "_HEIGHT"
@@ -212,8 +214,12 @@ def create_channel_group_nodes(context):
         # Create output nodes and sockets.
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
         group_output_node.width = layer_stack.node_default_width
-        new_node_group.outputs.new('NodeSocketFloat', 'Height')
-        new_node_group.nodes.new('ShaderNodeBump')
+        new_node_group.outputs.new('NodeSocketVector', 'Height')
+        group_output_node.inputs[0].default_value = (0.0, 0.0, 1.0)
+
+        # Create bump node and connect it to the output.
+        bump_node = new_node_group.nodes.new('ShaderNodeBump')
+        new_node_group.links.new(bump_node.outputs[0], group_output_node.inputs[0])
 
     # Create emission group node.
     emission_group_node_name = active_material.name + "_EMISSION"
@@ -246,9 +252,3 @@ def create_channel_group_nodes(context):
     add_material_channel(context, height_group_node_name, layer_stack.node_default_width, "HEIGHT")
     add_material_channel(context, emission_group_node_name, layer_stack.node_default_width, "EMISSION")
     add_material_channel(context, scattering_group_node_name, layer_stack.node_default_width, "SCATTERING")
-
-def mute_material_channel(context, channel, mute):
-    material_channel = get_material_channel_node(context, channel)
-
-    if material_channel != None:
-        material_channel.mute = mute

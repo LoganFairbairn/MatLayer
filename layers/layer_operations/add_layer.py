@@ -116,23 +116,11 @@ def add_default_layer_nodes_new(context):
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.0, 0.0, 1.0, 1.0)
                 mix_layer_node.blend_type = 'MIX'
-
-                # Make a normal map node for this channel if one does not exist.
-                normal_map_node = material_channel_node.node_tree.nodes.get("Normal Map")
-                if not normal_map_node:
-                    material_channel_node.node_tree.nodes.new(type='ShaderNodeNormalMap')
-                
                 
             if material_channels[i] == "HEIGHT":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
                 texture_node.outputs[0].default_value = 0.0
                 mix_layer_node.blend_type = 'MIX'
-
-                # Make a bump node for the channel if one does not exist.
-                bump_node = material_channel_node.node_tree.nodes.get("Bump")
-                if not bump_node:
-                    material_channel_node.node_tree.nodes.new(type='ShaderNodeBump')
-
 
             if material_channels[i] == "SCATTERING":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
