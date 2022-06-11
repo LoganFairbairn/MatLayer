@@ -158,7 +158,8 @@ def add_default_layer_nodes_new(context):
 
             # Frame new nodes.
             frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
-            frame.name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(layers[selected_layer_index].layer_stack_index)
+            #frame.name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(layers[selected_layer_index].layer_stack_index)
+            frame.name = "New Layer Frame"
             frame.label = frame.name
             layers[selected_layer_index].frame_name = frame.name
 
@@ -168,7 +169,7 @@ def add_default_layer_nodes_new(context):
                 n.parent = frame
 
 
-            # TODO: Mute inactive channels.
+            # TODO: Mute layer nodes for inactive channels.
 
 
 

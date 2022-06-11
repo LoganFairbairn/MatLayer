@@ -98,7 +98,7 @@ def rename_layer_frame(name, layer_index, context):
             layer_frame.name = new_name
             layer_frame.label = layer_frame.name
 
-    layers[layer_index].frame_name = layer_frame.name
+    layers[layer_index].frame_name =  name + "_" + str(layers[layer_index].id) + "_" + str(layer_index)
 
 def mute_layer(mute, layer_index, context):
     '''Mutes (hides) all nodes in all material channels.'''
