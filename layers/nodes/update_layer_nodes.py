@@ -17,7 +17,7 @@ def update_layer_nodes(context):
     material_channel_names = material_channel_nodes.get_material_channel_list()
     for material_channel in material_channel_names:
 
-        # Update all layer node indicies.
+        # Update all layer node indicies (ran twice here to rename nodes that had been assigned existing names).
         update_layer_node_indicies(material_channel, context)
         update_layer_node_indicies(material_channel, context)
 
@@ -28,64 +28,62 @@ def update_layer_nodes(context):
         link_layers_in_material_channel(material_channel, context)
 
 def update_layer_indicies(context):
+    '''Updates layer stack indicies stored in the layer.'''
     layers = context.scene.coater_layers
 
-    # Update the layer stack index stored in layers (this is the index shown in material node names).
+    # The layer stack index is the index in the order the layers are stacked.
+    # The layer stack array index is the index of the array the layers are stored in.
+    # These two values are opposites of each other.
     for i in range(0, len(layers)):
         index = len(layers) - i - 1
         layers[i].layer_stack_index = index
-
-    # Update the layer stack array index stored in layers (this is the index used for the specific array).
-    for i in range(0, len(layers)):
         layers[i].layer_stack_array_index = i
 
 def update_layer_node_indicies(material_channel, context):
     '''Updates the layer node names and labels with the layer index. This allows the layer nodes to be read to determine their spot in the layer stack.'''
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
-    layers = context.scene.coater_layers
 
     # Update the layer stack indicies stored in layers.
-    layers = context.scene.coater_layers
-
     update_layer_indicies(context)
 
-    # Update layer node indicies.
-    for i in range(0, len(layers)):
-        layer_stack_index = layers[i].layer_stack_index
-        layer_name = context.scene.coater_layers[i].name
-        layer_id = context.scene.coater_layers[i].id
+    # Update the node indicies (in reverse order to avoid name duplications).
+    layers = context.scene.coater_layers
+    for i in range(len(layers), 0, -1):
+        index = i - 1
+        layer_stack_index = layers[index].layer_stack_index
 
-        # Rename the layer frames with the correct indicies (frames are considered a layer node).
-        layer_frame = layer_nodes.get_layer_frame(material_channel_node, layers, i)
-        if layer_frame:
-            layer_frame.name = layer_name + "_" + str(layer_id) + "_" + str(layer_stack_index)
-            layer_frame.label = layer_frame.name
-            layers[i].frame_name = layer_frame.name
-            
         # Rename layer nodes with correct indicies.
         layer_node_names = layer_nodes.get_layer_node_names()
         for node_name in layer_node_names:
-            node = layer_nodes.get_layer_node(node_name, material_channel, i, context)
+            node = layer_nodes.get_layer_node(node_name, material_channel, index, context)
 
             if node != None:
                 node.name = node_name + "_" + str(layer_stack_index)
                 node.label = node.name
 
                 if node_name == "TEXTURE":
-                    layers[i].texture_node_name = node.name
+                    layers[index].texture_node_name = node.name
 
                 if node_name == "OPACITY":
-                    layers[i].opacity_node_name = node.name
+                    layers[index].opacity_node_name = node.name
 
                 if node_name == "COORD":
-                    layers[i].coord_node_name = node.name
+                    layers[index].coord_node_name = node.name
 
                 if node_name == "MAPPING":
-                    layers[i].mapping_node_name = node.name
+                    layers[index].mapping_node_name = node.name
 
                 if node_name == "MIXLAYER":
-                    layers[i].mix_layer_node_name = node.name
+                    layers[index].mix_layer_node_name = node.name
 
+        # Rename the layer frames with the correct indicies (frames are considered a layer node which is why they are updated here).
+        layer_name = context.scene.coater_layers[index].name
+
+        # Rename the layer frame.
+        # IMPORTANT: The layer frame is renamed for all material channels to keep the layer frame name in sync.
+        layer_nodes.rename_layer_frame(layer_name, index, context)
+
+    
 
 
 
@@ -130,6 +128,7 @@ def organize_layer_nodes_in_material_channel(material_channel, context):
         # IMPORTANT: The nodes won't move when the frame is in place. Delete the layer's frame.
         frame = layer_nodes.get_layer_frame(material_channel_node, layers, i)
         if frame:
+            frame_name = frame.name
             material_channel_node.node_tree.nodes.remove(frame)
 
         # Organize the layer nodes.
@@ -141,7 +140,7 @@ def organize_layer_nodes_in_material_channel(material_channel, context):
 
         # Re-frame the layers.
         frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
-        frame.name = layers[i].name + "_" + str(layers[i].id) + "_" + str(layers[i].layer_stack_index)
+        frame.name = frame_name
         frame.label = frame.name
         layers[i].frame_name = frame.name
 

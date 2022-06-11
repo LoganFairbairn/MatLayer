@@ -100,41 +100,31 @@ def add_default_layer_nodes_new(context):
             if material_channels[i] == "COLOR":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.25, 0.25, 0.25, 1.0)
-                mix_layer_node.blend_type = 'MIX'
 
             if material_channels[i] == "METALLIC":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
                 texture_node.outputs[0].default_value = 0.0
-                mix_layer_node.blend_type = 'MIX'
 
             if material_channels[i] == "ROUGHNESS":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
                 texture_node.outputs[0].default_value = 0.5
-                mix_layer_node.blend_type = 'MIX'
 
             if material_channels[i] == "NORMAL":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.0, 0.0, 1.0, 1.0)
-                mix_layer_node.blend_type = 'MIX'
                 
             if material_channels[i] == "HEIGHT":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
                 texture_node.outputs[0].default_value = 0.0
-                mix_layer_node.blend_type = 'MIX'
+                mix_layer_node.blend_type = 'DODGE'
 
             if material_channels[i] == "SCATTERING":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
-                mix_layer_node.blend_type = 'MIX'
 
             if material_channels[i] == "EMISSION":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
-                mix_layer_node.blend_type = 'MIX'
-
-
-
-
 
 
             # Set the texture node name & label.
@@ -144,7 +134,6 @@ def add_default_layer_nodes_new(context):
             layers[selected_layer_index].texture_node_name = texture_node_name
             
 
-
             # Link newly created nodes.
             link = material_channel_node.node_tree.links.new
             link(texture_node.outputs[0], mix_layer_node.inputs[2])
@@ -152,16 +141,12 @@ def add_default_layer_nodes_new(context):
             link(coord_node.outputs[2], mapping_node.inputs[0])
 
 
-
-
-
-
             # Frame new nodes.
             frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
-            #frame.name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(layers[selected_layer_index].layer_stack_index)
             frame.name = "New Layer Frame"
             frame.label = frame.name
             layers[selected_layer_index].frame_name = frame.name
+
 
             # Frame all the nodes in the given layer in the newly created frame.
             nodes = layer_nodes.get_all_nodes_in_layer(material_channel_node, layers, selected_layer_index)

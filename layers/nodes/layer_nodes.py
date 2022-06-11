@@ -88,17 +88,21 @@ def rename_layer_frame(name, layer_index, context):
     '''Renames the layer frame in all material channels.'''
     layers = context.scene.coater_layers
 
+    # Get the layer stack index for this layer (opposite value of the layer stack array index).
+    # The layer stack index is added to the end of the layer frame name instead of the layer array index.
+    layer_stack_index = layers[layer_index].layer_stack_index
+
     material_channel_list = material_channel_nodes.get_material_channel_list()
     for material_channel in material_channel_list:
         material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
         layer_frame = get_layer_frame(material_channel_node, layers, layer_index)
 
         if layer_frame:
-            new_name = name + "_" + str(layers[layer_index].id) + "_" + str(layer_index)
+            new_name = name + "_" + str(layers[layer_index].id) + "_" + str(layer_stack_index)
             layer_frame.name = new_name
             layer_frame.label = layer_frame.name
 
-    layers[layer_index].frame_name =  name + "_" + str(layers[layer_index].id) + "_" + str(layer_index)
+    layers[layer_index].frame_name =  name + "_" + str(layers[layer_index].id) + "_" + str(layer_stack_index)
 
 def mute_layer(mute, layer_index, context):
     '''Mutes (hides) all nodes in all material channels.'''
