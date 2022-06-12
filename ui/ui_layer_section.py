@@ -347,12 +347,16 @@ def draw_texture_settings(layout, texture_node, texture_node_type, material_chan
         row.prop(texture_node, "image", text="")
 
         # Draw buttons to add / import / delete image textures quickly.
-        row.operator("coater.add_layer_image", icon="ADD", text="")
-        ops = row.operator("coater.import_color_image", icon="IMPORT", text="")
-        row.operator("coater.delete_layer_image", icon="TRASH", text="")
+        add_layer_image_operator = row.operator("coater.add_layer_image", icon="ADD", text="")
+        import_image_operator = row.operator("coater.import_color_image", icon="IMPORT", text="")
+        unlink_image_operator = row.operator("coater.unlink_layer_image", icon="UNLINKED", text="")
+        delete_layer_image_operator = row.operator("coater.delete_layer_image", icon="TRASH", text="")
 
-        # Set the operator to work for the specified material channel.
-        ops.material_channel = material_channel
+        # Notify the operators the desired material channel work for the specified material channel.
+        add_layer_image_operator.material_channel = material_channel
+        import_image_operator.material_channel = material_channel
+        unlink_image_operator.material_channel = material_channel
+        delete_layer_image_operator.material_channel = material_channel
 
     if texture_node_type == "NOISE":
         row = layout.row(align=True)

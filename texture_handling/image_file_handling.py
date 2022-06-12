@@ -30,19 +30,22 @@ class COATER_OT_add_layer_image(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Creates a image and adds it to the selected image layer"
 
+    # Specified material channel.
+    material_channel: bpy.props.StringProperty()
+
     def execute(self, context):
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
 
-        # Assign the new image a unique name.
+        # Assign the new image the layer name + a random image id number.
         layer_name = layers[layer_index].name.replace(" ", "")
         image_name = layer_name + "_" + get_random_image_id()
 
         while bpy.data.images.get(image_name) != None:
             image_name = layer_name + "_" + get_random_image_id()
 
+        # Create a new image of the texture size defined in the texture set settings.
         texture_set_settings = context.scene.coater_texture_set_settings
-        
         image_width = 128
         if texture_set_settings.image_width == 'FIVE_TWELVE':
             image_width = 512
@@ -73,7 +76,7 @@ class COATER_OT_add_layer_image(Operator):
                                   use_stereo_3d=False,
                                   tiled=False)
 
-        # If images are not being packed into the blend file, save them to a layer images folder.
+        # Save the images to a folder (unless they are being packed into the blend file).
         if texture_set_settings.pack_images == False:
             layers_folder_path = bpy.path.abspath("//") + 'Layer Images'
 
@@ -90,12 +93,12 @@ class COATER_OT_add_layer_image(Operator):
                 if layer_image.is_dirty:
                     layer_image.save()
 
-        group_node = layer_nodes.get_channel_node_group(context)
-        color_node_name = layers[layer_index].color_node_name
-        color_node = group_node.nodes.get(color_node_name)
 
-        if (color_node != None):
-            color_node.image = bpy.data.images[image_name]
+        # Add the new image to the selected layer.
+        selected_layer_index = context.scene.coater_layer_stack.layer_index
+        texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel, selected_layer_index, context)
+        if texture_node:
+            texture_node.image = bpy.data.images[image_name]
         
         return {'FINISHED'}
 
@@ -106,18 +109,14 @@ class COATER_OT_delete_layer_image(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Deletes the current layer image from Blender's data"
 
+    # Specified material channel.
+    material_channel: bpy.props.StringProperty()
+
     def execute(self, context):
-        layers = context.scene.coater_layers
-        layer_index = context.scene.coater_layer_stack.layer_index
+        selected_layer_index = context.scene.coater_layer_stack.layer_index
+        texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel, selected_layer_index, context)
 
-        group_node = layer_nodes.get_channel_node_group(context)
-        color_node_name = layers[layer_index].color_node_name
-        color_node = group_node.nodes.get(color_node_name)
-
-        if (color_node != None):
-            layer_image = color_node.image
-
-            if layer_image != None:
-                bpy.data.images.remove(layer_image)
+        if texture_node.image:
+            bpy.data.images.remove(texture_node.image )
         
         return {'FINISHED'}

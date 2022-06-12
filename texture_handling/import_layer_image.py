@@ -66,3 +66,20 @@ class COATER_OT_import_mask_image(Operator, ImportHelper):
             update_layer_nodes.update_layer_nodes(context)
         
         return {'FINISHED'}
+
+class COATER_OT_unlink_layer_image(Operator):
+    '''Un-links the image from the layer'''
+    bl_idname = "coater.unlink_layer_image"
+    bl_label = "Un-link Layer Image"
+    bl_description = "Un-links the image from the selected layer"
+
+    # Specified material channel.
+    material_channel: bpy.props.StringProperty()
+
+    def execute(self, context):
+        # Remove the image texture from the selected layer.
+        selected_layer_index = context.scene.coater_layer_stack.layer_index
+        texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel, selected_layer_index, context)
+        texture_node.image = None
+
+        return {'FINISHED'}
