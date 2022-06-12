@@ -225,7 +225,7 @@ def link_layers_in_material_channel(material_channel, context):
                         material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], normal_map_node.inputs[1])
 
                     else:
-                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], group_output_node.inputs[1])
+                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], group_output_node.inputs[0])
 
                 else:
                     if material_channel == 'HEIGHT':
@@ -237,7 +237,7 @@ def link_layers_in_material_channel(material_channel, context):
                         material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], normal_map_node.inputs[1])
 
                     else:
-                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], group_output_node.inputs[1])
+                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], group_output_node.inputs[0])
 
 def create_calculate_alpha_node(context):
     '''Creates a group node aimed used to calculate alpha blending properly between layers.'''

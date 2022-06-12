@@ -33,6 +33,7 @@ def draw_layers_section_ui(self, context):
                     row.scale_y = 2.0
                     row.prop_enum(layer_stack, "layer_properties_tab", 'MATERIAL')
                     row.prop_enum(layer_stack, "layer_properties_tab", 'MASK')
+                    row.prop_enum(layer_stack, "layer_properties_tab", 'FILTERS')
 
                     if layer_stack.layer_properties_tab == "MATERIAL":
                         draw_layer_properties(self, context)
@@ -327,7 +328,6 @@ def draw_material_channel_texture_settings(layout, context):
                         texture_node_type = layers[selected_layer_index].scattering_texture_node_type
                         row.prop(layers[selected_layer_index], "scattering_texture_node_type", text="")
                         draw_texture_settings(layout, texture_node, texture_node_type, "SCATTERING")
-
 
 def draw_texture_settings(layout, texture_node, texture_node_type, material_channel):
     '''Draws the texture setting based on the given texture node type.'''
