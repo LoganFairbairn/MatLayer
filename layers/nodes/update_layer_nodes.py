@@ -83,21 +83,14 @@ def update_layer_node_indicies(material_channel, context):
         # IMPORTANT: The layer frame is renamed for all material channels to keep the layer frame name in sync.
         layer_nodes.rename_layer_frame(layer_name, index, context)
 
-    
-
-
-
 def organize_material_channel_nodes(context):
     # Organize all material channel group nodes.
-    active_material_channel_nodes = material_channel_nodes.get_active_material_channel_nodes(context)
+    active_material_channel_nodes = material_channel_nodes.get_all_material_channel_nodes(context)
     header_position = [0.0, 0.0]
     for node in active_material_channel_nodes:
         if node != None:
             node.location = (-node.width + -NODE_SPACING, header_position[1])
             header_position[1] -= (node.height + (NODE_SPACING * 0.5))
-
-
-
 
 def organize_layer_nodes_in_material_channel(material_channel, context):
     '''Oranizes layer nodes in the specified material channel.'''
@@ -151,10 +144,6 @@ def organize_layer_nodes_in_material_channel(material_channel, context):
 
         # Add spacing between layers.
         header_position[0] -= NODE_SPACING
-
-
-
-
 
 def link_layers_in_material_channel(material_channel, context):
     '''Links all layers in the given material channel together by linking the mix layer and mix mask nodes together.'''
@@ -249,15 +238,6 @@ def link_layers_in_material_channel(material_channel, context):
 
                     else:
                         material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], group_output_node.inputs[0])
-
-        
-
-
-
-
-
-
-
 
 def create_calculate_alpha_node(context):
     '''Creates a group node aimed used to calculate alpha blending properly between layers.'''

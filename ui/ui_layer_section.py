@@ -350,6 +350,15 @@ def draw_texture_settings(layout, texture_node, texture_node_type):
         row.scale_y = SCALE_Y
         row.prop(texture_node, "image", text="")
 
+        # Draw buttons to add / import / delete image textures quickly.
+        row.operator("coater.add_layer_image", icon="ADD", text="")
+        ops = row.operator("coater.import_color_image", icon="IMPORT", text="")
+        row.operator("coater.delete_layer_image", icon="TRASH", text="")
+
+        ops.input1 = "METALLIC"
+
+
+
     if texture_node_type == "NOISE":
         row = layout.row(align=True)
         row.scale_y = SCALE_Y

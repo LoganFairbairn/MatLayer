@@ -66,8 +66,6 @@ def update_hidden(self, context):
     # Update the layer nodes.
     update_layer_nodes.update_layer_nodes(context)
 
-
-
 # UPDATE PROJECTION SETTINGS #
 def update_layer_projection(self, context):
     '''Changes the layer projection by reconnecting nodes.'''
@@ -315,22 +313,22 @@ def update_color_texture_node_type(self, context):
     replace_texture_node(self.color_texture_node_type, "COLOR", self, context)
 
 def update_metallic_texture_node_type(self, context):
-    replace_texture_node(self.color_texture_node_type, "METALLIC", self, context)
+    replace_texture_node(self.metallic_texture_node_type, "METALLIC", self, context)
 
 def update_roughness_texture_node_type(self, context):
-    replace_texture_node(self.color_texture_node_type, "ROUGHNESS", self, context)
+    replace_texture_node(self.roughness_texture_node_type, "ROUGHNESS", self, context)
 
 def update_normal_texture_node_type(self, context):
-    replace_texture_node(self.color_texture_node_type, "NORMAL", self, context)
+    replace_texture_node(self.normal_texture_node_type, "NORMAL", self, context)
 
 def update_height_texture_node_type(self, context):
-    replace_texture_node(self.color_texture_node_type, "HEIGHT", self, context)
+    replace_texture_node(self.height_texture_node_type, "HEIGHT", self, context)
 
 def update_scattering_texture_node_type(self, context):
-    replace_texture_node(self.color_texture_node_type, "SCATTERING", self, context)
+    replace_texture_node(self.scattering_texture_node_type, "SCATTERING", self, context)
 
 def update_emission_texture_node_type(self, context):
-    replace_texture_node(self.color_texture_node_type, "EMISSION", self, context)
+    replace_texture_node(self.emission_texture_node_type, "EMISSION", self, context)
 
 def replace_texture_node(texture_node_type, material_channel, self, context):
     '''Replaced the texture node with a new texture node based on the given node type.'''
@@ -339,7 +337,7 @@ def replace_texture_node(texture_node_type, material_channel, self, context):
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
     
     # Delete the old layer node.
-    old_texture_node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_stack_index, context)
+    old_texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel, selected_layer_stack_index, context)
 
     if old_texture_node:
         material_channel_node.node_tree.nodes.remove(old_texture_node)

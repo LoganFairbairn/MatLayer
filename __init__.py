@@ -55,7 +55,8 @@ from .exporting.coater_export import *
 from .exporting.export_to_image_editor import *
 from .exporting.exporting_settings import COATER_exporting_settings
 
-# Import tool modules.
+# Import tool / utility modules.
+from .texture_handling.image_file_handling import COATER_OT_add_layer_image, COATER_OT_delete_layer_image
 from .swap_tool_color import *
 
 # Import user interface modules.
@@ -132,6 +133,8 @@ classes = (
     COATER_OT_select_layer_image,
     COATER_OT_select_layer_mask,
     COATER_OT_bake_layer,
+    COATER_OT_add_layer_image,
+    COATER_OT_delete_layer_image,
 
     # Main Panel & General Settings
     COATER_panel_properties,

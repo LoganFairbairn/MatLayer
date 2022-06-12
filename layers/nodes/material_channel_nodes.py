@@ -3,17 +3,18 @@
 import bpy
 
 # List of all channel names.
-MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", "EMISSION", "SCATTERING")
+# Material channels are listed in the order of relative sockets in the Principled BSDF node so they will organize properly.
+MATERIAL_CHANNEL_NAMES = ("COLOR", "SCATTERING", "METALLIC", "ROUGHNESS", "EMISSION", "NORMAL", "HEIGHT")
 
 # Enum property item of material channels.
 MATERIAL_CHANNELS = [
     ("COLOR", "Color", ""), 
+    ("SCATTERING", "Scattering", ""),
     ("METALLIC", "Metallic", ""),
     ("ROUGHNESS", "Roughness", ""),
-    ("NORMAL", "Normal", ""),
-    ("HEIGHT", "Height", ""),
     ("EMISSION", "Emission", ""),
-    ("SCATTERING", "Scattering", "")
+    ("NORMAL", "Normal", ""),
+    ("HEIGHT", "Height", "")
     ]
 
 def verify_material_channel(material_channel_node):
@@ -26,6 +27,17 @@ def verify_material_channel(material_channel_node):
 def get_material_channel_list():
     '''Returns a set of all material channel names.'''
     return MATERIAL_CHANNEL_NAMES
+
+def get_all_material_channel_nodes(context):
+    '''Returns a list of all material channel nodes.'''
+    material_channel_list = get_material_channel_list()
+
+    material_channel_nodes = []
+    for material_channel in material_channel_list:
+        node = get_material_channel_node(context, material_channel)
+        material_channel_nodes.append(node)
+
+    return material_channel_nodes
 
 def get_active_material_channel_nodes(context):
     '''Returns a list of all active material channel nodes.'''
@@ -81,30 +93,6 @@ def get_material_channel_output_node(context, channel):
 
 def add_material_channel(context, group_node_name, node_width, channel):
     '''Adds the material channel group node and links it to the Principled BSDF shader.'''
-    
-    # Do not create material channel group nodes for non-active channels.
-    texture_set_settings = context.scene.coater_texture_set_settings
-    if channel == "COLOR" and texture_set_settings.color_channel_toggle == False:
-        return
-    
-    if channel == "METALLIC" and texture_set_settings.metallic_channel_toggle == False:
-        return
-
-    if channel == "ROUGHNESS" and texture_set_settings.roughness_channel_toggle == False:
-        return
-
-    if channel == "NORMAL" and texture_set_settings.normal_channel_toggle == False:
-        return
-
-    if channel == "HEIGHT" and texture_set_settings.height_channel_toggle == False:
-        return
-
-    if channel == "EMISSION" and texture_set_settings.emission_channel_toggle == False:
-        return
-    
-    if channel == "SCATTERING" and texture_set_settings.scattering_channel_toggle == False:
-        return
-    
     material_nodes = context.active_object.active_material.node_tree.nodes
     if material_nodes.get(group_node_name) == None:
         group_node = material_nodes.new('ShaderNodeGroup')
