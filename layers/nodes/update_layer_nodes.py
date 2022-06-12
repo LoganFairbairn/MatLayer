@@ -222,10 +222,10 @@ def link_layers_in_material_channel(material_channel, context):
 
                     elif material_channel == 'NORMAL':
                         normal_map_node = material_channel_node.node_tree.nodes.get("Normal Map")
-                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], normal_map_node.inputs[0])
+                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], normal_map_node.inputs[1])
 
                     else:
-                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], group_output_node.inputs[0])
+                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], group_output_node.inputs[1])
 
                 else:
                     if material_channel == 'HEIGHT':
@@ -234,10 +234,10 @@ def link_layers_in_material_channel(material_channel, context):
 
                     elif material_channel == 'NORMAL':
                         normal_map_node = material_channel_node.node_tree.nodes.get("Normal Map")
-                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], normal_map_node.inputs[0])
+                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], normal_map_node.inputs[1])
 
                     else:
-                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], group_output_node.inputs[0])
+                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], group_output_node.inputs[1])
 
 def create_calculate_alpha_node(context):
     '''Creates a group node aimed used to calculate alpha blending properly between layers.'''

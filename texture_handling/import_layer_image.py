@@ -1,4 +1,3 @@
-from cgitb import text
 import os
 import bpy
 from bpy.types import Operator
@@ -12,7 +11,8 @@ class COATER_OT_import_color_image(Operator, ImportHelper):
     bl_label = "Import Color Image"
     bl_description = "Opens a menu that allows the user to import a color image."
 
-    input1: bpy.props.StringProperty()
+    # Specified material channel.
+    material_channel: bpy.props.StringProperty()
 
     filter_glob: bpy.props.StringProperty(
         default='*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.bmp',
@@ -28,7 +28,7 @@ class COATER_OT_import_color_image(Operator, ImportHelper):
         bpy.ops.image.open(filepath=self.filepath)
 
         # Put the selected image into the texture node of the currently selected layer.
-        texture_node = layer_nodes.get_layer_node("TEXTURE", self.input1, selected_layer_index, context)
+        texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel, selected_layer_index, context)
         if texture_node:
             texture_node.image = bpy.data.images[image_name]
 
