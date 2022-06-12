@@ -199,10 +199,6 @@ def draw_material_channel_toggles(self, context):
     if texture_set_settings.scattering_channel_toggle:
         row.prop(layers[selected_layer_index], "scattering_channel_toggle", text="Scatt", toggle=1)
 
-
-
-
-
 def draw_material_channel_texture_settings(layout, context):
     '''Draws settings for the currently selected texture node in the each active material channel.'''
     layers = context.scene.coater_layers
@@ -357,8 +353,6 @@ def draw_texture_settings(layout, texture_node, texture_node_type):
 
         ops.input1 = "METALLIC"
 
-
-
     if texture_node_type == "NOISE":
         row = layout.row(align=True)
         row.scale_y = SCALE_Y
@@ -400,7 +394,6 @@ def draw_divider(layout):
     row = layout.row()
     row.alignment = 'CENTER'
     row.label(text="-------------------------------------------------------------------------------------------------------------")
-
 
 def draw_layer_properties(self, context):
     '''Draws layer properties such as projection settings, active material channels, and texture settings.'''

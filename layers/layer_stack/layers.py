@@ -338,7 +338,6 @@ def replace_texture_node(texture_node_type, material_channel, self, context):
     
     # Delete the old layer node.
     old_texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel, selected_layer_stack_index, context)
-
     if old_texture_node:
         material_channel_node.node_tree.nodes.remove(old_texture_node)
 
@@ -455,9 +454,9 @@ class COATER_layers(PropertyGroup):
 
     # Node Types (used for properly drawing user interface for node properties)
     color_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Color Texture Node Type", description="The node type for the color channel texture", default='COLOR', update=update_color_texture_node_type)
-    metallic_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Metallic Texture Node Type", description="The node type for the roughness channel texture", default='VALUE')
-    roughness_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Roughness Texture Node Type", description="The node type for roughness channel texture", default='VALUE')
-    normal_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Normal Texture Node Type", description="The node type for the normal channel texture", default='COLOR')
-    height_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Height Texture Node Type", description="The node type for the height channel texture", default='VALUE')
-    scattering_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Scattering Texture Node Type", description="The node type for the scattering channel texture", default='COLOR')
-    emission_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Emission Texture Node Type", description="The node type for the emission channel texture", default='COLOR')
+    metallic_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Metallic Texture Node Type", description="The node type for the roughness channel texture", default='VALUE', update=update_metallic_texture_node_type)
+    roughness_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Roughness Texture Node Type", description="The node type for roughness channel texture", default='VALUE', update=update_roughness_texture_node_type)
+    normal_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Normal Texture Node Type", description="The node type for the normal channel texture", default='COLOR', update=update_normal_texture_node_type)
+    height_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Height Texture Node Type", description="The node type for the height channel texture", default='VALUE', update=update_height_texture_node_type)
+    scattering_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Scattering Texture Node Type", description="The node type for the scattering channel texture", default='COLOR', update=update_scattering_texture_node_type)
+    emission_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Emission Texture Node Type", description="The node type for the emission channel texture", default='COLOR', update=update_emission_texture_node_type)
