@@ -9,15 +9,11 @@ from ..nodes import layer_nodes
 MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", "EMISSION", "SCATTERING")
 
 def update_selected_material_channel(self, context):
-    
-
     # Opacity values are stored in the layer so they can be assigned a correct min / max value.
-    # TODO: For all layers, update opacity values.
+    # For all layers, update opacity values.
     layers = context.scene.coater_layers
     selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
 
-
-    number_of_layers = len(layers)
     for i in range(0, len(layers)):
         opacity_node = layer_nodes.get_layer_node("OPACITY", selected_material_channel, i, context)
         layers[i].opacity = opacity_node.inputs[1].default_value
@@ -47,7 +43,7 @@ class COATER_layer_stack(PropertyGroup):
     selected_material_channel: bpy.props.EnumProperty(
         items=material_channel_nodes.MATERIAL_CHANNELS,
         name="Material Channel",
-        description="The currently selected material channel",
+        description="The currently selected material channel. Layer opacity and blend mode settings shown on the layer stack are based on the selected material channel",
         default='COLOR',
         update=update_selected_material_channel
     )
