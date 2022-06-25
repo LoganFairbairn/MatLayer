@@ -44,9 +44,8 @@ def update_layer_name(self, context):
 
 def update_layer_opacity(self, context):
     '''Updates the layer opacity node values when the opacity is changed.'''
-
-    # TODO: Make this use the currently selected material channel instead of just COLOR.
-    opacity_node = layer_nodes.get_layer_node_from_name(self.opacity_node_name, "COLOR", context)
+    selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+    opacity_node = layer_nodes.get_layer_node_from_name(self.opacity_node_name, selected_material_channel, context)
 
     if opacity_node != None:
         opacity_node.inputs[1].default_value = self.opacity

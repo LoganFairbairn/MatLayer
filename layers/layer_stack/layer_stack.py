@@ -9,7 +9,21 @@ from ..nodes import layer_nodes
 MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", "EMISSION", "SCATTERING")
 
 def update_selected_material_channel(self, context):
+    
+
+    # Opacity values are stored in the layer so they can be assigned a correct min / max value.
+    # TODO: For all layers, update opacity values.
+    layers = context.scene.coater_layers
+    selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+
+
+    number_of_layers = len(layers)
+    for i in range(0, len(layers)):
+        opacity_node = layer_nodes.get_layer_node("OPACITY", selected_material_channel, i, context)
+        layers[i].opacity = opacity_node.inputs[1].default_value
+
     bpy.ops.coater.refresh_layers()
+
 
 def update_layer_index(self, context):
     '''Runs when the layer index is updated.'''

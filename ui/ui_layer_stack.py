@@ -49,7 +49,7 @@ class COATER_UL_layer_list(bpy.types.UIList):
             col.ui_units_x = 1.6
             col.scale_y = 0.5
 
-            opacity_node = layer_nodes.get_layer_node("OPACITY", selected_material_channel, item.layer_stack_array_index, context)
+            layer_nodes.get_layer_node("OPACITY", selected_material_channel, item.layer_stack_array_index, context)
             col.prop(item, "opacity", text="", emboss=True)
 
             material_channel_node = material_channel_nodes.get_material_channel_node(context, selected_material_channel)
