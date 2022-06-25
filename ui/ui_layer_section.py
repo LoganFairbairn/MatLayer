@@ -26,7 +26,6 @@ def draw_layers_section_ui(self, context):
                 if len(layers) > 0:
                     draw_layer_stack(self, context)
 
-                if len(layers) > 0:
                     layer_stack = context.scene.coater_layer_stack
 
                     row = layout.row(align=True)
