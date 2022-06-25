@@ -23,23 +23,12 @@ class COATER_OT_duplicate_layer(Operator):
 
         original_layer_index = selected_layer_index
 
-        # Duplicate layer information into a new layer.
-        add_layer_slot.add_layer_slot(context)
-        new_layer_index = context.scene.coater_layer_stack.layer_index
-        layers[new_layer_index] = layers[original_layer_index]
+        # TODO: Duplicate all nodes in the layer.
 
-        # TODO: Create general nodes for the duplicated layer.
-        material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
-        add_layer.add_general_layer_nodes(context, material_channel_node)
 
-        # TODO: Add texture node for the duplicated layer based on the layer being copied.
+        # TODO: Update node indicies.
 
-        # TODO: Copy all the settings from the original layer.
 
-        # Update layer nodes indicies.
-        update_layer_nodes.update_layer_node_indicies(context, "COLOR")
-
-        # Organize nodes.
-        update_layer_nodes.organize_all_nodes(context)
+        # TODO: Read nodes values, store them in the layer (read layer nodes).
 
         return{'FINISHED'}

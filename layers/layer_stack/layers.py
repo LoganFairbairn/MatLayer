@@ -332,7 +332,7 @@ def update_emission_texture_node_type(self, context):
 def replace_texture_node(texture_node_type, material_channel, self, context):
     '''Replaced the texture node with a new texture node based on the given node type.'''
 
-    selected_layer_stack_index = context.scene.coater_layer_stack.layer_index
+    selected_layer_stack_index = context.scene.coater_layer_stack.selected_layer_index
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
     
     # Delete the old layer node.

@@ -34,7 +34,7 @@ class COATER_OT_delete_layer(Operator):
                 material_channel_node.node_tree.nodes.remove(frame)
 
         # Remove the layer from the list.
-        layers.remove(layer_stack.layer_index)
+        layers.remove(layer_stack.selected_layer_index)
         layer_stack.layer_index = min(max(0, layer_stack.layer_index - 1), len(layers) - 1)
 
         # Update the layer nodes.
