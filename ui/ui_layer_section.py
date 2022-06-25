@@ -99,13 +99,8 @@ def draw_layer_stack(self, context):
     layout = self.layout
     row = layout.row(align=True)
     layers = context.scene.coater_layer_stack
-    # TODO: Rename The_List WHYYYYYYY IS THIS HERE
-    row.template_list("COATER_UL_layer_list", "The_List", context.scene, "coater_layers", layers, "selected_layer_index", sort_reverse=True)
+    row.template_list("COATER_UL_layer_list", "Layer_Stack", context.scene, "coater_layers", layers, "selected_layer_index", sort_reverse=True)
     row.scale_y = 2
-
-
-
-
 
 # DRAW LAYER PROPERTIES #
 def draw_material_projection_settings(self, context):

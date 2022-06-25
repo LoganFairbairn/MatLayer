@@ -3,10 +3,12 @@
 import bpy
 from bpy.types import PropertyGroup
 from ..nodes import material_channel_nodes
+from ..nodes import layer_nodes
 
+# TODO: This should be imported from a file rather than duplicated here.
 MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", "EMISSION", "SCATTERING")
 
-def update_layer_channel(self, context):
+def update_selected_material_channel(self, context):
     bpy.ops.coater.refresh_layers()
 
 def update_layer_index(self, context):
@@ -23,7 +25,6 @@ def update_layer_index(self, context):
 
 class COATER_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''
-    # TODO: Rename this to selected_layer_index.
     selected_layer_index: bpy.props.IntProperty(default=-1, update=update_layer_index)
     channel_preview: bpy.props.BoolProperty(name="", default=False)
     node_default_width: bpy.props.IntProperty(default=250)
@@ -34,9 +35,8 @@ class COATER_layer_stack(PropertyGroup):
         name="Material Channel",
         description="The currently selected material channel",
         default='COLOR',
-        update=update_layer_channel
+        update=update_selected_material_channel
     )
-
 
     # Tabs for layer properties.
     layer_properties_tab: bpy.props.EnumProperty(

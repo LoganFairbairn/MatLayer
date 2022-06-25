@@ -39,18 +39,20 @@ class COATER_UL_layer_list(bpy.types.UIList):
 
 
 
-            # Draw layer's opacity.
+            # Draw layer's opacity and blend mode for the selected material channel.
+            selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+
             row = layout.row(align=True)
             row.ui_units_x = 2
-
             split = layout.split()
             col = split.column(align=True)
             col.ui_units_x = 1.6
             col.scale_y = 0.5
+
+            opacity_node = layer_nodes.get_layer_node("OPACITY", selected_material_channel, item.layer_stack_array_index, context)
             col.prop(item, "opacity", text="", emboss=True)
 
-            # Draw the layer's blend mode.
-            material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
+            material_channel_node = material_channel_nodes.get_material_channel_node(context, selected_material_channel)
             mix_layer_node = material_channel_node.node_tree.nodes.get(item.mix_layer_node_name)
             if mix_layer_node:
                 col.prop(mix_layer_node, "blend_type", text="")
