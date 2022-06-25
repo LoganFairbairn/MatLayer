@@ -20,7 +20,7 @@ class COATER_OT_import_color_image(Operator, ImportHelper):
     )
 
     def execute(self, context):
-        selected_layer_index = context.scene.coater_layer_stack.layer_index
+        selected_layer_index = context.scene.coater_layer_stack.selected_layer_index
 
         # Open a window to import an image into blender.
         head_tail = os.path.split(self.filepath)
@@ -49,7 +49,7 @@ class COATER_OT_import_mask_image(Operator, ImportHelper):
 
     def execute(self, context):
         layers = context.scene.coater_layers
-        layer_index = context.scene.coater_layer_stack.layer_index
+        selected_layer_index = context.scene.coater_layer_stack.selected_layer_index
 
         head_tail = os.path.split(self.filepath)
         image_name = head_tail[1]
@@ -57,7 +57,7 @@ class COATER_OT_import_mask_image(Operator, ImportHelper):
         bpy.ops.image.open(filepath=self.filepath)
         
         group_node = layer_nodes.get_channel_node_group(context)
-        mask_node = group_node.nodes.get(layers[layer_index].mask_node_name)
+        mask_node = group_node.nodes.get(layers[selected_layer_index].mask_node_name)
 
         if mask_node != None:
             mask_image = bpy.data.images[image_name]
@@ -78,7 +78,7 @@ class COATER_OT_unlink_layer_image(Operator):
 
     def execute(self, context):
         # Remove the image texture from the selected layer.
-        selected_layer_index = context.scene.coater_layer_stack.layer_index
+        selected_layer_index = context.scene.coater_layer_stack.selected_layer_index
         texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel, selected_layer_index, context)
         texture_node.image = None
 

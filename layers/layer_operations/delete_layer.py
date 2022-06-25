@@ -18,7 +18,7 @@ class COATER_OT_delete_layer(Operator):
     def execute(self, context):
         layers = context.scene.coater_layers
         layer_stack = context.scene.coater_layer_stack
-        selected_layer_index = context.scene.coater_layer_stack.layer_index
+        selected_layer_index = context.scene.coater_layer_stack.selected_layer_index
 
         # Remove all nodes for all material channels.
         material_channel_list = material_channel_nodes.get_material_channel_list()

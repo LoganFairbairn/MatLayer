@@ -99,8 +99,8 @@ def draw_layer_stack(self, context):
     layout = self.layout
     row = layout.row(align=True)
     layers = context.scene.coater_layer_stack
-    # TODO: Rename The_List
-    row.template_list("COATER_UL_layer_list", "The_List", context.scene, "coater_layers", layers, "layer_index", sort_reverse=True)
+    # TODO: Rename The_List WHYYYYYYY IS THIS HERE
+    row.template_list("COATER_UL_layer_list", "The_List", context.scene, "coater_layers", layers, "selected_layer_index", sort_reverse=True)
     row.scale_y = 2
 
 
@@ -111,7 +111,7 @@ def draw_layer_stack(self, context):
 def draw_material_projection_settings(self, context):
     '''Draws material projection settings.'''
     layers = context.scene.coater_layers
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    selected_layer_index = context.scene.coater_layer_stack.selected_layer_index
     layout = self.layout
     
     row = layout.row()
@@ -171,7 +171,7 @@ def draw_material_projection_settings(self, context):
 def draw_material_channel_toggles(self, context):
     '''Draws options to quickly toggle material channels on and off.'''
     layers = context.scene.coater_layers
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    selected_layer_index = context.scene.coater_layer_stack.selected_layer_index
     texture_set_settings = context.scene.coater_texture_set_settings
     layout = self.layout
 
@@ -203,7 +203,7 @@ def draw_material_channel_toggles(self, context):
 def draw_material_channel_texture_settings(layout, context):
     '''Draws settings for the currently selected texture node in the each active material channel.'''
     layers = context.scene.coater_layers
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    selected_layer_index = context.scene.coater_layer_stack.selected_layer_index
     texture_set_settings = context.scene.coater_texture_set_settings
 
     # Get a list of all the material channels.

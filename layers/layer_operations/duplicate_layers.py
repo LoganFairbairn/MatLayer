@@ -19,7 +19,7 @@ class COATER_OT_duplicate_layer(Operator):
 
     def execute(self, context):
         layers = context.scene.coater_layers
-        selected_layer_index = context.scene.coater_layer_stack.layer_index
+        selected_layer_index = context.scene.coater_layer_stack.selected_layer_index
 
         original_layer_index = selected_layer_index
 

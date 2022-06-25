@@ -11,7 +11,7 @@ def update_layer_channel(self, context):
 
 def update_layer_index(self, context):
     '''Runs when the layer index is updated.'''
-    layer_index = context.scene.coater_layer_stack.layer_index
+    layer_index = context.scene.coater_layer_stack.selected_layer_index
     
     # TODO: Select the current layer image.
     '''
@@ -24,7 +24,7 @@ def update_layer_index(self, context):
 class COATER_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''
     # TODO: Rename this to selected_layer_index.
-    layer_index: bpy.props.IntProperty(default=-1, update=update_layer_index)
+    selected_layer_index: bpy.props.IntProperty(default=-1, update=update_layer_index)
     channel_preview: bpy.props.BoolProperty(name="", default=False)
     node_default_width: bpy.props.IntProperty(default=250)
     node_spacing: bpy.props.IntProperty(default=80)

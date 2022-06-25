@@ -5,7 +5,7 @@ def update_match_layer_scale(self, context):
 
     if layer_settings.match_layer_scale:
         layers = context.scene.coater_layers
-        layer_index = context.scene.coater_layer_stack.layer_index
+        layer_index = context.scene.coater_layer_stack.selected_layer_index
 
         layers[layer_index].projected_scale_y = layers[layer_index].projected_scale_x
 
@@ -14,7 +14,7 @@ def update_match_layer_mask_scale(self, context):
 
     if layer_settings.match_layer_mask_scale:
         layers = context.scene.coater_layers
-        layer_index = context.scene.coater_layer_stack.layer_index
+        layer_index = context.scene.coater_layer_stack.selected_layer_index
 
         layers[layer_index].projected_mask_scale_y = layers[layer_index].projected_mask_scale_x
 

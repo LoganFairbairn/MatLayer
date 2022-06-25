@@ -9,7 +9,7 @@ from ..import layer_nodes
 def get_image_name(layer_name):
     '''Returns the image name'''
     bpy.context.scene.coater_layers
-    layer_index = bpy.context.scene.coater_layer_stack.layer_index
+    selected_layer_index = bpy.context.scene.coater_layer_stack.selected_layer_index
 
 def save_layer_image(image_name):
     '''Saves the given layer image to the designated layer folder.'''
@@ -35,11 +35,11 @@ class COATER_OT_add_layer_image(Operator):
 
     def execute(self, context):
         layers = context.scene.coater_layers
-        layer_index = context.scene.coater_layer_stack.layer_index
+        selected_layer_index = context.scene.coater_layer_stack.selected_layer_index
 
         # Assign the new image the layer name + a random image id number.
-        layer_name = layers[layer_index].name.replace(" ", "")
-        image_name = layer_name + "_" + get_random_image_id()
+        layer_name = layers[selected_layer_index].name.replace(" ", "")
+        image_name = layer_name + "_" + self.material_channel + "_" + str(layers[selected_layer_index].id)
 
         while bpy.data.images.get(image_name) != None:
             image_name = layer_name + "_" + get_random_image_id()
@@ -93,9 +93,7 @@ class COATER_OT_add_layer_image(Operator):
                 if layer_image.is_dirty:
                     layer_image.save()
 
-
         # Add the new image to the selected layer.
-        selected_layer_index = context.scene.coater_layer_stack.layer_index
         texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel, selected_layer_index, context)
         if texture_node:
             texture_node.image = bpy.data.images[image_name]
@@ -113,7 +111,7 @@ class COATER_OT_delete_layer_image(Operator):
     material_channel: bpy.props.StringProperty()
 
     def execute(self, context):
-        selected_layer_index = context.scene.coater_layer_stack.layer_index
+        selected_layer_index = context.scene.coater_layer_stack.selected_layer_index
         texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel, selected_layer_index, context)
 
         if texture_node.image:
