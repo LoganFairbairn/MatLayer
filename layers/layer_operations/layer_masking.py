@@ -19,7 +19,7 @@ class COATER_OT_add_empty_mask(Operator):
 
     def execute(self, context):
         layers = context.scene.coater_layers
-        layer_index = context.scene.coater_layer_stack.selected_layer_index
+        layer_index = context.scene.coater_layer_stack.layer_index
 
         # Create mask nodes.
         channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
@@ -93,7 +93,7 @@ class COATER_OT_delete_layer_mask(Operator):
 
     def execute(self, context):
         layers = context.scene.coater_layers
-        layer_index = context.scene.coater_layer_stack.selected_layer_index
+        layer_index = context.scene.coater_layer_stack.layer_index
 
         material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
 
@@ -141,7 +141,7 @@ class COATER_OT_add_black_mask(Operator):
         bpy.ops.coater.add_empty_mask()
 
         layers = context.scene.coater_layers
-        layer_index = context.scene.coater_layer_stack.selected_layer_index
+        layer_index = context.scene.coater_layer_stack.layer_index
 
         # Assign the new image a unique name.
         layer_name = layers[layer_index].name.replace(" ", "")
@@ -219,7 +219,7 @@ class COATER_OT_add_white_mask(Operator):
         bpy.ops.coater.add_empty_mask()
         
         layers = context.scene.coater_layers
-        layer_index = context.scene.coater_layer_stack.selected_layer_index
+        layer_index = context.scene.coater_layer_stack.layer_index
 
         # Assign the new image a unique name.
         layer_name = layers[layer_index].name.replace(" ", "")
@@ -277,7 +277,7 @@ class COATER_OT_delete_layer_image_mask(Operator):
 
     def execute(self, context):
         layers = context.scene.coater_layers
-        layer_index = context.scene.coater_layer_stack.selected_layer_index
+        layer_index = context.scene.coater_layer_stack.layer_index
 
         group_node = layer_nodes.get_channel_node_group(context)
         mask_node_name = layers[layer_index].mask_node_name

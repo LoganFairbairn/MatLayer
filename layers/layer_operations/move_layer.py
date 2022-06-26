@@ -38,7 +38,7 @@ def move_layer(context, direction):
     '''Moves a layer up or down the layer stack.'''
     layers = context.scene.coater_layers
     layer_stack = context.scene.coater_layer_stack
-    layer_index = context.scene.coater_layer_stack.selected_layer_index
+    layer_index = context.scene.coater_layer_stack.layer_index
 
     index_to_move_to = max(0, min(layer_index + (-1 if direction == "Up" else 1), len(layers) - 1))
     layers.move(layer_index, index_to_move_to)

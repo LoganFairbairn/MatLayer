@@ -39,13 +39,14 @@ TEXTURE_INTERPOLATION_MODES = [
 # UPDATE FUNCTIONS FOR GENERAL LAYER SETTNGS #
 def update_layer_name(self, context):
     '''Updates layer nodes, frames when the layer name is changed.'''
-    selected_layer_stack_index = context.scene.coater_layer_stack.selected_layer_index
+    selected_layer_stack_index = context.scene.coater_layer_stack.layer_index
     layer_nodes.rename_layer_frame(self.name, selected_layer_stack_index, context)
 
 def update_layer_opacity(self, context):
     '''Updates the layer opacity node values when the opacity is changed.'''
-    selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
-    opacity_node = layer_nodes.get_layer_node_from_name(self.opacity_node_name, selected_material_channel, context)
+
+    # TODO: Make this use the currently selected material channel instead of just COLOR.
+    opacity_node = layer_nodes.get_layer_node_from_name(self.opacity_node_name, "COLOR", context)
 
     if opacity_node != None:
         opacity_node.inputs[1].default_value = self.opacity
@@ -69,7 +70,7 @@ def update_hidden(self, context):
 def update_layer_projection(self, context):
     '''Changes the layer projection by reconnecting nodes.'''
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.selected_layer_index
+    layer_index = context.scene.coater_layer_stack.layer_index
     channel_node_group = layer_nodes.get_channel_node_group(context)
     color_node = channel_node_group.nodes.get(layers[layer_index].color_node_name)
     coord_node = channel_node_group.nodes.get(layers[layer_index].coord_node_name)
@@ -104,7 +105,7 @@ def update_layer_projection(self, context):
 def update_projection_blend(self, context):
     '''Updates the projection blend node values when the cube projection blend value is changed.'''
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.selected_layer_index
+    layer_index = context.scene.coater_layer_stack.layer_index
     channel_node_group = layer_nodes.get_channel_node_group(context)
     color_node = channel_node_group.nodes.get(layers[layer_index].color_node_name)
     
@@ -114,7 +115,7 @@ def update_projection_blend(self, context):
 def update_mask_projection_blend(self, context):
     '''Updates the mask projection blend node values when the cube projection blend value is changed.'''
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.selected_layer_index
+    layer_index = context.scene.coater_layer_stack.layer_index
     channel_node_group = layer_nodes.get_channel_node_group(context)
     mask_node = channel_node_group.nodes.get(layers[layer_index].mask_node_name)
 
@@ -124,7 +125,7 @@ def update_mask_projection_blend(self, context):
 def update_mask_projection(self, context):
     '''Changes the mask projection by reconnecting nodes.'''
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.selected_layer_index
+    layer_index = context.scene.coater_layer_stack.layer_index
     channel_node_group = layer_nodes.get_channel_node_group(context)
     mask_node = channel_node_group.nodes.get(layers[layer_index].mask_node_name)
     mask_coord_node = channel_node_group.nodes.get(layers[layer_index].mask_coord_node_name)
@@ -158,7 +159,7 @@ def update_mask_projection(self, context):
 
 def update_projected_offset_x(self, context):
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.selected_layer_index
+    layer_index = context.scene.coater_layer_stack.layer_index
 
     # Get the mapping node.
     mapping_node = layer_nodes.get_node(context, 'MAPPING', layer_index)
@@ -169,7 +170,7 @@ def update_projected_offset_x(self, context):
 
 def update_projected_offset_y(self, context):
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.selected_layer_index
+    layer_index = context.scene.coater_layer_stack.layer_index
 
     # Get the mapping node.
     mapping_node = layer_nodes.get_node(context, 'MAPPING', layer_index)
@@ -180,7 +181,7 @@ def update_projected_offset_y(self, context):
 
 def update_projected_rotation(self, context):
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.selected_layer_index
+    layer_index = context.scene.coater_layer_stack.layer_index
 
     # Get the mapping node.
     mapping_node = layer_nodes.get_node(context, 'MAPPING', layer_index)
@@ -191,7 +192,7 @@ def update_projected_rotation(self, context):
 
 def update_projected_scale_x(self, context):
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.selected_layer_index
+    layer_index = context.scene.coater_layer_stack.layer_index
 
     # Get the mapping node.
     mapping_node = layer_nodes.get_node(context, 'MAPPING', layer_index)
@@ -206,7 +207,7 @@ def update_projected_scale_x(self, context):
 
 def update_projected_scale_y(self, context):
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.selected_layer_index
+    layer_index = context.scene.coater_layer_stack.layer_index
 
     # Get the mapping node.
     mapping_node = layer_nodes.get_node(context, 'MAPPING', layer_index)
@@ -217,7 +218,7 @@ def update_projected_scale_y(self, context):
 
 def update_projected_mask_offset_x(self, context):
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.selected_layer_index
+    layer_index = context.scene.coater_layer_stack.layer_index
 
     # Get the mapping node.
     mask_mapping_node = layer_nodes.get_node(context, 'MASK_MAPPING', layer_index)
@@ -228,7 +229,7 @@ def update_projected_mask_offset_x(self, context):
 
 def update_projected_mask_offset_y(self, context):
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.selected_layer_index
+    layer_index = context.scene.coater_layer_stack.layer_index
 
     # Get the mapping node.
     mask_mapping_node = layer_nodes.get_node(context, 'MASK_MAPPING', layer_index)
@@ -239,7 +240,7 @@ def update_projected_mask_offset_y(self, context):
 
 def update_projected_mask_rotation(self, context):
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.selected_layer_index
+    layer_index = context.scene.coater_layer_stack.layer_index
 
     # Get the mapping node.
     mask_mapping_node = layer_nodes.get_node(context, 'MASK_MAPPING', layer_index)
@@ -250,7 +251,7 @@ def update_projected_mask_rotation(self, context):
 
 def update_projected_mask_scale_x(self, context):
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.selected_layer_index
+    layer_index = context.scene.coater_layer_stack.layer_index
 
     # Get the mapping node.
     mask_mapping_node = layer_nodes.get_node(context, 'MASK_MAPPING', layer_index)
@@ -265,7 +266,7 @@ def update_projected_mask_scale_x(self, context):
 
 def update_projected_mask_scale_y(self, context):
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.selected_layer_index
+    layer_index = context.scene.coater_layer_stack.layer_index
 
     # Get the mapping node.
     mask_mapping_node = layer_nodes.get_node(context, 'MASK_MAPPING', layer_index)
@@ -332,7 +333,7 @@ def update_emission_texture_node_type(self, context):
 def replace_texture_node(texture_node_type, material_channel, self, context):
     '''Replaced the texture node with a new texture node based on the given node type.'''
 
-    selected_layer_stack_index = context.scene.coater_layer_stack.selected_layer_index
+    selected_layer_stack_index = context.scene.coater_layer_stack.layer_index
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
     
     # Delete the old layer node.

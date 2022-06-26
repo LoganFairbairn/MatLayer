@@ -40,7 +40,7 @@ def add_default_layer_nodes_new(context):
 
     # Update the new layers index within the layer stack (which is added to the node names).
     layers = context.scene.coater_layers
-    selected_layer_index = context.scene.coater_layer_stack.selected_layer_index
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
 
     # Update the layer node indicies.
     update_layer_nodes.update_layer_indicies(context)

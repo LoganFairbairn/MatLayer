@@ -6,7 +6,7 @@ def add_layer_slot(context):
     '''Creates a layer node.'''
     layers = context.scene.coater_layers
     layer_stack = context.scene.coater_layer_stack
-    selected_layer_index = context.scene.coater_layer_stack.selected_layer_index
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
 
     # Add a new layer slot.
     layers.add()
@@ -21,14 +21,14 @@ def add_layer_slot(context):
         move_index = len(layers) - 1
         move_to_index = max(0, min(selected_layer_index, len(layers) - 1))
         layers.move(move_index, move_to_index)
-        layer_stack.selected_layer_index = move_to_index
+        layer_stack.layer_index = move_to_index
 
     # If there is no layer selected, move the layer to the top of the stack.
     else:
         move_index = len(layers) - 1
         move_to_index = 0
         layers.move(move_index, move_to_index)
-        layer_stack.selected_layer_index = move_to_index
+        layer_stack.layer_index = move_to_index
 
     # Assign the layer a unique random ID number.
     number_of_layers = len(layers)

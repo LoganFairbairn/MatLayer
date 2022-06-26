@@ -10,7 +10,7 @@ class COATER_OT_select_layer_image(Operator):
 
     def execute(self, context):
         layers = context.scene.coater_layers
-        layer_index = context.scene.coater_layer_stack.selected_layer_index
+        layer_index = context.scene.coater_layer_stack.layer_index
         channel_node_group = layer_nodes.get_channel_node_group(context)
 
         if layers[layer_index].type == 'IMAGE_LAYER':
@@ -29,7 +29,7 @@ class COATER_OT_select_layer_mask(Operator):
 
     def execute(self, context):
         layers = context.scene.coater_layers
-        layer_index = context.scene.coater_layer_stack.selected_layer_index
+        layer_index = context.scene.coater_layer_stack.layer_index
         channel_node_group = layer_nodes.get_channel_node_group(context)
 
         if channel_node_group != None:
