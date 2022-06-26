@@ -30,6 +30,11 @@ class COATER_UL_layer_list(bpy.types.UIList):
             # TODO: If the layer has a mask, draw a preview.
 
 
+
+            # Debug drawing.
+            layout.prop(item, "layer_stack_index", text="", emboss=False)
+            #layout.prop(item, "layer_stack_array_index", text="", emboss=False)
+
             
             # Draw the layer's name.
             row = layout.row(align=True)

@@ -27,6 +27,12 @@ def update_layer_nodes(context):
         # Link all layers.
         link_layers_in_material_channel(material_channel, context)
 
+
+
+
+
+
+
 def update_layer_indicies(context):
     '''Updates layer stack indicies stored in the layer.'''
     layers = context.scene.coater_layers
@@ -35,9 +41,22 @@ def update_layer_indicies(context):
     # The layer stack array index is the index of the array the layers are stored in.
     # These two values are opposites of each other.
     for i in range(0, len(layers)):
-        index = len(layers) - i - 1
-        layers[i].layer_stack_index = index
         layers[i].layer_stack_array_index = i
+
+
+    # 
+    for i in range(len(layers), 0, -1):
+        index = i - 1
+        layers[index].layer_stack_index = index
+
+
+
+
+
+
+
+
+
 
 def update_layer_node_indicies(material_channel, context):
     '''Updates the layer node names and labels with the layer index. This allows the layer nodes to be read to determine their spot in the layer stack.'''
@@ -51,6 +70,7 @@ def update_layer_node_indicies(material_channel, context):
     for i in range(len(layers), 0, -1):
         index = i - 1
         layer_stack_index = layers[index].layer_stack_index
+
 
         # Rename layer nodes with correct indicies.
         layer_node_names = layer_nodes.get_layer_node_names()
@@ -80,8 +100,7 @@ def update_layer_node_indicies(material_channel, context):
         layer_name = context.scene.coater_layers[index].name
 
         # Rename the layer frame.
-        # IMPORTANT: The layer frame is renamed for all material channels to keep the layer frame name in sync.
-        layer_nodes.rename_layer_frame(layer_name, index, context)
+        layer_nodes.rename_layer_frame(layer_name, layer_stack_index, context)
 
 def organize_material_channel_nodes(context):
     # Organize all material channel group nodes.
@@ -112,20 +131,23 @@ def organize_layer_nodes_in_material_channel(material_channel, context):
         bump_node = material_channel_node.node_tree.nodes.get("Bump")
         bump_node.location = (0.0, -100.0)
 
-    # Organizes all nodes.
+
+
+    # Organizes all nodes (in reverse order).
     header_position = [0.0, 0.0]
-    for i in range(0, len(layers)):
+    for i in range(len(layers), 0, -1):
+        index = i - 1
         header_position[0] -= NODE_WIDTH + NODE_SPACING
         header_position[1] = 0.0
 
         # IMPORTANT: The nodes won't move when the frame is in place. Delete the layer's frame.
-        frame = layer_nodes.get_layer_frame(material_channel_node, layers, i)
+        frame = layer_nodes.get_layer_frame(material_channel_node, layers, index)
         if frame:
             frame_name = frame.name
-            material_channel_node.node_tree.nodes.remove(frame)
+            material_channel_node.node_tree.nodes.remove(frame)    
 
         # Organize the layer nodes.
-        node_list = layer_nodes.get_all_nodes_in_layer(material_channel_node, layers, i)
+        node_list = layer_nodes.get_all_nodes_in_layer(material_channel_node, layers, index)
         for c in range(0, len(node_list)):
             node_list[c].width = NODE_WIDTH
             node_list[c].location = (header_position[0], header_position[1])
@@ -135,10 +157,10 @@ def organize_layer_nodes_in_material_channel(material_channel, context):
         frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
         frame.name = frame_name
         frame.label = frame.name
-        layers[i].frame_name = frame.name
+        layers[index].frame_name = frame.name
 
         # Frame all the nodes in the given layer in the newly created frame.
-        nodes = layer_nodes.get_all_nodes_in_layer(material_channel_node, layers, i)
+        nodes = layer_nodes.get_all_nodes_in_layer(material_channel_node, layers, index)
         for n in nodes:
             n.parent = frame
 
