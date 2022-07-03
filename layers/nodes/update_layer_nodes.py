@@ -19,7 +19,6 @@ def update_layer_nodes(context):
 
         # Update all layer node indicies (ran twice here to rename nodes that had been assigned existing names).
         update_layer_node_indicies(material_channel, context)
-        update_layer_node_indicies(material_channel, context)
 
         # Organize all layer nodes.
         organize_layer_nodes_in_material_channel(material_channel, context)
@@ -69,16 +68,51 @@ def update_layer_node_indicies(material_channel, context):
     layers = context.scene.coater_layers
     for i in range(len(layers), 0, -1):
         index = i - 1
-        layer_stack_index = layers[index].layer_stack_index
 
-
-        # Rename layer nodes with correct indicies.
+        # Rename all layer nodes with correct layer indicies.
         layer_node_names = layer_nodes.get_layer_node_names()
         for node_name in layer_node_names:
             node = layer_nodes.get_layer_node(node_name, material_channel, index, context)
 
+            # TODO: Fix Error here, node is missing !!!!
             if node != None:
-                node.name = node_name + "_" + str(layer_stack_index)
+                new_node_name = node_name + "_" + str(index)
+
+
+                # ERROR HERE, NOT ASSIGNING TEMP NAMES PROPERLY
+                # Check to see if a node with the new name already exists (blender doesn't allow nodes to share the same name).
+                existing_node = material_channel_node.node_tree.nodes.get(new_node_name)
+                if existing_node:
+                    print("A layer with nodes has conflicting indicies, assigning a temporary name to all existing nodes within the conflicting layer.")
+
+                    for n in layer_node_names:
+                        temp_name = "TEMPORARY NAME"
+
+                        existing_node = material_channel_node.node_tree.nodes.get(n + "_" + str(index))
+
+                        if existing_node:
+                            existing_node.name = temp_name
+                            existing_node.label = temp_name
+
+                            if n == "TEXTURE":
+                                layers[index].texture_node_name = temp_name
+
+                            if n == "OPACITY":
+                                layers[index].opacity_node_name = temp_name
+
+                            if n == "COORD":
+                                layers[index].coord_node_name = temp_name
+
+                            if n == "MAPPING":
+                                layers[index].mapping_node_name = temp_name
+
+                            if n == "MIXLAYER":
+                                layers[index].mix_layer_node_name = temp_name
+
+
+
+                
+                node.name = new_node_name
                 node.label = node.name
 
                 if node_name == "TEXTURE":
@@ -96,11 +130,17 @@ def update_layer_node_indicies(material_channel, context):
                 if node_name == "MIXLAYER":
                     layers[index].mix_layer_node_name = node.name
 
+            else:
+                print("Error: Missing a node when attempting to update layer node indicies.")
+
         # Rename the layer frames with the correct indicies (frames are considered a layer node which is why they are updated here).
         layer_name = context.scene.coater_layers[index].name
 
         # Rename the layer frame.
-        layer_nodes.rename_layer_frame(layer_name, layer_stack_index, context)
+        layer_nodes.rename_layer_frame(layer_name, index, context)
+
+
+
 
 def organize_material_channel_nodes(context):
     # Organize all material channel group nodes.
@@ -130,8 +170,6 @@ def organize_layer_nodes_in_material_channel(material_channel, context):
     if material_channel == 'HEIGHT':
         bump_node = material_channel_node.node_tree.nodes.get("Bump")
         bump_node.location = (0.0, -100.0)
-
-
 
     # Organizes all nodes (in reverse order).
     header_position = [0.0, 0.0]
@@ -167,14 +205,15 @@ def organize_layer_nodes_in_material_channel(material_channel, context):
         # Add spacing between layers.
         header_position[0] -= NODE_SPACING
 
+
+
 def link_layers_in_material_channel(material_channel, context):
     '''Links all layers in the given material channel together by linking the mix layer and mix mask nodes together.'''
     layers = context.scene.coater_layers
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
 
     # Remove all existing output links for mix layer or mix mask nodes.
-    number_of_layers = len(layers)
-    for x in range(number_of_layers - 1):
+    for x in range(len(layers) - 1):
         mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel, x, context)
         if mix_layer_node != None:
             output = mix_layer_node.outputs[0]
@@ -189,16 +228,42 @@ def link_layers_in_material_channel(material_channel, context):
                 if l != 0:
                     material_channel_node.node_tree.links.remove(l)
 
+
+
+# REWRITE THIS THERES AN ERROR HERE
+def link_layers_in_material_channel_old(material_channel, context):
+    '''Links all layers in the given material channel together by linking the mix layer and mix mask nodes together.'''
+    layers = context.scene.coater_layers
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+
+    # Remove all existing output links for mix layer or mix mask nodes.
+    for x in range(len(layers) - 1):
+        mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel, x, context)
+        if mix_layer_node != None:
+            output = mix_layer_node.outputs[0]
+            for l in output.links:
+                if l != 0:
+                    material_channel_node.node_tree.links.remove(l)
+
+        mix_mask_node = material_channel_node.node_tree.nodes.get(layers[x].mask_mix_node_name)
+        if mix_mask_node != None:
+            output = mix_mask_node.outputs[0]
+            for l in output.links:
+                if l != 0:
+                    material_channel_node.node_tree.links.remove(l)
+
+
     # Connect mix layer nodes for every layer.
-    for x in range(number_of_layers, 0, -1):
+    for x in range(len(layers), 0, -1):
         current_layer_index = x - 1
         next_layer_index = x - 2
 
         # Only connect layers that are not hidden.
         if layers[current_layer_index].hidden == False:
             mix_layer_node = material_channel_node.node_tree.nodes.get(layers[current_layer_index].mix_layer_node_name)
-            mix_mask_node = material_channel_node.node_tree.nodes.get(layers[current_layer_index].mask_mix_node_name)
             next_mix_layer_node = material_channel_node.node_tree.nodes.get(layers[next_layer_index].mix_layer_node_name)
+
+            mix_mask_node = material_channel_node.node_tree.nodes.get(layers[current_layer_index].mask_mix_node_name)
             next_mix_mask_node = material_channel_node.node_tree.nodes.get(layers[next_layer_index].mask_mix_node_name)
 
             # Skip hidden layers.
@@ -259,7 +324,7 @@ def link_layers_in_material_channel(material_channel, context):
                         material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], normal_map_node.inputs[1])
 
                     else:
-                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], group_output_node.inputs[0])
+                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], group_output_node.inputs[0])      
 
 def create_calculate_alpha_node(context):
     '''Creates a group node aimed used to calculate alpha blending properly between layers.'''

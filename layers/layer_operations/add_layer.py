@@ -24,7 +24,6 @@ class COATER_OT_add_layer(Operator):
         add_layer_slot.add_layer_slot(context)
 
         # Add default layer nodes.
-        #update_layer_nodes.update_layer_indicies(context)
         add_default_layer_nodes_new(context)
 
         # Set the viewport to material shading mode.
@@ -159,8 +158,7 @@ def add_default_layer_nodes_new(context):
 
 
 
-            # Update the layer nodes.
-            update_layer_nodes.update_layer_node_indicies(material_channels[i], context)
+            # Update the layer node indicies.
             update_layer_nodes.update_layer_node_indicies(material_channels[i], context)
 
             # Organize all layer nodes.

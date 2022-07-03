@@ -49,7 +49,7 @@ def draw_paint_tools(layout, context):
         row.template_ID_preview(context.tool_settings.image_paint, "brush", new="brush.add")
 
 def draw_material_selector(self, context):
-    '''Draws a material selector and refresh button.'''
+    '''Draws a material selector and layer stack refresh button.'''
     active_object = context.active_object
     layout = self.layout
 
@@ -63,7 +63,7 @@ def draw_material_selector(self, context):
 
     if active_object:
         if active_object.active_material != None:
-            row.operator("coater.refresh_layers", text="", icon='FILE_REFRESH')
+            row.operator("coater.read_layer_nodes", text="", icon='FILE_REFRESH')
     row.scale_y = 1.5
 
 def draw_layer_operations(self):

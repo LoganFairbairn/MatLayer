@@ -20,10 +20,13 @@ class COATER_UL_layer_list(bpy.types.UIList):
             elif item.hidden == False:
                 row.prop(item, "hidden", text="", emboss=False, icon='HIDE_OFF')
 
+
+            # TODO: Update the texture preview to draw based on selected material channel. 
             # Draw the texture preview.
             row = layout.row(align=True)
             row.ui_units_x = 0.8
-            texture_node = layer_nodes.get_layer_node("TEXTURE", "COLOR", item.layer_stack_array_index, context)
+            selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+            texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, item.layer_stack_array_index, context)
             if texture_node:
                 row.prop(texture_node.outputs[0], "default_value", text="")
 
@@ -32,8 +35,9 @@ class COATER_UL_layer_list(bpy.types.UIList):
 
 
             # Debug drawing.
-            layout.prop(item, "layer_stack_index", text="", emboss=False)
+            #layout.prop(item, "layer_stack_index", text="", emboss=False)
             #layout.prop(item, "layer_stack_array_index", text="", emboss=False)
+            layout.prop(item, "texture_node_name", text="", emboss=False)
 
             
             # Draw the layer's name.
