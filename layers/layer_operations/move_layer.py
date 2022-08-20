@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import Operator
-from ..nodes import update_layer_nodes
+from ..nodes import layer_nodes
 
 class COATER_OT_move_layer_up(Operator):
     """Moves the selected layer up on the layer stack."""
@@ -45,4 +45,4 @@ def move_layer(context, direction):
     layer_stack.layer_index = index_to_move_to
 
     # Update layer nodes.
-    update_layer_nodes.update_layer_nodes(context)
+    layer_nodes.update_layer_nodes(context)

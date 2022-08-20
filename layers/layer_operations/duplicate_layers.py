@@ -2,7 +2,7 @@ import bpy
 from bpy.types import Operator
 from ..layer_stack import add_layer_slot
 from ..nodes import material_channel_nodes
-from ..nodes import update_layer_nodes
+from ..nodes import layer_nodes
 from .import add_layer
 
 class COATER_OT_duplicate_layer(Operator):
@@ -36,10 +36,6 @@ class COATER_OT_duplicate_layer(Operator):
 
         # TODO: Copy all the settings from the original layer.
 
-        # Update layer nodes indicies.
-        update_layer_nodes.update_layer_node_indicies(context, "COLOR")
-
-        # Organize nodes.
-        update_layer_nodes.organize_all_nodes(context)
+        # TODO: Update layer nodes indicies.
 
         return{'FINISHED'}

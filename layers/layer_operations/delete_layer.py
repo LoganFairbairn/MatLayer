@@ -2,7 +2,6 @@ import bpy
 from bpy.types import Operator
 from ..nodes import layer_nodes
 from ..nodes import material_channel_nodes
-from ..nodes import update_layer_nodes
 
 class COATER_OT_delete_layer(Operator):
     '''Deletes the selected layer from the layer stack.'''
@@ -38,6 +37,6 @@ class COATER_OT_delete_layer(Operator):
         layer_stack.layer_index = min(max(0, layer_stack.layer_index - 1), len(layers) - 1)
 
         # Update the layer nodes.
-        update_layer_nodes.update_layer_nodes(context)
+        layer_nodes.update_layer_nodes(context)
 
         return {'FINISHED'}

@@ -3,7 +3,6 @@ import bpy
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper        # For importing images.
 from ..layers.nodes import layer_nodes
-from ..layers.nodes import update_layer_nodes
 
 class COATER_OT_import_color_image(Operator, ImportHelper):
     '''Imports a color image to use for the selected layer.'''
@@ -63,7 +62,7 @@ class COATER_OT_import_mask_image(Operator, ImportHelper):
             mask_image = bpy.data.images[image_name]
             mask_node.image = mask_image
 
-            update_layer_nodes.update_layer_nodes(context)
+            layer_nodes.update_layer_nodes(context)
         
         return {'FINISHED'}
 

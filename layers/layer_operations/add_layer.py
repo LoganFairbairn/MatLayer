@@ -3,7 +3,6 @@ from bpy.types import Operator
 
 from ..nodes import layer_nodes
 from ..nodes import material_channel_nodes
-from ..nodes import update_layer_nodes
 from ..layer_stack import add_layer_slot
 from ..nodes import coater_materials
 from ...viewport_settings import viewport_setting_adjuster

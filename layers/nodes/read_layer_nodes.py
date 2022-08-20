@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import Operator, PropertyGroup
-from . import update_layer_nodes
+from . import layer_nodes
 from . import coater_materials
 
 class COATER_OT_read_layer_nodes(Operator):
@@ -17,6 +17,6 @@ class COATER_OT_read_layer_nodes(Operator):
         # TODO: Read the layer stack nodes and update values.
 
         # Update layer nodes.
-        update_layer_nodes.update_layer_nodes(context)
+        layer_nodes.update_layer_nodes(context)
 
         return {'FINISHED'}

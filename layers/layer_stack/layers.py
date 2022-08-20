@@ -4,9 +4,8 @@ import bpy
 from bpy.types import PropertyGroup
 from ..nodes import layer_nodes
 from ..nodes import material_channel_nodes
-from ..nodes import update_layer_nodes
 
-# TODO: Support other texture node types.
+# List of node types that can be used in the texture slot.
 TEXTURE_NODE_TYPES = [
     ("COLOR", "Color", ""), 
     ("VALUE", "Value", ""),
@@ -64,7 +63,7 @@ def update_hidden(self, context):
         layer_nodes.mute_layer(True, self.layer_stack_array_index, context)
 
     # Update the layer nodes.
-    update_layer_nodes.update_layer_nodes(context)
+    layer_nodes.update_layer_nodes(context)
 
 # UPDATE PROJECTION SETTINGS #
 def update_layer_projection(self, context):
@@ -387,7 +386,7 @@ def replace_texture_node(texture_node_type, material_channel, self, context):
     texture_node.parent = layer_frame
 
     # Update the layer nodes because they were changed.
-    update_layer_nodes.update_layer_nodes(context)
+    layer_nodes.update_layer_nodes(context)
 
 
 

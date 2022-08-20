@@ -3,7 +3,6 @@ import bpy
 from bpy.types import Operator
 from ..nodes import layer_nodes
 from ...texture_handling import image_file_handling
-from ..nodes import update_layer_nodes
 from ..nodes import material_channel_nodes
 
 class COATER_OT_add_empty_mask(Operator):
@@ -77,7 +76,7 @@ class COATER_OT_add_empty_mask(Operator):
                 mask_levels_node.parent = frame
             
             # Update the layer nodes.
-            update_layer_nodes.update_layer_nodes(context)
+            layer_nodes.update_layer_nodes(context)
 
         return{'FINISHED'}
 
@@ -126,7 +125,7 @@ class COATER_OT_delete_layer_mask(Operator):
         layers[layer_index].mask_levels_node_name = ""
 
         # Relink nodes.
-        update_layer_nodes.update_layer_nodes(context)
+        layer_nodes.update_layer_nodes(context)
 
         return{'FINISHED'}
 
