@@ -10,13 +10,17 @@ def get_layer_node_names():
     '''Returns a list of all layer node names.'''
     return LAYER_NODE_NAMES
 
+def get_new_node_temp_name(node_name, layer_stack_index):
+    '''Returns a node name with a tilda added at the end, this helps identify newly created nodes.'''
+    return node_name + "_" + str(layer_stack_index) + "~"
+
 def get_layer_node(node_name, material_channel, layer_index, context):
     '''Finds the desired layer node using it's name and returns it.'''
 
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
 
     if node_name in LAYER_NODE_NAMES:
-        return material_channel_node.node_tree.nodes.get(node_name + "_" + layer_index)
+        return material_channel_node.node_tree.nodes.get(node_name + "_" + str(layer_index))
 
     else:
         print("ERROR: Layer node name not found in layer node list, did you make a typo?")
@@ -69,6 +73,12 @@ def get_layer_frame(material_channel_node, layers, layer_index):
     else:
         print("Error: Failed to get layer frame.")
         return None
+
+def get_new_frame_temp_name(layers, layer_stack_index):
+    return layers[layer_stack_index].name + "_" + str(layers[layer_stack_index].id) + "_" + str(layer_stack_index) + "~"
+
+def get_layer_frame_name(layers, layer_stack_index):
+    return layers[layer_stack_index].name + "_" + str(layers[layer_stack_index].id) + "_" + str(layer_stack_index)
 
 def rename_layer_frame(name, layer_index, context):
     '''Renames the layer frame in all material channels.'''

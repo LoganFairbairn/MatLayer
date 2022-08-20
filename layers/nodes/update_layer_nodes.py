@@ -24,9 +24,7 @@ def update_layer_nodes(context):
         organize_layer_nodes_in_material_channel(material_channel, context)
 
         # Link all layers.
-        link_layers_in_material_channel(material_channel, context)
-
-
+        #link_layers_in_material_channel(material_channel, context)
 
 
 
@@ -42,14 +40,9 @@ def update_layer_indicies(context):
     for i in range(0, len(layers)):
         layers[i].layer_stack_array_index = i
 
-
-    # 
     for i in range(len(layers), 0, -1):
         index = i - 1
         layers[index].layer_stack_index = index
-
-
-
 
 
 
