@@ -39,7 +39,7 @@ TEXTURE_INTERPOLATION_MODES = [
 def update_layer_name(self, context):
     '''Updates layer nodes, frames when the layer name is changed.'''
     selected_layer_stack_index = context.scene.coater_layer_stack.layer_index
-    layer_nodes.rename_layer_frame(self.name, selected_layer_stack_index, context)
+    #layer_nodes.rename_layer_frame(self.name, selected_layer_stack_index, context)
 
 def update_layer_opacity(self, context):
     '''Updates the layer opacity node values when the opacity is changed.'''

@@ -37,7 +37,6 @@ class COATER_UL_layer_list(bpy.types.UIList):
             # Debug drawing.
             #layout.prop(item, "layer_stack_index", text="", emboss=False)
             #layout.prop(item, "layer_stack_array_index", text="", emboss=False)
-            layout.prop(item, "texture_node_name", text="", emboss=False)
 
             
             # Draw the layer's name.
@@ -59,7 +58,6 @@ class COATER_UL_layer_list(bpy.types.UIList):
             col.prop(item, "opacity", text="", emboss=True)
 
             # Draw the layer's blend mode.
-            material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
-            mix_layer_node = material_channel_node.node_tree.nodes.get(item.mix_layer_node_name)
+            mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", selected_material_channel, item.layer_stack_array_index, context)
             if mix_layer_node:
                 col.prop(mix_layer_node, "blend_type", text="")

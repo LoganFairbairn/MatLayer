@@ -41,9 +41,8 @@ def add_default_layer_nodes_new(context):
     selected_layer_index = context.scene.coater_layer_stack.layer_index
 
     # Update the layer node indicies.
-    update_layer_nodes.update_layer_indicies(context)
     layers = context.scene.coater_layers
-    layer_stack_index = layers[selected_layer_index].layer_stack_index
+    layer_stack_index = layer_nodes.get_layer_stack_index(selected_layer_index, context)
 
 
     # Add new nodes for all material channels.
@@ -55,6 +54,8 @@ def add_default_layer_nodes_new(context):
         # Verify that the material channel node exists.
         if material_channel_nodes.verify_material_channel(material_channel_node):
 
+            new_nodes = []
+
             # Create default nodes all layers will have.
             opacity_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMath')
             opacity_node.name = layer_nodes.get_new_node_temp_name("OPACITY", layer_stack_index)
@@ -63,36 +64,25 @@ def add_default_layer_nodes_new(context):
             opacity_node.inputs[1].default_value = 1.0
             opacity_node.use_clamp = True
             opacity_node.operation = 'MULTIPLY'
+            new_nodes.append(opacity_node)
 
             mix_layer_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMixRGB')
-            mix_layer_node.name = layer_nodes.get_new_node_temp_name("MIXLAYER_", layer_stack_index)
+            mix_layer_node.name = layer_nodes.get_new_node_temp_name("MIXLAYER", layer_stack_index)
             mix_layer_node.label = mix_layer_node.name
             mix_layer_node.inputs[1].default_value = (0.0, 0.0, 0.0, 1.0)
             mix_layer_node.inputs[2].default_value = (0.0, 0.0, 0.0, 1.0)
             mix_layer_node.use_clamp = True
+            new_nodes.append(mix_layer_node)
 
             coord_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexCoord')
             coord_node.name = layer_nodes.get_new_node_temp_name("COORD", layer_stack_index)
             coord_node.label = coord_node.name
+            new_nodes.append(coord_node)
 
             mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
             mapping_node.name = layer_nodes.get_new_node_temp_name("MAPPING", layer_stack_index)
             mapping_node.label = mapping_node.name
-
-
-            
-
-
-
-
-
-
-
-
-
-
-
-
+            new_nodes.append(mapping_node)
 
             # Create nodes & set node settings specific to each material channel. *
             texture_node = None
@@ -129,7 +119,7 @@ def add_default_layer_nodes_new(context):
             texture_node_name = layer_nodes.get_new_node_temp_name("TEXTURE", layer_stack_index)
             texture_node.name = texture_node_name
             texture_node.label = texture_node_name
-            
+            new_nodes.append(texture_node)
 
             # Link newly created nodes.
             link = material_channel_node.node_tree.links.new
@@ -137,25 +127,20 @@ def add_default_layer_nodes_new(context):
             link(opacity_node.outputs[0], mix_layer_node.inputs[0])
             link(coord_node.outputs[2], mapping_node.inputs[0])
 
-
-            # Frame new nodes.
+            # Create a layer frame and frame layer nodes.
             frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
             frame.name = layer_nodes.get_new_frame_temp_name(layers, layer_stack_index)
             frame.label = frame.name
-
-
-            # Frame all the nodes in the given layer in the newly created frame.
-            nodes = layer_nodes.get_all_nodes_in_layer(material_channel_node, layers, selected_layer_index)
-            for n in nodes:
+            
+            for n in new_nodes:
                 n.parent = frame
 
 
             # TODO: Mute layer nodes for inactive channels.
 
 
-
-            # TODO: Update the layer nodes.
-            update_layer_nodes.update_layer_nodes(context)
+            # Update the layer nodes.
+            layer_nodes.update_layer_nodes(context)
 
         else:
             print("Error: Material channel node doesn't exist.")
