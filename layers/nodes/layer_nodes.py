@@ -16,24 +16,10 @@ def get_layer_node(node_name, material_channel, layer_index, context):
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
 
     if node_name in LAYER_NODE_NAMES:
-        layers = context.scene.coater_layers
+        return material_channel_node.node_tree.nodes.get(node_name + "_" + layer_index)
 
-        if node_name == "TEXTURE":
-            return material_channel_node.node_tree.nodes.get(layers[layer_index].texture_node_name)
-
-        if node_name == "OPACITY":
-            return material_channel_node.node_tree.nodes.get(layers[layer_index].opacity_node_name)
-
-        if node_name == "COORD":
-            return material_channel_node.node_tree.nodes.get(layers[layer_index].coord_node_name)
-
-        if node_name == "MAPPING":
-            return material_channel_node.node_tree.nodes.get(layers[layer_index].mapping_node_name)
-
-        if node_name == "MIXLAYER":
-            return material_channel_node.node_tree.nodes.get(layers[layer_index].mix_layer_node_name)
     else:
-        print("ERROR: Layer node name not found in layer node list.")
+        print("ERROR: Layer node name not found in layer node list, did you make a typo?")
 
 def get_layer_node_from_name(node_name, material_channel, context):
     '''Gets the desired layer node using it's name.'''
