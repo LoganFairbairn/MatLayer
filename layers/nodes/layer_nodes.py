@@ -10,6 +10,9 @@ NODE_SPACING = 50
 # Set of node names.
 LAYER_NODE_NAMES = ("TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER")
 
+
+''' LAYER NODE FUNCTIONS '''
+
 def get_layer_node_names():
     '''Returns a list of all layer node names.'''
     return LAYER_NODE_NAMES
@@ -68,21 +71,27 @@ def get_all_nodes_in_layer(material_channel_node, layers, layer_index):
 
     return nodes
 
-# TODO: This should take a material channel and a layer index only, sub layers for context.
-def get_layer_frame(material_channel_node, layers, layer_index):
-    '''Returns the layer frame if one exists.'''
-    if material_channel_node:
-        return material_channel_node.node_tree.nodes.get(layers[layer_index].frame_name)
-
-    else:
-        print("Error: Failed to get layer frame.")
-        return None
+def get_layer_frame_name(layers, layer_stack_index):
+    return layers[layer_stack_index].name + "_" + str(layers[layer_stack_index].id) + "_" + str(layer_stack_index)
 
 def get_new_frame_temp_name(layers, layer_stack_index):
     return layers[layer_stack_index].name + "_" + str(layers[layer_stack_index].id) + "_" + str(layer_stack_index) + "~"
 
-def get_layer_frame_name(layers, layer_stack_index):
-    return layers[layer_stack_index].name + "_" + str(layers[layer_stack_index].id) + "_" + str(layer_stack_index)
+
+
+''' LAYER FRAME '''
+
+def get_layer_frame(material_channel_name, layer_stack_index, context):
+    '''Returns the layer frame if one exists.'''
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+
+    if material_channel_node:
+        layers = context.scene.coater_layers
+        return material_channel_node.node_tree.nodes.get(get_layer_frame_name(layers, layer_stack_index))
+
+    else:
+        print("Error: Failed to get layer frame.")
+        return None
 
 def rename_layer_frame(name, layer_index, context):
     '''Renames the layer frame in all material channels.'''
@@ -103,6 +112,10 @@ def rename_layer_frame(name, layer_index, context):
             layer_frame.label = layer_frame.name
 
     layers[layer_index].frame_name =  name + "_" + str(layers[layer_index].id) + "_" + str(layer_stack_index)
+
+
+
+''' LAYER MUTING FUNCTIONS '''
 
 def mute_layer(mute, layer_index, context):
     '''Mutes (hides) all nodes in all material channels.'''
@@ -127,6 +140,8 @@ def mute_material_channel(mute, material_channel, context):
         for n in nodes:
             n.mute = mute
 
+
+''' LAYER UPDATING FUNCTIONS '''
 def update_layer_nodes(context):
     '''Organizes all nodes in all material channels for every layer and links them all nodes together.'''
     '''Call this after making any change to the layer stack or layer nodes.'''
