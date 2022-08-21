@@ -9,6 +9,7 @@ class COATER_UL_layer_list(bpy.types.UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, index):
         self.use_filter_show = False
+        self.use_filter_reverse = True
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             # Draw the layer hide icon.
@@ -35,8 +36,7 @@ class COATER_UL_layer_list(bpy.types.UIList):
 
 
             # Debug drawing.
-            #layout.prop(item, "layer_stack_index", text="", emboss=False)
-            #layout.prop(item, "layer_stack_array_index", text="", emboss=False)
+            layout.prop(item, "layer_stack_array_index", text="", emboss=False)
 
             
             # Draw the layer's name.

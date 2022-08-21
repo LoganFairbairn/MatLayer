@@ -1,3 +1,4 @@
+from select import select
 import bpy
 from bpy.types import Operator
 
@@ -40,11 +41,6 @@ def add_default_layer_nodes_new(context):
     # Update the new layers index within the layer stack (which is added to the node names).
     selected_layer_index = context.scene.coater_layer_stack.layer_index
 
-    # Update the layer node indicies.
-    layers = context.scene.coater_layers
-    layer_stack_index = layer_nodes.get_layer_stack_index(selected_layer_index, context)
-
-
     # Add new nodes for all material channels.
     material_channels = material_channel_nodes.get_material_channel_list()
     for i in range(0, len(material_channels)):
@@ -58,7 +54,7 @@ def add_default_layer_nodes_new(context):
 
             # Create default nodes all layers will have.
             opacity_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMath')
-            opacity_node.name = layer_nodes.get_new_node_temp_name("OPACITY", layer_stack_index)
+            opacity_node.name = layer_nodes.get_layer_node_name("OPACITY", selected_layer_index) + "~"
             opacity_node.label = opacity_node.name
             opacity_node.inputs[0].default_value = 1.0
             opacity_node.inputs[1].default_value = 1.0
@@ -67,7 +63,7 @@ def add_default_layer_nodes_new(context):
             new_nodes.append(opacity_node)
 
             mix_layer_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMixRGB')
-            mix_layer_node.name = layer_nodes.get_new_node_temp_name("MIXLAYER", layer_stack_index)
+            mix_layer_node.name = layer_nodes.get_layer_node_name("MIXLAYER", selected_layer_index) + "~"
             mix_layer_node.label = mix_layer_node.name
             mix_layer_node.inputs[1].default_value = (0.0, 0.0, 0.0, 1.0)
             mix_layer_node.inputs[2].default_value = (0.0, 0.0, 0.0, 1.0)
@@ -75,12 +71,12 @@ def add_default_layer_nodes_new(context):
             new_nodes.append(mix_layer_node)
 
             coord_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexCoord')
-            coord_node.name = layer_nodes.get_new_node_temp_name("COORD", layer_stack_index)
+            coord_node.name = layer_nodes.get_layer_node_name("COORD", selected_layer_index) + "~"
             coord_node.label = coord_node.name
             new_nodes.append(coord_node)
 
             mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
-            mapping_node.name = layer_nodes.get_new_node_temp_name("MAPPING", layer_stack_index)
+            mapping_node.name = layer_nodes.get_layer_node_name("MAPPING", selected_layer_index) + "~"
             mapping_node.label = mapping_node.name
             new_nodes.append(mapping_node)
 
@@ -116,7 +112,7 @@ def add_default_layer_nodes_new(context):
                 texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
 
             # Set the texture node name & label.
-            texture_node_name = layer_nodes.get_new_node_temp_name("TEXTURE", layer_stack_index)
+            texture_node_name = layer_nodes.get_layer_node_name("TEXTURE", selected_layer_index) + "~"
             texture_node.name = texture_node_name
             texture_node.label = texture_node_name
             new_nodes.append(texture_node)
@@ -129,9 +125,9 @@ def add_default_layer_nodes_new(context):
 
             # Create a layer frame and frame layer nodes.
             frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
-            frame.name = layer_nodes.get_new_frame_temp_name(layers, layer_stack_index)
+            frame.name = layer_nodes.get_frame_name(selected_layer_index, context) + "~"
             frame.label = frame.name
-            
+
             for n in new_nodes:
                 n.parent = frame
 

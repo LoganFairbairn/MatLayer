@@ -21,10 +21,6 @@ def get_layer_node_names():
 def get_layer_node_name(node_name, layer_stack_index):
     return node_name + "_" + str(layer_stack_index)
 
-def get_new_node_temp_name(node_name, layer_stack_index):
-    '''Returns a node name with a tilda added at the end, this helps identify newly created nodes.'''
-    return node_name + "_" + str(layer_stack_index) + "~"
-
 def rename_layer_node(node, node_name, layer_stack_index):
     '''Renames both the node name and the node's label to the new node name.'''
     if node:
@@ -67,12 +63,14 @@ def get_all_nodes_in_layer(material_channel_name, layer_index, context):
 def get_layer_frame_name(layers, layer_stack_index):
     return layers[layer_stack_index].name + "_" + str(layers[layer_stack_index].id) + "_" + str(layer_stack_index)
 
-def get_new_frame_temp_name(layers, layer_stack_index):
-    return layers[layer_stack_index].name + "_" + str(layers[layer_stack_index].id) + "_" + str(layer_stack_index) + "~"
-
 
 
 ''' LAYER FRAME '''
+
+# Returns the frame name.
+def get_frame_name(layer_stack_array_index, context):
+    layers = context.scene.coater_layers
+    return layers[layer_stack_array_index].name + "_" + str(layers[layer_stack_array_index].id) + "_" + str(layer_stack_array_index) + "~"
 
 # Returns the frame node for the given layer.
 def get_layer_frame(material_channel_name, layer_stack_index, context):
@@ -80,16 +78,12 @@ def get_layer_frame(material_channel_name, layer_stack_index, context):
 
     if material_channel_node:
         layers = context.scene.coater_layers
-        return material_channel_node.node_tree.nodes.get(get_layer_frame_name(layers, layer_stack_index))
+        layer_frame_name = get_layer_frame_name(layers, layer_stack_index)
+        return material_channel_node.node_tree.nodes.get(layer_frame_name)
 
     else:
-        print("Error: Failed to get layer frame, material channel is invalid.")
+        print("Error: Failed to get layer frame, material channel node is invalid.")
         return None
-
-# Returns the temporary name assigned to a frame to indicate it has recently been changed.
-def get_updated_frame_name(layer_stack_index, context):
-    layers = context.scene.coater_layers
-    return layers[layer_stack_index].name + "_" + str(layers[layer_stack_index].id) + "_" + str(layer_stack_index) + "~"
 
 # Renames the given layer name.
 def rename_layer_frame(frame, layer_stack_index, context):
@@ -174,21 +168,12 @@ def update_layer_nodes(context):
         # Link all layers.
         #link_layers_in_material_channel(material_channel, context)
 
-# Gets the layer stack index (which is the opposite of the layer stack array index).
-def get_layer_stack_index(layer_stack_array_index, context):
-    layers = context.scene.coater_layers
-    return (len(layers) - 1) - layer_stack_array_index
-
-#Updates layer stack indicies stored in the layer.
+# Updates layer stack array index stored in each layer.
 def update_layer_indicies(context):
     layers = context.scene.coater_layers
 
     for i in range(0, len(layers)):
         layers[i].layer_stack_array_index = i
-
-    for i in range(len(layers), 0, -1):
-        index = i - 1
-        layers[index].layer_stack_index = index
 
 def update_layer_node_indicies(material_channel_name, context):
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
@@ -200,12 +185,11 @@ def update_layer_node_indicies(material_channel_name, context):
 
     for i in range(len(layers), 0, -1):
         index = len(layers) - i
-        layer_stack_index = layers[index].layer_stack_index
 
         # If a layer is confirmed already to be added or deleted, rename the all layer nodes in all layer nodes that come after the changed layer.
         if node_added or node_deleted:
             frame = get_layer_frame(material_channel_name, index, context)
-            rename_layer_frame(frame, layer_stack_index, context)
+            rename_layer_frame(frame, index, context)
 
             for node_name in layer_node_names:
                 node = get_layer_node(node_name, material_channel_name, index, context)
@@ -217,7 +201,7 @@ def update_layer_node_indicies(material_channel_name, context):
             node = get_layer_node("TEXTURE", material_channel_name, index, context)
 
             if not node:
-                temp_node_name = get_new_node_temp_name("TEXTURE", layer_stack_index)
+                temp_node_name = get_layer_node_name("TEXTURE", index) + "~"
                 node = material_channel_node.node_tree.nodes.get(temp_node_name)
 
                 if node:
@@ -231,12 +215,12 @@ def update_layer_node_indicies(material_channel_name, context):
 
     # If a new node layer was added, remove the tilda from the end of the layer node names.
     if node_added:
-        temp_frame_name =  get_updated_frame_name(changed_layer_index, context)
+        temp_frame_name =  get_frame_name(changed_layer_index, context) + "~"
         frame = material_channel_node.node_tree.nodes.get(temp_frame_name)
         rename_layer_frame(frame, changed_layer_index, context)
 
         for node_name in layer_node_names:
-            temp_node_name = get_new_node_temp_name(node_name, changed_layer_index)
+            temp_node_name = get_layer_node_name(node_name, changed_layer_index) + "~"
             node = material_channel_node.node_tree.nodes.get(temp_node_name)
             rename_layer_node(node, node_name, changed_layer_index)
 

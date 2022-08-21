@@ -391,9 +391,8 @@ def replace_texture_node(texture_node_type, material_channel, self, context):
 
 
 class COATER_layers(PropertyGroup):
-    # Index within the layer stack (stored here for convenience). The default is -9 to give it a distinctly incorrect index.
-    layer_stack_index: bpy.props.IntProperty(name="Layer Stack Index", description="Layer stack index.", default=-9)
-    layer_stack_array_index: bpy.props.IntProperty(name="Array Index", description="Array Index", default=-9)
+    # The layer stack index for each layer is stored here for convenience. This should be automatically updated everytime update_layer_nodes is called.
+    layer_stack_array_index: bpy.props.IntProperty(name="Layer Stack Array Index", description="Layer Stack Array Index", default=-9)
 
     # Layer ID used as a unique identifier.
     id: bpy.props.IntProperty(name="ID", description="Numeric ID for the selected layer.", default=0)

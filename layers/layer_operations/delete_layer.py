@@ -35,12 +35,12 @@ class COATER_OT_delete_layer(Operator):
                 material_channel_node.node_tree.nodes.remove(node)
 
 
+        # Update the layer nodes.
+        layer_nodes.update_layer_nodes(context)
 
         # Remove the layer slot from the layer stack and reset the layer index.
         layers.remove(selected_layer_index)
         layer_stack.layer_index = min(max(0, layer_stack.layer_index - 1), len(layers) - 1)
 
-        # Update the layer nodes.
-        layer_nodes.update_layer_nodes(context)
 
         return {'FINISHED'}
