@@ -56,16 +56,18 @@ def get_all_nodes_in_layer(material_channel_name, layer_index, context):
 
     for node_name in LAYER_NODE_NAMES:
         node = get_layer_node(node_name, material_channel_name, layer_index, context)
+        if not node:
+            print("Error: Missing " + node_name + " from " + material_channel_name + ".")
         nodes.append(node)
 
     return nodes
 
-def get_layer_frame_name(layers, layer_stack_index):
-    return layers[layer_stack_index].name + "_" + str(layers[layer_stack_index].id) + "_" + str(layer_stack_index)
-
 
 
 ''' LAYER FRAME '''
+
+def get_layer_frame_name(layers, layer_stack_index):
+    return layers[layer_stack_index].name + "_" + str(layers[layer_stack_index].id) + "_" + str(layer_stack_index)
 
 # Returns the frame name.
 def get_frame_name(layer_stack_array_index, context):
@@ -148,8 +150,7 @@ def mute_material_channel(mute, material_channel, context):
 ''' LAYER UPDATING FUNCTIONS '''
 
 def update_layer_nodes(context):
-    '''Organizes all nodes in all material channels for every layer and links them all nodes together.'''
-    '''Call this after making any change to the layer stack or layer nodes.'''
+    '''Organizes all nodes in all material channels for every layer and links them all nodes together. This should be called after adding or removing layer nodes.'''
 
     # Organize all material channel group nodes.
     organize_material_channel_nodes(context)
@@ -163,7 +164,7 @@ def update_layer_nodes(context):
         update_layer_node_indicies(material_channel, context)
 
         # Organize all layer nodes.
-        #organize_layer_nodes_in_material_channel(material_channel, context)
+        organize_layer_nodes_in_material_channel(material_channel, context)
 
         # Link all layers.
         #link_layers_in_material_channel(material_channel, context)
@@ -177,43 +178,51 @@ def update_layer_indicies(context):
 def update_layer_node_indicies(material_channel_name, context):
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
     changed_layer_index = -1
-    node_added = False
-    node_deleted = False
+
     layers = context.scene.coater_layers
     layer_node_names = get_layer_node_names()
 
-    for i in range(len(layers), 0, -1):
-        index = len(layers) - i
+    node_added = False
+    node_deleted = False
 
-        # If a layer is confirmed already to be added or deleted, rename the all layer nodes in all layer nodes that come after the changed layer.
-        if node_added or node_deleted:
-            frame = get_layer_frame(material_channel_name, index, context) + "~"
-            rename_layer_frame(frame, index, context)
+    # 1. Check for a newly added layer (signified by a tilda at the end of the node's name).
+    for i in range(0, len(layers)):
+        temp_node_name = get_layer_node_name("TEXTURE", i) + "~"
+        node = material_channel_node.node_tree.nodes.get(temp_node_name)
+
+        if node:
+            node_added = True
+            changed_layer_index = i
+            break
+
+
+    # 2. Check for a deleted layer (if there isn't a newly added layer).
+    if not node_added:
+        for i in range(0, len(layers)):
+            frame = get_layer_frame(material_channel_name, i, context)
+
+            if not frame:
+                node_deleted = True
+                changed_layer_index = i
+                break
+
+
+    # 3. Rename the all layer nodes starting with the changed layer and remove the tilda from the newly added layer.
+    if node_added:
+        # Rename any layers past the selected layer index (in reverse to avoid duplicate node names).
+        for i in range(len(layers), changed_layer_index + 1, -1):
+            index = i - 1
+            frame = material_channel_node.node_tree.nodes.get(layers[index].name + "_" + str(layers[index].id) + "_" + str(index - 1))
+
+            print(layers[index].name + "_" + str(layers[index].id) + "_" + str(index))
+            frame.name = layers[index].name + "_" + str(layers[index].id) + "_" + str(index)
+            frame.label = frame.name
 
             for node_name in layer_node_names:
-                node = get_layer_node(node_name, material_channel_name, index, context)
+                node = get_layer_node(node_name, material_channel_name, index - 1, context)
                 rename_layer_node(node, node_name, index)
 
-        
-        # Otherwise, check for a new or deleted layer by checking the first node.
-        else:
-            node = get_layer_node("TEXTURE", material_channel_name, index, context)
-
-            if not node:
-                temp_node_name = get_layer_node_name("TEXTURE", index) + "~"
-                node = material_channel_node.node_tree.nodes.get(temp_node_name)
-
-                if node:
-                    node_added = True
-                    changed_layer_index = index
-
-                else:
-                    node_deleted = True
-                    changed_layer_index = index
-
-
-    # If a new node layer was added, remove the tilda from the end of the layer node names.
-    if node_added:
+        # Remove the tilda from the new layer.
         temp_frame_name =  get_frame_name(changed_layer_index, context) + "~"
         frame = material_channel_node.node_tree.nodes.get(temp_frame_name)
         rename_layer_frame(frame, changed_layer_index, context)
@@ -222,6 +231,21 @@ def update_layer_node_indicies(material_channel_name, context):
             temp_node_name = get_layer_node_name(node_name, changed_layer_index) + "~"
             node = material_channel_node.node_tree.nodes.get(temp_node_name)
             rename_layer_node(node, node_name, changed_layer_index)
+
+
+        
+
+    # Don't attempt to rename layer nodes if there are no more layers.
+    if node_deleted and len(layers) > 0:
+        for i in range(len(layers), changed_layer_index - 1, -1):
+            index = i - 1
+
+            frame = get_layer_frame(material_channel_name, index, context)
+            rename_layer_frame(frame, index, context)
+
+            for node_name in layer_node_names:
+                node = get_layer_node(node_name, material_channel_name, index, context)
+                rename_layer_node(node, node_name, index)
 
 
 
@@ -268,17 +292,17 @@ def organize_layer_nodes_in_material_channel(material_channel, context):
         header_position[1] = 0.0
 
         # IMPORTANT: The nodes won't move when the frame is in place. Delete the layer's frame.
-        frame = get_layer_frame(material_channel_node, layers, index)
+        frame = get_layer_frame(material_channel, index, context)
         if frame:
             frame_name = frame.name
             material_channel_node.node_tree.nodes.remove(frame)    
 
         # Organize the layer nodes.
-        node_list = get_all_nodes_in_layer(material_channel_node, layers, index)
-        for c in range(0, len(node_list)):
-            node_list[c].width = NODE_WIDTH
-            node_list[c].location = (header_position[0], header_position[1])
-            header_position[1] -= (node_list[c].dimensions.y) + NODE_SPACING
+        node_list = get_all_nodes_in_layer(material_channel, index, context)
+        for node in node_list:
+            node.width = NODE_WIDTH
+            node.location = (header_position[0], header_position[1])
+            header_position[1] -= (node.dimensions.y) + NODE_SPACING
 
         # Re-frame the layers.
         frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
@@ -287,7 +311,7 @@ def organize_layer_nodes_in_material_channel(material_channel, context):
         layers[index].frame_name = frame.name
 
         # Frame all the nodes in the given layer in the newly created frame.
-        nodes = get_all_nodes_in_layer(material_channel_node, layers, index)
+        nodes = get_all_nodes_in_layer(material_channel, index, context)
         for n in nodes:
             n.parent = frame
 

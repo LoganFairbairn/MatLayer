@@ -24,7 +24,7 @@ class COATER_OT_add_layer(Operator):
         add_layer_slot.add_layer_slot(context)
 
         # Add default layer nodes.
-        add_default_layer_nodes_new(context)
+        add_default_layer_nodes(context)
 
         # Set the viewport to material shading mode.
         viewport_setting_adjuster.set_material_shading(context)
@@ -35,13 +35,14 @@ class COATER_OT_add_layer(Operator):
 
 
 
-def add_default_layer_nodes_new(context):
+def add_default_layer_nodes(context):
     '''Adds default layer nodes for all layers.'''
 
-    # Update the new layers index within the layer stack (which is added to the node names).
+    # Get the new layer index within the layer stack (which is added to the node names).
     selected_layer_index = context.scene.coater_layer_stack.layer_index
+    layers = context.scene.coater_layers
     new_layer_index = 0
-    if layer_nodes.get_layer_node("TEXTURE", "COLOR", 0, context):
+    if len(layers) > 1:
         new_layer_index = selected_layer_index + 1
 
     # Add new nodes for all material channels.
@@ -137,10 +138,9 @@ def add_default_layer_nodes_new(context):
 
             # TODO: Mute layer nodes for inactive channels.
 
-
-            # Update the layer nodes.
-            layer_nodes.update_layer_nodes(context)
-
         else:
             print("Error: Material channel node doesn't exist.")
             return
+
+    # Update the layer nodes.
+    layer_nodes.update_layer_nodes(context)
