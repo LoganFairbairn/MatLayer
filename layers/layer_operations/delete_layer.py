@@ -25,12 +25,12 @@ class COATER_OT_delete_layer(Operator):
             material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
 
             # Remove layer frame.
-            frame = layer_nodes.get_layer_frame(material_channel_name, layers[selected_layer_index].layer_stack_index, context)
+            frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_index, context)
             if frame != None:
                 material_channel_node.node_tree.nodes.remove(frame)
 
             # Removed layer nodes.
-            node_list = layer_nodes.get_all_nodes_in_layer(material_channel_name, layers[selected_layer_index].layer_stack_index, context)
+            node_list = layer_nodes.get_all_nodes_in_layer(material_channel_name, selected_layer_index, context)
             for node in node_list:
                 material_channel_node.node_tree.nodes.remove(node)
 

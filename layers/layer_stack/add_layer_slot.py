@@ -13,7 +13,6 @@ def add_layer_slot(context):
     
     # Assign the layer a unique name.
     new_layer_name = "Layer"
-
     layers[len(layers) - 1].name = new_layer_name
 
     # Moves the new layer above the currently selected layer and selects it.

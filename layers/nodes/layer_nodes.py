@@ -70,7 +70,7 @@ def get_layer_frame_name(layers, layer_stack_index):
 # Returns the frame name.
 def get_frame_name(layer_stack_array_index, context):
     layers = context.scene.coater_layers
-    return layers[layer_stack_array_index].name + "_" + str(layers[layer_stack_array_index].id) + "_" + str(layer_stack_array_index) + "~"
+    return layers[layer_stack_array_index].name + "_" + str(layers[layer_stack_array_index].id) + "_" + str(layer_stack_array_index)
 
 # Returns the frame node for the given layer.
 def get_layer_frame(material_channel_name, layer_stack_index, context):
@@ -171,7 +171,6 @@ def update_layer_nodes(context):
 # Updates layer stack array index stored in each layer.
 def update_layer_indicies(context):
     layers = context.scene.coater_layers
-
     for i in range(0, len(layers)):
         layers[i].layer_stack_array_index = i
 
@@ -188,7 +187,7 @@ def update_layer_node_indicies(material_channel_name, context):
 
         # If a layer is confirmed already to be added or deleted, rename the all layer nodes in all layer nodes that come after the changed layer.
         if node_added or node_deleted:
-            frame = get_layer_frame(material_channel_name, index, context)
+            frame = get_layer_frame(material_channel_name, index, context) + "~"
             rename_layer_frame(frame, index, context)
 
             for node_name in layer_node_names:
