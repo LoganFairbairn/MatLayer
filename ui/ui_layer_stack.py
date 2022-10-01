@@ -8,8 +8,8 @@ class COATER_UL_layer_list(bpy.types.UIList):
     '''Draws the layer stack.'''
 
     def draw_item(self, context, layout, data, item, icon, active_data, index):
-        self.use_filter_show = False
-        #self.use_filter_reverse = False
+        self.use_filter_show = True
+        self.use_filter_reverse = True
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             # Draw the layer hide icon.

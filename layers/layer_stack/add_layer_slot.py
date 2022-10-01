@@ -18,7 +18,7 @@ def add_layer_slot(context):
     # Moves the new layer above the currently selected layer and selects it.
     if(selected_layer_index != -1):
         move_index = len(layers) - 1
-        move_to_index = max(0, min(selected_layer_index, len(layers) - 1))
+        move_to_index = max(0, min(selected_layer_index + 1, len(layers) - 1))
         layers.move(move_index, move_to_index)
         layer_stack.layer_index = move_to_index
 
@@ -42,4 +42,8 @@ def add_layer_slot(context):
 
             if i == number_of_layers - 1:
                 id_exists = False
-    layers[selected_layer_index].id = new_id
+    
+    if len(layers) == 0:
+        layers[selected_layer_index].id = new_id
+    else:
+        layers[selected_layer_index + 1].id = new_id

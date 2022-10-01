@@ -164,7 +164,7 @@ def update_layer_nodes(context):
         update_layer_node_indicies(material_channel, context)
 
         # Organize all layer nodes.
-        organize_layer_nodes_in_material_channel(material_channel, context)
+        #organize_layer_nodes_in_material_channel(material_channel, context)
 
         # Link all layers.
         #link_layers_in_material_channel(material_channel, context)
@@ -172,7 +172,8 @@ def update_layer_nodes(context):
 # Updates layer stack array index stored in each layer.
 def update_layer_indicies(context):
     layers = context.scene.coater_layers
-    for i in range(0, len(layers)):
+    number_of_layers = len(layers)
+    for i in range(0, number_of_layers):
         layers[i].layer_stack_array_index = i
 
 def update_layer_node_indicies(material_channel_name, context):
@@ -222,11 +223,13 @@ def update_layer_node_indicies(material_channel_name, context):
                 node = get_layer_node(node_name, material_channel_name, index - 1, context)
                 rename_layer_node(node, node_name, index)
 
-        # Remove the tilda from the new layer.
-        temp_frame_name =  get_frame_name(changed_layer_index, context) + "~"
+        # Remove the tilda from the new frame. ---- ERROR HERE LAYER FRAME WRONG ID
+        temp_frame_name = layers[changed_layer_index].name + "_" + str(layers[changed_layer_index].id) + "_" + str(changed_layer_index) + "~"
         frame = material_channel_node.node_tree.nodes.get(temp_frame_name)
-        rename_layer_frame(frame, changed_layer_index, context)
+        frame.name = layers[changed_layer_index].name + "_" + str(layers[changed_layer_index].id) + "_" + str(changed_layer_index)
+        frame.label = frame.name
 
+        # Remove the tilda from the new nodes.
         for node_name in layer_node_names:
             temp_node_name = get_layer_node_name(node_name, changed_layer_index) + "~"
             node = material_channel_node.node_tree.nodes.get(temp_node_name)
@@ -240,8 +243,11 @@ def update_layer_node_indicies(material_channel_name, context):
         for i in range(len(layers), changed_layer_index - 1, -1):
             index = i - 1
 
-            frame = get_layer_frame(material_channel_name, index, context)
-            rename_layer_frame(frame, index, context)
+            frame = material_channel_node.node_tree.nodes.get(layers[index].name + "_" + str(layers[index].id) + "_" + str(index - 1))
+            print(layers[index].name + "_" + str(layers[index].id) + "_" + str(index))
+
+            frame.name = layers[index].name + "_" + str(layers[index].id) + "_" + str(index)
+            frame.label = frame.name
 
             for node_name in layer_node_names:
                 node = get_layer_node(node_name, material_channel_name, index, context)

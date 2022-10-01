@@ -42,8 +42,10 @@ def add_default_layer_nodes(context):
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     layers = context.scene.coater_layers
     new_layer_index = 0
-    if len(layers) > 1:
-        new_layer_index = selected_layer_index + 1
+    if len(layers) == 0:
+        new_layer_index = 0
+    else:
+        new_layer_index = selected_layer_index
 
     # Add new nodes for all material channels.
     material_channels = material_channel_nodes.get_material_channel_list()
