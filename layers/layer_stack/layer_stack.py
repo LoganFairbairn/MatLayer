@@ -3,11 +3,20 @@
 import bpy
 from bpy.types import PropertyGroup
 from ..nodes import material_channel_nodes
+from ..nodes import layer_nodes
 
 MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", "EMISSION", "SCATTERING")
 
 def update_layer_channel(self, context):
-    bpy.ops.coater.refresh_layers()
+    layers = context.scene.coater_layers
+    selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+
+    # Update the opacity and blend mode for all layers.
+    for i in range(0, len(layers)):
+        opacity_node = layer_nodes.get_layer_node("OPACITY", selected_material_channel, i, context)
+        if opacity_node:
+            layers[i].opacity = opacity_node.inputs[1].default_value
+
 
 def update_layer_index(self, context):
     '''Runs when the layer index is updated.'''

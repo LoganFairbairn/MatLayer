@@ -43,11 +43,9 @@ def update_layer_name(self, context):
 
 def update_layer_opacity(self, context):
     '''Updates the layer opacity node values when the opacity is changed.'''
-
-    # TODO: Make this use the currently selected material channel instead of just COLOR.
-    opacity_node = layer_nodes.get_layer_node_from_name(self.opacity_node_name, "COLOR", context)
-
-    if opacity_node != None:
+    selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+    opacity_node = layer_nodes.get_layer_node("OPACITY", selected_material_channel, self.layer_stack_array_index, context)
+    if opacity_node:
         opacity_node.inputs[1].default_value = self.opacity
 
 def update_hidden(self, context):
@@ -414,6 +412,7 @@ class COATER_layers(PropertyGroup):
     scattering_channel_toggle: bpy.props.BoolProperty(default=True, update=update_scattering_channel_toggle)
     emission_channel_toggle: bpy.props.BoolProperty(default=True, update=update_emission_channel_toggle)
 
+    # TODO: Remove these later.
     # Layer Node Names (used to quickly access nodes for a layer)
     frame_name: bpy.props.StringProperty(name="Frame Node Name", default="")
     texture_node_name: bpy.props.StringProperty(name="Texture Node Name", default="")
@@ -433,6 +432,7 @@ class COATER_layers(PropertyGroup):
     projection_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_scale_x)
     projection_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_scale_y)
 
+    # TODO: Remove this later.
     # Mask Nodes
     mask_node_name: bpy.props.StringProperty(name="Mask Node Name", default="")
     mask_mix_node_name: bpy.props.StringProperty(name="Mix Mask Node Name", default="")
