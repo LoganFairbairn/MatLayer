@@ -2,7 +2,7 @@
 
 import bpy
 from ..nodes import material_channel_nodes
-from ..layer_stack import layer_stack
+from ...texture_set_settings import texture_set_settings
 
 # Node organization settings.
 NODE_WIDTH = 300
@@ -363,9 +363,7 @@ def link_layers_in_material_channel(material_channel, context):
         # Link layers.
         if next_mix_layer_node:
             material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
-
-
-        # TODO: Don't connect to inactive material channels.
+        
         # Link to material channel output.
         else:
             if material_channel == "HEIGHT":
@@ -379,105 +377,6 @@ def link_layers_in_material_channel(material_channel, context):
             else:
                 group_output_node = material_channel_node.node_tree.nodes.get("Group Output")
                 material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], group_output_node.inputs[0])
-
-
-
-
-# REWRITE THIS THERES AN ERROR HERE
-def link_layers_in_material_channel_old(material_channel, context):
-    '''Links all layers in the given material channel together by linking the mix layer and mix mask nodes together.'''
-    layers = context.scene.coater_layers
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
-
-    # Remove all existing output links for mix layer or mix mask nodes.
-    for x in range(len(layers) - 1):
-        mix_layer_node = get_layer_node("MIXLAYER", material_channel, x, context)
-        if mix_layer_node != None:
-            output = mix_layer_node.outputs[0]
-            for l in output.links:
-                if l != 0:
-                    material_channel_node.node_tree.links.remove(l)
-
-        mix_mask_node = material_channel_node.node_tree.nodes.get(layers[x].mask_mix_node_name)
-        if mix_mask_node != None:
-            output = mix_mask_node.outputs[0]
-            for l in output.links:
-                if l != 0:
-                    material_channel_node.node_tree.links.remove(l)
-
-
-    # Connect mix layer nodes for every layer.
-    for x in range(len(layers), 0, -1):
-        current_layer_index = x - 1
-        next_layer_index = x - 2
-
-        # Only connect layers that are not hidden.
-        if layers[current_layer_index].hidden == False:
-            mix_layer_node = material_channel_node.node_tree.nodes.get(layers[current_layer_index].mix_layer_node_name)
-            next_mix_layer_node = material_channel_node.node_tree.nodes.get(layers[next_layer_index].mix_layer_node_name)
-
-            mix_mask_node = material_channel_node.node_tree.nodes.get(layers[current_layer_index].mask_mix_node_name)
-            next_mix_mask_node = material_channel_node.node_tree.nodes.get(layers[next_layer_index].mask_mix_node_name)
-
-            # Skip hidden layers.
-            while layers[next_layer_index].hidden == True:
-                next_layer_index -= 1
-
-                if next_layer_index < 0:
-                    next_mix_layer_node = None
-                    next_mix_mask_node = None
-                    break
-
-                else:
-                    next_mix_layer_node = material_channel_node.node_tree.nodes.get(layers[next_layer_index].mix_layer_node_name)
-                    next_mix_mask_node = material_channel_node.node_tree.nodes.get(layers[next_layer_index].mask_mix_node_name)
-
-            # If another layer above this layer exists, connect to the next mix layer or mix mask node (prioritize mask node connections).
-            if next_layer_index >= 0:
-                if mix_mask_node != None:
-                    if next_mix_mask_node != None:
-                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_layer_node.inputs[1])
-                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_mask_node.inputs[1])
-
-                    else:
-                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_layer_node.inputs[1])
-
-                else:
-                    if next_mix_mask_node != None:
-                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
-                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], next_mix_mask_node.inputs[1])
-
-                    else:
-                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
-
-            # For the last layer, connect to the group output node.
-            # For height and normal channels, connect to the bump / normal map node instead.
-            else:
-                group_output_node = material_channel_node.node_tree.nodes.get("Group Output")
-
-                if mix_mask_node != None:
-                    if material_channel == 'HEIGHT':
-                        bump_node = material_channel_node.node_tree.nodes.get("Bump")
-                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], bump_node.inputs[2])
-
-                    elif material_channel == 'NORMAL':
-                        normal_map_node = material_channel_node.node_tree.nodes.get("Normal Map")
-                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], normal_map_node.inputs[1])
-
-                    else:
-                        material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], group_output_node.inputs[0])
-
-                else:
-                    if material_channel == 'HEIGHT':
-                        bump_node = material_channel_node.node_tree.nodes.get("Bump")
-                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], bump_node.inputs[2])
-
-                    elif material_channel == 'NORMAL':
-                        normal_map_node = material_channel_node.node_tree.nodes.get("Normal Map")
-                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], normal_map_node.inputs[1])
-
-                    else:
-                        material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], group_output_node.inputs[0])      
 
 '''
 # TODO: Fix this function.

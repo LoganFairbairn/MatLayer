@@ -240,3 +240,44 @@ def create_channel_group_nodes(context):
     add_material_channel(context, height_group_node_name, layer_stack.node_default_width, "HEIGHT")
     add_material_channel(context, emission_group_node_name, layer_stack.node_default_width, "EMISSION")
     add_material_channel(context, scattering_group_node_name, layer_stack.node_default_width, "SCATTERING")
+
+def disconnect_material_channel(context, material_channel_name):
+    '''Disconnects the specified material channel group node from the main principled BSDF shader.'''
+    node_links = context.active_object.active_material.node_tree.links
+    material_channel_node = get_material_channel_node(context, material_channel_name)
+
+    if material_channel_node:
+        for l in node_links:
+            if l.from_node.name == material_channel_node.name:
+                node_links.remove(l)
+
+def connect_material_channel(context, material_channel_name):
+    '''Connects the specified material channel group node from the main principled BSDF shader.'''
+    material_nodes = context.active_object.active_material.node_tree.nodes
+    material_channel_node = get_material_channel_node(context, material_channel_name)
+    principled_bsdf_node = material_nodes.get('Principled BSDF')
+
+    if material_channel_node:
+        active_material = context.active_object.active_material
+        node_links = active_material.node_tree.links
+
+        if material_channel_name == "COLOR":
+            node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[0])
+                
+        if material_channel_name == "METALLIC":
+            node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[6])
+
+        if material_channel_name == "ROUGHNESS":
+            node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[9])
+
+        if material_channel_name == "NORMAL":
+            node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[22])
+
+        #if channel == "HEIGHT":
+        #    node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[22])
+
+        if material_channel_name == "EMISSION":
+            node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[19])
+
+        if material_channel_name == "SCATTERING":
+            node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[3])
