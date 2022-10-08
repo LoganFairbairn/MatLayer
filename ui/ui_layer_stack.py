@@ -1,7 +1,6 @@
 # This file handles the coater user interface.
 
 import bpy
-from ..layers.nodes import material_channel_nodes
 from ..layers.nodes import layer_nodes
 
 class COATER_UL_layer_list(bpy.types.UIList):

@@ -5,6 +5,7 @@ from .import ui_section_tabs
 from ..layers.nodes import coater_materials
 from ..layers.nodes import material_channel_nodes
 from ..layers.nodes import layer_nodes
+from ..layers.layer_stack import layer_stack as ls
 
 SCALE_Y = 1.4
 
@@ -36,15 +37,18 @@ def draw_layers_section_ui(self, context):
                     row.prop_enum(layer_stack, "layer_properties_tab", 'FILTERS')
 
                     if layer_stack.layer_properties_tab == "MATERIAL":
-                        draw_layer_properties(self, context)
+                        selected_layer_index = context.scene.coater_layer_stack.layer_index
+                        layer_stack_index_exists = ls.verify_layer_stack_index(selected_layer_index, context)
+                        if layer_stack_index_exists:
+                            draw_layer_properties(self, context)
     else:
         layout = self.layout
         layout.label(text="Select an object.")
 
 def draw_paint_tools(layout, context):
+    '''Draws paint tools.'''
     # Only draw paint tools in texture paint mode.
     if context.mode == 'PAINT_TEXTURE':
-        # Draw brush presets.
         row = layout.row()
         row.template_ID_preview(context.tool_settings.image_paint, "brush", new="brush.add")
 

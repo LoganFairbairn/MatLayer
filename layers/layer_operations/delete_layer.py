@@ -33,9 +33,11 @@ class COATER_OT_delete_layer(Operator):
             for node in node_list:
                 material_channel_node.node_tree.nodes.remove(node)
 
-        # Remove the layer slot from the layer stack and reset the layer index.
+        # Remove the layer slot from the layer stack.
         layers.remove(selected_layer_index)
-        #selected_layer_index = min(max(0, selected_layer_index + 1), len(layers) - 1)
+
+        # Reset the layer stack index while keeping it within range of existing indicies in the layer stack.
+        context.scene.coater_layer_stack.layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
 
         # Update the layer nodes.
         layer_nodes.update_layer_nodes(context)

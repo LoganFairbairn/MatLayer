@@ -20,6 +20,13 @@ def update_layer_index(self, context):
     if layer_image != None:
         context.scene.tool_settings.image_paint.canvas = layer_image
     '''
+def verify_layer_stack_index(layer_stack_index, context):
+    '''Verifies the given layer stack index exists.'''
+    layers = context.scene.coater_layers
+    if layer_stack_index < len(layers) - 1 and layer_stack_index > 0:
+        return True
+    else:
+        return False
 
 class COATER_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''

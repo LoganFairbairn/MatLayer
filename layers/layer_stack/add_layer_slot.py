@@ -15,19 +15,24 @@ def add_layer_slot(context):
     new_layer_name = "Layer"
     layers[len(layers) - 1].name = new_layer_name
 
+    # If there is no layer selected, move the layer to the top of the stack.
+    if selected_layer_index < 0:
+        move_index = len(layers) - 1
+        move_to_index = 0
+        layers.move(move_index, move_to_index)
+        layer_stack.layer_index = move_to_index
+
+        #
+        selected_layer_index = len(layers) - 1
+
     # Moves the new layer above the currently selected layer and selects it.
-    if(selected_layer_index != -1):
+    else: 
         move_index = len(layers) - 1
         move_to_index = max(0, min(selected_layer_index + 1, len(layers) - 1))
         layers.move(move_index, move_to_index)
         layer_stack.layer_index = move_to_index
 
-    # If there is no layer selected, move the layer to the top of the stack.
-    else:
-        move_index = len(layers) - 1
-        move_to_index = 0
-        layers.move(move_index, move_to_index)
-        layer_stack.layer_index = move_to_index
+        selected_layer_index = selected_layer_index + 1
 
     # Assign the layer a unique random ID number.
     number_of_layers = len(layers)
@@ -40,10 +45,6 @@ def add_layer_slot(context):
                 new_id += 1
                 break
 
-            if i == number_of_layers - 1:
+            if i == len(layers) - 1:
                 id_exists = False
-    
-    if len(layers) == 0:
-        layers[selected_layer_index].id = new_id
-    else:
-        layers[selected_layer_index + 1].id = new_id
+                layers[selected_layer_index].id = new_id
