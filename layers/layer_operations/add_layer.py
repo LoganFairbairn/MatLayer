@@ -137,9 +137,6 @@ def add_default_layer_nodes(context):
             for n in new_nodes:
                 n.parent = frame
 
-
-            # TODO: Mute layer nodes for inactive channels.
-
         else:
             print("Error: Material channel node doesn't exist.")
             return

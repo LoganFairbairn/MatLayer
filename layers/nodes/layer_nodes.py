@@ -2,6 +2,7 @@
 
 import bpy
 from ..nodes import material_channel_nodes
+from ..layer_stack import layer_stack
 
 # Node organization settings.
 NODE_WIDTH = 300
@@ -166,11 +167,10 @@ def update_layer_nodes(context):
         organize_layer_nodes_in_material_channel(material_channel, context)
 
         # Link all layers.
-        #link_layers_in_material_channel(material_channel, context)
+        link_layers_in_material_channel(material_channel, context)
 
 def update_layer_indicies(context):
-    '''Matches layer stack indicies stored in each layer to the layer stack array indicies.'''
-    # Layer stack indicies are stored in the layers for convenience and debugging purposes.
+    '''Matches layer stack indicies stored in each layer to the layer stack array indicies (layer stack indicies are stored in the layers for convenience and debugging purposes).'''
     layers = context.scene.coater_layers
     number_of_layers = len(layers)
     for i in range(0, number_of_layers):
@@ -351,6 +351,35 @@ def link_layers_in_material_channel(material_channel, context):
             for l in output.links:
                 if l != 0:
                     material_channel_node.node_tree.links.remove(l)
+    
+    # Connect mix layer nodes for every layer.
+    for i in range(0, len(layers)):
+        current_layer_index = i
+        next_layer_index = i + 1
+
+        current_mix_layer_node = get_layer_node("MIXLAYER", material_channel, current_layer_index, context)
+        next_mix_layer_node = get_layer_node("MIXLAYER", material_channel, next_layer_index, context)
+
+        # Link layers.
+        if next_mix_layer_node:
+            material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
+
+
+        # TODO: Don't connect to inactive material channels.
+        # Link to material channel output.
+        else:
+            if material_channel == "HEIGHT":
+                bump_node = material_channel_node.node_tree.nodes.get("Bump")
+                material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], bump_node.inputs[2])
+
+            elif material_channel == "NORMAL":
+                normal_map_node = material_channel_node.node_tree.nodes.get("Normal Map")
+                material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], normal_map_node.inputs[1])
+
+            else:
+                group_output_node = material_channel_node.node_tree.nodes.get("Group Output")
+                material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], group_output_node.inputs[0])
+
 
 
 
@@ -450,10 +479,9 @@ def link_layers_in_material_channel_old(material_channel, context):
                     else:
                         material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], group_output_node.inputs[0])      
 
-
+'''
 # TODO: Fix this function.
 def create_calculate_alpha_node(context):
-    '''Creates a group node aimed used to calculate alpha blending properly between layers.'''
     layer_stack = context.scene.coater_layer_stack
     #channel_node = get_channel_node(context)
 
@@ -507,3 +535,4 @@ def create_calculate_alpha_node(context):
             n.width = layer_stack.node_default_width
             n.location = (header_position[0], header_position[1])
             header_position[0] -= (layer_stack.node_default_width + layer_stack.node_spacing)
+'''

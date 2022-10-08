@@ -33,7 +33,6 @@ class COATER_UL_layer_list(bpy.types.UIList):
             # TODO: If the layer has a mask, draw a preview.
 
 
-
             # Useful debug drawing values.
             #layout.prop(item, "layer_stack_array_index", text="", emboss=False)
             #layout.prop(item, "id", text="", emboss=False)
@@ -43,8 +42,6 @@ class COATER_UL_layer_list(bpy.types.UIList):
             row = layout.row(align=True)
             row.ui_units_x = 4
             row.prop(item, "name", text="", emboss=False)
-
-
 
 
             # Draw layer's opacity.

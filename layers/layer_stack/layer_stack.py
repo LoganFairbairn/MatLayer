@@ -20,6 +20,7 @@ def update_layer_index(self, context):
     if layer_image != None:
         context.scene.tool_settings.image_paint.canvas = layer_image
     '''
+
 def verify_layer_stack_index(layer_stack_index, context):
     '''Verifies the given layer stack index exists.'''
     layers = context.scene.coater_layers
@@ -48,7 +49,7 @@ class COATER_layer_stack(PropertyGroup):
     # Tabs for layer properties.
     layer_properties_tab: bpy.props.EnumProperty(
         items=[('MATERIAL', "MATERIAL", "Layer Material Properties"),
-               ('MASK', "MASK", "Layer Mask Properties"),
+               ('MASK', "MASKS", "Layer Mask Properties"),
                ('FILTERS', "FILTERS", "Layer Filter Properties")],
         name="Layer Properties Tab",
         description="Currently selected layer properties user interface tab to display",
