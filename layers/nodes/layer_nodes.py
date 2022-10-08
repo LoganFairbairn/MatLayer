@@ -217,7 +217,6 @@ def update_layer_node_indicies(material_channel_name, context):
             index = i - 1
             frame = material_channel_node.node_tree.nodes.get(layers[index].name + "_" + str(layers[index].id) + "_" + str(index - 1))
 
-            print(layers[index].name + "_" + str(layers[index].id) + "_" + str(index))
             frame.name = layers[index].name + "_" + str(layers[index].id) + "_" + str(index)
             frame.label = frame.name
 
@@ -242,18 +241,19 @@ def update_layer_node_indicies(material_channel_name, context):
 
     # Don't attempt to rename layer nodes if there are no more layers.
     if node_deleted and len(layers) > 0:
-        for i in range(len(layers), changed_layer_index - 1, -1):
-            index = i - 1
+        for i in range(changed_layer_index, len(layers), 1):
+            index = i + 1
 
-            frame = material_channel_node.node_tree.nodes.get(layers[index].name + "_" + str(layers[index].id) + "_" + str(index - 1))
-            print(layers[index].name + "_" + str(layers[index].id) + "_" + str(index))
+            old_frame_name = layers[index - 1].name + "_" + str(layers[index - 1].id) + "_" + str(index)
+            frame = material_channel_node.node_tree.nodes.get(old_frame_name)
 
-            frame.name = layers[index].name + "_" + str(layers[index].id) + "_" + str(index)
+            new_frame_name = layers[index - 1].name + "_" + str(layers[index - 1].id) + "_" + str(index - 1)
+            frame.name = new_frame_name
             frame.label = frame.name
 
             for node_name in layer_node_names:
                 node = get_layer_node(node_name, material_channel_name, index, context)
-                rename_layer_node(node, node_name, index)
+                rename_layer_node(node, node_name, index - 1)
 
 
 
