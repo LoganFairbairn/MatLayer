@@ -23,7 +23,7 @@ def update_layer_index(self, context):
 def verify_layer_stack_index(layer_stack_index, context):
     '''Verifies the given layer stack index exists.'''
     layers = context.scene.coater_layers
-    if layer_stack_index < len(layers) - 1 and layer_stack_index > 0:
+    if layer_stack_index <= len(layers) - 1 and layer_stack_index >= 0:
         return True
     else:
         return False

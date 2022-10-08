@@ -164,19 +164,21 @@ def update_layer_nodes(context):
         update_layer_node_indicies(material_channel, context)
 
         # Organize all layer nodes.
-        #organize_layer_nodes_in_material_channel(material_channel, context)
+        organize_layer_nodes_in_material_channel(material_channel, context)
 
         # Link all layers.
         #link_layers_in_material_channel(material_channel, context)
 
-# Updates layer stack array index stored in each layer.
 def update_layer_indicies(context):
+    '''Matches layer stack indicies stored in each layer to the layer stack array indicies.'''
+    # Layer stack indicies are stored in the layers for convenience and debugging purposes.
     layers = context.scene.coater_layers
     number_of_layers = len(layers)
     for i in range(0, number_of_layers):
         layers[i].layer_stack_array_index = i
 
 def update_layer_node_indicies(material_channel_name, context):
+    '''Updates the layer stack indicies stored in material (layer) nodes.'''
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
     changed_layer_index = -1
 
@@ -264,6 +266,7 @@ def update_layer_node_indicies(material_channel_name, context):
 ''' NODE ORGANIZATION FUNCTIONS '''
 
 def organize_material_channel_nodes(context):
+    '''Organizes material channel nodes.'''
     active_material_channel_nodes = material_channel_nodes.get_all_material_channel_nodes(context)
     header_position = [0.0, 0.0]
     for node in active_material_channel_nodes:
@@ -272,6 +275,7 @@ def organize_material_channel_nodes(context):
             header_position[1] -= (node.height + (NODE_SPACING * 0.5))
 
 def organize_layer_nodes_in_material_channel(material_channel, context):
+    '''Organizes all nodes in a specified material channel.'''
     layers = context.scene.coater_layers
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
 
