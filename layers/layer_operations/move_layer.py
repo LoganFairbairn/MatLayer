@@ -175,10 +175,5 @@ def move_layer(context, direction):
         layers.move(selected_layer_index, index_to_move_to)
         context.scene.coater_layer_stack.layer_index = index_to_move_to
 
-    # Update the layer node indicies stored in the layer.
-    layer_nodes.update_layer_indicies(context)
-
-    # Organize the layer nodes.
-    material_channel_names = material_channel_nodes.get_material_channel_list()
-    for material_channel in material_channel_names:
-        layer_nodes.organize_layer_nodes_in_material_channel(material_channel, context)
+    # Update the layer nodes.
+    layer_nodes.update_layer_nodes(context)
