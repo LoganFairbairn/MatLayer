@@ -31,6 +31,7 @@ def rename_layer_node(node, node_name, layer_stack_index):
         print("Unable to rename " + node_name + " layer node isn't valid.")
 
 def get_layer_node(node_name, material_channel_name, layer_index, context):
+    '''Gets a specific layer node using a given name.'''
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
 
     if node_name in LAYER_NODE_NAMES:
@@ -50,8 +51,8 @@ def get_layer_node_from_name(node_name, material_channel, context):
     else:
         print("Error: Failed to get: " + node_name)
 
-# Returns a list of all layer nodes that belong to the specified layer within the specified material channel.
 def get_all_nodes_in_layer(material_channel_name, layer_index, context):
+    '''Returns a list of all layer nodes that belong to the specified layer within the specified material channel.'''
     nodes = []
 
     for node_name in LAYER_NODE_NAMES:
@@ -67,15 +68,16 @@ def get_all_nodes_in_layer(material_channel_name, layer_index, context):
 ''' LAYER FRAME '''
 
 def get_layer_frame_name(layers, layer_stack_index):
+    '''Gets the frame name for the given layer stack index.'''
     return layers[layer_stack_index].name + "_" + str(layers[layer_stack_index].id) + "_" + str(layer_stack_index)
 
-# Returns the frame name.
 def get_frame_name(layer_stack_array_index, context):
+    '''Returns the frame name.'''
     layers = context.scene.coater_layers
     return layers[layer_stack_array_index].name + "_" + str(layers[layer_stack_array_index].id) + "_" + str(layer_stack_array_index)
 
-# Returns the frame node for the given layer.
 def get_layer_frame(material_channel_name, layer_stack_index, context):
+    '''Returns the frame node for the given layer.'''
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
 
     if material_channel_node:
@@ -87,8 +89,8 @@ def get_layer_frame(material_channel_name, layer_stack_index, context):
         print("Error: Failed to get layer frame, material channel node is invalid.")
         return None
 
-# Renames the given layer name.
 def rename_layer_frame(frame, layer_stack_index, context):
+    '''Renames the given frame.'''
     if frame:
         layers = context.scene.coater_layers
         frame.name = layers[layer_stack_index].name + "_" + str(layers[layer_stack_index].id) + "_" + str(layer_stack_index)
@@ -97,9 +99,8 @@ def rename_layer_frame(frame, layer_stack_index, context):
     else:
         print("Unable to rename the given frame, frame is invalid.")
 
-# Renames all layer node frame names in all material channels.
 def rename_all_layer_frames(name, layer_index, context):
-    '''Renames the layer frame in all material channels.'''
+    '''Renames all layer node frame names in all material channels.'''
     layers = context.scene.coater_layers
 
     # Get the layer stack index for this layer (opposite value of the layer stack array index).
@@ -117,7 +118,6 @@ def rename_all_layer_frames(name, layer_index, context):
             layer_frame.label = layer_frame.name
 
     layers[layer_index].frame_name =  name + "_" + str(layers[layer_index].id) + "_" + str(layer_stack_index)
-
 
 
 ''' LAYER MUTING FUNCTIONS '''
@@ -144,7 +144,6 @@ def mute_material_channel(mute, material_channel, context):
 
         for n in nodes:
             n.mute = mute
-
 
 
 ''' LAYER UPDATING FUNCTIONS '''
@@ -224,7 +223,7 @@ def update_layer_node_indicies(material_channel_name, context):
                 node = get_layer_node(node_name, material_channel_name, index - 1, context)
                 rename_layer_node(node, node_name, index)
 
-        # Remove the tilda from the new frame. ---- ERROR HERE LAYER FRAME WRONG ID
+        # Remove the tilda from the new frame.
         temp_frame_name = layers[changed_layer_index].name + "_" + str(layers[changed_layer_index].id) + "_" + str(changed_layer_index) + "~"
         frame = material_channel_node.node_tree.nodes.get(temp_frame_name)
         frame.name = layers[changed_layer_index].name + "_" + str(layers[changed_layer_index].id) + "_" + str(changed_layer_index)

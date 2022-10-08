@@ -34,9 +34,9 @@ class COATER_UL_layer_list(bpy.types.UIList):
 
 
 
-            # Debug drawing.
-            layout.prop(item, "layer_stack_array_index", text="", emboss=False)
-            layout.prop(item, "id", text="", emboss=False)
+            # Useful debug drawing values.
+            #layout.prop(item, "layer_stack_array_index", text="", emboss=False)
+            #layout.prop(item, "id", text="", emboss=False)
 
             
             # Draw the layer's name.
