@@ -23,24 +23,50 @@ def draw_layers_section_ui(self, context):
             if coater_materials.verify_material(context):
                 draw_material_channel(self, context)
                 
-                layers = context.scene.coater_layers
-                if len(layers) > 0:
-                    draw_layer_stack(self, context)
+                # Don't draw inactive material channels.
+                selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+                selected_material_channel_active = True
+                texture_set_settings = context.scene.coater_texture_set_settings
+                if selected_material_channel == "COLOR" and texture_set_settings.color_channel_toggle == False:
+                    selected_material_channel_active = False
 
-                if len(layers) > 0:
-                    layer_stack = context.scene.coater_layer_stack
+                if selected_material_channel == "METALLIC" and texture_set_settings.metallic_channel_toggle == False:
+                    selected_material_channel_active = False
 
-                    row = layout.row(align=True)
-                    row.scale_y = 2.0
-                    row.prop_enum(layer_stack, "layer_properties_tab", 'MATERIAL')
-                    row.prop_enum(layer_stack, "layer_properties_tab", 'MASK')
-                    row.prop_enum(layer_stack, "layer_properties_tab", 'FILTERS')
+                if selected_material_channel == "ROUGHNESS" and texture_set_settings.roughness_channel_toggle == False:
+                    selected_material_channel_active = False
 
-                    if layer_stack.layer_properties_tab == "MATERIAL":
-                        selected_layer_index = context.scene.coater_layer_stack.layer_index
-                        layer_stack_index_exists = ls.verify_layer_stack_index(selected_layer_index, context)
-                        if layer_stack_index_exists:
-                            draw_layer_properties(self, context)
+                if selected_material_channel == "NORMAL" and texture_set_settings.normal_channel_toggle == False:
+                    selected_material_channel_active = False
+
+                if selected_material_channel == "HEIGHT" and texture_set_settings.height_channel_toggle == False:
+                    selected_material_channel_active = False
+
+                if selected_material_channel == "SCATTERING" and texture_set_settings.scattering_channel_toggle == False:
+                    selected_material_channel_active = False
+
+                if selected_material_channel == "EMISSION" and texture_set_settings.emission_channel_toggle == False:
+                    selected_material_channel_active = False
+
+                if selected_material_channel_active:
+                    layers = context.scene.coater_layers
+                    if len(layers) > 0:
+                        draw_layer_stack(self, context)
+
+                    if len(layers) > 0:
+                        layer_stack = context.scene.coater_layer_stack
+
+                        row = layout.row(align=True)
+                        row.scale_y = 2.0
+                        row.prop_enum(layer_stack, "layer_properties_tab", 'MATERIAL')
+                        row.prop_enum(layer_stack, "layer_properties_tab", 'MASK')
+                        row.prop_enum(layer_stack, "layer_properties_tab", 'FILTERS')
+
+                        if layer_stack.layer_properties_tab == "MATERIAL":
+                            selected_layer_index = context.scene.coater_layer_stack.layer_index
+                            layer_stack_index_exists = ls.verify_layer_stack_index(selected_layer_index, context)
+                            if layer_stack_index_exists:
+                                draw_layer_properties(self, context)
     else:
         layout = self.layout
         layout.label(text="Select an object.")
