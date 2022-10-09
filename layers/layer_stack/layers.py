@@ -43,7 +43,7 @@ def update_layer_name(self, context):
 
     # Rename all layer frames with the new name. To access the layer frames, use the previous layers name as it's been updated already.
     layers = context.scene.coater_layers
-    
+
     material_channel_list = material_channel_nodes.get_material_channel_list()
     for material_channel_name in material_channel_list:
         material_channel = material_channel_nodes.get_material_channel_node(context, material_channel_name)
@@ -292,28 +292,51 @@ def update_projected_mask_scale_y(self, context):
 def update_color_channel_toggle(self, context):
     if self.color_channel_toggle:
         layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "COLOR", context)
-    
+
     else:
         layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "COLOR", context)
 
 def update_metallic_channel_toggle(self, context):
-    print("Updated metallic channel.")
+    if self.metallic_channel_toggle:
+        layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "METALLIC", context)
+
+    else:
+        layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "METALLIC", context)
 
 def update_roughness_channel_toggle(self, context):
-    print("Updated roughness channel.")
+    if self.roughness_channel_toggle:
+        layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "ROUGHNESS", context)
+
+    else:
+        layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "ROUGHNESS", context)
 
 def update_normal_channel_toggle(self, context):
-    print("Updated normal channel.")
+    if self.normal_channel_toggle:
+        layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "NORMAL", context)
+
+    else:
+        layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "NORMAL", context)
 
 def update_height_channel_toggle(self, context):
-    print("Updated height channel.")
+    if self.height_channel_toggle:
+        layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "HEIGHT", context)
+
+    else:
+        layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "HEIGHT", context)
 
 def update_scattering_channel_toggle(self, context):
-    print("Updated subsurface scattering channel.")
+    if self.scattering_channel_toggle:
+        layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "SCATTERING", context)
+
+    else:
+        layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "SCATTERING", context)
 
 def update_emission_channel_toggle(self, context):
-    print("Updated emission channel.")
+    if self.emission_channel_toggle:
+        layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "EMISSION", context)
 
+    else:
+        layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "EMISSION", context)
 
 
 # UPDATE TEXTURE NODE TYPES (for each material channel) #
