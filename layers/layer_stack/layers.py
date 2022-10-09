@@ -355,29 +355,7 @@ def update_emission_channel_toggle(self, context):
     else:
         layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "EMISSION", context)
 
-
-# UPDATE TEXTURE NODE TYPES (for each material channel) #
-def update_color_texture_node_type(self, context):
-    replace_texture_node(self.color_texture_node_type, "COLOR", self, context)
-
-def update_metallic_texture_node_type(self, context):
-    replace_texture_node(self.metallic_texture_node_type, "METALLIC", self, context)
-
-def update_roughness_texture_node_type(self, context):
-    replace_texture_node(self.roughness_texture_node_type, "ROUGHNESS", self, context)
-
-def update_normal_texture_node_type(self, context):
-    replace_texture_node(self.normal_texture_node_type, "NORMAL", self, context)
-
-def update_height_texture_node_type(self, context):
-    replace_texture_node(self.height_texture_node_type, "HEIGHT", self, context)
-
-def update_scattering_texture_node_type(self, context):
-    replace_texture_node(self.scattering_texture_node_type, "SCATTERING", self, context)
-
-def update_emission_texture_node_type(self, context):
-    replace_texture_node(self.emission_texture_node_type, "EMISSION", self, context)
-
+#----------------------------- UPDATE TEXTURE NODE TYPES -----------------------------#
 def replace_texture_node(texture_node_type, material_channel, self, context):
     '''Replaced the texture node with a new texture node based on the given node type.'''
 
@@ -436,6 +414,28 @@ def replace_texture_node(texture_node_type, material_channel, self, context):
 
     # Update the layer nodes because they were changed.
     layer_nodes.update_layer_nodes(context)
+
+def update_color_texture_node_type(self, context):
+    replace_texture_node(self.color_texture_node_type, "COLOR", self, context)
+
+def update_metallic_texture_node_type(self, context):
+    replace_texture_node(self.metallic_texture_node_type, "METALLIC", self, context)
+
+def update_roughness_texture_node_type(self, context):
+    replace_texture_node(self.roughness_texture_node_type, "ROUGHNESS", self, context)
+
+def update_normal_texture_node_type(self, context):
+    replace_texture_node(self.normal_texture_node_type, "NORMAL", self, context)
+
+def update_height_texture_node_type(self, context):
+    replace_texture_node(self.height_texture_node_type, "HEIGHT", self, context)
+
+def update_scattering_texture_node_type(self, context):
+    replace_texture_node(self.scattering_texture_node_type, "SCATTERING", self, context)
+
+def update_emission_texture_node_type(self, context):
+    replace_texture_node(self.emission_texture_node_type, "EMISSION", self, context)
+
 
 
 
