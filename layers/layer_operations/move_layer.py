@@ -80,6 +80,9 @@ def move_layer(context, direction):
             frame.name = new_frame_name
             frame.label = frame.name
 
+            # Update the cached layer frame name.
+            layers[under_layer_index].cached_frame_name = frame.name
+
             for node_name in layer_node_names:
                 node = layer_nodes.get_layer_node(node_name, material_channel, under_layer_index, context)
                 layer_nodes.rename_layer_node(node, node_name, selected_layer_index)
@@ -95,6 +98,9 @@ def move_layer(context, direction):
             new_frame_name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(under_layer_index)
             frame.name = new_frame_name
             frame.label = frame.name
+
+            # Update the cached layer frame name.
+            layers[selected_layer_index].cached_frame_name = frame.name
 
             for node_name in layer_node_names:
                 node = material_channel_node.node_tree.nodes.get(node_name + "_" + str(selected_layer_index) + "~")
@@ -149,6 +155,9 @@ def move_layer(context, direction):
             frame.name = new_frame_name
             frame.label = frame.name
 
+            # Update the cached layer frame name.
+            layers[over_layer_index].cached_frame_name = frame.name
+
             for node_name in layer_node_names:
                 node = layer_nodes.get_layer_node(node_name, material_channel, over_layer_index, context)
                 layer_nodes.rename_layer_node(node, node_name, selected_layer_index)
@@ -164,6 +173,9 @@ def move_layer(context, direction):
             new_frame_name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(over_layer_index)
             frame.name = new_frame_name
             frame.label = frame.name
+
+            # Update the cached layer frame name.
+            layers[selected_layer_index].cached_frame_name = frame.name
 
             for node_name in layer_node_names:
                 node = material_channel_node.node_tree.nodes.get(node_name + "_" + str(selected_layer_index) + "~")

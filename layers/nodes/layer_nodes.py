@@ -106,28 +106,6 @@ def update_layer_frame_index(frame, layer_stack_index, context):
     else:
         print("Unable to rename the given frame, frame is invalid.")
 
-def rename_layer(frame, name, layer_stack_index, context):
-    '''Renames the given layer frame in all material channels.'''
-    material_channel_list = material_channel_nodes.get_material_channel_list()
-    for material_channel_name in material_channel_list:
-        material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
-        if material_channel_node:
-            layers = context.scene.coater_layers
-            frame_name = get_layer_frame_name(layers, layer_stack_index)
-            frame = material_channel_node.node_tree.nodes.get(frame_name)
-
-            if frame:
-                layers = context.scene.coater_layers
-
-                # Store the previous name.
-                layers[layer_stack_index].cached_name = frame.name
-
-                # Rename the layer frame.
-                new_frame_name = name + str(layers[layer_stack_index].id) + str(layer_stack_index)
-                frame.name = new_frame_name
-                frame.label = new_frame_name
-
-
 ''' LAYER MUTING FUNCTIONS '''
 
 def mute_layer(mute, layer_index, context):
@@ -226,6 +204,9 @@ def update_layer_node_indicies(material_channel_name, context):
             frame.name = layers[index].name + "_" + str(layers[index].id) + "_" + str(index)
             frame.label = frame.name
 
+            # Update the cached layer frame name.
+            layers[index].cached_frame_name = frame.name
+
             for node_name in layer_node_names:
                 node = get_layer_node(node_name, material_channel_name, index - 1, context)
                 rename_layer_node(node, node_name, index)
@@ -236,7 +217,8 @@ def update_layer_node_indicies(material_channel_name, context):
         frame.name = layers[changed_layer_index].name + "_" + str(layers[changed_layer_index].id) + "_" + str(changed_layer_index)
         frame.label = frame.name
 
-        layers[changed_layer_index].cached_name = frame.name
+        # Update the cached layer frame name.
+        layers[changed_layer_index].cached_frame_name = frame.name
 
         # Remove the tilda from the new nodes.
         for node_name in layer_node_names:
@@ -259,8 +241,8 @@ def update_layer_node_indicies(material_channel_name, context):
             frame.name = new_frame_name
             frame.label = frame.name
 
-            # Update the previous frame name.
-            layers[changed_layer_index].cached_name = frame.name
+            # Update the cached layer frame name.
+            layers[changed_layer_index].cached_frame_name = frame.name
 
             for node_name in layer_node_names:
                 node = get_layer_node(node_name, material_channel_name, index, context)

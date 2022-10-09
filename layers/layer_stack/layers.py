@@ -49,7 +49,7 @@ def update_layer_name(self, context):
     for material_channel_name in material_channel_list:
         material_channel = material_channel_nodes.get_material_channel_node(context, material_channel_name)
 
-        cached_frame_name = self.cached_name
+        cached_frame_name = self.cached_frame_name
         frame = material_channel.node_tree.nodes.get(cached_frame_name)
         if frame:
             new_name = self.name + "_" + str(self.id) + "_" + str(self.layer_stack_array_index)
@@ -60,7 +60,7 @@ def update_layer_name(self, context):
             missing_layer_frames = True
 
     # Update the cached frame name now that the layer nodes are renamed.
-    layers[self.layer_stack_array_index].cached_name = frame.name
+    layers[self.layer_stack_array_index].cached_frame_name = frame.name
 
     # Throw an error if there were missing layer frames.
     if missing_layer_frames:
@@ -421,7 +421,7 @@ class COATER_layers(PropertyGroup):
 
     # Layer name for organization purposes.
     name: bpy.props.StringProperty(name="", description="The name of the layer", default="Layer Naming Error", update=update_layer_name)
-    cached_name: bpy.props.StringProperty(name="", description="A cached version of the layer name. This allows layer nodes using the layers previous layer name to be accessed until they are renamed.", default="Layer Naming Error")
+    cached_frame_name: bpy.props.StringProperty(name="", description="A cached version of the layer name. This allows layer nodes using the layers previous layer name to be accessed until they are renamed.", default="Layer Naming Error")
 
     # General layer settings (all layers have these).
     opacity: bpy.props.FloatProperty(name="Opacity", description="Layers Opacity", default=1.0, min=0.0, soft_max=1.0, subtype='FACTOR', update=update_layer_opacity)
