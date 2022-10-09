@@ -7,7 +7,8 @@ from ..nodes import layer_nodes
 
 MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", "EMISSION", "SCATTERING")
 
-def update_layer_channel(self, context):
+def update_selected_material_channel(self, context):
+    '''Updates values when the selected material channel is updated.'''
     layers = context.scene.coater_layers
     selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
 
@@ -51,7 +52,7 @@ class COATER_layer_stack(PropertyGroup):
         name="Material Channel",
         description="The currently selected material channel",
         default='COLOR',
-        update=update_layer_channel
+        update=update_selected_material_channel
     )
 
 

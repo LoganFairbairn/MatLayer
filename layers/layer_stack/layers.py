@@ -35,11 +35,37 @@ TEXTURE_INTERPOLATION_MODES = [
     ("SMART", "Smart", "")
     ]
 
-# UPDATE FUNCTIONS FOR GENERAL LAYER SETTNGS #
+#----------------------------- UPDATE FUNCTIONS FOR GENERAL LAYER SETTNGS -----------------------------#
+
 def update_layer_name(self, context):
-    '''Updates layer nodes, frames when the layer name is changed.'''
-    selected_layer_stack_index = context.scene.coater_layer_stack.layer_index
-    #layer_nodes.rename_layer_frame(self.name, selected_layer_stack_index, context)
+    '''Updates the layers name in all layer frames when the layer name is changed.'''
+    layers = context.scene.coater_layer_stack
+
+    # Rename all layer frames with the new name. To access the layer frames, use the previous layers name as it's been updated already.
+    layers = context.scene.coater_layers
+
+    missing_layer_frames = False
+    material_channel_list = material_channel_nodes.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        material_channel = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+
+        cached_frame_name = self.cached_name
+        frame = material_channel.node_tree.nodes.get(cached_frame_name)
+        if frame:
+            new_name = self.name + "_" + str(self.id) + "_" + str(self.layer_stack_array_index)
+            frame.name = new_name
+            frame.label = frame.name
+
+        else:
+            missing_layer_frames = True
+
+    # Update the cached frame name now that the layer nodes are renamed.
+    layers[self.layer_stack_array_index].cached_name = frame.name
+
+    # Throw an error if there were missing layer frames.
+    if missing_layer_frames:
+        print("Error: Renaming layer frames failed, missing frames.")
+
 
 def update_layer_opacity(self, context):
     '''Updates the layer opacity node values when the opacity is changed.'''
@@ -63,7 +89,8 @@ def update_hidden(self, context):
     # Update the layer nodes.
     layer_nodes.update_layer_nodes(context)
 
-# UPDATE PROJECTION SETTINGS #
+#----------------------------- UPDATE PROJECTION SETTINGS -----------------------------#
+
 def update_layer_projection(self, context):
     '''Changes the layer projection by reconnecting nodes.'''
     layers = context.scene.coater_layers
@@ -273,13 +300,10 @@ def update_projected_mask_scale_y(self, context):
         mask_mapping_node.inputs[3].default_value[1] = layers[layer_index].projected_mask_scale_y
 
 
-
-# MUTE / UNMUTE MATERIAL CHANNELS #
+#----------------------------- MUTE / UNMUTE MATERIAL CHANNELS -----------------------------#
 def update_color_channel_toggle(self, context):
     if self.color_channel_toggle:
-        # Don't un-mute the layer if the layer is hidden.
-        if self.hidden == False:
-            layer_nodes.mute_material_channel(False, "COLOR", context)
+        layer_nodes.mute_material_channel(False, "COLOR", context)
     
     else:
         layer_nodes.mute_material_channel(True, "COLOR", context)
@@ -396,7 +420,8 @@ class COATER_layers(PropertyGroup):
     id: bpy.props.IntProperty(name="ID", description="Numeric ID for the selected layer.", default=0)
 
     # Layer name for organization purposes.
-    name: bpy.props.StringProperty(name="", description="The name of the layer", default="Layer naming error", update=update_layer_name)
+    name: bpy.props.StringProperty(name="", description="The name of the layer", default="Layer Naming Error", update=update_layer_name)
+    cached_name: bpy.props.StringProperty(name="", description="A cached version of the layer name. This allows layer nodes using the layers previous layer name to be accessed until they are renamed.", default="Layer Naming Error")
 
     # General layer settings (all layers have these).
     opacity: bpy.props.FloatProperty(name="Opacity", description="Layers Opacity", default=1.0, min=0.0, soft_max=1.0, subtype='FACTOR', update=update_layer_opacity)
