@@ -90,10 +90,10 @@ def draw_material_channel(self, context):
     layout = self.layout
     row = layout.row(align=True)
     row.prop(context.scene.coater_layer_stack, "selected_material_channel", text="")
-    if context.scene.coater_layer_stack.channel_preview == False:
+    if context.scene.coater_layer_stack.material_channel_preview == False:
         row.operator("coater.toggle_channel_preview", text="", icon='MATERIAL')
 
-    elif context.scene.coater_layer_stack.channel_preview == True:
+    elif context.scene.coater_layer_stack.material_channel_preview == True:
         row.operator("coater.toggle_channel_preview", text="", icon='MATERIAL', depress=True)
 
     row.scale_x = 2

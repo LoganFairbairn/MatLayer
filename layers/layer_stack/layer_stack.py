@@ -43,7 +43,7 @@ class COATER_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''
     # TODO: Rename this to selected_layer_index.
     layer_index: bpy.props.IntProperty(default=-1, update=update_layer_index)
-    channel_preview: bpy.props.BoolProperty(name="", default=False)
+    material_channel_preview: bpy.props.BoolProperty(name="", default=False)
     node_default_width: bpy.props.IntProperty(default=250)
     node_spacing: bpy.props.IntProperty(default=80)
     
