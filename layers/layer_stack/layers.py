@@ -43,8 +43,7 @@ def update_layer_name(self, context):
 
     # Rename all layer frames with the new name. To access the layer frames, use the previous layers name as it's been updated already.
     layers = context.scene.coater_layers
-
-    missing_layer_frames = False
+    
     material_channel_list = material_channel_nodes.get_material_channel_list()
     for material_channel_name in material_channel_list:
         material_channel = material_channel_nodes.get_material_channel_node(context, material_channel_name)
@@ -55,17 +54,6 @@ def update_layer_name(self, context):
             new_name = self.name + "_" + str(self.id) + "_" + str(self.layer_stack_array_index)
             frame.name = new_name
             frame.label = frame.name
-
-        else:
-            missing_layer_frames = True
-
-    # Update the cached frame name now that the layer nodes are renamed.
-    layers[self.layer_stack_array_index].cached_frame_name = frame.name
-
-    # Throw an error if there were missing layer frames.
-    if missing_layer_frames:
-        print("Error: Renaming layer frames failed, missing frames.")
-
 
 def update_layer_opacity(self, context):
     '''Updates the layer opacity node values when the opacity is changed.'''
@@ -303,11 +291,10 @@ def update_projected_mask_scale_y(self, context):
 #----------------------------- MUTE / UNMUTE MATERIAL CHANNELS -----------------------------#
 def update_color_channel_toggle(self, context):
     if self.color_channel_toggle:
-        layer_nodes.mute_material_channel(False, "COLOR", context)
+        layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "COLOR", context)
     
     else:
-        layer_nodes.mute_material_channel(True, "COLOR", context)
-
+        layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "COLOR", context)
 
 def update_metallic_channel_toggle(self, context):
     print("Updated metallic channel.")
