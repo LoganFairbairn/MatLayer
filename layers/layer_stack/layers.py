@@ -63,19 +63,36 @@ def update_layer_opacity(self, context):
         opacity_node.inputs[1].default_value = self.opacity
 
 def update_hidden(self, context):
-    '''Updates node values when the layer hidden property is changed.'''
+    '''Hide or unhide layers.'''
+    selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
 
-    # TODO: Make this use the currently selected material channel instead of just the COLOR channel.
-    if self.hidden == False:
-        # Only unmute the layer if the channel is toggled on.
-        if self.color_channel_toggle == True:
-            layer_nodes.mute_layer(False, self.layer_stack_array_index, context)
+    if self.hidden:
+        # hide
+        layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, selected_material_channel, context)
 
     else:
-        layer_nodes.mute_layer(True, self.layer_stack_array_index, context)
+        # unhide, check that the material channel is active for this layer before unhiding
+        if selected_material_channel == "COLOR" and self.color_channel_toggle:
+            layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, selected_material_channel, context)
 
-    # Update the layer nodes.
-    layer_nodes.update_layer_nodes(context)
+        elif selected_material_channel == "METALLIC" and self.metallic_channel_toggle:
+            layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, selected_material_channel, context)
+
+        elif selected_material_channel == "ROUGHNESS" and self.roughness_channel_toggle:
+            layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, selected_material_channel, context)
+
+        elif selected_material_channel == "NORMAL" and self.normal_channel_toggle:
+            layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, selected_material_channel, context)
+
+        elif selected_material_channel == "HEIGHT" and self.height_channel_toggle:
+            layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, selected_material_channel, context)
+
+        elif selected_material_channel == "SCATTERING" and self.scattering_channel_toggle:
+            layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, selected_material_channel, context)
+
+        elif selected_material_channel == "EMISSION" and self.emissiong_channel_toggle:
+            layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, selected_material_channel, context)
+
 
 #----------------------------- UPDATE PROJECTION SETTINGS -----------------------------#
 

@@ -1,5 +1,6 @@
 # This file handles the coater user interface.
 
+from select import select
 import bpy
 from ..layers.nodes import layer_nodes
 
@@ -14,7 +15,32 @@ class COATER_UL_layer_list(bpy.types.UIList):
             selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
             texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, item.layer_stack_array_index, context)
 
-            if texture_node.mute == True:
+            # Don't draw layer information for layers with muted material channels.
+            if item.color_channel_toggle == False and selected_material_channel == "COLOR":
+                row = layout.row(align=False)
+                row.label(text="muted")
+
+            elif item.metallic_channel_toggle == False and selected_material_channel == "METALLIC":
+                row = layout.row(align=False)
+                row.label(text="muted")
+
+            elif item.roughness_channel_toggle == False and selected_material_channel == "ROUGHNESS":
+                row = layout.row(align=False)
+                row.label(text="muted")
+
+            elif item.normal_channel_toggle == False and selected_material_channel == "NORMAL":
+                row = layout.row(align=False)
+                row.label(text="muted")
+
+            elif item.height_channel_toggle == False and selected_material_channel == "HEIGHT":
+                row = layout.row(align=False)
+                row.label(text="muted")
+
+            elif item.scattering_channel_toggle == False and selected_material_channel == "SCATTERING":
+                row = layout.row(align=False)
+                row.label(text="muted")
+
+            elif item.emission_channel_toggle == False and selected_material_channel == "EMISSION":
                 row = layout.row(align=False)
                 row.label(text="muted")
 
