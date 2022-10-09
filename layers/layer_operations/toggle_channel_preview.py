@@ -1,8 +1,5 @@
-from platform import node
-from select import select
 import bpy
 from bpy.types import Operator
-from ..nodes import layer_nodes
 from ..nodes import material_channel_nodes
 
 class COATER_OT_toggle_channel_preview(Operator):
