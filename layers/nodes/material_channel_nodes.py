@@ -1,5 +1,6 @@
 # This module provides functions to edit material channel nodes made with this add-on.
 
+from cgitb import text
 import bpy
 
 # List of all channel names.
@@ -108,25 +109,27 @@ def add_material_channel(context, group_node_name, node_width, channel):
             active_material = context.active_object.active_material
             node_links = active_material.node_tree.links
 
-            if channel == "COLOR":
+            texture_set_settings = context.scene.coater_texture_set_settings
+
+            if channel == "COLOR" and texture_set_settings.color_channel_toggle:
                 node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[0])
                 
-            if channel == "METALLIC":
+            if channel == "METALLIC" and texture_set_settings.metallic_channel_toggle:
                 node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[6])
 
-            if channel == "ROUGHNESS":
+            if channel == "ROUGHNESS" and texture_set_settings.roughness_channel_toggle:
                 node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[9])
 
-            if channel == "NORMAL":
+            if channel == "NORMAL" and texture_set_settings.normal_channel_toggle:
                 node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[22])
 
-            #if channel == "HEIGHT":
+            #if channel == "HEIGHT" and texture_set_settings.height_channel_toggle:
             #    node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[22])
 
-            if channel == "EMISSION":
+            if channel == "EMISSION" and texture_set_settings.emission_channel_toggle:
                 node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[19])
 
-            if channel == "SCATTERING":
+            if channel == "SCATTERING" and texture_set_settings.scattering_channel_toggle:
                 node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[3])
 
 def remove_material_channel(context, channel):

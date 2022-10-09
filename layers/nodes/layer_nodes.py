@@ -90,21 +90,6 @@ def get_layer_frame(material_channel_name, layer_stack_index, context):
         print("Error: Failed to get layer frame, material channel node is invalid.")
         return None
 
-# TODO: Verify this is used somewhere, remove this function if it's not.
-def update_layer_frame_index(frame, layer_stack_index, context):
-    '''Updates the given layer.'''
-    if frame:
-        layers = context.scene.coater_layers
-
-        # Store the previous layer name value. This allows the nodes using the layers previous name to be accessed using the old name until they are renamed.
-        layers[layer_stack_index].previous_name = frame.name
-
-        # Update the frame name.
-        frame.name = layers[layer_stack_index].name + "_" + str(layers[layer_stack_index].id) + "_" + str(layer_stack_index)
-        frame.label = frame.name
-
-    else:
-        print("Unable to rename the given frame, frame is invalid.")
 
 ''' LAYER MUTING FUNCTIONS '''
 
