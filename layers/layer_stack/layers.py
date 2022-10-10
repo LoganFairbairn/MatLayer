@@ -65,33 +65,36 @@ def update_layer_opacity(self, context):
 def update_hidden(self, context):
     '''Hide or unhide layers.'''
     selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+    material_channel_names = material_channel_nodes.get_material_channel_list()
 
+    # Hide selected layer by muting all nodes within the layer.
     if self.hidden:
-        # hide
-        layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, selected_material_channel, context)
+        for material_channel in material_channel_names:
+            layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, material_channel, context)
 
+    # Unhide the selected layer by unmuting all active layers.
     else:
-        # unhide, check that the material channel is active for this layer before unhiding
-        if selected_material_channel == "COLOR" and self.color_channel_toggle:
-            layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, selected_material_channel, context)
+        for material_channel in material_channel_names:
+            if material_channel == "COLOR" and self.color_channel_toggle:
+                layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "COLOR", context)
 
-        elif selected_material_channel == "METALLIC" and self.metallic_channel_toggle:
-            layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, selected_material_channel, context)
+            if material_channel == "METALLIC" and self.metallic_channel_toggle:
+                layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "METALLIC", context)
 
-        elif selected_material_channel == "ROUGHNESS" and self.roughness_channel_toggle:
-            layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, selected_material_channel, context)
+            if material_channel == "ROUGHNESS" and self.roughness_channel_toggle:
+                layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "ROUGHNESS", context)
 
-        elif selected_material_channel == "NORMAL" and self.normal_channel_toggle:
-            layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, selected_material_channel, context)
+            if material_channel == "NORMAL" and self.normal_channel_toggle:
+                layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "NORMAL", context)
 
-        elif selected_material_channel == "HEIGHT" and self.height_channel_toggle:
-            layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, selected_material_channel, context)
+            if material_channel == "HEIGHT" and self.height_channel_toggle:
+                layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "HEIGHT", context)
 
-        elif selected_material_channel == "SCATTERING" and self.scattering_channel_toggle:
-            layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, selected_material_channel, context)
+            if material_channel == "SCATTERING" and self.scattering_channel_toggle:
+                layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "SCATTERING", context)
 
-        elif selected_material_channel == "EMISSION" and self.emissiong_channel_toggle:
-            layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, selected_material_channel, context)
+            if material_channel == "EMISSION" and self.emission_channel_toggle:
+                layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "EMISSION", context)
 
 
 #----------------------------- UPDATE PROJECTION SETTINGS -----------------------------#
