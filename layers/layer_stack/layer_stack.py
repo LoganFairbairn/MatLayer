@@ -20,16 +20,16 @@ def update_selected_material_channel(self, context):
 
 
 def update_layer_index(self, context):
-    '''Runs when the layer index is updated.'''
-    layer_index = context.scene.coater_layer_stack.layer_index
-    
-    # TODO: Select the current layer image.
-    '''
+    '''Selects an image for painting if one exists for the selected material channel.'''
+    selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+
     bpy.context.scene.tool_settings.image_paint.mode = 'IMAGE'
-    layer_image = layer_nodes.get_layer_image(context, layer_index)
-    if layer_image != None:
-        context.scene.tool_settings.image_paint.canvas = layer_image
-    '''
+    texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
+
+    if texture_node.bl_idname == "ShaderNodeTexImage":
+        if texture_node.image:
+            context.scene.tool_settings.image_paint.canvas = texture_node.image
 
 def verify_layer_stack_index(layer_stack_index, context):
     '''Verifies the given layer stack index exists.'''
