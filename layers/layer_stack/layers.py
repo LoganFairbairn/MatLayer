@@ -17,7 +17,7 @@ TEXTURE_NODE_TYPES = [
 
 PROJECTION_MODES = [
     ("FLAT", "Flat", ""),
-    ("BOX", "Box", ""),
+    ("BOX", "Box (Tri-Planar Projection)", ""),
     ("SPHERE", "Sphere", ""),
     ("TUBE", "Tube", "")
     ]
@@ -102,211 +102,110 @@ def update_hidden(self, context):
 def update_layer_projection(self, context):
     '''Changes the layer projection by reconnecting nodes.'''
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
-    channel_node_group = layer_nodes.get_channel_node_group(context)
-    color_node = channel_node_group.nodes.get(layers[layer_index].color_node_name)
-    coord_node = channel_node_group.nodes.get(layers[layer_index].coord_node_name)
-    mapping_node = channel_node_group.nodes.get(layers[layer_index].mapping_node_name)
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, selected_material_channel)
+
+    # Get nodes.
+    texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
+    coord_node = layer_nodes.get_layer_node("COORD", selected_material_channel, selected_layer_index, context)
+    mapping_node = layer_nodes.get_layer_node("MAPPING", selected_material_channel, selected_layer_index, context)
 
     # Delink coordinate node.
-    if coord_node != None:
+    if coord_node:
         outputs = coord_node.outputs
         for o in outputs:
             for l in o.links:
                 if l != 0:
-                    channel_node_group.links.remove(l)
+                    material_channel_node.node_tree.links.remove(l)
 
-        if layer_index > -1:
+        if selected_layer_index > -1:
             # Connect nodes based on projection type.
-            if layers[layer_index].projection == 'FLAT':
-                channel_node_group.links.new(coord_node.outputs[2], mapping_node.inputs[0])
-                color_node.projection = 'FLAT'
+            if layers[selected_layer_index].projection_mode == 'FLAT':
+                material_channel_node.node_tree.links.new(coord_node.outputs[2], mapping_node.inputs[0])
+                texture_node.projection = 'FLAT'
 
-            if layers[layer_index].projection == 'BOX':
-                channel_node_group.links.new(coord_node.outputs[0], mapping_node.inputs[0])
-                color_node.projection = 'BOX'
+            if layers[selected_layer_index].projection_mode == 'BOX':
+                material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
+                texture_node.projection = 'BOX'
 
-            if layers[layer_index].projection == 'SPHERE':
-                channel_node_group.links.new(coord_node.outputs[0], mapping_node.inputs[0])
-                color_node.projection = 'SPHERE'
+            if layers[selected_layer_index].projection_mode == 'SPHERE':
+                material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
+                texture_node.projection = 'SPHERE'
 
-            if layers[layer_index].projection == 'TUBE':
-                channel_node_group.links.new(coord_node.outputs[0], mapping_node.inputs[0])
-                color_node.projection = 'TUBE'
+            if layers[selected_layer_index].projection_mode == 'TUBE':
+                material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
+                texture_node.projection = 'TUBE'
 
 def update_projection_blend(self, context):
     '''Updates the projection blend node values when the cube projection blend value is changed.'''
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
-    channel_node_group = layer_nodes.get_channel_node_group(context)
-    color_node = channel_node_group.nodes.get(layers[layer_index].color_node_name)
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+    texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
     
-    if color_node != None:
-        color_node.projection_blend = layers[layer_index].projection_blend
+    if texture_node:
+        texture_node.projection_blend = layers[selected_layer_index].projection_blend
 
-def update_mask_projection_blend(self, context):
-    '''Updates the mask projection blend node values when the cube projection blend value is changed.'''
+def update_projection_offset_x(self, context):
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
-    channel_node_group = layer_nodes.get_channel_node_group(context)
-    mask_node = channel_node_group.nodes.get(layers[layer_index].mask_node_name)
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
 
-    if mask_node != None:
-        mask_node.projection_blend = layers[layer_index].mask_projection_blend
+    material_channel_list = material_channel_nodes.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
-def update_mask_projection(self, context):
-    '''Changes the mask projection by reconnecting nodes.'''
+        if mapping_node:
+            mapping_node.inputs[1].default_value[0] = layers[selected_layer_index].projection_offset_x
+
+def update_projection_offset_y(self, context):
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
-    channel_node_group = layer_nodes.get_channel_node_group(context)
-    mask_node = channel_node_group.nodes.get(layers[layer_index].mask_node_name)
-    mask_coord_node = channel_node_group.nodes.get(layers[layer_index].mask_coord_node_name)
-    mask_mapping_node = channel_node_group.nodes.get(layers[layer_index].mask_mapping_node_name)
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
 
-    # Delink coordinate node.
-    if mask_coord_node != None:
-        outputs = mask_coord_node.outputs
-        for o in outputs:
-            for l in o.links:
-                if l != 0:
-                    channel_node_group.links.remove(l)
+    material_channel_list = material_channel_nodes.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
-        # Connect nodes based on projection type.
-        if layer_index > -1:
-            if layers[layer_index].mask_projection == 'FLAT':
-                channel_node_group.links.new(mask_coord_node.outputs[2], mask_mapping_node.inputs[0])
-                mask_node.projection = 'FLAT'
+        if mapping_node:
+            mapping_node.inputs[1].default_value[1] = layers[selected_layer_index].projection_offset_y
 
-            if layers[layer_index].mask_projection == 'BOX':
-                channel_node_group.links.new(mask_coord_node.outputs[0], mask_mapping_node.inputs[0])
-                mask_node.projection = 'BOX'
-
-            if layers[layer_index].mask_projection == 'SPHERE':
-                channel_node_group.links.new(mask_coord_node.outputs[0], mask_mapping_node.inputs[0])
-                mask_node.projection = 'SPHERE'
-
-            if layers[layer_index].mask_projection == 'TUBE':
-                channel_node_group.links.new(mask_coord_node.outputs[0], mask_mapping_node.inputs[0])
-                mask_node.projection = 'TUBE'
-
-def update_projected_offset_x(self, context):
+def update_projection_rotation(self, context):
+    '''Updates the layer projections rotation for all layers.'''
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
 
-    # Get the mapping node.
-    mapping_node = layer_nodes.get_node(context, 'MAPPING', layer_index)
+    material_channel_list = material_channel_nodes.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+        if mapping_node:
+            mapping_node.inputs[2].default_value[2] = layers[selected_layer_index].projection_rotation
 
-    # Set the mapping node value.
-    if mapping_node != None:
-        mapping_node.inputs[1].default_value[0] = layers[layer_index].projected_offset_x
-
-def update_projected_offset_y(self, context):
+def update_projection_scale_x(self, context):
+    '''Updates the layer projections x scale for all mapping nodes in the selected layer.'''
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
 
-    # Get the mapping node.
-    mapping_node = layer_nodes.get_node(context, 'MAPPING', layer_index)
+    material_channel_list = material_channel_nodes.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
-    # Set the mapping node value.
-    if mapping_node != None:
-        mapping_node.inputs[1].default_value[1] = layers[layer_index].projected_offset_y
+        if mapping_node:
+            mapping_node.inputs[3].default_value[0] = layers[selected_layer_index].projection_scale_x
 
-def update_projected_rotation(self, context):
+        layer_settings = context.scene.coater_layer_settings
+        if layer_settings.match_layer_scale:
+            layers[selected_layer_index].projection_scale_y = layers[selected_layer_index].projection_scale_x
+
+def update_projection_scale_y(self, context):
     layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
 
-    # Get the mapping node.
-    mapping_node = layer_nodes.get_node(context, 'MAPPING', layer_index)
-
-    # Set the mapping node value.
-    if mapping_node != None:
-        mapping_node.inputs[2].default_value[2] = layers[layer_index].projected_rotation
-
-def update_projected_scale_x(self, context):
-    layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
-
-    # Get the mapping node.
-    mapping_node = layer_nodes.get_node(context, 'MAPPING', layer_index)
-
-    # Set the mapping node value.
-    if mapping_node != None:
-        mapping_node.inputs[3].default_value[0] = layers[layer_index].projected_scale_x
-
-    layer_settings = context.scene.coater_layer_settings
-    if layer_settings.match_layer_scale:
-        layers[layer_index].projected_scale_y = layers[layer_index].projected_scale_x
-
-def update_projected_scale_y(self, context):
-    layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
-
-    # Get the mapping node.
-    mapping_node = layer_nodes.get_node(context, 'MAPPING', layer_index)
-
-    # Set the mapping node value.
-    if mapping_node != None:
-        mapping_node.inputs[3].default_value[1] = layers[layer_index].projected_scale_y
-
-def update_projected_mask_offset_x(self, context):
-    layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
-
-    # Get the mapping node.
-    mask_mapping_node = layer_nodes.get_node(context, 'MASK_MAPPING', layer_index)
-
-    # Set the mapping node value.
-    if mask_mapping_node != None:
-        mask_mapping_node.inputs[1].default_value[0] = layers[layer_index].projected_mask_offset_x
-
-def update_projected_mask_offset_y(self, context):
-    layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
-
-    # Get the mapping node.
-    mask_mapping_node = layer_nodes.get_node(context, 'MASK_MAPPING', layer_index)
-
-    # Set the mapping node value.
-    if mask_mapping_node != None:
-        mask_mapping_node.inputs[1].default_value[1] = layers[layer_index].projected_mask_offset_y
-
-def update_projected_mask_rotation(self, context):
-    layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
-
-    # Get the mapping node.
-    mask_mapping_node = layer_nodes.get_node(context, 'MASK_MAPPING', layer_index)
-
-    # Set the mapping node value.
-    if mask_mapping_node != None:
-        mask_mapping_node.inputs[2].default_value[2] = layers[layer_index].projected_mask_rotation
-
-def update_projected_mask_scale_x(self, context):
-    layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
-
-    # Get the mapping node.
-    mask_mapping_node = layer_nodes.get_node(context, 'MASK_MAPPING', layer_index)
-
-    # Set the mapping node value.
-    if mask_mapping_node != None:
-        mask_mapping_node.inputs[3].default_value[0] = layers[layer_index].projected_mask_scale_x
-
-    layer_settings = context.scene.coater_layer_settings
-    if layer_settings.match_layer_mask_scale:
-        layers[layer_index].projected_mask_scale_y = layers[layer_index].projected_mask_scale_x
-
-def update_projected_mask_scale_y(self, context):
-    layers = context.scene.coater_layers
-    layer_index = context.scene.coater_layer_stack.layer_index
-
-    # Get the mapping node.
-    mask_mapping_node = layer_nodes.get_node(context, 'MASK_MAPPING', layer_index)
-
-    # Set the mapping node value.
-    if mask_mapping_node != None:
-        mask_mapping_node.inputs[3].default_value[1] = layers[layer_index].projected_mask_scale_y
-
+    material_channel_list = material_channel_nodes.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+        
+        if mapping_node:
+            mapping_node.inputs[3].default_value[1] = layers[selected_layer_index].projection_scale_y
 
 #----------------------------- MUTE / UNMUTE MATERIAL CHANNELS -----------------------------#
 def update_color_channel_toggle(self, context):
@@ -472,21 +371,21 @@ class COATER_layers(PropertyGroup):
     texture_extension: bpy.props.EnumProperty(items=TEXTURE_EXTENSION_MODES, name="Extension", description="", default='REPEAT')
     texture_interpolation: bpy.props.EnumProperty(items=TEXTURE_INTERPOLATION_MODES, name="Interpolation", description="", default='LINEAR')
     projection_blend: bpy.props.FloatProperty(name="Projection Blend", description="The projection blend amount", default=0.5, min=0.0, max=1.0, subtype='FACTOR', update=update_projection_blend)
-    projection_offset_x: bpy.props.FloatProperty(name="Offset X", description="Projected x offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_offset_x)
-    projection_offset_y: bpy.props.FloatProperty(name="Offset Y", description="Projected y offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_offset_y)
-    projection_rotation: bpy.props.FloatProperty(name="Rotation", description="Projected rotation of the selected layer", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projected_rotation)
-    projection_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_scale_x)
-    projection_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_scale_y)
+    projection_offset_x: bpy.props.FloatProperty(name="Offset X", description="Projected x offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_x)
+    projection_offset_y: bpy.props.FloatProperty(name="Offset Y", description="Projected y offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_y)
+    projection_rotation: bpy.props.FloatProperty(name="Rotation", description="Projected rotation of the selected layer", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projection_rotation)
+    projection_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_x)
+    projection_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_y)
 
     # Mask Projection Settings
     mask_projection_mode: bpy.props.EnumProperty(items=[('FLAT', "Flat", ""), ('BOX', "Box (Tri-Planar)", ""), ('SPHERE', "Sphere", ""),('TUBE', "Tube", "")],
-                                            name="Projection", description="Projection type of the mask attached to the selected layer", default='FLAT', update=update_mask_projection)
-    mask_projection_blend: bpy.props.FloatProperty(name="Mask Projection Blend", description="The mask projection blend amount", default=0.5, min=0.0, max=1.0, subtype='FACTOR', update=update_mask_projection_blend)
-    projection_mask_offset_x: bpy.props.FloatProperty(name="Offset X", description="Projected x offset of the selected mask", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_mask_offset_x)
-    projection_mask_offset_y: bpy.props.FloatProperty(name="Offset Y", description="Projected y offset of the selected mask", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projected_mask_offset_y)
-    projection_mask_rotation: bpy.props.FloatProperty(name="Rotation", description="Projected rotation of the selected mask", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projected_mask_rotation)
-    projection_mask_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected mask", default=1.0, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_mask_scale_x)
-    projection_mask_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected mask", default=1.0, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projected_mask_scale_y)
+                                            name="Projection", description="Projection type of the mask attached to the selected layer", default='FLAT')
+    mask_projection_blend: bpy.props.FloatProperty(name="Mask Projection Blend", description="The mask projection blend amount", default=0.5, min=0.0, max=1.0, subtype='FACTOR')
+    projection_mask_offset_x: bpy.props.FloatProperty(name="Offset X", description="Projected x offset of the selected mask", default=0.0, min=-1.0, max=1.0, subtype='FACTOR')
+    projection_mask_offset_y: bpy.props.FloatProperty(name="Offset Y", description="Projected y offset of the selected mask", default=0.0, min=-1.0, max=1.0, subtype='FACTOR')
+    projection_mask_rotation: bpy.props.FloatProperty(name="Rotation", description="Projected rotation of the selected mask", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE')
+    projection_mask_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected mask", default=1.0, soft_min=-4.0, soft_max=4.0, subtype='FACTOR')
+    projection_mask_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected mask", default=1.0, soft_min=-4.0, soft_max=4.0, subtype='FACTOR')
 
     # Node Types (used for properly drawing user interface for node properties)
     color_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Color Texture Node Type", description="The node type for the color channel texture", default='COLOR', update=update_color_texture_node_type)
