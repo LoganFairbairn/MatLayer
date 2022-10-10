@@ -299,13 +299,6 @@ def link_layers_in_material_channel(material_channel, context):
             for l in output.links:
                 if l != 0:
                     material_channel_node.node_tree.links.remove(l)
-
-        mix_mask_node = material_channel_node.node_tree.nodes.get(layers[x].mask_mix_node_name)
-        if mix_mask_node != None:
-            output = mix_mask_node.outputs[0]
-            for l in output.links:
-                if l != 0:
-                    material_channel_node.node_tree.links.remove(l)
     
     # Connect mix layer nodes for every layer.
     for i in range(0, len(layers)):
