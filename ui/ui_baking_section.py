@@ -43,6 +43,9 @@ def draw_baking_section_ui(self, context):
     row = layout.row()
     row.scale_y = scale_y
     row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
+
+    row = layout.row()
+    row.scale_y = scale_y
     row.prop(baking_settings, "output_quality", text="")
 
     split = layout.split()
