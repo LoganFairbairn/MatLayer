@@ -69,6 +69,13 @@ def draw_layers_section_ui(self, context):
                                 draw_layer_properties(self, context)
 
                         elif layer_stack.layer_properties_tab == "MASKS":
+                            row = layout.row(align=True)
+                            row.scale_y = 2
+                            row.scale_x = 10
+                            row.operator("coater.move_layer_mask_up", icon='TRIA_UP', text="")
+                            row.operator("coater.move_layer_mask_down", icon='TRIA_DOWN', text="")
+                            row.operator("coater.delete_layer_mask", icon='TRASH', text="")
+
                             mask_stack = context.scene.coater_mask_stack
                             row = layout.row(align=True)
                             row.scale_y = 2

@@ -39,112 +39,6 @@ class COATER_masks(PropertyGroup):
     # Node Types (used for properly drawing user interface for node properties)
     mask_texture_types: bpy.props.EnumProperty(items=MASK_NODE_TYPES, name="Mask Texture Node Type", description="The node type for the mask", default='TEXTURE')
 
-class COATER_OT_add_empty_mask(Operator):
-    '''Adds an empty image mask to the selected layer'''
-    bl_idname = "coater.add_empty_mask"
-    bl_label = "Add Empty Mask"
-    bl_description = "Adds an image mask to the selected layer"
-
-    # Disable the button when there is no active object.
-    @ classmethod
-    def poll(cls, context):
-        return bpy.context.scene.coater_layers
-
-    def execute(self, context):
-        selected_layer_index = context.scene.coater_layer_stack.layer_index
-
-        material_channel_list = material_channel_nodes.get_material_channel_list()
-        for material_channel_name in material_channel_list:
-            material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
-            if material_channel_node:
-                
-                # Create default mask nodes.
-                mask_node = material_channel_node.node_tree.nodes.new('ShaderNodeTexImage')
-                mask_node.name = "MASK_TEXTURE_" + str(selected_layer_index) + "~"
-                mask_node.label = mask_node.name
-                
-                mask_coord_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexCoord')
-                mask_coord_node.name = "MASK_COORD_" + str(selected_layer_index) + "~"
-                mask_coord_node.label = mask_coord_node.name
-
-                mask_mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
-                mask_mapping_node.name = "MASK_MAPPING_" + str(selected_layer_index) + "~"
-                mask_mapping_node.label = mask_mapping_node.name
-
-                mask_mix_node = material_channel_node.node_tree.nodes.new('ShaderNodeMixRGB')
-                mask_mix_node.name = "MASK_MIX_LAYER_" + str(selected_layer_index) + "~"
-                mask_mix_node.label = mask_mix_node.name
-                
-                # Link new nodes.
-                material_channel_node.node_tree.links.new(mask_coord_node.outputs[2], mask_mapping_node.inputs[0])
-                material_channel_node.node_tree.links.new(mask_mapping_node.outputs[0], mask_node.inputs[0])
-
-                # Link mix layer node to the mix mask node.
-                mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel_name, selected_layer_index, context)
-                material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], mask_mix_node.inputs[1])
-
-                # Add the nodes to the layer frame.
-                frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_index, context)
-                if frame:
-                    mask_node.parent = frame
-                    mask_mix_node.parent = frame
-                    mask_coord_node.parent = frame
-                    mask_mapping_node.parent = frame
-                
-                # Update the layer nodes.
-                #layer_nodes.update_layer_nodes(context)
-
-            return{'FINISHED'}
-
-class COATER_OT_delete_layer_mask(Operator):
-    bl_idname = "coater.delete_layer_mask"
-    bl_label = "Delete Layer Mask"
-    bl_description = "Deletes the mask for the selected layer if one exists"
-
-    # Disable the button when there is no active object.
-    @ classmethod
-    def poll(cls, context):
-        return bpy.context.scene.coater_layers
-
-    def execute(self, context):
-        layers = context.scene.coater_layers
-        layer_index = context.scene.coater_layer_stack.layer_index
-
-        material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
-
-        # Delete mask nodes for the selected layer if they exist.
-        mask_node = material_channel_node.node_tree.nodes.get(layers[layer_index].mask_node_name)
-        if mask_node != None:
-            material_channel_node.node_tree.nodes.remove(mask_node)
-
-        mask_mix_node = material_channel_node.node_tree.nodes.get(layers[layer_index].mask_mix_node_name)
-        if mask_mix_node != None:
-            material_channel_node.node_tree.nodes.remove(mask_mix_node)
-
-        mask_coord_node = material_channel_node.node_tree.nodes.get(layers[layer_index].mask_coord_node_name)
-        if mask_coord_node != None:
-            material_channel_node.node_tree.nodes.remove(mask_coord_node)
-
-        mask_mapping_node = material_channel_node.nodes.get(layers[layer_index].mask_mapping_node_name)
-        if mask_mapping_node != None:
-            material_channel_node.node_tree.nodes.remove(mask_mapping_node)
-
-        mask_levels_node = material_channel_node.node_tree.nodes.get(layers[layer_index].mask_levels_node_name)
-        if mask_levels_node != None:
-            material_channel_node.node_tree.nodes.remove(mask_levels_node)
-
-        # Clear mask node names.
-        layers[layer_index].mask_node_name = ""
-        layers[layer_index].mask_mix_node_name = ""
-        layers[layer_index].mask_coord_node_name = ""
-        layers[layer_index].mask_mapping_node_name = ""
-        layers[layer_index].mask_levels_node_name = ""
-
-        # Relink nodes.
-        layer_nodes.update_layer_nodes(context)
-
-        return{'FINISHED'}
-
 class COATER_OT_add_black_mask(Operator):
     '''Creates a fully black image and adds it as the selected layer's mask'''
     bl_idname = "coater.add_black_mask"
@@ -283,25 +177,128 @@ class COATER_OT_add_white_mask(Operator):
             mask_node.image = bpy.data.images[image_mask_name]
         return {'FINISHED'}
 
-class COATER_OT_delete_layer_image_mask(Operator):
-    '''Deletes the image from Blender's data used for the layer's mask if one exists'''
-    bl_idname = "coater.delete_layer_image_mask"
-    bl_label = "Delete Layer Image Mask"
+class COATER_OT_add_empty_mask(Operator):
+    '''Adds an empty image mask to the selected layer'''
+    bl_idname = "coater.add_empty_mask"
+    bl_label = "Add Empty Mask"
+    bl_description = "Adds an image mask to the selected layer"
+
+    # Disable the button when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return bpy.context.scene.coater_layers
+
+    def execute(self, context):
+        selected_layer_index = context.scene.coater_layer_stack.layer_index
+
+        material_channel_list = material_channel_nodes.get_material_channel_list()
+        for material_channel_name in material_channel_list:
+            material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+            if material_channel_node:
+                
+                # Create default mask nodes.
+                mask_node = material_channel_node.node_tree.nodes.new('ShaderNodeTexImage')
+                mask_node.name = "MASK_TEXTURE_" + str(selected_layer_index) + "~"
+                mask_node.label = mask_node.name
+                
+                mask_coord_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexCoord')
+                mask_coord_node.name = "MASK_COORD_" + str(selected_layer_index) + "~"
+                mask_coord_node.label = mask_coord_node.name
+
+                mask_mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
+                mask_mapping_node.name = "MASK_MAPPING_" + str(selected_layer_index) + "~"
+                mask_mapping_node.label = mask_mapping_node.name
+
+                mask_mix_node = material_channel_node.node_tree.nodes.new('ShaderNodeMixRGB')
+                mask_mix_node.name = "MASK_MIX_LAYER_" + str(selected_layer_index) + "~"
+                mask_mix_node.label = mask_mix_node.name
+                
+                # Link new nodes.
+                material_channel_node.node_tree.links.new(mask_coord_node.outputs[2], mask_mapping_node.inputs[0])
+                material_channel_node.node_tree.links.new(mask_mapping_node.outputs[0], mask_node.inputs[0])
+
+                # Link mix layer node to the mix mask node.
+                mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel_name, selected_layer_index, context)
+                material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], mask_mix_node.inputs[1])
+
+                # Add the nodes to the layer frame.
+                frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_index, context)
+                if frame:
+                    mask_node.parent = frame
+                    mask_mix_node.parent = frame
+                    mask_coord_node.parent = frame
+                    mask_mapping_node.parent = frame
+                
+                # Update the layer nodes.
+                #layer_nodes.update_layer_nodes(context)
+
+            return{'FINISHED'}
+
+class COATER_OT_move_layer_mask_up(Operator):
+    '''Moves the selected layer up on the layer stack'''
+    bl_idname = "coater.move_layer_mask_up"
+    bl_label = "Move Layer Mask Up"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Deletes the image from Blender's data used for the layer's mask if one exists"
+    bl_description = "Moves the selected layer up on the layer stack"
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+class COATER_OT_move_layer_mask_down(Operator):
+    '''Moves the selected layer down on the layer stack'''
+    bl_idname = "coater.move_layer_mask_down"
+    bl_label = "Move Layer Mask Down"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Moves the selected layer down on the layer stack"
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+class COATER_OT_delete_layer_mask(Operator):
+    bl_idname = "coater.delete_layer_mask"
+    bl_label = "Delete Layer Mask"
+    bl_description = "Deletes the mask for the selected layer if one exists"
+
+    # Disable the button when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return bpy.context.scene.coater_layers
 
     def execute(self, context):
         layers = context.scene.coater_layers
         layer_index = context.scene.coater_layer_stack.layer_index
 
-        group_node = layer_nodes.get_channel_node_group(context)
-        mask_node_name = layers[layer_index].mask_node_name
-        mask_node = group_node.nodes.get(mask_node_name)
+        material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
 
-        if (mask_node != None):
-            mask_image = mask_node.image
+        # Delete mask nodes for the selected layer if they exist.
+        mask_node = material_channel_node.node_tree.nodes.get(layers[layer_index].mask_node_name)
+        if mask_node != None:
+            material_channel_node.node_tree.nodes.remove(mask_node)
 
-            if mask_image != None:
-                bpy.data.images.remove(mask_image)
-        
-        return {'FINISHED'}
+        mask_mix_node = material_channel_node.node_tree.nodes.get(layers[layer_index].mask_mix_node_name)
+        if mask_mix_node != None:
+            material_channel_node.node_tree.nodes.remove(mask_mix_node)
+
+        mask_coord_node = material_channel_node.node_tree.nodes.get(layers[layer_index].mask_coord_node_name)
+        if mask_coord_node != None:
+            material_channel_node.node_tree.nodes.remove(mask_coord_node)
+
+        mask_mapping_node = material_channel_node.nodes.get(layers[layer_index].mask_mapping_node_name)
+        if mask_mapping_node != None:
+            material_channel_node.node_tree.nodes.remove(mask_mapping_node)
+
+        mask_levels_node = material_channel_node.node_tree.nodes.get(layers[layer_index].mask_levels_node_name)
+        if mask_levels_node != None:
+            material_channel_node.node_tree.nodes.remove(mask_levels_node)
+
+        # Clear mask node names.
+        layers[layer_index].mask_node_name = ""
+        layers[layer_index].mask_mix_node_name = ""
+        layers[layer_index].mask_coord_node_name = ""
+        layers[layer_index].mask_mapping_node_name = ""
+        layers[layer_index].mask_levels_node_name = ""
+
+        # Relink nodes.
+        layer_nodes.update_layer_nodes(context)
+
+        return{'FINISHED'}
