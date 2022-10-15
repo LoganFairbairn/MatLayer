@@ -124,9 +124,9 @@ def draw_layer_operations(self):
     row.operator("coater.move_layer_up", icon="TRIA_UP", text="")
     row.operator("coater.move_layer_down", icon="TRIA_DOWN", text="")
     row.operator("coater.duplicate_layer", icon="DUPLICATE", text="")
-    row.operator("coater.merge_layer", icon="AUTOMERGE_OFF", text="")
-    row.operator("coater.bake_layer", icon="RENDER_STILL", text="")
-    row.operator("coater.image_editor_export", icon="EXPORT", text="")
+    #row.operator("coater.merge_layer", icon="AUTOMERGE_OFF", text="")
+    #row.operator("coater.bake_layer", icon="RENDER_STILL", text="")
+    #row.operator("coater.image_editor_export", icon="EXPORT", text="")
     row.operator("coater.delete_layer", icon="TRASH", text="")
     row.scale_y = 2.0
     row.scale_x = 2
