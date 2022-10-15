@@ -72,6 +72,8 @@ def draw_layers_section_ui(self, context):
                             row = layout.row(align=True)
                             row.scale_y = 2
                             row.scale_x = 10
+                            row.operator("coater.add_mask", icon='ADD', text="")
+                            row.operator("coater.add_layer_mask_filter_menu", icon='FILTER', text="")
                             row.operator("coater.move_layer_mask_up", icon='TRIA_UP', text="")
                             row.operator("coater.move_layer_mask_down", icon='TRIA_DOWN', text="")
                             row.operator("coater.delete_layer_mask", icon='TRASH', text="")
@@ -129,8 +131,6 @@ def draw_layer_operations(self):
     row.scale_y = 2.0
     row.scale_x = 10
     row.operator("coater.add_layer", icon="ADD", text="")
-    row.operator("coater.add_mask_menu", icon="MOD_MASK", text="")
-    row.operator("coater.add_layer_filter_menu", icon="FILTER", text="")
     row.operator("coater.move_layer_up", icon="TRIA_UP", text="")
     row.operator("coater.move_layer_down", icon="TRIA_DOWN", text="")
     row.operator("coater.duplicate_layer", icon="DUPLICATE", text="")
