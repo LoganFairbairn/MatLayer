@@ -70,12 +70,15 @@ def draw_layers_section_ui(self, context):
 
                         elif layer_stack.layer_properties_tab == "MASKS":
                             mask_stack = context.scene.coater_mask_stack
-
-                            layout.label(text="Masks Section")
-
                             row = layout.row(align=True)
-                            row.template_list("COATER_UL_mask_stack", "Masks", context.scene, "coater_masks", mask_stack, "selected_mask_index", sort_reverse=True)
                             row.scale_y = 2
+                            row.template_list("COATER_UL_mask_stack", "Masks", context.scene, "coater_masks", mask_stack, "selected_mask_index", sort_reverse=True)
+
+                        elif layer_stack.layer_properties_tab == "FILTERS":
+                            layer_filter_stack = context.scene.coater_layer_filter_stack
+                            row = layout.row(align=True)
+                            row.scale_y = 2
+                            row.template_list("COATER_UL_layer_filter_stack", "Layers", context.scene, "coater_layer_filters", layer_filter_stack, "selected_filter_index", sort_reverse=True)
 
     else:
         layout = self.layout

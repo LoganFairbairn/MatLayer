@@ -21,14 +21,19 @@ from bpy.app.handlers import persistent
 # Import texture set modules.
 from .texture_set_settings.texture_set_settings import COATER_texture_set_settings
 
-# Import layer modules.
+# Import layer related modules.
 from .layers.layer_stack.layers import *
 from .layers.layer_stack.layer_stack import *
 from .layers.layer_stack.layer_settings import COATER_layer_settings
-from .layers.layer_operations.layer_masking import COATER_mask_stack, COATER_UL_mask_stack, COATER_masks, COATER_OT_add_empty_mask, COATER_OT_delete_layer_mask, COATER_OT_delete_layer_image_mask, COATER_OT_add_black_mask, COATER_OT_add_white_mask
 from .layers.nodes.read_layer_nodes import COATER_OT_read_layer_nodes
 from .layers.layer_stack.select_layer import COATER_OT_select_layer_image, COATER_OT_select_layer_mask
 from .layers.layer_operations.toggle_channel_preview import COATER_OT_toggle_channel_preview
+
+# Import layer masking modules.
+from .layers.layer_operations.layer_masking import COATER_mask_stack, COATER_UL_mask_stack, COATER_masks, COATER_OT_add_empty_mask, COATER_OT_delete_layer_mask, COATER_OT_delete_layer_image_mask, COATER_OT_add_black_mask, COATER_OT_add_white_mask
+
+# Import filter modules.
+from .layers.layer_stack.layer_filters import COATER_layer_filter_stack, COATER_UL_layer_filter_stack, COATER_layer_filters
 
 # Import layer operation modules.
 from .layers.layer_operations.add_layer import COATER_OT_add_layer
@@ -64,7 +69,7 @@ from .ui.coater_ui import *
 from .ui.popup_add_mask import *
 from .ui.ui_layer_stack import *
 
-# Import extra features.
+# Import extra feature modules.
 from .extra_features.apply_color_grid import COATER_OT_apply_color_grid
 
 bl_info = {
@@ -114,6 +119,11 @@ classes = (
     COATER_UL_mask_stack,
     COATER_masks,
 
+    # Filters
+    COATER_layer_filter_stack, 
+    COATER_UL_layer_filter_stack, 
+    COATER_layer_filters,
+
     # Layer Menus
     COATER_OT_add_mask_menu,
 
@@ -155,7 +165,7 @@ classes = (
 )
 
 def obj_selected_callback():
-    '''Updates coater layers when a the active object selection changes.'''
+    '''Triggers a layer refresh when the selected object changes.'''
     bpy.ops.coater.refresh_layers()
 
 @persistent
@@ -178,9 +188,13 @@ def register():
     bpy.types.Scene.coater_layer_stack = bpy.props.PointerProperty(type=COATER_layer_stack)
     bpy.types.Scene.coater_layers = bpy.props.CollectionProperty(type=COATER_layers)
 
-    # Mask Properites
+    # Layer Mask Properites
     bpy.types.Scene.coater_mask_stack = bpy.props.PointerProperty(type=COATER_mask_stack)
     bpy.types.Scene.coater_masks = bpy.props.CollectionProperty(type=COATER_masks)
+
+    # Layer Filter Properties
+    bpy.types.Scene.coater_layer_filter_stack = bpy.props.PointerProperty(type=COATER_layer_filter_stack)
+    bpy.types.Scene.coater_layer_filters = bpy.props.CollectionProperty(type=COATER_layer_filters)
 
     # Settings
     bpy.types.Scene.coater_texture_set_settings = bpy.props.PointerProperty(type=COATER_texture_set_settings)
