@@ -49,9 +49,9 @@ from .layers.layer_operations.duplicate_layers import COATER_OT_duplicate_layer
 
 # Import baking modules.
 from .baking.baking_settings import COATER_baking_settings
-from .baking.bake_ambient_occlusion import COATER_OT_bake_ambient_occlusion, COATER_OT_toggle_ambient_occlusion_preview
-from .baking.bake_curvature import COATER_OT_bake_curvature, COATER_OT_toggle_curvature_preview
-from .baking.bake_thickness import COATER_OT_toggle_thickness_preview, COATER_OT_bake_thickness
+from .baking.bake_ambient_occlusion import COATER_OT_bake_ambient_occlusion
+from .baking.bake_curvature import COATER_OT_bake_curvature
+from .baking.bake_thickness import COATER_OT_bake_thickness
 from .baking.bake_functions import *
 
 # Import exporting modules.
@@ -92,12 +92,9 @@ classes = (
     # Baking
     COATER_baking_settings,
     COATER_OT_bake,
-    COATER_OT_toggle_ambient_occlusion_preview,
     COATER_OT_bake_ambient_occlusion,
-    COATER_OT_toggle_curvature_preview,
     COATER_OT_bake_curvature,
     COATER_OT_bake_thickness,
-    COATER_OT_toggle_thickness_preview,
 
     # Exporting
     COATER_exporting_settings,

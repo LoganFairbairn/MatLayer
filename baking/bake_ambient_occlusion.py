@@ -25,27 +25,6 @@ class COATER_OT_bake_ambient_occlusion(Operator):
             bake_functions.save_bake(bake_image_name)
             return {'FINISHED'}
 
-class COATER_OT_toggle_ambient_occlusion_preview(Operator):
-    bl_idname = "coater.toggle_ambient_occlusion_preview"
-    bl_label = "Preview Ambient Occlusion"
-    bl_description = "Previews ambient occlusion bake result on the active object"
-
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def execute(self, context):
-        material_name = "Coater_AmbientOcclusion"
-
-        if bake_functions.verify_bake_object(self, context):
-            bake_functions.empty_material_slots(context)
-            preview_material = bake_functions.add_new_bake_material(context, material_name)
-            add_ambient_occlusion_nodes(context, preview_material, "")
-            bpy.context.scene.render.engine = 'CYCLES'
-            if context.space_data.type == 'VIEW_3D':
-                context.space_data.shading.type = 'RENDERED'
-        return {'FINISHED'}
-
 def add_ambient_occlusion_nodes(context, material, image_name):
     # Add nodes.
     nodes = material.node_tree.nodes

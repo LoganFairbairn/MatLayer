@@ -22,21 +22,18 @@ def draw_baking_section_ui(self, context):
     row.scale_y = scale_y
     row.prop(baking_settings, "bake_ambient_occlusion", text="")
     row.prop_enum(baking_settings, "bake_type", 'AMBIENT_OCCLUSION')
-    row.operator("coater.toggle_ambient_occlusion_preview", text="", icon='NODE_MATERIAL')
     row.operator("coater.bake_ambient_occlusion", text="", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
     row.prop(baking_settings, "bake_curvature", text="")
     row.prop_enum(baking_settings, "bake_type", 'CURVATURE')
-    row.operator("coater.toggle_curvature_preview", text="", icon='NODE_MATERIAL')
     row.operator("coater.bake_curvature", text="", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
     row.prop(baking_settings, "bake_thickness", text="")
     row.prop_enum(baking_settings, "bake_type", 'THICKNESS')
-    row.operator("coater.toggle_thickness_preview", text="", icon='NODE_MATERIAL')
     row.operator("coater.bake_curvature", text="", icon='RENDER_STILL')
 
 
