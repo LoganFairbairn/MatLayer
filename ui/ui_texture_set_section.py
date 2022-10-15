@@ -9,7 +9,6 @@ def draw_texture_set_section_ui(self, context):
     layout = self.layout
     scale_y = 1.4
     texture_set_settings = context.scene.coater_texture_set_settings
-    layout.label(text="TEXTURE SET SETTINGS")
 
     row = layout.row()
     row.scale_y = scale_y
