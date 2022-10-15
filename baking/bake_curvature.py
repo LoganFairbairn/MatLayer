@@ -24,6 +24,19 @@ class COATER_OT_bake_curvature(Operator):
             bake_functions.save_bake(bake_image_name)
             return {'FINISHED'}
 
+class COATER_OT_delete_curvature_map(Operator):
+    bl_idname = "coater.delete_curvature_map"
+    bl_label = "Delete Curvature Map"
+    bl_description = "Deletes the baked curvature map for the active object if one exists"
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        return {'FINISHED'}
+
 def add_curvature_nodes(context, material, image_name):
     nodes = material.node_tree.nodes
 

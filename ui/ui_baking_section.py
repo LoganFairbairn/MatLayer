@@ -123,22 +123,25 @@ def draw_baking_section_ui(self, context):
         layout.label(text="Thickness Bake Settings")
 
     #----------------------------- Draw existing mesh maps that exist within the blend file. -----------------------------#
-    layout.label(text="MESH MAPS: ")
+    layout.label(text="EXISTING MESH MAPS: ")
 
     active_object = context.active_object
 
     row = layout.row()
     row.scale_y = scale_y
     if bpy.data.images.get(active_object.name + "_AO") != None:
-        layout.label(text=active_object.name + "_AO")
-        #row = layout.row()
-        #row.scale_y = scale_y
-        #row.prop(baking_settings, "curvature_edge_radius", slider=True)
+        row = layout.row()
+        row.scale_y = scale_y
+        row.label(text=active_object.name + "_AO")
+        row.operator("coater.delete_ao_map", icon='TRASH', text="")
     
     row = layout.row()
     row.scale_y = scale_y
     if bpy.data.images.get(active_object.name + "_Curvature") != None:
-        layout.label(text=active_object.name + "_Curvature")
+        row = layout.row()
+        row.scale_y = scale_y
+        row.label(text=active_object.name + "_Curvature")
+        row.operator("coater.delete_curvature_map", icon='TRASH', text="")
 
     row = layout.row()
     row.scale_y = scale_y
