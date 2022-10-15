@@ -40,7 +40,7 @@ class COATER_baking_settings(bpy.types.PropertyGroup):
                ('FOURK', "4096", "")],
         name="Output Height",
         description="Image size for the baked texure map result(s).",
-        default='TWOK',
+        default='FIVE_TWELVE',
         update=update_bake_width
     )
 
@@ -51,7 +51,7 @@ class COATER_baking_settings(bpy.types.PropertyGroup):
                ('FOURK', "4096", "")],
         name="Output Height",
         description="Image size for the baked texure map result(s).",
-        default='TWOK'
+        default='FIVE_TWELVE'
     )
 
     match_bake_resolution: bpy.props.BoolProperty(name="Match Bake Resoltion", description="When toggled on, the bake resolution's width and height will be synced", default=True, update=update_match_bake_resolution)
