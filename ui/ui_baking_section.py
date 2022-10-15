@@ -30,11 +30,11 @@ def draw_baking_section_ui(self, context):
     row.prop_enum(baking_settings, "bake_type", 'CURVATURE')
     row.operator("coater.bake_curvature", text="", icon='RENDER_STILL')
 
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(baking_settings, "bake_thickness", text="")
-    row.prop_enum(baking_settings, "bake_type", 'THICKNESS')
-    row.operator("coater.bake_curvature", text="", icon='RENDER_STILL')
+    #row = layout.row()
+    #row.scale_y = scale_y
+    #row.prop(baking_settings, "bake_thickness", text="")
+    #row.prop_enum(baking_settings, "bake_type", 'THICKNESS')
+    #row.operator("coater.bake_curvature", text="", icon='RENDER_STILL')
 
 
     # Draw global bake settings.
