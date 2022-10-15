@@ -25,7 +25,7 @@ class COATER_layer_filters(PropertyGroup):
 class COATER_OT_add_layer_filter_invert(Operator):
     '''Adds an invert filter to the selected layer.'''
     bl_idname = "coater.add_layer_filter_invert"
-    bl_label = "Add Invert Adjustment"
+    bl_label = "Add Invert"
     bl_description = "Adds an invert filter to the selected layer"
 
     # Disable the button when there is no active object.
@@ -39,7 +39,7 @@ class COATER_OT_add_layer_filter_invert(Operator):
 class COATER_OT_add_layer_filter_levels(Operator):
     '''Adds level adjustment to the selected layer.'''
     bl_idname = "coater.add_layer_filter_levels"
-    bl_label = "Add Levels Adjustment"
+    bl_label = "Add Levels"
     bl_description = "Adds a level adjustment to the selected layer"
 
     @ classmethod
@@ -52,7 +52,7 @@ class COATER_OT_add_layer_filter_levels(Operator):
 class COATER_OT_add_layer_filter_hsv(Operator):
     '''Adds a hue, saturation, value adjustment to the selected layer.'''
     bl_idname = "coater.add_layer_filter_hsv"
-    bl_label = "Add HSV Adjustment"
+    bl_label = "Add HSV"
     bl_description = "Adds a HSV adjustment to the selected layer"
 
     @ classmethod
@@ -65,7 +65,7 @@ class COATER_OT_add_layer_filter_hsv(Operator):
 class COATER_OT_add_layer_filter_rgb_curves(Operator):
     '''Adds level adjustment to the selected layer.'''
     bl_idname = "coater.add_layer_filter_rgb_curves"
-    bl_label = "Add RGB Curves Adjustment"
+    bl_label = "Add RGB Curves"
     bl_description = "Adds a RGB curves adjustment to the selected layer"
 
     @ classmethod
