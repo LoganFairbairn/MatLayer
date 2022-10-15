@@ -104,7 +104,6 @@ class COATER_texture_set_settings(bpy.types.PropertyGroup):
     layer_folder: bpy.props.StringProperty(default="", description="Path to folder location where layer images are saved", name="Image Layer Folder Path")
     match_image_resolution: bpy.props.BoolProperty(name="Match Image Resolution", description="When toggled on, the image width and height will be synced", default=True, update=update_match_image_resolution)
     thirty_two_bit: bpy.props.BoolProperty(name="32 Bit", description="When toggled on, images created using Coater will be created with 32 bit color depth. Images will take up more memory, but will have significantly less banding from gradients", default=True)
-    pack_images: bpy.props.BoolProperty(name="Pack Images", description="When toggled on, images created with Coater will be automatically packed into the Blender file", default=False)
 
     # Material Channel Toggles (for turning on / off unrequired channels)
     color_channel_toggle: bpy.props.BoolProperty(default=True, update=update_color_channel_toggle)

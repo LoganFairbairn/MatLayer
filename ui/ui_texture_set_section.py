@@ -43,7 +43,6 @@ def draw_texture_set_section_ui(self, context):
     row = layout.row()
     row.scale_y = scale_y
     row.prop(texture_set_settings, "thirty_two_bit")
-    row.prop(texture_set_settings, "pack_images")
 
     # Draw material channel toggles.
     layout.label(text="MATERIAL CHANNELS")
