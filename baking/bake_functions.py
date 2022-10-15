@@ -8,7 +8,9 @@ from bpy.types import Operator
 class COATER_OT_bake(Operator):
     bl_idname = "coater.bake"
     bl_label = "Bake"
+    bl_description = "Bakes all checked texture maps in succession"
 
+    # Disable when there is no active object.
     @ classmethod
     def poll(cls, context):
         return context.active_object
@@ -22,6 +24,7 @@ class COATER_OT_bake(Operator):
         if baking_settings.bake_curvature:
             bpy.ops.coater.bake_curvature()
         return {'FINISHED'}
+
 
 def verify_bake_object(self, context):
     '''Verifies the active object is a mesh and has an active UV map.'''

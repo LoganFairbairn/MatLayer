@@ -131,6 +131,9 @@ def draw_baking_section_ui(self, context):
     row.scale_y = scale_y
     if bpy.data.images.get(active_object.name + "_AO") != None:
         layout.label(text=active_object.name + "_AO")
+        #row = layout.row()
+        #row.scale_y = scale_y
+        #row.prop(baking_settings, "curvature_edge_radius", slider=True)
     
     row = layout.row()
     row.scale_y = scale_y

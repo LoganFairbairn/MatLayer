@@ -76,24 +76,6 @@ class COATER_OT_add_layer_image(Operator):
                                   use_stereo_3d=False,
                                   tiled=False)
 
-        # Save the images to a folder (unless they are being packed into the blend file).
-        if texture_set_settings.pack_images == False:
-            layers_folder_path = bpy.path.abspath("//") + 'Layer Images'
-
-            if os.path.exists(layers_folder_path) == False:
-                os.mkdir(layers_folder_path)
-
-            layer_image = bpy.data.images[image_name]
-            layer_image.filepath = layers_folder_path + "/" + image_name + ".png"
-            layer_image.file_format = 'PNG'
-
-            layer_image.pixels[0] = 1
-
-            if layer_image != None:
-                if layer_image.is_dirty:
-                    layer_image.save()
-
-
         # Add the new image to the selected layer.
         selected_layer_index = context.scene.coater_layer_stack.layer_index
         texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel, selected_layer_index, context)

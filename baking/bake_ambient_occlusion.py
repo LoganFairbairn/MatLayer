@@ -25,6 +25,19 @@ class COATER_OT_bake_ambient_occlusion(Operator):
             bake_functions.save_bake(bake_image_name)
             return {'FINISHED'}
 
+class COATER_OT_delete_ao_map(Operator):
+    bl_idname = "coater.delete_ao_map"
+    bl_label = "Delete Ambient Occlusion Map"
+    bl_description = "Deletes the baked ambient occlusion map for the active object if one exists"
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        return {'FINISHED'}
+
 def add_ambient_occlusion_nodes(context, material, image_name):
     # Add nodes.
     nodes = material.node_tree.nodes

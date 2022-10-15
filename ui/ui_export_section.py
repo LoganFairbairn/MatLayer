@@ -23,35 +23,35 @@ def draw_export_section_ui(self, context):
 
     row = layout.row()
     row.scale_y = scale_y
-    row.prop(export_settings, "export_base_color")
-    row.operator("coater.export_base_color", text="", icon='RENDER_STILL')
+    row.prop(export_settings, "export_base_color", text="")
+    row.operator("coater.export_base_color", text="Export Base Color", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
-    row.prop(export_settings, "export_metallic")
-    row.operator("coater.export_metallic", text="", icon='RENDER_STILL')
+    row.prop(export_settings, "export_metallic", text="")
+    row.operator("coater.export_metallic", text="Export Metallic", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
-    row.prop(export_settings, "export_roughness")
-    row.operator("coater.export_roughness", text="", icon='RENDER_STILL')
+    row.prop(export_settings, "export_roughness", text="")
+    row.operator("coater.export_roughness", text="Export Roughness", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
-    row.prop(export_settings, "export_normals")
-    row.operator("coater.export_normals", text="", icon='RENDER_STILL')
+    row.prop(export_settings, "export_normals", text="")
+    row.operator("coater.export_normals", text="Export Normals", icon='RENDER_STILL')
+
+    #row = layout.row()
+    #row.scale_y = scale_y
+    #row.prop(export_settings, "export_height", text="")
+    #row.operator("coater.export_height", text="Export Height", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
-    row.prop(export_settings, "export_height")
-    row.operator("coater.export_height", text="", icon='RENDER_STILL')
+    row.prop(export_settings, "export_emission", text="")
+    row.operator("coater.export_emission", text="Export Emission", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
-    row.prop(export_settings, "export_emission")
-    row.operator("coater.export_emission", text="", icon='RENDER_STILL')
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(export_settings, "export_scattering")
-    row.operator("coater.export_scattering", text="", icon='RENDER_STILL')
+    row.prop(export_settings, "export_scattering", text="")
+    row.operator("coater.export_scattering", text="Export Scattering", icon='RENDER_STILL')
