@@ -17,68 +17,50 @@ class COATER_OT_add_empty_mask(Operator):
         return bpy.context.scene.coater_layers
 
     def execute(self, context):
-        layers = context.scene.coater_layers
-        layer_index = context.scene.coater_layer_stack.layer_index
+        selected_layer_index = context.scene.coater_layer_stack.layer_index
 
-        # Create mask nodes.
-        channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
+        material_channel_list = material_channel_nodes.get_material_channel_list()
+        for material_channel_name in material_channel_list:
+            material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+            if material_channel_node:
+                
+                # Create default mask nodes.
+                mask_node = material_channel_node.node_tree.nodes.new('ShaderNodeTexImage')
+                mask_node.name = "MASK_TEXTURE_" + str(selected_layer_index) + "~"
+                mask_node.label = mask_node.name
+                
+                mask_coord_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexCoord')
+                mask_coord_node.name = "MASK_COORD_" + str(selected_layer_index) + "~"
+                mask_coord_node.label = mask_coord_node.name
 
-        if channel_node != None:
-            mask_node = channel_node.node_tree.nodes.new('ShaderNodeTexImage')
-            mask_mix_node = channel_node.node_tree.nodes.new('ShaderNodeMixRGB')
-            mask_coord_node = channel_node.node_tree.nodes.new(type='ShaderNodeTexCoord')
-            mask_mapping_node = channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
-            mask_levels_node = channel_node.node_tree.nodes.new(type='ShaderNodeValToRGB')
+                mask_mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
+                mask_mapping_node.name = "MASK_MAPPING_" + str(selected_layer_index) + "~"
+                mask_mapping_node.label = mask_mapping_node.name
 
+                mask_mix_node = material_channel_node.node_tree.nodes.new('ShaderNodeMixRGB')
+                mask_mix_node.name = "MASK_MIX_LAYER_" + str(selected_layer_index) + "~"
+                mask_mix_node.label = mask_mix_node.name
+                
+                # Link new nodes.
+                material_channel_node.node_tree.links.new(mask_coord_node.outputs[2], mask_mapping_node.inputs[0])
+                material_channel_node.node_tree.links.new(mask_mapping_node.outputs[0], mask_node.inputs[0])
 
-            # Assign names to the new nodes and store them in the layer.
-            mask_node.name = "MASK_TEXTURE_"
-            mask_node.label = mask_node.name
-            layers[layer_index].mask_node_name = mask_node.name
+                # Link mix layer node to the mix mask node.
+                mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel_name, selected_layer_index, context)
+                material_channel_node.node_tree.links.new(mix_layer_node.outputs[0], mask_mix_node.inputs[1])
 
-            mask_mix_node.name = "MASK_MIX_LAYER_"
-            mask_mix_node.label = mask_mix_node.name
-            layers[layer_index].mask_mix_node_name = mask_mix_node.name
+                # Add the nodes to the layer frame.
+                frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_index, context)
+                if frame:
+                    mask_node.parent = frame
+                    mask_mix_node.parent = frame
+                    mask_coord_node.parent = frame
+                    mask_mapping_node.parent = frame
+                
+                # Update the layer nodes.
+                #layer_nodes.update_layer_nodes(context)
 
-            mask_coord_node.name = "MASK_COORD_"
-            mask_coord_node.label = mask_coord_node.name
-            mask_coord_node_name = mask_coord_node.name
-
-            mask_mapping_node.name = "MASK_MAPPING_"
-            mask_mapping_node.label = mask_mapping_node.name
-            layers[layer_index].mask_mapping_node_name = mask_mapping_node.name
-
-            mask_levels_node.name = "MASK_LEVELS_"
-            
-            
-
-            # Store mask nodes in the layer.
-            layers[layer_index].mask_levels_node_name = mask_levels_node.name
-
-
-            # Link new nodes.
-            channel_node.node_tree.links.new(mask_coord_node.outputs[2], mask_mapping_node.inputs[0])
-            channel_node.node_tree.links.new(mask_mapping_node.outputs[0], mask_node.inputs[0])
-            channel_node.node_tree.links.new(mask_node.outputs[0], mask_levels_node.inputs[0])
-            channel_node.node_tree.links.new(mask_levels_node.outputs[0], mask_mix_node.inputs[0])
-
-            # Link mix layer node to the mix mask node.
-            mix_layer_node = channel_node.node_tree.nodes.get(layers[layer_index].mix_layer_node_name)
-            channel_node.node_tree.links.new(mix_layer_node.outputs[0], mask_mix_node.inputs[2])
-
-            # Add the nodes to the frame.
-            frame = channel_node.node_tree.nodes.get(layers[layer_index].frame_name)
-            if frame != None:
-                mask_node.parent = frame
-                mask_mix_node.parent = frame
-                mask_coord_node.parent = frame
-                mask_mapping_node.parent = frame
-                mask_levels_node.parent = frame
-            
-            # Update the layer nodes.
-            layer_nodes.update_layer_nodes(context)
-
-        return{'FINISHED'}
+            return{'FINISHED'}
 
 class COATER_OT_delete_layer_mask(Operator):
     bl_idname = "coater.delete_layer_mask"

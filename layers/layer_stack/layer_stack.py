@@ -18,7 +18,6 @@ def update_selected_material_channel(self, context):
         if opacity_node:
             layers[i].opacity = opacity_node.inputs[1].default_value
 
-
 def update_layer_index(self, context):
     '''Selects an image for painting if one exists for the selected material channel.'''
     selected_material_channel = context.scene.coater_layer_stack.selected_material_channel

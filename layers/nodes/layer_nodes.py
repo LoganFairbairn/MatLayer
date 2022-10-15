@@ -65,7 +65,7 @@ def get_all_nodes_in_layer(material_channel_name, layer_index, context):
 
 
 
-''' LAYER FRAME '''
+''' LAYER FRAME FUNCTIONS '''
 
 # TODO: Replace 'layers' argument with context.
 def get_layer_frame_name(layers, layer_stack_index):
@@ -90,6 +90,20 @@ def get_layer_frame(material_channel_name, layer_stack_index, context):
         print("Error: Failed to get layer frame, material channel node is invalid.")
         return None
 
+
+''' LAYER MASK FUNCTIONS '''
+
+def get_all_layer_mask_nodes(layer_stack_index, material_channel_name, context):
+    '''Gets all the mask nodes for a given layer.'''
+    mask_nodes = []
+
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+    for i in range(0, 20):
+        mask_node = material_channel_node.node_tree.nodes.get("MASK_" + str(layer_stack_index) + "_" + str(i + 1))
+        if mask_node:
+            mask_nodes.append()
+
+    return mask_nodes
 
 ''' LAYER MUTING FUNCTIONS '''
 
@@ -264,6 +278,10 @@ def organize_layer_nodes_in_material_channel(material_channel, context):
 
         # Organize the layer nodes.
         node_list = get_all_nodes_in_layer(material_channel, index, context)
+        mask_nodes = get_all_layer_mask_nodes(index, material_channel, context)
+        for mask_node in mask_nodes:
+            node_list.append(mask_node)
+
         for node in node_list:
             node.width = NODE_WIDTH
             node.location = (header_position[0], header_position[1])
