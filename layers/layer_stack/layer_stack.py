@@ -58,7 +58,8 @@ class COATER_layer_stack(PropertyGroup):
     # Tabs for layer properties.
     layer_properties_tab: bpy.props.EnumProperty(
         items=[('MATERIAL', "MATERIAL", "Layer Material Properties"),
-               ('MASKS', "MASKS", "Layer Mask Properties")],
+               ('MASKS', "MASKS", "Layer Masks"),
+               ('FILTERS', "FILTERS", "Layer Filters")],
         name="Layer Properties Tab",
         description="Currently selected layer properties user interface tab to display",
         default=None,

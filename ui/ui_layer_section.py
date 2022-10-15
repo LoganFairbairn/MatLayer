@@ -60,6 +60,7 @@ def draw_layers_section_ui(self, context):
                         row.scale_y = 2.0
                         row.prop_enum(layer_stack, "layer_properties_tab", 'MATERIAL')
                         row.prop_enum(layer_stack, "layer_properties_tab", 'MASKS')
+                        row.prop_enum(layer_stack, "layer_properties_tab", 'FILTERS')
 
                         if layer_stack.layer_properties_tab == "MATERIAL":
                             selected_layer_index = context.scene.coater_layer_stack.layer_index
