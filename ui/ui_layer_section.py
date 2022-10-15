@@ -77,6 +77,7 @@ def draw_layers_section_ui(self, context):
                         elif layer_stack.layer_properties_tab == "FILTERS":
                             row = layout.row(align=True)
                             row.scale_y = 2
+                            row.scale_x = 10
                             row.operator("coater.move_filter_up", icon='TRIA_UP', text="")
                             row.operator("coater.move_filter_down", icon='TRIA_DOWN', text="")
                             row.operator("coater.delete_layer_filter", icon='TRASH', text="")
@@ -118,6 +119,8 @@ def draw_material_selector(self, context):
 def draw_layer_operations(self):
     layout = self.layout
     row = layout.row(align=True)
+    row.scale_y = 2.0
+    row.scale_x = 10
     row.operator("coater.add_layer", icon="ADD", text="")
     row.operator("coater.add_mask_menu", icon="MOD_MASK", text="")
     row.operator("coater.add_layer_filter_menu", icon="FILTER", text="")
@@ -128,8 +131,6 @@ def draw_layer_operations(self):
     #row.operator("coater.bake_layer", icon="RENDER_STILL", text="")
     #row.operator("coater.image_editor_export", icon="EXPORT", text="")
     row.operator("coater.delete_layer", icon="TRASH", text="")
-    row.scale_y = 2.0
-    row.scale_x = 2
 
 def draw_material_channel(self, context):
     '''Draws the currently selected material channel.'''
