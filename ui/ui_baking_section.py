@@ -73,7 +73,7 @@ def draw_baking_section_ui(self, context):
     
     row.prop(bpy.data.scenes["Scene"].render.bake, "margin", slider=True)
 
-    # Draw specific bake settings based on selected bake type.
+    #----------------------------- Draw ambient occlusion settings. -----------------------------#
     if baking_settings.bake_type == 'AMBIENT_OCCLUSION':
         layout.label(text="Ambient Occlusion Bake Settings:")
         row = layout.row()
@@ -89,15 +89,18 @@ def draw_baking_section_ui(self, context):
         row.prop(baking_settings, "ambient_occlusion_local")
         row.prop(baking_settings, "ambient_occlusion_inside")
 
+    #----------------------------- Draw curvature settings. -----------------------------#
     if baking_settings.bake_type == 'CURVATURE':
         layout.label(text="Curvature Bake Settings:")
 
         row = layout.row()
         row.scale_y = scale_y
         row.prop(baking_settings, "curvature_edge_radius", slider=True)
+
+        row = layout.row()
+        row.scale_y = scale_y
         row.prop(baking_settings, "curvature_edge_intensity", slider=True)
 
-        # Ambient Occlusion Settings.
         row = layout.row()
         row.scale_y = scale_y
         row.prop(baking_settings, "ambient_occlusion_intensity", slider=True)
@@ -111,11 +114,12 @@ def draw_baking_section_ui(self, context):
         row.prop(baking_settings, "ambient_occlusion_local")
         row.prop(baking_settings, "ambient_occlusion_inside")
 
-    # TODO: Draw thickness maps.
+
+    #----------------------------- Draw thickness settings. -----------------------------#
     if baking_settings.bake_type == 'THICKNESS':
         layout.label(text="Thickness Bake Settings")
 
-    # Draw existing mesh maps that exist within the blend file.
+    #----------------------------- Draw existing mesh maps that exist within the blend file. -----------------------------#
     layout.label(text="MESH MAPS: ")
 
     active_object = context.active_object
