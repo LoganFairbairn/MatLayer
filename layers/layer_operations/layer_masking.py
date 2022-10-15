@@ -1,9 +1,30 @@
 import os
 import bpy
-from bpy.types import Operator
+from bpy.types import Operator, PropertyGroup
 from ..nodes import layer_nodes
 from ...texture_handling import image_file_handling
 from ..nodes import material_channel_nodes
+
+MASK_NODE_TYPES = [
+    ("VALUE", "Value", ""),
+    ("TEXTURE", "Texture", ""),
+    ("NOISE", "Noise", ""),
+    ("VORONOI", "Voronoi", ""),
+    ("MUSGRAVE", "Musgrave", "")
+    ]
+
+class COATER_masks(PropertyGroup):
+    # Mask Projection Settings
+    mask_projection_mode: bpy.props.EnumProperty(items=[('FLAT', "Flat", ""), ('BOX', "Box (Tri-Planar)", ""), ('SPHERE', "Sphere", ""),('TUBE', "Tube", "")], name="Projection", description="Projection type of the mask attached to the selected layer", default='FLAT')
+    mask_projection_blend: bpy.props.FloatProperty(name="Mask Projection Blend", description="The mask projection blend amount", default=0.5, min=0.0, max=1.0, subtype='FACTOR')
+    projection_mask_offset_x: bpy.props.FloatProperty(name="Offset X", description="Projected x offset of the selected mask", default=0.0, min=-1.0, max=1.0, subtype='FACTOR')
+    projection_mask_offset_y: bpy.props.FloatProperty(name="Offset Y", description="Projected y offset of the selected mask", default=0.0, min=-1.0, max=1.0, subtype='FACTOR')
+    projection_mask_rotation: bpy.props.FloatProperty(name="Rotation", description="Projected rotation of the selected mask", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE')
+    projection_mask_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected mask", default=1.0, soft_min=-4.0, soft_max=4.0, subtype='FACTOR')
+    projection_mask_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected mask", default=1.0, soft_min=-4.0, soft_max=4.0, subtype='FACTOR')
+
+    # Node Types (used for properly drawing user interface for node properties)
+    mask_texture_types: bpy.props.EnumProperty(items=MASK_NODE_TYPES, name="Mask Texture Node Type", description="The node type for the mask", default='TEXTURE')
 
 class COATER_OT_add_empty_mask(Operator):
     '''Adds an empty image mask to the selected layer'''

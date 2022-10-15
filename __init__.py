@@ -25,7 +25,7 @@ from .texture_set_settings.texture_set_settings import COATER_texture_set_settin
 from .layers.layer_stack.layers import *
 from .layers.layer_stack.layer_stack import *
 from .layers.layer_stack.layer_settings import COATER_layer_settings
-from .layers.layer_operations.layer_masking import COATER_OT_add_empty_mask, COATER_OT_delete_layer_mask, COATER_OT_delete_layer_image_mask, COATER_OT_add_black_mask, COATER_OT_add_white_mask
+from .layers.layer_operations.layer_masking import COATER_masks, COATER_OT_add_empty_mask, COATER_OT_delete_layer_mask, COATER_OT_delete_layer_image_mask, COATER_OT_add_black_mask, COATER_OT_add_white_mask
 from .layers.nodes.read_layer_nodes import COATER_OT_read_layer_nodes
 from .layers.layer_stack.select_layer import COATER_OT_select_layer_image, COATER_OT_select_layer_mask
 from .layers.layer_operations.toggle_channel_preview import COATER_OT_toggle_channel_preview
@@ -108,6 +108,9 @@ classes = (
     # Layers
     COATER_layer_stack,
     COATER_layers,
+
+    # Masks
+    COATER_masks,
 
     # Layer Menus
     COATER_OT_add_mask_menu,
