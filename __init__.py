@@ -42,10 +42,6 @@ from .layers.layer_operations.bake_layer import COATER_OT_bake_layer
 from .layers.layer_operations.move_layer import COATER_OT_move_layer_up, COATER_OT_move_layer_down
 from .layers.layer_operations.merge_layers import COATER_OT_merge_layer
 from .layers.layer_operations.duplicate_layers import COATER_OT_duplicate_layer
-from .layers.layer_operations.merge_layers import COATER_OT_merge_layer
-from .layers.layer_operations.duplicate_layers import COATER_OT_duplicate_layer
-from .layers.layer_operations.merge_layers import COATER_OT_merge_layer
-from .layers.layer_operations.duplicate_layers import COATER_OT_duplicate_layer
 
 # Import baking modules.
 from .baking.baking_settings import COATER_baking_settings
