@@ -20,36 +20,7 @@ class COATER_UL_layer_filter_stack(bpy.types.UIList):
 class COATER_layer_filters(PropertyGroup):
     name: bpy.props.StringProperty(name="", description="The name of the layer filter", default="Layer Filter Naming Error")
 
-
-class COATER_OT_add_layer_filter_menu(Operator):
-    '''Opens a menu of layer filters that can be added to the selected layer.'''
-    bl_label = ""
-    bl_idname = "coater.add_layer_filter_menu"
-    bl_description = "Opens a menu of layer filters that can be added to the selected layer"
-
-    @ classmethod
-    def poll(cls, context):
-        return bpy.context.scene.coater_layers
-
-    # Runs when the add layer button in the popup is clicked.
-    def execute(self, context):
-        return {'FINISHED'}
-
-    # Opens the popup when the add layer button is clicked.
-    def invoke(self, context, event):
-        return context.window_manager.invoke_popup(self, width=150)
-
-    # Draws the properties in the popup.
-    def draw(self, context):
-        layout = self.layout
-        split = layout.split()
-        col = split.column(align=True)
-        col.scale_y = 1.4
-        col.operator("coater.add_layer_filter_invert")
-        col.operator("coater.add_layer_filter_levels")
-        col.operator("coater.add_layer_filter_hsv")
-        col.operator("coater.add_layer_filter_rgb_curves")
-
+#----------------------------- LAYER FILTER TYPES -----------------------------#
 
 class COATER_OT_add_layer_filter_invert(Operator):
     '''Adds an invert filter to the selected layer.'''
@@ -104,9 +75,66 @@ class COATER_OT_add_layer_filter_rgb_curves(Operator):
     def execute(self, context):
             return{'FINISHED'}
 
+class COATER_OT_add_layer_filter_menu(Operator):
+    '''Opens a menu of layer filters that can be added to the selected layer.'''
+    bl_label = ""
+    bl_idname = "coater.add_layer_filter_menu"
+    bl_description = "Opens a menu of layer filters that can be added to the selected layer"
+
+    @ classmethod
+    def poll(cls, context):
+        return bpy.context.scene.coater_layers
+
+    # Runs when the add layer button in the popup is clicked.
+    def execute(self, context):
+        return {'FINISHED'}
+
+    # Opens the popup when the add layer button is clicked.
+    def invoke(self, context, event):
+        return context.window_manager.invoke_popup(self, width=150)
+
+    # Draws the properties in the popup.
+    def draw(self, context):
+        layout = self.layout
+        split = layout.split()
+        col = split.column(align=True)
+        col.scale_y = 1.4
+        col.operator("coater.add_layer_filter_invert")
+        col.operator("coater.add_layer_filter_levels")
+        col.operator("coater.add_layer_filter_hsv")
+        col.operator("coater.add_layer_filter_rgb_curves")
+
+#----------------------------- LAYER FILTER STACK OPERATIONS -----------------------------#
+
+class COATER_OT_move_layer_filter_up(Operator):
+    '''Moves the filter up on the filter layer stack.'''
+    bl_idname = "coater.move_filter_up"
+    bl_label = "Move Filter Up"
+    bl_description = "Moves the selected layer filter up on the layer stack."
+
+    @ classmethod
+    def poll(cls, context):
+        return bpy.context.scene.coater_layers
+
+    def execute(self, context):
+            return{'FINISHED'}
+
+class COATER_OT_move_layer_filter_down(Operator):
+    '''Moves the filter up on the filter layer stack.'''
+    bl_idname = "coater.move_filter_down"
+    bl_label = "Move Filter Down"
+    bl_description = "Moves the selected layer filter down on the layer stack."
+
+    @ classmethod
+    def poll(cls, context):
+        return bpy.context.scene.coater_layers
+
+    def execute(self, context):
+            return{'FINISHED'}
+
 class COATER_OT_delete_layer_filter(Operator):
     '''Deletes the selected layer filter.'''
-    bl_idname = "coater.add_layer_filter_rgb_curves"
+    bl_idname = "coater.delete_layer_filter"
     bl_label = "Delete Layer Filter"
     bl_description = "Deletes the selected layer filter."
 

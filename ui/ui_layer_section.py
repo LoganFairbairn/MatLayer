@@ -75,6 +75,12 @@ def draw_layers_section_ui(self, context):
                             row.template_list("COATER_UL_mask_stack", "Masks", context.scene, "coater_masks", mask_stack, "selected_mask_index", sort_reverse=True)
 
                         elif layer_stack.layer_properties_tab == "FILTERS":
+                            row = layout.row(align=True)
+                            row.scale_y = 2
+                            row.operator("coater.move_filter_up", icon='TRIA_UP', text="")
+                            row.operator("coater.move_filter_down", icon='TRIA_DOWN', text="")
+                            row.operator("coater.delete_layer_filter", icon='TRASH', text="")
+
                             layer_filter_stack = context.scene.coater_layer_filter_stack
                             row = layout.row(align=True)
                             row.scale_y = 2
@@ -114,6 +120,7 @@ def draw_layer_operations(self):
     row = layout.row(align=True)
     row.operator("coater.add_layer", icon="ADD", text="")
     row.operator("coater.add_mask_menu", icon="MOD_MASK", text="")
+    row.operator("coater.add_layer_filter_menu", icon="FILTER", text="")
     row.operator("coater.move_layer_up", icon="TRIA_UP", text="")
     row.operator("coater.move_layer_down", icon="TRIA_DOWN", text="")
     row.operator("coater.duplicate_layer", icon="DUPLICATE", text="")
@@ -142,8 +149,7 @@ def draw_layer_stack(self, context):
     layout = self.layout
     row = layout.row(align=True)
     layer_stack = context.scene.coater_layer_stack
-    # TODO: Rename The_List
-    row.template_list("COATER_UL_layer_list", "The_List", context.scene, "coater_layers", layer_stack, "layer_index", sort_reverse=True)
+    row.template_list("COATER_UL_layer_list", "Layers", context.scene, "coater_layers", layer_stack, "layer_index", sort_reverse=True)
     row.scale_y = 2
 
 
