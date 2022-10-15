@@ -59,13 +59,23 @@ def draw_layers_section_ui(self, context):
                         row = layout.row(align=True)
                         row.scale_y = 2.0
                         row.prop_enum(layer_stack, "layer_properties_tab", 'MATERIAL')
-                        row.prop_enum(layer_stack, "layer_properties_tab", 'MASK')
+                        row.prop_enum(layer_stack, "layer_properties_tab", 'MASKS')
 
                         if layer_stack.layer_properties_tab == "MATERIAL":
                             selected_layer_index = context.scene.coater_layer_stack.layer_index
                             layer_stack_index_exists = ls.verify_layer_stack_index(selected_layer_index, context)
                             if layer_stack_index_exists:
                                 draw_layer_properties(self, context)
+
+                        elif layer_stack.layer_properties_tab == "MASKS":
+                            mask_stack = context.scene.coater_mask_stack
+
+                            layout.label(text="Masks Section")
+
+                            row = layout.row(align=True)
+                            row.template_list("COATER_UL_mask_stack", "Masks", context.scene, "coater_masks", mask_stack, "selected_mask_index", sort_reverse=True)
+                            row.scale_y = 2
+
     else:
         layout = self.layout
         layout.label(text="Select an object.")
@@ -127,16 +137,14 @@ def draw_material_channel(self, context):
 def draw_layer_stack(self, context):
     layout = self.layout
     row = layout.row(align=True)
-    layers = context.scene.coater_layer_stack
+    layer_stack = context.scene.coater_layer_stack
     # TODO: Rename The_List
-    row.template_list("COATER_UL_layer_list", "The_List", context.scene, "coater_layers", layers, "layer_index", sort_reverse=True)
+    row.template_list("COATER_UL_layer_list", "The_List", context.scene, "coater_layers", layer_stack, "layer_index", sort_reverse=True)
     row.scale_y = 2
 
 
 
-
-
-# DRAW LAYER PROPERTIES #
+#----------------- DRAW LAYER PROPERTIES ----------------------#
 def draw_material_projection_settings(self, context):
     '''Draws material projection settings.'''
     layers = context.scene.coater_layers

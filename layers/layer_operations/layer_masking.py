@@ -13,6 +13,19 @@ MASK_NODE_TYPES = [
     ("MUSGRAVE", "Musgrave", "")
     ]
 
+class COATER_mask_stack(PropertyGroup):
+    '''Properties for the mask stack.'''
+    selected_mask_index: bpy.props.IntProperty(default=-1)
+
+class COATER_UL_mask_stack(bpy.types.UIList):
+    '''Draws the mask stack for the selected layer.'''
+    def draw_item(self, context, layout, data, item, icon, active_data, index):
+        self.use_filter_show = False
+        self.use_filter_reverse = True
+
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.label(text="SOMETHING HERE")
+
 class COATER_masks(PropertyGroup):
     # Mask Projection Settings
     mask_projection_mode: bpy.props.EnumProperty(items=[('FLAT', "Flat", ""), ('BOX', "Box (Tri-Planar)", ""), ('SPHERE', "Sphere", ""),('TUBE', "Tube", "")], name="Projection", description="Projection type of the mask attached to the selected layer", default='FLAT')

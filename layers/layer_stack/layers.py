@@ -96,7 +96,6 @@ def update_hidden(self, context):
             if material_channel == "EMISSION" and self.emission_channel_toggle:
                 layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "EMISSION", context)
 
-
 #----------------------------- UPDATE PROJECTION SETTINGS -----------------------------#
 
 def update_layer_projection(self, context):

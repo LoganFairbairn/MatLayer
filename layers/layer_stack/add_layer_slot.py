@@ -10,6 +10,11 @@ def add_layer_slot(context):
 
     # Add a new layer slot.
     layers.add()
+
+
+    # TODO: TESTING REMOVE LATER
+    masks = context.scene.coater_masks
+    masks.add()
     
     # Assign the layer a unique name.
     new_layer_name = "Layer"
