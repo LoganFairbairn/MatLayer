@@ -10,7 +10,7 @@ class COATER_OT_duplicate_layer(Operator):
     bl_idname = "coater.duplicate_layer"
     bl_label = ""
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Duplicates the selected layer."
+    bl_description = "Duplicates the selected layer"
 
     @ classmethod
     def poll(cls, context):

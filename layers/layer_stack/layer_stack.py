@@ -4,6 +4,7 @@ import bpy
 from bpy.types import PropertyGroup
 from ..nodes import material_channel_nodes
 from ..nodes import layer_nodes
+from .layer_filters import refresh_filter_stack
 
 MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", "EMISSION", "SCATTERING")
 
@@ -19,16 +20,20 @@ def update_selected_material_channel(self, context):
             layers[i].opacity = opacity_node.inputs[1].default_value
 
 def update_layer_index(self, context):
-    '''Selects an image for painting if one exists for the selected material channel.'''
+    '''Updates stuff when the selected layer is changed.'''
     selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
     selected_layer_index = context.scene.coater_layer_stack.layer_index
 
+    # Select an the texture image for the selected material channel in the selected layer.
     bpy.context.scene.tool_settings.image_paint.mode = 'IMAGE'
     texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
 
-    if texture_node.bl_idname == "ShaderNodeTexImage":
-        if texture_node.image:
-            context.scene.tool_settings.image_paint.canvas = texture_node.image
+    if texture_node:
+        if texture_node.bl_idname == "ShaderNodeTexImage":
+            if texture_node.image:
+                context.scene.tool_settings.image_paint.canvas = texture_node.image
+
+    refresh_filter_stack(context)
 
 def verify_layer_stack_index(layer_stack_index, context):
     '''Verifies the given layer stack index exists.'''

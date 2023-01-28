@@ -31,10 +31,6 @@ class COATER_OT_add_layer(Operator):
 
         return {'FINISHED'}
 
-
-
-
-
 def add_default_layer_nodes(context):
     '''Adds default layer nodes for all layers.'''
 

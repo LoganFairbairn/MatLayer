@@ -49,7 +49,7 @@ def move_layer(context, direction):
         if selected_layer_index - 1 < 0:
             return
         
-        # Add a tilda to the end of the layer frame and the layer nodes names for the selected layer.
+        # Add a tilda to the end of the layer frame that will be moved down and the layer nodes names for the selected layer.
         layer_node_names = layer_nodes.get_layer_node_names()
 
         material_channel_names = material_channel_nodes.get_material_channel_list()

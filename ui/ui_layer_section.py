@@ -59,8 +59,8 @@ def draw_layers_section_ui(self, context):
                         row = layout.row(align=True)
                         row.scale_y = 2.0
                         row.prop_enum(layer_stack, "layer_properties_tab", 'MATERIAL')
-                        row.prop_enum(layer_stack, "layer_properties_tab", 'MASKS')
                         row.prop_enum(layer_stack, "layer_properties_tab", 'FILTERS')
+                        row.prop_enum(layer_stack, "layer_properties_tab", 'MASKS')
 
                         if layer_stack.layer_properties_tab == "MATERIAL":
                             selected_layer_index = context.scene.coater_layer_stack.layer_index
@@ -68,6 +68,22 @@ def draw_layers_section_ui(self, context):
                             if layer_stack_index_exists:
                                 draw_layer_properties(self, context)
 
+                        elif layer_stack.layer_properties_tab == "FILTERS":
+                            row = layout.row(align=True)
+                            row.scale_y = 2
+                            row.scale_x = 10
+                            row.operator("coater.add_layer_filter_menu", icon='FILTER', text="")
+                            row.operator("coater.move_filter_up", icon='TRIA_UP', text="")
+                            row.operator("coater.move_filter_down", icon='TRIA_DOWN', text="")
+                            row.operator("coater.delete_layer_filter", icon='TRASH', text="")
+
+                            layer_filter_stack = context.scene.coater_layer_filter_stack
+                            row = layout.row(align=True)
+                            row.scale_y = 2
+                            row.template_list("COATER_UL_layer_filter_stack", "Layers", context.scene, "coater_layer_filters", layer_filter_stack, "selected_filter_index", sort_reverse=True)
+
+                            # TODO: Draw the selected filter properties.
+                            
                         elif layer_stack.layer_properties_tab == "MASKS":
                             row = layout.row(align=True)
                             row.scale_y = 2
@@ -83,18 +99,8 @@ def draw_layers_section_ui(self, context):
                             row.scale_y = 2
                             row.template_list("COATER_UL_mask_stack", "Masks", context.scene, "coater_masks", mask_stack, "selected_mask_index", sort_reverse=True)
 
-                        elif layer_stack.layer_properties_tab == "FILTERS":
-                            row = layout.row(align=True)
-                            row.scale_y = 2
-                            row.scale_x = 10
-                            row.operator("coater.move_filter_up", icon='TRIA_UP', text="")
-                            row.operator("coater.move_filter_down", icon='TRIA_DOWN', text="")
-                            row.operator("coater.delete_layer_filter", icon='TRASH', text="")
+                            # TODO: Draw the selected mask properties.
 
-                            layer_filter_stack = context.scene.coater_layer_filter_stack
-                            row = layout.row(align=True)
-                            row.scale_y = 2
-                            row.template_list("COATER_UL_layer_filter_stack", "Layers", context.scene, "coater_layer_filters", layer_filter_stack, "selected_filter_index", sort_reverse=True)
 
     else:
         layout = self.layout
@@ -168,6 +174,10 @@ def draw_material_projection_settings(self, context):
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     layout = self.layout
+
+    row = layout.row()
+    row.alignment = 'CENTER'
+    row.label(text="-------------------------------------------------------------------------------------------------------------")
     
     row = layout.row()
     row.scale_y = SCALE_Y
@@ -218,10 +228,6 @@ def draw_material_projection_settings(self, context):
     if layer_settings.match_layer_mask_scale:
         col.enabled = False
         col.prop(layers[selected_layer_index], "projection_scale_y")
-
-    row = layout.row()
-    row.alignment = 'CENTER'
-    row.label(text="-------------------------------------------------------------------------------------------------------------")
 
 def draw_material_channel_toggles(self, context):
     '''Draws options to quickly toggle material channels on and off.'''
@@ -457,6 +463,6 @@ def draw_divider(layout):
 
 def draw_layer_properties(self, context):
     '''Draws layer properties such as projection settings, active material channels, and texture settings.'''
-    draw_material_projection_settings(self, context)
     draw_material_channel_toggles(self, context)
     draw_material_channel_texture_settings(self.layout, context)
+    draw_material_projection_settings(self, context)

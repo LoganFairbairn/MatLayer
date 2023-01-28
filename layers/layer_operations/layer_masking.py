@@ -40,10 +40,10 @@ class COATER_masks(PropertyGroup):
     mask_texture_types: bpy.props.EnumProperty(items=MASK_NODE_TYPES, name="Mask Texture Node Type", description="The node type for the mask", default='TEXTURE')
 
 class COATER_OT_add_mask(Operator):
-    '''Adds an empty image mask to the selected layer'''
+    '''Adds a mask to the selected layer'''
     bl_idname = "coater.add_mask"
-    bl_label = "Add Empty Mask"
-    bl_description = "Adds an image mask to the selected layer"
+    bl_label = "Add Mask"
+    bl_description = "Adds a mask to the selected layer"
 
     # Disable the button when there is no active object.
     @ classmethod

@@ -72,7 +72,7 @@ bl_info = {
     "name": "Coater",
     "author": "Logan Fairbairn",
     "version": (0, 85),
-    "blender": (3, 2, 1),
+    "blender": (3, 4, 0),
     "location": "View3D > Sidebar > Coater",
     "description": "Replaces node based texturing workflow with a layer stack workflow.",
     "warning": "",
