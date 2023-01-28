@@ -2,10 +2,10 @@
 
 import bpy
 from .import ui_section_tabs
-from ..layers.nodes import coater_materials
-from ..layers.nodes import material_channel_nodes
-from ..layers.nodes import layer_nodes
-from ..layers.layer_stack import layer_stack as ls
+from ..layers import coater_materials
+from ..layers import material_channel_nodes
+from ..layers import layer_nodes
+from ..layers import layer_stack as ls
 
 SCALE_Y = 1.4
 

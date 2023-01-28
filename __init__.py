@@ -19,29 +19,22 @@ import bpy
 from bpy.app.handlers import persistent
 
 # Import texture set modules.
-from .texture_set_settings.texture_set_settings import COATER_texture_set_settings
+from .texture_handling.texture_set_settings import COATER_texture_set_settings
 
 # Import layer related modules.
-from .layers.layer_stack.layers import *
-from .layers.layer_stack.layer_stack import *
-from .layers.layer_stack.layer_settings import COATER_layer_settings
-from .layers.nodes.read_layer_nodes import COATER_OT_read_layer_nodes
-from .layers.layer_stack.select_layer import COATER_OT_select_layer_image, COATER_OT_select_layer_mask
-from .layers.layer_operations.toggle_channel_preview import COATER_OT_toggle_channel_preview
+from .layers.layers import *
+from .layers.layer_stack import *
+from .layers.layer_settings import COATER_layer_settings
+from .layers.toggle_channel_preview import COATER_OT_toggle_channel_preview
 
 # Import layer masking modules.
-from .layers.layer_operations.layer_masking import COATER_mask_stack, COATER_UL_mask_stack, COATER_masks, COATER_OT_add_mask, COATER_OT_delete_layer_mask, COATER_OT_move_layer_mask_up, COATER_OT_move_layer_mask_down, COATER_OT_add_layer_mask_filter_menu, COATER_OT_add_mask_filter_invert, COATER_OT_add_mask_filter_levels
+from .layers.layer_masks import COATER_mask_stack, COATER_UL_mask_stack, COATER_masks, COATER_OT_add_mask, COATER_OT_delete_layer_mask, COATER_OT_move_layer_mask_up, COATER_OT_move_layer_mask_down, COATER_OT_add_layer_mask_filter_menu, COATER_OT_add_mask_filter_invert, COATER_OT_add_mask_filter_levels
 
 # Import filter modules.
-from .layers.layer_stack.layer_filters import COATER_layer_filter_stack, COATER_UL_layer_filter_stack, COATER_layer_filters, COATER_OT_add_layer_filter_menu, COATER_OT_add_layer_filter_rgb_curves, COATER_OT_add_layer_filter_hsv, COATER_OT_add_layer_filter_invert, COATER_OT_add_layer_filter_levels, COATER_OT_delete_layer_filter, COATER_OT_move_layer_filter_up, COATER_OT_move_layer_filter_down
+from .layers.layer_filters import COATER_layer_filter_stack, COATER_UL_layer_filter_stack, COATER_layer_filters, COATER_OT_add_layer_filter_menu, COATER_OT_add_layer_filter_rgb_curves, COATER_OT_add_layer_filter_hsv, COATER_OT_add_layer_filter_invert, COATER_OT_add_layer_filter_levels, COATER_OT_delete_layer_filter, COATER_OT_move_layer_filter_up, COATER_OT_move_layer_filter_down
 
-# Import layer operation modules.
-from .layers.layer_operations.add_layer import COATER_OT_add_layer
-from .layers.layer_operations.delete_layer import COATER_OT_delete_layer
-from .layers.layer_operations.bake_layer import COATER_OT_bake_layer
-from .layers.layer_operations.move_layer import COATER_OT_move_layer_up, COATER_OT_move_layer_down
-from .layers.layer_operations.merge_layers import COATER_OT_merge_layer
-from .layers.layer_operations.duplicate_layers import COATER_OT_duplicate_layer
+# Import layer operations.
+from .layers.layer_operations import *
 
 # Import baking modules.
 from .baking.baking_settings import COATER_baking_settings
@@ -72,7 +65,7 @@ bl_info = {
     "name": "Coater",
     "author": "Logan Fairbairn",
     "version": (0, 85),
-    "blender": (3, 4, 0),
+    "blender": (3, 4, 1),
     "location": "View3D > Sidebar > Coater",
     "description": "Replaces node based texturing workflow with a layer stack workflow.",
     "warning": "",
@@ -142,17 +135,14 @@ classes = (
     COATER_layer_settings,
     COATER_OT_add_layer,
     COATER_OT_delete_layer,
+    COATER_OT_duplicate_layer,
+    COATER_OT_merge_layer,
     COATER_OT_move_layer_up,
     COATER_OT_move_layer_down,
-    COATER_OT_merge_layer,
-    COATER_OT_duplicate_layer,
     COATER_OT_toggle_channel_preview,
     COATER_OT_import_color_image,
     COATER_OT_unlink_layer_image,
     COATER_OT_read_layer_nodes,
-    COATER_OT_select_layer_image,
-    COATER_OT_select_layer_mask,
-    COATER_OT_bake_layer,
     COATER_OT_add_layer_image,
     COATER_OT_delete_layer_image,
 

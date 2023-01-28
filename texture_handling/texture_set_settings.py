@@ -1,8 +1,8 @@
-# This file contains settings for the users texture set.
+# This file contains settings and functions the users texture set.
 
 import bpy
-from ..layers.nodes import layer_nodes
-from ..layers.nodes import material_channel_nodes
+from ..layers import layer_nodes
+from ..layers import material_channel_nodes
 
 def update_match_image_resolution(self, context):
     texture_set_settings = context.scene.coater_texture_set_settings

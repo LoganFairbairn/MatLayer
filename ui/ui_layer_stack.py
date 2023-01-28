@@ -1,7 +1,7 @@
 # This file handles the coater user interface.
 
 import bpy
-from ..layers.nodes import layer_nodes
+from ..layers import layer_nodes
 
 class COATER_UL_layer_list(bpy.types.UIList):
     '''Draws the layer stack.'''

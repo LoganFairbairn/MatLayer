@@ -1,9 +1,8 @@
 import os
 import bpy
 from bpy.types import Operator, PropertyGroup
-from ..nodes import layer_nodes
-from ...texture_handling import image_file_handling
-from ..nodes import material_channel_nodes
+from . import layer_nodes
+from . import material_channel_nodes
 
 MASK_NODE_TYPES = [
     ("VALUE", "Value", ""),

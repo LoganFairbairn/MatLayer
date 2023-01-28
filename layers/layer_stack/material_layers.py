@@ -1,1 +1,0 @@
-# Material layer functions go here.

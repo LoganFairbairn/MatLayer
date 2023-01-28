@@ -1,7 +1,7 @@
 import bpy
 from bpy.types import PropertyGroup, Operator
-from ..nodes import material_channel_nodes
-from ..nodes import layer_nodes
+from . import material_channel_nodes
+from . import layer_nodes
 
 #----------------------------- LAYER FILTER STACK -----------------------------#
 

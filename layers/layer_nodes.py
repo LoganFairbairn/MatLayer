@@ -1,8 +1,8 @@
 # This module provides functions to edit layer nodes made with this add-on.
 
 import bpy
-from ..nodes import material_channel_nodes
-from ..layer_stack import layer_filters
+from . import material_channel_nodes
+from . import layer_filters
 
 # Node organization settings.
 NODE_WIDTH = 300

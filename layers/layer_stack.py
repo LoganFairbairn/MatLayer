@@ -2,8 +2,8 @@
 
 import bpy
 from bpy.types import PropertyGroup
-from ..nodes import material_channel_nodes
-from ..nodes import layer_nodes
+from . import material_channel_nodes
+from . import layer_nodes
 from .layer_filters import refresh_filter_stack
 
 MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", "EMISSION", "SCATTERING")

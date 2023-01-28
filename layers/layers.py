@@ -2,8 +2,8 @@
 
 import bpy
 from bpy.types import PropertyGroup
-from ..nodes import layer_nodes
-from ..nodes import material_channel_nodes
+from . import layer_nodes
+from . import material_channel_nodes
 
 # List of node types that can be used in the texture slot.
 TEXTURE_NODE_TYPES = [
@@ -337,9 +337,6 @@ def update_scattering_texture_node_type(self, context):
 def update_emission_texture_node_type(self, context):
     replace_texture_node(self.emission_texture_node_type, "EMISSION", self, context)
 
-
-
-
 class COATER_layers(PropertyGroup):
     # The layer stack index for each layer is stored here for convenience. This should be automatically updated everytime update_layer_nodes is called.
     layer_stack_array_index: bpy.props.IntProperty(name="Layer Stack Array Index", description="Layer Stack Array Index", default=-9)
@@ -384,3 +381,5 @@ class COATER_layers(PropertyGroup):
     height_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Height Texture Node Type", description="The node type for the height channel texture", default='VALUE', update=update_height_texture_node_type)
     scattering_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Scattering Texture Node Type", description="The node type for the scattering channel texture", default='COLOR', update=update_scattering_texture_node_type)
     emission_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Emission Texture Node Type", description="The node type for the emission channel texture", default='COLOR', update=update_emission_texture_node_type)
+
+
