@@ -63,7 +63,7 @@ from .extra_features.apply_color_grid import COATER_OT_apply_color_grid
 
 bl_info = {
     "name": "Coater",
-    "author": "Logan Fairbairn",
+    "author": "Logan Fairbairn (Ryver)",
     "version": (0, 85),
     "blender": (3, 4, 1),
     "location": "View3D > Sidebar > Coater",

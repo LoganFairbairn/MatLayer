@@ -12,6 +12,8 @@ MASK_NODE_TYPES = [
     ("MUSGRAVE", "Musgrave", "")
     ]
 
+#------------------- Layer Mask STACK -------------------#
+
 class COATER_mask_stack(PropertyGroup):
     '''Properties for the mask stack.'''
     selected_mask_index: bpy.props.IntProperty(default=-1)
@@ -37,6 +39,57 @@ class COATER_masks(PropertyGroup):
 
     # Node Types (used for properly drawing user interface for node properties)
     mask_texture_types: bpy.props.EnumProperty(items=MASK_NODE_TYPES, name="Mask Texture Node Type", description="The node type for the mask", default='TEXTURE')
+
+#------------------- Layer Mask Filters -------------------#
+
+class COATER_OT_add_mask_filter_invert(Operator):
+    '''Adds an invert adjustment to the masks applied to the selected layer'''
+    bl_idname = "coater.add_mask_filter_invert"
+    bl_label = "Add Invert Mask Filter"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Adds an invert adjustment to the masks applied to the selected layer"
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+class COATER_OT_add_mask_filter_levels(Operator):
+    '''Adds a level adjustment to the masks applied to the selected layer'''
+    bl_idname = "coater.add_mask_filter_levels"
+    bl_label = "Add Levels Mask Filter"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Adds a level adjustment to the masks applied to the selected layer"
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+class COATER_OT_add_layer_mask_filter_menu(Operator):
+    '''Opens a menu of layer filters that can be added to the selected layer.'''
+    bl_label = ""
+    bl_idname = "coater.add_layer_mask_filter_menu"
+    bl_description = "Opens a menu of layer filters that can be added to the selected mask stack"
+
+    @ classmethod
+    def poll(cls, context):
+        return bpy.context.scene.coater_layers
+
+    # Runs when the add layer button in the popup is clicked.
+    def execute(self, context):
+        return {'FINISHED'}
+
+    # Opens the popup when the add layer button is clicked.
+    def invoke(self, context, event):
+        return context.window_manager.invoke_popup(self, width=150)
+
+    # Draws the properties in the popup.
+    def draw(self, context):
+        layout = self.layout
+        split = layout.split()
+        col = split.column(align=True)
+        col.scale_y = 1.4
+        col.operator("coater.add_mask_filter_invert")
+        col.operator("coater.add_mask_filter_levels")
+
+#------------------- Layer Mask Operations -------------------#
 
 class COATER_OT_add_mask(Operator):
     '''Adds a mask to the selected layer'''
@@ -94,61 +147,6 @@ class COATER_OT_add_mask(Operator):
                 #layer_nodes.update_layer_nodes(context)
 
             return{'FINISHED'}
-
-
-
-
-
-#------------------- Layer Mask Filters -------------------#
-
-class COATER_OT_add_mask_filter_invert(Operator):
-    '''Adds an invert adjustment to the masks applied to the selected layer'''
-    bl_idname = "coater.add_mask_filter_invert"
-    bl_label = "Add Invert Mask Filter"
-    bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Adds an invert adjustment to the masks applied to the selected layer"
-
-    def execute(self, context):
-        return {'FINISHED'}
-
-class COATER_OT_add_mask_filter_levels(Operator):
-    '''Adds a level adjustment to the masks applied to the selected layer'''
-    bl_idname = "coater.add_mask_filter_levels"
-    bl_label = "Add Levels Mask Filter"
-    bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Adds a level adjustment to the masks applied to the selected layer"
-
-    def execute(self, context):
-        return {'FINISHED'}
-
-class COATER_OT_add_layer_mask_filter_menu(Operator):
-    '''Opens a menu of layer filters that can be added to the selected layer.'''
-    bl_label = ""
-    bl_idname = "coater.add_layer_mask_filter_menu"
-    bl_description = "Opens a menu of layer filters that can be added to the selected mask stack"
-
-    @ classmethod
-    def poll(cls, context):
-        return bpy.context.scene.coater_layers
-
-    # Runs when the add layer button in the popup is clicked.
-    def execute(self, context):
-        return {'FINISHED'}
-
-    # Opens the popup when the add layer button is clicked.
-    def invoke(self, context, event):
-        return context.window_manager.invoke_popup(self, width=150)
-
-    # Draws the properties in the popup.
-    def draw(self, context):
-        layout = self.layout
-        split = layout.split()
-        col = split.column(align=True)
-        col.scale_y = 1.4
-        col.operator("coater.add_mask_filter_invert")
-        col.operator("coater.add_mask_filter_levels")
-
-#------------------- Layer Mask Stack Operations -------------------#
 
 class COATER_OT_move_layer_mask_up(Operator):
     '''Moves the selected layer up on the layer stack'''
