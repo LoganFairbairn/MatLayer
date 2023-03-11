@@ -56,19 +56,13 @@ def draw_layers_section_ui(self, context):
                     if len(layers) > 0:
                         layer_stack = context.scene.coater_layer_stack
 
-                        row = layout.row(align=True)
-                        row.scale_y = 2.0
-                        row.prop_enum(layer_stack, "layer_properties_tab", 'MATERIAL')
-                        row.prop_enum(layer_stack, "layer_properties_tab", 'FILTERS')
-                        row.prop_enum(layer_stack, "layer_properties_tab", 'MASKS')
-
                         if layer_stack.layer_properties_tab == "MATERIAL":
                             selected_layer_index = context.scene.coater_layer_stack.layer_index
                             layer_stack_index_exists = ls.verify_layer_stack_index(selected_layer_index, context)
                             if layer_stack_index_exists:
                                 draw_layer_properties(self, context)
 
-                        elif layer_stack.layer_properties_tab == "FILTERS":
+                        elif layer_stack.layer_properties_tab == "MATERIAL_FILTERS":
                             row = layout.row(align=True)
                             row.scale_y = 2
                             row.scale_x = 10

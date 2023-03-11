@@ -451,3 +451,15 @@ def refresh_filter_stack(context):
         node_name = layer_filter_nodes[x].name.split("_")
         layer_filters[x].name = node_name[0]
         layer_filters[x].layer_stack_index = x
+
+#----------------------------- OTHER LAYER FILTER FUNCTIONS -----------------------------#
+
+def material_layer_filter_exists(layer_index, context):
+    '''Returns true if a filter layer exists on the given material layer.'''
+    # Checks to see if a filter layer exists on the given material layer by checking for a filter node in the color material channel. One should always exist here if a filter is applied.
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
+    filter_node = material_channel_node.node_tree.nodes.get("FILTER_" + str(layer_index) + "_0")
+    if filter_node:
+        return True
+    else:
+        return False

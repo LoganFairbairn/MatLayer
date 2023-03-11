@@ -2,6 +2,11 @@
 
 import bpy
 from ..layers import layer_nodes
+from ..layers.layer_filters import material_layer_filter_exists
+
+def select_layer_filter(layer_index, context):
+    context.scene.coater_layer_stack.layer_index = layer_index
+    context.scene.coater_layer_stack.layer_properties_tab = "MATERIAL"
 
 class COATER_UL_layer_list(bpy.types.UIList):
     '''Draws the layer stack.'''
@@ -53,29 +58,27 @@ class COATER_UL_layer_list(bpy.types.UIList):
                 elif item.hidden == False:
                     row.prop(item, "hidden", text="", emboss=False, icon='HIDE_OFF')
 
-
                 # TODO: Update the texture preview to draw based on selected material channel. 
                 # Draw the texture preview.
                 row = layout.row(align=True)
                 row.ui_units_x = 0.8
-                
-                
-                if texture_node:
-                    row.prop(texture_node.outputs[0], "default_value", text="")
-
-                # TODO: If the layer has a mask, draw a preview.
-
 
                 # Useful debug drawing values.
                 #layout.prop(item, "layer_stack_array_index", text="", emboss=False)
                 #layout.prop(item, "id", text="", emboss=False)
                 #layout.prop(item, "cached_frame_name", text="", emboss=False)
-
                 
                 # Draw the layer's name.
                 row = layout.row(align=True)
                 row.ui_units_x = 4
                 row.prop(item, "name", text="", emboss=False)
+
+                # Draw the layer filter button.
+                if material_layer_filter_exists(item.layer_stack_array_index, context):
+                    row = layout.row(align=True)
+                    row.prop_enum(context.scene.coater_layer_stack, "layer_properties_tab", 'MATERIAL_FILTERS', text="", icon='FILTER')
+
+                # TODO: If the material layer has a mask, draw a button.
 
 
                 # Draw layer's opacity.

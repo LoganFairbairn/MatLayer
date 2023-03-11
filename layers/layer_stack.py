@@ -35,6 +35,9 @@ def update_layer_index(self, context):
 
     refresh_filter_stack(context)
 
+    # Swap back to editing the material.
+    self.layer_properties_tab = "MATERIAL"
+
 def verify_layer_stack_index(layer_stack_index, context):
     '''Verifies the given layer stack index exists.'''
     layers = context.scene.coater_layers
@@ -64,7 +67,8 @@ class COATER_layer_stack(PropertyGroup):
     layer_properties_tab: bpy.props.EnumProperty(
         items=[('MATERIAL', "MATERIAL", "Layer Material Properties"),
                ('MASKS', "MASKS", "Layer Masks"),
-               ('FILTERS', "FILTERS", "Layer Filters")],
+               ('MATERIAL_FILTERS', "MATERIAL FILTERS", "Layer Filters"),
+               ('MASK_FILTERS', "MASK FILTERS", "Mask Filters")],
         name="Layer Properties Tab",
         description="Currently selected layer properties user interface tab to display",
         default=None,
