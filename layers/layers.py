@@ -257,6 +257,79 @@ def update_emission_channel_toggle(self, context):
     else:
         layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "EMISSION", context)
 
+
+#----------------------------- UPDATE LAYER PREVIEW COLORS -----------------------------#
+# To show values as uniform colors, color preview values are stored per layer as displaying them as a property through the ui required them to be stored somewhere.
+# When these values which are displayed in the ui are updated, they automatically update their respective color / value nodes in the node tree through these functions.
+
+def update_layer_preview_colors(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    color_node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_index, context)
+    if color_node:
+        color_node.outputs[0].default_value = (self.color_layer_color_preview.r, self.color_layer_color_preview.g, self.color_layer_color_preview.b, 1)
+
+#----------------------------- UPDATE UNIFORM LAYER VALUES -----------------------------#
+# To show correct min / max values for sliders when the user is using uniform value nodes in the user interface
+# When these values which are displayed in the ui are updated, they automatically update their respective value nodes in the node tree through these functions.
+
+def update_uniform_color_value(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_index, context)
+    if node:
+        node.outputs[0].default_value = self.uniform_color_value
+        self.color_layer_color_preview = (self.uniform_color_value,self.uniform_color_value,self.uniform_color_value)
+
+def update_uniform_metallic_value(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "METALLIC", selected_layer_index, context)
+    if node:
+        node.outputs[0].default_value = self.uniform_metallic_value
+        self.metallic_layer_color_preview = (self.uniform_metallic_value,self.uniform_metallic_value,self.uniform_metallic_value)
+
+def update_uniform_roughness_value(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "ROUGHNESS", selected_layer_index, context)
+    if node:
+        node.outputs[0].default_value = self.uniform_roughness_value
+        self.roughness_layer_color_preview = (self.uniform_roughness_value,self.uniform_roughness_value,self.uniform_roughness_value)
+
+def update_uniform_normal_value(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "NORMAL", selected_layer_index, context)
+    if node:
+        node.outputs[0].default_value = self.uniform_normal_value
+        self.normal_layer_color_preview = (self.uniform_normal_value,self.uniform_normal_value,self.uniform_normal_value)
+
+def update_uniform_height_value(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "HEIGHT", selected_layer_index, context)
+    if node:
+        node.outputs[0].default_value = self.uniform_height_value
+        self.height_layer_color_preview = (self.uniform_height_value,self.uniform_height_value,self.uniform_height_value)
+
+def update_uniform_emission_value(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "EMISSION", selected_layer_index, context)
+    if node:
+        node.outputs[0].default_value = self.uniform_emission_value
+        self.emission_layer_color_preview = (self.emission_layer_color_preview,self.emission_layer_color_preview,self.emission_layer_color_preview)
+
+def update_uniform_scattering_value(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "SCATTERING", selected_layer_index, context)
+    if node:
+        node.outputs[0].default_value = self.uniform_scattering_value
+        self.scattering_layer_color_preview = (self.uniform_scattering_value,self.uniform_scattering_value,self.uniform_scattering_value)
+
+def update_uniform_values(self, context):
+    update_uniform_color_value(self, context)
+    update_uniform_metallic_value(self, context)
+    update_uniform_roughness_value(self, context)
+    update_uniform_normal_value(self, context)
+    update_uniform_height_value(self, context)
+    update_uniform_emission_value(self, context)
+    update_uniform_scattering_value(self, context)
+
 #----------------------------- UPDATE TEXTURE NODE TYPES -----------------------------#
 # When nodes that represent the texture value for a material are swapped, they trigger automatic updates for their respective nodes here.
 
@@ -319,6 +392,9 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
     # Update the layer nodes because they were changed.
     layer_nodes.update_layer_nodes(context)
 
+    # Update the uniform node values when the nodes are updated.
+    update_uniform_values(self, context)
+
 def update_color_texture_node_type(self, context):
     replace_texture_node(self.color_texture_node_type, "COLOR", self, context)
 
@@ -340,69 +416,6 @@ def update_scattering_texture_node_type(self, context):
 def update_emission_texture_node_type(self, context):
     replace_texture_node(self.emission_texture_node_type, "EMISSION", self, context)
 
-
-#----------------------------- UPDATE LAYER PREVIEW COLORS -----------------------------#
-# To show values as uniform colors, color preview values are stored per layer as displaying them as a property through the ui required them to be stored somewhere.
-# When these values which are displayed in the ui are updated, they automatically update their respective color / value nodes in the node tree through these functions.
-
-def update_layer_preview_colors(self, context):
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-    color_node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_index, context)
-    if color_node:
-        color_node.outputs[0].default_value = (self.layer_preview_color.r, self.layer_preview_color.g, self.layer_preview_color.b, 1)
-
-#----------------------------- UPDATE UNIFORM LAYER VALUES -----------------------------#
-# To show correct min / max values for sliders when the user is using uniform value nodes in the user interface
-# When these values which are displayed in the ui are updated, they automatically update their respective value nodes in the node tree through these functions.
-
-def update_uniform_color_value(self, context):
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_index, context)
-    if node:
-        node.outputs[0].default_value = self.uniform_color_value
-        self.color_layer_color_preview = (self.uniform_color_value,self.uniform_color_value,self.uniform_color_value)
-
-def update_uniform_metallic_value(self, context):
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "METALLIC", selected_layer_index, context)
-    if node:
-        node.outputs[0].default_value = self.uniform_metallic_value
-        self.metallic_layer_color_preview = (self.uniform_metallic_value,self.uniform_metallic_value,self.uniform_metallic_value)
-
-def update_uniform_roughness_value(self, context):
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "ROUGHNESS", selected_layer_index, context)
-    if node:
-        node.outputs[0].default_value = self.uniform_roughness_value
-        self.roughness_layer_color_preview = (self.uniform_roughness_value,self.uniform_roughness_value,self.uniform_roughness_value)
-
-def update_uniform_normal_value(self, context):
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "NORMAL", selected_layer_index, context)
-    if node:
-        node.outputs[0].default_value = self.uniform_normal_value
-        self.normal_layer_color_preview = (self.uniform_normal_value,self.uniform_normal_value,self.uniform_normal_value)
-
-def update_uniform_height_value(self, context):
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "HEIGHT", selected_layer_index, context)
-    if node:
-        node.outputs[0].default_value = self.uniform_height_value
-        self.height_layer_color_preview = (self.uniform_height_value,self.uniform_height_value,self.uniform_height_value)
-
-def update_uniform_emission_value(self, context):
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "EMISSION", selected_layer_index, context)
-    if node:
-        node.outputs[0].default_value = self.uniform_emission_value
-        self.emission_layer_color_preview = (self.emission_layer_color_preview,self.emission_layer_color_preview,self.emission_layer_color_preview)
-
-def update_uniform_scattering_value(self, context):
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "SCATTERING", selected_layer_index, context)
-    if node:
-        node.outputs[0].default_value = self.uniform_scattering_value
-        self.scattering_layer_color_preview = (self.uniform_scattering_value,self.uniform_scattering_value,self.uniform_scattering_value)
 
 #----------------------------- LAYER PROPERTIES -----------------------------#
 
@@ -453,7 +466,7 @@ class COATER_layers(PropertyGroup):
 
     # Color layer previews for layers.
     # To display value nodes as uniform rgb colors within the layer stack ui, color previews are stored here, and updated when users update the colors through the interface.
-    color_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the color material channel.", description="", default=(1.0, 0.0, 1.0), min=0, max=1, subtype='COLOR')
+    color_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the color material channel.", description="", default=(1.0, 0.0, 1.0), min=0, max=1, subtype='COLOR', update=update_layer_preview_colors)
     metallic_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the metallic material channel.", description="", default=(1.0, 0.0, 1.0), min=0, max=1, subtype='COLOR')
     roughness_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the roughness material channel.", description="", default=(1.0, 0.0, 1.0), min=0, max=1, subtype='COLOR')
     normal_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the normal material channel.", description="", default=(1.0, 0.0, 1.0), min=0, max=1, subtype='COLOR')

@@ -30,10 +30,50 @@ def draw_layer_preview(layout, item, selected_material_channel, context):
     # Draw the layer preview based on the node type.
     match preview_node.type:
         case 'VALUE':
-            row.prop(item, "color_layer_color_preview", text="")
+            match selected_material_channel:
+                case "COLOR":
+                    row.prop(item, "color_layer_color_preview", text="")
+
+                case "METALLIC":
+                    row.prop(item, "metallic_layer_color_preview", text="")
+
+                case "ROUGHNESS":
+                    row.prop(item, "roughness_layer_color_preview", text="")
+
+                case "NORMAL":
+                    row.prop(item, "normal_layer_color_preview", text="")
+
+                case "HEIGHT":
+                    row.prop(item, "height_layer_color_preview", text="")
+
+                case "EMISSION":
+                    row.prop(item, "emission_layer_color_preview", text="")
+
+                case "SCATTERING":
+                    row.prop(item, "scattering_layer_color_preview", text="")
         
         case 'RGB':
-            row.prop(item, "color_layer_color_preview", text="")
+            match selected_material_channel:
+                case "COLOR":
+                    row.prop(item, "color_layer_color_preview", text="")
+
+                case "METALLIC":
+                    row.prop(item, "metallic_layer_color_preview", text="")
+
+                case "ROUGHNESS":
+                    row.prop(item, "roughness_layer_color_preview", text="")
+
+                case "NORMAL":
+                    row.prop(item, "normal_layer_color_preview", text="")
+
+                case "HEIGHT":
+                    row.prop(item, "height_layer_color_preview", text="")
+
+                case "EMISSION":
+                    row.prop(item, "emission_layer_color_preview", text="")
+
+                case "SCATTERING":
+                    row.prop(item, "scattering_layer_color_preview", text="")
 
         case 'TEX_IMAGE':
             # TODO: Update this to show a proper texture preview for the texture used in the layer.
