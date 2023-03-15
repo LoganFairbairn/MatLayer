@@ -262,11 +262,47 @@ def update_emission_channel_toggle(self, context):
 # To show values as uniform colors, color preview values are stored per layer as displaying them as a property through the ui required them to be stored somewhere.
 # When these values which are displayed in the ui are updated, they automatically update their respective color / value nodes in the node tree through these functions.
 
-def update_layer_preview_colors(self, context):
+def update_color_prieview_color(self, context):
     selected_layer_index = context.scene.coater_layer_stack.layer_index
-    color_node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_index, context)
-    if color_node:
-        color_node.outputs[0].default_value = (self.color_layer_color_preview.r, self.color_layer_color_preview.g, self.color_layer_color_preview.b, 1)
+    node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_index, context)
+    if node:
+        node.outputs[0].default_value = (self.color_layer_color_preview.r, self.color_layer_color_preview.g, self.color_layer_color_preview.b, 1)
+
+def update_metallic_prieview_color(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "METALLIC", selected_layer_index, context)
+    if node:
+        node.outputs[0].default_value = (self.metallic_layer_color_preview.r, self.metallic_layer_color_preview.g, self.metallic_layer_color_preview.b, 1)
+
+def update_roughness_prieview_color(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "ROUGHNESS", selected_layer_index, context)
+    if node:
+        node.outputs[0].default_value = (self.roughness_layer_color_preview.r, self.roughness_layer_color_preview.g, self.roughness_layer_color_preview.b, 1)
+
+def update_normal_prieview_color(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "NORMAL", selected_layer_index, context)
+    if node:
+        node.outputs[0].default_value = (self.normal_layer_color_preview.r, self.normal_layer_color_preview.g, self.normal_layer_color_preview.b, 1)
+
+def update_height_prieview_color(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "HEIGHT", selected_layer_index, context)
+    if node:
+        node.outputs[0].default_value = (self.height_layer_color_preview.r, self.height_layer_color_preview.g, self.height_layer_color_preview.b, 1)
+
+def update_scattering_prieview_color(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "SCATTERING", selected_layer_index, context)
+    if node:
+        node.outputs[0].default_value = (self.scattering_layer_color_preview.r, self.scattering_layer_color_preview.g, self.scattering_layer_color_preview.b, 1)
+
+def update_emission_prieview_color(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "EMISSION", selected_layer_index, context)
+    if node:
+        node.outputs[0].default_value = (self.emission_layer_color_preview.r, self.emission_layer_color_preview.g, self.emission_layer_color_preview.b, 1)
 
 #----------------------------- UPDATE UNIFORM LAYER VALUES -----------------------------#
 # To show correct min / max values for sliders when the user is using uniform value nodes in the user interface
@@ -466,19 +502,19 @@ class COATER_layers(PropertyGroup):
 
     # Color layer previews for layers.
     # To display value nodes as uniform rgb colors within the layer stack ui, color previews are stored here, and updated when users update the colors through the interface.
-    color_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the color material channel.", description="", default=(1.0, 0.0, 1.0), min=0, max=1, subtype='COLOR', update=update_layer_preview_colors)
-    metallic_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the metallic material channel.", description="", default=(1.0, 0.0, 1.0), min=0, max=1, subtype='COLOR')
-    roughness_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the roughness material channel.", description="", default=(1.0, 0.0, 1.0), min=0, max=1, subtype='COLOR')
-    normal_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the normal material channel.", description="", default=(1.0, 0.0, 1.0), min=0, max=1, subtype='COLOR')
-    height_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the height material channel.", description="", default=(1.0, 0.0, 1.0), min=0, max=1, subtype='COLOR')
-    scattering_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the color material channel.", description="", default=(1.0, 0.0, 1.0), min=0, max=1, subtype='COLOR')
-    emission_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the emission material channel.", description="", default=(1.0, 0.0, 1.0), min=0, max=1, subtype='COLOR')
+    color_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the color material channel.", description="", default=(1.0, 0.0, 1.0), min=0, max=1, subtype='COLOR', update=update_color_prieview_color)
+    metallic_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the metallic material channel.", description="", default=(0.25, 0.25, 0.25), min=0, max=1, subtype='COLOR', update=update_metallic_prieview_color)
+    roughness_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the roughness material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_roughness_prieview_color)
+    normal_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the normal material channel.", description="", default=(0.5, 0.5, 1.0), min=0, max=1, subtype='COLOR', update=update_normal_prieview_color)
+    height_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the height material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_height_prieview_color)
+    scattering_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the color material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_scattering_prieview_color)
+    emission_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the emission material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_emission_prieview_color)
 
     # To provide accurate min / max slider ranges in the user interface, float values are stored in each layer to use as the values (even for material channels that wouldn't typically be represented by a uniform rgb values).
-    uniform_color_value: bpy.props.FloatProperty(name="Uniform color value for this layer.", description="Uniform color value for this layer", default=0.0, min=0, max=1, update=update_uniform_color_value)
-    uniform_scattering_value: bpy.props.FloatProperty(name="Uniform scattering value for this layer.", description="Uniform scattering value for this layer", default=0.0, min=0, max=1, update=update_uniform_scattering_value)
-    uniform_metallic_value: bpy.props.FloatProperty(name="Uniform metallic value for this layer.", description="Uniform metallic value for this layer", default=0.0, min=0, max=1, update=update_uniform_metallic_value)
-    uniform_roughness_value: bpy.props.FloatProperty(name="Uniform roughness value for this layer.", description="Uniform roughness value for this layer", default=0.5, min=0, max=1, update=update_uniform_roughness_value)
-    uniform_emission_value: bpy.props.FloatProperty(name="Uniform emission value for this layer.", description="Uniform emission value for this layer", default=0.0, min=0, max=1, update=update_uniform_emission_value)
-    uniform_normal_value: bpy.props.FloatProperty(name="Uniform normal value for this layer.", description="Uniform normal value for this layer", default=0.0, min=0, max=1, update=update_uniform_normal_value)
-    uniform_height_value: bpy.props.FloatProperty(name="Uniform height value for this layer.", description="Uniform height value for this layer", default=0.0, min=0, max=1, update=update_uniform_height_value)
+    uniform_color_value: bpy.props.FloatProperty(name="Uniform Color Value", description="Uniform color value for this layer", default=0.0, min=0, max=1, update=update_uniform_color_value)
+    uniform_scattering_value: bpy.props.FloatProperty(name="Uniform Scattering Value", description="Uniform scattering value for this layer", default=0.0, min=0, max=1, update=update_uniform_scattering_value)
+    uniform_metallic_value: bpy.props.FloatProperty(name="Uniform Metallic Value", description="Uniform metallic value for this layer", default=0.0, min=0, max=1, update=update_uniform_metallic_value)
+    uniform_roughness_value: bpy.props.FloatProperty(name="Uniform Roughness Value", description="Uniform roughness value for this layer", default=0.5, min=0, max=1, update=update_uniform_roughness_value)
+    uniform_emission_value: bpy.props.FloatProperty(name="Uniform Emission Value", description="Uniform emission value for this layer", default=0.0, min=0, max=1, update=update_uniform_emission_value)
+    uniform_normal_value: bpy.props.FloatProperty(name="Uniform Normal Value", description="Uniform normal value for this layer", default=0.0, min=0, max=1, update=update_uniform_normal_value)
+    uniform_height_value: bpy.props.FloatProperty(name="Uniform Height Value", description="Uniform height value for this layer", default=0.0, min=0, max=1, update=update_uniform_height_value)
