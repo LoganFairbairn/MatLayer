@@ -43,6 +43,9 @@ class COATER_PT_Panel(bpy.types.Panel):
         else:
             layout = self.layout
             layout.label(text="Save your .blend file to use Coater.")
+            layout.label(text="The .blend path is used to find correct paths for image folders,")
+            layout.label(text="where textures, baked mesh maps, or exported textures created ")
+            layout.label(text="using this add-on are saved.")
 
 def check_blend_saved():
     if bpy.path.abspath("//") == "":
