@@ -471,13 +471,13 @@ class COATER_layers(PropertyGroup):
     masked: bpy.props.BoolProperty(name="", default=True)
 
     # Material Channels Toggles (for quickly linking or unlinking material channels)
-    color_channel_toggle: bpy.props.BoolProperty(default=True, update=update_color_channel_toggle)
-    metallic_channel_toggle: bpy.props.BoolProperty(default=True, update=update_metallic_channel_toggle)
-    roughness_channel_toggle: bpy.props.BoolProperty(default=True, update=update_roughness_channel_toggle)
-    normal_channel_toggle: bpy.props.BoolProperty(default=True, update=update_normal_channel_toggle)
-    height_channel_toggle: bpy.props.BoolProperty(default=True, update=update_height_channel_toggle)
-    scattering_channel_toggle: bpy.props.BoolProperty(default=True, update=update_scattering_channel_toggle)
-    emission_channel_toggle: bpy.props.BoolProperty(default=True, update=update_emission_channel_toggle)
+    color_channel_toggle: bpy.props.BoolProperty(default=True, update=update_color_channel_toggle, description="Click to toggle on / off the color material channel for this layer")
+    metallic_channel_toggle: bpy.props.BoolProperty(default=True, update=update_metallic_channel_toggle, description="Click to toggle on / off the metallic material channel for this layer")
+    roughness_channel_toggle: bpy.props.BoolProperty(default=True, update=update_roughness_channel_toggle, description="Click to toggle on / off the roughness material channel for this layer")
+    normal_channel_toggle: bpy.props.BoolProperty(default=True, update=update_normal_channel_toggle, description="Click to toggle on / off the normal material channel for this layer")
+    height_channel_toggle: bpy.props.BoolProperty(default=True, update=update_height_channel_toggle, description="Click to toggle on / off the height material channel for this layer")
+    scattering_channel_toggle: bpy.props.BoolProperty(default=True, update=update_scattering_channel_toggle, description="Click to toggle on / off the scattering material channel for this layer")
+    emission_channel_toggle: bpy.props.BoolProperty(default=True, update=update_emission_channel_toggle, description="Click to toggle on / off the emission material channel for this layer")
 
     # Projection Settings
     projection_mode: bpy.props.EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT', update=update_layer_projection)
