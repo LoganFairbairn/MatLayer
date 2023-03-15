@@ -257,14 +257,14 @@ def update_emission_channel_toggle(self, context):
         layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "EMISSION", context)
 
 #----------------------------- UPDATE TEXTURE NODE TYPES -----------------------------#
-def replace_texture_node(texture_node_type, material_channel, self, context):
+def replace_texture_node(texture_node_type, material_channel_name, self, context):
     '''Replaced the texture node with a new texture node based on the given node type.'''
 
     selected_layer_stack_index = context.scene.coater_layer_stack.layer_index
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
     
     # Delete the old layer node.
-    old_texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel, selected_layer_stack_index, context)
+    old_texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_stack_index, context)
     if old_texture_node:
         material_channel_node.node_tree.nodes.remove(old_texture_node)
 
@@ -295,22 +295,22 @@ def replace_texture_node(texture_node_type, material_channel, self, context):
 
     # Link the new texture node to the mix layer node.
     link = material_channel_node.node_tree.links.new
-    mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel, selected_layer_stack_index, context)
+    mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel_name, selected_layer_stack_index, context)
     link(texture_node.outputs[0], mix_layer_node.inputs[2])
 
     # For some texture types, connect texture node outputs to the mapping or opacity nodes.
     if texture_node_type == "TEXTURE":
-        opacity_node = layer_nodes.get_layer_node("OPACITY", material_channel, selected_layer_stack_index, context)
+        opacity_node = layer_nodes.get_layer_node("OPACITY", material_channel_name, selected_layer_stack_index, context)
         link(texture_node.outputs[1], opacity_node.inputs[0])
 
-        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel, selected_layer_stack_index, context)
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_stack_index, context)
         link(mapping_node.outputs[0], texture_node.inputs[0])
 
     # TODO: For some texture types, connect the mapping node to the texture vector input.
 
     # Parent the new node to the layer's frame.
     layers = context.scene.coater_layers
-    layer_frame = layer_nodes.get_layer_frame(material_channel_node, layers, selected_layer_stack_index)
+    layer_frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_stack_index, context)
     texture_node.parent = layer_frame
 
     # Update the layer nodes because they were changed.
