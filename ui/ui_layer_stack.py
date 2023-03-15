@@ -30,11 +30,10 @@ def draw_layer_preview(layout, item, selected_material_channel, context):
     # Draw the layer preview based on the node type.
     match preview_node.type:
         case 'VALUE':
-            # TODO: Draw a layer preview for uniform values as a color.
-            row.prop(preview_node.outputs[0], "default_value", text="", emboss=False, expand=False, slider=False)
+            row.prop(item, "color_layer_color_preview", text="")
         
         case 'RGB':
-            row.prop(preview_node.outputs[0], "default_value", text="")
+            row.prop(item, "color_layer_color_preview", text="")
 
         case 'TEX_IMAGE':
             # TODO: Update this to show a proper texture preview for the texture used in the layer.

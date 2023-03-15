@@ -277,7 +277,7 @@ def draw_material_channel_texture_settings(layout, context):
                         # Draw the texture settings.
                         texture_node_type = layers[selected_layer_index].color_texture_node_type
                         row.prop(layers[selected_layer_index], "color_texture_node_type", text="")
-                        draw_texture_settings(layout, texture_node, texture_node_type, "COLOR")
+                        draw_texture_settings(layout, texture_node, texture_node_type, "COLOR", layers[selected_layer_index], "COLOR")
 
             if material_channels[i] == "METALLIC":
                 if layers[selected_layer_index].metallic_channel_toggle:
@@ -293,7 +293,7 @@ def draw_material_channel_texture_settings(layout, context):
                         # Draw the texture node settings
                         texture_node_type = layers[selected_layer_index].metallic_texture_node_type
                         row.prop(layers[selected_layer_index], "metallic_texture_node_type", text="")
-                        draw_texture_settings(layout, texture_node, texture_node_type, "METALLIC")
+                        draw_texture_settings(layout, texture_node, texture_node_type, "METALLIC", layers[selected_layer_index], "METALLIC")
 
             if material_channels[i] == "ROUGHNESS":
                 if layers[selected_layer_index].roughness_channel_toggle:
@@ -309,7 +309,7 @@ def draw_material_channel_texture_settings(layout, context):
                         # Draw the texture node settings
                         texture_node_type = layers[selected_layer_index].roughness_texture_node_type
                         row.prop(layers[selected_layer_index], "roughness_texture_node_type", text="")
-                        draw_texture_settings(layout, texture_node, texture_node_type, "ROUGHNESS")
+                        draw_texture_settings(layout, texture_node, texture_node_type, "ROUGHNESS", layers[selected_layer_index], "ROUGHNESS")
 
             if material_channels[i] == "NORMAL":
                 if layers[selected_layer_index].normal_channel_toggle:
@@ -325,7 +325,7 @@ def draw_material_channel_texture_settings(layout, context):
                         # Draw the texture node settings
                         texture_node_type = layers[selected_layer_index].normal_texture_node_type
                         row.prop(layers[selected_layer_index], "normal_texture_node_type", text="")
-                        draw_texture_settings(layout, texture_node, texture_node_type, "NORMAL")
+                        draw_texture_settings(layout, texture_node, texture_node_type, "NORMAL", layers[selected_layer_index], "NORMAL")
 
             if material_channels[i] == "HEIGHT":
                 if layers[selected_layer_index].height_channel_toggle:
@@ -341,7 +341,7 @@ def draw_material_channel_texture_settings(layout, context):
                         # Draw the texture node settings.
                         texture_node_type = layers[selected_layer_index].height_texture_node_type
                         row.prop(layers[selected_layer_index], "height_texture_node_type", text="")
-                        draw_texture_settings(layout, texture_node, texture_node_type, "HEIGHT")
+                        draw_texture_settings(layout, texture_node, texture_node_type, "HEIGHT", layers[selected_layer_index], "HEIGHT")
 
             if material_channels[i] == "EMISSION":
                 if layers[selected_layer_index].emission_channel_toggle:
@@ -357,7 +357,7 @@ def draw_material_channel_texture_settings(layout, context):
                         # Draw the texture node settings
                         texture_node_type = layers[selected_layer_index].emission_texture_node_type
                         row.prop(layers[selected_layer_index], "emission_texture_node_type", text="")
-                        draw_texture_settings(layout, texture_node, texture_node_type, "EMISSION")
+                        draw_texture_settings(layout, texture_node, texture_node_type, "EMISSION", layers[selected_layer_index], "EMISSION")
 
             if material_channels[i] == "SCATTERING":
                 if layers[selected_layer_index].scattering_channel_toggle:
@@ -373,19 +373,66 @@ def draw_material_channel_texture_settings(layout, context):
                         # Draw the texture node settings
                         texture_node_type = layers[selected_layer_index].scattering_texture_node_type
                         row.prop(layers[selected_layer_index], "scattering_texture_node_type", text="")
-                        draw_texture_settings(layout, texture_node, texture_node_type, "SCATTERING")
+                        draw_texture_settings(layout, texture_node, texture_node_type, "SCATTERING", layers[selected_layer_index], "SCATTERING")
 
-def draw_texture_settings(layout, texture_node, texture_node_type, material_channel):
+def draw_texture_settings(layout, texture_node, texture_node_type, material_channel, layer, material_channel_name):
     '''Draws the texture setting based on the given texture node type.'''
     if texture_node_type == "COLOR":
         row = layout.row(align=True)
         row.scale_y = SCALE_Y
-        row.prop(texture_node.outputs[0], "default_value", text="")
+        match material_channel_name:
+            case "COLOR":
+                row.prop(layer, "color_layer_color_preview", text="")
+
+            case "METTALIC":
+                row.prop(layer, "metallic_layer_color_preview", text="")
+
+            case "ROUGHNESS":
+                row.prop(layer, "roughness_layer_color_preview", text="")
+
+            case "NORMAL":
+                row.prop(layer, "normal_layer_color_preview", text="")
+
+            case "HEIGHT":
+                row.prop(layer, "height_layer_color_preview", text="")
+
+            case "EMISSION":
+                row.prop(layer, "emission_layer_color_preview", text="")
+
+            case "SCATTERING":
+                row.prop(layer, "scattering_layer_color_preview", text="")
+
+            case _:
+                # Show an error, the color preview can't be properly displayed.
+                row.template_icon(2, scale=1)
             
     if texture_node_type == "VALUE":
         row = layout.row(align=True)
         row.scale_y = SCALE_Y
-        row.prop(texture_node.outputs[0], "default_value", text="", slider=True)
+        match material_channel_name:
+            case "COLOR":
+                row.prop(layer, "uniform_color_value", text="", slider=True)
+
+            case "ROUGHNESS":
+                row.prop(layer, "uniform_roughness_value", text="", slider=True)
+
+            case "METALLIC":
+                row.prop(layer, "uniform_metallic_value", text="", slider=True)
+
+            case "NORMAL":
+                row.prop(layer, "uniform_normal_value", text="", slider=True)
+
+            case "HEIGHT":
+                row.prop(layer, "uniform_height_value", text="", slider=True)
+
+            case "SCATTERING":
+                row.prop(layer, "uniform_scattering_value", text="", slider=True)
+
+            case "EMISSION":
+                row.prop(layer, "uniform_emission_value", text="", slider=True)
+
+            case _:
+                row.prop(texture_node.outputs[0], "default_value", text="")
 
     if texture_node_type == "TEXTURE":
         row = layout.row(align=True)

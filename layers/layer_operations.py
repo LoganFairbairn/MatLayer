@@ -102,31 +102,38 @@ def add_default_layer_nodes(context):
             if material_channels[i] == "COLOR":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.25, 0.25, 0.25, 1.0)
+                layers[selected_layer_index].color_layer_color_preview = (0.25, 0.25, 0.25)
 
             if material_channels[i] == "METALLIC":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
                 texture_node.outputs[0].default_value = 0.0
+                layers[selected_layer_index].metallic_layer_color_preview = (0, 0, 0)
 
             if material_channels[i] == "ROUGHNESS":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
                 texture_node.outputs[0].default_value = 0.5
+                layers[selected_layer_index].roughness_layer_color_preview = (0.5, 0.5, 0.5)
 
             if material_channels[i] == "NORMAL":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
-                texture_node.outputs[0].default_value = (0.0, 0.0, 1.0, 1.0)
+                texture_node.outputs[0].default_value = (0.5, 0.5, 1.0, 1.0)
+                layers[selected_layer_index].normal_layer_color_preview = (0.5, 0.5, 1)
                 
             if material_channels[i] == "HEIGHT":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
                 texture_node.outputs[0].default_value = 0.0
+                layers[selected_layer_index].height_layer_color_preview = (0, 0, 0)
                 mix_layer_node.blend_type = 'DODGE'
 
             if material_channels[i] == "SCATTERING":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
-                texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
+                texture_node.outputs[0].default_value = (1.0, 1.0, 1.0, 1.0)
+                layers[selected_layer_index].scattering_layer_color_preview = (1, 1, 1)
 
             if material_channels[i] == "EMISSION":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
+                layers[selected_layer_index].emission_layer_color_preview = (0, 0, 0)
 
             # Set the texture node name & label.
             texture_node_name = layer_nodes.get_layer_node_name("TEXTURE", new_layer_index) + "~"

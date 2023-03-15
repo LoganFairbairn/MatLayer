@@ -54,14 +54,7 @@ class COATER_layer_stack(PropertyGroup):
     node_default_width: bpy.props.IntProperty(default=250)
     node_spacing: bpy.props.IntProperty(default=80)
     
-    selected_material_channel: bpy.props.EnumProperty(
-        items=material_channel_nodes.MATERIAL_CHANNELS,
-        name="Material Channel",
-        description="The currently selected material channel",
-        default='COLOR',
-        update=update_selected_material_channel
-    )
-
+    selected_material_channel: bpy.props.EnumProperty(items=material_channel_nodes.MATERIAL_CHANNELS, name="Material Channel", description="The currently selected material channel", default='COLOR', update=update_selected_material_channel)
 
     # Tabs for layer properties.
     layer_properties_tab: bpy.props.EnumProperty(

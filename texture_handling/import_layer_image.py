@@ -4,6 +4,7 @@ from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper        # For importing images.
 from ..layers import layer_nodes
 
+# TODO: Move this to image_file_handling.
 class COATER_OT_import_color_image(Operator, ImportHelper):
     '''Imports a color image to use for the selected layer.'''
     bl_idname = "coater.import_color_image"
