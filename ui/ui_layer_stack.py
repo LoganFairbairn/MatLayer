@@ -29,14 +29,15 @@ def draw_layer_preview(layout, item, selected_material_channel, context):
 
     # Draw the layer preview based on the node type.
     match preview_node.type:
-        # TODO: Draw a layer preview for uniform values as a color.
         case 'VALUE':
+            # TODO: Draw a layer preview for uniform values as a color.
             row.prop(preview_node.outputs[0], "default_value", text="", emboss=False, expand=False, slider=False)
         
         case 'RGB':
             row.prop(preview_node.outputs[0], "default_value", text="")
 
         case 'TEX_IMAGE':
+            # TODO: Update this to show a proper texture preview for the texture used in the layer.
             # Load the texture preview as an icon using the blender utility preview module https://docs.blender.org/api/current/bpy.utils.previews.html
             layer_folder_path = image_file_handling.get_layer_folder_path()
             if "preview_icon" not in context.scene.preview_icons:
@@ -46,19 +47,21 @@ def draw_layer_preview(layout, item, selected_material_channel, context):
             row.template_icon(icon_value=layer_preview_icon.icon_id,scale=1)
 
         case 'TEX_NOISE':
+            # TODO: Update this to show a texture preview.
             row.prop(preview_node, "color", text="")
 
         case 'TEX_MUSGRAVE':
+            # TODO: Update this to show a texture preview.
             row.prop(preview_node, "color", text="")
 
         case 'TEX_VORONOI':
+            # TODO: Update this to show a texture preview.
             row.prop(preview_node, "color", text="")
 
         case _:
             # Show an error icon if a preview for the node type doesn't exist.
             row.template_icon(2, scale=1)
     
-
 def draw_layer_name(layout, item):
     row = layout.row(align=True)
     row.ui_units_x = 4
