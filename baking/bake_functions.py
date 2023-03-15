@@ -98,15 +98,12 @@ def create_bake_image(context, bake_type):
 
     # Save the new image.
     bake_path = bpy.path.abspath("//") + 'Bakes'
-    
     if os.path.exists(bake_path) == False:
         os.mkdir(bake_path)
 
     bake_image = bpy.data.images[bake_image_name]
     bake_image.filepath = bake_path + "/" + bake_image_name + ".png"
     bake_image.file_format = 'PNG'
-
-    # Set additional settings.
     bake_image.colorspace_settings.name = 'Non-Color'
 
     return bake_image_name

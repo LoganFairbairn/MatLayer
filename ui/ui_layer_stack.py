@@ -1,12 +1,92 @@
 # This file handles the coater user interface.
 
+import os
 import bpy
+import bpy.utils.previews       # Imported for loading texture previews as icons.
+from ..texture_handling import image_file_handling
 from ..layers import layer_nodes
 from ..layers.layer_filters import material_layer_filter_exists
 
+def draw_layer_hidden_icon(layout, item):
+    row = layout.row(align=True)
+    row.ui_units_x = 1
+    if item.hidden == True:
+        row.prop(item, "hidden", text="", emboss=False, icon='HIDE_ON')
+
+    elif item.hidden == False:
+        row.prop(item, "hidden", text="", emboss=False, icon='HIDE_OFF')
+
+# What the fuck is this?
 def select_layer_filter(layer_index, context):
     context.scene.coater_layer_stack.layer_index = layer_index
     context.scene.coater_layer_stack.layer_properties_tab = "MATERIAL"
+
+def draw_layer_preview(layout, item, selected_material_channel, context):
+    '''Draws a preview for a layer.'''
+    row = layout.row(align=True)
+    row.ui_units_x = 0.8
+    preview_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, item.layer_stack_array_index, context)
+
+    # Draw the layer preview based on the node type.
+    match preview_node.type:
+        # TODO: Draw a layer preview for uniform values as a color.
+        case 'VALUE':
+            row.prop(preview_node.outputs[0], "default_value", text="", emboss=False, expand=False, slider=False)
+        
+        case 'RGB':
+            row.prop(preview_node.outputs[0], "default_value", text="")
+
+        case 'TEX_IMAGE':
+            # Load the texture preview as an icon using the blender utility preview module https://docs.blender.org/api/current/bpy.utils.previews.html
+            layer_folder_path = image_file_handling.get_layer_folder_path()
+            if "preview_icon" not in context.scene.preview_icons:
+                context.scene.preview_icons.load("preview_icon", os.path.join(layer_folder_path, "Layer_70280.png"), 'IMAGE')
+            layer_preview_icon = context.scene.preview_icons["preview_icon"]
+            row.use_property_decorate = False
+            row.template_icon(icon_value=layer_preview_icon.icon_id,scale=1)
+
+        case 'TEX_NOISE':
+            row.prop(preview_node, "color", text="")
+
+        case 'TEX_MUSGRAVE':
+            row.prop(preview_node, "color", text="")
+
+        case 'TEX_VORONOI':
+            row.prop(preview_node, "color", text="")
+
+        case _:
+            # Show an error icon if a preview for the node type doesn't exist.
+            row.template_icon(2, scale=1)
+    
+
+def draw_layer_name(layout, item):
+    row = layout.row(align=True)
+    row.ui_units_x = 4
+    row.prop(item, "name", text="", emboss=False)
+
+def draw_debug_values(layout, item):
+    '''Draws helpful debugging values for each layer.'''
+    layout.prop(item, "layer_stack_array_index", text="", emboss=False)
+    layout.prop(item, "id", text="", emboss=False)
+    layout.prop(item, "cached_frame_name", text="", emboss=False)
+
+def draw_layer_blending(layout, item, selected_material_channel, context):
+    '''Draws the layer opacity and blend mode.'''
+
+    # Draw layer's opacity.
+    row = layout.row(align=True)
+    row.ui_units_x = 2
+
+    split = layout.split()
+    col = split.column(align=True)
+    col.ui_units_x = 1.6
+    col.scale_y = 0.5
+    col.prop(item, "opacity", text="", emboss=True)
+
+    # Draw the layer's blend mode.
+    mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", selected_material_channel, item.layer_stack_array_index, context)
+    if mix_layer_node:
+        col.prop(mix_layer_node, "blend_type", text="")
 
 class COATER_UL_layer_list(bpy.types.UIList):
     '''Draws the layer stack.'''
@@ -17,81 +97,9 @@ class COATER_UL_layer_list(bpy.types.UIList):
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
-            texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, item.layer_stack_array_index, context)
 
-            # Don't draw layer information for layers with muted material channels.
-            if item.color_channel_toggle == False and selected_material_channel == "COLOR":
-                row = layout.row(align=False)
-                row.label(text="muted")
-
-            elif item.metallic_channel_toggle == False and selected_material_channel == "METALLIC":
-                row = layout.row(align=False)
-                row.label(text="muted")
-
-            elif item.roughness_channel_toggle == False and selected_material_channel == "ROUGHNESS":
-                row = layout.row(align=False)
-                row.label(text="muted")
-
-            elif item.normal_channel_toggle == False and selected_material_channel == "NORMAL":
-                row = layout.row(align=False)
-                row.label(text="muted")
-
-            elif item.height_channel_toggle == False and selected_material_channel == "HEIGHT":
-                row = layout.row(align=False)
-                row.label(text="muted")
-
-            elif item.scattering_channel_toggle == False and selected_material_channel == "SCATTERING":
-                row = layout.row(align=False)
-                row.label(text="muted")
-
-            elif item.emission_channel_toggle == False and selected_material_channel == "EMISSION":
-                row = layout.row(align=False)
-                row.label(text="muted")
-
-            else:
-                # Draw the layer hide icon.
-                row = layout.row(align=True)
-                row.ui_units_x = 1
-                if item.hidden == True:
-                    row.prop(item, "hidden", text="", emboss=False, icon='HIDE_ON')
-
-                elif item.hidden == False:
-                    row.prop(item, "hidden", text="", emboss=False, icon='HIDE_OFF')
-
-                # TODO: Update the texture preview to draw based on selected material channel. 
-                # Draw the texture preview.
-                row = layout.row(align=True)
-                row.ui_units_x = 0.8
-
-                # Useful debug drawing values.
-                #layout.prop(item, "layer_stack_array_index", text="", emboss=False)
-                #layout.prop(item, "id", text="", emboss=False)
-                #layout.prop(item, "cached_frame_name", text="", emboss=False)
-                
-                # Draw the layer's name.
-                row = layout.row(align=True)
-                row.ui_units_x = 4
-                row.prop(item, "name", text="", emboss=False)
-
-                # Draw the layer filter button.
-                if material_layer_filter_exists(item.layer_stack_array_index, context):
-                    row = layout.row(align=True)
-                    row.prop_enum(context.scene.coater_layer_stack, "layer_properties_tab", 'MATERIAL_FILTERS', text="", icon='FILTER')
-
-                # TODO: If the material layer has a mask, draw a button.
-
-
-                # Draw layer's opacity.
-                row = layout.row(align=True)
-                row.ui_units_x = 2
-
-                split = layout.split()
-                col = split.column(align=True)
-                col.ui_units_x = 1.6
-                col.scale_y = 0.5
-                col.prop(item, "opacity", text="", emboss=True)
-
-                # Draw the layer's blend mode.
-                mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", selected_material_channel, item.layer_stack_array_index, context)
-                if mix_layer_node:
-                    col.prop(mix_layer_node, "blend_type", text="")
+            draw_layer_hidden_icon(layout, item)
+            draw_layer_preview(layout, item, selected_material_channel, context)
+            #draw_debug_values(layout, item)
+            draw_layer_name(layout, item)
+            draw_layer_blending(layout, item, selected_material_channel, context)

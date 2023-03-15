@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Logan Fairbairn
+# Copyright (c) 2021-2023 Logan Fairbairn
 # logan-fairbairn@outlook.com
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 # This file imports and registers all required modules for Coater (Blender add-on).
 
 import bpy
+import bpy.utils.previews       # Imported for loading texture previews as icons.
 from bpy.app.handlers import persistent
 
 # Import texture set modules.
@@ -64,7 +65,7 @@ from .extra_features.apply_color_grid import COATER_OT_apply_color_grid
 bl_info = {
     "name": "Coater",
     "author": "Logan Fairbairn (Ryver)",
-    "version": (0, 85),
+    "version": (0, 86),
     "blender": (3, 4, 1),
     "location": "View3D > Sidebar > Coater",
     "description": "Replaces node based texturing workflow with a layer stack workflow.",
@@ -158,6 +159,7 @@ classes = (
     COATER_OT_apply_color_grid,
 )
 
+# Refreshes the layer stack when a different object is selected.
 def obj_selected_callback():
     '''Triggers a layer refresh when the selected object changes.'''
     bpy.ops.coater.refresh_layers()
@@ -169,6 +171,9 @@ def load_handler(dummy):
     bpy.msgbus.subscribe_rna(key=subscribe_to, owner=bpy.types.Scene.coater_object_selection_updater, args=(), notify=obj_selected_callback)
 
 bpy.app.handlers.load_post.append(load_handler)
+
+# Global variable for icons used as layer previews.
+preview_collections = {}
 
 def register():
     # Register properties, operators and pannels.
@@ -196,9 +201,18 @@ def register():
     bpy.types.Scene.coater_baking_settings = bpy.props.PointerProperty(type=COATER_baking_settings)
     bpy.types.Scene.coater_export_settings = bpy.props.PointerProperty(type=COATER_exporting_settings)
 
+    # Icons for layer previews.
+    bpy.types.Scene.preview_icons = bpy.utils.previews.new()
+    preview_collections["main"] = bpy.types.Scene.preview_icons
+
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
+
+    # Clear preview collections.
+    for bpy.types.Scene.preview_icons in preview_collections.values():
+        bpy.utils.previews.remove(bpy.types.Scene.preview_icons)
+    preview_collections.clear()
 
     # TODO: Unregister pointers????????
 

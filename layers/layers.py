@@ -374,12 +374,13 @@ class COATER_layers(PropertyGroup):
     projection_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_y)
 
     # Node Types (used for properly drawing user interface for node properties)
-    color_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Color Texture Node Type", description="The node type for the color channel texture", default='COLOR', update=update_color_texture_node_type)
-    metallic_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Metallic Texture Node Type", description="The node type for the roughness channel texture", default='VALUE', update=update_metallic_texture_node_type)
-    roughness_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Roughness Texture Node Type", description="The node type for roughness channel texture", default='VALUE', update=update_roughness_texture_node_type)
-    normal_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Normal Texture Node Type", description="The node type for the normal channel texture", default='COLOR', update=update_normal_texture_node_type)
-    height_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Height Texture Node Type", description="The node type for the height channel texture", default='VALUE', update=update_height_texture_node_type)
-    scattering_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Scattering Texture Node Type", description="The node type for the scattering channel texture", default='COLOR', update=update_scattering_texture_node_type)
-    emission_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name = "Emission Texture Node Type", description="The node type for the emission channel texture", default='COLOR', update=update_emission_texture_node_type)
+    color_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Color Texture Node Type", description="The node type for the color channel", default='COLOR', update=update_color_texture_node_type)
+    metallic_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Metallic Texture Node Type", description="The node type for the roughness channel", default='VALUE', update=update_metallic_texture_node_type)
+    roughness_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Roughness Texture Node Type", description="The node type for roughness channel", default='VALUE', update=update_roughness_texture_node_type)
+    normal_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Normal Texture Node Type", description="The node type for the normal channel", default='COLOR', update=update_normal_texture_node_type)
+    height_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Height Texture Node Type", description="The node type for the height channel", default='VALUE', update=update_height_texture_node_type)
+    scattering_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Scattering Texture Node Type", description="The node type for the scattering channel", default='COLOR', update=update_scattering_texture_node_type)
+    emission_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Emission Texture Node Type", description="The node type for the emission channel", default='COLOR', update=update_emission_texture_node_type)
 
-
+    # Layer Preview Color
+    layer_preview_color: bpy.props.FloatVectorProperty(name="Layer Color Preview", description="The layer color preview value used for nodes that can be accurately displayed with a color.", default=(1.0, 0.0, 1.0), min=0.0, max=1.0, subtype="COLOR")

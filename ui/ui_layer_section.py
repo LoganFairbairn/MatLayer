@@ -10,11 +10,9 @@ from ..layers import layer_stack as ls
 SCALE_Y = 1.4
 
 def draw_layers_section_ui(self, context):
-    '''Draws the layer section UI.'''
     layout = self.layout
     ui_section_tabs.draw_section_tabs(self, context)
     draw_material_selector(self, context)
-    #draw_paint_tools(layout, context)
     draw_layer_operations(self)
 
     if context.active_object:
@@ -50,8 +48,13 @@ def draw_layers_section_ui(self, context):
 
                 if selected_material_channel_active:
                     layers = context.scene.coater_layers
-                    if len(layers) > 0:
-                        draw_layer_stack(self, context)
+                    draw_layer_stack(self, context)
+                    
+                    row = layout.row(align=True)
+                    row.prop_enum(context.scene.coater_layer_stack, "layer_properties_tab", 'MATERIAL', text="MATERIAL")
+                    row.prop_enum(context.scene.coater_layer_stack, "layer_properties_tab", 'MASKS', text="MASK")
+                    row.prop_enum(context.scene.coater_layer_stack, "layer_properties_tab", 'FILTERS', text="FILTER")
+                    
 
                     if len(layers) > 0:
                         layer_stack = context.scene.coater_layer_stack
@@ -62,7 +65,7 @@ def draw_layers_section_ui(self, context):
                             if layer_stack_index_exists:
                                 draw_layer_properties(self, context)
 
-                        elif layer_stack.layer_properties_tab == "MATERIAL_FILTERS":
+                        elif layer_stack.layer_properties_tab == "FILTERS":
                             row = layout.row(align=True)
                             row.scale_y = 2
                             row.scale_x = 10
@@ -75,8 +78,6 @@ def draw_layers_section_ui(self, context):
                             row = layout.row(align=True)
                             row.scale_y = 2
                             row.template_list("COATER_UL_layer_filter_stack", "Layers", context.scene, "coater_layer_filters", layer_filter_stack, "selected_filter_index", sort_reverse=True)
-
-                            # TODO: Draw the selected filter properties.
                             
                         elif layer_stack.layer_properties_tab == "MASKS":
                             row = layout.row(align=True)
@@ -92,20 +93,10 @@ def draw_layers_section_ui(self, context):
                             row = layout.row(align=True)
                             row.scale_y = 2
                             row.template_list("COATER_UL_mask_stack", "Masks", context.scene, "coater_masks", mask_stack, "selected_mask_index", sort_reverse=True)
-
-                            # TODO: Draw the selected mask properties.
-
-
     else:
         layout = self.layout
         layout.label(text="Select an object.")
 
-def draw_paint_tools(layout, context):
-    '''Draws paint tools.'''
-    # Only draw paint tools in texture paint mode.
-    if context.mode == 'PAINT_TEXTURE':
-        row = layout.row()
-        row.template_ID_preview(context.tool_settings.image_paint, "brush", new="brush.add")
 
 def draw_material_selector(self, context):
     '''Draws a material selector and layer stack refresh button.'''
@@ -394,7 +385,7 @@ def draw_texture_settings(layout, texture_node, texture_node_type, material_chan
     if texture_node_type == "VALUE":
         row = layout.row(align=True)
         row.scale_y = SCALE_Y
-        row.prop(texture_node.outputs[0], "default_value", text="")
+        row.prop(texture_node.outputs[0], "default_value", text="", slider=True)
 
     if texture_node_type == "TEXTURE":
         row = layout.row(align=True)
@@ -416,39 +407,39 @@ def draw_texture_settings(layout, texture_node, texture_node_type, material_chan
     if texture_node_type == "NOISE":
         row = layout.row(align=True)
         row.scale_y = SCALE_Y
-        row.prop(texture_node.inputs[2], "default_value", text="Scale")
+        row.prop(texture_node.inputs[2], "default_value", text="Scale", slider=True)
         row = layout.row(align=True)
         row.scale_y = SCALE_Y
-        row.prop(texture_node.inputs[3], "default_value", text="Detail")
+        row.prop(texture_node.inputs[3], "default_value", text="Detail", slider=True)
         row = layout.row(align=True)
         row.scale_y = SCALE_Y
-        row.prop(texture_node.inputs[4], "default_value", text="Roughness")
+        row.prop(texture_node.inputs[4], "default_value", text="Roughness", slider=True)
         row = layout.row(align=True)
         row.scale_y = SCALE_Y
-        row.prop(texture_node.inputs[5], "default_value", text="Distortion")
+        row.prop(texture_node.inputs[5], "default_value", text="Distortion", slider=True)
 
     if texture_node_type == "VORONOI":
         row = layout.row(align=True)
         row.scale_y = SCALE_Y
-        row.prop(texture_node.inputs[2], "default_value", text="Scale")
+        row.prop(texture_node.inputs[2], "default_value", text="Scale", slider=True)
 
         row = layout.row(align=True)
         row.scale_y = SCALE_Y
-        row.prop(texture_node.inputs[3], "default_value", text="Randomness")
+        row.prop(texture_node.inputs[3], "default_value", text="Randomness", slider=True)
 
     if texture_node_type == "MUSGRAVE":
         row = layout.row(align=True)
         row.scale_y = SCALE_Y
-        row.prop(texture_node.inputs[2], "default_value", text="Scale")
+        row.prop(texture_node.inputs[2], "default_value", text="Scale", slider=True)
         row = layout.row(align=True)
         row.scale_y = SCALE_Y
-        row.prop(texture_node.inputs[3], "default_value", text="Detail")
+        row.prop(texture_node.inputs[3], "default_value", text="Detail", slider=True)
         row = layout.row(align=True)
         row.scale_y = SCALE_Y
-        row.prop(texture_node.inputs[4], "default_value", text="Dimension")
+        row.prop(texture_node.inputs[4], "default_value", text="Dimension", slider=True)
         row = layout.row(align=True)
         row.scale_y = SCALE_Y
-        row.prop(texture_node.inputs[5], "default_value", text="Lacunarity")
+        row.prop(texture_node.inputs[5], "default_value", text="Lacunarity", slider=True)
 
 def draw_divider(layout):
     row = layout.row()
@@ -460,3 +451,5 @@ def draw_layer_properties(self, context):
     draw_material_channel_toggles(self, context)
     draw_material_channel_texture_settings(self.layout, context)
     draw_material_projection_settings(self, context)
+
+    
