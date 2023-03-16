@@ -161,8 +161,8 @@ classes = (
 
 # Refreshes the layer stack when a different object is selected.
 def obj_selected_callback():
-    '''Triggers a layer refresh when the selected object changes.'''
-    bpy.ops.coater.refresh_layers()
+    '''Triggers a layer stack refresh when the selected object changes.'''
+    bpy.ops.coater.read_layer_nodes()
 
 @persistent
 def load_handler(dummy):
