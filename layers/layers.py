@@ -18,7 +18,7 @@ TEXTURE_NODE_TYPES = [
 
 PROJECTION_MODES = [
     ("FLAT", "Flat", "Projects the texture using the model's UV map."),
-    ("BOX", "Box (Tri-Planar Projection)", "Also known as 'cube, or box' projection, this projection method projects onto the 3D model from all axises."),
+    ("BOX", "Tri-Planar Projection", "Also known as 'cube, or box' projection, this projection method projects onto the 3D model from all axises."),
     ("SPHERE", "Sphere", ""),
     ("TUBE", "Tube", "")
     ]
@@ -104,51 +104,56 @@ def update_layer_projection(self, context):
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, selected_material_channel)
 
-    # Get nodes.
-    texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
-    coord_node = layer_nodes.get_layer_node("COORD", selected_material_channel, selected_layer_index, context)
-    mapping_node = layer_nodes.get_layer_node("MAPPING", selected_material_channel, selected_layer_index, context)
+    material_channel_list = material_channel_nodes.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
 
-    # Delink coordinate node.
-    if coord_node:
-        outputs = coord_node.outputs
-        for o in outputs:
-            for l in o.links:
-                if l != 0:
-                    material_channel_node.node_tree.links.remove(l)
+        # Get nodes.
+        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_index, context)
+        coord_node = layer_nodes.get_layer_node("COORD", material_channel_name, selected_layer_index, context)
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
-        if selected_layer_index > -1:
-            # Connect nodes based on projection type.
-            if layers[selected_layer_index].projection_mode == 'FLAT':
-                material_channel_node.node_tree.links.new(coord_node.outputs[2], mapping_node.inputs[0])
-                texture_node.projection = 'FLAT'
+        # Delink coordinate node.
+        if coord_node:
+            outputs = coord_node.outputs
+            for o in outputs:
+                for l in o.links:
+                    if l != 0:
+                        material_channel_node.node_tree.links.remove(l)
 
-            if layers[selected_layer_index].projection_mode == 'BOX':
-                material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
-                texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
-                if texture_node and texture_node.type == 'TEX_IMAGE':
-                    texture_node.projection_blend = self.projection_blend
-                texture_node.projection = 'BOX'
+            if selected_layer_index > -1:
+                # Connect nodes based on projection type.
+                if layers[selected_layer_index].projection_mode == 'FLAT':
+                    material_channel_node.node_tree.links.new(coord_node.outputs[2], mapping_node.inputs[0])
+                    texture_node.projection = 'FLAT'
 
-            if layers[selected_layer_index].projection_mode == 'SPHERE':
-                material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
-                texture_node.projection = 'SPHERE'
+                if layers[selected_layer_index].projection_mode == 'BOX':
+                    material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
+                    texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
+                    if texture_node and texture_node.type == 'TEX_IMAGE':
+                        texture_node.projection_blend = self.projection_blend
+                    texture_node.projection = 'BOX'
 
-            if layers[selected_layer_index].projection_mode == 'TUBE':
-                material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
-                texture_node.projection = 'TUBE'
+                if layers[selected_layer_index].projection_mode == 'SPHERE':
+                    material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
+                    texture_node.projection = 'SPHERE'
+
+                if layers[selected_layer_index].projection_mode == 'TUBE':
+                    material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
+                    texture_node.projection = 'TUBE'
 
 def update_projection_blend(self, context):
     '''Updates the projection blend node values when the cube projection blend value is changed.'''
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
-    selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
-    texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
+
+    material_channel_list = material_channel_nodes.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_index, context)
     
-    if texture_node:
-        texture_node.projection_blend = layers[selected_layer_index].projection_blend
+        if texture_node:
+            texture_node.projection_blend = layers[selected_layer_index].projection_blend
 
 def update_projection_offset_x(self, context):
     layers = context.scene.coater_layers
