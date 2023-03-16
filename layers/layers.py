@@ -127,6 +127,9 @@ def update_layer_projection(self, context):
 
             if layers[selected_layer_index].projection_mode == 'BOX':
                 material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
+                texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
+                if texture_node and texture_node.type == 'TEX_IMAGE':
+                    texture_node.projection_blend = self.projection_blend
                 texture_node.projection = 'BOX'
 
             if layers[selected_layer_index].projection_mode == 'SPHERE':
