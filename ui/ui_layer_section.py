@@ -441,13 +441,13 @@ def draw_texture_settings(layout, texture_node, texture_node_type, material_chan
 
         # Draw buttons to add / import / delete image textures quickly.
         add_layer_image_operator = row.operator("coater.add_layer_image", icon="ADD", text="")
-        import_image_operator = row.operator("coater.import_color_image", icon="IMPORT", text="")
+        import_texture_operator = row.operator("coater.import_texture", icon="IMPORT", text="")
         unlink_image_operator = row.operator("coater.unlink_layer_image", icon="UNLINKED", text="")
         delete_layer_image_operator = row.operator("coater.delete_layer_image", icon="TRASH", text="")
 
         # Notify the operators the desired material channel work for the specified material channel.
         add_layer_image_operator.material_channel = material_channel
-        import_image_operator.material_channel = material_channel
+        import_texture_operator.material_channel = material_channel
         unlink_image_operator.material_channel = material_channel
         delete_layer_image_operator.material_channel = material_channel
 

@@ -4,7 +4,7 @@ import bpy
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper        # For importing images.
 import random
-import os       # For saving layer images.
+import os                                           # For saving layer images.
 from ..import layer_nodes
 
 def get_layer_folder_path():
@@ -123,11 +123,11 @@ class COATER_OT_delete_layer_image(Operator):
         
         return {'FINISHED'}
     
-class COATER_OT_import_color_image(Operator, ImportHelper):
-    '''Imports a color image to use for the selected layer.'''
-    bl_idname = "coater.import_color_image"
-    bl_label = "Import Color Image"
-    bl_description = "Opens a menu that allows the user to import a color image."
+class COATER_OT_import_texture(Operator, ImportHelper):
+    '''Imports a texture to use for the selected layer.'''
+    bl_idname = "coater.import_texture"
+    bl_label = "Import Texture"
+    bl_description = "Opens a menu that allows the user to import an texture file."
 
     # Specified material channel.
     material_channel: bpy.props.StringProperty()
@@ -147,11 +147,33 @@ class COATER_OT_import_color_image(Operator, ImportHelper):
 
         # Put the selected image into the texture node of the currently selected layer.
         texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel, selected_layer_index, context)
+        image = bpy.data.images[image_name]
         if texture_node:
-            texture_node.image = bpy.data.images[image_name]
+            texture_node.image = image
 
-        # TODO: Set the textures color space automatically based on which material channel the texture was imported to.
+        # For specific material channels, imported textures automatically have their color space corrected.
+        match self.material_channel:
+            case 'COLOR':
+                image.colorspace_settings.name = 'sRGB'
+
+            case 'METALLIC':
+                image.colorspace_settings.name = 'Non-Color'
+
+            case 'ROUGHNESS':
+                image.colorspace_settings.name = 'Non-Color'
+
+            case 'NORMAL':
+                image.colorspace_settings.name = 'Non-Color'
+
+            case 'HEIGHT':
+                image.colorspace_settings.name = 'Non-Color'
         
+            case 'EMISSION':
+                image.colorspace_settings.name = 'sRGB'
+
+            case 'SCATTERING':
+                image.colorspace_settings.name = 'sRGB'
+
         return {'FINISHED'}
 
 class COATER_OT_import_mask_image(Operator, ImportHelper):
