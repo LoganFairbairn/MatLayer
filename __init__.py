@@ -50,8 +50,7 @@ from .exporting.export_to_image_editor import *
 from .exporting.exporting_settings import COATER_exporting_settings
 
 # Import tool / utility modules.
-from .texture_handling.image_file_handling import COATER_OT_add_layer_image, COATER_OT_delete_layer_image
-from .texture_handling.import_layer_image import COATER_OT_import_color_image, COATER_OT_import_mask_image, COATER_OT_unlink_layer_image
+from .texture_handling.image_file_handling import COATER_OT_add_layer_image, COATER_OT_delete_layer_image, COATER_OT_import_color_image, COATER_OT_import_mask_image, COATER_OT_unlink_layer_image
 from .swap_tool_color import *
 
 # Import user interface modules.
