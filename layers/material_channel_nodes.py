@@ -129,7 +129,7 @@ def add_material_channel(context, group_node_name, node_width, channel):
                 node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[19])
 
             if channel == "SCATTERING" and texture_set_settings.scattering_channel_toggle:
-                node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[3])
+                node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[1])
 
 def remove_material_channel(context, channel):
     '''Removes the given material channels group node.'''
@@ -282,4 +282,4 @@ def connect_material_channel(context, material_channel_name):
             node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[19])
 
         if material_channel_name == "SCATTERING":
-            node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[3])
+            node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[1])

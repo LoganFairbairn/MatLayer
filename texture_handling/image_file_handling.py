@@ -47,7 +47,7 @@ class COATER_OT_add_layer_image(Operator):
     bl_description = "Creates a image and adds it to the selected image layer"
 
     # Specified material channel.
-    material_channel: bpy.props.StringProperty()
+    material_channel_name: bpy.props.StringProperty()
 
     def execute(self, context):
         layers = context.scene.coater_layers
@@ -98,7 +98,7 @@ class COATER_OT_add_layer_image(Operator):
 
         # Add the new image to the selected layer.
         selected_layer_index = context.scene.coater_layer_stack.layer_index
-        texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel, selected_layer_index, context)
+        texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel_name, selected_layer_index, context)
         if texture_node:
             texture_node.image = bpy.data.images[image_name]
         
@@ -112,11 +112,11 @@ class COATER_OT_delete_layer_image(Operator):
     bl_description = "Deletes the current layer image from Blender's data and saved texture files. If you want to unlink the image from the texture node without deleting the image, use the 'x' button inside the image texture block"
 
     # Specified material channel.
-    material_channel: bpy.props.StringProperty()
+    material_channel_name: bpy.props.StringProperty()
 
     def execute(self, context):
         selected_layer_index = context.scene.coater_layer_stack.layer_index
-        texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel, selected_layer_index, context)
+        texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel_name, selected_layer_index, context)
 
         if texture_node.image:
             bpy.data.images.remove(texture_node.image )
@@ -130,7 +130,7 @@ class COATER_OT_import_texture(Operator, ImportHelper):
     bl_description = "Opens a menu that allows the user to import an texture file."
 
     # Specified material channel.
-    material_channel: bpy.props.StringProperty()
+    material_channel_name: bpy.props.StringProperty()
 
     filter_glob: bpy.props.StringProperty(
         default='*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.bmp',
@@ -146,7 +146,7 @@ class COATER_OT_import_texture(Operator, ImportHelper):
         bpy.ops.image.open(filepath=self.filepath)
 
         # Put the selected image into the texture node of the currently selected layer.
-        texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel, selected_layer_index, context)
+        texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel_name, selected_layer_index, context)
         image = bpy.data.images[image_name]
         if texture_node:
             texture_node.image = image

@@ -11,8 +11,6 @@ NODE_SPACING = 50
 # Set of node names.
 LAYER_NODE_NAMES = ("TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER")
 
-
-
 #----------------------------- LAYER NODE FUNCTIONS -----------------------------#
 
 def get_layer_node_names():
