@@ -103,7 +103,7 @@ def add_material_channel(context, group_node_name, node_width, channel):
 
         # Link the group node with the Principled BSDF node.
         principled_bsdf_node = material_nodes.get('Principled BSDF')
-
+        mix_normal_maps_node = material_nodes.get('COATER_NORMALMIX')
         if principled_bsdf_node != None:
             active_material = context.active_object.active_material
             node_links = active_material.node_tree.links
@@ -119,11 +119,11 @@ def add_material_channel(context, group_node_name, node_width, channel):
             if channel == "ROUGHNESS" and texture_set_settings.roughness_channel_toggle:
                 node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[9])
 
-            if channel == "NORMAL" and texture_set_settings.normal_channel_toggle:
-                node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[22])
+            if channel == "NORMAL":
+                node_links.new(group_node.outputs[0], mix_normal_maps_node.inputs[0])
 
-            #if channel == "HEIGHT" and texture_set_settings.height_channel_toggle:
-            #    node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[22])
+            if channel == "HEIGHT":
+                node_links.new(group_node.outputs[0], mix_normal_maps_node.inputs[1])
 
             if channel == "EMISSION" and texture_set_settings.emission_channel_toggle:
                 node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[19])
@@ -139,7 +139,7 @@ def remove_material_channel(context, channel):
         material_nodes.remove(material_channel_node)
 
 def create_channel_group_nodes(context):
-    '''Creates group nodes for all active material channels.'''
+    '''Creates group and secondary nodes (e.g normal map mixing nodes) for all active material channels.'''
     active_material = context.active_object.active_material
     layer_stack = context.scene.coater_layer_stack
 
@@ -226,7 +226,7 @@ def create_channel_group_nodes(context):
     if bpy.data.node_groups.get(scattering_group_node_name) == None:
         new_node_group = bpy.data.node_groups.new(scattering_group_node_name, 'ShaderNodeTree')
 
-        # Create output nodes and sockets
+        # Create output nodes and sockets.
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
         group_output_node.width = layer_stack.node_default_width
         new_node_group.outputs.new('NodeSocketColor', 'Scattering')
@@ -254,10 +254,11 @@ def disconnect_material_channel(context, material_channel_name):
                 node_links.remove(l)
 
 def connect_material_channel(context, material_channel_name):
-    '''Connects the specified material channel group node from the main principled BSDF shader.'''
+    '''Connects the specified material channel group node to the main principled BSDF shader or a secondary node.'''
     material_nodes = context.active_object.active_material.node_tree.nodes
     material_channel_node = get_material_channel_node(context, material_channel_name)
     principled_bsdf_node = material_nodes.get('Principled BSDF')
+    mix_normal_maps_node = material_nodes.get('COATER_MIXNORMAL')
 
     if material_channel_node:
         active_material = context.active_object.active_material
@@ -273,10 +274,10 @@ def connect_material_channel(context, material_channel_name):
             node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[9])
 
         if material_channel_name == "NORMAL":
-            node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[22])
+            node_links.new(material_channel_node.outputs[0], mix_normal_maps_node.inputs[0])
 
-        #if channel == "HEIGHT":
-        #    node_links.new(group_node.outputs[0], principled_bsdf_node.inputs[22])
+        if material_channel_name == "HEIGHT":
+            node_links.new(material_channel_name.outputs[0], mix_normal_maps_node.inputs[1])
 
         if material_channel_name == "EMISSION":
             node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[19])

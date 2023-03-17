@@ -152,7 +152,7 @@ class COATER_OT_import_texture(Operator, ImportHelper):
             texture_node.image = image
 
         # For specific material channels, imported textures automatically have their color space corrected.
-        match self.material_channel:
+        match self.material_channel_name:
             case 'COLOR':
                 image.colorspace_settings.name = 'sRGB'
 
