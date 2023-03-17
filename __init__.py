@@ -29,7 +29,7 @@ from .layers.layer_settings import COATER_layer_settings
 from .layers.toggle_channel_preview import COATER_OT_toggle_channel_preview
 
 # Import layer masking modules.
-from .layers.layer_masks import COATER_mask_stack, COATER_UL_mask_stack, COATER_masks, COATER_OT_add_mask, COATER_OT_delete_layer_mask, COATER_OT_move_layer_mask_up, COATER_OT_move_layer_mask_down, COATER_OT_add_layer_mask_filter_menu, COATER_OT_add_mask_filter_invert, COATER_OT_add_mask_filter_levels
+from .layers.layer_masks import COATER_mask_stack, COATER_UL_mask_stack, COATER_masks, COATER_OT_open_mask_settings, COATER_OT_add_mask, COATER_OT_delete_layer_mask, COATER_OT_move_layer_mask_up, COATER_OT_move_layer_mask_down, COATER_OT_add_layer_mask_filter_menu, COATER_OT_add_mask_filter_invert, COATER_OT_add_mask_filter_levels
 
 # Import filter modules.
 from .layers.layer_filters import COATER_layer_filter_stack, COATER_UL_layer_filter_stack, COATER_layer_filters, COATER_OT_add_layer_filter_menu, COATER_OT_add_layer_filter_rgb_curves, COATER_OT_add_layer_filter_hsv, COATER_OT_add_layer_filter_invert, COATER_OT_add_layer_filter_levels, COATER_OT_delete_layer_filter, COATER_OT_move_layer_filter_up, COATER_OT_move_layer_filter_down
@@ -106,6 +106,7 @@ classes = (
     COATER_mask_stack,
     COATER_UL_mask_stack,
     COATER_masks,
+    COATER_OT_open_mask_settings,
     COATER_OT_add_mask,
     COATER_OT_delete_layer_mask,
     COATER_OT_move_layer_mask_up, 

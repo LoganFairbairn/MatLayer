@@ -498,6 +498,7 @@ class COATER_layers(PropertyGroup):
     projection_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_x)
     projection_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_y)
 
+    # TODO: Make these a collection property.
     # Node Types (used for properly drawing user interface for node properties)
     color_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Color Texture Node Type", description="The node type for the color channel", default='COLOR', update=update_color_texture_node_type)
     metallic_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Metallic Texture Node Type", description="The node type for the roughness channel", default='VALUE', update=update_metallic_texture_node_type)

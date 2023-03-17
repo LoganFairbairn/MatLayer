@@ -21,10 +21,14 @@ def update_selected_material_channel(self, context):
 
 def update_layer_index(self, context):
     '''Updates stuff when the selected layer is changed.'''
+
+    # Update the ui to display material layer properties.
+    context.scene.coater_layer_stack.layer_property_tab = 'MATERIAL'
+
+    # Select an the texture image for the selected material channel in the selected layer.
     selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
     selected_layer_index = context.scene.coater_layer_stack.layer_index
 
-    # Select an the texture image for the selected material channel in the selected layer.
     bpy.context.scene.tool_settings.image_paint.mode = 'IMAGE'
     texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
 
@@ -48,7 +52,7 @@ def verify_layer_stack_index(layer_stack_index, context):
 
 class COATER_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''
-    # TODO: Rename this to selected_layer_index.
+    # TODO: Rename this variable to selected_layer_index (for accuracy).
     layer_index: bpy.props.IntProperty(default=-1, update=update_layer_index)
     material_channel_preview: bpy.props.BoolProperty(name="", default=False)
     node_default_width: bpy.props.IntProperty(default=250)
@@ -56,13 +60,32 @@ class COATER_layer_stack(PropertyGroup):
     
     selected_material_channel: bpy.props.EnumProperty(items=material_channel_nodes.MATERIAL_CHANNELS, name="Material Channel", description="The currently selected material channel", default='COLOR', update=update_selected_material_channel)
 
-    # Tabs for layer properties.
-    layer_properties_tab: bpy.props.EnumProperty(
-        items=[('MATERIAL', "MATERIAL", "Layer Material Properties"),
-               ('MASKS', "MASKS", "Layer Masks"),
-               ('FILTERS', "FILTERS", "Layer Filters")],
+    # Note: These tabs exist to help keep the user interface elements on screen limited, thus simplifying the editing process, and helps avoid the need to scroll down on the user interface to see settings (which is annoying when using a tablet pen).
+    # Tabs for material / mask layer properties.
+    layer_property_tab: bpy.props.EnumProperty(
+        items=[('MATERIAL', "MATERIAL", "Material settings for the selected layer."),
+               ('MASK', "MASK", "Mask settings for the selected layer.")],
         name="Layer Properties Tab",
         description="Currently selected layer properties user interface tab to display",
-        default=None,
+        default='MATERIAL',
+        options={'HIDDEN'},
+    )
+
+    material_property_tab: bpy.props.EnumProperty(
+        items=[('MATERIAL', "MATERIAL", "Material properties for the selected material layer."),
+               ('PROJECTION', "PROJECTION", "Projection settings for the selected material layer."),
+               ('FILTERS', "FILTERS", "Layer filters and their properties for the selected material layer.")],
+        name="Material Property Tabs",
+        description="Currently selected layer properties user interface tab to display",
+        default='MATERIAL',
+        options={'HIDDEN'},       
+    )
+
+    mask_property_tab: bpy.props.EnumProperty(
+        items=[('FILTERS', "FILTERS", "Masks, their properties and filters for masks."),
+               ('PROJECTION', "PROJECTION", "Projection settings for the selected mask.")],
+        name="Mask Property Tabs",
+        description="Currently selected layer properties user interface tab to display",
+        default='FILTERS',
         options={'HIDDEN'},
     )

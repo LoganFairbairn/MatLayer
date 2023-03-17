@@ -21,8 +21,8 @@ def select_layer_filter(layer_index, context):
     context.scene.coater_layer_stack.layer_index = layer_index
     context.scene.coater_layer_stack.layer_properties_tab = "MATERIAL"
 
-def draw_layer_preview(layout, item, selected_material_channel, context):
-    '''Draws a preview for a layer.'''
+def draw_material_channel_preview(layout, item, selected_material_channel, context):
+    '''Draws a preview of what the material will look like for the selected material channel.'''
     row = layout.row(align=True)
     row.ui_units_x = 0.8
     preview_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, item.layer_stack_array_index, context)
@@ -100,7 +100,14 @@ def draw_layer_preview(layout, item, selected_material_channel, context):
         case _:
             # Show an error icon if a preview for the node type doesn't exist.
             row.template_icon(2, scale=1)
-    
+
+def draw_layer_mask_preview(layout, item, selected_material_channel, context):
+    '''Draws a preview of the mask for each layer (if one is used) within the layer stack.'''
+    if item.masked:
+        row = layout.row(align=True)
+        row.ui_units_x = 0.8
+        row.operator("coater.open_mask_settings", icon='MOD_MASK', text="", emboss=False)
+
 def draw_layer_name(layout, item):
     row = layout.row(align=True)
     row.ui_units_x = 4
@@ -141,7 +148,8 @@ class COATER_UL_layer_list(bpy.types.UIList):
             selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
 
             draw_layer_hidden_icon(layout, item)
-            draw_layer_preview(layout, item, selected_material_channel, context)
+            draw_material_channel_preview(layout, item, selected_material_channel, context)
+            draw_layer_mask_preview(layout, item, selected_material_channel, context)
             #draw_debug_values(layout, item)
             draw_layer_name(layout, item)
             draw_layer_blending(layout, item, selected_material_channel, context)

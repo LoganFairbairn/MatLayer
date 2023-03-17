@@ -11,7 +11,7 @@ MASK_NODE_TYPES = [
     ("MUSGRAVE", "Musgrave", "")
     ]
 
-#------------------- Layer Mask STACK -------------------#
+#------------------- Layer Mask Layer Stack -------------------#
 
 class COATER_mask_stack(PropertyGroup):
     '''Properties for the mask stack.'''
@@ -38,6 +38,21 @@ class COATER_masks(PropertyGroup):
 
     # Node Types (used for properly drawing user interface for node properties)
     mask_texture_types: bpy.props.EnumProperty(items=MASK_NODE_TYPES, name="Mask Texture Node Type", description="The node type for the mask", default='TEXTURE')
+
+class COATER_OT_open_mask_settings(Operator):
+    '''Opens mask settings for the selected layer.'''
+    bl_idname = "coater.open_mask_settings"
+    bl_label = "Open Mask Settings"
+    bl_description = "Opens mask settings for the selected layer."
+
+     # Disable the button when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return bpy.context.scene.coater_layers
+
+    def execute(self, context):
+        context.scene.coater_layer_stack.layer_property_tab = 'MASK'
+        return{'FINISHED'}   
 
 #------------------- Layer Mask Operations -------------------#
 

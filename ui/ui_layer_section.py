@@ -10,93 +10,53 @@ from ..layers import layer_stack as ls
 SCALE_Y = 1.4
 
 def draw_layers_section_ui(self, context):
-    layout = self.layout
+    '''Draws the layer section.'''
     ui_section_tabs.draw_section_tabs(self, context)
-    draw_material_selector(self, context)
-    draw_layer_operations(self)
-
+    layout = self.layout
+    
+    # Only draw if there is a selected object.
     if context.active_object:
-        active_material = context.active_object.active_material
-        if active_material:
+        
+        draw_material_selector(self, context)
+        draw_layer_operations(self)
+        
+        if context.active_object.active_material:
             if coater_materials.verify_material(context):
-                draw_material_channel(self, context)
-                
-                # Don't draw inactive material channels.
                 selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
-                selected_material_channel_active = True
-                texture_set_settings = context.scene.coater_texture_set_settings
-                if selected_material_channel == "COLOR" and texture_set_settings.color_channel_toggle == False:
-                    selected_material_channel_active = False
+                selected_material_channel_active = get_material_channel_active(context, selected_material_channel)
 
-                if selected_material_channel == "METALLIC" and texture_set_settings.metallic_channel_toggle == False:
-                    selected_material_channel_active = False
-
-                if selected_material_channel == "ROUGHNESS" and texture_set_settings.roughness_channel_toggle == False:
-                    selected_material_channel_active = False
-
-                if selected_material_channel == "NORMAL" and texture_set_settings.normal_channel_toggle == False:
-                    selected_material_channel_active = False
-
-                if selected_material_channel == "HEIGHT" and texture_set_settings.height_channel_toggle == False:
-                    selected_material_channel_active = False
-
-                if selected_material_channel == "SCATTERING" and texture_set_settings.scattering_channel_toggle == False:
-                    selected_material_channel_active = False
-
-                if selected_material_channel == "EMISSION" and texture_set_settings.emission_channel_toggle == False:
-                    selected_material_channel_active = False
-
-                if selected_material_channel_active:
-                    layers = context.scene.coater_layers
+                if selected_material_channel_active and len(context.scene.coater_layers) > 0:
                     draw_layer_stack(self, context)
-                    
-                    row = layout.row(align=True)
-                    row.prop_enum(context.scene.coater_layer_stack, "layer_properties_tab", 'MATERIAL', text="MATERIAL")
-                    row.prop_enum(context.scene.coater_layer_stack, "layer_properties_tab", 'MASKS', text="MASK")
-                    row.prop_enum(context.scene.coater_layer_stack, "layer_properties_tab", 'FILTERS', text="FILTER")
-                    
+                    draw_layer_properties(self, layout, context)
 
-                    if len(layers) > 0:
-                        layer_stack = context.scene.coater_layer_stack
-
-                        if layer_stack.layer_properties_tab == "MATERIAL":
-                            selected_layer_index = context.scene.coater_layer_stack.layer_index
-                            layer_stack_index_exists = ls.verify_layer_stack_index(selected_layer_index, context)
-                            if layer_stack_index_exists:
-                                draw_layer_properties(self, context)
-
-                        elif layer_stack.layer_properties_tab == "FILTERS":
-                            row = layout.row(align=True)
-                            row.scale_y = 2
-                            row.scale_x = 10
-                            row.operator("coater.add_layer_filter_menu", icon='FILTER', text="")
-                            row.operator("coater.move_filter_up", icon='TRIA_UP', text="")
-                            row.operator("coater.move_filter_down", icon='TRIA_DOWN', text="")
-                            row.operator("coater.delete_layer_filter", icon='TRASH', text="")
-
-                            layer_filter_stack = context.scene.coater_layer_filter_stack
-                            row = layout.row(align=True)
-                            row.scale_y = 2
-                            row.template_list("COATER_UL_layer_filter_stack", "Layers", context.scene, "coater_layer_filters", layer_filter_stack, "selected_filter_index", sort_reverse=True)
-                            
-                        elif layer_stack.layer_properties_tab == "MASKS":
-                            row = layout.row(align=True)
-                            row.scale_y = 2
-                            row.scale_x = 10
-                            row.operator("coater.add_mask", icon='ADD', text="")
-                            row.operator("coater.add_layer_mask_filter_menu", icon='FILTER', text="")
-                            row.operator("coater.move_layer_mask_up", icon='TRIA_UP', text="")
-                            row.operator("coater.move_layer_mask_down", icon='TRIA_DOWN', text="")
-                            row.operator("coater.delete_layer_mask", icon='TRASH', text="")
-
-                            mask_stack = context.scene.coater_mask_stack
-                            row = layout.row(align=True)
-                            row.scale_y = 2
-                            row.template_list("COATER_UL_mask_stack", "Masks", context.scene, "coater_masks", mask_stack, "selected_mask_index", sort_reverse=True)
     else:
         layout = self.layout
         layout.label(text="Select an object.")
 
+def get_material_channel_active(context, material_channel_name):
+    '''Returns true if the given material channel is active in both the texture set settings and the layer material channel toggles.'''
+    texture_set_settings = context.scene.coater_texture_set_settings
+    if material_channel_name == "COLOR" and texture_set_settings.color_channel_toggle == False:
+        return False
+
+    if material_channel_name == "METALLIC" and texture_set_settings.metallic_channel_toggle == False:
+        return False
+
+    if material_channel_name == "ROUGHNESS" and texture_set_settings.roughness_channel_toggle == False:
+        return False
+
+    if material_channel_name == "NORMAL" and texture_set_settings.normal_channel_toggle == False:
+        return False
+
+    if material_channel_name == "HEIGHT" and texture_set_settings.height_channel_toggle == False:
+        return False
+
+    if material_channel_name == "SCATTERING" and texture_set_settings.scattering_channel_toggle == False:
+        return False
+
+    if material_channel_name == "EMISSION" and texture_set_settings.emission_channel_toggle == False:
+        return False
+    return True
 
 def draw_material_selector(self, context):
     '''Draws a material selector and layer stack refresh button.'''
@@ -117,6 +77,7 @@ def draw_material_selector(self, context):
     row.scale_y = 1.5
 
 def draw_layer_operations(self):
+    # Draw the layer stack operator buttons.
     layout = self.layout
     row = layout.row(align=True)
     row.scale_y = 2.0
@@ -130,10 +91,14 @@ def draw_layer_operations(self):
     #row.operator("coater.image_editor_export", icon="EXPORT", text="")
     row.operator("coater.delete_layer", icon="TRASH", text="")
 
-def draw_material_channel(self, context):
-    '''Draws the currently selected material channel.'''
+def draw_layer_stack(self, context):
+    '''Draws the material layer stack along with it's operators and material channel.'''
+
+    # Draw the selected material channel.
     layout = self.layout
     row = layout.row(align=True)
+    row.scale_x = 2
+    row.scale_y = 1.4
     row.prop(context.scene.coater_layer_stack, "selected_material_channel", text="")
     if context.scene.coater_layer_stack.material_channel_preview == False:
         row.operator("coater.toggle_channel_preview", text="", icon='MATERIAL')
@@ -141,10 +106,7 @@ def draw_material_channel(self, context):
     elif context.scene.coater_layer_stack.material_channel_preview == True:
         row.operator("coater.toggle_channel_preview", text="", icon='MATERIAL', depress=True)
 
-    row.scale_x = 2
-    row.scale_y = 1.4
-
-def draw_layer_stack(self, context):
+    # Draw the material layer stack.
     layout = self.layout
     row = layout.row(align=True)
     layer_stack = context.scene.coater_layer_stack
@@ -153,16 +115,22 @@ def draw_layer_stack(self, context):
 
 
 
-#----------------- DRAW LAYER PROPERTIES ----------------------#
+#----------------- DRAW MATERIAL PROPERTIES ----------------------#
+
+def draw_divider(layout):
+    '''Draws a horizontal divider to provide visual spacing between elements.'''
+    # Blender doesn't seem to support drawing a horizontal divider with the standard ui drawing tools, this is a work-around using a label.
+    # Alternatively to this solution this could be used: layout.row().separator()
+    row = layout.row()
+    row.alignment = 'CENTER'
+    row.ui_units_x = 10
+    row.label(text="---------------------------------------------------------------------------------------------------------------------------")
+
 def draw_material_projection_settings(self, context):
     '''Draws material projection settings.'''
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     layout = self.layout
-
-    row = layout.row()
-    row.alignment = 'CENTER'
-    row.label(text="-------------------------------------------------------------------------------------------------------------")
     
     row = layout.row()
     row.scale_y = SCALE_Y
@@ -246,11 +214,25 @@ def draw_material_channel_toggles(self, context):
     if texture_set_settings.scattering_channel_toggle:
         row.prop(layers[selected_layer_index], "scattering_channel_toggle", text="Scatt", toggle=1)
 
-def draw_material_channel_texture_settings(layout, context):
+def draw_material_filters(layout, context):
+    '''Draws a layer stack of filters applied to the selected material layer.'''
+    row = layout.row(align=True)
+    row.scale_y = 2
+    row.scale_x = 10
+    row.operator("coater.add_layer_filter_menu", icon='FILTER', text="")
+    row.operator("coater.move_filter_up", icon='TRIA_UP', text="")
+    row.operator("coater.move_filter_down", icon='TRIA_DOWN', text="")
+    row.operator("coater.delete_layer_filter", icon='TRASH', text="")
+
+    layer_filter_stack = context.scene.coater_layer_filter_stack
+    row = layout.row(align=True)
+    row.scale_y = 2
+    row.template_list("COATER_UL_layer_filter_stack", "Layers", context.scene, "coater_layer_filters", layer_filter_stack, "selected_filter_index", sort_reverse=True)
+
+def draw_layer_texture_node_properties(layout, context):
     '''Draws settings for the currently selected texture node in the each active material channel.'''
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
-    texture_set_settings = context.scene.coater_texture_set_settings
 
     # Get a list of all the material channels.
     material_channels = material_channel_nodes.get_material_channel_list()
@@ -259,123 +241,50 @@ def draw_material_channel_texture_settings(layout, context):
     for i in range(0, len(material_channels)):
         texture_node = layer_nodes.get_layer_node("TEXTURE", material_channels[i], selected_layer_index, context)
 
-        # If the texture node exists in the material channel, draw the texture settings.
+        draw_divider(layout)
+        row = layout.row(align=True)
+        row.scale_y = SCALE_Y
+        row.label(text=material_channels[i])
+
         if texture_node:
-            # TODO: If the texture node types can be stored in a list / array, this code can be greatly simplified.
-            # Get the texture node type.
-            if material_channels[i] == "COLOR":
-                if layers[selected_layer_index].color_channel_toggle:
-                    if texture_set_settings.color_channel_toggle:
-                        # Draw a divider between texture node settings.
-                        draw_divider(layout)
+            match material_channels[i]:
+                
+                case 'COLOR':
+                    texture_node_type = layers[selected_layer_index].color_texture_node_type
+                    row.prop(layers[selected_layer_index], "color_texture_node_type", text="")
+                    draw_texture_node_settings(layout, texture_node, texture_node_type, layers[selected_layer_index], "COLOR", context)
+            
+                case 'METALLIC':
+                    texture_node_type = layers[selected_layer_index].metallic_texture_node_type
+                    row.prop(layers[selected_layer_index], "metallic_texture_node_type", text="")
+                    draw_texture_node_settings(layout, texture_node, texture_node_type, layers[selected_layer_index], "METALLIC", context)
 
-                        # Draw the material channel name.
-                        row = layout.row(align=True)
-                        row.scale_y = SCALE_Y
-                        row.label(text=material_channels[i])
+                case 'ROUGHNESS':
+                    texture_node_type = layers[selected_layer_index].roughness_texture_node_type
+                    row.prop(layers[selected_layer_index], "roughness_texture_node_type", text="")
+                    draw_texture_node_settings(layout, texture_node, texture_node_type, layers[selected_layer_index], "ROUGHNESS", context)
 
-                        # Draw the texture settings.
-                        texture_node_type = layers[selected_layer_index].color_texture_node_type
-                        row.prop(layers[selected_layer_index], "color_texture_node_type", text="")
-                        draw_texture_settings(layout, texture_node, texture_node_type, layers[selected_layer_index], "COLOR", context)
+                case 'NORMAL':
+                    texture_node_type = layers[selected_layer_index].normal_texture_node_type
+                    row.prop(layers[selected_layer_index], "normal_texture_node_type", text="")
+                    draw_texture_node_settings(layout, texture_node, texture_node_type, layers[selected_layer_index], "NORMAL", context)
 
-            if material_channels[i] == "METALLIC":
-                if layers[selected_layer_index].metallic_channel_toggle:
-                    if texture_set_settings.metallic_channel_toggle:
-                        # Draw a divider between texture node settings.
-                        draw_divider(layout)
+                case 'HEIGHT':
+                    texture_node_type = layers[selected_layer_index].height_texture_node_type
+                    row.prop(layers[selected_layer_index], "height_texture_node_type", text="")
+                    draw_texture_node_settings(layout, texture_node, texture_node_type, layers[selected_layer_index], "HEIGHT", context)
 
-                        # Draw the material channel name.
-                        row = layout.row(align=True)
-                        row.scale_y = SCALE_Y
-                        row.label(text=material_channels[i])
+                case 'EMISSION':
+                    texture_node_type = layers[selected_layer_index].emission_texture_node_type
+                    row.prop(layers[selected_layer_index], "emission_texture_node_type", text="")
+                    draw_texture_node_settings(layout, texture_node, texture_node_type, layers[selected_layer_index], "EMISSION", context)
+                    
+                case 'SCATTERING':
+                    texture_node_type = layers[selected_layer_index].scattering_texture_node_type
+                    row.prop(layers[selected_layer_index], "scattering_texture_node_type", text="")
+                    draw_texture_node_settings(layout, texture_node, texture_node_type, layers[selected_layer_index], "SCATTERING", context)
 
-                        # Draw the texture node settings
-                        texture_node_type = layers[selected_layer_index].metallic_texture_node_type
-                        row.prop(layers[selected_layer_index], "metallic_texture_node_type", text="")
-                        draw_texture_settings(layout, texture_node, texture_node_type, layers[selected_layer_index], "METALLIC", context)
-
-            if material_channels[i] == "ROUGHNESS":
-                if layers[selected_layer_index].roughness_channel_toggle:
-                    if texture_set_settings.roughness_channel_toggle:
-                        # Draw a divider between texture node settings.
-                        draw_divider(layout)
-
-                        # Draw the material channel name.
-                        row = layout.row(align=True)
-                        row.scale_y = SCALE_Y
-                        row.label(text=material_channels[i])
-
-                        # Draw the texture node settings
-                        texture_node_type = layers[selected_layer_index].roughness_texture_node_type
-                        row.prop(layers[selected_layer_index], "roughness_texture_node_type", text="")
-                        draw_texture_settings(layout, texture_node, texture_node_type, layers[selected_layer_index], "ROUGHNESS", context)
-
-            if material_channels[i] == "NORMAL":
-                if layers[selected_layer_index].normal_channel_toggle:
-                    if texture_set_settings.normal_channel_toggle:
-                        # Draw a divider between texture node settings.
-                        draw_divider(layout)
-
-                        # Draw the material channel name.
-                        row = layout.row(align=True)
-                        row.scale_y = SCALE_Y
-                        row.label(text=material_channels[i])
-
-                        # Draw the texture node settings
-                        texture_node_type = layers[selected_layer_index].normal_texture_node_type
-                        row.prop(layers[selected_layer_index], "normal_texture_node_type", text="")
-                        draw_texture_settings(layout, texture_node, texture_node_type, layers[selected_layer_index], "NORMAL", context)
-
-            if material_channels[i] == "HEIGHT":
-                if layers[selected_layer_index].height_channel_toggle:
-                    if texture_set_settings.height_channel_toggle:
-                        # Draw a divider between texture node settings.
-                        draw_divider(layout)
-
-                        # Draw the material channel name.
-                        row = layout.row(align=True)
-                        row.scale_y = SCALE_Y
-                        row.label(text=material_channels[i])
-
-                        # Draw the texture node settings.
-                        texture_node_type = layers[selected_layer_index].height_texture_node_type
-                        row.prop(layers[selected_layer_index], "height_texture_node_type", text="")
-                        draw_texture_settings(layout, texture_node, texture_node_type, layers[selected_layer_index], "HEIGHT", context)
-
-            if material_channels[i] == "EMISSION":
-                if layers[selected_layer_index].emission_channel_toggle:
-                    if texture_set_settings.emission_channel_toggle:
-                        # Draw a divider between texture node settings.
-                        draw_divider(layout)
-
-                        # Draw the material channel name.
-                        row = layout.row(align=True)
-                        row.scale_y = SCALE_Y
-                        row.label(text=material_channels[i])
-
-                        # Draw the texture node settings
-                        texture_node_type = layers[selected_layer_index].emission_texture_node_type
-                        row.prop(layers[selected_layer_index], "emission_texture_node_type", text="")
-                        draw_texture_settings(layout, texture_node, texture_node_type, layers[selected_layer_index], "EMISSION", context)
-
-            if material_channels[i] == "SCATTERING":
-                if layers[selected_layer_index].scattering_channel_toggle:
-                    if texture_set_settings.scattering_channel_toggle:
-                        # Draw a divider between texture node settings.
-                        draw_divider(layout)
-
-                        # Draw the material channel name.
-                        row = layout.row(align=True)
-                        row.scale_y = SCALE_Y
-                        row.label(text=material_channels[i])
-
-                        # Draw the texture node settings
-                        texture_node_type = layers[selected_layer_index].scattering_texture_node_type
-                        row.prop(layers[selected_layer_index], "scattering_texture_node_type", text="")
-                        draw_texture_settings(layout, texture_node, texture_node_type, layers[selected_layer_index], "SCATTERING", context)
-
-def draw_texture_settings(layout, texture_node, texture_node_type, layer, material_channel_name, context):
+def draw_texture_node_settings(layout, texture_node, texture_node_type, layer, material_channel_name, context):
     '''Draws the texture setting based on the given texture node type.'''
     principled_bsdf_node = context.active_object.active_material.node_tree.nodes.get('Principled BSDF')
 
@@ -500,15 +409,64 @@ def draw_texture_settings(layout, texture_node, texture_node_type, layer, materi
             row.label(text="Subsurface Color")
             row.prop(principled_bsdf_node.inputs[3], "default_value", text="")
 
-def draw_divider(layout):
-    row = layout.row()
-    row.alignment = 'CENTER'
-    row.label(text="-------------------------------------------------------------------------------------------------------------")
+#----------------- DRAW MASK PROPERTIES ----------------------#
 
-def draw_layer_properties(self, context):
-    '''Draws layer properties such as projection settings, active material channels, and texture settings.'''
+
+
+
+#----------------- DRAW (ALL) LAYER PROPERTIES ----------------------#
+
+def draw_layer_properties(self, layout, context):
+    '''Draws material and mask properties for the selected layer based on the selected tab.'''
+    layer_property_tab = context.scene.coater_layer_stack.layer_property_tab
+
+    # Draw material channel toggles.
     draw_material_channel_toggles(self, context)
-    draw_material_channel_texture_settings(self.layout, context)
-    draw_material_projection_settings(self, context)
-
     
+    # Draw layer materials based on the selected tab.
+    match layer_property_tab:
+        case 'MATERIAL':
+            row = layout.row(align=True)
+            row.prop_enum(context.scene.coater_layer_stack, "material_property_tab", 'MATERIAL', text='MATERIAL')
+            row.prop_enum(context.scene.coater_layer_stack, "material_property_tab", 'PROJECTION', text='PROJECTION')
+            row.prop_enum(context.scene.coater_layer_stack, "material_property_tab", 'FILTERS', text='FILTERS')
+
+            selected_layer_index = context.scene.coater_layer_stack.layer_index
+            if ls.verify_layer_stack_index(selected_layer_index, context):
+                material_property_tab = context.scene.coater_layer_stack.material_property_tab
+                match material_property_tab:
+                    case 'MATERIAL':
+                        draw_layer_texture_node_properties(layout, context)
+
+                    case 'PROJECTION':
+                        draw_material_projection_settings(self, context)
+
+                    case 'FILTERS':
+                        draw_material_filters(layout, context)
+                        
+        case 'MASKS':
+            row = layout.row(align=True)
+            row.scale_y = 2
+            row.scale_x = 10
+            row.operator("coater.add_mask", icon='ADD', text="")
+            row.operator("coater.add_layer_mask_filter_menu", icon='FILTER', text="")
+            row.operator("coater.move_layer_mask_up", icon='TRIA_UP', text="")
+            row.operator("coater.move_layer_mask_down", icon='TRIA_DOWN', text="")
+            row.operator("coater.delete_layer_mask", icon='TRASH', text="")
+
+            mask_stack = context.scene.coater_mask_stack
+            row = layout.row(align=True)
+            row.scale_y = 2
+            row.template_list("COATER_UL_mask_stack", "Masks", context.scene, "coater_masks", mask_stack, "selected_mask_index", sort_reverse=True)
+
+            # Draw mask proprty tabs.
+            row = layout.row(align=True)
+            row.prop_enum(context.scene.coater_layer_stack, "material_property_tab", 'SETTINGS', text='SETTINGS')
+            row.prop_enum(context.scene.coater_layer_stack, "material_property_tab", 'PROJECTION', text='PROJECTION')
+
+            #mask_property_tab = context.scene.coater_layer_stack.mask_property_tab
+            #match material_property_tab:
+            #    case 'PROJECTION':
+
+            #    case 'FILTERS':
+
