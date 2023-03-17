@@ -110,7 +110,7 @@ def draw_layer_mask_preview(layout, item, selected_material_channel, context):
 
 def draw_layer_name(layout, item):
     row = layout.row(align=True)
-    row.ui_units_x = 4
+    row.ui_units_x = 3
     row.prop(item, "name", text="", emboss=False)
 
 def draw_debug_values(layout, item):
