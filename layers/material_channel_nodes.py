@@ -77,14 +77,16 @@ def get_active_material_channel_nodes(context):
 
 def get_material_channel_node(context, material_channel_name):
     '''Returns the material channel (group) node for the given material channel on the active object.'''
-    material_name = context.active_object.active_material.name
-    material_nodes = context.active_object.active_material.node_tree.nodes
-    material_channel_node = material_nodes.get(material_name + "_" + str(material_channel_name))
+    
+    if context.active_object:
+        material_name = context.active_object.active_material.name
+        material_nodes = context.active_object.active_material.node_tree.nodes
+        material_channel_node = material_nodes.get(material_name + "_" + str(material_channel_name))
 
-    if material_channel_node == None:
-        print("Error: Missing " + material_channel_name +  " material channel node.")
+        if material_channel_node == None:
+            print("Error: Missing " + material_channel_name +  " material channel node.")
 
-    return material_channel_node
+        return material_channel_node
 
 def get_material_channel_output_node(context, channel):
     '''Returns the output node for the given material channel.'''
