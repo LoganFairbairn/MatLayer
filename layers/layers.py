@@ -514,7 +514,7 @@ class COATER_layers(PropertyGroup):
     roughness_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the roughness material channel.", description="", default=(0.5, 0.5, 0.5), min=0, max=1, subtype='COLOR', update=update_roughness_prieview_color)
     normal_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the normal material channel.", description="", default=(0.5, 0.5, 1.0), min=0, max=1, subtype='COLOR', update=update_normal_prieview_color)
     height_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the height material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_height_prieview_color)
-    scattering_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the color material channel.", description="", default=(1.0, 1.0, 1.0), min=0, max=1, subtype='COLOR', update=update_scattering_prieview_color)
+    scattering_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the color material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_scattering_prieview_color)
     emission_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the emission material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_emission_prieview_color)
 
     # To provide accurate min / max slider ranges in the user interface, float values are stored in each layer to use as the values (even for material channels that wouldn't typically be represented by a uniform rgb values).

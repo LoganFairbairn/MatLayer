@@ -118,16 +118,17 @@ def add_default_layer_nodes(context):
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.5, 0.5, 1.0, 1.0)
                 layers[selected_layer_index].normal_layer_color_preview = (0.5, 0.5, 1)
+                mix_layer_node.inputs[1].default_value = (0.5, 0.5, 1.0, 1.0)
                 
             if material_channels[i] == "HEIGHT":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
                 texture_node.outputs[0].default_value = 0.0
                 layers[selected_layer_index].height_layer_color_preview = (0, 0, 0)
-                mix_layer_node.blend_type = 'DODGE'
+                mix_layer_node.blend_type = 'MIX'
 
             if material_channels[i] == "SCATTERING":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
-                texture_node.outputs[0].default_value = (1.0, 1.0, 1.0, 1.0)
+                texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
                 layers[selected_layer_index].scattering_layer_color_preview = (1, 1, 1)
 
             if material_channels[i] == "EMISSION":
@@ -321,19 +322,11 @@ class COATER_OT_add_layer(Operator):
     bl_description = "Adds a layer with default numeric material values to the layer stack"
 
     def execute(self, context):
-        # Prepare the material.
         coater_materials.prepare_material(context)
         material_channel_nodes.create_channel_group_nodes(context)
-
-        # Add a layer slot within the layer stack.
         add_layer_slot(context)
-
-        # Add default layer nodes.
         add_default_layer_nodes(context)
-
-        # Set the viewport to material shading mode.
-        set_material_shading(context)
-
+        set_material_shading(context)       # Set the viewport to material shading mode (so users can see the applied material).
         return {'FINISHED'}
 
 class COATER_OT_move_layer_up(Operator):
