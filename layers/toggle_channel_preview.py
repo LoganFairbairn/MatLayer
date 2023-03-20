@@ -5,7 +5,7 @@ from . import material_channel_nodes
 class COATER_OT_toggle_channel_preview(Operator):
     bl_idname = "coater.toggle_channel_preview"
     bl_label = "Toggle Channel Preview"
-    bl_description = "Toggles the preview for the current material channel"
+    bl_description = "Toggles a preview which displays only the information stored in the currently selected material channel"
 
     def execute(self, context):
         layer_stack = context.scene.coater_layer_stack
