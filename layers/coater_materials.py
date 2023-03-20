@@ -70,8 +70,8 @@ def create_normal_mixing_group_node(context):
         new_node_group.links.new(combine_xyz_node.outputs[0], normalize_node.inputs[0])
         new_node_group.links.new(normalize_node.outputs[0], group_output_node.inputs[0])
 
-# Creates and prepares a Coater specific material.
-def create_material(context, active_object):
+def create_coater_material(context, active_object):
+    '''Creates and prepares a Coater specific material.'''
     new_material = bpy.data.materials.new(name=active_object.name)
     active_object.data.materials.append(new_material)
     layers = context.scene.coater_layers
@@ -122,7 +122,7 @@ def prepare_material(context):
         # There is no active material, make one.
         if active_material == None:
             remove_all_material_slots()
-            create_material(context, active_object)
+            create_coater_material(context, active_object)
 
         # There is a material, make sure it's a Coater material.
         else:
@@ -133,7 +133,7 @@ def prepare_material(context):
             # If the material isn't a coater material, make a new material.
             else:
                 remove_all_material_slots()
-                create_material(context, active_object)
+                create_coater_material(context, active_object)
     return {'FINISHED'}
 
 def remove_all_material_slots():
