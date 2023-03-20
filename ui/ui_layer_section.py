@@ -16,29 +16,30 @@ def draw_layers_section_ui(self, context):
     
     # Only draw if there is a selected object.
     if context.active_object:
-        draw_material_selector(self, context)
-
+        
         # Create a 2 column layout (to give lots of space for add-on ui).
         split = layout.split()
 
         # Layer properties (first column).
         column1 = split.column()
-        column1.label(text="Column1")
         if context.active_object.active_material:
             if coater_materials.verify_material(context):
-                draw_layer_properties(column1, context)
+                if ls.verify_layer_stack_index(context.scene.coater_layer_stack.layer_index, context):
+                    draw_layer_properties(column1, context)
+
+        else:
+            column1.label(text="No active material.")
 
         # Layer stack (second column).
         column2 = split.column()
+        draw_material_selector(column2, context)
         draw_layer_operations(column2)
         draw_selected_material_channel(column2, context)
-
-        if context.active_object.active_material:
-            if coater_materials.verify_material(context):
-                selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
-                selected_material_channel_active = get_material_channel_active(context, selected_material_channel)
-                if selected_material_channel_active and len(context.scene.coater_layers) > 0:
-                    draw_layer_stack(column2, context)
+            
+        selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+        selected_material_channel_active = get_material_channel_active(context, selected_material_channel)
+        if selected_material_channel_active and len(context.scene.coater_layers) > 0:
+            draw_layer_stack(column2, context)
 
     else:
         layout = self.layout
@@ -69,12 +70,10 @@ def get_material_channel_active(context, material_channel_name):
         return False
     return True
 
-def draw_material_selector(self, context):
+def draw_material_selector(column, context):
     '''Draws a material selector and layer stack refresh button.'''
     active_object = context.active_object
-    layout = self.layout
-
-    row = layout.row(align=True)
+    row = column.row(align=True)
     if active_object:
         if active_object.active_material != None:
             row.template_ID(active_object, "active_material", new="coater.add_color_layer", live_icon=True)
@@ -161,61 +160,6 @@ def draw_material_channel_toggles(column, context):
 
     if texture_set_settings.scattering_channel_toggle:
         subrow.prop(layers[selected_layer_index], "scattering_channel_toggle", text="Scatt", toggle=1)
-
-def draw_layer_texture_node_properties(column, context):
-    '''Draws settings for the currently selected texture node in the each active material channel.'''
-    layers = context.scene.coater_layers
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-
-    # Get a list of all the material channels.
-    material_channels = material_channel_nodes.get_material_channel_list()
-
-    # Draw the texture node settings for every material channel.
-    for i in range(0, len(material_channels)):
-        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channels[i], selected_layer_index, context)
-
-        draw_divider(column)
-        subrow = column.row(align=True)
-        subrow.scale_y = SCALE_Y
-        subrow.label(text=material_channels[i])
-
-        if texture_node:
-            match material_channels[i]:
-                
-                case 'COLOR':
-                    texture_node_type = layers[selected_layer_index].color_texture_node_type
-                    subrow.prop(layers[selected_layer_index], "color_texture_node_type", text="")
-                    draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "COLOR", context)
-            
-                case 'METALLIC':
-                    texture_node_type = layers[selected_layer_index].metallic_texture_node_type
-                    subrow.prop(layers[selected_layer_index], "metallic_texture_node_type", text="")
-                    draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "METALLIC", context)
-
-                case 'ROUGHNESS':
-                    texture_node_type = layers[selected_layer_index].roughness_texture_node_type
-                    subrow.prop(layers[selected_layer_index], "roughness_texture_node_type", text="")
-                    draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "ROUGHNESS", context)
-
-                case 'NORMAL':
-                    texture_node_type = layers[selected_layer_index].normal_texture_node_type
-                    subrow.prop(layers[selected_layer_index], "normal_texture_node_type", text="")
-                    draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "NORMAL", context)
-
-                case 'HEIGHT':
-                    texture_node_type = layers[selected_layer_index].height_texture_node_type
-                    subrow.prop(layers[selected_layer_index], "height_texture_node_type", text="")
-                    draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "HEIGHT", context)
-
-                case 'EMISSION':
-                    texture_node_type = layers[selected_layer_index].emission_texture_node_type
-                    subrow.prop(layers[selected_layer_index], "emission_texture_node_type", text="")
-                    draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "EMISSION", context)
-                    
-                case 'SCATTERING':
-                    texture_node_type = layers[selected_layer_index].scattering_texture_node_type
-                    subrow.prop(layers[selected_layer_index], "scattering_texture_node_type", text="")
-                    draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "SCATTERING", context)
 
 def draw_texture_node_settings(column, texture_node, texture_node_type, layer, material_channel_name, context):
     '''Draws the texture setting based on the given texture node type.'''
@@ -341,6 +285,91 @@ def draw_texture_node_settings(column, texture_node, texture_node_type, layer, m
         case "SCATTERING":
             subrow.label(text="Subsurface Color")
             subrow.prop(principled_bsdf_node.inputs[3], "default_value", text="")
+
+def draw_layer_texture_node_properties(column, context):
+    '''Draws settings for the currently selected texture node in the each active material channel.'''
+    layers = context.scene.coater_layers
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    texture_set_settings = context.scene.coater_texture_set_settings
+
+    # Get a list of all the material channels.
+    material_channels = material_channel_nodes.get_material_channel_list()
+
+    # Draw the texture node settings for every material channel.
+    for i in range(0, len(material_channels)):
+        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channels[i], selected_layer_index, context)
+        if texture_node:
+            match material_channels[i]:
+                
+                case 'COLOR':
+                    if layers[selected_layer_index].color_channel_toggle and texture_set_settings.color_channel_toggle:
+                        draw_divider(column)
+                        subrow = column.row(align=True)
+                        subrow.scale_y = SCALE_Y
+                        subrow.label(text=material_channels[i])
+                        texture_node_type = layers[selected_layer_index].color_texture_node_type
+                        subrow.prop(layers[selected_layer_index], "color_texture_node_type", text="")
+                        draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "COLOR", context)
+            
+                case 'METALLIC':
+                    if layers[selected_layer_index].metallic_channel_toggle and texture_set_settings.metallic_channel_toggle:
+                        draw_divider(column)
+                        subrow = column.row(align=True)
+                        subrow.scale_y = SCALE_Y
+                        subrow.label(text=material_channels[i])
+                        texture_node_type = layers[selected_layer_index].metallic_texture_node_type
+                        subrow.prop(layers[selected_layer_index], "metallic_texture_node_type", text="")
+                        draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "METALLIC", context)
+
+                case 'ROUGHNESS':
+                    if layers[selected_layer_index].roughness_channel_toggle and texture_set_settings.roughness_channel_toggle:
+                        draw_divider(column)
+                        subrow = column.row(align=True)
+                        subrow.scale_y = SCALE_Y
+                        subrow.label(text=material_channels[i])
+                        texture_node_type = layers[selected_layer_index].roughness_texture_node_type
+                        subrow.prop(layers[selected_layer_index], "roughness_texture_node_type", text="")
+                        draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "ROUGHNESS", context)
+
+                case 'NORMAL':
+                    if layers[selected_layer_index].normal_channel_toggle and texture_set_settings.normal_channel_toggle:
+                        draw_divider(column)
+                        subrow = column.row(align=True)
+                        subrow.scale_y = SCALE_Y
+                        subrow.label(text=material_channels[i])
+                        texture_node_type = layers[selected_layer_index].normal_texture_node_type
+                        subrow.prop(layers[selected_layer_index], "normal_texture_node_type", text="")
+                        draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "NORMAL", context)
+
+                case 'HEIGHT':
+                    if layers[selected_layer_index].height_channel_toggle and texture_set_settings.height_channel_toggle:
+                        draw_divider(column)
+                        subrow = column.row(align=True)
+                        subrow.scale_y = SCALE_Y
+                        subrow.label(text=material_channels[i])
+                        texture_node_type = layers[selected_layer_index].height_texture_node_type
+                        subrow.prop(layers[selected_layer_index], "height_texture_node_type", text="")
+                        draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "HEIGHT", context)
+
+                case 'EMISSION':
+                    if layers[selected_layer_index].emission_channel_toggle and texture_set_settings.emission_channel_toggle:
+                        draw_divider(column)
+                        subrow = column.row(align=True)
+                        subrow.scale_y = SCALE_Y
+                        subrow.label(text=material_channels[i])
+                        texture_node_type = layers[selected_layer_index].emission_texture_node_type
+                        subrow.prop(layers[selected_layer_index], "emission_texture_node_type", text="")
+                        draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "EMISSION", context)
+                    
+                case 'SCATTERING':
+                    if layers[selected_layer_index].scattering_channel_toggle and texture_set_settings.scattering_channel_toggle:
+                        draw_divider(column)
+                        subrow = column.row(align=True)
+                        subrow.scale_y = SCALE_Y
+                        subrow.label(text=material_channels[i])
+                        texture_node_type = layers[selected_layer_index].scattering_texture_node_type
+                        subrow.prop(layers[selected_layer_index], "scattering_texture_node_type", text="")
+                        draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "SCATTERING", context)
 
 def draw_material_projection_settings(column, context):
     '''Draws material projection settings.'''

@@ -466,16 +466,20 @@ class COATER_OT_merge_layer(Operator):
     def execute(self, context):
         return{'FINISHED'}
 
-class COATER_OT_read_layer_nodes(Operator):
-    bl_idname = "coater.read_layer_nodes"
-    bl_label = "Read Layer Nodes"
-    bl_description = "Reads the material nodes in the active material and updates the layer stack with that"
+class COATER_OT_refresh_layer_nodes(Operator):
+    bl_idname = "coater.refresh_layer_nodes"
+    bl_label = "Refresh Layer Nodes"
+    bl_description = "Refreshes the material nodes by reading the material nodes in the active material and updates the layer stack with that"
 
     def execute(self, context):
         # Make sure the active material is a Coater material before attempting to refresh the layer stack.
         if coater_materials.verify_material(context) == False:
-            self.report({'ERROR'}, "Material is not a Coater material, can't read layer stack.")
+            self.report({'ERROR'}, "Material is not a Coater material, can't read / refresh the layer stack.")
             return {'FINISHED'}
+
+        # Clear the layer stack.
+        layers = context.scene.coater_layers
+        layers.clear()
 
         # TODO: Read the layer stack nodes and update values.
 

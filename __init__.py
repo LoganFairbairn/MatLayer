@@ -142,7 +142,7 @@ classes = (
     COATER_OT_move_layer_down,
     COATER_OT_toggle_channel_preview,
     COATER_OT_import_texture,
-    COATER_OT_read_layer_nodes,
+    COATER_OT_refresh_layer_nodes,
     COATER_OT_add_layer_image,
     COATER_OT_delete_layer_image,
 
@@ -161,7 +161,7 @@ classes = (
 # Refreshes the layer stack when a different object is selected.
 def obj_selected_callback():
     '''Triggers a layer stack refresh when the selected object changes.'''
-    bpy.ops.coater.read_layer_nodes()
+    bpy.ops.coater.refresh_layer_nodes()
 
 @persistent
 def load_handler(dummy):
