@@ -16,7 +16,7 @@ def draw_layer_hidden_icon(layout, item):
     elif item.hidden == False:
         row.prop(item, "hidden", text="", emboss=False, icon='HIDE_OFF')
 
-# What the fuck is this?
+# TODO: Do I need this? What the fuck is this?
 def select_layer_filter(layer_index, context):
     context.scene.coater_layer_stack.layer_index = layer_index
     context.scene.coater_layer_stack.layer_properties_tab = "MATERIAL"
