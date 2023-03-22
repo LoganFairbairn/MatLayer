@@ -141,7 +141,9 @@ def draw_material_channel_toggles(column, context):
     subrow.scale_y = 1.4
     material_channel_list = material_channel_nodes.get_material_channel_list()
     for i in range(len(material_channel_list)):
-        subrow.prop(layers[selected_layer_index].material_channel_toggles, material_channel_list[i].lower() + "_channel_toggle", text=material_channel_list[i].lower(), toggle=1)
+        # Use an abbreviation of the material channel's so it's compact within the user interface.
+        material_channel_name_abbreviation = material_channel_nodes.get_material_channel_abbreviation(material_channel_list[i])
+        subrow.prop(layers[selected_layer_index].material_channel_toggles, material_channel_list[i].lower() + "_channel_toggle", text=material_channel_name_abbreviation, toggle=1)
 
     '''
     if texture_set_settings.color_channel_toggle:

@@ -7,7 +7,7 @@ import bpy
 # Material channels are listed in the order of relative sockets in the Principled BSDF node so they will organize properly.
 MATERIAL_CHANNEL_NAMES = ("COLOR", "SCATTERING", "METALLIC", "ROUGHNESS", "EMISSION", "NORMAL", "HEIGHT")
 
-# Enum property item of material channels.
+# Enum for material channels.
 MATERIAL_CHANNELS = [
     ("COLOR", "Color", ""), 
     ("SCATTERING", "Scattering", ""),
@@ -18,8 +18,38 @@ MATERIAL_CHANNELS = [
     ("HEIGHT", "Height", "")
     ]
 
+def get_material_channel_abbreviation(material_channel_name):
+    '''Returns an abbreviation for the material channel name. This can be used to compact the material channel's name when displayed in the user interface.'''
+    match material_channel_name:
+        case 'COLOR':
+            return "Color"
+
+        case 'SUBSURFACE':
+            return "SubSurf"
+        
+        case 'SUBSURFACE_COLOR':
+            return "SS Color"
+
+        case 'METALLIC':
+            return "Metal"
+
+        case 'SPECULAR':
+            return "Spec"
+
+        case 'ROUGHNESS':
+            return "Rough"
+
+        case 'EMISSION':
+            return "Emit"
+        
+        case 'NORMAL':
+            return "Nrm"
+        
+        case 'HEIGHT':
+            return "Height"
+
 def verify_material_channel(material_channel_node):
-    '''Verifies that a material channel exists.'''
+    '''Verifies that a material channel node exists.'''
     if material_channel_node == None:
         print("Error, no material channel found.")
         return False

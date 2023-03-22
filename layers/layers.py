@@ -2,7 +2,7 @@
 
 import bpy
 from bpy.types import PropertyGroup
-from bpy.props import BoolProperty, FloatProperty, StringProperty, PointerProperty
+from bpy.props import BoolProperty, FloatProperty, StringProperty, PointerProperty, FloatVectorProperty, EnumProperty
 from . import layer_nodes
 from . import material_channel_nodes
 
@@ -464,25 +464,67 @@ def update_emission_texture_node_type(self, context):
 #----------------------------- LAYER PROPERTIES -----------------------------#
 
 
-class COATER_MaterialChannelToggles(PropertyGroup):
+class MaterialChannelToggles(PropertyGroup):
+    '''Boolean toggles for each material channel.'''
     color_channel_toggle: BoolProperty(default=True, update=update_color_channel_toggle, description="Click to toggle on / off the color material channel for this layer")
+    subsurface_channel_toggle: BoolProperty(default=True, update=update_scattering_channel_toggle, description="Click to toggle on / off the subsurface material channel for this layer")
+    subsurface_color_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the subsurface color material channel for this layer.")
     metallic_channel_toggle: BoolProperty(default=True, update=update_metallic_channel_toggle, description="Click to toggle on / off the metallic material channel for this layer")
+    specular_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the specular material channel for this layer.")
     roughness_channel_toggle: BoolProperty(default=True, update=update_roughness_channel_toggle, description="Click to toggle on / off the roughness material channel for this layer")
+    emission_channel_toggle: BoolProperty(default=True, update=update_emission_channel_toggle, description="Click to toggle on / off the emission material channel for this layer")
     normal_channel_toggle: BoolProperty(default=True, update=update_normal_channel_toggle, description="Click to toggle on / off the normal material channel for this layer")
     height_channel_toggle: BoolProperty(default=True, update=update_height_channel_toggle, description="Click to toggle on / off the height material channel for this layer")
-    scattering_channel_toggle: BoolProperty(default=True, update=update_scattering_channel_toggle, description="Click to toggle on / off the scattering material channel for this layer")
-    emission_channel_toggle: BoolProperty(default=True, update=update_emission_channel_toggle, description="Click to toggle on / off the emission material channel for this layer")
 
+class MaterialChannelNodeType(PropertyGroup):
+    '''An enum node type for the material node used to represent the material channel texture in every material channel.'''
+    color_texture_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Color Channel Node Type", description="The node type for the color channel", default='COLOR', update=update_color_texture_node_type)
+    subsurface_texture_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Subsurface Scattering Channel Node Type", description="The node type for the subsurface scattering channel", default='VALUE', update=update_scattering_texture_node_type)
+    subsurface_color_channel_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Subsurface Scattering Color Channel Node Type", description="The node type for the subsurface scattering color channel", default='COLOR', update=update_scattering_texture_node_type)
+    metallic_texture_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Metallic Channel Node Type", description="The node type for the metallic channel", default='VALUE', update=update_metallic_texture_node_type)
+    specular_texture_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Specular Channel Node Type", description="The node type for the specular channel", default='VALUE')
+    roughness_texture_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Roughness Channel Node Type", description="The node type for roughness channel", default='VALUE', update=update_roughness_texture_node_type)
+    normal_texture_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Normal Channel Node Type", description="The node type for the normal channel", default='COLOR', update=update_normal_texture_node_type)
+    height_texture_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Height Channel Node Type", description="The node type for the height channel", default='VALUE', update=update_height_texture_node_type)
+    emission_texture_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Emission Channel Node Type", description="The node type for the emission channel", default='COLOR', update=update_emission_texture_node_type)
+ 
 class ProjectionSettings(PropertyGroup):
-    projection_mode: bpy.props.EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT', update=update_layer_projection)
-    texture_extension: bpy.props.EnumProperty(items=TEXTURE_EXTENSION_MODES, name="Extension", description="", default='REPEAT')
-    texture_interpolation: bpy.props.EnumProperty(items=TEXTURE_INTERPOLATION_MODES, name="Interpolation", description="", default='LINEAR')
-    projection_blend: bpy.props.FloatProperty(name="Projection Blend", description="The projection blend amount", default=0.5, min=0.0, max=1.0, subtype='FACTOR', update=update_projection_blend)
-    projection_offset_x: bpy.props.FloatProperty(name="Offset X", description="Projected x offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_x)
-    projection_offset_y: bpy.props.FloatProperty(name="Offset Y", description="Projected y offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_y)
-    projection_rotation: bpy.props.FloatProperty(name="Rotation", description="Projected rotation of the selected layer", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projection_rotation)
-    projection_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_x)
-    projection_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_y)
+    '''Projection settings for this add-on.'''
+    projection_mode: EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT', update=update_layer_projection)
+    texture_extension: EnumProperty(items=TEXTURE_EXTENSION_MODES, name="Extension", description="", default='REPEAT')
+    texture_interpolation: EnumProperty(items=TEXTURE_INTERPOLATION_MODES, name="Interpolation", description="", default='LINEAR')
+    projection_blend: FloatProperty(name="Projection Blend", description="The projection blend amount", default=0.5, min=0.0, max=1.0, subtype='FACTOR', update=update_projection_blend)
+    projection_offset_x: FloatProperty(name="Offset X", description="Projected x offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_x)
+    projection_offset_y: FloatProperty(name="Offset Y", description="Projected y offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_y)
+    projection_rotation: FloatProperty(name="Rotation", description="Projected rotation of the selected layer", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projection_rotation)
+    projection_scale_x: FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_x)
+    projection_scale_y: FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_y)
+
+class MaterialChannelColor(PropertyGroup):
+    '''Color values for each material channel. These are used for layer previews when the layer can be accurately displayed using rgb values (rgb node / value node).'''
+    color_channel_color: FloatVectorProperty(name="Layer preview color for the color material channel.", description="", default=(1.0, 0.0, 1.0), min=0, max=1, subtype='COLOR', update=update_color_prieview_color)
+    subsurface_channel_color: FloatVectorProperty(name="Layer preview color for the subsurface scattering material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_scattering_prieview_color)
+    subsurface_color_channel_color: FloatVectorProperty(name="Layer preview color for the subsurface color material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_scattering_prieview_color)
+    metallic_channel_color: FloatVectorProperty(name="Layer preview color for the metallic material channel.", description="", default=(0.25, 0.25, 0.25), min=0, max=1, subtype='COLOR', update=update_metallic_prieview_color)
+    specular_channel_color: FloatVectorProperty(name="Layer preview color for the specular material channel.", description="", default=(0.5, 0.5, 0.5), min=0, max=1, subtype='COLOR')
+    roughness_channel_color: FloatVectorProperty(name="Layer preview color for the roughness material channel.", description="", default=(0.5, 0.5, 0.5), min=0, max=1, subtype='COLOR', update=update_roughness_prieview_color)
+    normal_channel_color: FloatVectorProperty(name="Layer preview color for the normal material channel.", description="", default=(0.5, 0.5, 1.0), min=0, max=1, subtype='COLOR', update=update_normal_prieview_color)
+    height_channel_color: FloatVectorProperty(name="Layer preview color for the height material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_height_prieview_color)
+    emission_channel_color: FloatVectorProperty(name="Layer preview color for the emission material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_emission_prieview_color)
+
+class MaterialChannelUniformValues(PropertyGroup):
+    '''Uniform float values used for each material channel. These are used to represent correct min / max value ranges within the user interface.'''
+    uniform_color_value: FloatProperty(name="Uniform Color Value", description="Uniform color value for this layer", default=0.0, min=0, max=1, update=update_uniform_color_value)
+    uniform_subsurface_value: FloatProperty(name="Uniform Subsurface Scattering Value", description="Uniform subsurface scattering value for this layer", default=0.0, min=0, max=1, update=update_uniform_scattering_value)
+    uniform_subsurface_color_value: FloatProperty(name="Uniform Subsurface Color Value", description="Uniform subsurface color value for this layer", default=0.0, min=0, max=1)
+    uniform_metallic_value: FloatProperty(name="Uniform Metallic Value", description="Uniform metallic value for this layer", default=0.0, min=0, max=1, update=update_uniform_metallic_value)
+    uniform_specular_value: FloatProperty(name="Uniform Specular Value", description="Uniform specular value for this layer", default=0.0, min=0, max=1)
+    uniform_roughness_value: FloatProperty(name="Uniform Roughness Value", description="Uniform roughness value for this layer", default=0.5, min=0, max=1, update=update_uniform_roughness_value)
+    uniform_emission_value: FloatProperty(name="Uniform Emission Value", description="Uniform emission value for this layer", default=0.0, min=0, max=1, update=update_uniform_emission_value)
+    uniform_normal_value: FloatProperty(name="Uniform Normal Value", description="Uniform normal value for this layer", default=0.0, min=0, max=1, update=update_uniform_normal_value)
+    uniform_height_value: FloatProperty(name="Uniform Height Value", description="Uniform height value for this layer", default=0.0, min=0, max=1, update=update_uniform_height_value)
+
+
 
 class COATER_layers(PropertyGroup):
     # The layer stack index for each layer is stored here for convenience. This should be automatically updated everytime update_layer_nodes is called.
@@ -502,7 +544,7 @@ class COATER_layers(PropertyGroup):
 
     # Material Channels Toggles (for quickly disabling material channels for select layers)
     # TODO: Make these a property group.
-    material_channel_toggles: bpy.props.PointerProperty(type=COATER_MaterialChannelToggles)
+    material_channel_toggles: bpy.props.PointerProperty(type=MaterialChannelToggles)
     color_channel_toggle: BoolProperty(default=True, update=update_color_channel_toggle, description="Click to toggle on / off the color material channel for this layer")
     metallic_channel_toggle: BoolProperty(default=True, update=update_metallic_channel_toggle, description="Click to toggle on / off the metallic material channel for this layer")
     roughness_channel_toggle: BoolProperty(default=True, update=update_roughness_channel_toggle, description="Click to toggle on / off the roughness material channel for this layer")
@@ -511,8 +553,20 @@ class COATER_layers(PropertyGroup):
     scattering_channel_toggle: BoolProperty(default=True, update=update_scattering_channel_toggle, description="Click to toggle on / off the scattering material channel for this layer")
     emission_channel_toggle: BoolProperty(default=True, update=update_emission_channel_toggle, description="Click to toggle on / off the emission material channel for this layer")
 
+    # TODO: Make these a property group.
+    # Node Types (used for properly drawing user interface for node properties)
+    channel_node_types: PointerProperty(type=MaterialChannelNodeType)
+    color_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Color Texture Node Type", description="The node type for the color channel", default='COLOR', update=update_color_texture_node_type)
+    metallic_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Metallic Texture Node Type", description="The node type for the roughness channel", default='VALUE', update=update_metallic_texture_node_type)
+    roughness_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Roughness Texture Node Type", description="The node type for roughness channel", default='VALUE', update=update_roughness_texture_node_type)
+    normal_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Normal Texture Node Type", description="The node type for the normal channel", default='COLOR', update=update_normal_texture_node_type)
+    height_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Height Texture Node Type", description="The node type for the height channel", default='VALUE', update=update_height_texture_node_type)
+    scattering_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Scattering Texture Node Type", description="The node type for the scattering channel", default='COLOR', update=update_scattering_texture_node_type)
+    emission_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Emission Texture Node Type", description="The node type for the emission channel", default='COLOR', update=update_emission_texture_node_type)
+
     # Projection Settings
     # TODO: Make these a property group.
+    projection: PointerProperty(type=ProjectionSettings)
     projection_mode: bpy.props.EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT', update=update_layer_projection)
     texture_extension: bpy.props.EnumProperty(items=TEXTURE_EXTENSION_MODES, name="Extension", description="", default='REPEAT')
     texture_interpolation: bpy.props.EnumProperty(items=TEXTURE_INTERPOLATION_MODES, name="Interpolation", description="", default='LINEAR')
@@ -523,19 +577,9 @@ class COATER_layers(PropertyGroup):
     projection_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_x)
     projection_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_y)
 
-    # TODO: Make these a property group.
-    # Node Types (used for properly drawing user interface for node properties)
-    color_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Color Texture Node Type", description="The node type for the color channel", default='COLOR', update=update_color_texture_node_type)
-    metallic_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Metallic Texture Node Type", description="The node type for the roughness channel", default='VALUE', update=update_metallic_texture_node_type)
-    roughness_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Roughness Texture Node Type", description="The node type for roughness channel", default='VALUE', update=update_roughness_texture_node_type)
-    normal_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Normal Texture Node Type", description="The node type for the normal channel", default='COLOR', update=update_normal_texture_node_type)
-    height_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Height Texture Node Type", description="The node type for the height channel", default='VALUE', update=update_height_texture_node_type)
-    scattering_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Scattering Texture Node Type", description="The node type for the scattering channel", default='COLOR', update=update_scattering_texture_node_type)
-    emission_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Emission Texture Node Type", description="The node type for the emission channel", default='COLOR', update=update_emission_texture_node_type)
-
     # Color layer previews for layers.
     # TODO: Make these a property group.
-    # To display value nodes as uniform rgb colors within the layer stack ui, color previews are stored here, and updated when users update the colors through the interface.
+    color_channel_values: PointerProperty(type=MaterialChannelColor)
     color_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the color material channel.", description="", default=(1.0, 0.0, 1.0), min=0, max=1, subtype='COLOR', update=update_color_prieview_color)
     metallic_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the metallic material channel.", description="", default=(0.25, 0.25, 0.25), min=0, max=1, subtype='COLOR', update=update_metallic_prieview_color)
     roughness_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the roughness material channel.", description="", default=(0.5, 0.5, 0.5), min=0, max=1, subtype='COLOR', update=update_roughness_prieview_color)
@@ -546,6 +590,7 @@ class COATER_layers(PropertyGroup):
 
     # To provide accurate min / max slider ranges in the user interface, float values are stored in each layer to use as the values (even for material channels that wouldn't typically be represented by a uniform rgb values).
     # TODO: Make these a property group.
+    uniform_channel_values: PointerProperty(type=MaterialChannelColor)
     uniform_color_value: bpy.props.FloatProperty(name="Uniform Color Value", description="Uniform color value for this layer", default=0.0, min=0, max=1, update=update_uniform_color_value)
     uniform_scattering_value: bpy.props.FloatProperty(name="Uniform Scattering Value", description="Uniform scattering value for this layer", default=0.0, min=0, max=1, update=update_uniform_scattering_value)
     uniform_metallic_value: bpy.props.FloatProperty(name="Uniform Metallic Value", description="Uniform metallic value for this layer", default=0.0, min=0, max=1, update=update_uniform_metallic_value)

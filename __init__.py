@@ -75,9 +75,6 @@ bl_info = {
 
 # List of classes to be registered.
 classes = (
-    # Texture Set Settings
-    COATER_texture_set_settings,
-    
     # Baking
     COATER_baking_settings,
     COATER_OT_bake,
@@ -99,7 +96,11 @@ classes = (
     COATER_OT_export_scattering,
 
     # Layers
-    COATER_MaterialChannelToggles,
+    MaterialChannelToggles,
+    MaterialChannelNodeType,
+    ProjectionSettings,
+    MaterialChannelColor,
+    MaterialChannelUniformValues,
     COATER_layer_stack,
     COATER_layers,
 
@@ -145,6 +146,9 @@ classes = (
     COATER_OT_refresh_layer_nodes,
     COATER_OT_add_layer_image,
     COATER_OT_delete_layer_image,
+
+    # Texture Set Settings
+    COATER_texture_set_settings,
 
     # Main Panel & General Settings
     COATER_panel_properties,

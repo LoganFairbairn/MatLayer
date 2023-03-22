@@ -2,6 +2,7 @@
 
 import bpy
 from ..layers import material_channel_nodes
+from ..layers.layers import MaterialChannelToggles
 
 def update_match_image_resolution(self, context):
     texture_set_settings = context.scene.coater_texture_set_settings
@@ -106,6 +107,7 @@ class COATER_texture_set_settings(bpy.types.PropertyGroup):
     thirty_two_bit: bpy.props.BoolProperty(name="32 Bit", description="When toggled on, images created using Coater will be created with 32 bit color depth. Images will take up more memory, but will have significantly less color banding from gradients", default=True)
 
     # Material Channel Toggles (for turning on / off material channels)
+    material_channel_toggles: bpy.props.PointerProperty(type=MaterialChannelToggles)
     color_channel_toggle: bpy.props.BoolProperty(default=True, update=update_color_channel_toggle)
     metallic_channel_toggle: bpy.props.BoolProperty(default=True, update=update_metallic_channel_toggle)
     roughness_channel_toggle: bpy.props.BoolProperty(default=True, update=update_roughness_channel_toggle)
