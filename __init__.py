@@ -99,6 +99,7 @@ classes = (
     COATER_OT_export_scattering,
 
     # Layers
+    COATER_MaterialChannelToggles,
     COATER_layer_stack,
     COATER_layers,
 
@@ -127,7 +128,6 @@ classes = (
     COATER_OT_delete_layer_filter,
     COATER_OT_move_layer_filter_up,
     COATER_OT_move_layer_filter_down,
-
     COATER_OT_add_mask_menu,
     COATER_OT_add_layer_filter_menu,
 
@@ -200,7 +200,7 @@ def register():
     bpy.types.Scene.coater_baking_settings = bpy.props.PointerProperty(type=COATER_baking_settings)
     bpy.types.Scene.coater_export_settings = bpy.props.PointerProperty(type=COATER_exporting_settings)
 
-    # Icons for layer previews.
+    # Icons (for layer previews)
     bpy.types.Scene.preview_icons = bpy.utils.previews.new()
     preview_collections["main"] = bpy.types.Scene.preview_icons
 

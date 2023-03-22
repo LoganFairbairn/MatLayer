@@ -83,7 +83,7 @@ def draw_material_selector(column, context):
 
     if active_object:
         if active_object.active_material != None:
-            row.operator("coater.read_layer_nodes", text="", icon='FILE_REFRESH')
+            row.operator("coater.refresh_layer_nodes", text="", icon='FILE_REFRESH')
     row.scale_y = 1.5
 
 def draw_layer_operations(column):
@@ -139,7 +139,11 @@ def draw_material_channel_toggles(column, context):
 
     subrow = column.row(align=True)
     subrow.scale_y = 1.4
+    material_channel_list = material_channel_nodes.get_material_channel_list()
+    for i in range(len(material_channel_list)):
+        subrow.prop(layers[selected_layer_index].material_channel_toggles, material_channel_list[i].lower() + "_channel_toggle", text=material_channel_list[i].lower(), toggle=1)
 
+    '''
     if texture_set_settings.color_channel_toggle:
         subrow.prop(layers[selected_layer_index], "color_channel_toggle", text="Color", toggle=1)
 
@@ -160,6 +164,9 @@ def draw_material_channel_toggles(column, context):
 
     if texture_set_settings.scattering_channel_toggle:
         subrow.prop(layers[selected_layer_index], "scattering_channel_toggle", text="Scatt", toggle=1)
+    '''
+
+
 
 def draw_texture_node_settings(column, texture_node, texture_node_type, layer, material_channel_name, context):
     '''Draws the texture setting based on the given texture node type.'''

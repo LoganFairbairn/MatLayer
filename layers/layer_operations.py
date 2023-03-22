@@ -2,8 +2,8 @@ from bpy.types import Operator
 from . import material_channel_nodes
 from . import layer_nodes
 from . import coater_materials
-import random
 from ..viewport_settings.viewport_setting_adjuster import set_material_shading
+import random
 
 def add_layer_slot(context):
     '''Creates a layer slot.'''
@@ -466,10 +466,38 @@ class COATER_OT_merge_layer(Operator):
     def execute(self, context):
         return{'FINISHED'}
 
+
+#----------------------------- READING / REFRESHING LAYER PROPERTIES -----------------------------#
+
+def read_layer_texture_node_type(texture_node, layer, material_channel):
+    '''Reads the node type from the material node tree and updates the node in the corrosponding layer.'''
+    # TODO: This can probably be updated to be significantly more effective if the variables for texture node types were stored in an array / collection.
+    match texture_node.type:
+        case 'VALUE':
+            match material_channel:
+                case 'COLOR':
+                    layer.color_texture_node_type = 'VALUE'
+
+
+        #case 'RGB':
+        #    node_color = texture_node.outputs[0].default_value
+        #    print("This value: " + node_color)
+        #    layer.color_layer_color_preview = (node_color.r, node_color.g, node_color.b)
+
+        #case 'TEX_IMAGE':
+
+
+        #case 'TEX_NOISE':
+
+
+        #case 'TEX_MUSGRAVE':
+
+        #case 'TEX_VORONOI':
+
 class COATER_OT_refresh_layer_nodes(Operator):
     bl_idname = "coater.refresh_layer_nodes"
     bl_label = "Refresh Layer Nodes"
-    bl_description = "Refreshes the material nodes by reading the material nodes in the active material and updates the layer stack with that"
+    bl_description = "Refreshes the material nodes by reading the material nodes in the active material updating the properties stored within the user interface"
 
     def execute(self, context):
         # Make sure the active material is a Coater material before attempting to refresh the layer stack.
@@ -481,9 +509,50 @@ class COATER_OT_refresh_layer_nodes(Operator):
         layers = context.scene.coater_layers
         layers.clear()
 
-        # TODO: Read the layer stack nodes and update values.
+        # Read the layer nodes and add a layer slot for each layer node found, update the layer name & id.
+        total_number_of_layers = layer_nodes.get_total_number_of_layers(context)
+        for i in range(total_number_of_layers):
+            layers.add()
+            layers[i].layer_stack_array_index = i
+            layer_frame_nodes = layer_nodes.get_layer_frame_nodes(context)
+            for layer_frame in layer_frame_nodes:
+                layer_frame_info = layer_frame.label.split('_')
+                layers[i].name = layer_frame_info[0]
+                layers[i].cached_frame_name = layer_frame_info[0]
+                layer_id = int(layer_frame_info[1])
+                layers[i].id = layer_id
 
-        # Update layer nodes.
-        layer_nodes.update_layer_nodes(context)
+        # Read the opacity (only for the selected material channel).
+        selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+        for i in range(total_number_of_layers):
+            opacity_node = layer_nodes.get_layer_node('OPACITY', selected_material_channel, i, context)
+            layers[i].opacity = opacity_node.inputs[1].default_value
+
+        # TODO: Read the texture node type and node values then update the properties stored within the layer.
+        material_channels = material_channel_nodes.get_material_channel_list()
+        for material_channel_name in material_channels:
+            for i in range(total_number_of_layers):
+                texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, i, context)
+                read_layer_texture_node_type(texture_node, layers[i], material_channel_name, )
+
+                
+
+
+
+
+                        
+                # TODO: Read the layer color values (for rgb color nodes).
+                #if texture_node.type == 'RGB':
+                #layers[i].color_channel_toggle = texture_node.outputs[0].default_value
+
+                # TODO: Read the uniform values (for single value nodes).
+
+                # TODO: Read the layer projection values.
+
+
+                # TODO: Read the material tree and search for muted channels or hidden layers (for muted layers all nodes on a layer for all channels will be muted).
+
+        # Organize all layer nodes.
+        #layer_nodes.organize_all_coater_materials(context)
 
         return {'FINISHED'}
