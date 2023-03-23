@@ -1,5 +1,6 @@
 import bpy
 from .import ui_section_tabs
+from ..layers.material_channel_nodes import get_material_channel_list
 
 def draw_texture_set_section_ui(self, context):
     '''Draws the layer section UI.'''
@@ -43,34 +44,10 @@ def draw_texture_set_section_ui(self, context):
     row.scale_y = scale_y
     row.prop(texture_set_settings, "thirty_two_bit")
 
-    # Draw material channel toggles.
+    # Draw global material channel toggles.
     layout.label(text="MATERIAL CHANNELS")
-    
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(texture_set_settings, "color_channel_toggle", text="Color", toggle=1)
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(texture_set_settings, "metallic_channel_toggle", text="Metallic", toggle=1)
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(texture_set_settings, "roughness_channel_toggle", text="Roughness", toggle=1)
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(texture_set_settings, "normal_channel_toggle", text="Normal", toggle=1)
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(texture_set_settings, "height_channel_toggle", text="Height", toggle=1)
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(texture_set_settings, "scattering_channel_toggle", text="Scattering", toggle=1)
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(texture_set_settings, "emission_channel_toggle", text="Emission" , toggle=1)
-    
+    material_channel_list = get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        row = layout.row()
+        row.scale_y = scale_y
+        row.prop(texture_set_settings.global_material_channel_toggles, material_channel_name.lower() + "_channel_toggle", text=material_channel_name, toggle=1)

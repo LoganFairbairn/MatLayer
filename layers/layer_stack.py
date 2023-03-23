@@ -52,12 +52,11 @@ def verify_layer_stack_index(layer_stack_index, context):
 
 class COATER_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''
-    # TODO: Rename this variable to selected_layer_index (for accuracy).
+    # TODO: Rename this variable to selected_layer_index to make it more apparent this is the selected layer index.
     layer_index: bpy.props.IntProperty(default=-1, update=update_layer_index)
     material_channel_preview: bpy.props.BoolProperty(name="", default=False)
     node_default_width: bpy.props.IntProperty(default=250)
     node_spacing: bpy.props.IntProperty(default=80)
-    
     selected_material_channel: bpy.props.EnumProperty(items=material_channel_nodes.MATERIAL_CHANNELS, name="Material Channel", description="The currently selected material channel", default='COLOR', update=update_selected_material_channel)
 
     # Note: These tabs exist to help keep the user interface elements on screen limited, thus simplifying the editing process, and helps avoid the need to scroll down on the user interface to see settings (which is annoying when using a tablet pen).

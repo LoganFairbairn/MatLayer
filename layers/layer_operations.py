@@ -102,12 +102,22 @@ def add_default_layer_nodes(context):
             if material_channels[i] == "COLOR":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.25, 0.25, 0.25, 1.0)
-                layers[selected_layer_index].color_layer_color_preview = (0.25, 0.25, 0.25)
+
+            if material_channels[i] == "SUBSURFACE":
+                texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
+                texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
+
+            if material_channels[i] == "SUBSURFACE_COLOR":
+                texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
+                texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
 
             if material_channels[i] == "METALLIC":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
                 texture_node.outputs[0].default_value = 0.0
-                layers[selected_layer_index].metallic_layer_color_preview = (0, 0, 0)
+
+            if material_channels[i] == "SPECULAR":
+                texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
+                texture_node.outputs[0].default_value = 0.5
 
             if material_channels[i] == "ROUGHNESS":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
@@ -117,24 +127,16 @@ def add_default_layer_nodes(context):
             if material_channels[i] == "NORMAL":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.5, 0.5, 1.0, 1.0)
-                layers[selected_layer_index].normal_layer_color_preview = (0.5, 0.5, 1)
                 mix_layer_node.inputs[1].default_value = (0.5, 0.5, 1.0, 1.0)
                 
             if material_channels[i] == "HEIGHT":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
                 texture_node.outputs[0].default_value = 0.0
-                layers[selected_layer_index].height_layer_color_preview = (0, 0, 0)
                 mix_layer_node.blend_type = 'MIX'
-
-            if material_channels[i] == "SCATTERING":
-                texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
-                texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
-                layers[selected_layer_index].scattering_layer_color_preview = (1, 1, 1)
 
             if material_channels[i] == "EMISSION":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
-                layers[selected_layer_index].emission_layer_color_preview = (0, 0, 0)
 
             # Set the texture node name & label.
             texture_node_name = layer_nodes.get_layer_node_name("TEXTURE", new_layer_index) + "~"
@@ -324,6 +326,7 @@ class COATER_OT_add_layer(Operator):
     def execute(self, context):
         coater_materials.prepare_material(context)
         material_channel_nodes.create_channel_group_nodes(context)
+        material_channel_nodes.create_empty_group_node(context)
         add_layer_slot(context)
         add_default_layer_nodes(context)
         set_material_shading(context)       # Set the viewport to material shading mode (so users can see the applied material).

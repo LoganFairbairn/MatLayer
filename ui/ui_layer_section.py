@@ -37,6 +37,8 @@ def draw_layers_section_ui(self, context):
         draw_selected_material_channel(column2, context)
             
         selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+
+
         selected_material_channel_active = get_material_channel_active(context, selected_material_channel)
         if selected_material_channel_active and len(context.scene.coater_layers) > 0:
             draw_layer_stack(column2, context)
@@ -48,41 +50,21 @@ def draw_layers_section_ui(self, context):
 def get_material_channel_active(context, material_channel_name):
     '''Returns true if the given material channel is active in both the texture set settings and the layer material channel toggles.'''
     texture_set_settings = context.scene.coater_texture_set_settings
-    if material_channel_name == "COLOR" and texture_set_settings.color_channel_toggle == False:
-        return False
-
-    if material_channel_name == "METALLIC" and texture_set_settings.metallic_channel_toggle == False:
-        return False
-
-    if material_channel_name == "ROUGHNESS" and texture_set_settings.roughness_channel_toggle == False:
-        return False
-
-    if material_channel_name == "NORMAL" and texture_set_settings.normal_channel_toggle == False:
-        return False
-
-    if material_channel_name == "HEIGHT" and texture_set_settings.height_channel_toggle == False:
-        return False
-
-    if material_channel_name == "SCATTERING" and texture_set_settings.scattering_channel_toggle == False:
-        return False
-
-    if material_channel_name == "EMISSION" and texture_set_settings.emission_channel_toggle == False:
-        return False
-    return True
+    return getattr(texture_set_settings.global_material_channel_toggles, material_channel_name.lower() + "_channel_toggle", None)
 
 def draw_material_selector(column, context):
     '''Draws a material selector and layer stack refresh button.'''
     active_object = context.active_object
     row = column.row(align=True)
     if active_object:
-        if active_object.active_material != None:
+        if active_object.active_material:
             row.template_ID(active_object, "active_material", new="coater.add_color_layer", live_icon=True)
 
         else:
             row.template_ID(active_object, "active_material", new="coater.add_color_layer", live_icon=True)
 
     if active_object:
-        if active_object.active_material != None:
+        if active_object.active_material:
             row.operator("coater.refresh_layer_nodes", text="", icon='FILE_REFRESH')
     row.scale_y = 1.5
 
@@ -131,157 +113,109 @@ def draw_divider(column):
     subrow.ui_units_x = 10
     subrow.label(text="----------------------------------------------------------------------------------------")
 
-def draw_material_channel_toggles(column, context):
+def draw_layer_material_channel_toggles(column, context):
     '''Draws options to quickly toggle material channels on and off.'''
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     texture_set_settings = context.scene.coater_texture_set_settings
 
-    subrow = column.row(align=True)
+    subrow = column.row()
     subrow.scale_y = 1.4
     material_channel_list = material_channel_nodes.get_material_channel_list()
+
+    # Determine the number of active material channels in the texture set settings so the material channel toggles
+    # can be drawn on two user interface lines rather than one in case there are too many.
+    number_of_active_material_channels = 0
+    for material_channel_name in material_channel_list:
+        attribute_name = material_channel_name.lower() + "_channel_toggle"
+        if getattr(texture_set_settings.global_material_channel_toggles, attribute_name, None):
+            number_of_active_material_channels += 1
+
+    number_of_drawn_channel_toggles = 0
     for i in range(len(material_channel_list)):
-        # Use an abbreviation of the material channel's so it's compact within the user interface.
-        material_channel_name_abbreviation = material_channel_nodes.get_material_channel_abbreviation(material_channel_list[i])
-        subrow.prop(layers[selected_layer_index].material_channel_toggles, material_channel_list[i].lower() + "_channel_toggle", text=material_channel_name_abbreviation, toggle=1)
+        attribute_name = material_channel_list[i].lower() + "_channel_toggle"
+        if getattr(texture_set_settings.global_material_channel_toggles, attribute_name, None):
+            material_channel_name_abbreviation = material_channel_nodes.get_material_channel_abbreviation(material_channel_list[i])
+            subrow.prop(layers[selected_layer_index].material_channel_toggles, attribute_name, text=material_channel_name_abbreviation, toggle=1)
 
-    '''
-    if texture_set_settings.color_channel_toggle:
-        subrow.prop(layers[selected_layer_index], "color_channel_toggle", text="Color", toggle=1)
-
-    if texture_set_settings.metallic_channel_toggle:
-        subrow.prop(layers[selected_layer_index], "metallic_channel_toggle", text="Metal", toggle=1)
-
-    if texture_set_settings.roughness_channel_toggle:
-        subrow.prop(layers[selected_layer_index], "roughness_channel_toggle", text="Rough", toggle=1)
-
-    if texture_set_settings.normal_channel_toggle:
-        subrow.prop(layers[selected_layer_index], "normal_channel_toggle", text="Nrm", toggle=1)
-
-    if texture_set_settings.height_channel_toggle:
-        subrow.prop(layers[selected_layer_index], "height_channel_toggle", text="Height", toggle=1)
-
-    if texture_set_settings.emission_channel_toggle:
-        subrow.prop(layers[selected_layer_index], "emission_channel_toggle", text="Emit", toggle=1)
-
-    if texture_set_settings.scattering_channel_toggle:
-        subrow.prop(layers[selected_layer_index], "scattering_channel_toggle", text="Scatt", toggle=1)
-    '''
-
-
+            # Add an additional row in the user interface for material channel toggles if there are a lot of active material channels.
+            number_of_drawn_channel_toggles += 1
+            if number_of_drawn_channel_toggles >= number_of_active_material_channels / 2 and number_of_active_material_channels >= 6:
+                subrow = column.row()
+                subrow.scale_y = 1.4
+                number_of_drawn_channel_toggles = 0
 
 def draw_texture_node_settings(column, texture_node, texture_node_type, layer, material_channel_name, context):
     '''Draws the texture setting based on the given texture node type.'''
     principled_bsdf_node = context.active_object.active_material.node_tree.nodes.get('Principled BSDF')
 
-    if texture_node_type == "COLOR":
-        subrow = column.row(align=True)
-        subrow.scale_y = SCALE_Y
-        match material_channel_name:
-            case "COLOR":
-                subrow.prop(layer, "color_layer_color_preview", text="")
+    match texture_node_type:
+        case "VALUE":
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(layer.uniform_channel_values, "uniform_" + material_channel_name.lower() + "_value", text="", slider=True)
 
-            case "METTALIC":
-                subrow.prop(layer, "metallic_layer_color_preview", text="")
+        case "COLOR":
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(layer.color_channel_values, material_channel_name.lower() + "_channel_color", text="")
 
-            case "ROUGHNESS":
-                subrow.prop(layer, "roughness_layer_color_preview", text="")
+        case "TEXTURE":
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node, "image", text="")
 
-            case "NORMAL":
-                subrow.prop(layer, "normal_layer_color_preview", text="")
+            # Draw buttons to add / import / delete image textures quickly.
+            add_layer_image_operator = subrow.operator("coater.add_layer_image", icon="ADD", text="")
+            import_texture_operator = subrow.operator("coater.import_texture", icon="IMPORT", text="")
+            delete_layer_image_operator = subrow.operator("coater.delete_layer_image", icon="TRASH", text="")
 
-            case "HEIGHT":
-                subrow.prop(layer, "height_layer_color_preview", text="")
+            # Notify the operators the desired material channel work for the specified material channel.
+            add_layer_image_operator.material_channel_name = material_channel_name
+            import_texture_operator.material_channel_name = material_channel_name
+            delete_layer_image_operator.material_channel_name = material_channel_name
 
-            case "EMISSION":
-                subrow.prop(layer, "emission_layer_color_preview", text="")
+        case "GROUP_NODE":
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.template_ID(texture_node, "node_tree")
 
-            case "SCATTERING":
-                subrow.prop(layer, "scattering_layer_color_preview", text="")
+        case "NOISE":
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node.inputs[2], "default_value", text="Scale", slider=True)
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node.inputs[3], "default_value", text="Detail", slider=True)
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node.inputs[4], "default_value", text="Roughness", slider=True)
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node.inputs[5], "default_value", text="Distortion", slider=True)
 
-            case _:
-                # Show an error, the color preview can't be properly displayed.
-                subrow.template_icon(2, scale=1)
-            
-    if texture_node_type == "VALUE":
-        subrow = column.row(align=True)
-        subrow.scale_y = SCALE_Y
-        match material_channel_name:
-            case "COLOR":
-                subrow.prop(layer, "uniform_color_value", text="", slider=True)
+        case "VORONOI":
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node.inputs[2], "default_value", text="Scale", slider=True)
 
-            case "ROUGHNESS":
-                subrow.prop(layer, "uniform_roughness_value", text="", slider=True)
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node.inputs[3], "default_value", text="Randomness", slider=True)
 
-            case "METALLIC":
-                subrow.prop(layer, "uniform_metallic_value", text="", slider=True)
-
-            case "NORMAL":
-                subrow.prop(layer, "uniform_normal_value", text="", slider=True)
-
-            case "HEIGHT":
-                subrow.prop(layer, "uniform_height_value", text="", slider=True)
-
-            case "EMISSION":
-                subrow.prop(layer, "uniform_emission_value", text="", slider=True)
-
-            case "SCATTERING":
-                subrow.prop(layer, "uniform_scattering_value", text="", slider=True)
-
-            case _:
-                subrow.prop(texture_node.outputs[0], "default_value", text="")
-
-    if texture_node_type == "TEXTURE":
-        subrow = column.row(align=True)
-        subrow.scale_y = SCALE_Y
-        subrow.prop(texture_node, "image", text="")
-
-        # Draw buttons to add / import / delete image textures quickly.
-        add_layer_image_operator = subrow.operator("coater.add_layer_image", icon="ADD", text="")
-        import_texture_operator = subrow.operator("coater.import_texture", icon="IMPORT", text="")
-        delete_layer_image_operator = subrow.operator("coater.delete_layer_image", icon="TRASH", text="")
-
-        # Notify the operators the desired material channel work for the specified material channel.
-        add_layer_image_operator.material_channel_name = material_channel_name
-        import_texture_operator.material_channel_name = material_channel_name
-        delete_layer_image_operator.material_channel_name = material_channel_name
-
-    if texture_node_type == "NOISE":
-        subrow = column.row(align=True)
-        subrow.scale_y = SCALE_Y
-        subrow.prop(texture_node.inputs[2], "default_value", text="Scale", slider=True)
-        subrow = column.row(align=True)
-        subrow.scale_y = SCALE_Y
-        subrow.prop(texture_node.inputs[3], "default_value", text="Detail", slider=True)
-        subrow = column.row(align=True)
-        subrow.scale_y = SCALE_Y
-        subrow.prop(texture_node.inputs[4], "default_value", text="Roughness", slider=True)
-        subrow = column.row(align=True)
-        subrow.scale_y = SCALE_Y
-        subrow.prop(texture_node.inputs[5], "default_value", text="Distortion", slider=True)
-
-    if texture_node_type == "VORONOI":
-        subrow = column.row(align=True)
-        subrow.scale_y = SCALE_Y
-        subrow.prop(texture_node.inputs[2], "default_value", text="Scale", slider=True)
-
-        subrow = column.row(align=True)
-        subrow.scale_y = SCALE_Y
-        subrow.prop(texture_node.inputs[3], "default_value", text="Randomness", slider=True)
-
-    if texture_node_type == "MUSGRAVE":
-        subrow = column.row(align=True)
-        subrow.scale_y = SCALE_Y
-        subrow.prop(texture_node.inputs[2], "default_value", text="Scale", slider=True)
-        subrow = column.row(align=True)
-        subrow.scale_y = SCALE_Y
-        subrow.prop(texture_node.inputs[3], "default_value", text="Detail", slider=True)
-        subrow = column.row(align=True)
-        subrow.scale_y = SCALE_Y
-        subrow.prop(texture_node.inputs[4], "default_value", text="Dimension", slider=True)
-        subrow = column.row(align=True)
-        subrow.scale_y = SCALE_Y
-        subrow.prop(texture_node.inputs[5], "default_value", text="Lacunarity", slider=True)
+        case "MUSGRAVE":
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node.inputs[2], "default_value", text="Scale", slider=True)
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node.inputs[3], "default_value", text="Detail", slider=True)
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node.inputs[4], "default_value", text="Dimension", slider=True)
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node.inputs[5], "default_value", text="Lacunarity", slider=True)
 
     # Draw additional settings for specific material channels.
     subrow = column.row()
@@ -295,90 +229,28 @@ def draw_texture_node_settings(column, texture_node, texture_node_type, layer, m
             subrow.label(text="Subsurface Color")
             subrow.prop(principled_bsdf_node.inputs[3], "default_value", text="")
 
-def draw_layer_texture_node_properties(column, context):
-    '''Draws settings for the currently selected texture node in the each active material channel.'''
+def draw_material_channel_node_properties(column, context):
+    '''Draws user interface for layer nodes representing material channels based on their type.'''
     layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     texture_set_settings = context.scene.coater_texture_set_settings
 
-    # Get a list of all the material channels.
-    material_channels = material_channel_nodes.get_material_channel_list()
+    material_channel_names = material_channel_nodes.get_material_channel_list()
+    for i in range(0, len(material_channel_names)):
+        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_names[i], selected_layer_index, context)
+        attribute_name = material_channel_names[i].lower() + "_channel_toggle"
+        if texture_node and getattr(texture_set_settings.global_material_channel_toggles, attribute_name, None):
+            draw_divider(column)
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.label(text=material_channel_names[i].replace("_", " "))
 
-    # Draw the texture node settings for every material channel.
-    for i in range(0, len(material_channels)):
-        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channels[i], selected_layer_index, context)
-        if texture_node:
-            match material_channels[i]:
-                
-                case 'COLOR':
-                    if layers[selected_layer_index].color_channel_toggle and texture_set_settings.color_channel_toggle:
-                        draw_divider(column)
-                        subrow = column.row(align=True)
-                        subrow.scale_y = SCALE_Y
-                        subrow.label(text=material_channels[i])
-                        texture_node_type = layers[selected_layer_index].color_texture_node_type
-                        subrow.prop(layers[selected_layer_index], "color_texture_node_type", text="")
-                        draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "COLOR", context)
+            # Draw the node type (allows users to see the selected node type for each material channel and easily switch it).
+            subrow.prop(layers[selected_layer_index].channel_node_types, material_channel_names[i].lower() + "_node_type", text="")
             
-                case 'METALLIC':
-                    if layers[selected_layer_index].metallic_channel_toggle and texture_set_settings.metallic_channel_toggle:
-                        draw_divider(column)
-                        subrow = column.row(align=True)
-                        subrow.scale_y = SCALE_Y
-                        subrow.label(text=material_channels[i])
-                        texture_node_type = layers[selected_layer_index].metallic_texture_node_type
-                        subrow.prop(layers[selected_layer_index], "metallic_texture_node_type", text="")
-                        draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "METALLIC", context)
-
-                case 'ROUGHNESS':
-                    if layers[selected_layer_index].roughness_channel_toggle and texture_set_settings.roughness_channel_toggle:
-                        draw_divider(column)
-                        subrow = column.row(align=True)
-                        subrow.scale_y = SCALE_Y
-                        subrow.label(text=material_channels[i])
-                        texture_node_type = layers[selected_layer_index].roughness_texture_node_type
-                        subrow.prop(layers[selected_layer_index], "roughness_texture_node_type", text="")
-                        draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "ROUGHNESS", context)
-
-                case 'NORMAL':
-                    if layers[selected_layer_index].normal_channel_toggle and texture_set_settings.normal_channel_toggle:
-                        draw_divider(column)
-                        subrow = column.row(align=True)
-                        subrow.scale_y = SCALE_Y
-                        subrow.label(text=material_channels[i])
-                        texture_node_type = layers[selected_layer_index].normal_texture_node_type
-                        subrow.prop(layers[selected_layer_index], "normal_texture_node_type", text="")
-                        draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "NORMAL", context)
-
-                case 'HEIGHT':
-                    if layers[selected_layer_index].height_channel_toggle and texture_set_settings.height_channel_toggle:
-                        draw_divider(column)
-                        subrow = column.row(align=True)
-                        subrow.scale_y = SCALE_Y
-                        subrow.label(text=material_channels[i])
-                        texture_node_type = layers[selected_layer_index].height_texture_node_type
-                        subrow.prop(layers[selected_layer_index], "height_texture_node_type", text="")
-                        draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "HEIGHT", context)
-
-                case 'EMISSION':
-                    if layers[selected_layer_index].emission_channel_toggle and texture_set_settings.emission_channel_toggle:
-                        draw_divider(column)
-                        subrow = column.row(align=True)
-                        subrow.scale_y = SCALE_Y
-                        subrow.label(text=material_channels[i])
-                        texture_node_type = layers[selected_layer_index].emission_texture_node_type
-                        subrow.prop(layers[selected_layer_index], "emission_texture_node_type", text="")
-                        draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "EMISSION", context)
-                    
-                case 'SCATTERING':
-                    if layers[selected_layer_index].scattering_channel_toggle and texture_set_settings.scattering_channel_toggle:
-                        draw_divider(column)
-                        subrow = column.row(align=True)
-                        subrow.scale_y = SCALE_Y
-                        subrow.label(text=material_channels[i])
-                        texture_node_type = layers[selected_layer_index].scattering_texture_node_type
-                        subrow.prop(layers[selected_layer_index], "scattering_texture_node_type", text="")
-                        draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], "SCATTERING", context)
+            # Draw user interface settings for the material channel node based on it's type.
+            texture_node_type = getattr(layers[selected_layer_index].channel_node_types, material_channel_names[i].lower() + "_node_type", None)
+            draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], material_channel_names[i], context)
 
 def draw_material_projection_settings(column, context):
     '''Draws material projection settings.'''
@@ -387,53 +259,51 @@ def draw_material_projection_settings(column, context):
     
     row = column.row()
     row.scale_y = SCALE_Y
-    row.prop(layers[selected_layer_index], "projection_mode", text="Projection")
+    row.prop(layers[selected_layer_index].projection, "projection_mode", text="Projection")
 
     row = column.row()
     row.scale_y = SCALE_Y
-    row.prop(layers[selected_layer_index], "texture_interpolation", text="Interpolation")
+    row.prop(layers[selected_layer_index].projection, "texture_interpolation", text="Interpolation")
 
     row = column.row()
     row.scale_y = SCALE_Y
-    row.prop(layers[selected_layer_index], "texture_extension", text="Extension")
+    row.prop(layers[selected_layer_index].projection, "texture_extension", text="Extension")
 
-    if layers[selected_layer_index].projection_mode == 'BOX':
+    if layers[selected_layer_index].projection.projection_mode == 'BOX':
         row = column.row()
         row.scale_y = SCALE_Y
-        row.prop(layers[selected_layer_index], "projection_blend")
+        row.prop(layers[selected_layer_index].projection, "projection_blend")
 
     row = column.row()
     row.scale_y = SCALE_Y
-    row.prop(layers[selected_layer_index], "projection_offset_x")
-    row.prop(layers[selected_layer_index], "projection_offset_y")
+    row.prop(layers[selected_layer_index].projection, "projection_offset_x")
+    row.prop(layers[selected_layer_index].projection, "projection_offset_y")
             
     row = column.row()
     row.scale_y = SCALE_Y
-    row.prop(layers[selected_layer_index], "projection_rotation", slider=True)
+    row.prop(layers[selected_layer_index].projection, "projection_rotation", slider=True)
 
     split = column.split()
     col = split.column()
     col.ui_units_x = 1
     col.scale_y = SCALE_Y
-    col.prop(layers[selected_layer_index], "projection_scale_x")
+    col.prop(layers[selected_layer_index].projection, "projection_scale_x")
 
     col = split.column()
     col.ui_units_x = 0.1
     col.scale_y = SCALE_Y
-    layer_settings = context.scene.coater_layer_settings
-    if layer_settings.match_layer_mask_scale:
-        col.prop(layer_settings, "match_layer_scale", text="", icon="LOCKED")
+    if layers[selected_layer_index].projection.match_layer_scale:
+        col.prop(layers[selected_layer_index].projection, "match_layer_scale", text="", icon="LOCKED")
 
     else:
-        col.prop(layer_settings, "match_layer_scale", text="", icon="UNLOCKED")
+        col.prop(layers[selected_layer_index].projection, "match_layer_scale", text="", icon="UNLOCKED")
            
     col = split.column()
     col.ui_units_x = 2
     col.scale_y = SCALE_Y
-
-    if layer_settings.match_layer_mask_scale:
+    if layers[selected_layer_index].projection.match_layer_scale:
         col.enabled = False
-        col.prop(layers[selected_layer_index], "projection_scale_y")
+    col.prop(layers[selected_layer_index].projection, "projection_scale_y")
 
 def draw_material_filters(column, context):
     '''Draws a layer stack of filters applied to the selected material layer.'''
@@ -462,12 +332,14 @@ def draw_layer_properties(column, context):
     layer_property_tab = context.scene.coater_layer_stack.layer_property_tab
 
     # Draw material channel toggles.
-    draw_material_channel_toggles(column, context)
+    draw_layer_material_channel_toggles(column, context)
     
     # Draw layer materials based on the selected tab.
     match layer_property_tab:
         case 'MATERIAL':
+            draw_divider(column)
             subrow = column.row(align=True)
+            subrow.scale_y = 1.2
             subrow.prop_enum(context.scene.coater_layer_stack, "material_property_tab", 'MATERIAL', text='MATERIAL')
             subrow.prop_enum(context.scene.coater_layer_stack, "material_property_tab", 'PROJECTION', text='PROJECTION')
             subrow.prop_enum(context.scene.coater_layer_stack, "material_property_tab", 'FILTERS', text='FILTERS')
@@ -477,7 +349,7 @@ def draw_layer_properties(column, context):
                 material_property_tab = context.scene.coater_layer_stack.material_property_tab
                 match material_property_tab:
                     case 'MATERIAL':
-                        draw_layer_texture_node_properties(column, context)
+                        draw_material_channel_node_properties(column, context)
 
                     case 'PROJECTION':
                         draw_material_projection_settings(column, context)

@@ -27,53 +27,18 @@ def draw_material_channel_preview(layout, item, selected_material_channel, conte
     row.ui_units_x = 0.8
     preview_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, item.layer_stack_array_index, context)
 
+    # If there is no node to preview, throw an error and don't draw a preview.
+    if not preview_node:
+        print("Error: Missing texture node when trying to draw material channel previews.")
+        return
+
     # Draw the layer preview based on the node type.
     match preview_node.type:
         case 'VALUE':
-            match selected_material_channel:
-                case "COLOR":
-                    row.prop(item, "color_layer_color_preview", text="")
-
-                case "METALLIC":
-                    row.prop(item, "metallic_layer_color_preview", text="")
-
-                case "ROUGHNESS":
-                    row.prop(item, "roughness_layer_color_preview", text="")
-
-                case "NORMAL":
-                    row.prop(item, "normal_layer_color_preview", text="")
-
-                case "HEIGHT":
-                    row.prop(item, "height_layer_color_preview", text="")
-
-                case "EMISSION":
-                    row.prop(item, "emission_layer_color_preview", text="")
-
-                case "SCATTERING":
-                    row.prop(item, "scattering_layer_color_preview", text="")
+            row.prop(item.color_channel_values, selected_material_channel.lower() + "_channel_color", text="")
         
         case 'RGB':
-            match selected_material_channel:
-                case "COLOR":
-                    row.prop(item, "color_layer_color_preview", text="")
-
-                case "METALLIC":
-                    row.prop(item, "metallic_layer_color_preview", text="")
-
-                case "ROUGHNESS":
-                    row.prop(item, "roughness_layer_color_preview", text="")
-
-                case "NORMAL":
-                    row.prop(item, "normal_layer_color_preview", text="")
-
-                case "HEIGHT":
-                    row.prop(item, "height_layer_color_preview", text="")
-
-                case "EMISSION":
-                    row.prop(item, "emission_layer_color_preview", text="")
-
-                case "SCATTERING":
-                    row.prop(item, "scattering_layer_color_preview", text="")
+            row.prop(item.color_channel_values, selected_material_channel.lower() + "_channel_color", text="")
 
         case 'TEX_IMAGE':
             # TODO: Update this to show a proper texture preview for the texture used in the layer.
@@ -84,6 +49,9 @@ def draw_material_channel_preview(layout, item, selected_material_channel, conte
             layer_preview_icon = context.scene.preview_icons["preview_icon"]
             row.use_property_decorate = False
             row.template_icon(icon_value=layer_preview_icon.icon_id,scale=1)
+
+        case 'GROUP':
+            row.label(text="", icon='GROUP')
 
         case 'TEX_NOISE':
             # TODO: Update this to show a texture preview.

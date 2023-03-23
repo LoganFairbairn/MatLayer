@@ -100,6 +100,7 @@ def update_hidden(self, context):
 
 #----------------------------- UPDATE PROJECTION SETTINGS -----------------------------#
 
+# TODO: Update this projection.
 def update_layer_projection(self, context):
     '''Changes the layer projection by reconnecting nodes.'''
     layers = context.scene.coater_layers
@@ -125,22 +126,22 @@ def update_layer_projection(self, context):
 
             if selected_layer_index > -1:
                 # Connect nodes based on projection type.
-                if layers[selected_layer_index].projection_mode == 'FLAT':
+                if layers[selected_layer_index].projection.projection_mode == 'FLAT':
                     material_channel_node.node_tree.links.new(coord_node.outputs[2], mapping_node.inputs[0])
                     texture_node.projection = 'FLAT'
 
-                if layers[selected_layer_index].projection_mode == 'BOX':
+                if layers[selected_layer_index].projection.projection_mode == 'BOX':
                     material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
                     texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
                     if texture_node and texture_node.type == 'TEX_IMAGE':
                         texture_node.projection_blend = self.projection_blend
                     texture_node.projection = 'BOX'
 
-                if layers[selected_layer_index].projection_mode == 'SPHERE':
+                if layers[selected_layer_index].projection.projection_mode == 'SPHERE':
                     material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
                     texture_node.projection = 'SPHERE'
 
-                if layers[selected_layer_index].projection_mode == 'TUBE':
+                if layers[selected_layer_index].projection.projection_mode == 'TUBE':
                     material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
                     texture_node.projection = 'TUBE'
 
@@ -165,7 +166,7 @@ def update_projection_offset_x(self, context):
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
         if mapping_node:
-            mapping_node.inputs[1].default_value[0] = layers[selected_layer_index].projection_offset_x
+            mapping_node.inputs[1].default_value[0] = layers[selected_layer_index].projection.projection_offset_x
 
 def update_projection_offset_y(self, context):
     layers = context.scene.coater_layers
@@ -176,7 +177,7 @@ def update_projection_offset_y(self, context):
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
         if mapping_node:
-            mapping_node.inputs[1].default_value[1] = layers[selected_layer_index].projection_offset_y
+            mapping_node.inputs[1].default_value[1] = layers[selected_layer_index].projection.projection_offset_y
 
 def update_projection_rotation(self, context):
     '''Updates the layer projections rotation for all layers.'''
@@ -187,7 +188,7 @@ def update_projection_rotation(self, context):
     for material_channel_name in material_channel_list:
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
         if mapping_node:
-            mapping_node.inputs[2].default_value[2] = layers[selected_layer_index].projection_rotation
+            mapping_node.inputs[2].default_value[2] = layers[selected_layer_index].projection.projection_rotation
 
 def update_projection_scale_x(self, context):
     '''Updates the layer projections x scale for all mapping nodes in the selected layer.'''
@@ -199,11 +200,10 @@ def update_projection_scale_x(self, context):
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
         if mapping_node:
-            mapping_node.inputs[3].default_value[0] = layers[selected_layer_index].projection_scale_x
+            mapping_node.inputs[3].default_value[0] = layers[selected_layer_index].projection.projection_scale_x
 
-        layer_settings = context.scene.coater_layer_settings
-        if layer_settings.match_layer_scale:
-            layers[selected_layer_index].projection_scale_y = layers[selected_layer_index].projection_scale_x
+        if self.match_layer_scale:
+            layers[selected_layer_index].projection.projection_scale_y = layers[selected_layer_index].projection.projection_scale_x
 
 def update_projection_scale_y(self, context):
     layers = context.scene.coater_layers
@@ -214,169 +214,217 @@ def update_projection_scale_y(self, context):
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
         
         if mapping_node:
-            mapping_node.inputs[3].default_value[1] = layers[selected_layer_index].projection_scale_y
+            mapping_node.inputs[3].default_value[1] = layers[selected_layer_index].projection.projection_scale_y
 
-#----------------------------- MUTE / UNMUTE MATERIAL CHANNELS -----------------------------#
+def update_match_layer_scale(self, context):
+    '''Updates matching of the projected layer scales.'''
+    if self.match_layer_scale:
+        layers = context.scene.coater_layers
+        layer_index = context.scene.coater_layer_stack.layer_index
+        layers[layer_index].projection.projection_scale_y = layers[layer_index].projection.projection_scale_x
+
+#----------------------------- UPDATE MATERIAL CHANNEL TOGGLES (mute / unmute material channels for individual layers) -----------------------------#
+
 def update_color_channel_toggle(self, context):
     if self.color_channel_toggle:
-        layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "COLOR", context)
+        layer_nodes.mute_layer_material_channel(False, context.scene.coater_layer_stack.layer_index, "COLOR", context)
 
     else:
-        layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "COLOR", context)
+        layer_nodes.mute_layer_material_channel(True, context.scene.coater_layer_stack.layer_index, "COLOR", context)
+
+def update_subsurface_channel_toggle(self, context):
+    if self.subsurface_channel_toggle:
+        layer_nodes.mute_layer_material_channel(False, context.scene.coater_layer_stack.layer_index, "SUBSURFACE", context)
+
+    else:
+        layer_nodes.mute_layer_material_channel(True, context.scene.coater_layer_stack.layer_index, "SUBSURFACE", context)
+
+def update_subsurface_color_channel_toggle(self, context):
+    if self.subsurface_color_channel_toggle:
+        layer_nodes.mute_layer_material_channel(False, context.scene.coater_layer_stack.layer_index, "SUBSURFACE_COLOR", context)
+
+    else:
+        layer_nodes.mute_layer_material_channel(True, context.scene.coater_layer_stack.layer_index, "SUBSURFACE_COLOR", context)
 
 def update_metallic_channel_toggle(self, context):
     if self.metallic_channel_toggle:
-        layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "METALLIC", context)
+        layer_nodes.mute_layer_material_channel(False, context.scene.coater_layer_stack.layer_index, "METALLIC", context)
 
     else:
-        layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "METALLIC", context)
+        layer_nodes.mute_layer_material_channel(True, context.scene.coater_layer_stack.layer_index, "METALLIC", context)
+
+def update_specular_channel_toggle(self, context):
+    if self.specular_channel_toggle:
+        layer_nodes.mute_layer_material_channel(False, context.scene.coater_layer_stack.layer_index, "SPECULAR", context)
+
+    else:
+        layer_nodes.mute_layer_material_channel(True, context.scene.coater_layer_stack.layer_index, "SPECULAR", context)
 
 def update_roughness_channel_toggle(self, context):
     if self.roughness_channel_toggle:
-        layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "ROUGHNESS", context)
+        layer_nodes.mute_layer_material_channel(False, context.scene.coater_layer_stack.layer_index, "ROUGHNESS", context)
 
     else:
-        layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "ROUGHNESS", context)
+        layer_nodes.mute_layer_material_channel(True, context.scene.coater_layer_stack.layer_index, "ROUGHNESS", context)
 
 def update_normal_channel_toggle(self, context):
     if self.normal_channel_toggle:
-        layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "NORMAL", context)
+        layer_nodes.mute_layer_material_channel(False, context.scene.coater_layer_stack.layer_index, "NORMAL", context)
 
     else:
-        layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "NORMAL", context)
+        layer_nodes.mute_layer_material_channel(True, context.scene.coater_layer_stack.layer_index, "NORMAL", context)
 
 def update_height_channel_toggle(self, context):
     if self.height_channel_toggle:
-        layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "HEIGHT", context)
+        layer_nodes.mute_layer_material_channel(False, context.scene.coater_layer_stack.layer_index, "HEIGHT", context)
 
     else:
-        layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "HEIGHT", context)
-
-def update_scattering_channel_toggle(self, context):
-    if self.scattering_channel_toggle:
-        layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "SCATTERING", context)
-
-    else:
-        layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "SCATTERING", context)
+        layer_nodes.mute_layer_material_channel(True, context.scene.coater_layer_stack.layer_index, "HEIGHT", context)
 
 def update_emission_channel_toggle(self, context):
     if self.emission_channel_toggle:
-        layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "EMISSION", context)
+        layer_nodes.mute_layer_material_channel(False, context.scene.coater_layer_stack.layer_index, "EMISSION", context)
 
     else:
-        layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "EMISSION", context)
+        layer_nodes.mute_layer_material_channel(True, context.scene.coater_layer_stack.layer_index, "EMISSION", context)
 
 
 #----------------------------- UPDATE LAYER PREVIEW COLORS -----------------------------#
 # To show values as uniform colors, color preview values are stored per layer as displaying them as a property through the ui required them to be stored somewhere.
 # When these values which are displayed in the ui are updated, they automatically update their respective color / value nodes in the node tree through these functions.
 
-def update_color_prieview_color(self, context):
+
+def update_color_channel_color(self, context):
+    thing = self
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_index, context)
     if node and node.type == 'RGB':
-        node.outputs[0].default_value = (self.color_layer_color_preview.r, self.color_layer_color_preview.g, self.color_layer_color_preview.b, 1)
+        node.outputs[0].default_value = (self.color_channel_color.r, self.color_channel_color.g, self.color_channel_color.b, 1)
 
-def update_metallic_prieview_color(self, context):
+def update_subsurface_channel_color(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "SUBSURFACE", selected_layer_index, context)
+    if node and node.type == 'RGB':
+        node.outputs[0].default_value = (self.subsurface_channel_color.r, self.subsurface_channel_color.g, self.subsurface_channel_color.b, 1)
+
+def update_subsurface_color_channel_color(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "SUBSURFACE_COLOR", selected_layer_index, context)
+    if node and node.type == 'RGB':
+        node.outputs[0].default_value = (self.subsurface_color_channel_color.r, self.subsurface_color_channel_color.g, self.subsurface_color_channel_color.b, 1)
+
+def update_metallic_channel_color(self, context):
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     node = layer_nodes.get_layer_node("TEXTURE", "METALLIC", selected_layer_index, context)
     if node and node.type == 'RGB':
-        node.outputs[0].default_value = (self.metallic_layer_color_preview.r, self.metallic_layer_color_preview.g, self.metallic_layer_color_preview.b, 1)
+        node.outputs[0].default_value = (self.metallic_channel_color.r, self.metallic_channel_color.g, self.metallic_channel_color.b, 1)
 
-def update_roughness_prieview_color(self, context):
+def update_specular_channel_color(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "SPECULAR", selected_layer_index, context)
+    if node and node.type == 'RGB':
+        node.outputs[0].default_value = (self.specular_channel_color.r, self.specular_channel_color.g, self.specular_channel_color.b, 1)
+
+def update_roughness_channel_color(self, context):
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     node = layer_nodes.get_layer_node("TEXTURE", "ROUGHNESS", selected_layer_index, context)
     if node and node.type == 'RGB':
-        node.outputs[0].default_value = (self.roughness_layer_color_preview.r, self.roughness_layer_color_preview.g, self.roughness_layer_color_preview.b, 1)
+        node.outputs[0].default_value = (self.roughness_channel_color.r, self.roughness_channel_color.g, self.roughness_channel_color.b, 1)
 
-def update_normal_prieview_color(self, context):
+def update_normal_channel_color(self, context):
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     node = layer_nodes.get_layer_node("TEXTURE", "NORMAL", selected_layer_index, context)
     if node and node.type == 'RGB':
-        node.outputs[0].default_value = (self.normal_layer_color_preview.r, self.normal_layer_color_preview.g, self.normal_layer_color_preview.b, 1)
+        node.outputs[0].default_value = (self.normal_channel_color.r, self.normal_channel_color.g, self.normal_channel_color.b, 1)
 
-def update_height_prieview_color(self, context):
+def update_height_channel_color(self, context):
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     node = layer_nodes.get_layer_node("TEXTURE", "HEIGHT", selected_layer_index, context)
     if node and node.type == 'RGB':
-        node.outputs[0].default_value = (self.height_layer_color_preview.r, self.height_layer_color_preview.g, self.height_layer_color_preview.b, 1)
+        node.outputs[0].default_value = (self.height_channel_color.r, self.height_channel_color.g, self.height_channel_color.b, 1)
 
-def update_scattering_prieview_color(self, context):
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "SCATTERING", selected_layer_index, context)
-    if node and node.type == 'RGB':
-        node.outputs[0].default_value = (self.scattering_layer_color_preview.r, self.scattering_layer_color_preview.g, self.scattering_layer_color_preview.b, 1)
-
-def update_emission_prieview_color(self, context):
+def update_emission_channel_color(self, context):
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     node = layer_nodes.get_layer_node("TEXTURE", "EMISSION", selected_layer_index, context)
     if node and node.type == 'RGB':
-        node.outputs[0].default_value = (self.emission_layer_color_preview.r, self.emission_layer_color_preview.g, self.emission_layer_color_preview.b, 1)
+        node.outputs[0].default_value = (self.emission_channel_color.r, self.emission_channel_color.g, self.emission_channel_color.b, 1)
 
 #----------------------------- UPDATE UNIFORM LAYER VALUES -----------------------------#
-# To show correct min / max values for sliders when the user is using uniform value nodes in the user interface
+# To have correct min / max values for sliders when the user is using uniform value nodes in the user interface
 # When these values which are displayed in the ui are updated, they automatically update their respective value nodes in the node tree through these functions.
 
+def update_uniform_channel_values(self, context):
+    print("Thing")
+
 def update_uniform_color_value(self, context):
+    thing = self
+    layers = context.scene.coater_layers
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_index, context)
     if node and node.type == 'VALUE':
-        node.outputs[0].default_value = self.uniform_color_value
-        self.color_layer_color_preview = (self.uniform_color_value,self.uniform_color_value,self.uniform_color_value)
+        uniform_value = layers[selected_layer_index].uniform_color_value
+        node.outputs[0].default_value = uniform_value
+        self.color_channel_color = (uniform_value, uniform_value, uniform_value)
+
+def update_uniform_subsurface_value(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "SUBSURFACE", selected_layer_index, context)
+    if node and node.type == 'VALUE':
+        node.outputs[0].default_value = self.uniform_subsurface_value
+        self.subsurface_channel_color = (self.uniform_subsurface_value,self.uniform_subsurface_value,self.uniform_subsurface_value)
+
+def update_uniform_subsurface_color_value(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "SUBSURFACE_COLOR", selected_layer_index, context)
+    if node and node.type == 'VALUE':
+        node.outputs[0].default_value = self.uniform_subsurface_color_value
+        self.subsurface_color_channel_color = (self.uniform_subsurface_color_value,self.uniform_subsurface_color_value,self.uniform_subsurface_color_value)
 
 def update_uniform_metallic_value(self, context):
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     node = layer_nodes.get_layer_node("TEXTURE", "METALLIC", selected_layer_index, context)
     if node and node.type == 'VALUE':
         node.outputs[0].default_value = self.uniform_metallic_value
-        self.metallic_layer_color_preview = (self.uniform_metallic_value,self.uniform_metallic_value,self.uniform_metallic_value)
+        self.metallic_channel_color = (self.uniform_metallic_value,self.uniform_metallic_value,self.uniform_metallic_value)
+
+def update_uniform_specular_value(self, context):
+    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    node = layer_nodes.get_layer_node("TEXTURE", "SPECULAR", selected_layer_index, context)
+    if node and node.type == 'VALUE':
+        node.outputs[0].default_value = self.uniform_specular_value
+        self.specular_channel_color = (self.uniform_specular_value,self.uniform_specular_value,self.uniform_specular_value)
 
 def update_uniform_roughness_value(self, context):
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     node = layer_nodes.get_layer_node("TEXTURE", "ROUGHNESS", selected_layer_index, context)
     if node and node.type == 'VALUE':
         node.outputs[0].default_value = self.uniform_roughness_value
-        self.roughness_layer_color_preview = (self.uniform_roughness_value,self.uniform_roughness_value,self.uniform_roughness_value)
+        self.roughness_channel_color = (self.uniform_roughness_value,self.uniform_roughness_value,self.uniform_roughness_value)
 
 def update_uniform_normal_value(self, context):
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     node = layer_nodes.get_layer_node("TEXTURE", "NORMAL", selected_layer_index, context)
     if node and node.type == 'VALUE':
         node.outputs[0].default_value = self.uniform_normal_value
-        self.normal_layer_color_preview = (self.uniform_normal_value,self.uniform_normal_value,self.uniform_normal_value)
+        self.normal_channel_color = (self.uniform_normal_value,self.uniform_normal_value,self.uniform_normal_value)
 
 def update_uniform_height_value(self, context):
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     node = layer_nodes.get_layer_node("TEXTURE", "HEIGHT", selected_layer_index, context)
     if node and node.type == 'VALUE':
         node.outputs[0].default_value = self.uniform_height_value
-        self.height_layer_color_preview = (self.uniform_height_value,self.uniform_height_value,self.uniform_height_value)
+        self.height_channel_color = (self.uniform_height_value,self.uniform_height_value,self.uniform_height_value)
 
 def update_uniform_emission_value(self, context):
     selected_layer_index = context.scene.coater_layer_stack.layer_index
     node = layer_nodes.get_layer_node("TEXTURE", "EMISSION", selected_layer_index, context)
     if node and node.type == 'VALUE':
         node.outputs[0].default_value = self.uniform_emission_value
-        self.emission_layer_color_preview = (self.emission_layer_color_preview,self.emission_layer_color_preview,self.emission_layer_color_preview)
+        self.emission_channel_color = (self.uniform_emission_value,self.uniform_emission_value,self.uniform_emission_value)
 
-def update_uniform_scattering_value(self, context):
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "SCATTERING", selected_layer_index, context)
-    if node and node.type == 'VALUE':
-        node.outputs[0].default_value = self.uniform_scattering_value
-        self.scattering_layer_color_preview = (self.uniform_scattering_value,self.uniform_scattering_value,self.uniform_scattering_value)
-
-def update_uniform_values(self, context):
-    update_uniform_color_value(self, context)
-    update_uniform_metallic_value(self, context)
-    update_uniform_roughness_value(self, context)
-    update_uniform_normal_value(self, context)
-    update_uniform_height_value(self, context)
-    update_uniform_emission_value(self, context)
-    update_uniform_scattering_value(self, context)
 
 #----------------------------- UPDATE TEXTURE NODE TYPES -----------------------------#
-# When nodes that represent the texture value for a material are swapped, they trigger automatic updates for their respective nodes here.
+# When nodes that represent the texture value for a material are swapped, they trigger automatic updates for their respective nodes in the node tree through these functions.
 
 def replace_texture_node(texture_node_type, material_channel_name, self, context):
     '''Replaced the texture node with a new texture node based on the given node type.'''
@@ -389,25 +437,30 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
     if old_texture_node:
         material_channel_node.node_tree.nodes.remove(old_texture_node)
 
-    # Add the new node.
+    # Add the new node based on the provided type.
     texture_node = None
-    if texture_node_type == "COLOR":
-        texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
+    match texture_node_type:
+        case "COLOR":
+            texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
 
-    if texture_node_type == "VALUE":
-        texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
+        case "VALUE":
+            texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
 
-    if texture_node_type == "TEXTURE":
-        texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexImage')
+        case "TEXTURE":
+            texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexImage')
 
-    if texture_node_type == "NOISE":
-        texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexNoise')
+        case "GROUP_NODE":
+            texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
+            texture_node.node_tree = bpy.data.node_groups['COATER_EMPTY']
 
-    if texture_node_type == "VORONOI":
-        texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexVoronoi')
+        case "NOISE":
+            texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexNoise')
 
-    if texture_node_type == "MUSGRAVE":
-        texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexMusgrave')
+        case "VORONOI":
+            texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexVoronoi')
+
+        case "MUSGRAVE":
+            texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexMusgrave')
 
     # Match the texture node name and label.
     texture_node.name = "TEXTURE_" + str(selected_layer_stack_index)
@@ -436,57 +489,59 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
     # Update the layer nodes because they were changed.
     layer_nodes.update_layer_nodes(context)
 
-    # Update the uniform node values when the nodes are updated.
-    update_uniform_values(self, context)
+def update_color_channel_node_type(self, context):
+    replace_texture_node(self.color_node_type, "COLOR", self, context)
 
-def update_color_texture_node_type(self, context):
-    replace_texture_node(self.color_texture_node_type, "COLOR", self, context)
+def update_subsurface_channel_node_type(self, context):
+    replace_texture_node(self.subsurface_node_type, "SUBSURFACE", self, context)
 
-def update_metallic_texture_node_type(self, context):
-    replace_texture_node(self.metallic_texture_node_type, "METALLIC", self, context)
+def update_subsurface_channel_node_type(self, context):
+    replace_texture_node(self.subsurface_color_node_type, "SUBSURFACE_COLOR", self, context)
 
-def update_roughness_texture_node_type(self, context):
-    replace_texture_node(self.roughness_texture_node_type, "ROUGHNESS", self, context)
+def update_specular_channel_node_type(self, context):
+    replace_texture_node(self.specular_node_type, "SPECULAR", self, context)
 
-def update_normal_texture_node_type(self, context):
-    replace_texture_node(self.normal_texture_node_type, "NORMAL", self, context)
+def update_metallic_channel_node_type(self, context):
+    replace_texture_node(self.metallic_node_type, "METALLIC", self, context)
 
-def update_height_texture_node_type(self, context):
-    replace_texture_node(self.height_texture_node_type, "HEIGHT", self, context)
+def update_roughness_channel_node_type(self, context):
+    replace_texture_node(self.roughness_node_type, "ROUGHNESS", self, context)
 
-def update_scattering_texture_node_type(self, context):
-    replace_texture_node(self.scattering_texture_node_type, "SCATTERING", self, context)
+def update_normal_channel_node_type(self, context):
+    replace_texture_node(self.normal_node_type, "NORMAL", self, context)
 
-def update_emission_texture_node_type(self, context):
-    replace_texture_node(self.emission_texture_node_type, "EMISSION", self, context)
+def update_height_channel_node_type(self, context):
+    replace_texture_node(self.height_node_type, "HEIGHT", self, context)
+
+def update_emission_channel_node_type(self, context):
+    replace_texture_node(self.emission_node_type, "EMISSION", self, context)
 
 
 #----------------------------- LAYER PROPERTIES -----------------------------#
 
-
 class MaterialChannelToggles(PropertyGroup):
     '''Boolean toggles for each material channel.'''
-    color_channel_toggle: BoolProperty(default=True, update=update_color_channel_toggle, description="Click to toggle on / off the color material channel for this layer")
-    subsurface_channel_toggle: BoolProperty(default=True, update=update_scattering_channel_toggle, description="Click to toggle on / off the subsurface material channel for this layer")
-    subsurface_color_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the subsurface color material channel for this layer.")
-    metallic_channel_toggle: BoolProperty(default=True, update=update_metallic_channel_toggle, description="Click to toggle on / off the metallic material channel for this layer")
-    specular_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the specular material channel for this layer.")
-    roughness_channel_toggle: BoolProperty(default=True, update=update_roughness_channel_toggle, description="Click to toggle on / off the roughness material channel for this layer")
-    emission_channel_toggle: BoolProperty(default=True, update=update_emission_channel_toggle, description="Click to toggle on / off the emission material channel for this layer")
-    normal_channel_toggle: BoolProperty(default=True, update=update_normal_channel_toggle, description="Click to toggle on / off the normal material channel for this layer")
-    height_channel_toggle: BoolProperty(default=True, update=update_height_channel_toggle, description="Click to toggle on / off the height material channel for this layer")
+    color_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the color material channel for this layer", update=update_color_channel_toggle)
+    subsurface_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the subsurface material channel for this layer", update=update_subsurface_channel_toggle)
+    subsurface_color_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the subsurface color material channel for this layer.", update=update_subsurface_color_channel_toggle)
+    metallic_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the metallic material channel for this layer", update=update_metallic_channel_toggle)
+    specular_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the specular material channel for this layer.", update=update_specular_channel_toggle)
+    roughness_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the roughness material channel for this layer", update=update_roughness_channel_toggle)
+    emission_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the emission material channel for this layer", update=update_emission_channel_toggle)
+    normal_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the normal material channel for this layer", update=update_normal_channel_toggle)
+    height_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the height material channel for this layer", update=update_height_channel_toggle)
 
 class MaterialChannelNodeType(PropertyGroup):
     '''An enum node type for the material node used to represent the material channel texture in every material channel.'''
-    color_texture_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Color Channel Node Type", description="The node type for the color channel", default='COLOR', update=update_color_texture_node_type)
-    subsurface_texture_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Subsurface Scattering Channel Node Type", description="The node type for the subsurface scattering channel", default='VALUE', update=update_scattering_texture_node_type)
-    subsurface_color_channel_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Subsurface Scattering Color Channel Node Type", description="The node type for the subsurface scattering color channel", default='COLOR', update=update_scattering_texture_node_type)
-    metallic_texture_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Metallic Channel Node Type", description="The node type for the metallic channel", default='VALUE', update=update_metallic_texture_node_type)
-    specular_texture_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Specular Channel Node Type", description="The node type for the specular channel", default='VALUE')
-    roughness_texture_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Roughness Channel Node Type", description="The node type for roughness channel", default='VALUE', update=update_roughness_texture_node_type)
-    normal_texture_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Normal Channel Node Type", description="The node type for the normal channel", default='COLOR', update=update_normal_texture_node_type)
-    height_texture_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Height Channel Node Type", description="The node type for the height channel", default='VALUE', update=update_height_texture_node_type)
-    emission_texture_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Emission Channel Node Type", description="The node type for the emission channel", default='COLOR', update=update_emission_texture_node_type)
+    color_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Color Channel Node Type", description="The node type for the color channel", default='COLOR', update=update_color_channel_node_type)
+    subsurface_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Subsurface Scattering Channel Node Type", description="The node type for the subsurface scattering channel", default='VALUE', update=update_subsurface_channel_node_type)
+    subsurface_color_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Subsurface Scattering Color Channel Node Type", description="The node type for the subsurface scattering color channel", default='COLOR', update=update_subsurface_channel_node_type)
+    metallic_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Metallic Channel Node Type", description="The node type for the metallic channel", default='VALUE', update=update_metallic_channel_node_type)
+    specular_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Specular Channel Node Type", description="The node type for the specular channel", default='VALUE', update=update_specular_channel_node_type)
+    roughness_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Roughness Channel Node Type", description="The node type for roughness channel", default='VALUE', update=update_roughness_channel_node_type)
+    normal_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Normal Channel Node Type", description="The node type for the normal channel", default='COLOR', update=update_normal_channel_node_type)
+    height_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Height Channel Node Type", description="The node type for the height channel", default='VALUE', update=update_height_channel_node_type)
+    emission_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Emission Channel Node Type", description="The node type for the emission channel", default='COLOR', update=update_emission_channel_node_type)
  
 class ProjectionSettings(PropertyGroup):
     '''Projection settings for this add-on.'''
@@ -499,102 +554,43 @@ class ProjectionSettings(PropertyGroup):
     projection_rotation: FloatProperty(name="Rotation", description="Projected rotation of the selected layer", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projection_rotation)
     projection_scale_x: FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_x)
     projection_scale_y: FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_y)
+    match_layer_scale: bpy.props.BoolProperty(name="Match Layer Scale", default=True,update=update_match_layer_scale)
+    match_layer_mask_scale: bpy.props.BoolProperty(name="Match Layer Mask Scale", default=True)
 
-class MaterialChannelColor(PropertyGroup):
+class MaterialChannelColors(PropertyGroup):
     '''Color values for each material channel. These are used for layer previews when the layer can be accurately displayed using rgb values (rgb node / value node).'''
-    color_channel_color: FloatVectorProperty(name="Layer preview color for the color material channel.", description="", default=(1.0, 0.0, 1.0), min=0, max=1, subtype='COLOR', update=update_color_prieview_color)
-    subsurface_channel_color: FloatVectorProperty(name="Layer preview color for the subsurface scattering material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_scattering_prieview_color)
-    subsurface_color_channel_color: FloatVectorProperty(name="Layer preview color for the subsurface color material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_scattering_prieview_color)
-    metallic_channel_color: FloatVectorProperty(name="Layer preview color for the metallic material channel.", description="", default=(0.25, 0.25, 0.25), min=0, max=1, subtype='COLOR', update=update_metallic_prieview_color)
+    color_channel_color: FloatVectorProperty(name="Layer preview color for the color material channel.", description="", default=(0.25, 0.25, 0.25), min=0, max=1, subtype='COLOR', update=update_color_channel_color)
+    subsurface_channel_color: FloatVectorProperty(name="Layer preview color for the subsurface scattering material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR')
+    subsurface_color_channel_color: FloatVectorProperty(name="Layer preview color for the subsurface color material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR')
+    metallic_channel_color: FloatVectorProperty(name="Layer preview color for the metallic material channel.", description="", default=(0.25, 0.25, 0.25), min=0, max=1, subtype='COLOR')
     specular_channel_color: FloatVectorProperty(name="Layer preview color for the specular material channel.", description="", default=(0.5, 0.5, 0.5), min=0, max=1, subtype='COLOR')
-    roughness_channel_color: FloatVectorProperty(name="Layer preview color for the roughness material channel.", description="", default=(0.5, 0.5, 0.5), min=0, max=1, subtype='COLOR', update=update_roughness_prieview_color)
-    normal_channel_color: FloatVectorProperty(name="Layer preview color for the normal material channel.", description="", default=(0.5, 0.5, 1.0), min=0, max=1, subtype='COLOR', update=update_normal_prieview_color)
-    height_channel_color: FloatVectorProperty(name="Layer preview color for the height material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_height_prieview_color)
-    emission_channel_color: FloatVectorProperty(name="Layer preview color for the emission material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_emission_prieview_color)
+    roughness_channel_color: FloatVectorProperty(name="Layer preview color for the roughness material channel.", description="", default=(0.5, 0.5, 0.5), min=0, max=1, subtype='COLOR')
+    normal_channel_color: FloatVectorProperty(name="Layer preview color for the normal material channel.", description="", default=(0.5, 0.5, 1.0), min=0, max=1, subtype='COLOR')
+    height_channel_color: FloatVectorProperty(name="Layer preview color for the height material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR')
+    emission_channel_color: FloatVectorProperty(name="Layer preview color for the emission material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR')
 
 class MaterialChannelUniformValues(PropertyGroup):
     '''Uniform float values used for each material channel. These are used to represent correct min / max value ranges within the user interface.'''
     uniform_color_value: FloatProperty(name="Uniform Color Value", description="Uniform color value for this layer", default=0.0, min=0, max=1, update=update_uniform_color_value)
-    uniform_subsurface_value: FloatProperty(name="Uniform Subsurface Scattering Value", description="Uniform subsurface scattering value for this layer", default=0.0, min=0, max=1, update=update_uniform_scattering_value)
-    uniform_subsurface_color_value: FloatProperty(name="Uniform Subsurface Color Value", description="Uniform subsurface color value for this layer", default=0.0, min=0, max=1)
+    uniform_subsurface_value: FloatProperty(name="Uniform Subsurface Scattering Value", description="Uniform subsurface scattering value for this layer", default=0.0, min=0, max=1, update=update_uniform_subsurface_value)
+    uniform_subsurface_color_value: FloatProperty(name="Uniform Subsurface Color Value", description="Uniform subsurface color value for this layer", default=0.0, min=0, max=1, update=update_uniform_subsurface_color_value)
     uniform_metallic_value: FloatProperty(name="Uniform Metallic Value", description="Uniform metallic value for this layer", default=0.0, min=0, max=1, update=update_uniform_metallic_value)
-    uniform_specular_value: FloatProperty(name="Uniform Specular Value", description="Uniform specular value for this layer", default=0.0, min=0, max=1)
+    uniform_specular_value: FloatProperty(name="Uniform Specular Value", description="Uniform specular value for this layer", default=0.5, min=0, max=1, update=update_uniform_specular_value)
     uniform_roughness_value: FloatProperty(name="Uniform Roughness Value", description="Uniform roughness value for this layer", default=0.5, min=0, max=1, update=update_uniform_roughness_value)
     uniform_emission_value: FloatProperty(name="Uniform Emission Value", description="Uniform emission value for this layer", default=0.0, min=0, max=1, update=update_uniform_emission_value)
     uniform_normal_value: FloatProperty(name="Uniform Normal Value", description="Uniform normal value for this layer", default=0.0, min=0, max=1, update=update_uniform_normal_value)
     uniform_height_value: FloatProperty(name="Uniform Height Value", description="Uniform height value for this layer", default=0.0, min=0, max=1, update=update_uniform_height_value)
 
-
-
 class COATER_layers(PropertyGroup):
-    # The layer stack index for each layer is stored here for convenience. This should be automatically updated everytime update_layer_nodes is called.
-    layer_stack_array_index: bpy.props.IntProperty(name="Layer Stack Array Index", description="Layer Stack Array Index", default=-9)
-
-    # Layer ID used as a unique identifier.
-    id: bpy.props.IntProperty(name="ID", description="Numeric ID for the selected layer.", default=0)
-
-    # Layer name for organization purposes.
+    layer_stack_array_index: bpy.props.IntProperty(name="Layer Stack Array Index", description="The array index of this layer within the layer stack, stored to make it easy to access the array index of a specific layer.", default=-9)
+    id: bpy.props.IntProperty(name="ID", description="Unique numeric ID for the selected layer.", default=0)
     name: bpy.props.StringProperty(name="", description="The name of the layer", default="Layer Naming Error", update=update_layer_name)
     cached_frame_name: bpy.props.StringProperty(name="", description="A cached version of the layer name. This allows layer nodes using the layers previous layer name to be accessed until they are renamed.", default="Layer Naming Error")
-
-    # General layer settings (all layers have these).
     opacity: FloatProperty(name="Opacity", description="Layers Opacity", default=1.0, min=0.0, soft_max=1.0, subtype='FACTOR', update=update_layer_opacity)
     hidden: BoolProperty(name="Hidden", description="Show if the layer is hidden.", update=update_hidden)
     masked: BoolProperty(name="Masked", description="This layer has a mask.", default=True)
-
-    # Material Channels Toggles (for quickly disabling material channels for select layers)
-    # TODO: Make these a property group.
-    material_channel_toggles: bpy.props.PointerProperty(type=MaterialChannelToggles)
-    color_channel_toggle: BoolProperty(default=True, update=update_color_channel_toggle, description="Click to toggle on / off the color material channel for this layer")
-    metallic_channel_toggle: BoolProperty(default=True, update=update_metallic_channel_toggle, description="Click to toggle on / off the metallic material channel for this layer")
-    roughness_channel_toggle: BoolProperty(default=True, update=update_roughness_channel_toggle, description="Click to toggle on / off the roughness material channel for this layer")
-    normal_channel_toggle: BoolProperty(default=True, update=update_normal_channel_toggle, description="Click to toggle on / off the normal material channel for this layer")
-    height_channel_toggle: BoolProperty(default=True, update=update_height_channel_toggle, description="Click to toggle on / off the height material channel for this layer")
-    scattering_channel_toggle: BoolProperty(default=True, update=update_scattering_channel_toggle, description="Click to toggle on / off the scattering material channel for this layer")
-    emission_channel_toggle: BoolProperty(default=True, update=update_emission_channel_toggle, description="Click to toggle on / off the emission material channel for this layer")
-
-    # TODO: Make these a property group.
-    # Node Types (used for properly drawing user interface for node properties)
-    channel_node_types: PointerProperty(type=MaterialChannelNodeType)
-    color_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Color Texture Node Type", description="The node type for the color channel", default='COLOR', update=update_color_texture_node_type)
-    metallic_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Metallic Texture Node Type", description="The node type for the roughness channel", default='VALUE', update=update_metallic_texture_node_type)
-    roughness_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Roughness Texture Node Type", description="The node type for roughness channel", default='VALUE', update=update_roughness_texture_node_type)
-    normal_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Normal Texture Node Type", description="The node type for the normal channel", default='COLOR', update=update_normal_texture_node_type)
-    height_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Height Texture Node Type", description="The node type for the height channel", default='VALUE', update=update_height_texture_node_type)
-    scattering_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Scattering Texture Node Type", description="The node type for the scattering channel", default='COLOR', update=update_scattering_texture_node_type)
-    emission_texture_node_type: bpy.props.EnumProperty(items=TEXTURE_NODE_TYPES, name="Emission Texture Node Type", description="The node type for the emission channel", default='COLOR', update=update_emission_texture_node_type)
-
-    # Projection Settings
-    # TODO: Make these a property group.
-    projection: PointerProperty(type=ProjectionSettings)
-    projection_mode: bpy.props.EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT', update=update_layer_projection)
-    texture_extension: bpy.props.EnumProperty(items=TEXTURE_EXTENSION_MODES, name="Extension", description="", default='REPEAT')
-    texture_interpolation: bpy.props.EnumProperty(items=TEXTURE_INTERPOLATION_MODES, name="Interpolation", description="", default='LINEAR')
-    projection_blend: bpy.props.FloatProperty(name="Projection Blend", description="The projection blend amount", default=0.5, min=0.0, max=1.0, subtype='FACTOR', update=update_projection_blend)
-    projection_offset_x: bpy.props.FloatProperty(name="Offset X", description="Projected x offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_x)
-    projection_offset_y: bpy.props.FloatProperty(name="Offset Y", description="Projected y offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_y)
-    projection_rotation: bpy.props.FloatProperty(name="Rotation", description="Projected rotation of the selected layer", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projection_rotation)
-    projection_scale_x: bpy.props.FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_x)
-    projection_scale_y: bpy.props.FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_y)
-
-    # Color layer previews for layers.
-    # TODO: Make these a property group.
-    color_channel_values: PointerProperty(type=MaterialChannelColor)
-    color_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the color material channel.", description="", default=(1.0, 0.0, 1.0), min=0, max=1, subtype='COLOR', update=update_color_prieview_color)
-    metallic_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the metallic material channel.", description="", default=(0.25, 0.25, 0.25), min=0, max=1, subtype='COLOR', update=update_metallic_prieview_color)
-    roughness_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the roughness material channel.", description="", default=(0.5, 0.5, 0.5), min=0, max=1, subtype='COLOR', update=update_roughness_prieview_color)
-    normal_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the normal material channel.", description="", default=(0.5, 0.5, 1.0), min=0, max=1, subtype='COLOR', update=update_normal_prieview_color)
-    height_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the height material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_height_prieview_color)
-    scattering_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the color material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_scattering_prieview_color)
-    emission_layer_color_preview: bpy.props.FloatVectorProperty(name="Layer preview color for the emission material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_emission_prieview_color)
-
-    # To provide accurate min / max slider ranges in the user interface, float values are stored in each layer to use as the values (even for material channels that wouldn't typically be represented by a uniform rgb values).
-    # TODO: Make these a property group.
-    uniform_channel_values: PointerProperty(type=MaterialChannelColor)
-    uniform_color_value: bpy.props.FloatProperty(name="Uniform Color Value", description="Uniform color value for this layer", default=0.0, min=0, max=1, update=update_uniform_color_value)
-    uniform_scattering_value: bpy.props.FloatProperty(name="Uniform Scattering Value", description="Uniform scattering value for this layer", default=0.0, min=0, max=1, update=update_uniform_scattering_value)
-    uniform_metallic_value: bpy.props.FloatProperty(name="Uniform Metallic Value", description="Uniform metallic value for this layer", default=0.0, min=0, max=1, update=update_uniform_metallic_value)
-    uniform_roughness_value: bpy.props.FloatProperty(name="Uniform Roughness Value", description="Uniform roughness value for this layer", default=0.5, min=0, max=1, update=update_uniform_roughness_value)
-    uniform_emission_value: bpy.props.FloatProperty(name="Uniform Emission Value", description="Uniform emission value for this layer", default=0.0, min=0, max=1, update=update_uniform_emission_value)
-    uniform_normal_value: bpy.props.FloatProperty(name="Uniform Normal Value", description="Uniform normal value for this layer", default=0.0, min=0, max=1, update=update_uniform_normal_value)
-    uniform_height_value: bpy.props.FloatProperty(name="Uniform Height Value", description="Uniform height value for this layer", default=0.0, min=0, max=1, update=update_uniform_height_value)
+    material_channel_toggles: bpy.props.PointerProperty(type=MaterialChannelToggles, name="Material Channel Toggles")
+    channel_node_types: PointerProperty(type=MaterialChannelNodeType, name="Channel Node Types")
+    projection: PointerProperty(type=ProjectionSettings, name="Projection Settings")
+    color_channel_values: PointerProperty(type=MaterialChannelColors, name="Color Channel Values")
+    uniform_channel_values: PointerProperty(type=MaterialChannelUniformValues, name="Uniform Channel Values")

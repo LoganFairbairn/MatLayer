@@ -20,12 +20,11 @@ import bpy.utils.previews       # Imported for loading texture previews as icons
 from bpy.app.handlers import persistent
 
 # Import texture set modules.
-from .texture_handling.texture_set_settings import COATER_texture_set_settings
+from .texture_handling.texture_set_settings import COATER_texture_set_settings, GlobalMaterialChannelToggles
 
 # Import layer related modules.
 from .layers.layers import *
 from .layers.layer_stack import *
-from .layers.layer_settings import COATER_layer_settings
 from .layers.toggle_channel_preview import COATER_OT_toggle_channel_preview
 
 # Import layer masking modules.
@@ -99,7 +98,7 @@ classes = (
     MaterialChannelToggles,
     MaterialChannelNodeType,
     ProjectionSettings,
-    MaterialChannelColor,
+    MaterialChannelColors,
     MaterialChannelUniformValues,
     COATER_layer_stack,
     COATER_layers,
@@ -134,7 +133,6 @@ classes = (
 
     # Layer Operations
     COATER_UL_layer_list,
-    COATER_layer_settings,
     COATER_OT_add_layer,
     COATER_OT_delete_layer,
     COATER_OT_duplicate_layer,
@@ -148,6 +146,7 @@ classes = (
     COATER_OT_delete_layer_image,
 
     # Texture Set Settings
+    GlobalMaterialChannelToggles,
     COATER_texture_set_settings,
 
     # Main Panel & General Settings
@@ -200,7 +199,6 @@ def register():
 
     # Settings
     bpy.types.Scene.coater_texture_set_settings = bpy.props.PointerProperty(type=COATER_texture_set_settings)
-    bpy.types.Scene.coater_layer_settings = bpy.props.PointerProperty(type=COATER_layer_settings)
     bpy.types.Scene.coater_baking_settings = bpy.props.PointerProperty(type=COATER_baking_settings)
     bpy.types.Scene.coater_export_settings = bpy.props.PointerProperty(type=COATER_exporting_settings)
 

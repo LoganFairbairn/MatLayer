@@ -1,8 +1,17 @@
 # This file contains settings and functions the users texture set.
 
 import bpy
+from bpy.types import PropertyGroup
+from bpy.props import BoolProperty, StringProperty, PointerProperty, FloatVectorProperty, EnumProperty
 from ..layers import material_channel_nodes
-from ..layers.layers import MaterialChannelToggles
+
+# Available texture resolutions for texture sets.
+TEXTURE_SET_RESOLUTIONS = [
+    ("FIVE_TWELVE", "512", ""), 
+    ("ONEK", "1024", ""),
+    ("TWOK", "2048", ""),
+    ("FOURK", "4096", ""),
+    ]
 
 def update_match_image_resolution(self, context):
     texture_set_settings = context.scene.coater_texture_set_settings
@@ -24,94 +33,78 @@ def update_pack_images(self, context):
     if texture_set_settings.pack_images:
         bpy.ops.file.autopack_toggle()
 
-def update_color_channel_toggle(self, context):
-    texture_set_settings = context.scene.coater_texture_set_settings
+#----------------------------- UPDATE GLOBAL MATERIAL CHANNEL TOGGLES (mute / unmute material channels for ALL layers) -----------------------------#
 
-    if texture_set_settings.color_channel_toggle == True:
+def update_color_channel_toggle(self, context):
+    if self.color_channel_toggle == True:
         material_channel_nodes.connect_material_channel(context, "COLOR")
     else:
         material_channel_nodes.disconnect_material_channel(context, "COLOR")
-        
-def update_metallic_channel_toggle(self, context):
-    texture_set_settings = context.scene.coater_texture_set_settings
 
-    if texture_set_settings.metallic_channel_toggle == True:
+def update_subsurface_channel_toggle(self, context):
+    if self.subsurface_channel_toggle == True:
+        material_channel_nodes.connect_material_channel(context, "SUBSURFACE")
+    else:
+        material_channel_nodes.disconnect_material_channel(context, "SUBSURFACE")
+
+def update_subsurface_color_channel_toggle(self, context):
+    if self.subsurface_color_channel_toggle == True:
+        material_channel_nodes.connect_material_channel(context, "SUBSURFACE_COLOR")
+    else:
+        material_channel_nodes.disconnect_material_channel(context, "SUBSURFACE_COLOR")
+
+def update_metallic_channel_toggle(self, context):
+    if self.metallic_channel_toggle == True:
         material_channel_nodes.connect_material_channel(context, "METALLIC")
     else:
         material_channel_nodes.disconnect_material_channel(context, "METALLIC")
 
-def update_roughness_channel_toggle(self, context):
-    texture_set_settings = context.scene.coater_texture_set_settings
+def update_specular_channel_toggle(self, context):
+    if self.specular_channel_toggle == True:
+        material_channel_nodes.connect_material_channel(context, "SPECULAR")
+    else:
+        material_channel_nodes.disconnect_material_channel(context, "SPECULAR")
 
-    if texture_set_settings.roughness_channel_toggle == True:
+def update_roughness_channel_toggle(self, context):
+    if self.roughness_channel_toggle == True:
         material_channel_nodes.connect_material_channel(context, "ROUGHNESS")
     else:
         material_channel_nodes.disconnect_material_channel(context, "ROUGHNESS")
 
 def update_normal_channel_toggle(self, context):
-    texture_set_settings = context.scene.coater_texture_set_settings
-
-    if texture_set_settings.normal_channel_toggle == True:
+    if self.normal_channel_toggle == True:
         material_channel_nodes.connect_material_channel(context, "NORMAL")
     else:
         material_channel_nodes.disconnect_material_channel(context, "NORMAL")
 
 def update_height_channel_toggle(self, context):
-    texture_set_settings = context.scene.coater_texture_set_settings
-
-    if texture_set_settings.height_channel_toggle == True:
+    if self.height_channel_toggle == True:
         material_channel_nodes.connect_material_channel(context, "HEIGHT")
     else:
         material_channel_nodes.disconnect_material_channel(context, "HEIGHT")
 
-def update_scattering_channel_toggle(self, context):
-    texture_set_settings = context.scene.coater_texture_set_settings
-
-    if texture_set_settings.scattering_channel_toggle == True:
-        material_channel_nodes.connect_material_channel(context, "SCATTERING")
-    else:
-        material_channel_nodes.disconnect_material_channel(context, "SCATTERING")
-
 def update_emission_channel_toggle(self, context):
-    texture_set_settings = context.scene.coater_texture_set_settings
-
-    if texture_set_settings.emission_channel_toggle == True:
+    if self.emission_channel_toggle == True:
         material_channel_nodes.connect_material_channel(context, "EMISSION")
     else:
         material_channel_nodes.disconnect_material_channel(context, "EMISSION")
 
-class COATER_texture_set_settings(bpy.types.PropertyGroup):
-    image_width: bpy.props.EnumProperty(
-        items=[('FIVE_TWELVE', "512", ""),
-               ('ONEK', "1024", ""),
-               ('TWOK', "2048", ""),
-               ('FOURK', "4096", "")],
-        name="Image Width",
-        description="Image size for the new image.",
-        default='TWOK',
-        update=update_image_width
-    )
+class GlobalMaterialChannelToggles(PropertyGroup):
+    '''A boolean toggle for each material channel to toggle it off / on for all layers.'''
+    color_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the color material channel for this layer", update=update_color_channel_toggle)
+    subsurface_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the subsurface material channel for this layer", update=update_subsurface_channel_toggle)
+    subsurface_color_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the subsurface color material channel for this layer.", update=update_subsurface_color_channel_toggle)
+    metallic_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the metallic material channel for this layer", update=update_metallic_channel_toggle)
+    specular_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the specular material channel for this layer.", update=update_specular_channel_toggle)
+    roughness_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the roughness material channel for this layer", update=update_roughness_channel_toggle)
+    emission_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the emission material channel for this layer", update=update_emission_channel_toggle)
+    normal_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the normal material channel for this layer", update=update_normal_channel_toggle)
+    height_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the height material channel for this layer", update=update_height_channel_toggle)
 
-    image_height: bpy.props.EnumProperty(
-        items=[('FIVE_TWELVE', "512", ""),
-               ('ONEK', "1024", ""),
-               ('TWOK', "2048", ""),
-               ('FOURK', "4096", "")],
-        name="Image Height",
-        description="Image size for the new image.",
-        default='TWOK'
-    )
-
-    layer_folder: bpy.props.StringProperty(default="", description="Path to folder location where layer images are saved", name="Image Layer Folder Path")
-    match_image_resolution: bpy.props.BoolProperty(name="Match Image Resolution", description="When toggled on, the image width and height will be synced", default=True, update=update_match_image_resolution)
-    thirty_two_bit: bpy.props.BoolProperty(name="32 Bit", description="When toggled on, images created using Coater will be created with 32 bit color depth. Images will take up more memory, but will have significantly less color banding from gradients", default=True)
-
-    # Material Channel Toggles (for turning on / off material channels)
-    material_channel_toggles: bpy.props.PointerProperty(type=MaterialChannelToggles)
-    color_channel_toggle: bpy.props.BoolProperty(default=True, update=update_color_channel_toggle)
-    metallic_channel_toggle: bpy.props.BoolProperty(default=True, update=update_metallic_channel_toggle)
-    roughness_channel_toggle: bpy.props.BoolProperty(default=True, update=update_roughness_channel_toggle)
-    normal_channel_toggle: bpy.props.BoolProperty(default=True, update=update_normal_channel_toggle)
-    height_channel_toggle: bpy.props.BoolProperty(default=True, update=update_height_channel_toggle)
-    scattering_channel_toggle: bpy.props.BoolProperty(default=False, update=update_scattering_channel_toggle)
-    emission_channel_toggle: bpy.props.BoolProperty(default=False, update=update_emission_channel_toggle)
+class COATER_texture_set_settings(PropertyGroup):
+    image_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Width", description="Image width in pixels for the new image.", default='TWOK', update=update_image_width)
+    image_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Height", description="Image height in pixels for the new image.", default='TWOK')
+    layer_folder: StringProperty(default="", description="Path to folder location where layer images are saved", name="Image Layer Folder Path")
+    match_image_resolution: BoolProperty(name="Match Image Resolution", description="When toggled on, the image width and height will be matched", default=True, update=update_match_image_resolution)
+    thirty_two_bit: BoolProperty(name="32 Bit", description="When toggled on, images created using Coater will be created with 32 bit color depth. Images will take up more memory, but will have significantly less color banding in gradients", default=True)
+    global_material_channel_toggles: PointerProperty(type=GlobalMaterialChannelToggles, description="Toggles for each material channel that toggle them on / off for all layers.")
