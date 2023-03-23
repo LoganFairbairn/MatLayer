@@ -54,34 +54,37 @@ class COATER_OT_add_layer_image(Operator):
         layer_index = context.scene.coater_layer_stack.layer_index
 
         # Assign the new image the layer name + a random image id number.
-        # TODO: Investigate for a better way to grab a unique id number for the image here.
         layer_name = layers[layer_index].name.replace(" ", "")
         image_name = layer_name + "_" + get_random_image_id()
         while bpy.data.images.get(image_name) != None:
             image_name = layer_name + "_" + get_random_image_id()
 
         # Create a new image of the texture size defined in the texture set settings.
-        # TODO: Use a match case statement here?
         texture_set_settings = context.scene.coater_texture_set_settings
-        image_width = 128
-        if texture_set_settings.image_width == 'FIVE_TWELVE':
-            image_width = 512
-        if texture_set_settings.image_width == 'ONEK':
-            image_width = 1024
-        if texture_set_settings.image_width == 'TWOK':
-            image_width = 2048
-        if texture_set_settings.image_width == 'FOURK':
-            image_width = 4096
+        match texture_set_settings.image_width:
+            case 'FIVE_TWELVE':
+                image_width = 512
+            case 'ONEK':
+                image_width = 1024
+            case'TWOK':
+                image_width = 2048
+            case 'FOURK':
+                image_width = 4096
+            case _:
+                image_width = 2048
 
         image_height = 128
-        if texture_set_settings.image_height == 'FIVE_TWELVE':
-            image_height = 512
-        if texture_set_settings.image_height == 'ONEK':
-            image_height = 1024
-        if texture_set_settings.image_height == 'TWOK':
-            image_height = 2048
-        if texture_set_settings.image_height == 'FOURK':
-            image_height = 4096
+        match texture_set_settings.image_height:
+            case 'FIVE_TWELVE':
+                image_height = 512
+            case 'ONEK':
+                image_height = 1024
+            case 'TWOK':
+                image_height = 2048
+            case 'FOURK':
+                image_height = 4096
+            case _:
+                image_width = 2048
 
         image = bpy.ops.image.new(name=image_name,
                                   width=image_width,
@@ -101,6 +104,9 @@ class COATER_OT_add_layer_image(Operator):
         texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel_name, selected_layer_index, context)
         if texture_node:
             texture_node.image = bpy.data.images[image_name]
+
+        # Select the new texture for painting.
+        context.scene.tool_settings.image_paint.canvas = texture_node.image
         
         return {'FINISHED'}
 
