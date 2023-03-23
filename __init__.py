@@ -57,9 +57,6 @@ from .ui.coater_ui import *
 from .ui.popup_add_mask import *
 from .ui.ui_layer_stack import *
 
-# Import extra feature modules.
-from .extra_features.apply_color_grid import COATER_OT_apply_color_grid
-
 bl_info = {
     "name": "Coater",
     "author": "Logan Fairbairn (Ryver)",
@@ -157,8 +154,7 @@ classes = (
     COATER_OT_swap_primary_color,
     
     # Misc functions
-    COATER_OT_image_editor_export,
-    COATER_OT_apply_color_grid,
+    COATER_OT_image_editor_export
 )
 
 # Refreshes the layer stack when a different object is selected.
