@@ -82,7 +82,6 @@ def update_hidden(self, context):
 
 #----------------------------- UPDATE PROJECTION SETTINGS -----------------------------#
 
-# TODO: Update this projection.
 def update_layer_projection(self, context):
     '''Changes the layer projection by reconnecting nodes.'''
     layers = context.scene.coater_layers
@@ -476,7 +475,7 @@ def update_color_channel_node_type(self, context):
 def update_subsurface_channel_node_type(self, context):
     replace_texture_node(self.subsurface_node_type, "SUBSURFACE", self, context)
 
-def update_subsurface_channel_node_type(self, context):
+def update_subsurface_color_channel_node_type(self, context):
     replace_texture_node(self.subsurface_color_node_type, "SUBSURFACE_COLOR", self, context)
 
 def update_specular_channel_node_type(self, context):
@@ -516,7 +515,7 @@ class MaterialChannelNodeType(PropertyGroup):
     '''An enum node type for the material node used to represent the material channel texture in every material channel.'''
     color_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Color Channel Node Type", description="The node type for the color channel", default='COLOR', update=update_color_channel_node_type)
     subsurface_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Subsurface Scattering Channel Node Type", description="The node type for the subsurface scattering channel", default='VALUE', update=update_subsurface_channel_node_type)
-    subsurface_color_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Subsurface Scattering Color Channel Node Type", description="The node type for the subsurface scattering color channel", default='COLOR', update=update_subsurface_channel_node_type)
+    subsurface_color_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Subsurface Scattering Color Channel Node Type", description="The node type for the subsurface scattering color channel", default='COLOR', update=update_subsurface_color_channel_node_type)
     metallic_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Metallic Channel Node Type", description="The node type for the metallic channel", default='VALUE', update=update_metallic_channel_node_type)
     specular_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Specular Channel Node Type", description="The node type for the specular channel", default='VALUE', update=update_specular_channel_node_type)
     roughness_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Roughness Channel Node Type", description="The node type for roughness channel", default='VALUE', update=update_roughness_channel_node_type)
