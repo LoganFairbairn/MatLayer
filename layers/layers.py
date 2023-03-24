@@ -66,37 +66,19 @@ def update_layer_opacity(self, context):
 
 def update_hidden(self, context):
     '''Hide or unhide layers.'''
-    selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
-    material_channel_names = material_channel_nodes.get_material_channel_list()
-
+    material_channel_list = material_channel_nodes.get_material_channel_list()
+    
     # Hide selected layer by muting all nodes within the layer.
     if self.hidden:
-        for material_channel in material_channel_names:
+        for material_channel in material_channel_list:
             layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, material_channel, context)
 
     # Unhide the selected layer by unmuting all active layers.
     else:
-        for material_channel in material_channel_names:
-            if material_channel == "COLOR" and self.color_channel_toggle:
-                layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "COLOR", context)
-
-            if material_channel == "METALLIC" and self.metallic_channel_toggle:
-                layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "METALLIC", context)
-
-            if material_channel == "ROUGHNESS" and self.roughness_channel_toggle:
-                layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "ROUGHNESS", context)
-
-            if material_channel == "NORMAL" and self.normal_channel_toggle:
-                layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "NORMAL", context)
-
-            if material_channel == "HEIGHT" and self.height_channel_toggle:
-                layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "HEIGHT", context)
-
-            if material_channel == "SCATTERING" and self.scattering_channel_toggle:
-                layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, "SCATTERING", context)
-
-            if material_channel == "EMISSION" and self.emission_channel_toggle:
-                layer_nodes.mute_layer_material_channel(True, self.layer_stack_array_index, "EMISSION", context)
+        for material_channel_name in material_channel_list:
+            material_channel_active = getattr(self.material_channel_toggles, material_channel_name.lower() + "_channel_toggle")
+            if material_channel_active:
+                layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, material_channel_name, context)
 
 #----------------------------- UPDATE PROJECTION SETTINGS -----------------------------#
 
@@ -292,7 +274,6 @@ def update_emission_channel_toggle(self, context):
 #----------------------------- UPDATE LAYER PREVIEW COLORS -----------------------------#
 # To show values as uniform colors, color preview values are stored per layer as displaying them as a property through the ui required them to be stored somewhere.
 # When these values which are displayed in the ui are updated, they automatically update their respective color / value nodes in the node tree through these functions.
-
 
 def update_color_channel_color(self, context):
     thing = self
