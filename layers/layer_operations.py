@@ -472,30 +472,37 @@ class COATER_OT_merge_layer(Operator):
 
 #----------------------------- READING / REFRESHING LAYER PROPERTIES -----------------------------#
 
-def read_layer_texture_node_type(texture_node, layer, material_channel):
+def read_layer_texture_node_type(texture_node, layer, material_channel_name):
     '''Reads the node type from the material node tree and updates the node in the corrosponding layer.'''
-    # TODO: This can probably be updated to be significantly more effective if the variables for texture node types were stored in an array / collection.
     match texture_node.type:
         case 'VALUE':
-            match material_channel:
-                case 'COLOR':
-                    layer.color_texture_node_type = 'VALUE'
+            setattr(layer.channel_node_types, material_channel_name.lower() + "_node_type", 'VALUE')
 
+        case 'RGB':
+            setattr(layer.channel_node_types, material_channel_name.lower() + "_node_type", 'COLOR')
 
-        #case 'RGB':
-        #    node_color = texture_node.outputs[0].default_value
-        #    print("This value: " + node_color)
-        #    layer.color_layer_color_preview = (node_color.r, node_color.g, node_color.b)
+        case 'GROUP':
+            setattr(layer.channel_node_types, material_channel_name.lower() + "_node_type", 'GROUP_NODE')
 
-        #case 'TEX_IMAGE':
+        case 'TEX_IMAGE':
+            setattr(layer.channel_node_types, material_channel_name.lower() + "_node_type", 'TEXTURE')
 
+        case 'TEX_NOISE':
+            setattr(layer.channel_node_types, material_channel_name.lower() + "_node_type", 'NOISE')
 
-        #case 'TEX_NOISE':
+        case 'TEX_MUSGRAVE':
+            setattr(layer.channel_node_types, material_channel_name.lower() + "_node_type", 'MUSGRAVE')
 
+        case 'TEX_VORONOI':
+            setattr(layer.channel_node_types, material_channel_name.lower() + "_node_type", 'VORONOI')
 
-        #case 'TEX_MUSGRAVE':
-
-        #case 'TEX_VORONOI':
+'''
+def read_active_material_channel():
+    node_links = context.active_object.active_material.node_tree.links
+    for l in node_links:
+        if link.from_node == 
+        print("Link: " + str(l.from_node))
+'''
 
 class COATER_OT_refresh_layer_nodes(Operator):
     bl_idname = "coater.refresh_layer_nodes"
@@ -531,29 +538,33 @@ class COATER_OT_refresh_layer_nodes(Operator):
             opacity_node = layer_nodes.get_layer_node('OPACITY', selected_material_channel, i, context)
             layers[i].opacity = opacity_node.inputs[1].default_value
 
+        # TODO: Read the material tree for globally disabled material channels (material channel is disconnected).
+        #read_active_material_channel()
+
         # TODO: Read the texture node type and node values then update the properties stored within the layer.
-        material_channels = material_channel_nodes.get_material_channel_list()
-        for material_channel_name in material_channels:
+        material_channel_list = material_channel_nodes.get_material_channel_list()
+        for material_channel_name in material_channel_list:
             for i in range(total_number_of_layers):
                 texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, i, context)
-                read_layer_texture_node_type(texture_node, layers[i], material_channel_name, )
 
-                
-
-
-
-
+                read_layer_texture_node_type(texture_node, layers[i], material_channel_name)
                         
-                # TODO: Read the layer color values (for rgb color nodes).
-                #if texture_node.type == 'RGB':
-                #layers[i].color_channel_toggle = texture_node.outputs[0].default_value
+                # Read the layer color values (for rgb color nodes).
+                if texture_node.type == 'RGB':
+                    color = texture_node.outputs[0].default_value
+                    setattr(layers[i].color_channel_values, material_channel_name.lower() + "_channel_color", (color.r, color.g, color.b, 1))
 
-                # TODO: Read the uniform values (for single value nodes).
+                # Read the uniform values (for single value nodes).
+                if texture_node.type == 'VALUE':
+                    setattr(layers[i].uniform_channel_values, "uniform_" + material_channel_name.lower() + "_value", texture_node.outputs[0].default_value)
+
+                # TODO: Read the material tree for hidden layer channels (muted channels).
+                #if texture_node.muted
 
                 # TODO: Read the layer projection values.
+                mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, i, context)
 
 
-                # TODO: Read the material tree and search for muted channels or hidden layers (for muted layers all nodes on a layer for all channels will be muted).
 
         # Organize all layer nodes.
         #layer_nodes.organize_all_coater_materials(context)

@@ -11,7 +11,7 @@ MATERIAL_CHANNEL_NAMES = ("COLOR", "SUBSURFACE", "SUBSURFACE_COLOR", "METALLIC",
 MATERIAL_CHANNELS = [
     ("COLOR", "Color", ""), 
     ("SUBSURFACE", "Subsurface", ""),
-    ("SUBSURFACE COLOR", "Subsurface Color", ""),
+    ("SUBSURFACE_COLOR", "Subsurface Color", ""),
     ("METALLIC", "Metallic", ""),
     ("SPECULAR", "Specular", ""),
     ("ROUGHNESS", "Roughness", ""),

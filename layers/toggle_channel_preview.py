@@ -14,7 +14,6 @@ class COATER_OT_toggle_channel_preview(Operator):
         material_nodes = context.active_object.active_material.node_tree.nodes
 
         node_links = context.active_object.active_material.node_tree.links
-
         
         emission_node = material_nodes.get('Emission')
         material_output_node = material_nodes.get('Material Output')
@@ -24,6 +23,7 @@ class COATER_OT_toggle_channel_preview(Operator):
             layer_stack.material_channel_preview = False
 
             principled_bsdf_node = material_nodes.get('Principled BSDF')
+            mix_normal_maps_node = material_nodes.get('COATER_NORMALMIX')
 
             # Disconnect everything.
             for l in node_links:
@@ -31,32 +31,46 @@ class COATER_OT_toggle_channel_preview(Operator):
 
             # Connect principled BSDF to material output.
             node_links.new(principled_bsdf_node.outputs[0], material_output_node.inputs[0])
-            
+
             # Connect all active material channels.
-            if texture_set_settings.color_channel_toggle:
+            if texture_set_settings.global_material_channel_toggles.color_channel_toggle:
                 material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
                 node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[0])
 
-            if texture_set_settings.metallic_channel_toggle:
+            if texture_set_settings.global_material_channel_toggles.subsurface_channel_toggle:
+                material_channel_node = material_channel_nodes.get_material_channel_node(context, "SUBSURFACE")
+                node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[1])
+
+            if texture_set_settings.global_material_channel_toggles.subsurface_color_channel_toggle:
+                material_channel_node = material_channel_nodes.get_material_channel_node(context, "SUBSURFACE_COLOR")
+                node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[3])
+
+            if texture_set_settings.global_material_channel_toggles.metallic_channel_toggle:
                 material_channel_node = material_channel_nodes.get_material_channel_node(context, "METALLIC")
                 node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[6])
 
-            if texture_set_settings.roughness_channel_toggle:
+            if texture_set_settings.global_material_channel_toggles.specular_channel_toggle:
+                material_channel_node = material_channel_nodes.get_material_channel_node(context, "SPECULAR")
+                node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[7])
+
+            if texture_set_settings.global_material_channel_toggles.roughness_channel_toggle:
                 material_channel_node = material_channel_nodes.get_material_channel_node(context, "ROUGHNESS")
                 node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[9])
 
-            if texture_set_settings.normal_channel_toggle:
-                material_channel_node = material_channel_nodes.get_material_channel_node(context, "NORMAL")
-                node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[22])
-
-            if texture_set_settings.emission_channel_toggle:
+            if texture_set_settings.global_material_channel_toggles.emission_channel_toggle:
                 material_channel_node = material_channel_nodes.get_material_channel_node(context, "EMISSION")
                 node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[19])
 
-            if texture_set_settings.scattering_channel_toggle:
-                material_channel_node = material_channel_nodes.get_material_channel_node(context, "SCATTERING")
-                node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[3])
+            if texture_set_settings.global_material_channel_toggles.normal_channel_toggle:
+                material_channel_node = material_channel_nodes.get_material_channel_node(context, "NORMAL")
+                node_links.new(material_channel_node.outputs[0], mix_normal_maps_node.inputs[0])
 
+            if texture_set_settings.global_material_channel_toggles.height_channel_toggle:
+                material_channel_node = material_channel_nodes.get_material_channel_node(context, "HEIGHT")
+                node_links.new(material_channel_node.outputs[0], mix_normal_maps_node.inputs[1])
+
+            # Re-connect the normal mix node to the principled bsdf shader.
+            node_links.new(mix_normal_maps_node.outputs[0], principled_bsdf_node.inputs[22])
 
         # Toggle material channel preview on.
         else:
@@ -69,7 +83,6 @@ class COATER_OT_toggle_channel_preview(Operator):
             # Connect the selected material channel to the emission node to preview the material channel.
             selected_material_channel_node = material_channel_nodes.get_material_channel_node(context, selected_material_channel)
             node_links.new(selected_material_channel_node.outputs[0], emission_node.inputs[0])
-
             node_links.new(emission_node.outputs[0], material_output_node.inputs[0])
             
             
