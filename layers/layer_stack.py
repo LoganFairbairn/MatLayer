@@ -5,6 +5,7 @@ from bpy.types import PropertyGroup
 from . import material_channel_nodes
 from . import layer_nodes
 from .layer_filters import refresh_filter_stack
+from .toggle_channel_preview import toggle_material_channel_preview
 
 MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", "EMISSION", "SCATTERING")
 
@@ -18,6 +19,10 @@ def update_selected_material_channel(self, context):
         opacity_node = layer_nodes.get_layer_node("OPACITY", selected_material_channel, i, context)
         if opacity_node:
             layers[i].opacity = opacity_node.inputs[1].default_value
+
+    # If the material channel preview is on, update the material channel preview.
+    if context.scene.coater_layer_stack.material_channel_preview == True:
+        toggle_material_channel_preview(True, context)
 
 def update_layer_index(self, context):
     '''Updates stuff when the selected layer is changed.'''
@@ -54,7 +59,7 @@ class COATER_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''
     # TODO: Rename this variable to selected_layer_index to make it more apparent this is the selected layer index.
     layer_index: bpy.props.IntProperty(default=-1, update=update_layer_index)
-    material_channel_preview: bpy.props.BoolProperty(name="", default=False)
+    material_channel_preview: bpy.props.BoolProperty(name="Material Channel Preview", description="If true, only the rgb output values for the selected material channel will be used on the object.", default=False)
     node_default_width: bpy.props.IntProperty(default=250)
     node_spacing: bpy.props.IntProperty(default=80)
     selected_material_channel: bpy.props.EnumProperty(items=material_channel_nodes.MATERIAL_CHANNELS, name="Material Channel", description="The currently selected material channel", default='COLOR', update=update_selected_material_channel)
