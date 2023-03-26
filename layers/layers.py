@@ -431,6 +431,9 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
 
         case "GROUP_NODE":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
+            empty_group_node = bpy.data.node_groups['COATER_EMPTY']
+            if not empty_group_node:
+                material_channel_nodes.create_empty_group_node(context)
             texture_node.node_tree = bpy.data.node_groups['COATER_EMPTY']
 
         case "NOISE":
