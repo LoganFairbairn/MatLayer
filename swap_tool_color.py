@@ -17,9 +17,9 @@
 
 import bpy
 
-class COATER_OT_swap_primary_color(bpy.types.Operator):
+class MATLAY_OT_swap_primary_color(bpy.types.Operator):
     '''Swaps the primary color with the secondary color'''
-    bl_idname = "coater.swap_primary_color"
+    bl_idname = "matlay.swap_primary_color"
     bl_label = ""
     bl_description = "Swaps the primary color with the secondary color."
 

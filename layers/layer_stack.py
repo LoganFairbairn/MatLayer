@@ -11,8 +11,8 @@ MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", 
 
 def update_selected_material_channel(self, context):
     '''Updates values when the selected material channel is updated.'''
-    layers = context.scene.coater_layers
-    selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+    layers = context.scene.matlay_layers
+    selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
 
     # Update the opacity and blend mode for all layers.
     for i in range(0, len(layers)):
@@ -21,18 +21,18 @@ def update_selected_material_channel(self, context):
             layers[i].opacity = opacity_node.inputs[1].default_value
 
     # If the material channel preview is on, update the material channel preview.
-    if context.scene.coater_layer_stack.material_channel_preview == True:
+    if context.scene.matlay_layer_stack.material_channel_preview == True:
         toggle_material_channel_preview(True, context)
 
 def update_layer_index(self, context):
     '''Updates stuff when the selected layer is changed.'''
 
     # Update the ui to display material layer properties.
-    context.scene.coater_layer_stack.layer_property_tab = 'MATERIAL'
+    context.scene.matlay_layer_stack.layer_property_tab = 'MATERIAL'
 
     # Select an the texture image for the selected material channel in the selected layer.
-    selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
     bpy.context.scene.tool_settings.image_paint.mode = 'IMAGE'
     texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
@@ -49,13 +49,13 @@ def update_layer_index(self, context):
 
 def verify_layer_stack_index(layer_stack_index, context):
     '''Verifies the given layer stack index exists.'''
-    layers = context.scene.coater_layers
+    layers = context.scene.matlay_layers
     if layer_stack_index <= len(layers) - 1 and layer_stack_index >= 0:
         return True
     else:
         return False
 
-class COATER_layer_stack(PropertyGroup):
+class MATLAY_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''
     # TODO: Rename this variable to selected_layer_index to make it more apparent this is the selected layer index.
     layer_index: bpy.props.IntProperty(default=-1, update=update_layer_index)

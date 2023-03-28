@@ -3,8 +3,8 @@
 import bpy
 from bpy.types import Operator
 
-class COATER_OT_bake_thickness(Operator):
-    bl_idname = "coater.bake_thickness"
+class MATLAY_OT_bake_thickness(Operator):
+    bl_idname = "matlay.bake_thickness"
     bl_label = "Bake Thickness"
 
     @ classmethod

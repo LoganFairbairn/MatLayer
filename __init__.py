@@ -13,56 +13,56 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# This file imports and registers all required modules for Coater (Blender add-on).
+# This file imports and registers all required modules for MatLay (Blender add-on).
 
 import bpy
 import bpy.utils.previews       # Imported for loading texture previews as icons.
 from bpy.app.handlers import persistent
 
 # Import texture set modules.
-from .texture_handling.texture_set_settings import COATER_texture_set_settings, GlobalMaterialChannelToggles
+from .texture_handling.texture_set_settings import MATLAY_texture_set_settings, GlobalMaterialChannelToggles
 
 # Import layer related modules.
 from .layers.layers import *
 from .layers.layer_stack import *
-from .layers.toggle_channel_preview import COATER_OT_toggle_channel_preview
+from .layers.toggle_channel_preview import MATLAY_OT_toggle_channel_preview
 
 # Import layer masking modules.
-from .layers.layer_masks import COATER_mask_stack, COATER_UL_mask_stack, COATER_masks, COATER_OT_open_mask_settings, COATER_OT_add_mask, COATER_OT_delete_layer_mask, COATER_OT_move_layer_mask_up, COATER_OT_move_layer_mask_down, COATER_OT_add_layer_mask_filter_menu, COATER_OT_add_mask_filter_invert, COATER_OT_add_mask_filter_levels
+from .layers.layer_masks import MATLAY_mask_stack, MATLAY_UL_mask_stack, MATLAY_masks, MATLAY_OT_open_mask_settings, MATLAY_OT_add_mask, MATLAY_OT_delete_layer_mask, MATLAY_OT_move_layer_mask_up, MATLAY_OT_move_layer_mask_down, MATLAY_OT_add_layer_mask_filter_menu, MATLAY_OT_add_mask_filter_invert, MATLAY_OT_add_mask_filter_levels
 
 # Import filter modules.
-from .layers.layer_filters import COATER_layer_filter_stack, COATER_UL_layer_filter_stack, COATER_layer_filters, COATER_OT_add_layer_filter_menu, COATER_OT_add_layer_filter_rgb_curves, COATER_OT_add_layer_filter_hsv, COATER_OT_add_layer_filter_invert, COATER_OT_add_layer_filter_levels, COATER_OT_delete_layer_filter, COATER_OT_move_layer_filter_up, COATER_OT_move_layer_filter_down
+from .layers.layer_filters import MATLAY_layer_filter_stack, MATLAY_UL_layer_filter_stack, MATLAY_layer_filters, MATLAY_OT_add_layer_filter_menu, MATLAY_OT_add_layer_filter_rgb_curves, MATLAY_OT_add_layer_filter_hsv, MATLAY_OT_add_layer_filter_invert, MATLAY_OT_add_layer_filter_levels, MATLAY_OT_delete_layer_filter, MATLAY_OT_move_layer_filter_up, MATLAY_OT_move_layer_filter_down
 
 # Import layer operations.
 from .layers.layer_operations import *
 
 # Import baking modules.
-from .baking.baking_settings import COATER_baking_settings
-from .baking.bake_ambient_occlusion import COATER_OT_bake_ambient_occlusion, COATER_OT_delete_ao_map
-from .baking.bake_curvature import COATER_OT_bake_curvature, COATER_OT_delete_curvature_map
-from .baking.bake_thickness import COATER_OT_bake_thickness
+from .baking.baking_settings import MATLAY_baking_settings
+from .baking.bake_ambient_occlusion import MATLAY_OT_bake_ambient_occlusion, MATLAY_OT_delete_ao_map
+from .baking.bake_curvature import MATLAY_OT_bake_curvature, MATLAY_OT_delete_curvature_map
+from .baking.bake_thickness import MATLAY_OT_bake_thickness
 from .baking.bake_functions import *
 
 # Import exporting modules.
-from .exporting.coater_export import *
+from .exporting.matlay_export import *
 from .exporting.export_to_image_editor import *
-from .exporting.exporting_settings import COATER_exporting_settings
+from .exporting.exporting_settings import MATLAY_exporting_settings
 
 # Import tool / utility modules.
-from .texture_handling.image_file_handling import COATER_OT_add_layer_image, COATER_OT_delete_layer_image, COATER_OT_import_texture, COATER_OT_import_mask_image
+from .texture_handling.image_file_handling import MATLAY_OT_add_layer_image, MATLAY_OT_delete_layer_image, MATLAY_OT_import_texture, MATLAY_OT_import_mask_image
 from .swap_tool_color import *
 
 # Import user interface modules.
-from .ui.coater_ui import *
+from .ui.matlay_ui import *
 from .ui.popup_add_mask import *
 from .ui.ui_layer_stack import *
 
 bl_info = {
-    "name": "Coater",
+    "name": "MatLay",
     "author": "Logan Fairbairn (Ryver)",
     "version": (0, 86),
     "blender": (3, 4, 1),
-    "location": "View3D > Sidebar > Coater",
+    "location": "View3D > Sidebar > MatLay",
     "description": "Replaces node based texturing workflow with a layer stack workflow.",
     "warning": "",
     "doc_url": "",
@@ -72,24 +72,24 @@ bl_info = {
 # List of classes to be registered.
 classes = (
     # Baking
-    COATER_baking_settings,
-    COATER_OT_bake,
-    COATER_OT_bake_ambient_occlusion,
-    COATER_OT_delete_ao_map,
-    COATER_OT_bake_curvature,
-    COATER_OT_delete_curvature_map,
-    COATER_OT_bake_thickness,
+    MATLAY_baking_settings,
+    MATLAY_OT_bake,
+    MATLAY_OT_bake_ambient_occlusion,
+    MATLAY_OT_delete_ao_map,
+    MATLAY_OT_bake_curvature,
+    MATLAY_OT_delete_curvature_map,
+    MATLAY_OT_bake_thickness,
 
     # Exporting
-    COATER_exporting_settings,
-    COATER_OT_export,
-    COATER_OT_export_base_color,
-    COATER_OT_export_metallic,
-    COATER_OT_export_roughness,
-    COATER_OT_export_normals,
-    COATER_OT_export_height,
-    COATER_OT_export_emission,
-    COATER_OT_export_scattering,
+    MATLAY_exporting_settings,
+    MATLAY_OT_export,
+    MATLAY_OT_export_base_color,
+    MATLAY_OT_export_metallic,
+    MATLAY_OT_export_roughness,
+    MATLAY_OT_export_normals,
+    MATLAY_OT_export_height,
+    MATLAY_OT_export_emission,
+    MATLAY_OT_export_scattering,
 
     # Layers
     MaterialChannelToggles,
@@ -97,76 +97,76 @@ classes = (
     ProjectionSettings,
     MaterialChannelColors,
     MaterialChannelUniformValues,
-    COATER_layer_stack,
-    COATER_layers,
+    MATLAY_layer_stack,
+    MATLAY_layers,
 
     # Masks
-    COATER_mask_stack,
-    COATER_UL_mask_stack,
-    COATER_masks,
-    COATER_OT_open_mask_settings,
-    COATER_OT_add_mask,
-    COATER_OT_delete_layer_mask,
-    COATER_OT_move_layer_mask_up, 
-    COATER_OT_move_layer_mask_down,
-    COATER_OT_import_mask_image,
-    COATER_OT_add_layer_mask_filter_menu,
-    COATER_OT_add_mask_filter_invert,
-    COATER_OT_add_mask_filter_levels,
+    MATLAY_mask_stack,
+    MATLAY_UL_mask_stack,
+    MATLAY_masks,
+    MATLAY_OT_open_mask_settings,
+    MATLAY_OT_add_mask,
+    MATLAY_OT_delete_layer_mask,
+    MATLAY_OT_move_layer_mask_up, 
+    MATLAY_OT_move_layer_mask_down,
+    MATLAY_OT_import_mask_image,
+    MATLAY_OT_add_layer_mask_filter_menu,
+    MATLAY_OT_add_mask_filter_invert,
+    MATLAY_OT_add_mask_filter_levels,
 
     # Filters
-    COATER_layer_filter_stack, 
-    COATER_UL_layer_filter_stack, 
-    COATER_layer_filters,
-    COATER_OT_add_layer_filter_rgb_curves,
-    COATER_OT_add_layer_filter_hsv,
-    COATER_OT_add_layer_filter_invert,
-    COATER_OT_add_layer_filter_levels,
-    COATER_OT_delete_layer_filter,
-    COATER_OT_move_layer_filter_up,
-    COATER_OT_move_layer_filter_down,
-    COATER_OT_add_mask_menu,
-    COATER_OT_add_layer_filter_menu,
+    MATLAY_layer_filter_stack, 
+    MATLAY_UL_layer_filter_stack, 
+    MATLAY_layer_filters,
+    MATLAY_OT_add_layer_filter_rgb_curves,
+    MATLAY_OT_add_layer_filter_hsv,
+    MATLAY_OT_add_layer_filter_invert,
+    MATLAY_OT_add_layer_filter_levels,
+    MATLAY_OT_delete_layer_filter,
+    MATLAY_OT_move_layer_filter_up,
+    MATLAY_OT_move_layer_filter_down,
+    MATLAY_OT_add_mask_menu,
+    MATLAY_OT_add_layer_filter_menu,
 
     # Layer Operations
-    COATER_UL_layer_list,
-    COATER_OT_add_layer,
-    COATER_OT_delete_layer,
-    COATER_OT_duplicate_layer,
-    COATER_OT_merge_layer,
-    COATER_OT_move_layer_up,
-    COATER_OT_move_layer_down,
-    COATER_OT_toggle_channel_preview,
-    COATER_OT_import_texture,
-    COATER_OT_refresh_layer_nodes,
-    COATER_OT_add_layer_image,
-    COATER_OT_delete_layer_image,
+    MATLAY_UL_layer_list,
+    MATLAY_OT_add_layer,
+    MATLAY_OT_delete_layer,
+    MATLAY_OT_duplicate_layer,
+    MATLAY_OT_merge_layer,
+    MATLAY_OT_move_layer_up,
+    MATLAY_OT_move_layer_down,
+    MATLAY_OT_toggle_channel_preview,
+    MATLAY_OT_import_texture,
+    MATLAY_OT_refresh_layer_nodes,
+    MATLAY_OT_add_layer_image,
+    MATLAY_OT_delete_layer_image,
 
     # Texture Set Settings
     GlobalMaterialChannelToggles,
-    COATER_texture_set_settings,
+    MATLAY_texture_set_settings,
 
     # Main Panel & General Settings
-    COATER_panel_properties,
-    COATER_PT_Panel,
+    MATLAY_panel_properties,
+    MATLAY_PT_Panel,
 
     # Color Swap
-    COATER_OT_swap_primary_color,
+    MATLAY_OT_swap_primary_color,
     
     # Misc functions
-    COATER_OT_image_editor_export
+    MATLAY_OT_image_editor_export
 )
 
 # Refreshes the layer stack when a different object is selected.
 def obj_selected_callback():
     '''Triggers a layer stack refresh when the selected object changes.'''
-    bpy.ops.coater.refresh_layer_nodes()
+    bpy.ops.matlay.refresh_layer_nodes()
 
 @persistent
 def load_handler(dummy):
     subscribe_to = bpy.types.LayerObjects, "active"
-    bpy.types.Scene.coater_object_selection_updater = object()
-    bpy.msgbus.subscribe_rna(key=subscribe_to, owner=bpy.types.Scene.coater_object_selection_updater, args=(), notify=obj_selected_callback)
+    bpy.types.Scene.matlay_object_selection_updater = object()
+    bpy.msgbus.subscribe_rna(key=subscribe_to, owner=bpy.types.Scene.matlay_object_selection_updater, args=(), notify=obj_selected_callback)
 
 bpy.app.handlers.load_post.append(load_handler)
 
@@ -179,24 +179,24 @@ def register():
         bpy.utils.register_class(cls)
 
     # Panel Properties
-    bpy.types.Scene.coater_panel_properties = bpy.props.PointerProperty(type=COATER_panel_properties)
+    bpy.types.Scene.matlay_panel_properties = bpy.props.PointerProperty(type=MATLAY_panel_properties)
 
     # Layer Properties
-    bpy.types.Scene.coater_layer_stack = bpy.props.PointerProperty(type=COATER_layer_stack)
-    bpy.types.Scene.coater_layers = bpy.props.CollectionProperty(type=COATER_layers)
+    bpy.types.Scene.matlay_layer_stack = bpy.props.PointerProperty(type=MATLAY_layer_stack)
+    bpy.types.Scene.matlay_layers = bpy.props.CollectionProperty(type=MATLAY_layers)
 
     # Layer Mask Properites
-    bpy.types.Scene.coater_mask_stack = bpy.props.PointerProperty(type=COATER_mask_stack)
-    bpy.types.Scene.coater_masks = bpy.props.CollectionProperty(type=COATER_masks)
+    bpy.types.Scene.matlay_mask_stack = bpy.props.PointerProperty(type=MATLAY_mask_stack)
+    bpy.types.Scene.matlay_masks = bpy.props.CollectionProperty(type=MATLAY_masks)
 
     # Layer Filter Properties
-    bpy.types.Scene.coater_layer_filter_stack = bpy.props.PointerProperty(type=COATER_layer_filter_stack)
-    bpy.types.Scene.coater_layer_filters = bpy.props.CollectionProperty(type=COATER_layer_filters)
+    bpy.types.Scene.matlay_layer_filter_stack = bpy.props.PointerProperty(type=MATLAY_layer_filter_stack)
+    bpy.types.Scene.matlay_layer_filters = bpy.props.CollectionProperty(type=MATLAY_layer_filters)
 
     # Settings
-    bpy.types.Scene.coater_texture_set_settings = bpy.props.PointerProperty(type=COATER_texture_set_settings)
-    bpy.types.Scene.coater_baking_settings = bpy.props.PointerProperty(type=COATER_baking_settings)
-    bpy.types.Scene.coater_export_settings = bpy.props.PointerProperty(type=COATER_exporting_settings)
+    bpy.types.Scene.matlay_texture_set_settings = bpy.props.PointerProperty(type=MATLAY_texture_set_settings)
+    bpy.types.Scene.matlay_baking_settings = bpy.props.PointerProperty(type=MATLAY_baking_settings)
+    bpy.types.Scene.matlay_export_settings = bpy.props.PointerProperty(type=MATLAY_exporting_settings)
 
     # Icons (for layer previews)
     bpy.types.Scene.preview_icons = bpy.utils.previews.new()

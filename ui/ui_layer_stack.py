@@ -1,4 +1,4 @@
-# This file handles the coater user interface.
+# This file handles the matlay user interface.
 
 import os
 import bpy
@@ -18,8 +18,8 @@ def draw_layer_hidden_icon(layout, item):
 
 # TODO: Do I need this? What the fuck is this?
 def select_layer_filter(layer_index, context):
-    context.scene.coater_layer_stack.layer_index = layer_index
-    context.scene.coater_layer_stack.layer_properties_tab = "MATERIAL"
+    context.scene.matlay_layer_stack.layer_index = layer_index
+    context.scene.matlay_layer_stack.layer_properties_tab = "MATERIAL"
 
 def draw_material_channel_preview(layout, item, selected_material_channel, context):
     '''Draws a preview of what the material will look like for the selected material channel.'''
@@ -74,7 +74,7 @@ def draw_layer_mask_preview(layout, item, selected_material_channel, context):
     if item.masked:
         row = layout.row(align=True)
         row.ui_units_x = 0.8
-        row.operator("coater.open_mask_settings", icon='MOD_MASK', text="", emboss=False)
+        row.operator("matlay.open_mask_settings", icon='MOD_MASK', text="", emboss=False)
 
 def draw_layer_name(layout, item):
     row = layout.row(align=True)
@@ -105,7 +105,7 @@ def draw_layer_blending(layout, item, selected_material_channel, context):
     if mix_layer_node:
         col.prop(mix_layer_node, "blend_type", text="")
 
-class COATER_UL_layer_list(bpy.types.UIList):
+class MATLAY_UL_layer_list(bpy.types.UIList):
     '''Draws the layer stack.'''
 
     def draw_item(self, context, layout, data, item, icon, active_data, index):
@@ -113,7 +113,7 @@ class COATER_UL_layer_list(bpy.types.UIList):
         self.use_filter_reverse = True
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+            selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
 
             if context.active_object.active_material:
                 draw_layer_hidden_icon(layout, item)

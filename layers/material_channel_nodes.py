@@ -74,7 +74,7 @@ def get_all_material_channel_nodes(context):
 
 def get_active_material_channel_nodes(context):
     '''Returns a list of all active material channel nodes.'''
-    texture_set_settings = context.scene.coater_texture_set_settings
+    texture_set_settings = context.scene.matlay_texture_set_settings
 
     active_material_channel_nodes = []
     if texture_set_settings.color_channel_toggle == True:
@@ -148,7 +148,7 @@ def remove_material_channel(context, channel):
 def create_channel_group_nodes(context):
     '''Creates group and secondary nodes (e.g normal map mixing nodes) for all active material channels.'''
     active_material = context.active_object.active_material
-    layer_stack = context.scene.coater_layer_stack
+    layer_stack = context.scene.matlay_layer_stack
 
     # Create color group node.
     color_group_node_name = active_material.name + "_COLOR"
@@ -272,11 +272,11 @@ def create_channel_group_nodes(context):
 
 def create_empty_group_node(context):
     '''Creates an empty group node as a placeholder for custom group nodes.'''
-    empty_group_node_name = "COATER_EMPTY"
+    empty_group_node_name = "MATLAY_EMPTY"
     if bpy.data.node_groups.get(empty_group_node_name) == None:
         new_node_group = bpy.data.node_groups.new(empty_group_node_name, 'ShaderNodeTree')
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
-        group_output_node.width = context.scene.coater_layer_stack.node_default_width
+        group_output_node.width = context.scene.matlay_layer_stack.node_default_width
         new_node_group.outputs.new('NodeSocketColor', 'Color')
         group_output_node.inputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
 
@@ -295,7 +295,7 @@ def connect_material_channel(context, material_channel_name):
     material_nodes = context.active_object.active_material.node_tree.nodes
     material_channel_node = get_material_channel_node(context, material_channel_name)
     principled_bsdf_node = material_nodes.get('Principled BSDF')
-    mix_normal_maps_node = material_nodes.get('COATER_NORMALMIX')
+    mix_normal_maps_node = material_nodes.get('MATLAY_NORMALMIX')
 
     if material_channel_node:
         active_material = context.active_object.active_material

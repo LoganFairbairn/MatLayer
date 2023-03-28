@@ -14,7 +14,7 @@ def verify_material(context):
 
     principled_bsdf = active_material.node_tree.nodes.get('Principled BSDF')
     if principled_bsdf != None:
-        if principled_bsdf.label == "Coater Material":
+        if principled_bsdf.label == "MatLay Material":
             return True
         else:
             return False
@@ -23,9 +23,9 @@ def verify_material(context):
 
 def create_normal_mixing_group_node(context):
     '''Create a node group with a function for mixing normal maps.'''
-    layer_stack = context.scene.coater_layer_stack
+    layer_stack = context.scene.matlay_layer_stack
     active_material = context.active_object.active_material
-    node_name = "COATER_NORMALMIX"
+    node_name = "MATLAY_NORMALMIX"
     if bpy.data.node_groups.get(node_name) == None:
         new_node_group = bpy.data.node_groups.new(node_name, 'ShaderNodeTree')
 
@@ -70,12 +70,12 @@ def create_normal_mixing_group_node(context):
         new_node_group.links.new(combine_xyz_node.outputs[0], normalize_node.inputs[0])
         new_node_group.links.new(normalize_node.outputs[0], group_output_node.inputs[0])
 
-def create_coater_material(context, active_object):
-    '''Creates and prepares a Coater specific material.'''
+def create_matlay_material(context, active_object):
+    '''Creates and prepares a MatLay specific material.'''
     new_material = bpy.data.materials.new(name=active_object.name)
     active_object.data.materials.append(new_material)
-    layers = context.scene.coater_layers
-    layer_stack = context.scene.coater_layer_stack
+    layers = context.scene.matlay_layers
+    layer_stack = context.scene.matlay_layer_stack
 
     # Clear all layers.
     layers.clear()
@@ -96,17 +96,17 @@ def create_coater_material(context, active_object):
     # Make a new mix normal group node for mixing normal and height material channels.
     create_normal_mixing_group_node(context)
     normal_mix_node = material_nodes.new('ShaderNodeGroup')
-    normal_mix_node.node_tree = bpy.data.node_groups["COATER_NORMALMIX"]
-    normal_mix_node.name = "COATER_NORMALMIX"
+    normal_mix_node.node_tree = bpy.data.node_groups["MATLAY_NORMALMIX"]
+    normal_mix_node.name = "MATLAY_NORMALMIX"
     normal_mix_node.label = normal_mix_node.name
     normal_mix_node.location = (0.0, -700.0)
     new_material.node_tree.links.new(normal_mix_node.outputs[0], principled_bsdf_node.inputs[22])
 
     # Set the label of the Principled BSDF node (allows this material to be identified as a material made with this add-on).
-    principled_bsdf_node.label = "Coater Material"
+    principled_bsdf_node.label = "MatLay Material"
 
     # Adjust nodes locations.
-    node_spacing = context.scene.coater_layer_stack.node_spacing
+    node_spacing = context.scene.matlay_layer_stack.node_spacing
     principled_bsdf_node.location = (0.0, 0.0)
     material_output_node = material_nodes.get('Material Output')
     material_output_node.location = (principled_bsdf_node.width + node_spacing, 0.0)
@@ -116,24 +116,24 @@ def prepare_material(context):
     active_object = context.active_object
     active_material = context.active_object.active_material
 
-    # Add a new Coater material if there is none.
+    # Add a new MatLay material if there is none.
     if active_object != None:
 
         # There is no active material, make one.
         if active_material == None:
             remove_all_material_slots()
-            create_coater_material(context, active_object)
+            create_matlay_material(context, active_object)
 
-        # There is a material, make sure it's a Coater material.
+        # There is a material, make sure it's a MatLay material.
         else:
-            # If the material is a coater material, it's good to go!
+            # If the material is a matlay material, it's good to go!
             if verify_material(context):
                 return {'FINISHED'}
 
-            # If the material isn't a coater material, make a new material.
+            # If the material isn't a matlay material, make a new material.
             else:
                 remove_all_material_slots()
-                create_coater_material(context, active_object)
+                create_matlay_material(context, active_object)
     return {'FINISHED'}
 
 def remove_all_material_slots():

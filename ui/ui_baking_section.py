@@ -8,11 +8,11 @@ def draw_baking_section_ui(self, context):
     ui_section_tabs.draw_section_tabs(self, context)
 
     layout = self.layout
-    baking_settings = context.scene.coater_baking_settings
+    baking_settings = context.scene.matlay_baking_settings
 
     # Draw bake button.
     row = layout.row()
-    row.operator("coater.bake")
+    row.operator("matlay.bake")
     row.scale_y = 2.0
 
     # Draw baking types.
@@ -22,19 +22,19 @@ def draw_baking_section_ui(self, context):
     row.scale_y = scale_y
     row.prop(baking_settings, "bake_ambient_occlusion", text="")
     row.prop_enum(baking_settings, "bake_type", 'AMBIENT_OCCLUSION')
-    row.operator("coater.bake_ambient_occlusion", text="", icon='RENDER_STILL')
+    row.operator("matlay.bake_ambient_occlusion", text="", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
     row.prop(baking_settings, "bake_curvature", text="")
     row.prop_enum(baking_settings, "bake_type", 'CURVATURE')
-    row.operator("coater.bake_curvature", text="", icon='RENDER_STILL')
+    row.operator("matlay.bake_curvature", text="", icon='RENDER_STILL')
 
     #row = layout.row()
     #row.scale_y = scale_y
     #row.prop(baking_settings, "bake_thickness", text="")
     #row.prop_enum(baking_settings, "bake_type", 'THICKNESS')
-    #row.operator("coater.bake_curvature", text="", icon='RENDER_STILL')
+    #row.operator("matlay.bake_curvature", text="", icon='RENDER_STILL')
 
 
     # Draw global bake settings.
@@ -133,7 +133,7 @@ def draw_baking_section_ui(self, context):
         row = layout.row()
         row.scale_y = scale_y
         row.label(text=active_object.name + "_AO")
-        row.operator("coater.delete_ao_map", icon='TRASH', text="")
+        row.operator("matlay.delete_ao_map", icon='TRASH', text="")
     
     row = layout.row()
     row.scale_y = scale_y
@@ -141,7 +141,7 @@ def draw_baking_section_ui(self, context):
         row = layout.row()
         row.scale_y = scale_y
         row.label(text=active_object.name + "_Curvature")
-        row.operator("coater.delete_curvature_map", icon='TRASH', text="")
+        row.operator("matlay.delete_curvature_map", icon='TRASH', text="")
 
     row = layout.row()
     row.scale_y = scale_y

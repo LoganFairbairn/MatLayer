@@ -5,8 +5,8 @@ import bpy
 from bpy.types import Operator
 
 # Bakes all selected texture maps.
-class COATER_OT_bake(Operator):
-    bl_idname = "coater.bake"
+class MATLAY_OT_bake(Operator):
+    bl_idname = "matlay.bake"
     bl_label = "Bake"
     bl_description = "Bakes all checked texture maps in succession"
 
@@ -16,13 +16,13 @@ class COATER_OT_bake(Operator):
         return context.active_object
 
     def execute(self, context):
-        baking_settings = context.scene.coater_baking_settings
+        baking_settings = context.scene.matlay_baking_settings
 
         if baking_settings.bake_ambient_occlusion:
-            bpy.ops.coater.bake_ambient_occlusion()
+            bpy.ops.matlay.bake_ambient_occlusion()
 
         if baking_settings.bake_curvature:
-            bpy.ops.coater.bake_curvature()
+            bpy.ops.matlay.bake_curvature()
         return {'FINISHED'}
 
 
@@ -44,7 +44,7 @@ def verify_bake_object(self, context):
 
 def set_bake_size(context):
     '''Sets the size of the bake image based on baking settings.'''
-    baking_settings = context.scene.coater_baking_settings
+    baking_settings = context.scene.matlay_baking_settings
 
     if baking_settings.output_width == 'FIVE_TWELVE':
         output_width = 512
@@ -138,7 +138,7 @@ def add_new_bake_material(context, material_name):
 
 def set_output_quality():
     '''Sets the quality based on baking settings.'''
-    baking_settings = bpy.context.scene.coater_baking_settings
+    baking_settings = bpy.context.scene.matlay_baking_settings
 
     if baking_settings.output_quality == 'LOW_QUALITY':
         bpy.data.scenes["Scene"].cycles.samples = 1

@@ -3,8 +3,8 @@ from bpy.types import Operator
 from .import bake_functions
 
 # Bakes low poly curvature texture map for the active object.
-class COATER_OT_bake_curvature(Operator):
-    bl_idname = "coater.bake_curvature"
+class MATLAY_OT_bake_curvature(Operator):
+    bl_idname = "matlay.bake_curvature"
     bl_label = "Bake Curvature"
 
     @ classmethod
@@ -16,7 +16,7 @@ class COATER_OT_bake_curvature(Operator):
         if bake_functions.verify_bake_object(self, context):
             bake_image_name = bake_functions.create_bake_image(context, bake_type)
             original_material = bake_functions.empty_material_slots(context)
-            bake_material = bake_functions.add_new_bake_material(context, "Coater_Curvature")
+            bake_material = bake_functions.add_new_bake_material(context, "MatLay_Curvature")
             add_curvature_nodes(context, bake_material, bake_image_name)
             bake_functions.start_bake()
             bake_functions.set_output_quality()
@@ -24,8 +24,8 @@ class COATER_OT_bake_curvature(Operator):
             bake_functions.save_bake(bake_image_name)
             return {'FINISHED'}
 
-class COATER_OT_delete_curvature_map(Operator):
-    bl_idname = "coater.delete_curvature_map"
+class MATLAY_OT_delete_curvature_map(Operator):
+    bl_idname = "matlay.delete_curvature_map"
     bl_label = "Delete Curvature Map"
     bl_description = "Deletes the baked curvature map for the active object if one exists"
 
@@ -73,7 +73,7 @@ def add_curvature_nodes(context, material, image_name):
     pointiness_mix_node = nodes.new(type='ShaderNodeMixRGB')
 
     # Set node values.
-    baking_settings = context.scene.coater_baking_settings
+    baking_settings = context.scene.matlay_baking_settings
 
     if image_name != "":
         image_node.image = bpy.data.images[image_name]

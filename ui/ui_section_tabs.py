@@ -1,10 +1,10 @@
-# This file handles drawing Coater's main section tabs.
+# This file handles drawing MatLay's main section tabs.
 
 import bpy
 
 def draw_section_tabs(self, context):
     layout = self.layout
-    panel_properties = context.scene.coater_panel_properties
+    panel_properties = context.scene.matlay_panel_properties
 
     # Draw add-on section buttons.
     row = layout.row(align=True)

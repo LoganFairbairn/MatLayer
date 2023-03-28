@@ -86,7 +86,7 @@ def get_layer_frame_name(layers, layer_stack_index):
 
 def get_frame_name(layer_stack_array_index, context):
     '''Returns the frame name.'''
-    layers = context.scene.coater_layers
+    layers = context.scene.matlay_layers
     return layers[layer_stack_array_index].name + "_" + str(layers[layer_stack_array_index].id) + "_" + str(layer_stack_array_index)
 
 def get_layer_frame(material_channel_name, layer_stack_index, context):
@@ -94,7 +94,7 @@ def get_layer_frame(material_channel_name, layer_stack_index, context):
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
 
     if material_channel_node:
-        layers = context.scene.coater_layers
+        layers = context.scene.matlay_layers
         layer_frame_name = get_layer_frame_name(layers, layer_stack_index)
         return material_channel_node.node_tree.nodes.get(layer_frame_name)
 
@@ -162,7 +162,7 @@ def organize_material_channel_nodes(context):
 
 def organize_layer_nodes_in_material_channel(material_channel_name, context):
     '''Organizes all nodes in a specified material channel.'''
-    layers = context.scene.coater_layers
+    layers = context.scene.matlay_layers
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
 
     # Organize the output node.
@@ -221,7 +221,7 @@ def organize_layer_nodes_in_material_channel(material_channel_name, context):
         # Add spacing between layers.
         header_position[0] -= NODE_SPACING
 
-def organize_all_coater_materials(context):
+def organize_all_matlay_materials(context):
     '''Organizes both material channel group nodes and layer nodes within those material channel group nodes.'''
     organize_material_channel_nodes(context)
     material_channel_names = material_channel_nodes.get_material_channel_list()
@@ -233,7 +233,7 @@ def organize_all_coater_materials(context):
 
 def link_layers_in_material_channel(material_channel, context):
     '''Links all layers in the given material channel together by linking the mix layer and mix mask nodes together.'''
-    layers = context.scene.coater_layers
+    layers = context.scene.matlay_layers
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
 
     # Remove all existing output links for mix layer or mix mask nodes.
@@ -297,7 +297,7 @@ def update_layer_nodes(context):
 
 def update_layer_indicies(context):
     '''Matches layer stack indicies stored in each layer to the layer stack array indicies (layer stack indicies are stored in the layers for convenience and debugging purposes).'''
-    layers = context.scene.coater_layers
+    layers = context.scene.matlay_layers
     number_of_layers = len(layers)
     for i in range(0, number_of_layers):
         layers[i].layer_stack_array_index = i
@@ -307,7 +307,7 @@ def update_layer_node_indicies(material_channel_name, context):
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
     changed_layer_index = -1
 
-    layers = context.scene.coater_layers
+    layers = context.scene.matlay_layers
     layer_node_names = get_layer_node_names()
 
     node_added = False

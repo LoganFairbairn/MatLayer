@@ -13,11 +13,11 @@ MASK_NODE_TYPES = [
 
 #------------------- Layer Mask Layer Stack -------------------#
 
-class COATER_mask_stack(PropertyGroup):
+class MATLAY_mask_stack(PropertyGroup):
     '''Properties for the mask stack.'''
     selected_mask_index: bpy.props.IntProperty(default=-1)
 
-class COATER_UL_mask_stack(bpy.types.UIList):
+class MATLAY_UL_mask_stack(bpy.types.UIList):
     '''Draws the mask stack for the selected layer.'''
     def draw_item(self, context, layout, data, item, icon, active_data, index):
         self.use_filter_show = False
@@ -26,7 +26,7 @@ class COATER_UL_mask_stack(bpy.types.UIList):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(text="SOMETHING HERE")
 
-class COATER_masks(PropertyGroup):
+class MATLAY_masks(PropertyGroup):
     # Mask Projection Settings
     mask_projection_mode: bpy.props.EnumProperty(items=[('FLAT', "Flat", ""), ('BOX', "Box (Tri-Planar)", ""), ('SPHERE', "Sphere", ""),('TUBE', "Tube", "")], name="Projection", description="Projection type of the mask attached to the selected layer", default='FLAT')
     mask_projection_blend: bpy.props.FloatProperty(name="Mask Projection Blend", description="The mask projection blend amount", default=0.5, min=0.0, max=1.0, subtype='FACTOR')
@@ -39,26 +39,26 @@ class COATER_masks(PropertyGroup):
     # Node Types (used for properly drawing user interface for node properties)
     mask_texture_types: bpy.props.EnumProperty(items=MASK_NODE_TYPES, name="Mask Texture Node Type", description="The node type for the mask", default='TEXTURE')
 
-class COATER_OT_open_mask_settings(Operator):
+class MATLAY_OT_open_mask_settings(Operator):
     '''Opens mask settings for the selected layer.'''
-    bl_idname = "coater.open_mask_settings"
+    bl_idname = "matlay.open_mask_settings"
     bl_label = "Open Mask Settings"
     bl_description = "Opens mask settings for the selected layer."
 
      # Disable the button when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.coater_layers
+        return bpy.context.scene.matlay_layers
 
     def execute(self, context):
-        context.scene.coater_layer_stack.layer_property_tab = 'MASK'
+        context.scene.matlay_layer_stack.layer_property_tab = 'MASK'
         return{'FINISHED'}   
 
 #------------------- Layer Mask Operations -------------------#
 
 def add_default_mask_nodes(context):
     '''Adds default mask nodes to all material channels.'''
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
     material_channel_list = material_channel_nodes.get_material_channel_list()
     for material_channel_name in material_channel_list:
@@ -103,29 +103,29 @@ def add_default_mask_nodes(context):
 
 def add_mask_slot(context):
     '''Adds a new slot to the mask stack.'''
-    masks = context.scene.coater_masks
+    masks = context.scene.matlay_masks
 
     masks.add()
 
-class COATER_OT_add_mask(Operator):
+class MATLAY_OT_add_mask(Operator):
     '''Adds a mask to the selected layer'''
-    bl_idname = "coater.add_mask"
+    bl_idname = "matlay.add_mask"
     bl_label = "Add Mask"
     bl_description = "Adds a mask to the selected layer"
 
     # Disable the button when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.coater_layers
+        return bpy.context.scene.matlay_layers
 
     def execute(self, context):
         add_default_mask_nodes(context)
         add_mask_slot(context)
         return{'FINISHED'}
 
-class COATER_OT_move_layer_mask_up(Operator):
+class MATLAY_OT_move_layer_mask_up(Operator):
     '''Moves the selected layer up on the layer stack'''
-    bl_idname = "coater.move_layer_mask_up"
+    bl_idname = "matlay.move_layer_mask_up"
     bl_label = "Move Layer Mask Up"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Moves the selected layer up on the layer stack"
@@ -133,9 +133,9 @@ class COATER_OT_move_layer_mask_up(Operator):
     def execute(self, context):
         return {'FINISHED'}
 
-class COATER_OT_move_layer_mask_down(Operator):
+class MATLAY_OT_move_layer_mask_down(Operator):
     '''Moves the selected layer down on the layer stack'''
-    bl_idname = "coater.move_layer_mask_down"
+    bl_idname = "matlay.move_layer_mask_down"
     bl_label = "Move Layer Mask Down"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Moves the selected layer down on the layer stack"
@@ -143,19 +143,19 @@ class COATER_OT_move_layer_mask_down(Operator):
     def execute(self, context):
         return {'FINISHED'}
 
-class COATER_OT_delete_layer_mask(Operator):
-    bl_idname = "coater.delete_layer_mask"
+class MATLAY_OT_delete_layer_mask(Operator):
+    bl_idname = "matlay.delete_layer_mask"
     bl_label = "Delete Layer Mask"
     bl_description = "Deletes the mask for the selected layer if one exists"
 
     # Disable the button when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.coater_layers
+        return bpy.context.scene.matlay_layers
 
     def execute(self, context):
-        selected_mask_index = context.scene.coater_mask_stack.selected_mask_index
-        masks = context.scene.coater_masks
+        selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+        masks = context.scene.matlay_masks
 
         masks.remove(selected_mask_index)
 
@@ -163,9 +163,9 @@ class COATER_OT_delete_layer_mask(Operator):
     
 #------------------- Layer Mask Filters -------------------#
 
-class COATER_OT_add_mask_filter_invert(Operator):
+class MATLAY_OT_add_mask_filter_invert(Operator):
     '''Adds an invert adjustment to the masks applied to the selected layer'''
-    bl_idname = "coater.add_mask_filter_invert"
+    bl_idname = "matlay.add_mask_filter_invert"
     bl_label = "Add Invert Mask Filter"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Adds an invert adjustment to the masks applied to the selected layer"
@@ -173,9 +173,9 @@ class COATER_OT_add_mask_filter_invert(Operator):
     def execute(self, context):
         return {'FINISHED'}
 
-class COATER_OT_add_mask_filter_levels(Operator):
+class MATLAY_OT_add_mask_filter_levels(Operator):
     '''Adds a level adjustment to the masks applied to the selected layer'''
-    bl_idname = "coater.add_mask_filter_levels"
+    bl_idname = "matlay.add_mask_filter_levels"
     bl_label = "Add Levels Mask Filter"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Adds a level adjustment to the masks applied to the selected layer"
@@ -183,15 +183,15 @@ class COATER_OT_add_mask_filter_levels(Operator):
     def execute(self, context):
         return {'FINISHED'}
 
-class COATER_OT_add_layer_mask_filter_menu(Operator):
+class MATLAY_OT_add_layer_mask_filter_menu(Operator):
     '''Opens a menu of filters that can be added to the selected mask.'''
     bl_label = ""
-    bl_idname = "coater.add_layer_mask_filter_menu"
+    bl_idname = "matlay.add_layer_mask_filter_menu"
     bl_description = "Opens a menu of layer filters that can be added to the selected mask stack"
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.coater_layers
+        return bpy.context.scene.matlay_layers
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
@@ -207,6 +207,6 @@ class COATER_OT_add_layer_mask_filter_menu(Operator):
         split = layout.split()
         col = split.column(align=True)
         col.scale_y = 1.4
-        col.operator("coater.add_mask_filter_invert")
-        col.operator("coater.add_mask_filter_levels")
+        col.operator("matlay.add_mask_filter_invert")
+        col.operator("matlay.add_mask_filter_levels")
 

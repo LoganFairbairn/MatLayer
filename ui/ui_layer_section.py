@@ -2,7 +2,7 @@
 
 import bpy
 from .import ui_section_tabs
-from ..layers import coater_materials
+from ..layers import matlay_materials
 from ..layers import material_channel_nodes
 from ..layers import layer_nodes
 from ..layers import layer_stack as ls
@@ -23,8 +23,8 @@ def draw_layers_section_ui(self, context):
         # Layer properties (first column).
         column1 = split.column()
         if context.active_object.active_material:
-            if coater_materials.verify_material(context):
-                if ls.verify_layer_stack_index(context.scene.coater_layer_stack.layer_index, context):
+            if matlay_materials.verify_material(context):
+                if ls.verify_layer_stack_index(context.scene.matlay_layer_stack.layer_index, context):
                     draw_layer_properties(column1, context)
 
         else:
@@ -36,11 +36,11 @@ def draw_layers_section_ui(self, context):
         draw_layer_operations(column2)
         draw_selected_material_channel(column2, context)
             
-        selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+        selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
 
 
         selected_material_channel_active = get_material_channel_active(context, selected_material_channel)
-        if selected_material_channel_active and len(context.scene.coater_layers) > 0:
+        if selected_material_channel_active and len(context.scene.matlay_layers) > 0:
             draw_layer_stack(column2, context)
 
     else:
@@ -49,7 +49,7 @@ def draw_layers_section_ui(self, context):
 
 def get_material_channel_active(context, material_channel_name):
     '''Returns true if the given material channel is active in both the texture set settings and the layer material channel toggles.'''
-    texture_set_settings = context.scene.coater_texture_set_settings
+    texture_set_settings = context.scene.matlay_texture_set_settings
     return getattr(texture_set_settings.global_material_channel_toggles, material_channel_name.lower() + "_channel_toggle", None)
 
 def draw_material_selector(column, context):
@@ -58,14 +58,14 @@ def draw_material_selector(column, context):
     row = column.row(align=True)
     if active_object:
         if active_object.active_material:
-            row.template_ID(active_object, "active_material", new="coater.add_color_layer", live_icon=True)
+            row.template_ID(active_object, "active_material", new="matlay.add_color_layer", live_icon=True)
 
         else:
-            row.template_ID(active_object, "active_material", new="coater.add_color_layer", live_icon=True)
+            row.template_ID(active_object, "active_material", new="matlay.add_color_layer", live_icon=True)
 
     if active_object:
         if active_object.active_material:
-            row.operator("coater.refresh_layer_nodes", text="", icon='FILE_REFRESH')
+            row.operator("matlay.refresh_layer_nodes", text="", icon='FILE_REFRESH')
     row.scale_y = 1.5
 
 def draw_layer_operations(column):
@@ -73,31 +73,31 @@ def draw_layer_operations(column):
     subrow = column.row(align=True)
     subrow.scale_y = 2.0
     subrow.scale_x = 10
-    subrow.operator("coater.add_layer", icon="ADD", text="")
-    subrow.operator("coater.move_layer_up", icon="TRIA_UP", text="")
-    subrow.operator("coater.move_layer_down", icon="TRIA_DOWN", text="")
-    subrow.operator("coater.duplicate_layer", icon="DUPLICATE", text="")
-    #subrow.operator("coater.merge_layer", icon="AUTOMERGE_OFF", text="")
-    #subrow.operator("coater.bake_layer", icon="RENDER_STILL", text="")
-    #subrow.operator("coater.image_editor_export", icon="EXPORT", text="")
-    subrow.operator("coater.delete_layer", icon="TRASH", text="")
+    subrow.operator("matlay.add_layer", icon="ADD", text="")
+    subrow.operator("matlay.move_layer_up", icon="TRIA_UP", text="")
+    subrow.operator("matlay.move_layer_down", icon="TRIA_DOWN", text="")
+    subrow.operator("matlay.duplicate_layer", icon="DUPLICATE", text="")
+    #subrow.operator("matlay.merge_layer", icon="AUTOMERGE_OFF", text="")
+    #subrow.operator("matlay.bake_layer", icon="RENDER_STILL", text="")
+    #subrow.operator("matlay.image_editor_export", icon="EXPORT", text="")
+    subrow.operator("matlay.delete_layer", icon="TRASH", text="")
 
 def draw_selected_material_channel(column, context):
     '''Draws the selected material channel.'''
     subrow = column.row(align=True)
     subrow.scale_x = 2
     subrow.scale_y = 1.4
-    subrow.prop(context.scene.coater_layer_stack, "selected_material_channel", text="")
-    if context.scene.coater_layer_stack.material_channel_preview == False:
-        subrow.operator("coater.toggle_channel_preview", text="", icon='MATERIAL')
+    subrow.prop(context.scene.matlay_layer_stack, "selected_material_channel", text="")
+    if context.scene.matlay_layer_stack.material_channel_preview == False:
+        subrow.operator("matlay.toggle_channel_preview", text="", icon='MATERIAL')
 
-    elif context.scene.coater_layer_stack.material_channel_preview == True:
-        subrow.operator("coater.toggle_channel_preview", text="", icon='MATERIAL', depress=True)
+    elif context.scene.matlay_layer_stack.material_channel_preview == True:
+        subrow.operator("matlay.toggle_channel_preview", text="", icon='MATERIAL', depress=True)
 
 def draw_layer_stack(column, context):
     '''Draws the material layer stack along with it's operators and material channel.'''
     subrow = column.row(align=True)
-    subrow.template_list("COATER_UL_layer_list", "Layers", context.scene, "coater_layers", context.scene.coater_layer_stack, "layer_index", sort_reverse=True)
+    subrow.template_list("MATLAY_UL_layer_list", "Layers", context.scene, "matlay_layers", context.scene.matlay_layer_stack, "layer_index", sort_reverse=True)
     subrow.scale_y = 2
 
 
@@ -115,9 +115,9 @@ def draw_divider(column):
 
 def draw_layer_material_channel_toggles(column, context):
     '''Draws options to quickly toggle material channels on and off.'''
-    layers = context.scene.coater_layers
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-    texture_set_settings = context.scene.coater_texture_set_settings
+    layers = context.scene.matlay_layers
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    texture_set_settings = context.scene.matlay_texture_set_settings
 
     subrow = column.row()
     subrow.scale_y = 1.4
@@ -166,9 +166,9 @@ def draw_texture_node_settings(column, texture_node, texture_node_type, layer, m
             subrow.prop(texture_node, "image", text="")
 
             # Draw buttons to add / import / delete image textures quickly.
-            add_layer_image_operator = subrow.operator("coater.add_layer_image", icon="ADD", text="")
-            import_texture_operator = subrow.operator("coater.import_texture", icon="IMPORT", text="")
-            delete_layer_image_operator = subrow.operator("coater.delete_layer_image", icon="TRASH", text="")
+            add_layer_image_operator = subrow.operator("matlay.add_layer_image", icon="ADD", text="")
+            import_texture_operator = subrow.operator("matlay.import_texture", icon="IMPORT", text="")
+            delete_layer_image_operator = subrow.operator("matlay.delete_layer_image", icon="TRASH", text="")
 
             # Notify the operators the desired material channel work for the specified material channel.
             add_layer_image_operator.material_channel_name = material_channel_name
@@ -231,9 +231,9 @@ def draw_texture_node_settings(column, texture_node, texture_node_type, layer, m
 
 def draw_material_channel_node_properties(column, context):
     '''Draws user interface for layer nodes representing material channels based on their type.'''
-    layers = context.scene.coater_layers
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-    texture_set_settings = context.scene.coater_texture_set_settings
+    layers = context.scene.matlay_layers
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    texture_set_settings = context.scene.matlay_texture_set_settings
 
     material_channel_names = material_channel_nodes.get_material_channel_list()
     for i in range(0, len(material_channel_names)):
@@ -254,8 +254,8 @@ def draw_material_channel_node_properties(column, context):
 
 def draw_material_projection_settings(column, context):
     '''Draws material projection settings.'''
-    layers = context.scene.coater_layers
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    layers = context.scene.matlay_layers
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
     
     row = column.row()
     row.scale_y = SCALE_Y
@@ -310,15 +310,15 @@ def draw_material_filters(column, context):
     row = column.row(align=True)
     row.scale_y = 2
     row.scale_x = 10
-    row.operator("coater.add_layer_filter_menu", icon='FILTER', text="")
-    row.operator("coater.move_filter_up", icon='TRIA_UP', text="")
-    row.operator("coater.move_filter_down", icon='TRIA_DOWN', text="")
-    row.operator("coater.delete_layer_filter", icon='TRASH', text="")
+    row.operator("matlay.add_layer_filter_menu", icon='FILTER', text="")
+    row.operator("matlay.move_filter_up", icon='TRIA_UP', text="")
+    row.operator("matlay.move_filter_down", icon='TRIA_DOWN', text="")
+    row.operator("matlay.delete_layer_filter", icon='TRASH', text="")
 
-    layer_filter_stack = context.scene.coater_layer_filter_stack
+    layer_filter_stack = context.scene.matlay_layer_filter_stack
     row = column.row(align=True)
     row.scale_y = 2
-    row.template_list("COATER_UL_layer_filter_stack", "Layers", context.scene, "coater_layer_filters", layer_filter_stack, "selected_filter_index", sort_reverse=True)
+    row.template_list("MATLAY_UL_layer_filter_stack", "Layers", context.scene, "matlay_layer_filters", layer_filter_stack, "selected_filter_index", sort_reverse=True)
 
 #----------------- DRAW MASK PROPERTIES ----------------------#
 
@@ -329,7 +329,7 @@ def draw_material_filters(column, context):
 
 def draw_layer_properties(column, context):
     '''Draws material and mask properties for the selected layer based on the selected tab.'''
-    layer_property_tab = context.scene.coater_layer_stack.layer_property_tab
+    layer_property_tab = context.scene.matlay_layer_stack.layer_property_tab
 
     # Draw material channel toggles.
     draw_layer_material_channel_toggles(column, context)
@@ -340,13 +340,13 @@ def draw_layer_properties(column, context):
             draw_divider(column)
             subrow = column.row(align=True)
             subrow.scale_y = 1.2
-            subrow.prop_enum(context.scene.coater_layer_stack, "material_property_tab", 'MATERIAL', text='MATERIAL')
-            subrow.prop_enum(context.scene.coater_layer_stack, "material_property_tab", 'PROJECTION', text='PROJECTION')
-            subrow.prop_enum(context.scene.coater_layer_stack, "material_property_tab", 'FILTERS', text='FILTERS')
+            subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'MATERIAL', text='MATERIAL')
+            subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'PROJECTION', text='PROJECTION')
+            subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'FILTERS', text='FILTERS')
 
-            selected_layer_index = context.scene.coater_layer_stack.layer_index
+            selected_layer_index = context.scene.matlay_layer_stack.layer_index
             if ls.verify_layer_stack_index(selected_layer_index, context):
-                material_property_tab = context.scene.coater_layer_stack.material_property_tab
+                material_property_tab = context.scene.matlay_layer_stack.material_property_tab
                 match material_property_tab:
                     case 'MATERIAL':
                         draw_material_channel_node_properties(column, context)
@@ -361,23 +361,23 @@ def draw_layer_properties(column, context):
             subrow = column.row(align=True)
             subrow.scale_y = 2
             subrow.scale_x = 10
-            subrow.operator("coater.add_mask", icon='ADD', text="")
-            subrow.operator("coater.add_layer_mask_filter_menu", icon='FILTER', text="")
-            subrow.operator("coater.move_layer_mask_up", icon='TRIA_UP', text="")
-            subrow.operator("coater.move_layer_mask_down", icon='TRIA_DOWN', text="")
-            subrow.operator("coater.delete_layer_mask", icon='TRASH', text="")
+            subrow.operator("matlay.add_mask", icon='ADD', text="")
+            subrow.operator("matlay.add_layer_mask_filter_menu", icon='FILTER', text="")
+            subrow.operator("matlay.move_layer_mask_up", icon='TRIA_UP', text="")
+            subrow.operator("matlay.move_layer_mask_down", icon='TRIA_DOWN', text="")
+            subrow.operator("matlay.delete_layer_mask", icon='TRASH', text="")
 
-            mask_stack = context.scene.coater_mask_stack
+            mask_stack = context.scene.matlay_mask_stack
             subrow = column.row(align=True)
             subrow.scale_y = 2
-            subrow.template_list("COATER_UL_mask_stack", "Masks", context.scene, "coater_masks", mask_stack, "selected_mask_index", sort_reverse=True)
+            subrow.template_list("MATLAY_UL_mask_stack", "Masks", context.scene, "matlay_masks", mask_stack, "selected_mask_index", sort_reverse=True)
 
             # Draw mask proprty tabs.
             subrow = column.row(align=True)
-            subrow.prop_enum(context.scene.coater_layer_stack, "material_property_tab", 'SETTINGS', text='SETTINGS')
-            subrow.prop_enum(context.scene.coater_layer_stack, "material_property_tab", 'PROJECTION', text='PROJECTION')
+            subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'SETTINGS', text='SETTINGS')
+            subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'PROJECTION', text='PROJECTION')
 
-            #mask_property_tab = context.scene.coater_layer_stack.mask_property_tab
+            #mask_property_tab = context.scene.matlay_layer_stack.mask_property_tab
             #match material_property_tab:
             #    case 'PROJECTION':
 

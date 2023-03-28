@@ -4,8 +4,8 @@ from . import material_channel_nodes
 from . import layer_nodes
 
 def toggle_material_channel_preview(on, context):
-    selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
-    texture_set_settings = context.scene.coater_texture_set_settings
+    selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
+    texture_set_settings = context.scene.matlay_texture_set_settings
     material_nodes = context.active_object.active_material.node_tree.nodes
     node_links = context.active_object.active_material.node_tree.links
     material_output_node = material_nodes.get('Material Output')
@@ -45,7 +45,7 @@ def toggle_material_channel_preview(on, context):
 
     else:
         principled_bsdf_node = material_nodes.get('Principled BSDF')
-        mix_normal_maps_node = material_nodes.get('COATER_NORMALMIX')
+        mix_normal_maps_node = material_nodes.get('MATLAY_NORMALMIX')
 
         # Disconnects all nodes in the active material.
         for l in node_links:
@@ -120,18 +120,18 @@ def toggle_material_channel_preview(on, context):
         node_links.new(mix_normal_maps_node.outputs[0], principled_bsdf_node.inputs[22])
         
 
-class COATER_OT_toggle_channel_preview(Operator):
-    bl_idname = "coater.toggle_channel_preview"
+class MATLAY_OT_toggle_channel_preview(Operator):
+    bl_idname = "matlay.toggle_channel_preview"
     bl_label = "Toggle Channel Preview"
     bl_description = "Toggles a preview which displays only the information stored in the currently selected material channel"
 
     def execute(self, context):
-        material_preview = context.scene.coater_layer_stack.material_channel_preview
+        material_preview = context.scene.matlay_layer_stack.material_channel_preview
         if material_preview == True:
             toggle_material_channel_preview(False, context)
-            context.scene.coater_layer_stack.material_channel_preview = False
+            context.scene.matlay_layer_stack.material_channel_preview = False
         else:
             toggle_material_channel_preview(True, context)
-            context.scene.coater_layer_stack.material_channel_preview = True
+            context.scene.matlay_layer_stack.material_channel_preview = True
             
         return {'FINISHED'}

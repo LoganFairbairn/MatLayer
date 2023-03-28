@@ -1,20 +1,20 @@
 import bpy
 
 def update_match_bake_resolution(self, context):
-    baking_settings = context.scene.coater_baking_settings
+    baking_settings = context.scene.matlay_baking_settings
 
     if baking_settings.match_bake_resolution:
         baking_settings.output_height = baking_settings.output_width
 
 def update_bake_width(self, context):
-    baking_settings = context.scene.coater_baking_settings
+    baking_settings = context.scene.matlay_baking_settings
 
     if baking_settings.match_bake_resolution:
         if baking_settings.output_height != baking_settings.output_width:
             baking_settings.output_height = baking_settings.output_width
 
 # Baking settings.
-class COATER_baking_settings(bpy.types.PropertyGroup):
+class MATLAY_baking_settings(bpy.types.PropertyGroup):
     bake_type: bpy.props.EnumProperty(
         items=[('AMBIENT_OCCLUSION', "Ambient Occlusion", ""),
                ('CURVATURE', "Curvature", ""),

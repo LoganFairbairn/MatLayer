@@ -1,15 +1,15 @@
 from bpy.types import Operator
 from . import material_channel_nodes
 from . import layer_nodes
-from . import coater_materials
+from . import matlay_materials
 from ..viewport_settings.viewport_setting_adjuster import set_material_shading
 import random
 
 def add_layer_slot(context):
     '''Creates a layer slot.'''
-    layers = context.scene.coater_layers
-    layer_stack = context.scene.coater_layer_stack
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    layers = context.scene.matlay_layers
+    layer_stack = context.scene.matlay_layer_stack
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
     # Add a new layer slot.
     layers.add()
@@ -50,8 +50,8 @@ def add_default_layer_nodes(context):
     '''Adds default layer nodes for all layers.'''
 
     # Get the new layer index within the layer stack (which is added to the node names).
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-    layers = context.scene.coater_layers
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    layers = context.scene.matlay_layers
     new_layer_index = 0
     if len(layers) == 0:
         new_layer_index = 0
@@ -167,8 +167,8 @@ def add_default_layer_nodes(context):
 
 def move_layer(context, direction):
     '''Moves a layer up or down the layer stack.'''
-    layers = context.scene.coater_layers
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    layers = context.scene.matlay_layers
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
     # Rename layer frame and nodes before the layer stack is moved.
     if direction == "DOWN":
@@ -238,7 +238,7 @@ def move_layer(context, direction):
 
         index_to_move_to = max(min(selected_layer_index - 1, len(layers) - 1), 0)
         layers.move(selected_layer_index, index_to_move_to)
-        context.scene.coater_layer_stack.layer_index = index_to_move_to
+        context.scene.matlay_layer_stack.layer_index = index_to_move_to
 
 
     if direction == "UP":
@@ -311,20 +311,20 @@ def move_layer(context, direction):
         # Move the layer in the layer stack. 
         index_to_move_to = max(min(selected_layer_index + 1, len(layers) - 1), 0)
         layers.move(selected_layer_index, index_to_move_to)
-        context.scene.coater_layer_stack.layer_index = index_to_move_to
+        context.scene.matlay_layer_stack.layer_index = index_to_move_to
 
     # Update the layer nodes.
     layer_nodes.update_layer_nodes(context)
 
-class COATER_OT_add_layer(Operator):
+class MATLAY_OT_add_layer(Operator):
     '''Adds a layer with default numeric material values to the layer stack'''
-    bl_idname = "coater.add_layer"
+    bl_idname = "matlay.add_layer"
     bl_label = "Add Layer"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Adds a layer with default numeric material values to the layer stack"
 
     def execute(self, context):
-        coater_materials.prepare_material(context)
+        matlay_materials.prepare_material(context)
         material_channel_nodes.create_channel_group_nodes(context)
         material_channel_nodes.create_empty_group_node(context)
         add_layer_slot(context)
@@ -332,9 +332,9 @@ class COATER_OT_add_layer(Operator):
         set_material_shading(context)       # Set the viewport to material shading mode (so users can see the applied material).
         return {'FINISHED'}
 
-class COATER_OT_move_layer_up(Operator):
+class MATLAY_OT_move_layer_up(Operator):
     """Moves the selected layer up on the layer stack."""
-    bl_idname = "coater.move_layer_up"
+    bl_idname = "matlay.move_layer_up"
     bl_label = "Move Layer Up"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Moves the currently selected layer"
@@ -342,15 +342,15 @@ class COATER_OT_move_layer_up(Operator):
     # Poll tests if the operator can be called or not.
     @ classmethod
     def poll(cls, context):
-        return context.scene.coater_layers
+        return context.scene.matlay_layers
 
     def execute(self, context):
         move_layer(context, "UP")
         return{'FINISHED'}
 
-class COATER_OT_move_layer_down(Operator):
+class MATLAY_OT_move_layer_down(Operator):
     """Moves the selected layer down the layer stack."""
-    bl_idname = "coater.move_layer_down"
+    bl_idname = "matlay.move_layer_down"
     bl_label = "Move Layer Down"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Moves the currently selected layer"
@@ -358,26 +358,26 @@ class COATER_OT_move_layer_down(Operator):
     # Poll tests if the operator can be called or not.
     @ classmethod
     def poll(cls, context):
-        return context.scene.coater_layers
+        return context.scene.matlay_layers
 
     def execute(self, context):
         move_layer(context, "DOWN")
         return{'FINISHED'}
 
-class COATER_OT_delete_layer(Operator):
+class MATLAY_OT_delete_layer(Operator):
     '''Deletes the selected layer from the layer stack.'''
-    bl_idname = "coater.delete_layer"
+    bl_idname = "matlay.delete_layer"
     bl_label = "Delete Layer"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Deletes the currently selected layer"
 
     @ classmethod
     def poll(cls, context):
-        return context.scene.coater_layers
+        return context.scene.matlay_layers
 
     def execute(self, context):
-        layers = context.scene.coater_layers
-        selected_layer_index = context.scene.coater_layer_stack.layer_index
+        layers = context.scene.matlay_layers
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
         # Remove all nodes for all material channels.
         material_channel_list = material_channel_nodes.get_material_channel_list()
@@ -398,7 +398,7 @@ class COATER_OT_delete_layer(Operator):
         layers.remove(selected_layer_index)
 
         # Reset the layer stack index while keeping it within range of existing indicies in the layer stack.
-        context.scene.coater_layer_stack.layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
+        context.scene.matlay_layer_stack.layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
 
         # Update the layer nodes.
         layer_nodes.update_layer_nodes(context)
@@ -406,21 +406,21 @@ class COATER_OT_delete_layer(Operator):
 
         return {'FINISHED'}
 
-class COATER_OT_duplicate_layer(Operator):
+class MATLAY_OT_duplicate_layer(Operator):
     """Duplicates the selected layer."""
-    bl_idname = "coater.duplicate_layer"
+    bl_idname = "matlay.duplicate_layer"
     bl_label = ""
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Duplicates the selected layer"
 
     @ classmethod
     def poll(cls, context):
-        #return context.scene.coater_layers
+        #return context.scene.matlay_layers
         return None
 
     def execute(self, context):
-        layers = context.scene.coater_layers
-        selected_layer_index = context.scene.coater_layer_stack.layer_index
+        layers = context.scene.matlay_layers
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
         original_layer_index = selected_layer_index
 
@@ -436,9 +436,9 @@ class COATER_OT_duplicate_layer(Operator):
 
         return{'FINISHED'}
     
-class COATER_OT_bake_layer(Operator):
+class MATLAY_OT_bake_layer(Operator):
     '''Bakes the selected layer to an image layer.'''
-    bl_idname = "coater.bake_layer"
+    bl_idname = "matlay.bake_layer"
     bl_label = "Bake Layer"
     bl_description = "Bakes the selected layer to an image layer"
 
@@ -454,16 +454,16 @@ class COATER_OT_bake_layer(Operator):
         # TODO: Create an image layer and add the image to it.
         return {'FINISHED'}
 
-class COATER_OT_merge_layer(Operator):
+class MATLAY_OT_merge_layer(Operator):
     """Merges the selected layer with the layer below."""
-    bl_idname = "coater.merge_layer"
+    bl_idname = "matlay.merge_layer"
     bl_label = ""
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Merges the selected layer with the layer below."
 
     @ classmethod
     def poll(cls, context):
-        #return context.scene.coater_layers
+        #return context.scene.matlay_layers
         return False
 
     def execute(self, context):
@@ -504,19 +504,19 @@ def read_active_material_channel():
         print("Link: " + str(l.from_node))
 '''
 
-class COATER_OT_refresh_layer_nodes(Operator):
-    bl_idname = "coater.refresh_layer_nodes"
+class MATLAY_OT_refresh_layer_nodes(Operator):
+    bl_idname = "matlay.refresh_layer_nodes"
     bl_label = "Refresh Layer Nodes"
     bl_description = "Refreshes the material nodes by reading the material nodes in the active material updating the properties stored within the user interface"
 
     def execute(self, context):
-        # Make sure the active material is a Coater material before attempting to refresh the layer stack.
-        if coater_materials.verify_material(context) == False:
-            self.report({'ERROR'}, "Material is not a Coater material, can't read / refresh the layer stack.")
+        # Make sure the active material is a MatLay material before attempting to refresh the layer stack.
+        if matlay_materials.verify_material(context) == False:
+            self.report({'ERROR'}, "Material is not a MatLay material, can't read / refresh the layer stack.")
             return {'FINISHED'}
 
         # Clear the layer stack.
-        layers = context.scene.coater_layers
+        layers = context.scene.matlay_layers
         layers.clear()
 
         # Read the layer nodes and add a layer slot for each layer node found, update the layer name & id.
@@ -533,7 +533,7 @@ class COATER_OT_refresh_layer_nodes(Operator):
                 layers[i].id = layer_id
 
         # Read the opacity (only for the selected material channel).
-        selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+        selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
         for i in range(total_number_of_layers):
             opacity_node = layer_nodes.get_layer_node('OPACITY', selected_material_channel, i, context)
             layers[i].opacity = opacity_node.inputs[1].default_value
@@ -567,6 +567,6 @@ class COATER_OT_refresh_layer_nodes(Operator):
 
 
         # Organize all layer nodes.
-        #layer_nodes.organize_all_coater_materials(context)
+        #layer_nodes.organize_all_matlay_materials(context)
 
         return {'FINISHED'}

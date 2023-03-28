@@ -4,8 +4,8 @@ from bpy.types import Operator
 from .import bake_functions
 
 # Bakes ambient occlusion for the active object.
-class COATER_OT_bake_ambient_occlusion(Operator):
-    bl_idname = "coater.bake_ambient_occlusion"
+class MATLAY_OT_bake_ambient_occlusion(Operator):
+    bl_idname = "matlay.bake_ambient_occlusion"
     bl_label = "Bake Ambient Occlusion"
 
     @ classmethod
@@ -17,7 +17,7 @@ class COATER_OT_bake_ambient_occlusion(Operator):
         if bake_functions.verify_bake_object(self, context):
             bake_image_name = bake_functions.create_bake_image(context, bake_type)
             original_material = bake_functions.empty_material_slots(context)
-            bake_material = bake_functions.add_new_bake_material(context, "Coater_AmbientOcclusion")
+            bake_material = bake_functions.add_new_bake_material(context, "MatLay_AmbientOcclusion")
             add_ambient_occlusion_nodes(context, bake_material, bake_image_name)
             bake_functions.start_bake()
             bake_functions.set_output_quality()
@@ -25,8 +25,8 @@ class COATER_OT_bake_ambient_occlusion(Operator):
             bake_functions.save_bake(bake_image_name)
             return {'FINISHED'}
 
-class COATER_OT_delete_ao_map(Operator):
-    bl_idname = "coater.delete_ao_map"
+class MATLAY_OT_delete_ao_map(Operator):
+    bl_idname = "matlay.delete_ao_map"
     bl_label = "Delete Ambient Occlusion Map"
     bl_description = "Deletes the baked ambient occlusion map for the active object if one exists"
 
@@ -53,7 +53,7 @@ def add_ambient_occlusion_nodes(context, material, image_name):
     color_ramp_node = nodes.new(type='ShaderNodeValToRGB')
 
     # Set node values.
-    baking_settings = context.scene.coater_baking_settings
+    baking_settings = context.scene.matlay_baking_settings
     if image_name != "":
         image_node.image = bpy.data.images[image_name]
     ao_node.only_local = baking_settings.ambient_occlusion_local

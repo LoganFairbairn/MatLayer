@@ -14,13 +14,13 @@ TEXTURE_SET_RESOLUTIONS = [
     ]
 
 def update_match_image_resolution(self, context):
-    texture_set_settings = context.scene.coater_texture_set_settings
+    texture_set_settings = context.scene.matlay_texture_set_settings
 
     if texture_set_settings.match_image_resolution:
         texture_set_settings.image_height = texture_set_settings.image_width
 
 def update_image_width(self, context):
-    texture_set_settings = context.scene.coater_texture_set_settings
+    texture_set_settings = context.scene.matlay_texture_set_settings
 
     if texture_set_settings.match_image_resolution:
         if texture_set_settings.image_height != texture_set_settings.image_width:
@@ -28,7 +28,7 @@ def update_image_width(self, context):
 
 # TODO: Is this even used?
 def update_pack_images(self, context):
-    texture_set_settings = context.scene.coater_texture_set_settings
+    texture_set_settings = context.scene.matlay_texture_set_settings
 
     if texture_set_settings.pack_images:
         bpy.ops.file.autopack_toggle()
@@ -101,10 +101,10 @@ class GlobalMaterialChannelToggles(PropertyGroup):
     normal_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the normal material channel for this layer", update=update_normal_channel_toggle)
     height_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the height material channel for this layer", update=update_height_channel_toggle)
 
-class COATER_texture_set_settings(PropertyGroup):
+class MATLAY_texture_set_settings(PropertyGroup):
     image_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Width", description="Image width in pixels for the new image.", default='TWOK', update=update_image_width)
     image_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Height", description="Image height in pixels for the new image.", default='TWOK')
     layer_folder: StringProperty(default="", description="Path to folder location where layer images are saved", name="Image Layer Folder Path")
     match_image_resolution: BoolProperty(name="Match Image Resolution", description="When toggled on, the image width and height will be matched", default=True, update=update_match_image_resolution)
-    thirty_two_bit: BoolProperty(name="32 Bit", description="When toggled on, images created using Coater will be created with 32 bit color depth. Images will take up more memory, but will have significantly less color banding in gradients", default=True)
+    thirty_two_bit: BoolProperty(name="32 Bit", description="When toggled on, images created using MatLay will be created with 32 bit color depth. Images will take up more memory, but will have significantly less color banding in gradients", default=True)
     global_material_channel_toggles: PointerProperty(type=GlobalMaterialChannelToggles, description="Toggles for each material channel that toggle them on / off for all layers.")

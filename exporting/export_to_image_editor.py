@@ -3,15 +3,15 @@ import os
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper
 
-class COATER_OT_image_editor_export(Operator):
+class MATLAY_OT_image_editor_export(Operator):
     '''Exports the selected image paint canvas to the image editor defined in Blender's preferences'''
-    bl_idname = "coater.image_editor_export"
+    bl_idname = "matlay.image_editor_export"
     bl_label = "Export to External Image Editor"
     bl_description = "Exports the select image layer to the image editor defined in Blender's preferences"
 
     @ classmethod
     def poll(cls, context):
-        return context.scene.coater_layers
+        return context.scene.matlay_layers
         False
 
     def execute(self, context):

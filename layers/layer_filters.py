@@ -5,11 +5,11 @@ from . import layer_nodes
 
 #----------------------------- LAYER FILTER STACK -----------------------------#
 
-class COATER_layer_filter_stack(PropertyGroup):
+class MATLAY_layer_filter_stack(PropertyGroup):
     '''Properties for layer filters.'''
     selected_filter_index: bpy.props.IntProperty(default=-1)
 
-class COATER_UL_layer_filter_stack(bpy.types.UIList):
+class MATLAY_UL_layer_filter_stack(bpy.types.UIList):
     '''Draws the mask stack for the selected layer.'''
     def draw_item(self, context, layout, data, item, icon, active_data, index):
         self.use_filter_show = False
@@ -20,7 +20,7 @@ class COATER_UL_layer_filter_stack(bpy.types.UIList):
             row.label(text=item.name)
             row.prop(item, "layer_stack_index")
 
-class COATER_layer_filters(PropertyGroup):
+class MATLAY_layer_filters(PropertyGroup):
     name: bpy.props.StringProperty(name="", description="The name of the layer filter", default="Layer Filter Naming Error")
     layer_stack_index: bpy.props.IntProperty(name="", description = "The layer stack index for this filter", default=-999)
 
@@ -62,8 +62,8 @@ def update_filter_node_indicies(material_channel_name, context):
     '''Renames all filter nodes with their correct indicies.'''
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
     changed_layer_index = -1
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-    filters = context.scene.coater_layer_filters
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    filters = context.scene.matlay_layer_filters
     filter_added = False
     filter_deleted = False
 
@@ -114,7 +114,7 @@ def update_filter_node_indicies(material_channel_name, context):
 
 def re_link_filter_nodes(material_channel_name, context):
     '''Re-links all filter nodes in the given material channel.'''
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
     filter_nodes = get_all_layer_filter_nodes(selected_layer_index, material_channel_name, context)
 
     material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
@@ -136,10 +136,10 @@ def re_link_filter_nodes(material_channel_name, context):
 
 def add_layer_filter(layer_filter_type, default_name, context):
     '''Creates a new filter slot.'''
-    filters = context.scene.coater_layer_filters
-    filter_stack = context.scene.coater_layer_filter_stack
-    selected_layer_filter_index = context.scene.coater_layer_filter_stack.selected_filter_index
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    filters = context.scene.matlay_layer_filters
+    filter_stack = context.scene.matlay_layer_filter_stack
+    selected_layer_filter_index = context.scene.matlay_layer_filter_stack.selected_filter_index
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
     # Add a new layer filter slot with a default layer filter name and select it.
     filters.add()
@@ -190,9 +190,9 @@ def add_layer_filter(layer_filter_type, default_name, context):
     # Re-link material layer nodes.
     layer_nodes.link_layers_in_material_channel(material_channel_name, context)
 
-class COATER_OT_add_layer_filter_invert(Operator):
+class MATLAY_OT_add_layer_filter_invert(Operator):
     '''Adds an invert filter to the selected layer.'''
-    bl_idname = "coater.add_layer_filter_invert"
+    bl_idname = "matlay.add_layer_filter_invert"
     bl_label = "Add Invert"
     bl_description = "Adds an invert filter to the selected layer"
     bl_options = {'REGISTER', 'UNDO'}
@@ -200,66 +200,66 @@ class COATER_OT_add_layer_filter_invert(Operator):
     # Disable the button when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.coater_layers
+        return bpy.context.scene.matlay_layers
 
     def execute(self, context):
         add_layer_filter('ShaderNodeInvert', "Invert", context)
         return{'FINISHED'}
 
-class COATER_OT_add_layer_filter_levels(Operator):
+class MATLAY_OT_add_layer_filter_levels(Operator):
     '''Adds level adjustment to the selected layer.'''
-    bl_idname = "coater.add_layer_filter_levels"
+    bl_idname = "matlay.add_layer_filter_levels"
     bl_label = "Add Levels"
     bl_description = "Adds a level adjustment (color ramp) to the selected layer"
     bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.coater_layers
+        return bpy.context.scene.matlay_layers
 
     def execute(self, context):
         add_layer_filter('ShaderNodeValToRGB', "Levels Adjustment", context)
         return{'FINISHED'}
 
-class COATER_OT_add_layer_filter_hsv(Operator):
+class MATLAY_OT_add_layer_filter_hsv(Operator):
     '''Adds a hue, saturation, value adjustment to the selected layer.'''
-    bl_idname = "coater.add_layer_filter_hsv"
+    bl_idname = "matlay.add_layer_filter_hsv"
     bl_label = "Add HSV"
     bl_description = "Adds a HSV adjustment to the selected layer"
     bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.coater_layers
+        return bpy.context.scene.matlay_layers
 
     def execute(self, context):
         add_layer_filter('ShaderNodeHueSaturation', "HSV Adjustment", context)
         return{'FINISHED'}
 
-class COATER_OT_add_layer_filter_rgb_curves(Operator):
+class MATLAY_OT_add_layer_filter_rgb_curves(Operator):
     '''Adds level adjustment to the selected layer.'''
-    bl_idname = "coater.add_layer_filter_rgb_curves"
+    bl_idname = "matlay.add_layer_filter_rgb_curves"
     bl_label = "Add RGB Curves"
     bl_description = "Adds a RGB curves adjustment to the selected layer"
     bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.coater_layers
+        return bpy.context.scene.matlay_layers
 
     def execute(self, context):
         add_layer_filter('ShaderNodeRGBCurve', "RGB Curves Adjustment", context)
         return{'FINISHED'}
 
-class COATER_OT_add_layer_filter_menu(Operator):
+class MATLAY_OT_add_layer_filter_menu(Operator):
     '''Opens a menu of layer filters that can be added to the selected layer.'''
     bl_label = ""
-    bl_idname = "coater.add_layer_filter_menu"
+    bl_idname = "matlay.add_layer_filter_menu"
     bl_description = "Opens a menu of layer filters that can be added to the selected layer"
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.coater_layers
+        return bpy.context.scene.matlay_layers
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
@@ -275,28 +275,28 @@ class COATER_OT_add_layer_filter_menu(Operator):
         split = layout.split()
         col = split.column(align=True)
         col.scale_y = 1.4
-        col.operator("coater.add_layer_filter_invert")
-        col.operator("coater.add_layer_filter_levels")
-        col.operator("coater.add_layer_filter_hsv")
-        col.operator("coater.add_layer_filter_rgb_curves")
+        col.operator("matlay.add_layer_filter_invert")
+        col.operator("matlay.add_layer_filter_levels")
+        col.operator("matlay.add_layer_filter_hsv")
+        col.operator("matlay.add_layer_filter_rgb_curves")
 
 #----------------------------- LAYER FILTER STACK OPERATIONS -----------------------------#
 
-class COATER_OT_delete_layer_filter(Operator):
+class MATLAY_OT_delete_layer_filter(Operator):
     '''Deletes the selected layer filter.'''
-    bl_idname = "coater.delete_layer_filter"
+    bl_idname = "matlay.delete_layer_filter"
     bl_label = "Delete Layer Filter"
     bl_description = "Deletes the selected layer filter"
     bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.coater_layers
+        return bpy.context.scene.matlay_layers
 
     def execute(self, context):
-        filters = context.scene.coater_layer_filters
-        selected_layer_index = context.scene.coater_layer_stack.layer_index
-        selected_layer_filter_index = context.scene.coater_layer_filter_stack.selected_filter_index
+        filters = context.scene.matlay_layer_filters
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        selected_layer_filter_index = context.scene.matlay_layer_filter_stack.selected_filter_index
         material_channel_list = material_channel_nodes.get_material_channel_list()
         for material_channel_name in material_channel_list:
             material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
@@ -310,7 +310,7 @@ class COATER_OT_delete_layer_filter(Operator):
         update_filter_nodes(context)
 
         # Reset the selected filter index.
-        context.scene.coater_layer_filter_stack.selected_filter_index = max(min(selected_layer_filter_index + 1, len(filters) - 1), 0)
+        context.scene.matlay_layer_filter_stack.selected_filter_index = max(min(selected_layer_filter_index + 1, len(filters) - 1), 0)
 
         # Remove the filter stack slot.
         filters.remove(selected_layer_filter_index)
@@ -318,9 +318,9 @@ class COATER_OT_delete_layer_filter(Operator):
         return{'FINISHED'}
 
 def move_filter_layer(direction, context):
-    filters = context.scene.coater_layer_filters
-    selected_layer_filter_index = context.scene.coater_layer_filter_stack.selected_filter_index
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
+    filters = context.scene.matlay_layer_filters
+    selected_layer_filter_index = context.scene.matlay_layer_filter_stack.selected_filter_index
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
     material_channel_names = material_channel_nodes.get_material_channel_list()
 
     if direction == "DOWN":
@@ -357,7 +357,7 @@ def move_filter_layer(direction, context):
         # Move the layer stack slot.
         index_to_move_to = max(min(selected_layer_filter_index - 1, len(filters) -1), 0)
         filters.move(selected_layer_filter_index, index_to_move_to)
-        context.scene.coater_layer_filter_stack.selected_filter_index = index_to_move_to
+        context.scene.matlay_layer_filter_stack.selected_filter_index = index_to_move_to
 
     if direction == "UP":
         # Get the filter layer index above the selected later filter.
@@ -392,7 +392,7 @@ def move_filter_layer(direction, context):
 
         index_to_move_to = max(min(selected_layer_filter_index + 1, len(filters) - 1), 0)
         filters.move(selected_layer_filter_index, index_to_move_to)
-        context.scene.coater_layer_filter_stack.selected_filter_index = index_to_move_to
+        context.scene.matlay_layer_filter_stack.selected_filter_index = index_to_move_to
 
     # Re-link layer filter nodes.
     for material_channel_name in material_channel_names:
@@ -403,31 +403,31 @@ def move_filter_layer(direction, context):
         material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
         layer_nodes.organize_layer_nodes_in_material_channel(material_channel_name, context)
 
-class COATER_OT_move_layer_filter_up(Operator):
+class MATLAY_OT_move_layer_filter_up(Operator):
     '''Moves the filter up on the filter layer stack.'''
-    bl_idname = "coater.move_filter_up"
+    bl_idname = "matlay.move_filter_up"
     bl_label = "Move Filter Up"
     bl_description = "Moves the selected layer filter up on the layer stack"
     bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.coater_layers
+        return bpy.context.scene.matlay_layers
 
     def execute(self, context):
         move_filter_layer("UP", context)
         return{'FINISHED'}
 
-class COATER_OT_move_layer_filter_down(Operator):
+class MATLAY_OT_move_layer_filter_down(Operator):
     '''Moves the filter up on the filter layer stack.'''
-    bl_idname = "coater.move_filter_down"
+    bl_idname = "matlay.move_filter_down"
     bl_label = "Move Filter Down"
     bl_description = "Moves the selected layer filter down on the layer stack"
     bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.coater_layers
+        return bpy.context.scene.matlay_layers
 
     def execute(self, context):
         move_filter_layer("DOWN", context)
@@ -435,9 +435,9 @@ class COATER_OT_move_layer_filter_down(Operator):
     
 def refresh_filter_stack(context):
     '''Reads layer nodes to re-construct the filter layer stack.'''
-    layer_filters = context.scene.coater_layer_filters
-    selected_layer_index = context.scene.coater_layer_stack.layer_index
-    selected_material_channel = context.scene.coater_layer_stack.selected_material_channel
+    layer_filters = context.scene.matlay_layer_filters
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
 
     # Clear all layer filters.
     layer_filters.clear()
