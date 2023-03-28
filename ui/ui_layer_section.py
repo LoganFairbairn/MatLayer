@@ -239,7 +239,7 @@ def draw_material_channel_node_properties(column, context):
     for i in range(0, len(material_channel_names)):
         texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_names[i], selected_layer_index, context)
         attribute_name = material_channel_names[i].lower() + "_channel_toggle"
-        if texture_node and getattr(texture_set_settings.global_material_channel_toggles, attribute_name, None):
+        if texture_node and getattr(texture_set_settings.global_material_channel_toggles, attribute_name, None) and getattr(layers[selected_layer_index].material_channel_toggles, material_channel_names[i].lower() + "_channel_toggle", None):
             draw_divider(column)
             subrow = column.row(align=True)
             subrow.scale_y = SCALE_Y
