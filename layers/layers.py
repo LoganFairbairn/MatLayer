@@ -536,14 +536,14 @@ class ProjectionSettings(PropertyGroup):
 class MaterialChannelColors(PropertyGroup):
     '''Color values for each material channel. These are used for layer previews when the layer can be accurately displayed using rgb values (rgb node / value node).'''
     color_channel_color: FloatVectorProperty(name="Layer preview color for the color material channel.", description="", default=(0.25, 0.25, 0.25), min=0, max=1, subtype='COLOR', update=update_color_channel_color)
-    subsurface_channel_color: FloatVectorProperty(name="Layer preview color for the subsurface scattering material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR')
-    subsurface_color_channel_color: FloatVectorProperty(name="Layer preview color for the subsurface color material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR')
-    metallic_channel_color: FloatVectorProperty(name="Layer preview color for the metallic material channel.", description="", default=(0.25, 0.25, 0.25), min=0, max=1, subtype='COLOR')
-    specular_channel_color: FloatVectorProperty(name="Layer preview color for the specular material channel.", description="", default=(0.5, 0.5, 0.5), min=0, max=1, subtype='COLOR')
-    roughness_channel_color: FloatVectorProperty(name="Layer preview color for the roughness material channel.", description="", default=(0.5, 0.5, 0.5), min=0, max=1, subtype='COLOR')
-    normal_channel_color: FloatVectorProperty(name="Layer preview color for the normal material channel.", description="", default=(0.5, 0.5, 1.0), min=0, max=1, subtype='COLOR')
-    height_channel_color: FloatVectorProperty(name="Layer preview color for the height material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR')
-    emission_channel_color: FloatVectorProperty(name="Layer preview color for the emission material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR')
+    subsurface_channel_color: FloatVectorProperty(name="Layer preview color for the subsurface scattering material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_subsurface_channel_color)
+    subsurface_color_channel_color: FloatVectorProperty(name="Layer preview color for the subsurface color material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_subsurface_color_channel_color)
+    metallic_channel_color: FloatVectorProperty(name="Layer preview color for the metallic material channel.", description="", default=(0.25, 0.25, 0.25), min=0, max=1, subtype='COLOR', update=update_metallic_channel_color)
+    specular_channel_color: FloatVectorProperty(name="Layer preview color for the specular material channel.", description="", default=(0.5, 0.5, 0.5), min=0, max=1, subtype='COLOR', update=update_specular_channel_color)
+    roughness_channel_color: FloatVectorProperty(name="Layer preview color for the roughness material channel.", description="", default=(0.5, 0.5, 0.5), min=0, max=1, subtype='COLOR', update=update_roughness_channel_color)
+    normal_channel_color: FloatVectorProperty(name="Layer preview color for the normal material channel.", description="", default=(0.5, 0.5, 1.0), min=0, max=1, subtype='COLOR', update=update_normal_channel_color)
+    height_channel_color: FloatVectorProperty(name="Layer preview color for the height material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_height_channel_color)
+    emission_channel_color: FloatVectorProperty(name="Layer preview color for the emission material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_emission_channel_color)
 
 class MaterialChannelUniformValues(PropertyGroup):
     '''Uniform float values used for each material channel. These are used to represent correct min / max value ranges within the user interface.'''
