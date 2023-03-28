@@ -275,7 +275,6 @@ def update_emission_channel_toggle(self, context):
 # When these values which are displayed in the ui are updated, they automatically update their respective color / value nodes in the node tree through these functions.
 
 def update_color_channel_color(self, context):
-    thing = self
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
     node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_index, context)
     if node and node.type == 'RGB':
@@ -333,18 +332,12 @@ def update_emission_channel_color(self, context):
 # To have correct min / max values for sliders when the user is using uniform value nodes in the user interface
 # When these values which are displayed in the ui are updated, they automatically update their respective value nodes in the node tree through these functions.
 
-def update_uniform_channel_values(self, context):
-    print("Thing")
-
 def update_uniform_color_value(self, context):
-    thing = self
-    layers = context.scene.matlay_layers
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
     node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_index, context)
     if node and node.type == 'VALUE':
-        uniform_value = layers[selected_layer_index].uniform_color_value
-        node.outputs[0].default_value = uniform_value
-        self.color_channel_color = (uniform_value, uniform_value, uniform_value)
+        node.outputs[0].default_value = self.uniform_color_value
+        self.color_channel_color = (self.uniform_color_value, self.uniform_color_value, self.uniform_color_value)
 
 def update_uniform_subsurface_value(self, context):
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
