@@ -104,8 +104,8 @@ def add_default_layer_nodes(context):
                 texture_node.outputs[0].default_value = (0.25, 0.25, 0.25, 1.0)
 
             if material_channels[i] == "SUBSURFACE":
-                texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
-                texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
+                texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
+                texture_node.outputs[0].default_value = 0.0
 
             if material_channels[i] == "SUBSURFACE_COLOR":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
