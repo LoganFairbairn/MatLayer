@@ -41,21 +41,21 @@ TEXTURE_INTERPOLATION_MODES = [
 
 def update_layer_name(self, context):
     '''Updates the layers name in all layer frames when the layer name is changed.'''
-    layers = context.scene.matlay_layer_stack
 
-    # Rename all layer frames with the new name. To access the layer frames, use the previous layers name as it's been updated already.
-    layers = context.scene.matlay_layers
-
+    # Update the frame name for all material channels on the layer that was changed.
+    # Since the layer's name is already updated in the UI directly after a name change, a cached frame name (previous name) is used to get the layer frame nodes and update their names.
     material_channel_list = material_channel_nodes.get_material_channel_list()
     for material_channel_name in material_channel_list:
         material_channel = material_channel_nodes.get_material_channel_node(context, material_channel_name)
-
         cached_frame_name = self.cached_frame_name
         frame = material_channel.node_tree.nodes.get(cached_frame_name)
         if frame:
             new_name = self.name + "_" + str(self.id) + "_" + str(self.layer_stack_array_index)
             frame.name = new_name
             frame.label = frame.name
+
+    # Update the cached frame name.
+    self.cached_frame_name = self.name + "_" + str(self.id) + "_" + str(self.layer_stack_array_index)
 
 def update_layer_opacity(self, context):
     '''Updates the layer opacity node values when the opacity is changed.'''
