@@ -5,6 +5,7 @@ from bpy.types import PropertyGroup
 from bpy.props import BoolProperty, FloatProperty, StringProperty, PointerProperty, FloatVectorProperty, EnumProperty
 from . import layer_nodes
 from . import material_channel_nodes
+from ..info_messages.print_info_messages import show_message_box
 
 # List of node types that can be used in the texture slot.
 TEXTURE_NODE_TYPES = [
@@ -42,20 +43,27 @@ TEXTURE_INTERPOLATION_MODES = [
 def update_layer_name(self, context):
     '''Updates the layers name in all layer frames when the layer name is changed.'''
 
-    # Update the frame name for all material channels on the layer that was changed.
-    # Since the layer's name is already updated in the UI directly after a name change, a cached frame name (previous name) is used to get the layer frame nodes and update their names.
-    material_channel_list = material_channel_nodes.get_material_channel_list()
-    for material_channel_name in material_channel_list:
-        material_channel = material_channel_nodes.get_material_channel_node(context, material_channel_name)
-        cached_frame_name = self.cached_frame_name
-        frame = material_channel.node_tree.nodes.get(cached_frame_name)
-        if frame:
-            new_name = self.name + "_" + str(self.id) + "_" + str(self.layer_stack_array_index)
-            frame.name = new_name
-            frame.label = frame.name
+    # Layer names can't contain underscores since they are used as delimiters to parse information from layer frames correctly.
+    # If the layer name contains an underscore, throw the user an error message notifying them they can't use underscores in layer names.
+    if '_' in self.name:
+        show_message_box("Layer names can't contain underscores.", "Error", 'ERROR')
+        self.name = self.name.replace('_', "")
+    
+    else:
+        # Update the frame name for all material channels on the layer that was changed.
+        # Since the layer's name is already updated in the UI directly after a name change, a cached frame name (previous name) is used to get the layer frame nodes and update their names.
+        material_channel_list = material_channel_nodes.get_material_channel_list()
+        for material_channel_name in material_channel_list:
+            material_channel = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+            cached_frame_name = self.cached_frame_name
+            frame = material_channel.node_tree.nodes.get(cached_frame_name)
+            if frame:
+                new_name = self.name + "_" + str(self.id) + "_" + str(self.layer_stack_array_index)
+                frame.name = new_name
+                frame.label = frame.name
 
-    # Update the cached frame name.
-    self.cached_frame_name = self.name + "_" + str(self.id) + "_" + str(self.layer_stack_array_index)
+        # Update the cached frame name.
+        self.cached_frame_name = self.name + "_" + str(self.id) + "_" + str(self.layer_stack_array_index)
 
 def update_layer_opacity(self, context):
     '''Updates the layer opacity node values when the opacity is changed.'''
