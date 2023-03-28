@@ -50,7 +50,6 @@ from .exporting.exporting_settings import MATLAY_exporting_settings
 
 # Import tool / utility modules.
 from .texture_handling.image_file_handling import MATLAY_OT_add_layer_image, MATLAY_OT_delete_layer_image, MATLAY_OT_import_texture, MATLAY_OT_import_mask_image
-from .swap_tool_color import *
 
 # Import user interface modules.
 from .ui.matlay_ui import *
@@ -149,9 +148,6 @@ classes = (
     # Main Panel & General Settings
     MATLAY_panel_properties,
     MATLAY_PT_Panel,
-
-    # Color Swap
-    MATLAY_OT_swap_primary_color,
     
     # Misc functions
     MATLAY_OT_image_editor_export
