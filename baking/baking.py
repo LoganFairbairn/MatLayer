@@ -233,7 +233,16 @@ def create_bake_image(bake_type):
     output_size = [output_width, output_height]
 
     # Use the object's name and bake type to define the bake image name.
-    bake_image_name = bpy.context.active_object.name + "_" + bake_type
+    bake_image_name = bpy.context.active_object.name
+    match bake_type:
+        case 'AMBIENT_OCCLUSION':
+            bake_image_name += "_AO"
+
+        case 'CURVATURE':
+            bake_image_name += "_Curvature"
+
+        case 'THICKNESS':
+            bake_image_name += "_Thickness"
 
     # Create a new image in Blender's data, delete existing bake image if it exists.
     image = bpy.data.images.get(bake_image_name)
@@ -303,7 +312,7 @@ def bake_mesh_map(bake_type):
 
     # Add a node setup based on the bake type.
     match bake_type:
-        case 'AO':
+        case 'AMBIENT_OCCLUSION':
             add_ambient_occlusion_baking_nodes(temp_bake_material, bake_image)
 
         case 'CURVATURE':
@@ -382,7 +391,7 @@ class MATLAY_OT_bake_ambient_occlusion(Operator):
         return context.active_object
 
     def execute(self, context):
-        bake_mesh_map('AO')
+        bake_mesh_map('AMBIENT_OCCLUSION')
         return {'FINISHED'}
 
 class MATLAY_OT_bake_curvature(Operator):
@@ -438,6 +447,9 @@ class MATLAY_OT_delete_ao_map(Operator):
         return context.active_object
 
     def execute(self, context):
+        baked_ao_image = bpy.data.images[context.active_object.name + "_AO"]
+        if baked_ao_image != None:
+            bpy.data.images.remove(baked_ao_image)
         return {'FINISHED'}
     
 class MATLAY_OT_delete_curvature_map(Operator):
@@ -451,6 +463,9 @@ class MATLAY_OT_delete_curvature_map(Operator):
         return context.active_object
 
     def execute(self, context):
+        baked_curvature_image = bpy.data.images[context.active_object.name + "_Curvature"]
+        if baked_curvature_image != None:
+            bpy.data.images.remove(baked_curvature_image)
         return {'FINISHED'}
     
 class MATLAY_OT_delete_thickness_map(Operator):
@@ -464,6 +479,9 @@ class MATLAY_OT_delete_thickness_map(Operator):
         return context.active_object
 
     def execute(self, context):
+        baked_thickness_image = bpy.data.images[context.active_object.name + "_Thickness"]
+        if baked_thickness_image != None:
+            bpy.data.images.remove(baked_thickness_image)
         return {'FINISHED'}
     
 class MATLAY_OT_delete_normal_map(Operator):
@@ -477,4 +495,7 @@ class MATLAY_OT_delete_normal_map(Operator):
         return context.active_object
 
     def execute(self, context):
+        baked_normal_image = bpy.data.images[context.active_object.name + "_Normals"]
+        if baked_normal_image != None:
+            bpy.data.images.remove(baked_normal_image)
         return {'FINISHED'}
