@@ -123,6 +123,8 @@ def draw_baking_section_ui(self, context):
     row = layout.row()
     row.scale_y = scale_y
     row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
+    row.prop(baking_settings, "output_quality", text="")
+
 
     #----------------------------- ADVANCED SETTINGS -----------------------------#
 
@@ -134,9 +136,6 @@ def draw_baking_section_ui(self, context):
     if baking_settings.show_advanced_settings:
         layout.label(text="ADVANCED SETTINGS")
 
-        row = layout.row()
-        row.scale_y = scale_y
-        row.prop(baking_settings, "output_quality", text="")
 
         row = layout.row()
         row.scale_y = scale_y

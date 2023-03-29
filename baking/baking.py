@@ -17,9 +17,9 @@ SELECTED_BAKE_TYPE = [
     ]
 
 QUALITY_SETTINGS = [
-    ("LOW_QUALITY", "Low Quality", ""), 
-    ("RECOMMENDED_QUALITY", "Recommended Quality", ""),
-    ("HIGH_QUALITY", "High Quality", "")
+    ("LOW_QUALITY", "Low Quality (for testing)", "Extremly low quality baking, generally used only for testing baking functionality or previewing a really rough version of baked textures."), 
+    ("RECOMMENDED_QUALITY", "Recommended Quality", "The suggested quality for baking texture maps."),
+    ("HIGH_QUALITY", "High Quality", "A higher than average baking quality. This should be used for when fine, accurate detail is required in mesh map textures. Using this quality will significantly slow down baking speeds.")
     ]
 
 def update_match_bake_resolution(self, context):
@@ -55,7 +55,7 @@ class MATLAY_baking_settings(bpy.types.PropertyGroup):
     curvature_ao_masking: FloatProperty(name="AO Masking", description="Mask the curvature edges using ambient occlusion.", min=0.0, max=1.0, default=1.0)
     bake_thickness: BoolProperty(name="Bake Thickness", description="Bake Thickness", default=True)
     bake_normals: BoolProperty(name="Bake Normal", description="Toggle for baking normal maps for baking as part of the batch baking operator.", default=True)
-    high_poly_mesh: PointerProperty(type=bpy.types.Mesh, name="High Poly Mesh", description="The high poly mesh from which mesh detail will be baked to texture maps. The high poly mesh should generally be overlapped by your low poly mesh before starting baking. You do not need to provide a high poly mesh for baking")
+    high_poly_mesh: PointerProperty(type=bpy.types.Mesh, name="High Poly Mesh", description="The high poly mesh from which mesh detail will be baked to texture maps. The high poly mesh should generally be overlapped by your low poly mesh before starting baking. You do not need to provide a high poly mesh for baking texture maps")
 
 
 #----------------------------- BAKING NODE SETUPS -----------------------------#
