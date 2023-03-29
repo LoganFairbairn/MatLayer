@@ -36,7 +36,7 @@ def update_bake_width(self, context):
             baking_settings.output_height = baking_settings.output_width
 
 class MATLAY_baking_settings(bpy.types.PropertyGroup):
-    show_advanced_settings: BoolProperty(name="Show Advanced Settings", description="Click to show / hide advanced baking settings", default=False)
+    show_advanced_settings: BoolProperty(name="Show Advanced Settings", description="Click to show / hide advanced baking settings. Advanced settings generally don't need to be edited", default=False)
     bake_type: EnumProperty(items=SELECTED_BAKE_TYPE, name="Bake Types", description="Bake type currently selected.", default='AMBIENT_OCCLUSION')
     output_quality: EnumProperty(items=QUALITY_SETTINGS, name="Output Quality", description="Output quality of the baked mesh maps", default='RECOMMENDED_QUALITY')
     output_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS,name="Output Height",description="Image size for the baked texure map result(s).", default='FIVE_TWELVE', update=update_bake_width)
@@ -54,6 +54,7 @@ class MATLAY_baking_settings(bpy.types.PropertyGroup):
     curvature_edge_radius: FloatProperty(name="Edge Radius", description="Edge radius", min=0.001, max=0.1, default=0.01)
     curvature_ao_masking: FloatProperty(name="AO Masking", description="Mask the curvature edges using ambient occlusion.", min=0.0, max=1.0, default=1.0)
     bake_thickness: BoolProperty(name="Bake Thickness", description="Bake Thickness", default=True)
+    thickness_samples: IntProperty(name="Thickness Samples", description="The amount of samples for thickness baking. Increasing this value will increase the quality of the output thickness maps", min=1, max=128, default=64)
     bake_normals: BoolProperty(name="Bake Normal", description="Toggle for baking normal maps for baking as part of the batch baking operator.", default=True)
     high_poly_mesh: PointerProperty(type=bpy.types.Mesh, name="High Poly Mesh", description="The high poly mesh from which mesh detail will be baked to texture maps. The high poly mesh should generally be overlapped by your low poly mesh before starting baking. You do not need to provide a high poly mesh for baking texture maps")
 
@@ -73,8 +74,8 @@ def add_ambient_occlusion_baking_nodes(material, bake_image):
     # Set node values.
     baking_settings = bpy.context.scene.matlay_baking_settings
     image_node.image = bake_image
-    ao_node.only_local = baking_settings.ambient_occlusion_local
     ao_node.samples = baking_settings.ambient_occlusion_samples
+    ao_node.only_local = baking_settings.ambient_occlusion_local
     ao_node.inside = baking_settings.ambient_occlusion_inside
     color_ramp_node.color_ramp.elements[0].position = baking_settings.ambient_occlusion_intensity
     color_ramp_node.color_ramp.interpolation = 'EASE'
@@ -170,24 +171,20 @@ def add_thickness_baking_nodes(material, bake_image):
     # Add nodes.
     material_output_node = nodes.get("Material Output")
     image_node = nodes.new(type='ShaderNodeTexImage')
-    emission_node = nodes.new(type='ShaderNodeEmission')
     ao_node = nodes.new(type='ShaderNodeAmbientOcclusion')
-    color_ramp_node = nodes.new(type='ShaderNodeValToRGB')
+    invert_node = nodes.new(type='ShaderNodeInvert')
 
     # Set node values.
     baking_settings = bpy.context.scene.matlay_baking_settings
     image_node.image = bake_image
-    ao_node.only_local = baking_settings.ambient_occlusion_local
-    ao_node.samples = baking_settings.ambient_occlusion_samples
-    ao_node.inside = baking_settings.ambient_occlusion_inside
-    color_ramp_node.color_ramp.elements[0].position = baking_settings.ambient_occlusion_intensity
-    color_ramp_node.color_ramp.interpolation = 'EASE'
+    ao_node.samples = baking_settings.thickness_samples
+    ao_node.only_local = True
+    ao_node.inside = True
 
     # Link Nodes
     links = material.node_tree.links
-    links.new(ao_node.outputs[0], color_ramp_node.inputs[0])
-    links.new(color_ramp_node.outputs[0], emission_node.inputs[0])
-    links.new(emission_node.outputs[0], material_output_node.inputs[0])
+    links.new(ao_node.outputs[1], invert_node.inputs[1])
+    links.new(ao_node.outputs[0], material_output_node.inputs[0])
 
 
 #----------------------------- BAKING FUNCTIONS -----------------------------#

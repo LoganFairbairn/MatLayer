@@ -4,7 +4,6 @@ import bpy
 from .import ui_section_tabs
 
 def draw_ambient_occlusion_settings(layout, baking_settings, scale_y):
-    layout.label(text="Ambient Occlusion Bake Settings:")
     row = layout.row()
     row.scale_y = scale_y
     row.prop(baking_settings, "ambient_occlusion_intensity", slider=True)
@@ -19,8 +18,6 @@ def draw_ambient_occlusion_settings(layout, baking_settings, scale_y):
     row.prop(baking_settings, "ambient_occlusion_inside")
 
 def draw_curvature_settings(layout, baking_settings, scale_y):
-    layout.label(text="Curvature Bake Settings:")
-
     row = layout.row()
     row.scale_y = scale_y
     row.prop(baking_settings, "curvature_edge_radius", slider=True)
@@ -43,7 +40,9 @@ def draw_curvature_settings(layout, baking_settings, scale_y):
     row.prop(baking_settings, "ambient_occlusion_inside")
 
 def draw_thickness_settings(layout, baking_settings, scale_y):
-    layout.label(text="Thickness Bake Settings")
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "thickness_samples", slider=True)
 
 def draw_normal_settings(layout, baking_settings, scale_y):
     layout.label(text="Normal Bake Settings")
@@ -136,14 +135,13 @@ def draw_baking_section_ui(self, context):
     if baking_settings.show_advanced_settings:
         layout.label(text="ADVANCED SETTINGS")
 
-
         row = layout.row()
         row.scale_y = scale_y
         row.prop(bpy.data.scenes["Scene"].render.bake, "margin", slider=True)
 
         row = layout.row()
         row.scale_y = scale_y
-        row.prop(baking_settings, "bake_type", text="")
+        row.prop(baking_settings, "bake_type")
 
         match baking_settings.bake_type:
             case 'AMBIENT_OCCLUSION':
