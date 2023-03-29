@@ -312,7 +312,7 @@ class MATLAY_baking_settings(bpy.types.PropertyGroup):
     curvature_ao_masking: FloatProperty(name="AO Masking", description="Mask the curvature edges using ambient occlusion.", min=0.0, max=1.0, default=1.0)
     bake_thickness: BoolProperty(name="Bake Thickness", description="Bake Thickness", default=True)
     bake_normals: BoolProperty(name="Bake Normal", description="Toggle for baking normal maps for baking as part of the batch baking operator.", default=True)
-    high_poly_mesh: PointerProperty(type=bpy.types.Mesh, name="High Poly Mesh", description="The high poly mesh from which mesh detail will be baked to texture maps. The high poly mesh should generally be overlapped by your low poly mesh before starting baking. Note that you do not need to provide a high poly mesh for baking")
+    high_poly_mesh: PointerProperty(type=bpy.types.Mesh, name="High Poly Mesh", description="The high poly mesh from which mesh detail will be baked to texture maps. The high poly mesh should generally be overlapped by your low poly mesh before starting baking. You do not need to provide a high poly mesh for baking")
 
 #----------------------------- BAKING OPERATORS -----------------------------#
 
