@@ -2,7 +2,7 @@ from bpy.types import Operator
 from . import material_channel_nodes
 from . import layer_nodes
 from . import matlay_materials
-from ..viewport_settings.viewport_setting_adjuster import set_material_shading
+from ..utilities.viewport_setting_adjuster import set_material_shading
 import random
 
 def add_layer_slot(context):

@@ -4,7 +4,7 @@ import os
 import bpy
 from bpy.types import Operator
 from bpy.props import BoolProperty, FloatProperty, IntProperty, StringProperty, PointerProperty, EnumProperty
-from .texture_handling.texture_set_settings import TEXTURE_SET_RESOLUTIONS
+from ..texture_set_settings.texture_set_settings import TEXTURE_SET_RESOLUTIONS
 
 def verify_bake_object(self, context):
     '''Verifies the active object is a mesh and has an active UV map.'''

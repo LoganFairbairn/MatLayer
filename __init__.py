@@ -20,7 +20,7 @@ import bpy.utils.previews       # Imported for loading texture previews as icons
 from bpy.app.handlers import persistent
 
 # Import texture set modules.
-from .texture_handling.texture_set_settings import MATLAY_texture_set_settings, GlobalMaterialChannelToggles
+from .texture_set_settings.texture_set_settings import MATLAY_texture_set_settings, GlobalMaterialChannelToggles
 
 # Import layer related modules.
 from .layers.layers import *
@@ -37,7 +37,7 @@ from .layers.layer_filters import MATLAY_layer_filter_stack, MATLAY_UL_layer_fil
 from .layers.layer_operations import *
 
 # Import baking modules.
-from .baking import MATLAY_baking_settings, MATLAY_OT_bake, MATLAY_OT_bake_ambient_occlusion, MATLAY_OT_bake_curvature, MATLAY_OT_bake_thickness, MATLAY_OT_bake_normals, MATLAY_OT_delete_ao_map, MATLAY_OT_delete_curvature_map, MATLAY_OT_delete_thickness_map, MATLAY_OT_delete_normal_map
+from .baking.baking import MATLAY_baking_settings, MATLAY_OT_bake, MATLAY_OT_bake_ambient_occlusion, MATLAY_OT_bake_curvature, MATLAY_OT_bake_thickness, MATLAY_OT_bake_normals, MATLAY_OT_delete_ao_map, MATLAY_OT_delete_curvature_map, MATLAY_OT_delete_thickness_map, MATLAY_OT_delete_normal_map
 
 # Import exporting modules.
 from .exporting.matlay_export import *
@@ -45,7 +45,7 @@ from .exporting.export_to_image_editor import *
 from .exporting.exporting_settings import MATLAY_exporting_settings
 
 # Import tool / utility modules.
-from .texture_handling.image_file_handling import MATLAY_OT_add_layer_image, MATLAY_OT_delete_layer_image, MATLAY_OT_import_texture, MATLAY_OT_import_mask_image
+from .utilities.image_file_handling import MATLAY_OT_add_layer_image, MATLAY_OT_delete_layer_image, MATLAY_OT_import_texture, MATLAY_OT_import_mask_image
 
 # Import user interface modules.
 from .ui.matlay_ui import *

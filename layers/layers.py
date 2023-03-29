@@ -5,7 +5,7 @@ from bpy.types import PropertyGroup
 from bpy.props import BoolProperty, FloatProperty, StringProperty, PointerProperty, FloatVectorProperty, EnumProperty
 from . import layer_nodes
 from . import material_channel_nodes
-from ..info_messages.print_info_messages import show_message_box
+from ..utilities.print_info_messages import show_message_box
 
 # List of node types that can be used in the texture slot.
 TEXTURE_NODE_TYPES = [

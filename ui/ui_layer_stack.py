@@ -3,7 +3,7 @@
 import os
 import bpy
 import bpy.utils.previews       # Imported for loading texture previews as icons.
-from ..texture_handling import image_file_handling
+from ..utilities import image_file_handling
 from ..layers import layer_nodes
 from ..layers.layer_filters import material_layer_filter_exists
 
