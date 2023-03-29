@@ -5,24 +5,15 @@ from ..layers import matlay_materials
 from ..layers import material_channel_nodes
 from ..layers import layer_nodes
 from ..layers import layer_stack as ls
+from .import ui_section_tabs
 
 SCALE_Y = 1.4
 
-def draw_section_tabs(self, context):
-    layout = self.layout
-    panel_properties = context.scene.matlay_panel_properties
 
-    # Draw add-on section buttons.
-    row = layout.row(align=True)
-    row.prop_enum(panel_properties, "sections", 'SECTION_TEXTURE_SET')
-    row.prop_enum(panel_properties, "sections", "SECTION_BAKING")
-    row.prop_enum(panel_properties, "sections", 'SECTION_LAYERS')
-    row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT')
-    row.scale_y = 2.0
 
 def draw_layers_section_ui(self, context):
     '''Draws the layer section.'''
-    draw_section_tabs(self, context)
+    ui_section_tabs.draw_section_tabs(self, context)
     layout = self.layout
     
     # Only draw if there is a selected object.
