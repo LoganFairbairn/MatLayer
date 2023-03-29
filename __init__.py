@@ -37,11 +37,7 @@ from .layers.layer_filters import MATLAY_layer_filter_stack, MATLAY_UL_layer_fil
 from .layers.layer_operations import *
 
 # Import baking modules.
-from .baking.baking_settings import MATLAY_baking_settings
-from .baking.bake_ambient_occlusion import MATLAY_OT_bake_ambient_occlusion, MATLAY_OT_delete_ao_map
-from .baking.bake_curvature import MATLAY_OT_bake_curvature, MATLAY_OT_delete_curvature_map
-from .baking.bake_thickness import MATLAY_OT_bake_thickness
-from .baking.bake_functions import *
+from .baking import MATLAY_baking_settings, MATLAY_OT_bake, MATLAY_OT_bake_ambient_occlusion, MATLAY_OT_bake_curvature, MATLAY_OT_bake_thickness, MATLAY_OT_bake_normals, MATLAY_OT_delete_ao_map, MATLAY_OT_delete_curvature_map, MATLAY_OT_delete_thickness_map, MATLAY_OT_delete_normal_map
 
 # Import exporting modules.
 from .exporting.matlay_export import *
@@ -74,10 +70,13 @@ classes = (
     MATLAY_baking_settings,
     MATLAY_OT_bake,
     MATLAY_OT_bake_ambient_occlusion,
-    MATLAY_OT_delete_ao_map,
     MATLAY_OT_bake_curvature,
-    MATLAY_OT_delete_curvature_map,
     MATLAY_OT_bake_thickness,
+    MATLAY_OT_bake_normals,
+    MATLAY_OT_delete_ao_map,
+    MATLAY_OT_delete_curvature_map,
+    MATLAY_OT_delete_thickness_map,
+    MATLAY_OT_delete_normal_map,
 
     # Exporting
     MATLAY_exporting_settings,

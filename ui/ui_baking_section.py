@@ -3,6 +3,51 @@
 import bpy
 from .import ui_section_tabs
 
+def draw_ambient_occlusion_settings(layout, baking_settings, scale_y):
+    layout.label(text="Ambient Occlusion Bake Settings:")
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "ambient_occlusion_intensity", slider=True)
+    
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "ambient_occlusion_samples", slider=True)
+
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "ambient_occlusion_local")
+    row.prop(baking_settings, "ambient_occlusion_inside")
+
+def draw_curvature_settings(layout, baking_settings, scale_y):
+    layout.label(text="Curvature Bake Settings:")
+
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "curvature_edge_radius", slider=True)
+
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "curvature_edge_intensity", slider=True)
+
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "ambient_occlusion_intensity", slider=True)
+
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "ambient_occlusion_samples", slider=True)
+
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "ambient_occlusion_local")
+    row.prop(baking_settings, "ambient_occlusion_inside")
+
+def draw_thickness_settings(layout, baking_settings, scale_y):
+    layout.label(text="Thickness Bake Settings")
+
+def draw_normal_settings(layout, baking_settings, scale_y):
+    layout.label(text="Normal Bake Settings")
+
 def draw_baking_section_ui(self, context):
     '''Draws the baking section user interface'''
     ui_section_tabs.draw_section_tabs(self, context)
@@ -21,24 +66,33 @@ def draw_baking_section_ui(self, context):
     row = layout.row()
     row.scale_y = scale_y
     row.prop(baking_settings, "bake_ambient_occlusion", text="")
-    row.prop_enum(baking_settings, "bake_type", 'AMBIENT_OCCLUSION')
+    row.label(text="Ambient Occlusion")
     row.operator("matlay.bake_ambient_occlusion", text="", icon='RENDER_STILL')
+    row.operator("matlay.delete_ao_map", icon='TRASH', text="")
 
     row = layout.row()
     row.scale_y = scale_y
     row.prop(baking_settings, "bake_curvature", text="")
-    row.prop_enum(baking_settings, "bake_type", 'CURVATURE')
+    row.label(text="Curvature")
     row.operator("matlay.bake_curvature", text="", icon='RENDER_STILL')
+    row.operator("matlay.delete_curvature_map", icon='TRASH', text="")
 
-    #row = layout.row()
-    #row.scale_y = scale_y
-    #row.prop(baking_settings, "bake_thickness", text="")
-    #row.prop_enum(baking_settings, "bake_type", 'THICKNESS')
-    #row.operator("matlay.bake_curvature", text="", icon='RENDER_STILL')
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "bake_thickness", text="")
+    row.label(text="Thickness")
+    row.operator("matlay.bake_thickness", text="", icon='RENDER_STILL')
+    row.operator("matlay.delete_thickness_map", icon='TRASH', text="")
 
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "bake_normals", text="")
+    row.label(text="Normal")
+    row.operator("matlay.bake_normals", text="", icon='RENDER_STILL')
+    row.operator("matlay.delete_normal_map", icon='TRASH', text="")
 
-    # Draw global bake settings.
-    layout.label(text="Global Bake Settings:")
+    #----------------------------- BAKE SETTINGS -----------------------------#
+    layout.label(text="Bake Settings:")
 
     row = layout.row()
     row.scale_y = scale_y
@@ -72,78 +126,37 @@ def draw_baking_section_ui(self, context):
     col.prop(baking_settings, "output_height", text="")
 
     row = layout.row()
-    row.scale_y = scale_y
-    
-    row.prop(bpy.data.scenes["Scene"].render.bake, "margin", slider=True)
+    row.prop(baking_settings, "high_poly_mesh", slider=True)
 
-    #----------------------------- Draw ambient occlusion settings. -----------------------------#
-    if baking_settings.bake_type == 'AMBIENT_OCCLUSION':
-        layout.label(text="Ambient Occlusion Bake Settings:")
+    #----------------------------- ADVANCED SETTINGS -----------------------------#
+
+    if not baking_settings.show_advanced_settings:
+        row = layout.row()
+        row.scale_x = 10000
+        row.prop(baking_settings, "show_advanced_settings", icon='TRIA_DOWN', text="")
+
+    if baking_settings.show_advanced_settings:
         row = layout.row()
         row.scale_y = scale_y
-        row.prop(baking_settings, "ambient_occlusion_intensity", slider=True)
-        
-        row = layout.row()
-        row.scale_y = scale_y
-        row.prop(baking_settings, "ambient_occlusion_samples", slider=True)
+        row.prop(baking_settings, "bake_type", text="")
 
-        row = layout.row()
-        row.scale_y = scale_y
-        row.prop(baking_settings, "ambient_occlusion_local")
-        row.prop(baking_settings, "ambient_occlusion_inside")
+        match baking_settings.bake_type:
+            case 'AMBIENT_OCCLUSION':
+                draw_ambient_occlusion_settings(layout, baking_settings, scale_y)
 
-    #----------------------------- Draw curvature settings. -----------------------------#
-    if baking_settings.bake_type == 'CURVATURE':
-        layout.label(text="Curvature Bake Settings:")
+            case 'CURVATURE':
+                draw_curvature_settings(layout, baking_settings, scale_y)
 
-        row = layout.row()
-        row.scale_y = scale_y
-        row.prop(baking_settings, "curvature_edge_radius", slider=True)
+            case 'THICKNESS':
+                draw_thickness_settings(layout, baking_settings, scale_y)
 
-        row = layout.row()
-        row.scale_y = scale_y
-        row.prop(baking_settings, "curvature_edge_intensity", slider=True)
+            case 'NORMAL':
+                draw_normal_settings(layout, baking_settings, scale_y)
 
         row = layout.row()
         row.scale_y = scale_y
-        row.prop(baking_settings, "ambient_occlusion_intensity", slider=True)
+        row.prop(bpy.data.scenes["Scene"].render.bake, "margin", slider=True)
 
         row = layout.row()
-        row.scale_y = scale_y
-        row.prop(baking_settings, "ambient_occlusion_samples", slider=True)
-
-        row = layout.row()
-        row.scale_y = scale_y
-        row.prop(baking_settings, "ambient_occlusion_local")
-        row.prop(baking_settings, "ambient_occlusion_inside")
-
-
-    #----------------------------- Draw thickness settings. -----------------------------#
-    if baking_settings.bake_type == 'THICKNESS':
-        layout.label(text="Thickness Bake Settings")
-
-    #----------------------------- Draw existing mesh maps that exist within the blend file. -----------------------------#
-    layout.label(text="EXISTING MESH MAPS: ")
-
-    active_object = context.active_object
-
-    row = layout.row()
-    row.scale_y = scale_y
-    if bpy.data.images.get(active_object.name + "_AO") != None:
-        row = layout.row()
-        row.scale_y = scale_y
-        row.label(text=active_object.name + "_AO")
-        row.operator("matlay.delete_ao_map", icon='TRASH', text="")
-    
-    row = layout.row()
-    row.scale_y = scale_y
-    if bpy.data.images.get(active_object.name + "_Curvature") != None:
-        row = layout.row()
-        row.scale_y = scale_y
-        row.label(text=active_object.name + "_Curvature")
-        row.operator("matlay.delete_curvature_map", icon='TRASH', text="")
-
-    row = layout.row()
-    row.scale_y = scale_y
-    if bpy.data.images.get(active_object.name + "_Thickness") != None:
-        layout.label(text=active_object.name + "_Thickness")
+        row.scale_x = 10000
+        row.prop(baking_settings, "show_advanced_settings", icon='TRIA_UP', text="")
