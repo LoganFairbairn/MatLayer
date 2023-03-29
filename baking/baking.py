@@ -354,7 +354,7 @@ def bake_mesh_map(bake_type):
     bpy.data.materials.remove(temp_bake_material)
 
 class MATLAY_OT_bake(Operator):
-    '''Bakes all checked texture maps in succession'''
+    '''Bakes all checked texture maps in succession. Note that this function (especially on slower computers, or when using CPU for rendering) can take a while.'''
     bl_idname = "matlay.bake"
     bl_label = "Bake"
     bl_description = "Bakes all checked texture maps in succession"
