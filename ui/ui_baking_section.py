@@ -92,15 +92,6 @@ def draw_baking_section_ui(self, context):
     row.operator("matlay.delete_normal_map", icon='TRASH', text="")
 
     #----------------------------- BAKE SETTINGS -----------------------------#
-    layout.label(text="Bake Settings:")
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(baking_settings, "output_quality", text="")
 
     split = layout.split()
     col = split.column()
@@ -126,7 +117,12 @@ def draw_baking_section_ui(self, context):
     col.prop(baking_settings, "output_height", text="")
 
     row = layout.row()
+    row.scale_y = scale_y
     row.prop(baking_settings, "high_poly_mesh", slider=True)
+
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
 
     #----------------------------- ADVANCED SETTINGS -----------------------------#
 
@@ -136,6 +132,16 @@ def draw_baking_section_ui(self, context):
         row.prop(baking_settings, "show_advanced_settings", icon='TRIA_DOWN', text="")
 
     if baking_settings.show_advanced_settings:
+        layout.label(text="ADVANCED SETTINGS")
+
+        row = layout.row()
+        row.scale_y = scale_y
+        row.prop(baking_settings, "output_quality", text="")
+
+        row = layout.row()
+        row.scale_y = scale_y
+        row.prop(bpy.data.scenes["Scene"].render.bake, "margin", slider=True)
+
         row = layout.row()
         row.scale_y = scale_y
         row.prop(baking_settings, "bake_type", text="")
@@ -152,10 +158,6 @@ def draw_baking_section_ui(self, context):
 
             case 'NORMAL':
                 draw_normal_settings(layout, baking_settings, scale_y)
-
-        row = layout.row()
-        row.scale_y = scale_y
-        row.prop(bpy.data.scenes["Scene"].render.bake, "margin", slider=True)
 
         row = layout.row()
         row.scale_x = 10000
