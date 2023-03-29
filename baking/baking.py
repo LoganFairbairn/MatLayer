@@ -56,7 +56,8 @@ class MATLAY_baking_settings(bpy.types.PropertyGroup):
     bake_thickness: BoolProperty(name="Bake Thickness", description="Bake Thickness", default=True)
     thickness_samples: IntProperty(name="Thickness Samples", description="The amount of samples for thickness baking. Increasing this value will increase the quality of the output thickness maps", min=1, max=128, default=64)
     bake_normals: BoolProperty(name="Bake Normal", description="Toggle for baking normal maps for baking as part of the batch baking operator.", default=True)
-    high_poly_mesh: PointerProperty(type=bpy.types.Mesh, name="High Poly Mesh", description="The high poly mesh from which mesh detail will be baked to texture maps. The high poly mesh should generally be overlapped by your low poly mesh before starting baking. You do not need to provide a high poly mesh for baking texture maps")
+    cage_extrusion: FloatProperty(name="Cage Extrusion", description="Infaltes the active object by the specified amount for baking. This helps matching to points nearer to the outside of the selected object meshes.", default=0.111, min=0.0, max=1.0)
+    high_poly_object: PointerProperty(type=bpy.types.Object, name="High Poly Object", description="The high poly object (must be a mesh) from which mesh detail will be baked to texture maps. The high poly mesh should generally be overlapped by your low poly mesh before starting baking. You do not need to provide a high poly mesh for baking texture maps")
 
 
 #----------------------------- BAKING NODE SETUPS -----------------------------#
@@ -186,6 +187,14 @@ def add_thickness_baking_nodes(material, bake_image):
     links.new(ao_node.outputs[1], invert_node.inputs[1])
     links.new(ao_node.outputs[0], material_output_node.inputs[0])
 
+def add_normal_baking_nodes(material, bake_image):
+    nodes = material.node_tree.nodes
+
+    # Add nodes.
+    image_node = nodes.new(type='ShaderNodeTexImage')
+
+    # Set node values.
+    image_node.image = bake_image
 
 #----------------------------- BAKING FUNCTIONS -----------------------------#
 
@@ -244,6 +253,9 @@ def create_bake_image(bake_type):
         case 'THICKNESS':
             bake_image_name += "_Thickness"
 
+        case 'NORMALS':
+            bake_image_name += "_Normals"
+
     # Create a new image in Blender's data, delete existing bake image if it exists.
     image = bpy.data.images.get(bake_image_name)
     if image != None:
@@ -280,6 +292,8 @@ def create_temp_bake_material(bake_type):
             temp_material_name = "MatLay_Curvature"
         case 'THICKNESS':
             temp_material_name = "MatLay_Thickness"
+        case 'NORMAL':
+            temp_material_name = "MatLay_Normal"
 
     bake_material = bpy.data.materials.get(temp_material_name)
     if bake_material != None:
@@ -288,7 +302,7 @@ def create_temp_bake_material(bake_type):
     bake_material = bpy.data.materials.new(name=temp_material_name)
     bake_material.use_nodes = True
 
-    # Remove the Principled BSDF node from the material as it's not used in node setups for baking.
+    # Remove the Principled BSDF node from the material, it's not used in node setups for baking.
     nodes = bake_material.node_tree.nodes
     bsdf_node = nodes.get("Principled BSDF")
     if bsdf_node != None:
@@ -321,6 +335,9 @@ def bake_mesh_map(bake_type):
         case 'THICKNESS':
             add_thickness_baking_nodes(temp_bake_material, bake_image)
 
+        case 'NORMALS':
+            add_normal_baking_nodes(temp_bake_material, bake_image)
+
     # Apply bake settings and bake the material to a texture.
     baking_settings = bpy.context.scene.matlay_baking_settings
     match baking_settings.output_quality:
@@ -333,13 +350,26 @@ def bake_mesh_map(bake_type):
         case 'HIGH_QUALITY':
             bpy.data.scenes["Scene"].cycles.samples = 128
 
-    if baking_settings.high_poly_mesh != None:
+    if baking_settings.high_poly_object != None:
         bpy.context.scene.render.bake.use_selected_to_active = True
+        bpy.context.scene.render.bake.cage_extrusion = baking_settings.cage_extrusion
+        
+        # Select the low poly and high poly objects.
+        active_object = bpy.context.active_object
+        bpy.ops.object.select_all(action='DESELECT')
+        baking_settings.high_poly_object.select_set(True)
+        active_object.select_set(True)
+        
     else:
         bpy.context.scene.render.bake.use_selected_to_active = False
 
     bpy.context.scene.render.engine = 'CYCLES'
-    bpy.ops.object.bake(type='EMIT')
+
+    match bake_type:
+        case 'NORMALS':
+            bpy.ops.object.bake(type='NORMAL')
+        case _:
+            bpy.ops.object.bake(type='EMIT')
 
     # Save the baked image.
     if bake_image:

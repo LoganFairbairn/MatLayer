@@ -117,7 +117,7 @@ def draw_baking_section_ui(self, context):
 
     row = layout.row()
     row.scale_y = scale_y
-    row.prop(baking_settings, "high_poly_mesh", slider=True)
+    row.prop(baking_settings, "high_poly_object", slider=True)
 
     row = layout.row()
     row.scale_y = scale_y
@@ -138,6 +138,14 @@ def draw_baking_section_ui(self, context):
         row = layout.row()
         row.scale_y = scale_y
         row.prop(bpy.data.scenes["Scene"].render.bake, "margin", slider=True)
+
+        if baking_settings.high_poly_object != None:
+            row = layout.row()
+            row.scale_y = scale_y
+            row.prop(baking_settings, "cage_extrusion", slider=True)
+            row = layout.row()
+            row.scale_y = scale_y
+            row.prop(bpy.data.scenes["Scene"].render.bake, "max_ray_distance", slider=True)
 
         row = layout.row()
         row.scale_y = scale_y
