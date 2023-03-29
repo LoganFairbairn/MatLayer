@@ -17,7 +17,7 @@ SELECTED_BAKE_TYPE = [
     ]
 
 QUALITY_SETTINGS = [
-    ("LOW_QUALITY", "Low Quality (for testing)", "Extremly low quality baking, generally used only for testing baking functionality or previewing a really rough version of baked textures."), 
+    ("LOW_QUALITY", "Low Quality (for testing)", "Extremly low quality baking, generally used only for testing baking functionality or previewing a really rough version of baked textures. Using this quality will significantly reduce time it takes to bake mesh maps."), 
     ("RECOMMENDED_QUALITY", "Recommended Quality", "The suggested quality for baking texture maps."),
     ("HIGH_QUALITY", "High Quality", "A higher than average baking quality. This should be used for when fine, accurate detail is required in mesh map textures. Using this quality will significantly slow down baking speeds.")
     ]
@@ -38,7 +38,7 @@ def update_bake_width(self, context):
 class MATLAY_baking_settings(bpy.types.PropertyGroup):
     show_advanced_settings: BoolProperty(name="Show Advanced Settings", description="Click to show / hide advanced baking settings", default=False)
     bake_type: EnumProperty(items=SELECTED_BAKE_TYPE, name="Bake Types", description="Bake type currently selected.", default='AMBIENT_OCCLUSION')
-    output_quality: EnumProperty(items=QUALITY_SETTINGS, name="Output Quality", description="Output quality of the bake.", default='RECOMMENDED_QUALITY')
+    output_quality: EnumProperty(items=QUALITY_SETTINGS, name="Output Quality", description="Output quality of the baked mesh maps", default='RECOMMENDED_QUALITY')
     output_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS,name="Output Height",description="Image size for the baked texure map result(s).", default='FIVE_TWELVE', update=update_bake_width)
     output_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Output Height", description="Image size for the baked texure map result(s).", default='FIVE_TWELVE')
     match_bake_resolution: BoolProperty(name="Match Bake Resoltion", description="When toggled on, the bake resolution's width and height will be synced", default=True, update=update_match_bake_resolution)
