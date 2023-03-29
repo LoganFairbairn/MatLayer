@@ -190,7 +190,7 @@ def add_thickness_baking_nodes(material, bake_image):
     links.new(emission_node.outputs[0], material_output_node.inputs[0])
 
 
-#----------------------------- BAKING OPERATORS -----------------------------#
+#----------------------------- BAKING FUNCTIONS -----------------------------#
 
 def verify_bake_object():
     '''Verifies the active object is a mesh and has an active UV map.'''
@@ -426,7 +426,10 @@ class MATLAY_OT_bake_normals(Operator):
     def execute(self, context):
         bake_mesh_map('NORMALS')
         return {'FINISHED'}
-    
+
+
+#----------------------------- DELETING MESH MAP FUNCTIONS -----------------------------#
+
 class MATLAY_OT_delete_ao_map(Operator):
     bl_idname = "matlay.delete_ao_map"
     bl_label = "Delete Ambient Occlusion Map"
