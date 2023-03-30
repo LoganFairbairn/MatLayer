@@ -202,16 +202,37 @@ def verify_bake_object():
     '''Verifies the active object is a mesh and has an active UV map.'''
     active_object = bpy.context.active_object
 
+    # Make sure the active object exists.
+    if active_object == None:
+        print_info_messages.show_message_box("Active object is none.", title="Baking Mesh Map Error", icon='ERROR')
+        return False
+
     # Make sure the active object is a Mesh.
     if active_object.type != 'MESH':
-        print_info_messages.show_message_box("Active object must be a mesh.", title="MatLay baking error.", icon='ERROR')
+        print_info_messages.show_message_box("Active object must be a mesh.", title="Baking Mesh Map Error", icon='ERROR')
         return False
 
     # Make sure the active object has a UV map.
     if active_object.data.uv_layers.active == None:
-        print_info_messages.show_message_box("Active object has no active UV layer.", title="MatLay baking error.", icon='ERROR')
+        print_info_messages.show_message_box("Active object has no active UV layer.", title="Baking Mesh Map Error", icon='ERROR')
         return False
     
+    # Check to see if the (low poly) selected active object is hidden.
+    if active_object.hide_get():
+        print_info_messages.show_message_box("Selected active object is hidden.", title="Baking Mesh Map Error", icon='ERROR')
+        return False
+
+    # The (low poly) selected active object should be unhiden, selectable and visible.
+    active_object.hide_set(False)
+    active_object.hide_render = False
+    active_object.hide_select = False
+
+    # The high poly mesh must be unhidden, selectable and visible.
+    high_poly_object = bpy.context.scene.matlay_baking_settings.high_poly_object
+    high_poly_object.hide_set(False)
+    high_poly_object.hide_render = False
+    high_poly_object.hide_select = False
+
     return True
 
 def create_bake_image(bake_type):
@@ -350,25 +371,25 @@ def bake_mesh_map(bake_type):
         case 'HIGH_QUALITY':
             bpy.data.scenes["Scene"].cycles.samples = 128
 
-    if baking_settings.high_poly_object != None:
-        bpy.context.scene.render.bake.use_selected_to_active = True
-        bpy.context.scene.render.bake.cage_extrusion = baking_settings.cage_extrusion
-        
-        # Select the low poly and high poly objects.
-        active_object = bpy.context.active_object
-        bpy.ops.object.select_all(action='DESELECT')
-        baking_settings.high_poly_object.select_set(True)
-        active_object.select_set(True)
-        
-    else:
-        bpy.context.scene.render.bake.use_selected_to_active = False
-
     bpy.context.scene.render.engine = 'CYCLES'
-
     match bake_type:
         case 'NORMALS':
+            if baking_settings.high_poly_object != None:
+                bpy.context.scene.render.bake.use_selected_to_active = True
+                bpy.context.scene.render.bake.cage_extrusion = baking_settings.cage_extrusion
+                
+                # Select the low poly and high poly objects.
+                active_object = bpy.context.active_object
+                bpy.ops.object.select_all(action='DESELECT')
+                baking_settings.high_poly_object.select_set(True)
+                active_object.select_set(True)
+                bpy.context.scene.render.bake.use_selected_to_active = True
+            else:
+                bpy.context.scene.render.bake.use_selected_to_active = False
             bpy.ops.object.bake(type='NORMAL')
+
         case _:
+            bpy.context.scene.render.bake.use_selected_to_active = False
             bpy.ops.object.bake(type='EMIT')
 
     # Save the baked image.
