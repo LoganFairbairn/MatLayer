@@ -23,13 +23,14 @@ QUALITY_SETTINGS = [
     ]
 
 def update_match_bake_resolution(self, context):
+    '''Match the height to the width.'''
     baking_settings = context.scene.matlay_baking_settings
     if baking_settings.match_bake_resolution:
         baking_settings.output_height = baking_settings.output_width
 
 def update_bake_width(self, context):
+    '''Match the height to the width of the bake output'''
     baking_settings = context.scene.matlay_baking_settings
-
     if baking_settings.match_bake_resolution:
         if baking_settings.output_height != baking_settings.output_width:
             baking_settings.output_height = baking_settings.output_width
@@ -228,9 +229,10 @@ def verify_bake_object():
 
     # The high poly mesh must be unhidden, selectable and visible.
     high_poly_object = bpy.context.scene.matlay_baking_settings.high_poly_object
-    high_poly_object.hide_set(False)
-    high_poly_object.hide_render = False
-    high_poly_object.hide_select = False
+    if high_poly_object:
+        high_poly_object.hide_set(False)
+        high_poly_object.hide_render = False
+        high_poly_object.hide_select = False
 
     return True
 
@@ -390,6 +392,11 @@ def bake_mesh_map(bake_type):
         case _:
             bpy.context.scene.render.bake.use_selected_to_active = False
             bpy.ops.object.bake(type='EMIT')
+
+    # High the high poly object, there's no need for it to be visible anymore.
+    high_poly_object = bpy.context.scene.matlay_baking_settings.high_poly_object
+    if high_poly_object:
+        high_poly_object.hide_set(True)
 
     # Save the baked image.
     if bake_image:
