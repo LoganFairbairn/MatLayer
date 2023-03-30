@@ -37,26 +37,26 @@ def update_bake_width(self, context):
 
 class MATLAY_baking_settings(bpy.types.PropertyGroup):
     show_advanced_settings: BoolProperty(name="Show Advanced Settings", description="Click to show / hide advanced baking settings. Advanced settings generally don't need to be edited", default=False)
-    bake_type: EnumProperty(items=SELECTED_BAKE_TYPE, name="Bake Types", description="Bake type currently selected.", default='AMBIENT_OCCLUSION')
+    bake_type: EnumProperty(items=SELECTED_BAKE_TYPE, name="Bake Types", description="Bake type currently selected", default='AMBIENT_OCCLUSION')
     output_quality: EnumProperty(items=QUALITY_SETTINGS, name="Output Quality", description="Output quality of the baked mesh maps", default='RECOMMENDED_QUALITY')
-    output_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS,name="Output Height",description="Image size for the baked texure map result(s).", default='FIVE_TWELVE', update=update_bake_width)
-    output_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Output Height", description="Image size for the baked texure map result(s).", default='FIVE_TWELVE')
+    output_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS,name="Output Height",description="Image size for the baked texure map result(s)", default='FIVE_TWELVE', update=update_bake_width)
+    output_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Output Height", description="Image size for the baked texure map result(s)", default='FIVE_TWELVE')
     match_bake_resolution: BoolProperty(name="Match Bake Resoltion", description="When toggled on, the bake resolution's width and height will be synced", default=True, update=update_match_bake_resolution)
-    bake_ambient_occlusion: BoolProperty(name="Bake Ambient Occlusion", description="Toggle for baking ambient occlusion as part of the batch baking operator.", default=True)
+    bake_ambient_occlusion: BoolProperty(name="Bake Ambient Occlusion", description="Toggle for baking ambient occlusion as part of the batch baking operator", default=True)
     ambient_occlusion_image_name: StringProperty(name="", description="The baking AO image", default="")
     ambient_occlusion_intensity: FloatProperty(name="Ambient Occlusion Intensity", description="", min=0.1, max=0.99, default=0.5)
     ambient_occlusion_samples: IntProperty(name="Ambient Occlusion Samples", description="The amount of samples for ambient occlusion taken", min=1, max=128, default=64)
     ambient_occlusion_local: BoolProperty(name="Local AO", description="Ambient occlusion will not bake shadow cast by other objects", default=True)
     ambient_occlusion_inside: BoolProperty(name="Inside AO", description="Ambient occlusion will trace rays towards the inside of the object", default=False)
-    bake_curvature: BoolProperty(name="Bake Curvature", description="Toggle for baking curvature as part of the batch baking process.", default=True)
+    bake_curvature: BoolProperty(name="Bake Curvature", description="Toggle for baking curvature as part of the batch baking process", default=True)
     curvature_image_name: StringProperty(name="", description="The baked curvature for object", default="")
     curvature_edge_intensity: FloatProperty(name="Edge Intensity", description="Brightens edges", min=0.0, max=10.0, default=3.0)
     curvature_edge_radius: FloatProperty(name="Edge Radius", description="Edge radius", min=0.001, max=0.1, default=0.01)
-    curvature_ao_masking: FloatProperty(name="AO Masking", description="Mask the curvature edges using ambient occlusion.", min=0.0, max=1.0, default=1.0)
-    bake_thickness: BoolProperty(name="Bake Thickness", description="Bake Thickness", default=True)
+    curvature_ao_masking: FloatProperty(name="AO Masking", description="Mask the curvature edges using ambient occlusion", min=0.0, max=1.0, default=1.0)
+    bake_thickness: BoolProperty(name="Bake Thickness", description="Toggle for baking thickness as part of the batch baking operator", default=True)
     thickness_samples: IntProperty(name="Thickness Samples", description="The amount of samples for thickness baking. Increasing this value will increase the quality of the output thickness maps", min=1, max=128, default=64)
-    bake_normals: BoolProperty(name="Bake Normal", description="Toggle for baking normal maps for baking as part of the batch baking operator.", default=True)
-    cage_extrusion: FloatProperty(name="Cage Extrusion", description="Infaltes the active object by the specified amount for baking. This helps matching to points nearer to the outside of the selected object meshes.", default=0.111, min=0.0, max=1.0)
+    bake_normals: BoolProperty(name="Bake Normal", description="Toggle for baking normal maps for baking as part of the batch baking operator", default=True)
+    cage_extrusion: FloatProperty(name="Cage Extrusion", description="Infaltes the active object by the specified amount for baking. This helps matching to points nearer to the outside of the selected object meshes", default=0.111, min=0.0, max=1.0)
     high_poly_object: PointerProperty(type=bpy.types.Object, name="High Poly Object", description="The high poly object (must be a mesh) from which mesh detail will be baked to texture maps. The high poly mesh should generally be overlapped by your low poly mesh before starting baking. You do not need to provide a high poly mesh for baking texture maps")
 
 
@@ -411,10 +411,10 @@ def bake_mesh_map(bake_type):
     bpy.data.materials.remove(temp_bake_material)
 
 class MATLAY_OT_bake(Operator):
-    '''Bakes all checked texture maps in succession. Note that this function (especially on slower computers, or when using CPU for rendering) can take a while.'''
+    '''Bakes all checked mesh texture maps in succession. Note that this function (especially on slower computers, or when using a CPU for rendering) can take a few minutes.'''
     bl_idname = "matlay.bake"
     bl_label = "Batch Bake"
-    bl_description = "Bakes all checked texture maps in succession"
+    bl_description = "Bakes all checked mesh texture maps in succession. Note that this function can take a few minutes, especially on slower computers, or when using CPU for rendering"
 
     # Disable when there is no active object.
     @ classmethod

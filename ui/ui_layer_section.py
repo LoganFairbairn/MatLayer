@@ -28,7 +28,7 @@ def draw_layers_section_ui(self, context):
                     draw_layer_properties(column1, context)
 
         else:
-            column1.label(text="No active material.")
+            column1.label(text="No active material, add a layer to begin editing.")
 
         # Layer stack (second column).
         column2 = split.column()

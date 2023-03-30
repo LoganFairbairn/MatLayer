@@ -93,7 +93,7 @@ def bake_and_export_material_channel(material_channel_name, context):
 class MATLAY_OT_export(Operator):
     bl_idname = "matlay.export"
     bl_label = "Batch Export"
-    bl_description = "Bakes and exports all selected textures to the textures folder"
+    bl_description = "Bakes all checked material channel maps in succession and saves the baked images to a texture folder. Note that this function (especially on slower computers, or when using a CPU for rendering) can take a few minutes"
 
     @ classmethod
     def poll(cls, context):
