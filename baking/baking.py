@@ -199,41 +199,33 @@ def add_normal_baking_nodes(material, bake_image):
 #----------------------------- BAKING FUNCTIONS -----------------------------#
 
 def verify_bake_object():
-    '''Verifies the active object is a mesh and has an active UV map.'''
+    '''Verifies the active object can be baked to.'''
     active_object = bpy.context.active_object
 
     # Make sure the active object exists.
     if active_object == None:
-        print_info_messages.show_message_box("Active object is none.", title="Baking Mesh Map Error", icon='ERROR')
+        print_info_messages.show_message_box("Selected object is none.", title="User Error", icon='ERROR')
         return False
 
     # Make sure the active object is a Mesh.
     if active_object.type != 'MESH':
-        print_info_messages.show_message_box("Active object must be a mesh.", title="Baking Mesh Map Error", icon='ERROR')
+        print_info_messages.show_message_box("Selected object must be a mesh for baking / exporting.", title="User Error", icon='ERROR')
         return False
 
     # Make sure the active object has a UV map.
     if active_object.data.uv_layers.active == None:
-        print_info_messages.show_message_box("Active object has no active UV layer.", title="Baking Mesh Map Error", icon='ERROR')
+        print_info_messages.show_message_box("Selected object has no active UV layer.", title="User Error", icon='ERROR')
         return False
     
     # Check to see if the (low poly) selected active object is hidden.
     if active_object.hide_get():
-        print_info_messages.show_message_box("Selected active object is hidden.", title="Baking Mesh Map Error", icon='ERROR')
+        print_info_messages.show_message_box("Selected object is hidden.", title="User Error", icon='ERROR')
         return False
-
-    # The (low poly) selected active object should be unhiden, selectable and visible.
-    active_object.hide_set(False)
-    active_object.hide_render = False
-    active_object.hide_select = False
-
-    # The high poly mesh must be unhidden, selectable and visible.
-    high_poly_object = bpy.context.scene.matlay_baking_settings.high_poly_object
-    if high_poly_object:
-        high_poly_object.hide_set(False)
-        high_poly_object.hide_render = False
-        high_poly_object.hide_select = False
-
+    
+    # Ensure there is a material on the active object.
+    if active_object.active_material == None:
+        print_info_messages.show_message_box("Selected object doesn't have an active material.", title="User Error", icon='ERROR')
+        return False
     return True
 
 def create_bake_image(bake_type):
@@ -336,6 +328,18 @@ def bake_mesh_map(bake_type):
     # Verify that there is a valid object to bake mesh maps for.
     if verify_bake_object() == False:
         return
+
+    # The (low poly) selected active object should be unhiden, selectable and visible.
+    active_object.hide_set(False)
+    active_object.hide_render = False
+    active_object.hide_select = False
+
+    # The high poly mesh must be unhidden, selectable and visible.
+    high_poly_object = bpy.context.scene.matlay_baking_settings.high_poly_object
+    if high_poly_object:
+        high_poly_object.hide_set(False)
+        high_poly_object.hide_render = False
+        high_poly_object.hide_select = False
 
     bake_image = create_bake_image(bake_type)
     temp_bake_material = create_temp_bake_material(bake_type)

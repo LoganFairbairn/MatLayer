@@ -3,6 +3,7 @@ import bpy
 from bpy.types import Operator, PropertyGroup
 from bpy.props import BoolProperty, StringProperty
 from ..layers import toggle_channel_preview
+from ..baking import baking
 from ..texture_set_settings import texture_set_settings
 from ..utilities import print_info_messages
 
@@ -25,8 +26,9 @@ class MATLAY_exporting_settings(bpy.types.PropertyGroup):
 
 def bake_and_export_material_channel(material_channel_name, context):
     '''Bakes the material channel to a texture and saves the output image to a folder.'''
-    if bpy.context.active_object == None:
-        print_info_messages.show_message_box("No export.", "MatLay baking error.", 'ERROR')
+
+    # Verify the bake object before attempting to export.
+    if baking.verify_bake_object() == False:
         return
 
     # Isolate the material channel.
