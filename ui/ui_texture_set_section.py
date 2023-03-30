@@ -1,6 +1,6 @@
 import bpy
 from .import ui_section_tabs
-from ..layers.material_channel_nodes import get_material_channel_list
+from ..core.material_channels import get_material_channel_list
 
 def draw_texture_set_section_ui(self, context):
     '''Draws the layer section UI.'''

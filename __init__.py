@@ -20,27 +20,29 @@ import bpy.utils.previews       # Imported for loading texture previews as icons
 from bpy.app.handlers import persistent
 
 # Import texture set modules.
-from .texture_set_settings.texture_set_settings import MATLAY_texture_set_settings, GlobalMaterialChannelToggles
+from .core.texture_set_settings import MATLAY_texture_set_settings, GlobalMaterialChannelToggles
 
 # Import layer related modules.
-from .layers.layers import *
-from .layers.layer_stack import *
-from .layers.toggle_channel_preview import MATLAY_OT_toggle_channel_preview
+from .core.layers import *
+from .core.layer_stack import *
+
+# Import material channel modules.
+from .core.material_channels import MATLAY_OT_toggle_material_channel_preview
 
 # Import layer masking modules.
-from .layers.layer_masks import MATLAY_mask_stack, MATLAY_UL_mask_stack, MATLAY_masks, MATLAY_OT_open_mask_settings, MATLAY_OT_add_mask, MATLAY_OT_delete_layer_mask, MATLAY_OT_move_layer_mask_up, MATLAY_OT_move_layer_mask_down, MATLAY_OT_add_layer_mask_filter_menu, MATLAY_OT_add_mask_filter_invert, MATLAY_OT_add_mask_filter_levels
+from .core.layer_masks import MATLAY_mask_stack, MATLAY_UL_mask_stack, MATLAY_masks, MATLAY_OT_open_mask_settings, MATLAY_OT_add_mask, MATLAY_OT_delete_layer_mask, MATLAY_OT_move_layer_mask_up, MATLAY_OT_move_layer_mask_down, MATLAY_OT_add_layer_mask_filter_menu, MATLAY_OT_add_mask_filter_invert, MATLAY_OT_add_mask_filter_levels
 
 # Import filter modules.
-from .layers.layer_filters import MATLAY_layer_filter_stack, MATLAY_UL_layer_filter_stack, MATLAY_layer_filters, MATLAY_OT_add_layer_filter_menu, MATLAY_OT_add_layer_filter_rgb_curves, MATLAY_OT_add_layer_filter_hsv, MATLAY_OT_add_layer_filter_invert, MATLAY_OT_add_layer_filter_levels, MATLAY_OT_delete_layer_filter, MATLAY_OT_move_layer_filter_up, MATLAY_OT_move_layer_filter_down
+from .core.layer_filters import MATLAY_layer_filter_stack, MATLAY_UL_layer_filter_stack, MATLAY_layer_filters, MATLAY_OT_add_layer_filter_menu, MATLAY_OT_add_layer_filter_rgb_curves, MATLAY_OT_add_layer_filter_hsv, MATLAY_OT_add_layer_filter_invert, MATLAY_OT_add_layer_filter_levels, MATLAY_OT_delete_layer_filter, MATLAY_OT_move_layer_filter_up, MATLAY_OT_move_layer_filter_down
 
 # Import layer operations.
-from .layers.layer_operations import *
+from .core.layer_operations import *
 
 # Import baking modules.
-from .baking.baking import MATLAY_baking_settings, MATLAY_OT_bake, MATLAY_OT_bake_ambient_occlusion, MATLAY_OT_bake_curvature, MATLAY_OT_bake_thickness, MATLAY_OT_bake_normals, MATLAY_OT_delete_ao_map, MATLAY_OT_delete_curvature_map, MATLAY_OT_delete_thickness_map, MATLAY_OT_delete_normal_map
+from .core.baking import MATLAY_baking_settings, MATLAY_OT_bake, MATLAY_OT_bake_ambient_occlusion, MATLAY_OT_bake_curvature, MATLAY_OT_bake_thickness, MATLAY_OT_bake_normals, MATLAY_OT_delete_ao_map, MATLAY_OT_delete_curvature_map, MATLAY_OT_delete_thickness_map, MATLAY_OT_delete_normal_map
 
 # Import exporting modules.
-from .exporting.exporting import MATLAY_exporting_settings, MATLAY_OT_export, MATLAY_OT_export_base_color, MATLAY_OT_export_subsurface, MATLAY_OT_export_subsurface_color, MATLAY_OT_export_metallic, MATLAY_OT_export_specular, MATLAY_OT_export_roughness, MATLAY_OT_export_normals, MATLAY_OT_export_height, MATLAY_OT_export_emission
+from .core.exporting import MATLAY_exporting_settings, MATLAY_OT_export, MATLAY_OT_export_base_color, MATLAY_OT_export_subsurface, MATLAY_OT_export_subsurface_color, MATLAY_OT_export_metallic, MATLAY_OT_export_specular, MATLAY_OT_export_roughness, MATLAY_OT_export_normals, MATLAY_OT_export_height, MATLAY_OT_export_emission
 
 # Import tool / utility modules.
 from .utilities.image_file_handling import MATLAY_OT_add_layer_image, MATLAY_OT_delete_layer_image, MATLAY_OT_import_texture, MATLAY_OT_import_mask_image
@@ -89,6 +91,9 @@ classes = (
     MATLAY_OT_export_height,
     MATLAY_OT_export_emission,
 
+    # Material Channels
+    MATLAY_OT_toggle_material_channel_preview,
+
     # Layers
     MaterialChannelToggles,
     MaterialChannelNodeType,
@@ -134,7 +139,6 @@ classes = (
     MATLAY_OT_merge_layer,
     MATLAY_OT_move_layer_up,
     MATLAY_OT_move_layer_down,
-    MATLAY_OT_toggle_channel_preview,
     MATLAY_OT_import_texture,
     MATLAY_OT_refresh_layer_nodes,
     MATLAY_OT_add_layer_image,

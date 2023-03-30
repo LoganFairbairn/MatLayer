@@ -2,10 +2,9 @@
 
 import bpy
 from bpy.types import PropertyGroup
-from . import material_channel_nodes
-from . import layer_nodes
+from . import material_channels
+from ..core import layer_nodes
 from .layer_filters import refresh_filter_stack
-from .toggle_channel_preview import toggle_material_channel_preview
 
 MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", "EMISSION", "SCATTERING")
 
@@ -22,7 +21,7 @@ def update_selected_material_channel(self, context):
 
     # If the material channel preview is on, update the material channel preview.
     if context.scene.matlay_layer_stack.material_channel_preview == True:
-        toggle_material_channel_preview(True, context)
+        material_channels.isolate_material_channel(True, selected_material_channel, context)
 
 def update_layer_index(self, context):
     '''Updates stuff when the selected layer is changed.'''
@@ -62,7 +61,7 @@ class MATLAY_layer_stack(PropertyGroup):
     material_channel_preview: bpy.props.BoolProperty(name="Material Channel Preview", description="If true, only the rgb output values for the selected material channel will be used on the object.", default=False)
     node_default_width: bpy.props.IntProperty(default=250)
     node_spacing: bpy.props.IntProperty(default=80)
-    selected_material_channel: bpy.props.EnumProperty(items=material_channel_nodes.MATERIAL_CHANNELS, name="Material Channel", description="The currently selected material channel", default='COLOR', update=update_selected_material_channel)
+    selected_material_channel: bpy.props.EnumProperty(items=material_channels.MATERIAL_CHANNELS, name="Material Channel", description="The currently selected material channel", default='COLOR', update=update_selected_material_channel)
 
     # Note: These tabs exist to help keep the user interface elements on screen limited, thus simplifying the editing process, and helps avoid the need to scroll down on the user interface to see settings (which is annoying when using a tablet pen).
     # Tabs for material / mask layer properties.

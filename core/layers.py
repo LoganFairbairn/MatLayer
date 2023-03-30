@@ -2,9 +2,9 @@
 
 import bpy
 from bpy.types import PropertyGroup
-from bpy.props import BoolProperty, FloatProperty, StringProperty, PointerProperty, FloatVectorProperty, EnumProperty
-from . import layer_nodes
-from . import material_channel_nodes
+from bpy.props import BoolProperty, FloatProperty, PointerProperty, FloatVectorProperty, EnumProperty
+from ..core import layer_nodes
+from . import material_channels
 from ..utilities.print_info_messages import show_message_box
 
 # List of node types that can be used in the texture slot.
@@ -52,9 +52,9 @@ def update_layer_name(self, context):
     else:
         # Update the frame name for all material channels on the layer that was changed.
         # Since the layer's name is already updated in the UI directly after a name change, a cached frame name (previous name) is used to get the layer frame nodes and update their names.
-        material_channel_list = material_channel_nodes.get_material_channel_list()
+        material_channel_list = material_channels.get_material_channel_list()
         for material_channel_name in material_channel_list:
-            material_channel = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+            material_channel = material_channels.get_material_channel_node(context, material_channel_name)
             cached_frame_name = self.cached_frame_name
             frame = material_channel.node_tree.nodes.get(cached_frame_name)
             if frame:
@@ -74,7 +74,7 @@ def update_layer_opacity(self, context):
 
 def update_hidden(self, context):
     '''Hide or unhide layers.'''
-    material_channel_list = material_channel_nodes.get_material_channel_list()
+    material_channel_list = material_channels.get_material_channel_list()
     
     # Hide selected layer by muting all nodes within the layer.
     if self.hidden:
@@ -96,9 +96,9 @@ def update_layer_projection(self, context):
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
 
-    material_channel_list = material_channel_nodes.get_material_channel_list()
+    material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
-        material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+        material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
 
         # Get nodes.
         texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_index, context)
@@ -139,7 +139,7 @@ def update_projection_blend(self, context):
     layers = context.scene.matlay_layers
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
-    material_channel_list = material_channel_nodes.get_material_channel_list()
+    material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_index, context)
     
@@ -150,7 +150,7 @@ def update_projection_offset_x(self, context):
     layers = context.scene.matlay_layers
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
-    material_channel_list = material_channel_nodes.get_material_channel_list()
+    material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
@@ -161,7 +161,7 @@ def update_projection_offset_y(self, context):
     layers = context.scene.matlay_layers
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
-    material_channel_list = material_channel_nodes.get_material_channel_list()
+    material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
@@ -173,7 +173,7 @@ def update_projection_rotation(self, context):
     layers = context.scene.matlay_layers
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
-    material_channel_list = material_channel_nodes.get_material_channel_list()
+    material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
         if mapping_node:
@@ -184,7 +184,7 @@ def update_projection_scale_x(self, context):
     layers = context.scene.matlay_layers
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
-    material_channel_list = material_channel_nodes.get_material_channel_list()
+    material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
@@ -198,7 +198,7 @@ def update_projection_scale_y(self, context):
     layers = context.scene.matlay_layers
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
-    material_channel_list = material_channel_nodes.get_material_channel_list()
+    material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
         
@@ -411,7 +411,7 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
     '''Replaced the texture node with a new texture node based on the given node type.'''
 
     selected_layer_stack_index = context.scene.matlay_layer_stack.layer_index
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+    material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     
     # Delete the old layer node.
     old_texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_stack_index, context)
@@ -434,7 +434,7 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
             empty_group_node = bpy.data.node_groups['MATLAY_EMPTY']
             if not empty_group_node:
-                material_channel_nodes.create_empty_group_node(context)
+                material_channels.create_empty_group_node(context)
             texture_node.node_tree = bpy.data.node_groups['MATLAY_EMPTY']
 
         case "NOISE":

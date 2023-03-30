@@ -1,6 +1,6 @@
 from bpy.types import Operator
-from . import material_channel_nodes
-from . import layer_nodes
+from . import material_channels
+from ..core import layer_nodes
 from . import matlay_materials
 from ..utilities.viewport_setting_adjuster import set_material_shading
 import random
@@ -59,13 +59,13 @@ def add_default_layer_nodes(context):
         new_layer_index = selected_layer_index
 
     # Add new nodes for all material channels.
-    material_channels = material_channel_nodes.get_material_channel_list()
-    for i in range(0, len(material_channels)):
+    material_channel_list = material_channels.get_material_channel_list()
+    for i in range(0, len(material_channel_list)):
 
-        material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channels[i])
+        material_channel_node = material_channels.get_material_channel_node(context, material_channel_list[i])
         
         # Verify that the material channel node exists.
-        if material_channel_nodes.verify_material_channel(material_channel_node):
+        if material_channels.verify_material_channel(material_channel_node):
 
             new_nodes = []
 
@@ -99,42 +99,42 @@ def add_default_layer_nodes(context):
 
             # Create nodes & set node settings specific to each material channel. *
             texture_node = None
-            if material_channels[i] == "COLOR":
+            if material_channel_list[i] == "COLOR":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.25, 0.25, 0.25, 1.0)
 
-            if material_channels[i] == "SUBSURFACE":
+            if material_channel_list[i] == "SUBSURFACE":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
                 texture_node.outputs[0].default_value = 0.0
 
-            if material_channels[i] == "SUBSURFACE_COLOR":
+            if material_channel_list[i] == "SUBSURFACE_COLOR":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
 
-            if material_channels[i] == "METALLIC":
+            if material_channel_list[i] == "METALLIC":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
                 texture_node.outputs[0].default_value = 0.0
 
-            if material_channels[i] == "SPECULAR":
+            if material_channel_list[i] == "SPECULAR":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
                 texture_node.outputs[0].default_value = 0.5
 
-            if material_channels[i] == "ROUGHNESS":
+            if material_channel_list[i] == "ROUGHNESS":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
                 texture_node.outputs[0].default_value = 0.5
                 layers[selected_layer_index].roughness_layer_color_preview = (0.5, 0.5, 0.5)
 
-            if material_channels[i] == "NORMAL":
+            if material_channel_list[i] == "NORMAL":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.5, 0.5, 1.0, 1.0)
                 mix_layer_node.inputs[1].default_value = (0.5, 0.5, 1.0, 1.0)
                 
-            if material_channels[i] == "HEIGHT":
+            if material_channel_list[i] == "HEIGHT":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
                 texture_node.outputs[0].default_value = 0.0
                 mix_layer_node.blend_type = 'MIX'
 
-            if material_channels[i] == "EMISSION":
+            if material_channel_list[i] == "EMISSION":
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
 
@@ -182,9 +182,9 @@ def move_layer(context, direction):
         # Add a tilda to the end of the layer frame that will be moved down and the layer nodes names for the selected layer.
         layer_node_names = layer_nodes.get_layer_node_names()
 
-        material_channel_names = material_channel_nodes.get_material_channel_list()
+        material_channel_names = material_channels.get_material_channel_list()
         for material_channel in material_channel_names:
-            material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
 
             old_frame_name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(selected_layer_index)
             frame = material_channel_node.node_tree.nodes.get(old_frame_name)
@@ -199,9 +199,9 @@ def move_layer(context, direction):
                 node.label = node.name
         
         # Update the layer nodes for the layer below to have the selected layer index.
-        material_channel_names = material_channel_nodes.get_material_channel_list()
+        material_channel_names = material_channels.get_material_channel_list()
         for material_channel in material_channel_names:
-            material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
 
             old_frame_name = layers[under_layer_index].name + "_" + str(layers[under_layer_index].id) + "_" + str(under_layer_index)
             frame = material_channel_node.node_tree.nodes.get(old_frame_name)
@@ -218,9 +218,9 @@ def move_layer(context, direction):
                 layer_nodes.rename_layer_node(node, node_name, selected_layer_index)
 
         # Remove the tilda from the end of the layer frame and the layer node names for the selected layer and reduce their indicies by 1.
-        material_channel_names = material_channel_nodes.get_material_channel_list()
+        material_channel_names = material_channels.get_material_channel_list()
         for material_channel in material_channel_names:
-            material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
 
             old_frame_name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(selected_layer_index) + "~"
             frame = material_channel_node.node_tree.nodes.get(old_frame_name)
@@ -253,9 +253,9 @@ def move_layer(context, direction):
         # Add a tilda to the end of the layer frame and the layer nodes names for the selected layer.
         layer_node_names = layer_nodes.get_layer_node_names()
 
-        material_channel_names = material_channel_nodes.get_material_channel_list()
+        material_channel_names = material_channels.get_material_channel_list()
         for material_channel in material_channel_names:
-            material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
 
             old_frame_name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(selected_layer_index)
             frame = material_channel_node.node_tree.nodes.get(old_frame_name)
@@ -270,9 +270,9 @@ def move_layer(context, direction):
                 node.label = node.name
         
         # Update the layer nodes for the layer below to have the selected layer index.
-        material_channel_names = material_channel_nodes.get_material_channel_list()
+        material_channel_names = material_channels.get_material_channel_list()
         for material_channel in material_channel_names:
-            material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
 
             old_frame_name = layers[over_layer_index].name + "_" + str(layers[over_layer_index].id) + "_" + str(over_layer_index)
             frame = material_channel_node.node_tree.nodes.get(old_frame_name)
@@ -289,9 +289,9 @@ def move_layer(context, direction):
                 layer_nodes.rename_layer_node(node, node_name, selected_layer_index)
 
         # Remove the tilda from the end of the layer frame and the layer node names for the selected layer and reduce their indicies by 1.
-        material_channel_names = material_channel_nodes.get_material_channel_list()
+        material_channel_names = material_channels.get_material_channel_list()
         for material_channel in material_channel_names:
-            material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
 
             old_frame_name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(selected_layer_index) + "~"
             frame = material_channel_node.node_tree.nodes.get(old_frame_name)
@@ -325,8 +325,8 @@ class MATLAY_OT_add_layer(Operator):
 
     def execute(self, context):
         matlay_materials.prepare_material(context)
-        material_channel_nodes.create_channel_group_nodes(context)
-        material_channel_nodes.create_empty_group_node(context)
+        material_channels.create_channel_group_nodes(context)
+        material_channels.create_empty_group_node(context)
         add_layer_slot(context)
         add_default_layer_nodes(context)
         set_material_shading(context)       # Set the viewport to material shading mode (so users can see the applied material).
@@ -380,9 +380,9 @@ class MATLAY_OT_delete_layer(Operator):
         selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
         # Remove all nodes for all material channels.
-        material_channel_list = material_channel_nodes.get_material_channel_list()
+        material_channel_list = material_channels.get_material_channel_list()
         for material_channel_name in material_channel_list:
-            material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+            material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
 
             # Remove layer frame.
             frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_index, context)
@@ -522,14 +522,6 @@ def read_layer_texture_node_type(texture_node, layer, material_channel_name):
         case 'TEX_VORONOI':
             setattr(layer.channel_node_types, material_channel_name.lower() + "_node_type", 'VORONOI')
 
-'''
-def read_active_material_channel():
-    node_links = context.active_object.active_material.node_tree.links
-    for l in node_links:
-        if link.from_node == 
-        print("Link: " + str(l.from_node))
-'''
-
 class MATLAY_OT_refresh_layer_nodes(Operator):
     bl_idname = "matlay.refresh_layer_nodes"
     bl_label = "Refresh Layer Nodes"
@@ -568,7 +560,7 @@ class MATLAY_OT_refresh_layer_nodes(Operator):
         #read_active_material_channel()
 
         # TODO: Read the texture node type and node values then update the properties stored within the layer.
-        material_channel_list = material_channel_nodes.get_material_channel_list()
+        material_channel_list = material_channels.get_material_channel_list()
         for material_channel_name in material_channel_list:
             for i in range(total_number_of_layers):
                 texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, i, context)

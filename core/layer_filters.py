@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import PropertyGroup, Operator
-from . import material_channel_nodes
+from . import material_channels
 from . import layer_nodes
 
 #----------------------------- LAYER FILTER STACK -----------------------------#
@@ -30,7 +30,7 @@ def get_all_layer_filter_nodes(layer_stack_index, material_channel_name, context
     '''Gets all the filter nodes for a given layer.'''
     filter_nodes = []
 
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+    material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     for i in range(0, 10):
         filter_node = material_channel_node.node_tree.nodes.get("FILTER_" + str(layer_stack_index) + "_" + str(i))
         if filter_node:
@@ -42,7 +42,7 @@ def get_all_layer_filter_nodes(layer_stack_index, material_channel_name, context
 def get_number_of_filter_nodes(material_channel_name, layer_stack_index, context):
     '''Gets the total number of filter nodes in the given layer by reading the material nodes.'''
     number_of_filter_nodes = 0
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+    material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     for i in range(0, 10):
         filter_node = material_channel_node.node_tree.nodes.get("FILTER_" + str(layer_stack_index) + "_" + str(i))
         if filter_node:
@@ -53,14 +53,14 @@ def get_number_of_filter_nodes(material_channel_name, layer_stack_index, context
 
 def update_filter_nodes(context):
     '''Updates filter node indicies. This should be called after adding or removing filter nodes.'''
-    material_channel_names = material_channel_nodes.get_material_channel_list()
+    material_channel_names = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_names:
         update_filter_node_indicies(material_channel_name, context)
         re_link_filter_nodes(material_channel_name, context)
 
 def update_filter_node_indicies(material_channel_name, context):
     '''Renames all filter nodes with their correct indicies.'''
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+    material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     changed_layer_index = -1
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
     filters = context.scene.matlay_layer_filters
@@ -117,7 +117,7 @@ def re_link_filter_nodes(material_channel_name, context):
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
     filter_nodes = get_all_layer_filter_nodes(selected_layer_index, material_channel_name, context)
 
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+    material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     for i in range(0, len(filter_nodes)):
         filter_node = filter_nodes[i]
 
@@ -166,9 +166,9 @@ def add_layer_filter(layer_filter_type, default_name, context):
     else:
         new_filter_index = selected_layer_filter_index
 
-    material_channel_list = material_channel_nodes.get_material_channel_list()
+    material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
-        material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+        material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
         if material_channel_node:
                 
                 # Create new filter node, with tilda to indicate it's a newly added node.
@@ -297,9 +297,9 @@ class MATLAY_OT_delete_layer_filter(Operator):
         filters = context.scene.matlay_layer_filters
         selected_layer_index = context.scene.matlay_layer_stack.layer_index
         selected_layer_filter_index = context.scene.matlay_layer_filter_stack.selected_filter_index
-        material_channel_list = material_channel_nodes.get_material_channel_list()
+        material_channel_list = material_channels.get_material_channel_list()
         for material_channel_name in material_channel_list:
-            material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+            material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
             
             filter_node = material_channel_node.node_tree.nodes.get("FILTER_" + str(selected_layer_index) + "_" + str(selected_layer_filter_index))
 
@@ -321,7 +321,7 @@ def move_filter_layer(direction, context):
     filters = context.scene.matlay_layer_filters
     selected_layer_filter_index = context.scene.matlay_layer_filter_stack.selected_filter_index
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    material_channel_names = material_channel_nodes.get_material_channel_list()
+    material_channel_names = material_channels.get_material_channel_list()
 
     if direction == "DOWN":
         # Get the filter layer index under the selected layer filter. 
@@ -331,21 +331,21 @@ def move_filter_layer(direction, context):
 
         # Add a tilda to the end of the filter node's name for the filter node that will be moved down on the layer stack.
         for material_channel in material_channel_names:
-            material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
             filter_node = material_channel_node.node_tree.nodes.get("FILTER_" + str(selected_layer_index) + "_" + str(selected_layer_filter_index))
             filter_node.name = filter_node.name + "~"
             filter_node.label = filter_node.name
         
         # Update the layer filter for the layer filter below.
         for material_channel in material_channel_names:
-            material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
             filter_node = material_channel_node.node_tree.nodes.get("FILTER_" + str(selected_layer_index) + "_" + str(under_filter_layer_index))
             filter_node.name = "FILTER_" + str(selected_layer_index) + "_" + str(selected_layer_filter_index)
             filter_node.label = filter_node.name
 
         # Remove the tilda from the end of the layer filter node and decrease it's index.
         for material_channel in material_channel_names:
-            material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
             filter_node = material_channel_node.node_tree.nodes.get("FILTER_" + str(selected_layer_index) + "_" + str(selected_layer_filter_index) + "~")
             filter_node.name = "FILTER_" + str(selected_layer_index) + "_" + str(selected_layer_filter_index - 1)
             filter_node.label = filter_node.name
@@ -367,21 +367,21 @@ def move_filter_layer(direction, context):
         
         # Add a tilda to the end of the layer frame and the layer nodes names for the selected layer.
         for material_channel in material_channel_names:
-            material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
             filter_node = material_channel_node.node_tree.nodes.get("FILTER_" + str(selected_layer_index) + "_" + str(selected_layer_filter_index))
             filter_node.name = filter_node.name + "~"
             filter_node.label = filter_node.name
         
         # Update the layer nodes for the layer below to have the selected layer index.
         for material_channel in material_channel_names:
-            material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
             filter_node = material_channel_node.node_tree.nodes.get("FILTER_" + str(selected_layer_index) + "_" + str(over_layer_index))
             filter_node.name = "FILTER_" + str(selected_layer_index) + "_" + str(selected_layer_filter_index)
             filter_node.label = filter_node.name
 
         # Remove the tilda from the end of the filter node and increase it's index.
         for material_channel in material_channel_names:
-            material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
             filter_node = material_channel_node.node_tree.nodes.get("FILTER_" + str(selected_layer_index) + "_" + str(selected_layer_filter_index) + "~")
             filter_node.name = "FILTER_" + str(selected_layer_index) + "_" + str(selected_layer_filter_index + 1)
             filter_node.label = filter_node.name
@@ -400,7 +400,7 @@ def move_filter_layer(direction, context):
 
     # Re-organize the nodes.
     for material_channel_name in material_channel_names:
-        material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+        material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
         layer_nodes.organize_layer_nodes_in_material_channel(material_channel_name, context)
 
 class MATLAY_OT_move_layer_filter_up(Operator):
@@ -457,7 +457,7 @@ def refresh_filter_stack(context):
 def material_layer_filter_exists(layer_index, context):
     '''Returns true if a filter layer exists on the given material layer.'''
     # Checks to see if a filter layer exists on the given material layer by checking for a filter node in the color material channel. One should always exist here if a filter is applied.
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, "COLOR")
+    material_channel_node = material_channels.get_material_channel_node(context, "COLOR")
     filter_node = material_channel_node.node_tree.nodes.get("FILTER_" + str(layer_index) + "_0")
     if filter_node:
         return True

@@ -4,6 +4,7 @@ import bpy
 
 # Returns true if the material on the active object is compatible with this add-on.
 def verify_material(context):
+    '''Verifies the material is valid.'''
     active_object = context.active_object
     if active_object == None:
         return False

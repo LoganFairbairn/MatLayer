@@ -4,8 +4,8 @@ import os
 import bpy
 import bpy.utils.previews       # Imported for loading texture previews as icons.
 from ..utilities import image_file_handling
-from ..layers import layer_nodes
-from ..layers.layer_filters import material_layer_filter_exists
+from ..core import layer_nodes
+from ..core.layer_filters import material_layer_filter_exists
 
 def draw_layer_hidden_icon(layout, item):
     row = layout.row(align=True)

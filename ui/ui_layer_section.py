@@ -1,15 +1,13 @@
 # This file handles drawing the user interface for the layers section.
 
 import bpy
-from ..layers import matlay_materials
-from ..layers import material_channel_nodes
-from ..layers import layer_nodes
-from ..layers import layer_stack as ls
+from ..core import matlay_materials
+from ..core import material_channels
+from ..core import layer_nodes
+from ..core import layer_stack as ls
 from .import ui_section_tabs
 
 SCALE_Y = 1.4
-
-
 
 def draw_layers_section_ui(self, context):
     '''Draws the layer section.'''
@@ -91,17 +89,16 @@ def draw_selected_material_channel(column, context):
     subrow.scale_y = 1.4
     subrow.prop(context.scene.matlay_layer_stack, "selected_material_channel", text="")
     if context.scene.matlay_layer_stack.material_channel_preview == False:
-        subrow.operator("matlay.toggle_channel_preview", text="", icon='MATERIAL')
+        subrow.operator("matlay.toggle_material_channel_preview", text="", icon='MATERIAL')
 
     elif context.scene.matlay_layer_stack.material_channel_preview == True:
-        subrow.operator("matlay.toggle_channel_preview", text="", icon='MATERIAL', depress=True)
+        subrow.operator("matlay.toggle_material_channel_preview", text="", icon='MATERIAL', depress=True)
 
 def draw_layer_stack(column, context):
     '''Draws the material layer stack along with it's operators and material channel.'''
     subrow = column.row(align=True)
     subrow.template_list("MATLAY_UL_layer_list", "Layers", context.scene, "matlay_layers", context.scene.matlay_layer_stack, "layer_index", sort_reverse=True)
     subrow.scale_y = 2
-
 
 
 #----------------- DRAW MATERIAL PROPERTIES ----------------------#
@@ -123,7 +120,7 @@ def draw_layer_material_channel_toggles(column, context):
 
     subrow = column.row()
     subrow.scale_y = 1.4
-    material_channel_list = material_channel_nodes.get_material_channel_list()
+    material_channel_list = material_channels.get_material_channel_list()
 
     # Determine the number of active material channels in the texture set settings so the material channel toggles
     # can be drawn on two user interface lines rather than one in case there are too many.
@@ -137,7 +134,7 @@ def draw_layer_material_channel_toggles(column, context):
     for i in range(len(material_channel_list)):
         attribute_name = material_channel_list[i].lower() + "_channel_toggle"
         if getattr(texture_set_settings.global_material_channel_toggles, attribute_name, None):
-            material_channel_name_abbreviation = material_channel_nodes.get_material_channel_abbreviation(material_channel_list[i])
+            material_channel_name_abbreviation = material_channels.get_material_channel_abbreviation(material_channel_list[i])
             subrow.prop(layers[selected_layer_index].material_channel_toggles, attribute_name, text=material_channel_name_abbreviation, toggle=1)
 
             # Add an additional row in the user interface for material channel toggles if there are a lot of active material channels.
@@ -237,7 +234,7 @@ def draw_material_channel_node_properties(column, context):
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
     texture_set_settings = context.scene.matlay_texture_set_settings
 
-    material_channel_names = material_channel_nodes.get_material_channel_list()
+    material_channel_names = material_channels.get_material_channel_list()
     for i in range(0, len(material_channel_names)):
         texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_names[i], selected_layer_index, context)
         attribute_name = material_channel_names[i].lower() + "_channel_toggle"

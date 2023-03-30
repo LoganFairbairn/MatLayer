@@ -1,7 +1,7 @@
 import bpy
 from bpy.types import Operator, PropertyGroup
 from . import layer_nodes
-from . import material_channel_nodes
+from . import material_channels
 
 MASK_NODE_TYPES = [
     ("VALUE", "Value", ""),
@@ -60,9 +60,9 @@ def add_default_mask_nodes(context):
     '''Adds default mask nodes to all material channels.'''
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
-    material_channel_list = material_channel_nodes.get_material_channel_list()
+    material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
-        material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+        material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
         if material_channel_node:
                 
             # Create default mask nodes.

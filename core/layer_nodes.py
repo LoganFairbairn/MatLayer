@@ -1,8 +1,8 @@
 # This module provides functions to edit layer material nodes created with this add-on.
 
 import bpy
-from . import material_channel_nodes
-from . import layer_filters
+from . import material_channels
+from ..core import layer_filters
 
 # Node organization settings.
 NODE_WIDTH = 300
@@ -31,7 +31,7 @@ def rename_layer_node(node, node_name, layer_stack_index):
 
 def get_layer_node(node_name, material_channel_name, layer_index, context):
     '''Gets a specific layer node using a given name.'''
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+    material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
 
     if node_name in LAYER_NODE_NAMES:
         return material_channel_node.node_tree.nodes.get(node_name + "_" + str(layer_index))
@@ -41,7 +41,7 @@ def get_layer_node(node_name, material_channel_name, layer_index, context):
 
 def get_layer_node_from_name(node_name, material_channel, context):
     '''Gets the desired layer node using it's name.'''
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+    material_channel_node = material_channels.get_material_channel_node(context, material_channel)
     node = material_channel_node.node_tree.nodes.get(node_name)
 
     if node:
@@ -91,7 +91,7 @@ def get_frame_name(layer_stack_array_index, context):
 
 def get_layer_frame(material_channel_name, layer_stack_index, context):
     '''Returns the frame node for the given layer. This function requires the layer id to be stored in the layer stack.'''
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+    material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
 
     if material_channel_node:
         layers = context.scene.matlay_layers
@@ -113,7 +113,7 @@ def get_layer_frame_id(e):
 def get_layer_frame_nodes(context):
     '''Organizes and returns all layer frame nodes by reading the material tree of the color group channel node.'''
     layer_frame_nodes = []
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, 'COLOR')
+    material_channel_node = material_channels.get_material_channel_node(context, 'COLOR')
     for node in material_channel_node.node_tree.nodes:
         if node.type == 'FRAME':
             layer_frame_nodes.append(node)
@@ -128,7 +128,7 @@ def get_all_layer_mask_nodes(layer_stack_index, material_channel_name, context):
     '''Gets all the mask nodes for a given layer.'''
     mask_nodes = []
 
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+    material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     for i in range(0, 20):
         mask_node = material_channel_node.node_tree.nodes.get("MASK_" + str(layer_stack_index) + "_" + str(i + 1))
         if mask_node:
@@ -153,7 +153,7 @@ def mute_layer_material_channel(mute, layer_stack_index, material_channel_name, 
 
 def organize_material_channel_nodes(context):
     '''Organizes material channel nodes.'''
-    active_material_channel_nodes = material_channel_nodes.get_all_material_channel_nodes(context)
+    active_material_channel_nodes = material_channels.get_all_material_channel_nodes(context)
     header_position = [0.0, 0.0]
     for node in active_material_channel_nodes:
         if node != None:
@@ -163,7 +163,7 @@ def organize_material_channel_nodes(context):
 def organize_layer_nodes_in_material_channel(material_channel_name, context):
     '''Organizes all nodes in a specified material channel.'''
     layers = context.scene.matlay_layers
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+    material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
 
     # Organize the output node.
     group_output_node = material_channel_node.node_tree.nodes.get('Group Output')
@@ -224,7 +224,7 @@ def organize_layer_nodes_in_material_channel(material_channel_name, context):
 def organize_all_matlay_materials(context):
     '''Organizes both material channel group nodes and layer nodes within those material channel group nodes.'''
     organize_material_channel_nodes(context)
-    material_channel_names = material_channel_nodes.get_material_channel_list()
+    material_channel_names = material_channels.get_material_channel_list()
     for material_channel in material_channel_names:
         organize_layer_nodes_in_material_channel(material_channel, context)
 
@@ -234,7 +234,7 @@ def organize_all_matlay_materials(context):
 def link_layers_in_material_channel(material_channel, context):
     '''Links all layers in the given material channel together by linking the mix layer and mix mask nodes together.'''
     layers = context.scene.matlay_layers
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel)
+    material_channel_node = material_channels.get_material_channel_node(context, material_channel)
 
     # Remove all existing output links for mix layer or mix mask nodes.
     for x in range(len(layers) - 1):
@@ -282,7 +282,7 @@ def update_layer_nodes(context):
     organize_material_channel_nodes(context)
 
     # Update all layer organize and link all layer nodes.
-    material_channel_names = material_channel_nodes.get_material_channel_list()
+    material_channel_names = material_channels.get_material_channel_list()
     for material_channel in material_channel_names:
 
         # Update all layer node indicies.
@@ -304,7 +304,7 @@ def update_layer_indicies(context):
 
 def update_layer_node_indicies(material_channel_name, context):
     '''Updates the layer stack indicies stored in material (layer) nodes.'''
-    material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+    material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     changed_layer_index = -1
 
     layers = context.scene.matlay_layers

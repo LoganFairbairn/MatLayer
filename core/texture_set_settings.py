@@ -3,7 +3,7 @@
 import bpy
 from bpy.types import PropertyGroup
 from bpy.props import BoolProperty, StringProperty, PointerProperty, FloatVectorProperty, EnumProperty
-from ..layers import material_channel_nodes
+from ..core import material_channels
 
 # Available texture resolutions for texture sets.
 TEXTURE_SET_RESOLUTIONS = [
@@ -37,57 +37,57 @@ def update_pack_images(self, context):
 
 def update_color_channel_toggle(self, context):
     if self.color_channel_toggle == True:
-        material_channel_nodes.connect_material_channel(context, "COLOR")
+        material_channels.connect_material_channel(context, "COLOR")
     else:
-        material_channel_nodes.disconnect_material_channel(context, "COLOR")
+        material_channels.disconnect_material_channel(context, "COLOR")
 
 def update_subsurface_channel_toggle(self, context):
     if self.subsurface_channel_toggle == True:
-        material_channel_nodes.connect_material_channel(context, "SUBSURFACE")
+        material_channels.connect_material_channel(context, "SUBSURFACE")
     else:
-        material_channel_nodes.disconnect_material_channel(context, "SUBSURFACE")
+        material_channels.disconnect_material_channel(context, "SUBSURFACE")
 
 def update_subsurface_color_channel_toggle(self, context):
     if self.subsurface_color_channel_toggle == True:
-        material_channel_nodes.connect_material_channel(context, "SUBSURFACE_COLOR")
+        material_channels.connect_material_channel(context, "SUBSURFACE_COLOR")
     else:
-        material_channel_nodes.disconnect_material_channel(context, "SUBSURFACE_COLOR")
+        material_channels.disconnect_material_channel(context, "SUBSURFACE_COLOR")
 
 def update_metallic_channel_toggle(self, context):
     if self.metallic_channel_toggle == True:
-        material_channel_nodes.connect_material_channel(context, "METALLIC")
+        material_channels.connect_material_channel(context, "METALLIC")
     else:
-        material_channel_nodes.disconnect_material_channel(context, "METALLIC")
+        material_channels.disconnect_material_channel(context, "METALLIC")
 
 def update_specular_channel_toggle(self, context):
     if self.specular_channel_toggle == True:
-        material_channel_nodes.connect_material_channel(context, "SPECULAR")
+        material_channels.connect_material_channel(context, "SPECULAR")
     else:
-        material_channel_nodes.disconnect_material_channel(context, "SPECULAR")
+        material_channels.disconnect_material_channel(context, "SPECULAR")
 
 def update_roughness_channel_toggle(self, context):
     if self.roughness_channel_toggle == True:
-        material_channel_nodes.connect_material_channel(context, "ROUGHNESS")
+        material_channels.connect_material_channel(context, "ROUGHNESS")
     else:
-        material_channel_nodes.disconnect_material_channel(context, "ROUGHNESS")
+        material_channels.disconnect_material_channel(context, "ROUGHNESS")
 
 def update_normal_channel_toggle(self, context):
     if self.normal_channel_toggle == True:
-        material_channel_nodes.connect_material_channel(context, "NORMAL")
+        material_channels.connect_material_channel(context, "NORMAL")
     else:
-        material_channel_nodes.disconnect_material_channel(context, "NORMAL")
+        material_channels.disconnect_material_channel(context, "NORMAL")
 
 def update_height_channel_toggle(self, context):
     if self.height_channel_toggle == True:
-        material_channel_nodes.connect_material_channel(context, "HEIGHT")
+        material_channels.connect_material_channel(context, "HEIGHT")
     else:
-        material_channel_nodes.disconnect_material_channel(context, "HEIGHT")
+        material_channels.disconnect_material_channel(context, "HEIGHT")
 
 def update_emission_channel_toggle(self, context):
     if self.emission_channel_toggle == True:
-        material_channel_nodes.connect_material_channel(context, "EMISSION")
+        material_channels.connect_material_channel(context, "EMISSION")
     else:
-        material_channel_nodes.disconnect_material_channel(context, "EMISSION")
+        material_channels.disconnect_material_channel(context, "EMISSION")
 
 def get_texture_width():
     '''Returns a numeric value based on the enum for texture width.'''

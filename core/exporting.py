@@ -2,14 +2,15 @@ import os
 import bpy
 from bpy.types import Operator, PropertyGroup
 from bpy.props import BoolProperty, StringProperty
-from ..layers import toggle_channel_preview
-from ..baking import baking
-from ..texture_set_settings import texture_set_settings
+from . import material_channels
+from ..core import baking
+from . import texture_set_settings
 from ..utilities import print_info_messages
+from . import matlay_materials
 
 #----------------------------- EXPORT SETTINGS -----------------------------#
 
-class MATLAY_exporting_settings(bpy.types.PropertyGroup):
+class MATLAY_exporting_settings(PropertyGroup):
     export_folder: StringProperty(default="", description="Path to folder location where exported texture are saved. If empty, an export folder will be created next to your .blend file and exported textures will be automatically saved there.", name="Export Folder Path")
     show_advanced_settings: BoolProperty(default=False, name="Show Advanced Settings", description="Click to show / hide advanced baking settings. Advanced settings generally don't need to be edited")
     export_base_color: BoolProperty(default=True, name="Export Base Color", description="Include the base color in batch exporting.")
@@ -27,12 +28,17 @@ class MATLAY_exporting_settings(bpy.types.PropertyGroup):
 def bake_and_export_material_channel(material_channel_name, context):
     '''Bakes the material channel to a texture and saves the output image to a folder.'''
 
-    # Verify the bake object before attempting to export.
-    if baking.verify_bake_object() == False:
+    # Verify the object is valid to bake to and there is an applied material made by this add-on applied to the selected object.
+    if matlay_materials.verify_material(context) == False or baking.verify_bake_object():
         return
+    
+    # Ensure there is a material on the active object.
+    if bpy.context.scene.active_object.active_material == None:
+        print_info_messages.show_message_box("Selected object doesn't have an active material.", title="User Error", icon='ERROR')
+        return False
 
     # Isolate the material channel.
-    toggle_channel_preview.toggle_material_channel_preview(True, material_channel_name, context)
+    material_channels.isolate_material_channel(True, material_channel_name, context)
 
     # Define the background color for the exported images.
     export_image_background_color = (0.0, 0.0, 0.0, 1.0)
@@ -82,7 +88,7 @@ def bake_and_export_material_channel(material_channel_name, context):
     material_nodes.remove(image_node)
 
     # De-isolate the material channel.
-    toggle_channel_preview.toggle_material_channel_preview(False, material_channel_name, context)
+    material_channels.isolate_material_channel(False, material_channel_name, context)
 
 class MATLAY_OT_export(Operator):
     bl_idname = "matlay.export"

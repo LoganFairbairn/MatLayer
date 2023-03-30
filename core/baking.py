@@ -4,7 +4,7 @@ import os
 import bpy
 from bpy.types import Operator
 from bpy.props import BoolProperty, FloatProperty, IntProperty, StringProperty, PointerProperty, EnumProperty
-from ..texture_set_settings.texture_set_settings import TEXTURE_SET_RESOLUTIONS
+from .texture_set_settings import TEXTURE_SET_RESOLUTIONS
 from ..utilities import print_info_messages
 
 #----------------------------- BAKING SETTINGS -----------------------------#
@@ -199,7 +199,7 @@ def add_normal_baking_nodes(material, bake_image):
 #----------------------------- BAKING FUNCTIONS -----------------------------#
 
 def verify_bake_object():
-    '''Verifies the active object can be baked to.'''
+    '''Verifies the selected object can be baked to.'''
     active_object = bpy.context.active_object
 
     # Make sure the active object exists.
@@ -220,11 +220,6 @@ def verify_bake_object():
     # Check to see if the (low poly) selected active object is hidden.
     if active_object.hide_get():
         print_info_messages.show_message_box("Selected object is hidden.", title="User Error", icon='ERROR')
-        return False
-    
-    # Ensure there is a material on the active object.
-    if active_object.active_material == None:
-        print_info_messages.show_message_box("Selected object doesn't have an active material.", title="User Error", icon='ERROR')
         return False
     return True
 
@@ -330,6 +325,7 @@ def bake_mesh_map(bake_type):
         return
 
     # The (low poly) selected active object should be unhiden, selectable and visible.
+    active_object = bpy.context.active_object
     active_object.hide_set(False)
     active_object.hide_render = False
     active_object.hide_select = False
