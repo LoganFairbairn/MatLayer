@@ -280,7 +280,7 @@ def create_bake_image(bake_type):
                               tiled=False)
 
     # Save the new image to a folder for baked images.
-    bake_path = bpy.path.abspath("//") + 'Bakes'
+    bake_path = bpy.path.abspath("//") + 'MeshMaps'
     if os.path.exists(bake_path) == False:
         os.mkdir(bake_path)
 
