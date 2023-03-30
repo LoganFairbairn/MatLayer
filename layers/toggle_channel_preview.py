@@ -3,8 +3,8 @@ from bpy.types import Operator
 from . import material_channel_nodes
 from . import layer_nodes
 
-def toggle_material_channel_preview(on, context):
-    selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
+def toggle_material_channel_preview(on, material_channel_name, context):
+    '''Toggles a preview for the selected material channel.'''
     texture_set_settings = context.scene.matlay_texture_set_settings
     material_nodes = context.active_object.active_material.node_tree.nodes
     node_links = context.active_object.active_material.node_tree.links
@@ -18,8 +18,8 @@ def toggle_material_channel_preview(on, context):
             node_links.remove(l)
 
         # Connect the selected material channel to the emission node to preview the material channel.
-        selected_material_channel_node = material_channel_nodes.get_material_channel_node(context, selected_material_channel)
-        node_links.new(selected_material_channel_node.outputs[0], emission_node.inputs[0])
+        material_channel_node = material_channel_nodes.get_material_channel_node(context, material_channel_name)
+        node_links.new(material_channel_node.outputs[0], emission_node.inputs[0])
         node_links.new(emission_node.outputs[0], material_output_node.inputs[0])
 
         # Correct node connections for height / normal map channels so they preview as color rather than as vector rgb values.
@@ -127,11 +127,12 @@ class MATLAY_OT_toggle_channel_preview(Operator):
 
     def execute(self, context):
         material_preview = context.scene.matlay_layer_stack.material_channel_preview
+        selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
         if material_preview == True:
-            toggle_material_channel_preview(False, context)
+            toggle_material_channel_preview(False, selected_material_channel, context)
             context.scene.matlay_layer_stack.material_channel_preview = False
         else:
-            toggle_material_channel_preview(True, context)
+            toggle_material_channel_preview(True, selected_material_channel, context)
             context.scene.matlay_layer_stack.material_channel_preview = True
             
         return {'FINISHED'}

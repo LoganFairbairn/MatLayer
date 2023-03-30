@@ -40,7 +40,7 @@ from .layers.layer_operations import *
 from .baking.baking import MATLAY_baking_settings, MATLAY_OT_bake, MATLAY_OT_bake_ambient_occlusion, MATLAY_OT_bake_curvature, MATLAY_OT_bake_thickness, MATLAY_OT_bake_normals, MATLAY_OT_delete_ao_map, MATLAY_OT_delete_curvature_map, MATLAY_OT_delete_thickness_map, MATLAY_OT_delete_normal_map
 
 # Import exporting modules.
-from .exporting.exporting import MATLAY_exporting_settings, MATLAY_OT_export, MATLAY_OT_export_base_color, MATLAY_OT_export_metallic, MATLAY_OT_export_roughness, MATLAY_OT_export_normals, MATLAY_OT_export_height, MATLAY_OT_export_emission, MATLAY_OT_export_scattering
+from .exporting.exporting import MATLAY_exporting_settings, MATLAY_OT_export, MATLAY_OT_export_base_color, MATLAY_OT_export_subsurface, MATLAY_OT_export_subsurface_color, MATLAY_OT_export_metallic, MATLAY_OT_export_specular, MATLAY_OT_export_roughness, MATLAY_OT_export_normals, MATLAY_OT_export_height, MATLAY_OT_export_emission
 
 # Import tool / utility modules.
 from .utilities.image_file_handling import MATLAY_OT_add_layer_image, MATLAY_OT_delete_layer_image, MATLAY_OT_import_texture, MATLAY_OT_import_mask_image
@@ -80,12 +80,14 @@ classes = (
     MATLAY_exporting_settings,
     MATLAY_OT_export,
     MATLAY_OT_export_base_color,
+    MATLAY_OT_export_subsurface,
+    MATLAY_OT_export_subsurface_color,
     MATLAY_OT_export_metallic,
+    MATLAY_OT_export_specular,
     MATLAY_OT_export_roughness,
     MATLAY_OT_export_normals,
     MATLAY_OT_export_height,
     MATLAY_OT_export_emission,
-    MATLAY_OT_export_scattering,
 
     # Layers
     MaterialChannelToggles,

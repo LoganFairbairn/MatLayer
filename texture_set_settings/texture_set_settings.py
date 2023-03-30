@@ -89,6 +89,36 @@ def update_emission_channel_toggle(self, context):
     else:
         material_channel_nodes.disconnect_material_channel(context, "EMISSION")
 
+def get_texture_width():
+    '''Returns a numeric value based on the enum for texture width.'''
+    match bpy.context.scene.matlay_texture_set_settings.image_width:
+        case 'FIVE_TWELVE':
+            return 512
+        case 'ONEK':
+            return 1024
+        case 'TWOK':
+            return 2048
+        case 'FOURK':
+            return 4096
+        case _:
+            # Error here, return 10 to make it apparent.
+            return 10
+
+def get_texture_height():
+    '''Returns a numeric value based on the enum for texture height.'''
+    match bpy.context.scene.matlay_texture_set_settings.image_height:
+        case 'FIVE_TWELVE':
+            return 512
+        case 'ONEK':
+            return 1024
+        case 'TWOK':
+            return 2048
+        case 'FOURK':
+            return 4096
+        case _:
+            # Error here, return 10 to make it apparent.
+            return 10
+
 class GlobalMaterialChannelToggles(PropertyGroup):
     '''A boolean toggle for each material channel to toggle it off / on for all layers.'''
     color_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the color material channel for this layer", update=update_color_channel_toggle)
