@@ -40,11 +40,6 @@ def bake_and_export_material_channel(material_channel_name, context):
     # Isolate the material channel.
     material_channels.isolate_material_channel(True, material_channel_name, context)
 
-    # Define the background color for the exported images.
-    export_image_background_color = (0.0, 0.0, 0.0, 1.0)
-    if material_channel_name == 'NORMAL':
-        export_image_background_color = (0.25, 0.25, 0.5, 1.0)
-
     # Create a new image in Blender's data and image node.
     export_image_name = bpy.context.active_object.name + "_" + material_channel_name
     export_image = bpy.data.images.get(export_image_name)
@@ -53,7 +48,7 @@ def bake_and_export_material_channel(material_channel_name, context):
     export_image = bpy.ops.image.new(name=export_image_name, 
                                      width=texture_set_settings.get_texture_width(), 
                                      height=texture_set_settings.get_texture_height(), 
-                                     color=export_image_background_color, 
+                                     color=(0.0, 0.0, 0.0, 1.0), 
                                      alpha=False, 
                                      generated_type='BLANK', 
                                      float=False, 
@@ -75,7 +70,12 @@ def bake_and_export_material_channel(material_channel_name, context):
 
     # Bake to the image texture.
     bpy.context.scene.render.bake.use_selected_to_active = False
-    bpy.ops.object.bake(type='EMIT')
+
+    if material_channel_name == 'NORMAL':
+        bpy.ops.object.bake(type='NORMAL')
+    
+    else:
+        bpy.ops.object.bake(type='EMIT')
 
     # Save the image.
     if export_image:
