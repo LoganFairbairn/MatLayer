@@ -29,13 +29,13 @@ def bake_and_export_material_channel(material_channel_name, context):
     '''Bakes the material channel to a texture and saves the output image to a folder.'''
 
     # Verify the object is valid to bake to and there is an applied material made by this add-on applied to the selected object.
-    if matlay_materials.verify_material(context) == False or baking.verify_bake_object():
+    if matlay_materials.verify_material(context) == False or baking.verify_bake_object() == False:
         return
     
     # Ensure there is a material on the active object.
-    if bpy.context.scene.active_object.active_material == None:
+    if bpy.context.active_object.active_material == None:
         print_info_messages.show_message_box("Selected object doesn't have an active material.", title="User Error", icon='ERROR')
-        return False
+        return
 
     # Isolate the material channel.
     material_channels.isolate_material_channel(True, material_channel_name, context)
@@ -61,7 +61,7 @@ def bake_and_export_material_channel(material_channel_name, context):
                                      tiled=False)
     
     # Create a folder for the exported texture files.
-    export_path = bpy.path.abspath("//") + 'Exports'
+    export_path = bpy.path.abspath("//") + 'Textures'
     if os.path.exists(export_path) == False:
         os.mkdir(export_path)
 
@@ -93,7 +93,7 @@ def bake_and_export_material_channel(material_channel_name, context):
 class MATLAY_OT_export(Operator):
     bl_idname = "matlay.export"
     bl_label = "Batch Export"
-    bl_description = "Bakes all checked material channel maps in succession and saves the baked images to a texture folder. Note that this function (especially on slower computers, or when using a CPU for rendering) can take a few minutes"
+    bl_description = "Bakes all checked and active material channels to textures in succession and saves all baked images to a texture folder. Note that this function (especially on slower computers, or when using a CPU for rendering) can take a few minutes"
 
     @ classmethod
     def poll(cls, context):
