@@ -24,7 +24,6 @@ QUALITY_SETTINGS = [
 
 def update_match_bake_resolution(self, context):
     baking_settings = context.scene.matlay_baking_settings
-
     if baking_settings.match_bake_resolution:
         baking_settings.output_height = baking_settings.output_width
 
@@ -407,7 +406,7 @@ def bake_mesh_map(bake_type):
 class MATLAY_OT_bake(Operator):
     '''Bakes all checked texture maps in succession. Note that this function (especially on slower computers, or when using CPU for rendering) can take a while.'''
     bl_idname = "matlay.bake"
-    bl_label = "Bake"
+    bl_label = "Batch Bake"
     bl_description = "Bakes all checked texture maps in succession"
 
     # Disable when there is no active object.
@@ -424,7 +423,7 @@ class MATLAY_OT_bake(Operator):
         if baking_settings.bake_curvature:
             bpy.ops.matlay.bake_curvature()
 
-        if baking_settings.bake_thickness.bake_thickness:
+        if baking_settings.bake_thickness:
             bpy.ops.matlay.bake_thickness()
 
         if baking_settings.bake_normals:

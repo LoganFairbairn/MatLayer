@@ -84,7 +84,7 @@ def bake_and_export_material_channel(material_channel_name, context):
 
 class MATLAY_OT_export(Operator):
     bl_idname = "matlay.export"
-    bl_label = "Export"
+    bl_label = "Batch Export"
     bl_description = "Bakes and exports all selected textures to the textures folder"
 
     @ classmethod
