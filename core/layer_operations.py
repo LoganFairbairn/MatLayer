@@ -4,7 +4,6 @@ from ..core import layer_nodes
 from . import matlay_materials
 from ..utilities.viewport_setting_adjuster import set_material_shading
 import random
-from ..utilities import info_messages
 
 def add_layer_slot(context):
     '''Creates a layer slot.'''
