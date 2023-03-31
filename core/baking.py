@@ -287,7 +287,13 @@ def create_bake_image(bake_type):
     bake_image = bpy.data.images[bake_image_name]
     bake_image.filepath = bake_path + "/" + bake_image_name + ".png"
     bake_image.file_format = 'PNG'
-    bake_image.colorspace_settings.name = 'Non-Color'
+
+    if bake_type == 'NORMALS':
+        bake_image.colorspace_settings.name = 'Non-Color'
+
+    else:
+        bake_image.colorspace_settings.name = 'sRGB'
+    
 
     return bake_image
 
