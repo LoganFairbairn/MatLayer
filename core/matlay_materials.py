@@ -35,6 +35,8 @@ def create_normal_mixing_group_node(context):
         group_input_node.width = layer_stack.node_default_width
         new_node_group.inputs.new('NodeSocketVector', 'Normal1')
         new_node_group.inputs.new('NodeSocketVector', 'Normal2')
+        new_node_group.inputs[0].default_value = (0.25, 0.25, 0.5)
+        new_node_group.inputs[1].default_value = (0.25, 0.25, 0.5)
 
         # Create output nodes and sockets.
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
@@ -63,7 +65,7 @@ def create_normal_mixing_group_node(context):
         new_node_group.links.new(separate_xyz_node_1.outputs[2], combine_xyz_node.inputs[2])
 
         new_node_group.links.new(separate_xyz_node_2.outputs[0], add_node_1.inputs[1])
-        new_node_group.links.new(separate_xyz_node_2.outputs[0], add_node_2.inputs[1])
+        new_node_group.links.new(separate_xyz_node_2.outputs[1], add_node_2.inputs[1])
 
         new_node_group.links.new(add_node_1.outputs[0], combine_xyz_node.inputs[0])
         new_node_group.links.new(add_node_2.outputs[0], combine_xyz_node.inputs[1])
