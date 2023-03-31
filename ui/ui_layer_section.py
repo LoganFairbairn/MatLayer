@@ -57,15 +57,8 @@ def draw_material_selector(column, context):
     active_object = context.active_object
     row = column.row(align=True)
     if active_object:
-        if active_object.active_material:
-            row.template_ID(active_object, "active_material", new="matlay.add_color_layer", live_icon=True)
-
-        else:
-            row.template_ID(active_object, "active_material", new="matlay.add_color_layer", live_icon=True)
-
-    if active_object:
-        if active_object.active_material:
-            row.operator("matlay.refresh_layer_nodes", text="", icon='FILE_REFRESH')
+        row.template_ID(active_object, "active_material", new="matlay.add_layer", live_icon=True)
+        row.operator("matlay.refresh_layer_nodes", text="", icon='FILE_REFRESH')
     row.scale_y = 1.5
 
 def draw_layer_operations(column):
