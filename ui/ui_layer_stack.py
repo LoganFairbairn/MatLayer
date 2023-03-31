@@ -117,8 +117,8 @@ class MATLAY_UL_layer_list(bpy.types.UIList):
 
             if context.active_object.active_material:
                 draw_layer_hidden_icon(layout, item)
-                draw_material_channel_preview(layout, item, selected_material_channel, context)
-                draw_layer_mask_preview(layout, item, selected_material_channel, context)
+                #draw_material_channel_preview(layout, item, selected_material_channel, context)
+                #draw_layer_mask_preview(layout, item, selected_material_channel, context)
                 #draw_debug_values(layout, item)
                 draw_layer_name(layout, item)
                 draw_layer_blending(layout, item, selected_material_channel, context)
