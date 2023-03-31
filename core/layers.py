@@ -5,7 +5,7 @@ from bpy.types import PropertyGroup
 from bpy.props import BoolProperty, FloatProperty, PointerProperty, FloatVectorProperty, EnumProperty
 from ..core import layer_nodes
 from . import material_channels
-from ..utilities.print_info_messages import show_message_box
+from ..utilities.info_messages import popup_message_box
 
 # List of node types that can be used in the texture slot.
 TEXTURE_NODE_TYPES = [
@@ -46,7 +46,7 @@ def update_layer_name(self, context):
     # Layer names can't contain underscores since they are used as delimiters to parse information from layer frames correctly.
     # If the layer name contains an underscore, throw the user an error message notifying them they can't use underscores in layer names.
     if '_' in self.name:
-        show_message_box("Layer names can't contain underscores.", "Error", 'ERROR')
+        popup_message_box("Layer names can't contain underscores.", "Error", 'ERROR')
         self.name = self.name.replace('_', "")
     
     else:

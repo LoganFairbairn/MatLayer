@@ -5,7 +5,7 @@ import bpy
 from bpy.types import Operator
 from bpy.props import BoolProperty, FloatProperty, IntProperty, StringProperty, PointerProperty, EnumProperty
 from .texture_set_settings import TEXTURE_SET_RESOLUTIONS
-from ..utilities import print_info_messages
+from ..utilities import info_messages
 
 #----------------------------- BAKING SETTINGS -----------------------------#
 
@@ -204,22 +204,22 @@ def verify_bake_object():
 
     # Make sure the active object exists.
     if active_object == None:
-        print_info_messages.show_message_box("Selected object is none.", title="User Error", icon='ERROR')
+        info_messages.popup_message_box("Selected object is none.", title="User Error", icon='ERROR')
         return False
 
     # Make sure the active object is a Mesh.
     if active_object.type != 'MESH':
-        print_info_messages.show_message_box("Selected object must be a mesh for baking / exporting.", title="User Error", icon='ERROR')
+        info_messages.popup_message_box("Selected object must be a mesh for baking / exporting.", title="User Error", icon='ERROR')
         return False
 
     # Make sure the active object has a UV map.
     if active_object.data.uv_layers.active == None:
-        print_info_messages.show_message_box("Selected object has no active UV layer.", title="User Error", icon='ERROR')
+        info_messages.popup_message_box("Selected object has no active UV layer.", title="User Error", icon='ERROR')
         return False
     
     # Check to see if the (low poly) selected active object is hidden.
     if active_object.hide_get():
-        print_info_messages.show_message_box("Selected object is hidden.", title="User Error", icon='ERROR')
+        info_messages.popup_message_box("Selected object is hidden.", title="User Error", icon='ERROR')
         return False
     return True
 
@@ -403,7 +403,7 @@ def bake_mesh_map(bake_type):
         if bake_image.is_dirty:
             bake_image.save()
         else:
-            print_info_messages.show_message_box("Baked image pixel data wasn't updated during baking.", "MatLay baking error.", 'ERROR')
+            info_messages.popup_message_box("Baked image pixel data wasn't updated during baking.", "MatLay baking error.", 'ERROR')
 
     # Re-apply the materials that were originally on the object and delete the temporary material.
     for i in range(0, len(bpy.context.object.material_slots)):
