@@ -22,57 +22,6 @@ def verify_material(context):
     else:
         return False
 
-def create_normal_mixing_group_node(context):
-    '''Create a node group with a function for mixing normal maps.'''
-    layer_stack = context.scene.matlay_layer_stack
-    active_material = context.active_object.active_material
-    node_name = "MATLAY_NORMALMIX"
-    if bpy.data.node_groups.get(node_name) == None:
-        new_node_group = bpy.data.node_groups.new(node_name, 'ShaderNodeTree')
-
-        # Create group node input sockets.
-        group_input_node = new_node_group.nodes.new('NodeGroupInput')
-        group_input_node.width = layer_stack.node_default_width
-        new_node_group.inputs.new('NodeSocketVector', 'Normal1')
-        new_node_group.inputs.new('NodeSocketVector', 'Normal2')
-        new_node_group.inputs[0].default_value = (0.25, 0.25, 0.5)
-        new_node_group.inputs[1].default_value = (0.25, 0.25, 0.5)
-
-        # Create output nodes and sockets.
-        group_output_node = new_node_group.nodes.new('NodeGroupOutput')
-        group_output_node.width = layer_stack.node_default_width
-        new_node_group.outputs.new('NodeSocketVector', 'Normal')
-
-        # Create nodes used for mixing normal formula.
-        separate_xyz_node_1 = new_node_group.nodes.new('ShaderNodeSeparateXYZ')
-        separate_xyz_node_2 = new_node_group.nodes.new('ShaderNodeSeparateXYZ')
-        add_node_1 = new_node_group.nodes.new('ShaderNodeMath')
-        add_node_2 = new_node_group.nodes.new('ShaderNodeMath')
-        combine_xyz_node = new_node_group.nodes.new('ShaderNodeCombineXYZ')
-        normalize_node = new_node_group.nodes.new('ShaderNodeVectorMath')
-
-        # Set new node settings.
-        add_node_1.operation = 'ADD'
-        add_node_2.operation = 'ADD'
-        normalize_node.operation = 'NORMALIZE'
-
-        # Connect nodes used for mixing normals.
-        new_node_group.links.new(group_input_node.outputs[0], separate_xyz_node_1.inputs[0])
-        new_node_group.links.new(group_input_node.outputs[1], separate_xyz_node_2.inputs[0])
-
-        new_node_group.links.new(separate_xyz_node_1.outputs[0], add_node_1.inputs[0])
-        new_node_group.links.new(separate_xyz_node_1.outputs[1], add_node_2.inputs[0])
-        new_node_group.links.new(separate_xyz_node_1.outputs[2], combine_xyz_node.inputs[2])
-
-        new_node_group.links.new(separate_xyz_node_2.outputs[0], add_node_1.inputs[1])
-        new_node_group.links.new(separate_xyz_node_2.outputs[1], add_node_2.inputs[1])
-
-        new_node_group.links.new(add_node_1.outputs[0], combine_xyz_node.inputs[0])
-        new_node_group.links.new(add_node_2.outputs[0], combine_xyz_node.inputs[1])
-
-        new_node_group.links.new(combine_xyz_node.outputs[0], normalize_node.inputs[0])
-        new_node_group.links.new(normalize_node.outputs[0], group_output_node.inputs[0])
-
 def create_matlay_material(context, active_object):
     '''Creates and prepares a MatLay specific material.'''
     new_material = bpy.data.materials.new(name=active_object.name)
@@ -97,9 +46,8 @@ def create_matlay_material(context, active_object):
     principled_bsdf_node.width = layer_stack.node_default_width
 
     # Make a new mix normal group node for mixing normal and height material channels.
-    create_normal_mixing_group_node(context)
-    normal_mix_node = material_nodes.new('ShaderNodeGroup')
-    normal_mix_node.node_tree = bpy.data.node_groups["MATLAY_NORMALMIX"]
+    normal_mix_node = material_nodes.new('ShaderNodeMix')
+    normal_mix_node.data_type = 'VECTOR'
     normal_mix_node.name = "MATLAY_NORMALMIX"
     normal_mix_node.label = normal_mix_node.name
     normal_mix_node.location = (0.0, -700.0)
