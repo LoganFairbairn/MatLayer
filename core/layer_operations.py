@@ -1,4 +1,5 @@
 from bpy.types import Operator
+from bpy.props import BoolProperty
 from . import material_channels
 from ..core import layer_nodes
 from . import matlay_materials
@@ -527,10 +528,13 @@ class MATLAY_OT_refresh_layer_nodes(Operator):
     bl_label = "Refresh Layer Nodes"
     bl_description = "Refreshes the material nodes by reading the material nodes in the active material updating the properties stored within the user interface"
 
+    auto_called: BoolProperty(name="Auto Called", description="Should be true if refreshing layers was automatically called (i.e selecting a different object automatically refreshes the layer stack). This is used to avoid printing errors.", default=False)
+
     def execute(self, context):
         # Make sure the active material is a MatLay material before attempting to refresh the layer stack.
         if matlay_materials.verify_material(context) == False:
-            self.report({'ERROR'}, "Material is not a MatLay material, can't read / refresh the layer stack.")
+            if self.auto_called == False:
+                self.report({'ERROR'}, "Material is not a MatLay material, can't read / refresh the layer stack.")
             return {'FINISHED'}
 
         # Clear the layer stack.
@@ -586,5 +590,7 @@ class MATLAY_OT_refresh_layer_nodes(Operator):
 
         # Organize all layer nodes.
         #layer_nodes.organize_all_matlay_materials(context)
+
+        # TODO: Re-link all nodes.
 
         return {'FINISHED'}

@@ -159,7 +159,7 @@ classes = (
 # Refreshes the layer stack when a different object is selected.
 def obj_selected_callback():
     '''Triggers a layer stack refresh when the selected object changes.'''
-    bpy.ops.matlay.refresh_layer_nodes()
+    bpy.ops.matlay.refresh_layer_nodes(auto_called=True)
 
 @persistent
 def load_handler(dummy):
