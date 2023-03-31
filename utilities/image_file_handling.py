@@ -7,44 +7,16 @@ import random
 import os                                           # For saving layer images.
 from ..import layer_nodes
 
-def get_layer_folder_path():
-    '''Returns the save location for the layer images.'''
-    layer_image_folder = bpy.path.abspath("//" + 'Layers')
-    if not os.path.exists(layer_image_folder):
-        os.mkdir(layer_image_folder)
-    return layer_image_folder
-
-def save_layer_image(image_name):
-    '''Saves the given layer image to the designated folder for layer textures.'''
-    image = bpy.data.images[image_name]
-    image.filepath = get_layer_folder_path() + "/" + image_name + ".png"
-    image.file_format = 'PNG'
-    if image:
-        if image.is_dirty:
-            image.save()
-    else:
-        print("Error: Layer image being saved doesn't exist.")
-
-def get_image_name(layer_name):
-    '''Returns the image name'''
-    bpy.context.scene.matlay_layers
-    layer_index = bpy.context.scene.matlay_layer_stack.layer_index
-
-def rename_layer_texture(image_name, new_name):
-    '''Renames the given layer texture in blender's data and in external saved folders to the new name.'''
-    # TODO: Implement re-naming for layer textures.
-    print("placeholder")
-
 def get_random_image_id():
     '''Generates a random image id number.'''
     return str(random.randrange(10000,99999))
 
 class MATLAY_OT_add_layer_image(Operator):
-    '''Creates a image and adds it to the selected image layer'''
+    '''Creates a image within Blender's data and adds it to the selected layer.'''
     bl_idname = "matlay.add_layer_image"
     bl_label = "Add Layer Image"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Creates a image and adds it to the selected image layer"
+    bl_description = "Creates a image within Blender's data and adds it to the selected layer"
 
     # Specified material channel.
     material_channel_name: bpy.props.StringProperty()
@@ -96,8 +68,11 @@ class MATLAY_OT_add_layer_image(Operator):
                                   use_stereo_3d=False,
                                   tiled=False)
         
-        # Save the image to an external folder.
-        save_layer_image(image_name)
+        # TODO: Research automatic packing after image creation is complete.
+        # Pack the image into Blender's data.
+        # Packing layer images is a fairly optimal and simple method for managing layer images.
+        image = bpy.data.images[image_name]
+        image.pack()
 
         # Add the new image to the selected layer.
         selected_layer_index = context.scene.matlay_layer_stack.layer_index
