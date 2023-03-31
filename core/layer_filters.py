@@ -29,14 +29,14 @@ class MATLAY_layer_filters(PropertyGroup):
 def get_all_layer_filter_nodes(layer_stack_index, material_channel_name, context):
     '''Gets all the filter nodes for a given layer.'''
     filter_nodes = []
-
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
-    for i in range(0, 10):
-        filter_node = material_channel_node.node_tree.nodes.get("FILTER_" + str(layer_stack_index) + "_" + str(i))
-        if filter_node:
-            filter_nodes.append(filter_node)
-        else:
-            break
+    if material_channel_node:
+        for i in range(0, 10):
+            filter_node = material_channel_node.node_tree.nodes.get("FILTER_" + str(layer_stack_index) + "_" + str(i))
+            if filter_node:
+                filter_nodes.append(filter_node)
+            else:
+                break
     return filter_nodes
 
 def get_number_of_filter_nodes(material_channel_name, layer_stack_index, context):

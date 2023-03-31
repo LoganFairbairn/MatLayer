@@ -116,10 +116,8 @@ def get_material_channel_node(context, material_channel_name):
             material_name = context.active_object.active_material.name
             if context.active_object.active_material.node_tree:
                 material_channel_node =  context.active_object.active_material.node_tree.nodes.get(material_name + "_" + str(material_channel_name))
-
-                if material_channel_node == None:
-                    print("Error: Missing " + material_channel_name +  " material channel node.")
-
+                if not material_channel_name in MATERIAL_CHANNEL_NAMES:
+                    print("Error: Missing " + material_channel_name +  " material channel node. Do you have a typo in the material channel name somewhere in your code?")
                 return material_channel_node
 
 def get_material_channel_output_node(context, channel):
@@ -363,14 +361,14 @@ def connect_material_channel(context, material_channel_name):
         if material_channel_name == "EMISSION":
             node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[19])
 
-def isolate_material_channel(on, material_channel_name, context):
-    '''Isolates the given material channel (can be used for material channel previews).'''
+def isolate_material_channel(isolate, material_channel_name, context):
+    '''Isolates the given material channel (used in material channel previews and baking specific material channels).'''
     texture_set_settings = context.scene.matlay_texture_set_settings
     material_nodes = context.active_object.active_material.node_tree.nodes
     node_links = context.active_object.active_material.node_tree.links
     material_output_node = material_nodes.get('Material Output')
 
-    if on:
+    if isolate:
         emission_node = material_nodes.get('Emission')
 
         # Disconnect everything.

@@ -32,12 +32,11 @@ def rename_layer_node(node, node_name, layer_stack_index):
 def get_layer_node(node_name, material_channel_name, layer_index, context):
     '''Gets a specific layer node using a given name.'''
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
-
-    if node_name in LAYER_NODE_NAMES:
-        return material_channel_node.node_tree.nodes.get(node_name + "_" + str(layer_index))
-
-    else:
-        print("ERROR: Layer node name not found in layer node list. Do you have a typo in your code?")
+    if material_channel_node:
+        if node_name in LAYER_NODE_NAMES:
+            return material_channel_node.node_tree.nodes.get(node_name + "_" + str(layer_index))
+        else:
+            print("ERROR: Layer node name not found in layer node list. Do you have a typo in a layer node name somewhere in your code?")
 
 def get_layer_node_from_name(node_name, material_channel, context):
     '''Gets the desired layer node using it's name.'''
