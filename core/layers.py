@@ -105,6 +105,9 @@ def update_layer_projection(self, context):
         coord_node = layer_nodes.get_layer_node("COORD", material_channel_name, selected_layer_index, context)
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
+        if texture_node.type != 'TEX_IMAGE':
+            return
+
         # Delink coordinate node.
         if coord_node:
             outputs = coord_node.outputs
@@ -412,23 +415,77 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
 
     selected_layer_stack_index = context.scene.matlay_layer_stack.layer_index
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
+    link = material_channel_node.node_tree.links.new
+    selected_layer = bpy.context.scene.matlay_layers[selected_layer_stack_index]
     
     # Delete the old layer node.
     old_texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_stack_index, context)
     if old_texture_node:
         material_channel_node.node_tree.nodes.remove(old_texture_node)
 
-    # Add the new node based on the provided type.
+    # Add the new node and adjust node links based on the provided node type.
     texture_node = None
     match texture_node_type:
         case "COLOR":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
 
+            # Update the layer color property.
+            color_value = (0.0, 0.0, 0.0)
+            match material_channel_name:
+                case 'COLOR':
+                    color_value = (0.1, 0.1, 0.1)
+                case 'SPECULAR':
+                    color_value = (0.5, 0.5, 0.5)
+                case 'ROUGHNESS':
+                    color_value = (0.5, 0.5, 0.5)
+                case 'NORMAL':
+                    color_value = (0.25, 0.25, 0.5)
+                case _:
+                    color_value = (0.5, 0.5, 0.5)
+            setattr(selected_layer.color_channel_values, material_channel_name.lower() + "_channel_color", color_value)
+            texture_node.outputs[0].default_value = (color_value[0], color_value[1], color_value[2], 1.0)
+
         case "VALUE":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
 
+            # Update the layer value property.
+            uniform_value = 0.0
+            match material_channel_name:
+                case 'COLOR':
+                    uniform_value = 0.1
+                case 'SPECULAR':
+                    uniform_value = 0.5
+                case 'ROUGHNESS':
+                    uniform_value = 0.5
+                case _:
+                    uniform_value = 0.0
+
+            setattr(selected_layer.uniform_channel_values, "uniform_" + material_channel_name.lower() + "_value", uniform_value)
+            texture_node.outputs[0].default_value = uniform_value
+
         case "TEXTURE":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexImage')
+
+            # Correct opacity and mapping links for texture image nodes.
+            opacity_node = layer_nodes.get_layer_node("OPACITY", material_channel_name, selected_layer_stack_index, context)
+            link(texture_node.outputs[1], opacity_node.inputs[0])
+
+            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_stack_index, context)
+            link(mapping_node.outputs[0], texture_node.inputs[0])
+
+            coord_node = layer_nodes.get_layer_node("COORD", material_channel_name, selected_layer_stack_index, context)
+            match selected_layer.projection.projection_mode:
+                case 'FLAT':
+                    link(coord_node.outputs[2], mapping_node.inputs[0])
+
+                case 'TRI-PLANAR':
+                    link(coord_node.outputs[0], mapping_node.inputs[0])
+
+                case 'SPHERE':
+                    link(coord_node.outputs[2], mapping_node.inputs[0])
+
+                case 'TUBE':
+                    link(coord_node.outputs[2], mapping_node.inputs[0])
 
         case "GROUP_NODE":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
@@ -446,25 +503,14 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
         case "MUSGRAVE":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexMusgrave')
 
-    # Match the texture node name and label.
+    # Update the new texture nodes name and label.
     texture_node.name = "TEXTURE_" + str(selected_layer_stack_index)
     texture_node.label = texture_node.name
     self.texture_node_name = texture_node.name
 
     # Link the new texture node to the mix layer node.
-    link = material_channel_node.node_tree.links.new
     mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel_name, selected_layer_stack_index, context)
     link(texture_node.outputs[0], mix_layer_node.inputs[2])
-
-    # For some texture types, connect texture node outputs to the mapping or opacity nodes.
-    if texture_node_type == "TEXTURE":
-        opacity_node = layer_nodes.get_layer_node("OPACITY", material_channel_name, selected_layer_stack_index, context)
-        link(texture_node.outputs[1], opacity_node.inputs[0])
-
-        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_stack_index, context)
-        link(mapping_node.outputs[0], texture_node.inputs[0])
-
-    # TODO: For some texture types, connect the mapping node to the texture vector input.
 
     # Parent the new node to the layer's frame.
     layer_frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_stack_index, context)
