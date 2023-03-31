@@ -439,7 +439,7 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
                 case 'ROUGHNESS':
                     color_value = (0.5, 0.5, 0.5)
                 case 'NORMAL':
-                    color_value = (0.25, 0.25, 0.5)
+                    color_value = (0.5, 0.5, 0.1)
                 case _:
                     color_value = (0.5, 0.5, 0.5)
             setattr(selected_layer.color_channel_values, material_channel_name.lower() + "_channel_color", color_value)
