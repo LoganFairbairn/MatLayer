@@ -28,6 +28,10 @@ class MATLAY_exporting_settings(PropertyGroup):
 def bake_and_export_material_channel(material_channel_name, context):
     '''Bakes the material channel to a texture and saves the output image to a folder.'''
 
+    # Validate the material channel name.
+    if not material_channels.validate_material_channel_name(material_channel_name):
+        return
+    
     # Verify the object is valid to bake to and there is an applied material made by this add-on applied to the selected object.
     if matlay_materials.verify_material(context) == False or baking.verify_bake_object() == False:
         return
@@ -100,15 +104,24 @@ class MATLAY_OT_export(Operator):
         return context.active_object
     
     def execute(self, context):
-        bpy.ops.matlay.export_base_color()
-        bpy.ops.matlay.export_subsurface()
-        bpy.ops.matlay.export_subsurface_color()
-        bpy.ops.matlay.export_metallic()
-        bpy.ops.matlay.export_specular()
-        bpy.ops.matlay.export_roughness()
-        bpy.ops.matlay.export_normals()
-        bpy.ops.matlay.export_height()
-        bpy.ops.matlay.export_emission()
+        if bpy.context.scene.matlay_export_settings.export_base_color and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.color_channel_toggle:
+            bake_and_export_material_channel('COLOR', context)
+        if bpy.context.scene.matlay_export_settings.export_subsurface and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.subsurface_channel_toggle:
+            bake_and_export_material_channel('SUBSURFACE', context)
+        if bpy.context.scene.matlay_export_settings.export_subsurface_color and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.subsurface_color_channel_toggle:
+            bake_and_export_material_channel('SUBSURFACE_COLOR', context)
+        if bpy.context.scene.matlay_export_settings.export_metallic and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.metallic_channel_toggle:
+            bake_and_export_material_channel('METALLIC', context)
+        if bpy.context.scene.matlay_export_settings.export_specular and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.specular_channel_toggle:
+            bake_and_export_material_channel('SPECULAR', context)
+        if bpy.context.scene.matlay_export_settings.export_roughness and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.roughness_channel_toggle:
+            bake_and_export_material_channel('ROUGHNESS', context)
+        if bpy.context.scene.matlay_export_settings.export_normals and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.normal_channel_toggle:
+            bake_and_export_material_channel('NORMAL', context)
+        if bpy.context.scene.matlay_export_settings.export_height and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.height_channel_toggle:
+            bake_and_export_material_channel('HEIGHT', context)
+        if bpy.context.scene.matlay_export_settings.export_emission and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.emission_channel_toggle:
+            bake_and_export_material_channel('EMISSION', context)
         return {'FINISHED'}
 
 class MATLAY_OT_export_base_color(Operator):

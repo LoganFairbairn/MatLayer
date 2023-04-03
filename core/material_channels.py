@@ -4,6 +4,7 @@ from cgitb import text
 import bpy
 from bpy.types import Operator
 from ..core import layer_nodes
+from ..utilities import info_messages
 
 # List of all channel names.
 # Material channels are listed in the order of relative sockets in the Principled BSDF node so they will organize properly.
@@ -361,12 +362,22 @@ def connect_material_channel(context, material_channel_name):
         if material_channel_name == "EMISSION":
             node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[19])
 
+def validate_material_channel_name(material_channel_name):
+    if material_channel_name in MATERIAL_CHANNEL_NAMES:
+        return True
+    else:
+        info_messages.popup_message_box(material_channel_name + " is not a valid material channel name. Did you make a typo in your code?", "Programming Error", 'ERROR')
+        return False
+
 def isolate_material_channel(isolate, material_channel_name, context):
     '''Isolates the given material channel (used in material channel previews and baking specific material channels).'''
     texture_set_settings = context.scene.matlay_texture_set_settings
     material_nodes = context.active_object.active_material.node_tree.nodes
     node_links = context.active_object.active_material.node_tree.links
     material_output_node = material_nodes.get('Material Output')
+
+    # Validate the provided material channel name.
+    validate_material_channel_name(material_channel_name)
 
     if isolate:
         emission_node = material_nodes.get('Emission')
