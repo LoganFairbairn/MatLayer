@@ -46,12 +46,17 @@ def update_layer_name(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
         return
 
+    # Layer names have a maximum character count, users should never need to go over this character count for layer names.
+    if len(self.name) > 25:
+        popup_message_box("Layer name can't contain more than 25 characters.", "User Error", 'ERROR')
+        self.name = self.name[:25-len(self.name)]
+
     # Layer names can't contain underscores since they are used as delimiters to parse information from layer frames correctly.
     # If the layer name contains an underscore, throw the user an error message notifying them they can't use underscores in layer names.
     if '_' in self.name:
         popup_message_box("Layer names can't contain underscores.", "Error", 'ERROR')
         self.name = self.name.replace('_', "")
-    
+
     else:
         # Update the frame name for all material channels on the layer that was changed.
         # Since the layer's name is already updated in the UI directly after a name change, a cached frame name (previous name) is used to get the layer frame nodes and update their names.
