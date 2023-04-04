@@ -62,6 +62,7 @@ class MATLAY_layer_stack(PropertyGroup):
     node_default_width: bpy.props.IntProperty(default=250)
     node_spacing: bpy.props.IntProperty(default=80)
     selected_material_channel: bpy.props.EnumProperty(items=material_channels.MATERIAL_CHANNELS, name="Material Channel", description="The currently selected material channel", default='COLOR', update=update_selected_material_channel)
+    auto_update_layer_properties: bpy.props.BoolProperty(name="Auto Update Layer Properties", description="When true, select layer properties are automatically updated when changed. This toggle is used for rare cases when you want to perform an operation where layer properties are edited without them automatically updating (i.e refreshing / reading the layer stack)", default=True)
 
     # Note: These tabs exist to help keep the user interface elements on screen limited, thus simplifying the editing process, and helps avoid the need to scroll down on the user interface to see settings (which is annoying when using a tablet pen).
     # Tabs for material / mask layer properties.

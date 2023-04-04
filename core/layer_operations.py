@@ -4,6 +4,7 @@ from . import material_channels
 from ..core import layer_nodes
 from . import matlay_materials
 from ..utilities.viewport_setting_adjuster import set_material_shading
+from ..utilities import info_messages
 import random
 
 def add_layer_slot(context):
@@ -499,29 +500,134 @@ class MATLAY_OT_image_editor_export(Operator):
 
 #----------------------------- READING / REFRESHING LAYER PROPERTIES -----------------------------#
 
-def read_layer_texture_node_type(texture_node, layer, material_channel_name):
-    '''Reads the node type from the material node tree and updates the node in the corrosponding layer.'''
-    match texture_node.type:
-        case 'VALUE':
-            setattr(layer.channel_node_types, material_channel_name.lower() + "_node_type", 'VALUE')
+def read_layer_name_and_id(layers, context):
+    '''Reads the name and id of layers from the material channel.'''
+    layer_frame_nodes = layer_nodes.get_layer_frame_nodes(context)
+    for i in range (len(layer_frame_nodes)):
+        layers.add()
+        layer_frame_info = layer_frame_nodes[i].label.split('_')
+        layers[i].name = layer_frame_info[0]
+        layers[i].cached_frame_name = layers[i].name + "_" + layer_frame_info[1] + "_" + str(i)
+        layers[i].id = int(layer_frame_info[1])
+        layers[i].layer_stack_array_index = i
 
-        case 'RGB':
-            setattr(layer.channel_node_types, material_channel_name.lower() + "_node_type", 'COLOR')
+def read_layer_opacity(total_number_of_layers, layers, selected_material_channel, context):
+    '''Reads layer opacity for the selected material channel.'''
+    for i in range(total_number_of_layers):
+        opacity_node = layer_nodes.get_layer_node('OPACITY', selected_material_channel, i, context)
+        layers[i].opacity = opacity_node.inputs[1].default_value
 
-        case 'GROUP':
-            setattr(layer.channel_node_types, material_channel_name.lower() + "_node_type", 'GROUP_NODE')
+def read_texture_node_values(material_channel_list, total_number_of_layers, layers, context):
+    '''Updates texture node values stored in layers by reading the material node trees.'''
+    for material_channel_name in material_channel_list:
+        material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
+        if material_channel_node:
+            for i in range(total_number_of_layers):
+                texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, i, context)
+                if not texture_node:
+                    info_messages.popup_message_box("Error reading texture node.", "Reading Node Error", 'ERROR')
+                    return
 
-        case 'TEX_IMAGE':
-            setattr(layer.channel_node_types, material_channel_name.lower() + "_node_type", 'TEXTURE')
+                match texture_node.type:
+                    case 'VALUE':
+                        setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'VALUE')
+                        setattr(layers[i].uniform_channel_values, "uniform_" + material_channel_name.lower() + "_value", texture_node.outputs[0].default_value)
 
-        case 'TEX_NOISE':
-            setattr(layer.channel_node_types, material_channel_name.lower() + "_node_type", 'NOISE')
+                    case 'RGB':
+                        setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'COLOR')
+                        color = texture_node.outputs[0].default_value
+                        setattr(layers[i].color_channel_values, material_channel_name.lower() + "_channel_color", (color[0], color[1], color[2]))
 
-        case 'TEX_MUSGRAVE':
-            setattr(layer.channel_node_types, material_channel_name.lower() + "_node_type", 'MUSGRAVE')
+                    case 'GROUP':
+                        setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'GROUP_NODE')
 
-        case 'TEX_VORONOI':
-            setattr(layer.channel_node_types, material_channel_name.lower() + "_node_type", 'VORONOI')
+                    case 'TEX_IMAGE':
+                        setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'TEXTURE')
+
+                    case 'TEX_NOISE':
+                        setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'NOISE')
+
+                    case 'TEX_MUSGRAVE':
+                        setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'MUSGRAVE')
+
+                    case 'TEX_VORONOI':
+                        setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'VORONOI')
+
+def read_layer_projection_values(selected_layer, selected_layer_index, context):
+    '''Update the projection values in the user interface for the selected layer.'''
+    # Using the color material channel as the projection is the same among all material channels.
+    material_channel_name = 'COLOR'
+    material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
+    if material_channel_node:
+        # Update offset, rotation and scale values.
+        mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, selected_layer_index, context)
+        if mapping_node:
+            selected_layer.projection.projection_offset_x = mapping_node.inputs[1].default_value[0]
+            selected_layer.projection.projection_offset_y = mapping_node.inputs[1].default_value[1]
+            selected_layer.projection.projection_rotation = mapping_node.inputs[2].default_value[2]
+            selected_layer.projection.projection_scale_x = mapping_node.inputs[3].default_value[0]
+            selected_layer.projection.projection_scale_y = mapping_node.inputs[3].default_value[1]
+            if selected_layer.projection.projection_scale_x != selected_layer.projection.projection_scale_y:
+                selected_layer.projection.match_layer_scale = False
+
+        # Update the projection values specific to image texture projection.
+        texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_layer_index, context)
+        if texture_node and texture_node.type == 'TEX_IMAGE':
+            selected_layer.projection.projection_blend = texture_node.projection_blend
+            selected_layer.projection.texture_extension = texture_node.extension
+            selected_layer.projection.texture_interpolation = texture_node.interpolation
+            selected_layer.projection.projection_mode = texture_node.projection
+        else:
+            selected_layer.projection.projection_mode = 'FLAT'
+    else:
+        info_messages.popup_message_box("Missing " + material_channel_name + " group node.", "Material Stack Corrupted", 'ERROR')
+
+def read_globally_active_material_channels(context):
+    '''Updates globally active / inactive material channels per layer by reading the material node trees.'''
+    # Globally active material channels are determined by checking if the material channel group node is connected.
+    texture_set_settings = context.scene.matlay_texture_set_settings
+    material_links = context.active_object.active_material.node_tree.links
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
+        if material_channel_node:
+            material_channel_linked = False
+            for l in material_links:
+                if l.from_node == material_channel_node:
+                    material_channel_linked = True
+                    setattr(texture_set_settings.global_material_channel_toggles, material_channel_name.lower() + "_channel_toggle", True)
+                    break
+            if not material_channel_linked:
+                setattr(texture_set_settings.global_material_channel_toggles, material_channel_name.lower() + "_channel_toggle", False)
+
+def read_hidden_layers(total_number_of_layers, layers, material_channel_list, context):
+    '''Updates hidden material channels by reading the material node trees.'''
+
+    # Hidden layers are determined by having all the material nodes in all material channels for a layer muted.
+    for i in range(total_number_of_layers):
+        for material_channel_name in material_channel_list:
+            layer_hidden = True
+            texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, i, context)
+            if texture_node:
+                if texture_node.mute == False:
+                    layer_hidden = False
+                    break
+        layers[i].hidden = layer_hidden
+
+def read_active_layer_material_channels(material_channel_list, total_number_of_layers, layers, context):
+    '''Updates active / inactive material channels per layer by reading the material node trees.'''
+
+    # Inactive material channels for a layer is determined by checking if the texture node is muted.
+    for i in range(total_number_of_layers):
+        for material_channel_name in material_channel_list:
+            texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, i, context)
+            
+            if texture_node.mute:
+                material_channel_active = False
+            else:
+                material_channel_active = True
+
+            setattr(layers[i].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", material_channel_active)
 
 class MATLAY_OT_refresh_layer_nodes(Operator):
     bl_idname = "matlay.refresh_layer_nodes"
@@ -531,66 +637,45 @@ class MATLAY_OT_refresh_layer_nodes(Operator):
     auto_called: BoolProperty(name="Auto Called", description="Should be true if refreshing layers was automatically called (i.e selecting a different object automatically refreshes the layer stack). This is used to avoid printing errors.", default=False)
 
     def execute(self, context):
-        # Make sure the active material is a MatLay material before attempting to refresh the layer stack.
+        # Only read the layer stack for materials made with this add-on. 
+        # Materials must follow a strict format to be able to be properly read, making materials not made with this add-on incompatible.
         if matlay_materials.verify_material(context) == False:
             if self.auto_called == False:
                 self.report({'ERROR'}, "Material is not a MatLay material, can't read / refresh the layer stack.")
             return {'FINISHED'}
+        
+        # Remember the selected layer index before clearing the layer stack.
+        original_selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
         # Clear the layer stack.
         layers = context.scene.matlay_layers
         layers.clear()
 
-        # Read the layer nodes and add a layer slot for each layer node found, update the layer name & id.
         total_number_of_layers = layer_nodes.get_total_number_of_layers(context)
-        for i in range(total_number_of_layers):
-            layers.add()
-            layers[i].layer_stack_array_index = i
-            layer_frame_nodes = layer_nodes.get_layer_frame_nodes(context)
-            for layer_frame in layer_frame_nodes:
-                layer_frame_info = layer_frame.label.split('_')
-                layers[i].name = layer_frame_info[0]
-                layers[i].cached_frame_name = layer_frame_info[0]
-                layer_id = int(layer_frame_info[1])
-                layers[i].id = layer_id
-
-        # Read the opacity (only for the selected material channel).
-        selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
-        for i in range(total_number_of_layers):
-            opacity_node = layer_nodes.get_layer_node('OPACITY', selected_material_channel, i, context)
-            layers[i].opacity = opacity_node.inputs[1].default_value
-
-        # TODO: Read the material tree for globally disabled material channels (material channel is disconnected).
-        #read_active_material_channel()
-
-        # TODO: Read the texture node type and node values then update the properties stored within the layer.
         material_channel_list = material_channels.get_material_channel_list()
-        for material_channel_name in material_channel_list:
-            for i in range(total_number_of_layers):
-                texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, i, context)
+        selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
 
-                read_layer_texture_node_type(texture_node, layers[i], material_channel_name)
-                        
-                # Read the layer color values (for rgb color nodes).
-                if texture_node.type == 'RGB':
-                    color = texture_node.outputs[0].default_value
-                    setattr(layers[i].color_channel_values, material_channel_name.lower() + "_channel_color", (color.r, color.g, color.b, 1))
+        # After reading the layer stack, the number of layers may be different, reset the selected layer index if required.
+        if total_number_of_layers >= original_selected_layer_index:
+            selected_layer_index = original_selected_layer_index
+        else:
+            selected_layer_index = 0
 
-                # Read the uniform values (for single value nodes).
-                if texture_node.type == 'VALUE':
-                    setattr(layers[i].uniform_channel_values, "uniform_" + material_channel_name.lower() + "_value", texture_node.outputs[0].default_value)
+        # Turn auto updating for layer properties off.
+        # This is to avoid node types from automatically being replaced when the node type is updated as doing so can cause errors when reading values (likely due to blender parameter update functions not being thread safe).
+        context.scene.matlay_layer_stack.auto_update_layer_properties = False
 
-                # TODO: Read the material tree for hidden layer channels (muted channels).
-                #if texture_node.muted
-
-                # TODO: Read the layer projection values.
-                mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, i, context)
-
-
-
-        # Organize all layer nodes.
+        read_layer_name_and_id(layers, context)
+        read_layer_opacity(total_number_of_layers, layers, selected_material_channel, context)
+        read_texture_node_values(material_channel_list, total_number_of_layers, layers, context)
+        read_layer_projection_values(layers[selected_layer_index], selected_layer_index, context)
+        read_globally_active_material_channels(context)
+        read_hidden_layers(total_number_of_layers, layers, material_channel_list, context)
+        read_active_layer_material_channels(material_channel_list, total_number_of_layers, layers, context)
         #layer_nodes.organize_all_matlay_materials(context)
 
-        # TODO: Re-link all nodes.
+        context.scene.matlay_layer_stack.auto_update_layer_properties = True
+
+        self.report({'INFO'}, "Refreshed layer stack.")
 
         return {'FINISHED'}

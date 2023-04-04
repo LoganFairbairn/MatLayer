@@ -110,7 +110,7 @@ def get_layer_frame_id(e):
         print("Error: Layer frame invalid when attempting to read the layer frame id.")
 
 def get_layer_frame_nodes(context):
-    '''Organizes and returns all layer frame nodes by reading the material tree of the color group channel node.'''
+    '''Returns all layer frame nodes in order by reading the material tree of the color group channel node.'''
     layer_frame_nodes = []
     material_channel_node = material_channels.get_material_channel_node(context, 'COLOR')
     for node in material_channel_node.node_tree.nodes:

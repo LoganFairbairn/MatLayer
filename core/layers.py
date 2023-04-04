@@ -32,16 +32,19 @@ TEXTURE_EXTENSION_MODES = [
     ]
 
 TEXTURE_INTERPOLATION_MODES = [
-    ("LINEAR", "Linear", ""),
-    ("CUBIC", "Cubic", ""),
-    ("CLOSEST", "Closest", ""),
-    ("SMART", "Smart", "")
+    ("Linear", "Linear", ""),
+    ("Cubic", "Cubic", ""),
+    ("Closest", "Closest", ""),
+    ("Smart", "Smart", "")
     ]
 
 #----------------------------- UPDATE FUNCTIONS FOR GENERAL LAYER SETTNGS -----------------------------#
 
 def update_layer_name(self, context):
     '''Updates the layers name in all layer frames when the layer name is changed.'''
+
+    if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
+        return
 
     # Layer names can't contain underscores since they are used as delimiters to parse information from layer frames correctly.
     # If the layer name contains an underscore, throw the user an error message notifying them they can't use underscores in layer names.
@@ -67,6 +70,9 @@ def update_layer_name(self, context):
 
 def update_layer_opacity(self, context):
     '''Updates the layer opacity node values when the opacity is changed.'''
+    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+        return
+    
     selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
     opacity_node = layer_nodes.get_layer_node("OPACITY", selected_material_channel, self.layer_stack_array_index, context)
     if opacity_node:
@@ -74,6 +80,9 @@ def update_layer_opacity(self, context):
 
 def update_hidden(self, context):
     '''Hide or unhide layers.'''
+    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+        return
+    
     material_channel_list = material_channels.get_material_channel_list()
     
     # Hide selected layer by muting all nodes within the layer.
@@ -92,6 +101,9 @@ def update_hidden(self, context):
 
 def update_layer_projection(self, context):
     '''Changes the layer projection by reconnecting nodes.'''
+    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+        return 
+    
     layers = context.scene.matlay_layers
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
@@ -135,80 +147,112 @@ def update_layer_projection(self, context):
                         material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
                         texture_node.projection = 'TUBE'
 
-def update_projection_blend(self, context):
-    '''Updates the projection blend node values when the cube projection blend value is changed.'''
+def update_projection_interpolation(self, context):
+    '''Updates the image texture interpolation mode when it's changed.'''
+    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+        return 
+    
     layers = context.scene.matlay_layers
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
-
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_index, context)
+        if texture_node and texture_node.type == 'TEX_IMAGE':
+            texture_node.interpolation = layers[selected_layer_index].projection.texture_interpolation
+
+def update_projection_extension(self, context):
+    '''Updates the image texture extension projection mode when it's changed.'''
+    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+        return 
     
-        if texture_node:
-            texture_node.projection_blend = layers[selected_layer_index].projection_blend
+    layers = context.scene.matlay_layers
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_index, context)
+        if texture_node and texture_node.type == 'TEX_IMAGE':
+            texture_node.extension = layers[selected_layer_index].projection.texture_extension
+
+def update_projection_blend(self, context):
+    '''Updates the projection blend node values when the cube projection blend value is changed.'''
+    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+        return
+
+    layers = context.scene.matlay_layers
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_index, context)
+        if texture_node and texture_node.type == 'TEX_IMAGE':
+            texture_node.projection_blend = layers[selected_layer_index].projection.texture_extension
 
 def update_projection_offset_x(self, context):
-    layers = context.scene.matlay_layers
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        layers = context.scene.matlay_layers
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
-    material_channel_list = material_channels.get_material_channel_list()
-    for material_channel_name in material_channel_list:
-        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+        material_channel_list = material_channels.get_material_channel_list()
+        for material_channel_name in material_channel_list:
+            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
-        if mapping_node:
-            mapping_node.inputs[1].default_value[0] = layers[selected_layer_index].projection.projection_offset_x
+            if mapping_node:
+                mapping_node.inputs[1].default_value[0] = layers[selected_layer_index].projection.projection_offset_x
 
 def update_projection_offset_y(self, context):
-    layers = context.scene.matlay_layers
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        layers = context.scene.matlay_layers
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
-    material_channel_list = material_channels.get_material_channel_list()
-    for material_channel_name in material_channel_list:
-        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+        material_channel_list = material_channels.get_material_channel_list()
+        for material_channel_name in material_channel_list:
+            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
-        if mapping_node:
-            mapping_node.inputs[1].default_value[1] = layers[selected_layer_index].projection.projection_offset_y
+            if mapping_node:
+                mapping_node.inputs[1].default_value[1] = layers[selected_layer_index].projection.projection_offset_y
 
 def update_projection_rotation(self, context):
     '''Updates the layer projections rotation for all layers.'''
-    layers = context.scene.matlay_layers
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        layers = context.scene.matlay_layers
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
-    material_channel_list = material_channels.get_material_channel_list()
-    for material_channel_name in material_channel_list:
-        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
-        if mapping_node:
-            mapping_node.inputs[2].default_value[2] = layers[selected_layer_index].projection.projection_rotation
+        material_channel_list = material_channels.get_material_channel_list()
+        for material_channel_name in material_channel_list:
+            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+            if mapping_node:
+                mapping_node.inputs[2].default_value[2] = layers[selected_layer_index].projection.projection_rotation
 
 def update_projection_scale_x(self, context):
     '''Updates the layer projections x scale for all mapping nodes in the selected layer.'''
-    layers = context.scene.matlay_layers
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        layers = context.scene.matlay_layers
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
-    material_channel_list = material_channels.get_material_channel_list()
-    for material_channel_name in material_channel_list:
-        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+        material_channel_list = material_channels.get_material_channel_list()
+        for material_channel_name in material_channel_list:
+            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
-        if mapping_node:
-            mapping_node.inputs[3].default_value[0] = layers[selected_layer_index].projection.projection_scale_x
+            if mapping_node:
+                mapping_node.inputs[3].default_value[0] = layers[selected_layer_index].projection.projection_scale_x
 
-        if self.match_layer_scale:
-            layers[selected_layer_index].projection.projection_scale_y = layers[selected_layer_index].projection.projection_scale_x
+            if self.match_layer_scale:
+                layers[selected_layer_index].projection.projection_scale_y = layers[selected_layer_index].projection.projection_scale_x
 
 def update_projection_scale_y(self, context):
-    layers = context.scene.matlay_layers
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        layers = context.scene.matlay_layers
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
-    material_channel_list = material_channels.get_material_channel_list()
-    for material_channel_name in material_channel_list:
-        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
-        
-        if mapping_node:
-            mapping_node.inputs[3].default_value[1] = layers[selected_layer_index].projection.projection_scale_y
+        material_channel_list = material_channels.get_material_channel_list()
+        for material_channel_name in material_channel_list:
+            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+            
+            if mapping_node:
+                mapping_node.inputs[3].default_value[1] = layers[selected_layer_index].projection.projection_scale_y
 
 def update_match_layer_scale(self, context):
     '''Updates matching of the projected layer scales.'''
-    if self.match_layer_scale:
+    if self.match_layer_scale and context.scene.matlay_layer_stack.auto_update_layer_properties:
         layers = context.scene.matlay_layers
         layer_index = context.scene.matlay_layer_stack.layer_index
         layers[layer_index].projection.projection_scale_y = layers[layer_index].projection.projection_scale_x
@@ -216,67 +260,76 @@ def update_match_layer_scale(self, context):
 #----------------------------- UPDATE MATERIAL CHANNEL TOGGLES (mute / unmute material channels for individual layers) -----------------------------#
 
 def update_color_channel_toggle(self, context):
-    if self.color_channel_toggle:
-        layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "COLOR", context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        if self.color_channel_toggle:
+            layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "COLOR", context)
 
-    else:
-        layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "COLOR", context)
+        else:
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "COLOR", context)
 
 def update_subsurface_channel_toggle(self, context):
-    if self.subsurface_channel_toggle:
-        layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE", context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        if self.subsurface_channel_toggle:
+            layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE", context)
 
-    else:
-        layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE", context)
+        else:
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE", context)
 
 def update_subsurface_color_channel_toggle(self, context):
-    if self.subsurface_color_channel_toggle:
-        layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE_COLOR", context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        if self.subsurface_color_channel_toggle:
+            layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE_COLOR", context)
 
-    else:
-        layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE_COLOR", context)
+        else:
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE_COLOR", context)
 
 def update_metallic_channel_toggle(self, context):
-    if self.metallic_channel_toggle:
-        layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "METALLIC", context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        if self.metallic_channel_toggle:
+            layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "METALLIC", context)
 
-    else:
-        layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "METALLIC", context)
+        else:
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "METALLIC", context)
 
 def update_specular_channel_toggle(self, context):
-    if self.specular_channel_toggle:
-        layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "SPECULAR", context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        if self.specular_channel_toggle:
+            layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "SPECULAR", context)
 
-    else:
-        layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SPECULAR", context)
+        else:
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SPECULAR", context)
 
 def update_roughness_channel_toggle(self, context):
-    if self.roughness_channel_toggle:
-        layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "ROUGHNESS", context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        if self.roughness_channel_toggle:
+            layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "ROUGHNESS", context)
 
-    else:
-        layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "ROUGHNESS", context)
+        else:
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "ROUGHNESS", context)
 
 def update_normal_channel_toggle(self, context):
-    if self.normal_channel_toggle:
-        layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "NORMAL", context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        if self.normal_channel_toggle:
+            layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "NORMAL", context)
 
-    else:
-        layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "NORMAL", context)
+        else:
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "NORMAL", context)
 
 def update_height_channel_toggle(self, context):
-    if self.height_channel_toggle:
-        layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "HEIGHT", context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        if self.height_channel_toggle:
+            layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "HEIGHT", context)
 
-    else:
-        layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "HEIGHT", context)
+        else:
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "HEIGHT", context)
 
 def update_emission_channel_toggle(self, context):
-    if self.emission_channel_toggle:
-        layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "EMISSION", context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        if self.emission_channel_toggle:
+            layer_nodes.mute_layer_material_channel(False, context.scene.matlay_layer_stack.layer_index, "EMISSION", context)
 
-    else:
-        layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "EMISSION", context)
+        else:
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "EMISSION", context)
 
 
 #----------------------------- UPDATE LAYER PREVIEW COLORS -----------------------------#
@@ -284,125 +337,143 @@ def update_emission_channel_toggle(self, context):
 # When these values which are displayed in the ui are updated, they automatically update their respective color / value nodes in the node tree through these functions.
 
 def update_color_channel_color(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_index, context)
-    if node and node.type == 'RGB':
-        node.outputs[0].default_value = (self.color_channel_color.r, self.color_channel_color.g, self.color_channel_color.b, 1)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_index, context)
+        if node and node.type == 'RGB':
+            node.outputs[0].default_value = (self.color_channel_color.r, self.color_channel_color.g, self.color_channel_color.b, 1)
 
 def update_subsurface_channel_color(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "SUBSURFACE", selected_layer_index, context)
-    if node and node.type == 'RGB':
-        node.outputs[0].default_value = (self.subsurface_channel_color.r, self.subsurface_channel_color.g, self.subsurface_channel_color.b, 1)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "SUBSURFACE", selected_layer_index, context)
+        if node and node.type == 'RGB':
+            node.outputs[0].default_value = (self.subsurface_channel_color.r, self.subsurface_channel_color.g, self.subsurface_channel_color.b, 1)
 
 def update_subsurface_color_channel_color(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "SUBSURFACE_COLOR", selected_layer_index, context)
-    if node and node.type == 'RGB':
-        node.outputs[0].default_value = (self.subsurface_color_channel_color.r, self.subsurface_color_channel_color.g, self.subsurface_color_channel_color.b, 1)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "SUBSURFACE_COLOR", selected_layer_index, context)
+        if node and node.type == 'RGB':
+            node.outputs[0].default_value = (self.subsurface_color_channel_color.r, self.subsurface_color_channel_color.g, self.subsurface_color_channel_color.b, 1)
 
 def update_metallic_channel_color(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "METALLIC", selected_layer_index, context)
-    if node and node.type == 'RGB':
-        node.outputs[0].default_value = (self.metallic_channel_color.r, self.metallic_channel_color.g, self.metallic_channel_color.b, 1)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "METALLIC", selected_layer_index, context)
+        if node and node.type == 'RGB':
+            node.outputs[0].default_value = (self.metallic_channel_color.r, self.metallic_channel_color.g, self.metallic_channel_color.b, 1)
 
 def update_specular_channel_color(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "SPECULAR", selected_layer_index, context)
-    if node and node.type == 'RGB':
-        node.outputs[0].default_value = (self.specular_channel_color.r, self.specular_channel_color.g, self.specular_channel_color.b, 1)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "SPECULAR", selected_layer_index, context)
+        if node and node.type == 'RGB':
+            node.outputs[0].default_value = (self.specular_channel_color.r, self.specular_channel_color.g, self.specular_channel_color.b, 1)
 
 def update_roughness_channel_color(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "ROUGHNESS", selected_layer_index, context)
-    if node and node.type == 'RGB':
-        node.outputs[0].default_value = (self.roughness_channel_color.r, self.roughness_channel_color.g, self.roughness_channel_color.b, 1)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "ROUGHNESS", selected_layer_index, context)
+        if node and node.type == 'RGB':
+            node.outputs[0].default_value = (self.roughness_channel_color.r, self.roughness_channel_color.g, self.roughness_channel_color.b, 1)
 
 def update_normal_channel_color(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "NORMAL", selected_layer_index, context)
-    if node and node.type == 'RGB':
-        node.outputs[0].default_value = (self.normal_channel_color.r, self.normal_channel_color.g, self.normal_channel_color.b, 1)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "NORMAL", selected_layer_index, context)
+        if node and node.type == 'RGB':
+            node.outputs[0].default_value = (self.normal_channel_color.r, self.normal_channel_color.g, self.normal_channel_color.b, 1)
 
 def update_height_channel_color(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "HEIGHT", selected_layer_index, context)
-    if node and node.type == 'RGB':
-        node.outputs[0].default_value = (self.height_channel_color.r, self.height_channel_color.g, self.height_channel_color.b, 1)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "HEIGHT", selected_layer_index, context)
+        if node and node.type == 'RGB':
+            node.outputs[0].default_value = (self.height_channel_color.r, self.height_channel_color.g, self.height_channel_color.b, 1)
 
 def update_emission_channel_color(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "EMISSION", selected_layer_index, context)
-    if node and node.type == 'RGB':
-        node.outputs[0].default_value = (self.emission_channel_color.r, self.emission_channel_color.g, self.emission_channel_color.b, 1)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "EMISSION", selected_layer_index, context)
+        if node and node.type == 'RGB':
+            node.outputs[0].default_value = (self.emission_channel_color.r, self.emission_channel_color.g, self.emission_channel_color.b, 1)
 
 #----------------------------- UPDATE UNIFORM LAYER VALUES -----------------------------#
 # To have correct min / max values for sliders when the user is using uniform value nodes in the user interface
 # When these values which are displayed in the ui are updated, they automatically update their respective value nodes in the node tree through these functions.
 
 def update_uniform_color_value(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_index, context)
-    if node and node.type == 'VALUE':
-        node.outputs[0].default_value = self.uniform_color_value
-        self.color_channel_color = (self.uniform_color_value, self.uniform_color_value, self.uniform_color_value)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_index, context)
+        if node and node.type == 'VALUE':
+            node.outputs[0].default_value = self.uniform_color_value
+            self.color_channel_color = (self.uniform_color_value, self.uniform_color_value, self.uniform_color_value)
 
 def update_uniform_subsurface_value(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "SUBSURFACE", selected_layer_index, context)
-    if node and node.type == 'VALUE':
-        node.outputs[0].default_value = self.uniform_subsurface_value
-        self.subsurface_channel_color = (self.uniform_subsurface_value,self.uniform_subsurface_value,self.uniform_subsurface_value)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "SUBSURFACE", selected_layer_index, context)
+        if node and node.type == 'VALUE':
+            node.outputs[0].default_value = self.uniform_subsurface_value
+            self.subsurface_channel_color = (self.uniform_subsurface_value,self.uniform_subsurface_value,self.uniform_subsurface_value)
 
 def update_uniform_subsurface_color_value(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "SUBSURFACE_COLOR", selected_layer_index, context)
-    if node and node.type == 'VALUE':
-        node.outputs[0].default_value = self.uniform_subsurface_color_value
-        self.subsurface_color_channel_color = (self.uniform_subsurface_color_value,self.uniform_subsurface_color_value,self.uniform_subsurface_color_value)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "SUBSURFACE_COLOR", selected_layer_index, context)
+        if node and node.type == 'VALUE':
+            node.outputs[0].default_value = self.uniform_subsurface_color_value
+            self.subsurface_color_channel_color = (self.uniform_subsurface_color_value,self.uniform_subsurface_color_value,self.uniform_subsurface_color_value)
 
 def update_uniform_metallic_value(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "METALLIC", selected_layer_index, context)
-    if node and node.type == 'VALUE':
-        node.outputs[0].default_value = self.uniform_metallic_value
-        self.metallic_channel_color = (self.uniform_metallic_value,self.uniform_metallic_value,self.uniform_metallic_value)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "METALLIC", selected_layer_index, context)
+        if node and node.type == 'VALUE':
+            node.outputs[0].default_value = self.uniform_metallic_value
+            self.metallic_channel_color = (self.uniform_metallic_value,self.uniform_metallic_value,self.uniform_metallic_value)
 
 def update_uniform_specular_value(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "SPECULAR", selected_layer_index, context)
-    if node and node.type == 'VALUE':
-        node.outputs[0].default_value = self.uniform_specular_value
-        self.specular_channel_color = (self.uniform_specular_value,self.uniform_specular_value,self.uniform_specular_value)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "SPECULAR", selected_layer_index, context)
+        if node and node.type == 'VALUE':
+            node.outputs[0].default_value = self.uniform_specular_value
+            self.specular_channel_color = (self.uniform_specular_value,self.uniform_specular_value,self.uniform_specular_value)
 
 def update_uniform_roughness_value(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "ROUGHNESS", selected_layer_index, context)
-    if node and node.type == 'VALUE':
-        node.outputs[0].default_value = self.uniform_roughness_value
-        self.roughness_channel_color = (self.uniform_roughness_value,self.uniform_roughness_value,self.uniform_roughness_value)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "ROUGHNESS", selected_layer_index, context)
+        if node and node.type == 'VALUE':
+            node.outputs[0].default_value = self.uniform_roughness_value
+            self.roughness_channel_color = (self.uniform_roughness_value, self.uniform_roughness_value, self.uniform_roughness_value)
 
 def update_uniform_normal_value(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "NORMAL", selected_layer_index, context)
-    if node and node.type == 'VALUE':
-        node.outputs[0].default_value = self.uniform_normal_value
-        self.normal_channel_color = (self.uniform_normal_value,self.uniform_normal_value,self.uniform_normal_value)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "NORMAL", selected_layer_index, context)
+        if node and node.type == 'VALUE':
+            node.outputs[0].default_value = self.uniform_normal_value
+            self.normal_channel_color = (self.uniform_normal_value,self.uniform_normal_value,self.uniform_normal_value)
 
 def update_uniform_height_value(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "HEIGHT", selected_layer_index, context)
-    if node and node.type == 'VALUE':
-        node.outputs[0].default_value = self.uniform_height_value
-        self.height_channel_color = (self.uniform_height_value,self.uniform_height_value,self.uniform_height_value)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "HEIGHT", selected_layer_index, context)
+        if node and node.type == 'VALUE':
+            node.outputs[0].default_value = self.uniform_height_value
+            self.height_channel_color = (self.uniform_height_value, self.uniform_height_value, self.uniform_height_value)
 
 def update_uniform_emission_value(self, context):
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    node = layer_nodes.get_layer_node("TEXTURE", "EMISSION", selected_layer_index, context)
-    if node and node.type == 'VALUE':
-        node.outputs[0].default_value = self.uniform_emission_value
-        self.emission_channel_color = (self.uniform_emission_value,self.uniform_emission_value,self.uniform_emission_value)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        node = layer_nodes.get_layer_node("TEXTURE", "EMISSION", selected_layer_index, context)
+        if node and node.type == 'VALUE':
+            node.outputs[0].default_value = self.uniform_emission_value
+            self.emission_channel_color = (self.uniform_emission_value,self.uniform_emission_value,self.uniform_emission_value)
 
 
 #----------------------------- UPDATE TEXTURE NODE TYPES -----------------------------#
@@ -437,7 +508,7 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
                 case 'ROUGHNESS':
                     color_value = (0.5, 0.5, 0.5)
                 case 'NORMAL':
-                    color_value = (0.5, 0.5, 0.1)
+                    color_value = (0.5, 0.5, 1.0)
                 case _:
                     color_value = (0.5, 0.5, 0.5)
             setattr(selected_layer.color_channel_values, material_channel_name.lower() + "_channel_color", color_value)
@@ -518,31 +589,40 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
     layer_nodes.update_layer_nodes(context)
 
 def update_color_channel_node_type(self, context):
-    replace_texture_node(self.color_node_type, "COLOR", self, context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        replace_texture_node(self.color_node_type, "COLOR", self, context)
 
 def update_subsurface_channel_node_type(self, context):
-    replace_texture_node(self.subsurface_node_type, "SUBSURFACE", self, context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        replace_texture_node(self.subsurface_node_type, "SUBSURFACE", self, context)
 
 def update_subsurface_color_channel_node_type(self, context):
-    replace_texture_node(self.subsurface_color_node_type, "SUBSURFACE_COLOR", self, context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        replace_texture_node(self.subsurface_color_node_type, "SUBSURFACE_COLOR", self, context)
 
 def update_specular_channel_node_type(self, context):
-    replace_texture_node(self.specular_node_type, "SPECULAR", self, context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        replace_texture_node(self.specular_node_type, "SPECULAR", self, context)
 
 def update_metallic_channel_node_type(self, context):
-    replace_texture_node(self.metallic_node_type, "METALLIC", self, context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        replace_texture_node(self.metallic_node_type, "METALLIC", self, context)
 
 def update_roughness_channel_node_type(self, context):
-    replace_texture_node(self.roughness_node_type, "ROUGHNESS", self, context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        replace_texture_node(self.roughness_node_type, "ROUGHNESS", self, context)
 
 def update_normal_channel_node_type(self, context):
-    replace_texture_node(self.normal_node_type, "NORMAL", self, context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        replace_texture_node(self.normal_node_type, "NORMAL", self, context)
 
 def update_height_channel_node_type(self, context):
-    replace_texture_node(self.height_node_type, "HEIGHT", self, context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        replace_texture_node(self.height_node_type, "HEIGHT", self, context)
 
 def update_emission_channel_node_type(self, context):
-    replace_texture_node(self.emission_node_type, "EMISSION", self, context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties:
+        replace_texture_node(self.emission_node_type, "EMISSION", self, context)
 
 
 #----------------------------- LAYER PROPERTIES -----------------------------#
@@ -574,16 +654,16 @@ class MaterialChannelNodeType(PropertyGroup):
 class ProjectionSettings(PropertyGroup):
     '''Projection settings for this add-on.'''
     projection_mode: EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT', update=update_layer_projection)
-    texture_extension: EnumProperty(items=TEXTURE_EXTENSION_MODES, name="Extension", description="", default='REPEAT')
-    texture_interpolation: EnumProperty(items=TEXTURE_INTERPOLATION_MODES, name="Interpolation", description="", default='LINEAR')
+    texture_extension: EnumProperty(items=TEXTURE_EXTENSION_MODES, name="Extension", description="", default='REPEAT', update=update_projection_extension)
+    texture_interpolation: EnumProperty(items=TEXTURE_INTERPOLATION_MODES, name="Interpolation", description="", default='Linear', update=update_projection_interpolation)
     projection_blend: FloatProperty(name="Projection Blend", description="The projection blend amount", default=0.5, min=0.0, max=1.0, subtype='FACTOR', update=update_projection_blend)
     projection_offset_x: FloatProperty(name="Offset X", description="Projected x offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_x)
     projection_offset_y: FloatProperty(name="Offset Y", description="Projected y offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_y)
     projection_rotation: FloatProperty(name="Rotation", description="Projected rotation of the selected layer", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projection_rotation)
     projection_scale_x: FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_x)
     projection_scale_y: FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_y)
-    match_layer_scale: bpy.props.BoolProperty(name="Match Layer Scale", default=True,update=update_match_layer_scale)
-    match_layer_mask_scale: bpy.props.BoolProperty(name="Match Layer Mask Scale", default=True)
+    match_layer_scale: BoolProperty(name="Match Layer Scale", default=True,update=update_match_layer_scale)
+    match_layer_mask_scale: BoolProperty(name="Match Layer Mask Scale", default=True)
 
 class MaterialChannelColors(PropertyGroup):
     '''Color values for each material channel. These are used for layer previews when the layer can be accurately displayed using rgb values (rgb node / value node).'''
@@ -616,7 +696,6 @@ class MATLAY_layers(PropertyGroup):
     cached_frame_name: bpy.props.StringProperty(name="", description="A cached version of the layer name. This allows layer nodes using the layers previous layer name to be accessed until they are renamed.", default="Layer Naming Error")
     opacity: FloatProperty(name="Opacity", description="Layers Opacity", default=1.0, min=0.0, soft_max=1.0, subtype='FACTOR', update=update_layer_opacity)
     hidden: BoolProperty(name="Hidden", description="Show if the layer is hidden.", update=update_hidden)
-    masked: BoolProperty(name="Masked", description="This layer has a mask.", default=True)
     material_channel_toggles: bpy.props.PointerProperty(type=MaterialChannelToggles, name="Material Channel Toggles")
     channel_node_types: PointerProperty(type=MaterialChannelNodeType, name="Channel Node Types")
     projection: PointerProperty(type=ProjectionSettings, name="Projection Settings")
