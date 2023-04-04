@@ -50,4 +50,5 @@ def draw_texture_set_section_ui(self, context):
     for material_channel_name in material_channel_list:
         row = layout.row()
         row.scale_y = scale_y
-        row.prop(texture_set_settings.global_material_channel_toggles, material_channel_name.lower() + "_channel_toggle", text=material_channel_name, toggle=1)
+        material_channel_name_text = material_channel_name.replace('_', ' ')
+        row.prop(texture_set_settings.global_material_channel_toggles, material_channel_name.lower() + "_channel_toggle", text=material_channel_name_text, toggle=1)
