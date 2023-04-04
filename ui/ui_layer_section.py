@@ -40,8 +40,15 @@ def draw_layers_section_ui(self, context):
 
 
         selected_material_channel_active = get_material_channel_active(context, selected_material_channel)
-        if selected_material_channel_active and len(context.scene.matlay_layers) > 0:
-            draw_layer_stack(column2, context)
+        if len(context.scene.matlay_layers) > 0:
+            if selected_material_channel_active:
+                draw_layer_stack(column2, context)
+            else:
+                subrow = column2.row(align=True)
+                subrow.label(text="Selected material channel inactive in texture set.")
+        else:
+            subrow = column2.row(align=True)
+            subrow.label(text="No layers, add a layer to see the layer stack.")
 
     else:
         layout = self.layout
