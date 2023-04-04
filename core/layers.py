@@ -1,7 +1,7 @@
 # This file contains layer properties and functions for updating layer properties.
 
 import bpy
-from bpy.types import PropertyGroup
+from bpy.types import Operator, PropertyGroup
 from bpy.props import BoolProperty, FloatProperty, PointerProperty, FloatVectorProperty, EnumProperty
 from ..core import layer_nodes
 from . import material_channels
@@ -631,6 +631,21 @@ def update_emission_channel_node_type(self, context):
 
 
 #----------------------------- LAYER PROPERTIES -----------------------------#
+
+class MATLAY_OT_open_material_layer_settings(Operator):
+    '''Opens settings for the selected material layer'''
+    bl_idname = "matlay.open_material_layer_settings"
+    bl_label = "Open Layer Settings"
+    bl_description = "Opens settings for the selected material layer."
+
+     # Disable the button when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return bpy.context.scene.matlay_layers
+
+    def execute(self, context):
+        context.scene.matlay_layer_stack.layer_property_tab = 'MATERIAL'
+        return{'FINISHED'}   
 
 class MaterialChannelToggles(PropertyGroup):
     '''Boolean toggles for each material channel.'''

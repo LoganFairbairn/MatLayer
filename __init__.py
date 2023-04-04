@@ -100,6 +100,7 @@ classes = (
     ProjectionSettings,
     MaterialChannelColors,
     MaterialChannelUniformValues,
+    MATLAY_OT_open_material_layer_settings,
     MATLAY_layer_stack,
     MATLAY_layers,
 

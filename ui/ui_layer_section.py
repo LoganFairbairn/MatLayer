@@ -336,9 +336,10 @@ def draw_layer_properties(column, context):
     # Draw layer materials based on the selected tab.
     match layer_property_tab:
         case 'MATERIAL':
-            draw_divider(column)
+            subrow = column.row()
+            subrow.label(text="MATERIAL LAYER")
             subrow = column.row(align=True)
-            subrow.scale_y = 1.2
+            subrow.scale_y = 1.4
             subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'MATERIAL', text='MATERIAL')
             subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'PROJECTION', text='PROJECTION')
             subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'FILTERS', text='FILTERS')
@@ -356,7 +357,11 @@ def draw_layer_properties(column, context):
                     case 'FILTERS':
                         draw_material_filters(column, context)
                         
-        case 'MASKS':
+        case 'MASK':
+            # Draw mask property tabs.
+            subrow = column.row()
+            subrow.label(text="LAYER MASKING")
+
             subrow = column.row(align=True)
             subrow.scale_y = 2
             subrow.scale_x = 10
@@ -370,15 +375,3 @@ def draw_layer_properties(column, context):
             subrow = column.row(align=True)
             subrow.scale_y = 2
             subrow.template_list("MATLAY_UL_mask_stack", "Masks", context.scene, "matlay_masks", mask_stack, "selected_mask_index", sort_reverse=True)
-
-            # Draw mask proprty tabs.
-            subrow = column.row(align=True)
-            subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'SETTINGS', text='SETTINGS')
-            subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'PROJECTION', text='PROJECTION')
-
-            #mask_property_tab = context.scene.matlay_layer_stack.mask_property_tab
-            #match material_property_tab:
-            #    case 'PROJECTION':
-
-            #    case 'FILTERS':
-
