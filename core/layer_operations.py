@@ -673,7 +673,7 @@ class MATLAY_OT_refresh_layer_nodes(Operator):
         read_globally_active_material_channels(context)
         read_hidden_layers(total_number_of_layers, layers, material_channel_list, context)
         read_active_layer_material_channels(material_channel_list, total_number_of_layers, layers, context)
-        #layer_nodes.organize_all_matlay_materials(context)
+        layer_nodes.organize_all_matlay_materials(context)
 
         context.scene.matlay_layer_stack.auto_update_layer_properties = True
 
