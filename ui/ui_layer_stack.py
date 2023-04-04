@@ -25,7 +25,6 @@ def draw_material_channel_preview(layout, item, selected_material_channel, conte
     # Draw layer material preview for the selected material channel.
     row = layout.row(align=True)
     row.ui_units_x = 0.8
-    row.operator("matlay.open_material_layer_settings", icon='RENDERLAYERS', text="", emboss=False)
 
     # TODO: Update this to show a proper texture preview for the texture used in the layer.
     # Load the texture preview as an icon using the blender utility preview module https://docs.blender.org/api/current/bpy.utils.previews.html
@@ -37,6 +36,8 @@ def draw_material_channel_preview(layout, item, selected_material_channel, conte
     row.use_property_decorate = False
     row.template_icon(icon_value=layer_preview_icon.icon_id,scale=1)
     '''
+
+    row.operator("matlay.open_material_layer_settings", icon='RENDERLAYERS', text="", emboss=False)
 
 def draw_layer_mask_preview(layout, item, selected_material_channel, context):
     '''Draws a preview of the mask for each layer (if one is used) within the layer stack.'''

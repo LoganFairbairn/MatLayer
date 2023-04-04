@@ -1,3 +1,4 @@
+import bpy
 from bpy.types import Operator
 from bpy.props import BoolProperty
 from . import material_channels

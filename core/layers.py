@@ -636,7 +636,7 @@ class MATLAY_OT_open_material_layer_settings(Operator):
     '''Opens settings for the selected material layer'''
     bl_idname = "matlay.open_material_layer_settings"
     bl_label = "Open Layer Settings"
-    bl_description = "Opens settings for the selected material layer."
+    bl_description = "Opens settings for the selected material layer"
 
      # Disable the button when there is no active object.
     @ classmethod

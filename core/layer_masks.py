@@ -43,7 +43,7 @@ class MATLAY_OT_open_mask_settings(Operator):
     '''Opens mask settings for the selected layer.'''
     bl_idname = "matlay.open_mask_settings"
     bl_label = "Open Mask Settings"
-    bl_description = "Opens mask settings for the selected layer."
+    bl_description = "Opens mask settings for the selected layer"
 
      # Disable the button when there is no active object.
     @ classmethod
