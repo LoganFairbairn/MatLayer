@@ -171,7 +171,7 @@ def load_handler(dummy):
 bpy.app.handlers.load_post.append(load_handler)
 
 # Global variable for icons used as layer previews.
-preview_collections = {}
+#preview_collections = {}
 
 def register():
     # Register properties, operators and pannels.
@@ -199,19 +199,36 @@ def register():
     bpy.types.Scene.matlay_export_settings = PointerProperty(type=MATLAY_exporting_settings)
 
     # Icons (for layer previews)
-    bpy.types.Scene.preview_icons = bpy.utils.previews.new()
-    preview_collections["main"] = bpy.types.Scene.preview_icons
+    #bpy.types.Scene.preview_icons = bpy.utils.previews.new()
+    #preview_collections["main"] = bpy.types.Scene.preview_icons
 
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
     # Clear preview collections.
-    for bpy.types.Scene.preview_icons in preview_collections.values():
-        bpy.utils.previews.remove(bpy.types.Scene.preview_icons)
-    preview_collections.clear()
+    #for bpy.types.Scene.preview_icons in preview_collections.values():
+    #    bpy.utils.previews.remove(bpy.types.Scene.preview_icons)
+    #preview_collections.clear()
 
     # TODO: Unregister pointers????????
+    bpy.types.Scene.matlay_panel_properties = None
+
+    bpy.types.Scene.matlay_layer_stack = None
+    bpy.types.Scene.matlay_layers = None
+
+    # Material Filter Properties
+    bpy.types.Scene.matlay_material_filter_stack = None
+    bpy.types.Scene.matlay_material_filters = None
+
+    # Layer Mask Properites
+    bpy.types.Scene.matlay_mask_stack = None
+    bpy.types.Scene.matlay_masks = None
+
+    # Settings
+    bpy.types.Scene.matlay_texture_set_settings = None
+    bpy.types.Scene.matlay_baking_settings = None
+    bpy.types.Scene.matlay_export_settings = None
 
 if __name__ == "__main__":
     register()
