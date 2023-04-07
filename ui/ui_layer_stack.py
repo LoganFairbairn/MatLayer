@@ -3,9 +3,9 @@
 import os
 import bpy
 import bpy.utils.previews       # Imported for loading texture previews as icons.
-from ..utilities import image_file_handling
 from ..core import layer_nodes
-from ..core.layer_filters import material_layer_filter_exists
+from ..core import layer_filters
+from ..utilities import image_file_handling
 
 def draw_layer_hidden_icon(layout, item):
     row = layout.row(align=True)
@@ -39,7 +39,7 @@ def draw_material_channel_preview(layout, item, selected_material_channel, conte
 
     row.operator("matlay.open_material_layer_settings", icon='RENDERLAYERS', text="", emboss=False)
 
-def draw_layer_mask_preview(layout, item, selected_material_channel, context):
+def draw_layer_mask_preview(layout):
     '''Draws a preview of the mask for each layer (if one is used) within the layer stack.'''
     row = layout.row(align=True)
     row.ui_units_x = 0.8
@@ -49,12 +49,6 @@ def draw_layer_name(layout, item):
     row = layout.row(align=True)
     row.ui_units_x = 3
     row.prop(item, "name", text="", emboss=False)
-
-def draw_debug_values(layout, item):
-    '''Draws helpful debugging values for each layer.'''
-    layout.prop(item, "layer_stack_array_index", text="", emboss=False)
-    layout.prop(item, "id", text="", emboss=False)
-    layout.prop(item, "cached_frame_name", text="", emboss=False)
 
 def draw_layer_blending(layout, item, selected_material_channel, context):
     '''Draws the layer opacity and blend mode.'''
@@ -86,8 +80,7 @@ class MATLAY_UL_layer_list(bpy.types.UIList):
 
             if context.active_object.active_material:
                 draw_layer_hidden_icon(layout, item)
-                draw_material_channel_preview(layout, item, selected_material_channel, context)
-                draw_layer_mask_preview(layout, item, selected_material_channel, context)
-                #draw_debug_values(layout, item)
+                #draw_material_channel_preview(layout, item, selected_material_channel, context)
+                #draw_layer_mask_preview(layout)
                 draw_layer_name(layout, item)
                 draw_layer_blending(layout, item, selected_material_channel, context)

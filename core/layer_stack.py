@@ -4,7 +4,7 @@ import bpy
 from bpy.types import PropertyGroup
 from . import material_channels
 from ..core import layer_nodes
-from .layer_filters import refresh_filter_stack
+from . import layer_filters
 
 MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", "EMISSION", "SCATTERING")
 
@@ -41,7 +41,7 @@ def update_layer_index(self, context):
             if texture_node.image:
                 context.scene.tool_settings.image_paint.canvas = texture_node.image
 
-    refresh_filter_stack(context)
+    layer_filters.refresh_material_filter_stack(context)
 
     # Swap back to editing the material.
     self.layer_properties_tab = "MATERIAL"
@@ -70,7 +70,7 @@ class MATLAY_layer_stack(PropertyGroup):
         items=[('MATERIAL', "MATERIAL", "Material settings for the selected layer."),
                ('MASK', "MASK", "Mask settings for the selected layer.")],
         name="Layer Properties Tab",
-        description="Currently selected layer properties user interface tab to display",
+        description="Tabs for layer properties.",
         default='MATERIAL',
         options={'HIDDEN'},
     )
@@ -80,7 +80,7 @@ class MATLAY_layer_stack(PropertyGroup):
                ('PROJECTION', "PROJECTION", "Projection settings for the selected material layer."),
                ('FILTERS', "FILTERS", "Layer filters and their properties for the selected material layer.")],
         name="Material Property Tabs",
-        description="Currently selected layer properties user interface tab to display",
+        description="Tabs for material layer properties.",
         default='MATERIAL',
         options={'HIDDEN'},       
     )
@@ -89,7 +89,7 @@ class MATLAY_layer_stack(PropertyGroup):
         items=[('FILTERS', "FILTERS", "Masks, their properties and filters for masks."),
                ('PROJECTION', "PROJECTION", "Projection settings for the selected mask.")],
         name="Mask Property Tabs",
-        description="Currently selected layer properties user interface tab to display",
+        description="Tabs for layer mask properties.",
         default='FILTERS',
         options={'HIDDEN'},
     )

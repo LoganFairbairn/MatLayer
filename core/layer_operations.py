@@ -1,9 +1,10 @@
 import bpy
 from bpy.types import Operator
-from bpy.props import BoolProperty
+from bpy.props import BoolProperty, StringProperty
 from . import material_channels
-from ..core import layer_nodes
 from . import matlay_materials
+from ..core import layer_nodes
+from ..core.layer_filters import FILTER_NODE_TYPES
 from ..utilities.viewport_setting_adjuster import set_material_shading
 from ..utilities import info_messages
 import random
@@ -168,157 +169,6 @@ def add_default_layer_nodes(context):
     # Update the layer nodes.
     layer_nodes.update_layer_nodes(context)
 
-def move_layer(context, direction):
-    '''Moves a layer up or down the layer stack.'''
-    layers = context.scene.matlay_layers
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-
-    # Rename layer frame and nodes before the layer stack is moved.
-    if direction == "DOWN":
-        # Get the layer under the selected layer (if one exists).
-        under_layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
-
-        # Don't move the selected layer down if this is already the bottom layer.
-        if selected_layer_index - 1 < 0:
-            return
-        
-        # Add a tilda to the end of the layer frame that will be moved down and the layer nodes names for the selected layer.
-        layer_node_names = layer_nodes.get_layer_node_names()
-
-        material_channel_names = material_channels.get_material_channel_list()
-        for material_channel in material_channel_names:
-            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
-
-            old_frame_name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(selected_layer_index)
-            frame = material_channel_node.node_tree.nodes.get(old_frame_name)
-
-            new_frame_name = old_frame_name + "~"
-            frame.name = new_frame_name
-            frame.label = frame.name
-
-            for node_name in layer_node_names:
-                node = layer_nodes.get_layer_node(node_name, material_channel, selected_layer_index, context)
-                node.name = node.name + "~"
-                node.label = node.name
-        
-        # Update the layer nodes for the layer below to have the selected layer index.
-        material_channel_names = material_channels.get_material_channel_list()
-        for material_channel in material_channel_names:
-            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
-
-            old_frame_name = layers[under_layer_index].name + "_" + str(layers[under_layer_index].id) + "_" + str(under_layer_index)
-            frame = material_channel_node.node_tree.nodes.get(old_frame_name)
-
-            new_frame_name = layers[under_layer_index].name + "_" + str(layers[under_layer_index].id) + "_" + str(selected_layer_index)
-            frame.name = new_frame_name
-            frame.label = frame.name
-
-            # Update the cached layer frame name.
-            layers[under_layer_index].cached_frame_name = frame.name
-
-            for node_name in layer_node_names:
-                node = layer_nodes.get_layer_node(node_name, material_channel, under_layer_index, context)
-                layer_nodes.rename_layer_node(node, node_name, selected_layer_index)
-
-        # Remove the tilda from the end of the layer frame and the layer node names for the selected layer and reduce their indicies by 1.
-        material_channel_names = material_channels.get_material_channel_list()
-        for material_channel in material_channel_names:
-            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
-
-            old_frame_name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(selected_layer_index) + "~"
-            frame = material_channel_node.node_tree.nodes.get(old_frame_name)
-
-            new_frame_name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(under_layer_index)
-            frame.name = new_frame_name
-            frame.label = frame.name
-
-            # Update the cached layer frame name.
-            layers[selected_layer_index].cached_frame_name = frame.name
-
-            for node_name in layer_node_names:
-                node = material_channel_node.node_tree.nodes.get(node_name + "_" + str(selected_layer_index) + "~")
-                layer_nodes.rename_layer_node(node, node_name, under_layer_index)
-
-        index_to_move_to = max(min(selected_layer_index - 1, len(layers) - 1), 0)
-        layers.move(selected_layer_index, index_to_move_to)
-        context.scene.matlay_layer_stack.layer_index = index_to_move_to
-
-
-    if direction == "UP":
-        # Get the next layers index (if one exists).
-        over_layer_index = max(min(selected_layer_index + 1, len(layers) - 1), 0)
-
-        # Don't move the layer up if the selected layer is already the top layer.
-        if selected_layer_index + 1 > len(layers) - 1:
-            return
-
-
-        # Add a tilda to the end of the layer frame and the layer nodes names for the selected layer.
-        layer_node_names = layer_nodes.get_layer_node_names()
-
-        material_channel_names = material_channels.get_material_channel_list()
-        for material_channel in material_channel_names:
-            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
-
-            old_frame_name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(selected_layer_index)
-            frame = material_channel_node.node_tree.nodes.get(old_frame_name)
-
-            new_frame_name = old_frame_name + "~"
-            frame.name = new_frame_name
-            frame.label = frame.name
-
-            for node_name in layer_node_names:
-                node = layer_nodes.get_layer_node(node_name, material_channel, selected_layer_index, context)
-                node.name = node.name + "~"
-                node.label = node.name
-        
-        # Update the layer nodes for the layer below to have the selected layer index.
-        material_channel_names = material_channels.get_material_channel_list()
-        for material_channel in material_channel_names:
-            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
-
-            old_frame_name = layers[over_layer_index].name + "_" + str(layers[over_layer_index].id) + "_" + str(over_layer_index)
-            frame = material_channel_node.node_tree.nodes.get(old_frame_name)
-
-            new_frame_name = layers[over_layer_index].name + "_" + str(layers[over_layer_index].id) + "_" + str(selected_layer_index)
-            frame.name = new_frame_name
-            frame.label = frame.name
-
-            # Update the cached layer frame name.
-            layers[over_layer_index].cached_frame_name = frame.name
-
-            for node_name in layer_node_names:
-                node = layer_nodes.get_layer_node(node_name, material_channel, over_layer_index, context)
-                layer_nodes.rename_layer_node(node, node_name, selected_layer_index)
-
-        # Remove the tilda from the end of the layer frame and the layer node names for the selected layer and reduce their indicies by 1.
-        material_channel_names = material_channels.get_material_channel_list()
-        for material_channel in material_channel_names:
-            material_channel_node = material_channels.get_material_channel_node(context, material_channel)
-
-            old_frame_name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(selected_layer_index) + "~"
-            frame = material_channel_node.node_tree.nodes.get(old_frame_name)
-
-            new_frame_name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(over_layer_index)
-            frame.name = new_frame_name
-            frame.label = frame.name
-
-            # Update the cached layer frame name.
-            layers[selected_layer_index].cached_frame_name = frame.name
-
-            for node_name in layer_node_names:
-                node = material_channel_node.node_tree.nodes.get(node_name + "_" + str(selected_layer_index) + "~")
-                layer_nodes.rename_layer_node(node, node_name, over_layer_index)
-
-
-        # Move the layer in the layer stack. 
-        index_to_move_to = max(min(selected_layer_index + 1, len(layers) - 1), 0)
-        layers.move(selected_layer_index, index_to_move_to)
-        context.scene.matlay_layer_stack.layer_index = index_to_move_to
-
-    # Update the layer nodes.
-    layer_nodes.update_layer_nodes(context)
-
 class MATLAY_OT_add_layer(Operator):
     '''Adds a layer with default numeric material values to the layer stack'''
     bl_idname = "matlay.add_layer"
@@ -335,12 +185,15 @@ class MATLAY_OT_add_layer(Operator):
         set_material_shading(context)       # Set the viewport to material shading mode (so users can see the applied material).
         return {'FINISHED'}
 
-class MATLAY_OT_move_layer_up(Operator):
-    """Moves the selected layer up on the layer stack."""
-    bl_idname = "matlay.move_layer_up"
-    bl_label = "Move Layer Up"
+class MATLAY_OT_move_material_layer(Operator):
+    """Moves the selected material layer on the layer stack."""
+    bl_idname = "matlay.move_material_layer"
+    bl_label = "Move Layer"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Moves the currently selected layer"
+
+    direction: StringProperty(default="", description="Direction to move the layer on the layer stack, either 'UP' or 'DOWN'.")
+    _ValidDirections = ['UP', 'DOWN']
 
     # Poll tests if the operator can be called or not.
     @ classmethod
@@ -348,23 +201,80 @@ class MATLAY_OT_move_layer_up(Operator):
         return context.scene.matlay_layers
 
     def execute(self, context):
-        move_layer(context, "UP")
-        return{'FINISHED'}
+        # If the direction given to move the layer on the layer stack is invalid, throw an error.
+        if self.direction not in self._ValidDirections:
+            print("Error: Direction given to move material layer is invalid.")
+            return{'FINISHED'}
 
-class MATLAY_OT_move_layer_down(Operator):
-    """Moves the selected layer down the layer stack."""
-    bl_idname = "matlay.move_layer_down"
-    bl_label = "Move Layer Down"
-    bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Moves the currently selected layer"
-    
-    # Poll tests if the operator can be called or not.
-    @ classmethod
-    def poll(cls, context):
-        return context.scene.matlay_layers
+        layers = context.scene.matlay_layers
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        material_channel_list = material_channels.get_material_channel_list()
 
-    def execute(self, context):
-        move_layer(context, "DOWN")
+        # Don't move the layer if the user is trying to move the layer out of range.
+        if self.direction == 'UP' and selected_layer_index + 1 > len(layers) - 1:
+            return{'FINISHED'}
+        if self.direction == 'DOWN' and selected_layer_index - 1 < 0:
+            return{'FINISHED'}
+        
+        # Get the layer index under or over the selected layer, depending on the direction the layer is being moved on the layer stack.
+        if self.direction == 'UP':
+            moving_to_layer_index = max(min(selected_layer_index + 1, len(layers) - 1), 0)
+        else:
+            moving_to_layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
+
+        # 1. Add a tilda to the end of the all layer nodes in the selected layer (including the frame). Adding a tilda to the end of the node name is the method used to signify which nodes are being actively changed, and is used for avoid naming conflicts with other nodes.
+        for material_channel_name in material_channel_list:
+            frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_index, context)
+            frame.name = frame.name + "~"
+            frame.label = frame.name
+
+            all_layer_nodes = layer_nodes.get_all_nodes_in_layer(material_channel_name, selected_layer_index, context)
+            for node in all_layer_nodes:
+                node.name = node.name + "~"
+                node.label = node.name
+
+        # 2. Update the layer node names for the layer below or above with the selected layer index.
+        for material_channel_name in material_channel_list:
+            frame = layer_nodes.get_layer_frame(material_channel_name, moving_to_layer_index, context)
+            frame.name = layers[moving_to_layer_index].name + "_" + str(layers[moving_to_layer_index].id) + "_" + str(selected_layer_index)
+            frame.label = frame.name
+
+            all_layer_nodes = layer_nodes.get_all_nodes_in_layer(material_channel_name, moving_to_layer_index, context)
+            for node in all_layer_nodes:
+                node_info = node.name.split('_')
+                layer_nodes.rename_layer_node(node, node_info[0], selected_layer_index)
+        layers[moving_to_layer_index].cached_frame_name = frame.name
+
+        # 3. Remove the tilda from the end of the layer nodes names that belong to the moved layer and correct the index stored there.
+        for material_channel_name in material_channel_list:
+            frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_index, context)
+            frame.name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(moving_to_layer_index)
+            frame.label = frame.name
+
+            all_layer_nodes = layer_nodes.get_all_nodes_in_layer(material_channel_name, selected_layer_index, context, True)
+            for node in all_layer_nodes:
+                node_info = node.name.split('_')
+
+                # Rename based on node type (as the name formating for nodes can be different).
+                if node.bl_static_type in FILTER_NODE_TYPES:
+                    node.name = node_info[0] + "_" + str(moving_to_layer_index) + "_" + node_info[2]
+
+                else:
+                    node.name = node_info[0] + "_" + str(moving_to_layer_index)
+                node.label = node.name
+        layers[selected_layer_index].cached_frame_name = frame.name
+
+        # 4. Move the selected layer on the ui layer stack.
+        if self.direction == 'UP':
+            index_to_move_to = max(min(selected_layer_index + 1, len(layers) - 1), 0)
+        else:
+            index_to_move_to = max(min(selected_layer_index - 1, len(layers) - 1), 0)
+        layers.move(selected_layer_index, index_to_move_to)
+        context.scene.matlay_layer_stack.layer_index = index_to_move_to
+
+        # 5. Update the layer stack (organize, re-link).
+        layer_nodes.update_layer_nodes(context)
+
         return{'FINISHED'}
 
 class MATLAY_OT_delete_layer(Operator):
@@ -414,7 +324,8 @@ class MATLAY_OT_duplicate_layer(Operator):
     bl_idname = "matlay.duplicate_layer"
     bl_label = ""
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Duplicates the selected layer"
+    bl_description = "Operator not yet implemented"
+    #bl_description = "Duplicates the selected layer"
 
     @ classmethod
     def poll(cls, context):
@@ -438,50 +349,17 @@ class MATLAY_OT_duplicate_layer(Operator):
         # TODO: Update layer nodes indicies.
 
         return{'FINISHED'}
-    
-class MATLAY_OT_bake_layer(Operator):
-    '''Bakes the selected layer to an image layer.'''
-    bl_idname = "matlay.bake_layer"
-    bl_label = "Bake Layer"
-    bl_description = "Bakes the selected layer to an image layer"
-
-    @ classmethod
-    def poll(cls, context):
-        return False
-
-    def execute(self, context):
-        # TODO: Turn off all layers excluding the selected one.
-
-        # TODO: Create an image to bake to.
-
-        # TODO: Create an image layer and add the image to it.
-        return {'FINISHED'}
-
-class MATLAY_OT_merge_layer(Operator):
-    """Merges the selected layer with the layer below."""
-    bl_idname = "matlay.merge_layer"
-    bl_label = ""
-    bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Merges the selected layer with the layer below."
-
-    @ classmethod
-    def poll(cls, context):
-        #return context.scene.matlay_layers
-        return False
-
-    def execute(self, context):
-        return{'FINISHED'}
 
 class MATLAY_OT_image_editor_export(Operator):
     '''Exports the selected image paint canvas to the image editor defined in Blender's preferences'''
     bl_idname = "matlay.image_editor_export"
     bl_label = "Export to External Image Editor"
-    bl_description = "Exports the select image layer to the image editor defined in Blender's preferences"
+    bl_description = "Operator not yet implemented"
+    #bl_description = "Exports the select image layer to the image editor defined in Blender's preferences"
 
     @ classmethod
     def poll(cls, context):
-        return context.scene.matlay_layers
-        False
+        return False
 
     def execute(self, context):
         export_image = context.scene.tool_settings.image_paint.canvas
@@ -674,6 +552,7 @@ class MATLAY_OT_refresh_layer_nodes(Operator):
         read_hidden_layers(total_number_of_layers, layers, material_channel_list, context)
         read_active_layer_material_channels(material_channel_list, total_number_of_layers, layers, context)
         layer_nodes.organize_all_matlay_materials(context)
+        layer_nodes.update_layer_nodes(context)
 
         context.scene.matlay_layer_stack.auto_update_layer_properties = True
 

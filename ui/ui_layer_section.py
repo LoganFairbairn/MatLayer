@@ -5,6 +5,8 @@ from ..core import matlay_materials
 from ..core import material_channels
 from ..core import layer_nodes
 from ..core import layer_stack as ls
+from ..core import layer_filters
+from ..core import texture_set_settings as tss
 from .import ui_section_tabs
 
 SCALE_Y = 1.4
@@ -25,8 +27,7 @@ def draw_layers_section_ui(self, context):
         if context.active_object.active_material:
             if matlay_materials.verify_material(context):
                 if ls.verify_layer_stack_index(context.scene.matlay_layer_stack.layer_index, context):
-                    draw_layer_properties(column1, context)
-
+                    draw_layer_properties(column1, context, layout)
         else:
             column1.label(text="No active material, add a layer to begin editing.")
 
@@ -69,17 +70,17 @@ def draw_material_selector(column, context):
     row.scale_y = 1.5
 
 def draw_layer_operations(column):
-    # Draw the layer stack operator buttons.
+    '''Draws layer operation buttons.'''
     subrow = column.row(align=True)
     subrow.scale_y = 2.0
     subrow.scale_x = 10
     subrow.operator("matlay.add_layer", icon="ADD", text="")
-    subrow.operator("matlay.move_layer_up", icon="TRIA_UP", text="")
-    subrow.operator("matlay.move_layer_down", icon="TRIA_DOWN", text="")
+    operator = subrow.operator("matlay.move_material_layer", icon="TRIA_UP", text="")
+    operator.direction = 'UP'
+    operator = subrow.operator("matlay.move_material_layer", icon="TRIA_DOWN", text="")
+    operator.direction = 'DOWN'
     subrow.operator("matlay.duplicate_layer", icon="DUPLICATE", text="")
-    #subrow.operator("matlay.merge_layer", icon="AUTOMERGE_OFF", text="")
-    #subrow.operator("matlay.bake_layer", icon="RENDER_STILL", text="")
-    #subrow.operator("matlay.image_editor_export", icon="EXPORT", text="")
+    subrow.operator("matlay.image_editor_export", icon="EXPORT", text="")
     subrow.operator("matlay.delete_layer", icon="TRASH", text="")
 
 def draw_selected_material_channel(column, context):
@@ -122,13 +123,8 @@ def draw_layer_material_channel_toggles(column, context):
     subrow.scale_y = 1.4
     material_channel_list = material_channels.get_material_channel_list()
 
-    # Determine the number of active material channels in the texture set settings so the material channel toggles
-    # can be drawn on two user interface lines rather than one in case there are too many.
-    number_of_active_material_channels = 0
-    for material_channel_name in material_channel_list:
-        attribute_name = material_channel_name.lower() + "_channel_toggle"
-        if getattr(texture_set_settings.global_material_channel_toggles, attribute_name, None):
-            number_of_active_material_channels += 1
+    # Determine the number of active material channels in the texture set settings so the material channel toggles can be drawn on two user interface lines rather than one in case there are too many.
+    number_of_active_material_channels = tss.get_active_material_channel_count()
 
     number_of_drawn_channel_toggles = 0
     for i in range(len(material_channel_list)):
@@ -304,8 +300,32 @@ def draw_material_projection_settings(column, context):
         col.enabled = False
     col.prop(layers[selected_layer_index].projection, "projection_scale_y")
 
-def draw_material_filters(column, context):
-    '''Draws a layer stack of filters applied to the selected material layer.'''
+def draw_filter_material_channel_toggles(column, context):
+    '''Draws material channel toggles for material filters.'''
+    subrow = column.row()
+    subrow.scale_y = 1.4
+    material_channel_list = material_channels.get_material_channel_list()
+    texture_set_settings = context.scene.matlay_texture_set_settings
+    filters = context.scene.matlay_material_filters
+    selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
+    number_of_active_material_channels = tss.get_active_material_channel_count()
+
+    number_of_drawn_channel_toggles = 0
+    for i in range(len(material_channel_list)):
+        attribute_name = material_channel_list[i].lower() + "_channel_toggle"
+        if getattr(texture_set_settings.global_material_channel_toggles, attribute_name, None):
+            material_channel_name_abbreviation = material_channels.get_material_channel_abbreviation(material_channel_list[i])
+            subrow.prop(filters[selected_filter_index].material_channel_toggles, attribute_name, text=material_channel_name_abbreviation, toggle=1)
+
+            # Add an additional row in the user interface for material channel toggles if there are a lot of active material channels.
+            number_of_drawn_channel_toggles += 1
+            if number_of_drawn_channel_toggles >= number_of_active_material_channels / 2 and number_of_active_material_channels >= 6:
+                subrow = column.row()
+                subrow.scale_y = 1.4
+                number_of_drawn_channel_toggles = 0
+
+def draw_material_filters(column, context, layout):
+    '''Draws a layer stack of filters applied to the selected material layer and their settings.'''
     row = column.row(align=True)
     row.scale_y = 2
     row.scale_x = 10
@@ -314,10 +334,60 @@ def draw_material_filters(column, context):
     row.operator("matlay.move_filter_down", icon='TRIA_DOWN', text="")
     row.operator("matlay.delete_layer_filter", icon='TRASH', text="")
 
-    layer_filter_stack = context.scene.matlay_layer_filter_stack
+    # Draw filter stack.
+    layer_filter_stack = context.scene.matlay_material_filter_stack
     row = column.row(align=True)
-    row.scale_y = 2
-    row.template_list("MATLAY_UL_layer_filter_stack", "Layers", context.scene, "matlay_layer_filters", layer_filter_stack, "selected_filter_index", sort_reverse=True)
+    row.template_list("MATLAY_UL_layer_filter_stack", "Layers", context.scene, "matlay_material_filters", layer_filter_stack, "selected_filter_index", sort_reverse=True)
+
+    # Only draw filter settings if filters exist on the selected layer.
+    material_filters = context.scene.matlay_material_filters
+    if len(material_filters) <= 0:
+        return
+
+    # Draw filter material channel toggles.
+    draw_filter_material_channel_toggles(column, context)
+
+    # Draw filter settings.
+    column.label(text="FILTER PROPERTIES")
+    selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
+    filter_node = layer_filters.get_material_filter_node(selected_material_channel, selected_layer_index, selected_filter_index)
+    if filter_node:
+        match filter_node.bl_static_type:
+            case 'INVERT':
+                row = column.row()
+                row.scale_y = 1.4
+                row.prop(filter_node.inputs[0], "default_value", text="Fac")
+
+            case 'VALTORGB':
+                row = column.row()
+                row.scale_y = 1.4
+                row.prop(filter_node.inputs[0], "default_value", text="Fac")
+                column.template_color_ramp(filter_node, "color_ramp")
+
+            case 'HUE_SAT':
+                row = column.row()
+                row.scale_y = 1.4
+                row.prop(filter_node.inputs[0], "default_value", text="Hue", slider=True)
+                row = column.row()
+                row.scale_y = 1.4
+                row.prop(filter_node.inputs[1], "default_value", text="Saturation", slider=True)
+                row = column.row()
+                row.scale_y = 1.4
+                row.prop(filter_node.inputs[2], "default_value", text="Value", slider=True)
+                row = column.row()
+                row.scale_y = 1.4
+                row.prop(filter_node.inputs[3], "default_value", text="Fac", slider=True)
+
+            case 'CURVE_RGB':
+                row = column.row()
+                row.scale_y = 1.4
+                row.prop(filter_node.inputs[0], "default_value", text="Fac")
+                column.template_curve_mapping(filter_node, "mapping", type='COLOR')
+
+
+
 
 #----------------- DRAW MASK PROPERTIES ----------------------#
 
@@ -326,41 +396,44 @@ def draw_material_filters(column, context):
 
 #----------------- DRAW (ALL) LAYER PROPERTIES ----------------------#
 
-def draw_layer_properties(column, context):
+def draw_layer_properties(column, context, layout):
     '''Draws material and mask properties for the selected layer based on the selected tab.'''
     layer_property_tab = context.scene.matlay_layer_stack.layer_property_tab
 
-    # Draw material channel toggles.
-    draw_layer_material_channel_toggles(column, context)
-    
+    subrow = column.row(align=True)
+    subrow.scale_y = 1.4
+    subrow.prop_enum(context.scene.matlay_layer_stack, "layer_property_tab", 'MATERIAL', text='EDIT MATERIAL')
+    subrow.prop_enum(context.scene.matlay_layer_stack, "layer_property_tab", 'MASK', text='EDIT MASK')
+
     # Draw layer materials based on the selected tab.
     match layer_property_tab:
         case 'MATERIAL':
-            subrow = column.row()
-            subrow.label(text="MATERIAL LAYER")
             subrow = column.row(align=True)
             subrow.scale_y = 1.4
             subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'MATERIAL', text='MATERIAL')
             subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'PROJECTION', text='PROJECTION')
             subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'FILTERS', text='FILTERS')
-
+            subrow = column.column()
+            subrow.separator()
+            
             selected_layer_index = context.scene.matlay_layer_stack.layer_index
             if ls.verify_layer_stack_index(selected_layer_index, context):
                 material_property_tab = context.scene.matlay_layer_stack.material_property_tab
                 match material_property_tab:
                     case 'MATERIAL':
+                        draw_layer_material_channel_toggles(column, context)
                         draw_material_channel_node_properties(column, context)
 
                     case 'PROJECTION':
                         draw_material_projection_settings(column, context)
 
                     case 'FILTERS':
-                        draw_material_filters(column, context)
+                        draw_material_filters(column, context, layout)
                         
         case 'MASK':
             # Draw mask property tabs.
             subrow = column.row()
-            subrow.label(text="LAYER MASKING")
+            subrow.label(text="LAYER MASK")
 
             subrow = column.row(align=True)
             subrow.scale_y = 2

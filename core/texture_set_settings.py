@@ -119,6 +119,16 @@ def get_texture_height():
             # Error here, return 10 to make it apparent.
             return 10
 
+def get_active_material_channel_count():
+    '''Returns the number of active material channels.'''
+    texture_set_settings = bpy.context.scene.matlay_texture_set_settings
+    number_of_active_material_channels = 0
+    for material_channel_name in material_channels.get_material_channel_list():
+        attribute_name = material_channel_name.lower() + "_channel_toggle"
+        if getattr(texture_set_settings.global_material_channel_toggles, attribute_name, None):
+            number_of_active_material_channels += 1
+    return number_of_active_material_channels
+
 class GlobalMaterialChannelToggles(PropertyGroup):
     '''A boolean toggle for each material channel to toggle it off / on for all layers.'''
     color_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the color material channel for this layer", update=update_color_channel_toggle)

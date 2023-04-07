@@ -16,6 +16,7 @@
 # This file imports and registers all required modules for MatLay (Blender add-on).
 
 import bpy
+from bpy.props import PointerProperty, CollectionProperty
 import bpy.utils.previews       # Imported for loading texture previews as icons.
 from bpy.app.handlers import persistent
 
@@ -33,7 +34,7 @@ from .core.material_channels import MATLAY_OT_toggle_material_channel_preview
 from .core.layer_masks import MATLAY_mask_stack, MATLAY_UL_mask_stack, MATLAY_masks, MATLAY_OT_open_mask_settings, MATLAY_OT_add_mask, MATLAY_OT_delete_layer_mask, MATLAY_OT_move_layer_mask_up, MATLAY_OT_move_layer_mask_down, MATLAY_OT_add_layer_mask_filter_menu, MATLAY_OT_add_mask_filter_invert, MATLAY_OT_add_mask_filter_levels
 
 # Import filter modules.
-from .core.layer_filters import MATLAY_layer_filter_stack, MATLAY_UL_layer_filter_stack, MATLAY_layer_filters, MATLAY_OT_add_layer_filter_menu, MATLAY_OT_add_layer_filter_rgb_curves, MATLAY_OT_add_layer_filter_hsv, MATLAY_OT_add_layer_filter_invert, MATLAY_OT_add_layer_filter_levels, MATLAY_OT_delete_layer_filter, MATLAY_OT_move_layer_filter_up, MATLAY_OT_move_layer_filter_down
+from .core.layer_filters import FiltersMaterialChannelToggles, MATLAY_material_filter_stack, MATLAY_UL_layer_filter_stack, MATLAY_material_filters, MATLAY_OT_add_layer_filter_menu, MATLAY_OT_add_layer_filter_rgb_curves, MATLAY_OT_add_layer_filter_hsv, MATLAY_OT_add_layer_filter_invert, MATLAY_OT_add_layer_filter_levels, MATLAY_OT_delete_layer_filter, MATLAY_OT_move_layer_filter_up, MATLAY_OT_move_layer_filter_down
 
 # Import layer operations.
 from .core.layer_operations import *
@@ -119,9 +120,10 @@ classes = (
     MATLAY_OT_add_mask_filter_levels,
 
     # Filters
-    MATLAY_layer_filter_stack, 
-    MATLAY_UL_layer_filter_stack, 
-    MATLAY_layer_filters,
+    FiltersMaterialChannelToggles,
+    MATLAY_material_filter_stack, 
+    MATLAY_UL_layer_filter_stack,
+    MATLAY_material_filters,
     MATLAY_OT_add_layer_filter_rgb_curves,
     MATLAY_OT_add_layer_filter_hsv,
     MATLAY_OT_add_layer_filter_invert,
@@ -137,9 +139,7 @@ classes = (
     MATLAY_OT_add_layer,
     MATLAY_OT_delete_layer,
     MATLAY_OT_duplicate_layer,
-    MATLAY_OT_merge_layer,
-    MATLAY_OT_move_layer_up,
-    MATLAY_OT_move_layer_down,
+    MATLAY_OT_move_material_layer,
     MATLAY_OT_import_texture,
     MATLAY_OT_refresh_layer_nodes,
     MATLAY_OT_add_layer_image,
@@ -179,24 +179,24 @@ def register():
         bpy.utils.register_class(cls)
 
     # Panel Properties
-    bpy.types.Scene.matlay_panel_properties = bpy.props.PointerProperty(type=MATLAY_panel_properties)
+    bpy.types.Scene.matlay_panel_properties = PointerProperty(type=MATLAY_panel_properties)
 
     # Layer Properties
-    bpy.types.Scene.matlay_layer_stack = bpy.props.PointerProperty(type=MATLAY_layer_stack)
-    bpy.types.Scene.matlay_layers = bpy.props.CollectionProperty(type=MATLAY_layers)
+    bpy.types.Scene.matlay_layer_stack = PointerProperty(type=MATLAY_layer_stack)
+    bpy.types.Scene.matlay_layers = CollectionProperty(type=MATLAY_layers)
+
+    # Material Filter Properties
+    bpy.types.Scene.matlay_material_filter_stack = PointerProperty(type=MATLAY_material_filter_stack)
+    bpy.types.Scene.matlay_material_filters = CollectionProperty(type=MATLAY_material_filters)
 
     # Layer Mask Properites
-    bpy.types.Scene.matlay_mask_stack = bpy.props.PointerProperty(type=MATLAY_mask_stack)
-    bpy.types.Scene.matlay_masks = bpy.props.CollectionProperty(type=MATLAY_masks)
-
-    # Layer Filter Properties
-    bpy.types.Scene.matlay_layer_filter_stack = bpy.props.PointerProperty(type=MATLAY_layer_filter_stack)
-    bpy.types.Scene.matlay_layer_filters = bpy.props.CollectionProperty(type=MATLAY_layer_filters)
+    bpy.types.Scene.matlay_mask_stack = PointerProperty(type=MATLAY_mask_stack)
+    bpy.types.Scene.matlay_masks = CollectionProperty(type=MATLAY_masks)
 
     # Settings
-    bpy.types.Scene.matlay_texture_set_settings = bpy.props.PointerProperty(type=MATLAY_texture_set_settings)
-    bpy.types.Scene.matlay_baking_settings = bpy.props.PointerProperty(type=MATLAY_baking_settings)
-    bpy.types.Scene.matlay_export_settings = bpy.props.PointerProperty(type=MATLAY_exporting_settings)
+    bpy.types.Scene.matlay_texture_set_settings = PointerProperty(type=MATLAY_texture_set_settings)
+    bpy.types.Scene.matlay_baking_settings = PointerProperty(type=MATLAY_baking_settings)
+    bpy.types.Scene.matlay_export_settings = PointerProperty(type=MATLAY_exporting_settings)
 
     # Icons (for layer previews)
     bpy.types.Scene.preview_icons = bpy.utils.previews.new()

@@ -651,9 +651,9 @@ class MaterialChannelToggles(PropertyGroup):
     '''Boolean toggles for each material channel.'''
     color_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the color material channel for this layer", update=update_color_channel_toggle)
     subsurface_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the subsurface material channel for this layer", update=update_subsurface_channel_toggle)
-    subsurface_color_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the subsurface color material channel for this layer.", update=update_subsurface_color_channel_toggle)
+    subsurface_color_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the subsurface color material channel for this layer", update=update_subsurface_color_channel_toggle)
     metallic_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the metallic material channel for this layer", update=update_metallic_channel_toggle)
-    specular_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the specular material channel for this layer.", update=update_specular_channel_toggle)
+    specular_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the specular material channel for this layer", update=update_specular_channel_toggle)
     roughness_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the roughness material channel for this layer", update=update_roughness_channel_toggle)
     emission_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the emission material channel for this layer", update=update_emission_channel_toggle)
     normal_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the normal material channel for this layer", update=update_normal_channel_toggle)
