@@ -565,11 +565,14 @@ class MATLAY_OT_delete_layer_filter(Operator):
         # Remove the filter stack slot.
         filters.remove(selected_filter_index)
 
-        # TODO: Update all nodes or only filter nodes here?
-        # Update nodes (re-index, re-link, re-organize).
+        # Re-index and re-link material filter nodes.
         number_of_filter_nodes = len(get_material_filter_nodes(selected_layer_index, "COLOR"))
         if number_of_filter_nodes > 0:
             update_material_filter_nodes(context)
+
+        # Re-link layers.
+        for material_channel_name in material_channel_list:
+            layer_nodes.relink_layers(material_channel_name, context)
 
         return{'FINISHED'}
 
