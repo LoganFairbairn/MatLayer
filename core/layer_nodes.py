@@ -253,13 +253,13 @@ def organize_all_matlay_materials(context):
 
 #----------------------------- NODE LINKING FUNCTIONS -----------------------------#
 
-def relink_layers_in_material_channel(material_channel_name, context):
-    '''Links all layers in the given material channel together by linking the mix layer and mix mask nodes together.'''
+def relink_layers(material_channel_name, context):
+    '''Re-links all layers in the given material channel together.'''
     layers = context.scene.matlay_layers
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
-    
-    # Unlink mix layer nodes, material filter nodes, and mask mix nodes.
-    for i in range(len(layers) - 1):
+
+    for i in range(len(layers)):
+        # Disconnect all mix layer nodes.
         mix_layer_node = get_layer_node("MIXLAYER", material_channel_name, i, context)
         if mix_layer_node:
             output = mix_layer_node.outputs[0]
@@ -267,6 +267,7 @@ def relink_layers_in_material_channel(material_channel_name, context):
                 if l != 0:
                     material_channel_node.node_tree.links.remove(l)
 
+        # Disconnect all filter nodes.
         total_filter_nodes = layer_filters.get_filter_nodes_count(i)
         for x in range(total_filter_nodes - 1):
             last_material_filter_node = layer_filters.get_material_filter_node(material_channel_name, x, total_filter_nodes - 1)
@@ -286,6 +287,18 @@ def relink_layers_in_material_channel(material_channel_name, context):
         first_material_filter_node = layer_filters.get_material_filter_node(material_channel_name, i, 0)
         last_material_filter_node = layer_filters.get_material_filter_node(material_channel_name, i, total_filter_nodes - 1)
 
+        # If a material filter exists, ALWAYS connect the mix layer to the first material filter (based on it's type).
+        if first_material_filter_node:
+            match first_material_filter_node.bl_static_type:
+                case 'INVERT':
+                    material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], first_material_filter_node.inputs[1])
+                case 'VALTORGB':
+                    material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], first_material_filter_node.inputs[0])
+                case 'HUE_SAT':
+                    material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], first_material_filter_node.inputs[4])
+                case 'CURVE_RGB':
+                    material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], first_material_filter_node.inputs[1])
+
         # Determine which node should be linked to the next layer.
         last_layer_node = None
         if last_material_filter_node:
@@ -293,27 +306,9 @@ def relink_layers_in_material_channel(material_channel_name, context):
         else:
             last_layer_node = current_mix_layer_node
 
-
         # Connect the last layer node to the next material layer if another material layer exists.
         if next_mix_layer_node:
-            # If a material filter exists, connect the mix layer to the first material filter (based on it's type), before connecting to the next mix layer node.
-            if last_material_filter_node:
-                match first_material_filter_node.bl_static_type:
-                    case 'INVERT':
-                        material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], first_material_filter_node.inputs[1])
-                    case 'VALTORGB':
-                        material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], first_material_filter_node.inputs[0])
-                    case 'HUE_SAT':
-                        material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], first_material_filter_node.inputs[4])
-                    case 'CURVE_RGB':
-                        material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], first_material_filter_node.inputs[1])
-                material_channel_node.node_tree.links.new(last_material_filter_node.outputs[0], next_mix_layer_node.inputs[1])
-
-            # If no material filters exist on this layer, connect the mix layer node to the next existing layer.
-            else:
-                material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
-        
-
+            material_channel_node.node_tree.links.new(last_layer_node.outputs[0], next_mix_layer_node.inputs[1])
 
         # If no more material layers exist past this one, link the last node to the group nodes output / bump / normal node.
         else:
@@ -343,7 +338,7 @@ def update_layer_nodes(context):
         layer_filters.update_material_filter_nodes(context)
         # TODO: Update mask nodes.
         organize_layer_nodes_in_material_channel(material_channel, context)
-        relink_layers_in_material_channel(material_channel, context)
+        relink_layers(material_channel, context)
 
 def update_layer_indicies(context):
     '''Matches layer stack indicies stored in each layer to the layer stack array indicies (layer stack indicies are stored in the layers for convenience and debugging purposes).'''
