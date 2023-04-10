@@ -102,7 +102,7 @@ def draw_layer_stack(column, context):
     subrow.scale_y = 2
 
 
-#----------------- DRAW MATERIAL PROPERTIES ----------------------#
+#----------------- DRAW MATERIAL EDITING UI ----------------------#
 
 def draw_divider(column):
     '''Draws a horizontal divider to provide visual spacing between elements.'''
@@ -386,13 +386,80 @@ def draw_material_filters(column, context, layout):
                 row.prop(filter_node.inputs[0], "default_value", text="Fac")
                 column.template_curve_mapping(filter_node, "mapping", type='COLOR')
 
+#----------------- DRAW MASK EDITING UI ----------------------#
 
+def draw_mask_stack(column):
+    '''Draw layer mask operations and stack.'''
+    subrow = column.row(align=True)
+    subrow.scale_y = 2
+    subrow.scale_x = 10
+    subrow.operator("matlay.open_layer_mask_menu", icon='ADD', text="")
+    subrow.operator("matlay.move_layer_mask_up", icon='TRIA_UP', text="")
+    subrow.operator("matlay.move_layer_mask_down", icon='TRIA_DOWN', text="")
+    subrow.operator("matlay.delete_layer_mask", icon='TRASH', text="")
 
+    mask_stack = bpy.context.scene.matlay_mask_stack
+    subrow = column.row(align=True)
+    subrow.scale_y = 2
+    subrow.template_list("MATLAY_UL_mask_stack", "Masks", bpy.context.scene, "matlay_masks", mask_stack, "selected_mask_index", sort_reverse=True)
 
-#----------------- DRAW MASK PROPERTIES ----------------------#
+def draw_mask_texture_properties(column):
+    selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
+    masks = bpy.context.scene.matlay_masks
 
+    subrow = column.row(align=True)
+    subrow.scale_y = 1.4
+    subrow.prop(masks[selected_mask_index], "texture_type")
 
+def draw_mask_projection_settings(column):
+    selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
+    masks = bpy.context.scene.matlay_masks
 
+    subrow = column.row(align=True)
+    subrow.scale_y = 1.4
+    subrow.label(text="Mask Projection Settings")
+
+def draw_mask_filter_stack(column):
+    '''Draws the mask filter stack with operators for material layer masks.'''
+    subrow = column.row(align=True)
+    subrow.scale_y = 2
+    subrow.scale_x = 10
+    subrow.operator("matlay.add_layer_mask_filter_menu", text="", icon='ADD')
+    subrow.operator("matlay.delete_mask_filter", text="", icon='TRASH')
+    operator = subrow.operator("matlay.move_layer_mask_filter", text="", icon='TRIA_UP')
+    operator.direction = 'UP'
+    operator = subrow.operator("matlay.move_layer_mask_filter", text="", icon='TRIA_DOWN')
+    operator.direction = 'DOWN'
+
+    mask_stack = bpy.context.scene.matlay_mask_stack
+    subrow = column.row(align=True)
+    subrow.scale_y = 2
+    subrow.template_list("MATLAY_UL_mask_filter_stack", "Masks", bpy.context.scene, "matlay_mask_filters", mask_stack, "selected_mask_index", sort_reverse=True)
+
+def draw_mask_properties(column):
+    '''Draws tabs and properties for the seelcted layer mask.'''
+    masks = bpy.context.scene.matlay_masks
+
+    # Only draw masks properties if there's at least one mask.
+    if len(masks) <= 0:
+        return
+    
+    mask_stack = bpy.context.scene.matlay_mask_stack
+    subrow = column.row(align=True)
+    subrow.scale_y = 1.4
+    subrow.prop_enum(mask_stack, "mask_property_tab", 'MASK', text='MASK')
+    subrow.prop_enum(mask_stack, "mask_property_tab", 'PROJECTION', text='PROJECTION')
+    subrow.prop_enum(mask_stack, "mask_property_tab", 'FILTERS', text='FILTERS')
+
+    match mask_stack.mask_property_tab:
+        case 'MASK':
+            draw_mask_texture_properties(column)
+    
+        case 'PROJECTION':
+            draw_mask_projection_settings(column)
+    
+        case 'FILTERS':
+            draw_mask_filter_stack(column)
 
 #----------------- DRAW (ALL) LAYER PROPERTIES ----------------------#
 
@@ -431,20 +498,6 @@ def draw_layer_properties(column, context, layout):
                         draw_material_filters(column, context, layout)
                         
         case 'MASK':
-            # Draw mask property tabs.
-            subrow = column.row()
-            subrow.label(text="LAYER MASK")
+            draw_mask_stack(column)
+            draw_mask_properties(column)
 
-            subrow = column.row(align=True)
-            subrow.scale_y = 2
-            subrow.scale_x = 10
-            subrow.operator("matlay.add_mask", icon='ADD', text="")
-            subrow.operator("matlay.add_layer_mask_filter_menu", icon='FILTER', text="")
-            subrow.operator("matlay.move_layer_mask_up", icon='TRIA_UP', text="")
-            subrow.operator("matlay.move_layer_mask_down", icon='TRIA_DOWN', text="")
-            subrow.operator("matlay.delete_layer_mask", icon='TRASH', text="")
-
-            mask_stack = context.scene.matlay_mask_stack
-            subrow = column.row(align=True)
-            subrow.scale_y = 2
-            subrow.template_list("MATLAY_UL_mask_stack", "Masks", context.scene, "matlay_masks", mask_stack, "selected_mask_index", sort_reverse=True)

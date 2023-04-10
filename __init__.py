@@ -31,13 +31,13 @@ from .core.layer_stack import *
 from .core.material_channels import MATLAY_OT_toggle_material_channel_preview
 
 # Import layer masking modules.
-from .core.layer_masks import MATLAY_mask_stack, MATLAY_UL_mask_stack, MATLAY_masks, MATLAY_OT_open_mask_settings, MATLAY_OT_add_mask, MATLAY_OT_delete_layer_mask, MATLAY_OT_move_layer_mask_up, MATLAY_OT_move_layer_mask_down, MATLAY_OT_add_layer_mask_filter_menu, MATLAY_OT_add_mask_filter_invert, MATLAY_OT_add_mask_filter_levels
-
-# Import filter modules.
-from .core.layer_filters import FiltersMaterialChannelToggles, MATLAY_material_filter_stack, MATLAY_UL_layer_filter_stack, MATLAY_material_filters, MATLAY_OT_add_layer_filter_menu, MATLAY_OT_add_layer_filter_rgb_curves, MATLAY_OT_add_layer_filter_hsv, MATLAY_OT_add_layer_filter_invert, MATLAY_OT_add_layer_filter_levels, MATLAY_OT_delete_layer_filter, MATLAY_OT_move_layer_filter_up, MATLAY_OT_move_layer_filter_down
+from .core.layer_masks import MaskProjectionSettings, MATLAY_mask_stack, MATLAY_masks, MATLAY_UL_mask_stack, MATLAY_OT_add_black_layer_mask, MATLAY_OT_add_white_layer_mask, MATLAY_OT_add_empty_layer_mask, MATLAY_OT_open_layer_mask_menu, MATLAY_OT_delete_layer_mask,MATLAY_OT_move_layer_mask_up, MATLAY_OT_move_layer_mask_down, MATLAY_mask_filter_stack, MATLAY_mask_filters, MATLAY_UL_mask_filter_stack, MATLAY_OT_add_mask_filter_invert, MATLAY_OT_add_mask_filter_levels, MATLAY_OT_add_layer_mask_filter_menu, MATLAY_OT_delete_mask_filter, MATLAY_OT_move_layer_mask_filter
 
 # Import layer operations.
 from .core.layer_operations import *
+
+# Import material filter modules.
+from .core.layer_filters import FiltersMaterialChannelToggles, MATLAY_material_filter_stack, MATLAY_UL_layer_filter_stack, MATLAY_material_filters, MATLAY_OT_add_layer_filter_menu, MATLAY_OT_add_layer_filter_rgb_curves, MATLAY_OT_add_layer_filter_hsv, MATLAY_OT_add_layer_filter_invert, MATLAY_OT_add_layer_filter_levels, MATLAY_OT_delete_layer_filter, MATLAY_OT_move_layer_filter_up, MATLAY_OT_move_layer_filter_down
 
 # Import baking modules.
 from .core.baking import MATLAY_baking_settings, MATLAY_OT_bake, MATLAY_OT_bake_ambient_occlusion, MATLAY_OT_bake_curvature, MATLAY_OT_bake_thickness, MATLAY_OT_bake_normals, MATLAY_OT_delete_ao_map, MATLAY_OT_delete_curvature_map, MATLAY_OT_delete_thickness_map, MATLAY_OT_delete_normal_map
@@ -106,18 +106,28 @@ classes = (
     MATLAY_layers,
 
     # Masks
+    MaskProjectionSettings,
     MATLAY_mask_stack,
-    MATLAY_UL_mask_stack,
     MATLAY_masks,
-    MATLAY_OT_open_mask_settings,
-    MATLAY_OT_add_mask,
+    MATLAY_UL_mask_stack,
+    MATLAY_OT_add_black_layer_mask, 
+    MATLAY_OT_add_white_layer_mask,
+    MATLAY_OT_add_empty_layer_mask,
+    MATLAY_OT_open_layer_mask_menu,
     MATLAY_OT_delete_layer_mask,
-    MATLAY_OT_move_layer_mask_up, 
+    MATLAY_OT_move_layer_mask_up,
     MATLAY_OT_move_layer_mask_down,
-    MATLAY_OT_import_mask_image,
-    MATLAY_OT_add_layer_mask_filter_menu,
+
+    # Mask Filters
+    MATLAY_mask_filter_stack,
+    MATLAY_mask_filters,
+    MATLAY_UL_mask_filter_stack,
     MATLAY_OT_add_mask_filter_invert,
     MATLAY_OT_add_mask_filter_levels,
+    MATLAY_OT_add_layer_mask_filter_menu,
+    MATLAY_OT_import_mask_image,
+    MATLAY_OT_delete_mask_filter,
+    MATLAY_OT_move_layer_mask_filter,
 
     # Filters
     FiltersMaterialChannelToggles,
@@ -144,6 +154,7 @@ classes = (
     MATLAY_OT_refresh_layer_nodes,
     MATLAY_OT_add_layer_image,
     MATLAY_OT_delete_layer_image,
+    MATLAY_OT_image_editor_export,
 
     # Texture Set Settings
     GlobalMaterialChannelToggles,
@@ -151,10 +162,7 @@ classes = (
 
     # Main Panel & General Settings
     MATLAY_panel_properties,
-    MATLAY_PT_Panel,
-    
-    # Misc functions
-    MATLAY_OT_image_editor_export
+    MATLAY_PT_Panel
 )
 
 # Refreshes the layer stack when a different object is selected.
@@ -192,6 +200,8 @@ def register():
     # Layer Mask Properites
     bpy.types.Scene.matlay_mask_stack = PointerProperty(type=MATLAY_mask_stack)
     bpy.types.Scene.matlay_masks = CollectionProperty(type=MATLAY_masks)
+    bpy.types.Scene.matlay_mask_filter_stack = PointerProperty(type=MATLAY_mask_filter_stack)
+    bpy.types.Scene.matlay_mask_filters = CollectionProperty(type=MATLAY_mask_filters)
 
     # Settings
     bpy.types.Scene.matlay_texture_set_settings = PointerProperty(type=MATLAY_texture_set_settings)
@@ -210,25 +220,6 @@ def unregister():
     #for bpy.types.Scene.preview_icons in preview_collections.values():
     #    bpy.utils.previews.remove(bpy.types.Scene.preview_icons)
     #preview_collections.clear()
-
-    # TODO: Unregister pointers????????
-    bpy.types.Scene.matlay_panel_properties = None
-
-    bpy.types.Scene.matlay_layer_stack = None
-    bpy.types.Scene.matlay_layers = None
-
-    # Material Filter Properties
-    bpy.types.Scene.matlay_material_filter_stack = None
-    bpy.types.Scene.matlay_material_filters = None
-
-    # Layer Mask Properites
-    bpy.types.Scene.matlay_mask_stack = None
-    bpy.types.Scene.matlay_masks = None
-
-    # Settings
-    bpy.types.Scene.matlay_texture_set_settings = None
-    bpy.types.Scene.matlay_baking_settings = None
-    bpy.types.Scene.matlay_export_settings = None
 
 if __name__ == "__main__":
     register()

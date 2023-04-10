@@ -26,7 +26,7 @@ class MATLAY_PT_Panel(bpy.types.Panel):
 
     def draw(self, context):
         panel_properties = context.scene.matlay_panel_properties
-
+        self.layout.label(text="Something here")
         if check_blend_saved():
             if panel_properties.sections == 'SECTION_TEXTURE_SET':
                 ui_texture_set_section.draw_texture_set_section_ui(self, context)
@@ -46,7 +46,7 @@ class MATLAY_PT_Panel(bpy.types.Panel):
             layout.label(text="The .blend path is used to find correct paths for image folders,")
             layout.label(text="where textures, baked mesh maps, or exported textures created ")
             layout.label(text="using this add-on are saved.")
-
+            
 def check_blend_saved():
     if bpy.path.abspath("//") == "":
         return False

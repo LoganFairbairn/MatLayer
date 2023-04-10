@@ -54,41 +54,6 @@ def updated_filter_normal_channel_toggle(self, context):
 def update_filter_height_channel_toggle(self, context):
     filter_material_channel_toggle(self.height_channel_toggle, 'HEIGHT', context)
 
-#----------------------------- LAYER FILTER STACK & PROPERTIES -----------------------------#
-
-class FiltersMaterialChannelToggles(PropertyGroup):
-    '''Boolean toggles for each material channel.'''
-    color_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the color material channel", update=update_filter_color_channel_toggle)
-    subsurface_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the subsurface material channel", update=update_filter_subsurface_channel_toggle)
-    subsurface_color_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the subsurface color material channel", update=update_filter_subsurface_color_channel_toggle)
-    metallic_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the metallic material channel", update=update_filter_metallic_channel_toggle)
-    specular_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the specular material channel", update=update_filter_specular_channel_toggle)
-    roughness_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the roughness material channel", update=update_filter_roughness_channel_toggle)
-    emission_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the emission material channel", update=updated_filter_emission_channel_toggle)
-    normal_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the normal material channel", update=updated_filter_normal_channel_toggle)
-    height_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the height material channel", update=update_filter_height_channel_toggle)
-
-class MATLAY_material_filters(PropertyGroup):
-    name: StringProperty(name="Filter Name", description="The name of the material filter.", default="Invalid Name")
-    stack_index: IntProperty(name="Stack Index", description = "The (array) stack index for this filter used to define the order in which filters should be applied to the material", default=-999)
-    material_channel_toggles: PointerProperty(type=FiltersMaterialChannelToggles, name="Material Channel Toggles")
-
-class MATLAY_material_filter_stack(PropertyGroup):
-    '''Properties for layer filters.'''
-    selected_filter_index: IntProperty(default=-1)
-    auto_update_filter_properties: BoolProperty(name="Update Filter Properties", description="When true, changing filter properties will trigger automatic updates.", default=True)
-
-class MATLAY_UL_layer_filter_stack(bpy.types.UIList):
-    '''Draws the material filter stack.'''
-    def draw_item(self, context, layout, data, item, icon, active_data, index):
-        self.use_filter_show = False
-        self.use_filter_reverse = True
-
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            row = layout.row()
-            row.label(text=context.scene.matlay_material_filters[item.stack_index].name)
-            #row.prop(item, "stack_index")
-
 #----------------------------- CORE MATERIAL FILTER FUNCTIONS -----------------------------#
 
 def get_filter_name(filter_type):
@@ -150,7 +115,7 @@ def get_filter_nodes_count(material_layer_stack_index):
     return number_of_filter_nodes
 
 def update_material_filter_node_indicies(material_channel_name):
-    '''Renames all filter nodes with correct indicies by checking the node tree for newly added or edited filter nodes (signified by a tilda at the end of their name), or deleted filter nodes'''
+    '''Renames all filter nodes with correct indicies by checking the node tree for newly added, edited (signified by a tilda at the end of their name), or deleted filter nodes'''
     material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
     changed_filter_index = -1
     selected_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
@@ -446,6 +411,39 @@ def move_filter_layer(direction, context):
 
 
 #----------------------------- OPERATORS -----------------------------#
+
+class FiltersMaterialChannelToggles(PropertyGroup):
+    '''Boolean toggles for each material channel.'''
+    color_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the color material channel", update=update_filter_color_channel_toggle)
+    subsurface_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the subsurface material channel", update=update_filter_subsurface_channel_toggle)
+    subsurface_color_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the subsurface color material channel", update=update_filter_subsurface_color_channel_toggle)
+    metallic_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the metallic material channel", update=update_filter_metallic_channel_toggle)
+    specular_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the specular material channel", update=update_filter_specular_channel_toggle)
+    roughness_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the roughness material channel", update=update_filter_roughness_channel_toggle)
+    emission_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the emission material channel", update=updated_filter_emission_channel_toggle)
+    normal_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the normal material channel", update=updated_filter_normal_channel_toggle)
+    height_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the height material channel", update=update_filter_height_channel_toggle)
+
+class MATLAY_material_filters(PropertyGroup):
+    name: StringProperty(name="Filter Name", description="The name of the material filter.", default="Invalid Name")
+    stack_index: IntProperty(name="Stack Index", description = "The (array) stack index for this filter used to define the order in which filters should be applied to the material", default=-999)
+    material_channel_toggles: PointerProperty(type=FiltersMaterialChannelToggles, name="Material Channel Toggles")
+
+class MATLAY_material_filter_stack(PropertyGroup):
+    '''Properties for layer filters.'''
+    selected_filter_index: IntProperty(default=-1)
+    auto_update_filter_properties: BoolProperty(name="Update Filter Properties", description="When true, changing filter properties will trigger automatic updates.", default=True)
+
+class MATLAY_UL_layer_filter_stack(bpy.types.UIList):
+    '''Draws the material filter stack.'''
+    def draw_item(self, context, layout, data, item, icon, active_data, index):
+        self.use_filter_show = False
+        self.use_filter_reverse = True
+
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            row = layout.row()
+            row.label(text=context.scene.matlay_material_filters[item.stack_index].name)
+            #row.prop(item, "stack_index")
 
 class MATLAY_OT_add_layer_filter_invert(Operator):
     '''Adds an invert filter to the selected layer.'''
