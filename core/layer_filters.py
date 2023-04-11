@@ -335,6 +335,12 @@ def add_material_layer_filter(filter_type, context):
     # Re-organize and re-link material layer nodes so mix nodes will automatically connect with filter nodes.
     layer_nodes.update_layer_nodes(context)
 
+    # Toggle the material filter off for all material channels excluding color, because users will generally want the material filter to only apply for one material channel anyways. This makes it slightly faster for users to toggle on the material channel they want the material filter to apply to.
+    for material_channel_name in material_channel_list:
+        if material_channel_name != 'COLOR':
+            setattr(filters[new_filter_index].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", False)
+            filter_material_channel_toggle(False, material_channel_name, context)
+
 # TODO: Fix this.
 def move_filter_layer(direction, context):
     filters = context.scene.matlay_material_filters
