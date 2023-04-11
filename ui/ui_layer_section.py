@@ -363,7 +363,7 @@ def draw_material_filters(column, context, layout):
             case 'INVERT':
                 row = column.row()
                 row.scale_y = 1.4
-                row.prop(filter_node.inputs[0], "default_value", text="Fac")
+                row.prop(filter_node.inputs[0], "default_value", text="Invert")
 
             case 'VALTORGB':
                 row = column.row()
