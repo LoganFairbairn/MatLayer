@@ -276,53 +276,54 @@ def relink_layers(material_channel_name, context):
                     if l != 0:
                         material_channel_node.node_tree.links.remove(l)
 
+    # TODO: Connect all FILTER nodes to the MIX LAYER node first. 
+
     # Connect mix layer nodes for every layer.
     for i in range(0, len(layers)):
         current_layer_index = i
         next_layer_index = i + 1
         current_mix_layer_node = get_layer_node("MIXLAYER", material_channel_name, current_layer_index, context)
         next_mix_layer_node = get_layer_node("MIXLAYER", material_channel_name, next_layer_index, context)
+        texture_node = get_layer_node("TEXTURE", material_channel_name, current_layer_index, context)
 
         total_filter_nodes = layer_filters.get_filter_nodes_count(i)
         first_material_filter_node = layer_filters.get_material_filter_node(material_channel_name, i, 0)
-        last_material_filter_node = layer_filters.get_material_filter_node(material_channel_name, i, total_filter_nodes - 1)
 
-        # If a material filter exists, ALWAYS connect the mix layer to the first material filter (based on it's type).
+        # ALWAYS connect the texture output to the first material filter based on it's type (if one exists).
         if first_material_filter_node:
             match first_material_filter_node.bl_static_type:
                 case 'INVERT':
-                    material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], first_material_filter_node.inputs[1])
+                    material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[1])
                 case 'VALTORGB':
-                    material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], first_material_filter_node.inputs[0])
+                    material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[0])
                 case 'HUE_SAT':
-                    material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], first_material_filter_node.inputs[4])
+                    material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[4])
                 case 'CURVE_RGB':
-                    material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], first_material_filter_node.inputs[1])
+                    material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[1])
 
-        # Determine which node should be linked to the next layer.
-        last_layer_node = None
-        if last_material_filter_node:
-            last_layer_node = last_material_filter_node
-        else:
-            last_layer_node = current_mix_layer_node
+            # Connect the last filter node to the current mix node.
+            last_material_filter_node = layer_filters.get_material_filter_node(material_channel_name, i, total_filter_nodes - 1)
+            if last_material_filter_node:
+                material_channel_node.node_tree.links.new(last_material_filter_node.outputs[0], current_mix_layer_node.inputs[2])
 
         # Connect the last layer node to the next material layer if another material layer exists.
         if next_mix_layer_node:
-            material_channel_node.node_tree.links.new(last_layer_node.outputs[0], next_mix_layer_node.inputs[1])
+            material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
 
-        # If no more material layers exist past this one, link the last node to the group nodes output / bump / normal node.
+        # If no more material layers exist past this one, link the current mix layer node to the group nodes output / bump / normal node.
         else:
             if material_channel_name == "HEIGHT":
                 bump_node = material_channel_node.node_tree.nodes.get("Bump")
-                material_channel_node.node_tree.links.new(last_layer_node.outputs[0], bump_node.inputs[2])
+                material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], bump_node.inputs[2])
 
             elif material_channel_name == "NORMAL":
                 normal_map_node = material_channel_node.node_tree.nodes.get("Normal Map")
-                material_channel_node.node_tree.links.new(last_layer_node.outputs[0], normal_map_node.inputs[1])
+                material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], normal_map_node.inputs[1])
 
             else:
                 group_output_node = material_channel_node.node_tree.nodes.get("Group Output")
-                material_channel_node.node_tree.links.new(last_layer_node.outputs[0], group_output_node.inputs[0])
+                material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], group_output_node.inputs[0])
+    
 
 
 #----------------------------- LAYER UPDATING FUNCTIONS -----------------------------#
