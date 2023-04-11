@@ -104,28 +104,29 @@ def get_frame_name(layer_stack_array_index, context):
     layers = context.scene.matlay_layers
     return layers[layer_stack_array_index].name + "_" + str(layers[layer_stack_array_index].id) + "_" + str(layer_stack_array_index)
 
-def get_layer_frame(material_channel_name, layer_stack_index, context):
+def get_layer_frame(material_channel_name, layer_stack_index, context, get_edited=False):
     '''Returns the frame node for the given layer. This function requires the layer id to be stored in the layer stack.'''
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     if material_channel_node:
         layers = context.scene.matlay_layers
 
-        # Return the frame 
-        layer_frame_name = get_layer_frame_name(layers, layer_stack_index)
-        frame = material_channel_node.node_tree.nodes.get(layer_frame_name)
-        if frame:
-            return frame
-        
-        # If the frame wasn't found, look for a frame being edited, and return that.
-        else:
+        # Return a frame being edited if requested.
+        if get_edited:
             layer_frame_name = layers[layer_stack_index].name + "_" + str(layers[layer_stack_index].id) + "_" + str(layer_stack_index) + "~"
             frame = material_channel_node.node_tree.nodes.get(layer_frame_name)
-            if frame:
-                return frame
-        
+
+        # Return the frame.
+        else:
+            layer_frame_name = get_layer_frame_name(layers, layer_stack_index)
+            frame = material_channel_node.node_tree.nodes.get(layer_frame_name)
+
+        if frame:
+            return frame
+    
         # If a frame still wasn't found, throw an error.
-        if not frame:
-            info_messages.popup_message_box("Layer frame missing, causing the layer stack to be corrupted. This is generally caused by users manually editing the material node tree. Manually fix the layer stack and refresh the layer stack or make a new material from scratch.", title="Corrupted Material Node Tree", icon='ERROR')
+        else:
+            info_messages.popup_message_box("Layer frame missing, this may mean the layer stack format is corrupted. This is generally caused by users manually editing the material node tree. Manually fix the layer stack and refresh the layer stack or make a new material from scratch.", title="Material Node Tree Error", icon='ERROR')
+            print("Layer frame missing: " + layer_frame_name)
             return None
 
     else:
