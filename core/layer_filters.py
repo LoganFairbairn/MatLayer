@@ -57,16 +57,16 @@ def update_filter_height_channel_toggle(self, context):
 #----------------------------- CORE MATERIAL FILTER FUNCTIONS -----------------------------#
 
 def filter_type_to_node_name(filter_type):
-    '''Returns the default name for a filter based on it's type.'''
+    '''Filter nodes are assigned names deemed to be more intuitive for a wider audience when compared to the default blender node names, this function returns the assigned name for a filter based on it's type.'''
     match filter_type:
         case 'ShaderNodeInvert':
-            return 'INVERT'
+            return 'Invert'
         case 'ShaderNodeValToRGB':
-            return 'VALTORGB'
+            return 'Levels'
         case 'ShaderNodeHueSaturation':
-            return 'HUESAT'
+            return 'HueSaturationValue'
         case 'ShaderNodeRGBCurve':
-            return 'CURVERGB'
+            return 'RGBCurves'
 
 def format_filter_node_name(filter_node_type, material_layer_index, filter_index):
     '''All nodes made with this add-on must have properly formatted names, this function will return a properly formatted name for a material filter node.'''
