@@ -260,7 +260,7 @@ def add_material_layer_filter(filter_type, context):
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
     if len(filters) >= MAX_LAYER_FILTER_COUNT:
-        info_messages.popup_message_box("You can't have more than {0} filters on a single layer. This is a safeguard to stop users from adding an unnecessary amount of filters, which will drastically effect performance.".format(MAX_LAYER_FILTER_COUNT), 'User Error', 'ERROR')
+        info_messages.popup_message_box("You can't have more than {0} filters on a single layer. This is a safeguard to stop users from adding an unnecessary amount of filters, which will impact performance.".format(MAX_LAYER_FILTER_COUNT), 'User Error', 'ERROR')
         return
 
     # Define a node name based on the provided filter type.
@@ -402,10 +402,12 @@ def move_filter_layer(direction, context):
     for material_channel_name in material_channel_list:
         re_link_material_filter_nodes(material_channel_name, context)
 
-    # Re-organize the nodes.
+    # TODO: Re-link layers.
     for material_channel_name in material_channel_list:
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
         layer_nodes.organize_layer_nodes_in_material_channel(material_channel_name, context)
+    
+    # TODO: Re-link orangized.
 
 
 #----------------------------- OPERATORS -----------------------------#
