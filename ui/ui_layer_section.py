@@ -343,12 +343,17 @@ def draw_material_filters(column, context, layout):
     material_filters = context.scene.matlay_material_filters
     if len(material_filters) <= 0:
         return
+    
+    row = column.row()
+    row.separator()
 
     # Draw filter material channel toggles.
     draw_filter_material_channel_toggles(column, context)
 
+    row = column.row()
+    row.separator()
+
     # Draw filter settings.
-    column.label(text="FILTER PROPERTIES")
     selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
