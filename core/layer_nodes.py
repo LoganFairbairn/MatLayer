@@ -337,7 +337,11 @@ def update_layer_nodes(context):
         update_layer_node_indicies(material_channel, context)
         layer_filters.update_material_filter_nodes(context)
         # TODO: Update mask nodes.
+
+        # Organize all nodes.
         organize_layer_nodes_in_material_channel(material_channel, context)
+
+        # Relink layers.
         relink_layers(material_channel, context)
 
 def update_layer_indicies(context):
