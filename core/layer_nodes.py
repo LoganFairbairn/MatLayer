@@ -276,8 +276,6 @@ def relink_layers(material_channel_name, context):
                     if l != 0:
                         material_channel_node.node_tree.links.remove(l)
 
-    # TODO: Connect all FILTER nodes to the MIX LAYER node first. 
-
     # Connect mix layer nodes for every layer.
     for i in range(0, len(layers)):
         current_layer_index = i
