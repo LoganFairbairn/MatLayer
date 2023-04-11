@@ -456,7 +456,7 @@ class MATLAY_UL_layer_filter_stack(bpy.types.UIList):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             row = layout.row()
             row.label(text=context.scene.matlay_material_filters[item.stack_index].name)
-            row.prop(item, "stack_index")
+            #row.prop(item, "stack_index", text="", emboss=False)
 
 class MATLAY_OT_add_layer_filter_invert(Operator):
     '''Adds an invert filter to the selected layer.'''
