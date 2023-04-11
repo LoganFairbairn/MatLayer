@@ -335,6 +335,7 @@ def add_material_layer_filter(filter_type, context):
     # Re-organize and re-link material layer nodes so mix nodes will automatically connect with filter nodes.
     layer_nodes.update_layer_nodes(context)
 
+# TODO: Fix this.
 def move_filter_layer(direction, context):
     filters = context.scene.matlay_material_filters
     selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
@@ -583,11 +584,8 @@ class MATLAY_OT_delete_layer_filter(Operator):
         # Reset the selected filter index.
         context.scene.matlay_material_filter_stack.selected_filter_index = max(min(selected_filter_index - 1, len(filters) - 1), 0)
 
-        # Re-link layers.
-        for material_channel_name in material_channel_list:
-            layer_nodes.relink_layers(material_channel_name, context)
-
-            # TODO: Organize nodes.
+        # Re-link and re-organize layer nodes.
+        layer_nodes.update_layer_nodes(context)
 
         return{'FINISHED'}
 
