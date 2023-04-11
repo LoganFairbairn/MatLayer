@@ -72,7 +72,7 @@ def format_filter_node_name(filter_node_type, material_layer_index, filter_index
     '''All nodes made with this add-on must have properly formatted names, this function will return a properly formatted name for a material filter node.'''
     return  "{0}_{1}_{2}".format(filter_node_type, str(material_layer_index), str(filter_index))
 
-def get_material_filter_node(material_channel_name, material_layer_stack_index, filter_index):
+def get_material_filter_node(material_channel_name, material_layer_stack_index, filter_index, get_edited=False):
     '''Returns the filter node for the given material layer index at the filter index by reading through existing node within the specified material channel'''
     material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
     if material_channel_node:
@@ -81,9 +81,15 @@ def get_material_filter_node(material_channel_name, material_layer_stack_index, 
                 node_name = node.name
                 filter_node_info = node_name.split('_')
                 filter_node_material_layer_index = filter_node_info[1]
-                filter_node_index = filter_node_info[2]
+                filter_node_index = filter_node_info[2].replace('~', '')
+
                 if int(filter_node_material_layer_index) == material_layer_stack_index and int(filter_node_index) == filter_index:
-                    return node
+                    # Return filer nodes being edited if requested.
+                    if get_edited:
+                        if '~' in filter_node_info[2]:
+                            return node
+                    else:
+                     return node
     return None
 
 def get_material_filter_nodes(material_layer_stack_index, material_channel_name, get_edited=False):
@@ -97,10 +103,13 @@ def get_material_filter_nodes(material_layer_stack_index, material_channel_name,
                 filter_node_info = node_name.split('_')
                 filter_node_material_layer_index = filter_node_info[1]
 
-                # TODO: Check for a tilda at the end of the node's name (which indicates the node is being changed).
-
                 if int(filter_node_material_layer_index) == material_layer_stack_index:
-                    filter_nodes.append(node)
+                    # Return filter nodes being edited if requested.
+                    if get_edited:
+                        if '~' in node_name:
+                            filter_nodes.append(node)
+                    else:
+                        filter_nodes.append(node)
     return filter_nodes
 
 def get_filter_nodes_count(material_layer_stack_index):
@@ -199,7 +208,7 @@ def re_link_material_filter_nodes(material_channel_name):
                     case 'CURVE_RGB':
                         material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[1])
 
-# TODO: Remove this in favor of calling re-link or re-index functions individually as required.  
+# TODO: Remove this in favor of calling re-link or re-index functions individually as required.
 def update_material_filter_nodes(context):
     '''Updates the index stored in filter node names, and re-links material filters. This should generally called after adding or removing filter nodes.'''
     # If there are no material layers there shouldn't be any material filters, don't update the material filter nodes.

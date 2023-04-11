@@ -257,7 +257,8 @@ class MATLAY_OT_move_material_layer(Operator):
 
                 # Rename based on node type (as the name formating for nodes can be different).
                 if node.bl_static_type in FILTER_NODE_TYPES:
-                    node.name = node_info[0] + "_" + str(moving_to_layer_index) + "_" + node_info[2]
+                    new_node_name = node_info[0] + "_" + str(moving_to_layer_index) + "_" + node_info[2].replace('~', '')
+                    node.name = new_node_name
 
                 else:
                     node.name = node_info[0] + "_" + str(moving_to_layer_index)
