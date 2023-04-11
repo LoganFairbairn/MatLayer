@@ -106,12 +106,10 @@ def get_material_filter_nodes(material_layer_stack_index, material_channel_name,
 def get_filter_nodes_count(material_layer_stack_index):
     '''Returns the total number of filter nodes in the given layer by reading the material nodes.'''
     number_of_filter_nodes = 0
-    for i in range(0, 10):
+    for i in range(0, MAX_LAYER_FILTER_COUNT):
         filter_node = get_material_filter_node('COLOR', material_layer_stack_index, i)
         if filter_node:
             number_of_filter_nodes += 1
-        else:
-            break
     return number_of_filter_nodes
 
 def update_material_filter_node_indicies(material_channel_name):
@@ -159,17 +157,16 @@ def update_material_filter_node_indicies(material_channel_name):
             new_filter_node.label = new_filter_node.name
             filters[changed_filter_index].stack_index = i
 
-    # 4. Rename filter layer nodes above the deleted filter layer if they exist.
-    # TODO: Error here, len filters can be wrong when deleting a filter
+    # 4. Rename filter layer nodes above the deleted filter layer if any exist.
     if filter_deleted and len(filters) > 0:
-        for i in range(changed_filter_index, len(filters), 1):
-            old_filter_node_name = format_filter_node_name(filters[i + 1].name, selected_layer_index, i + 1)
+        for i in range(changed_filter_index + 1, len(filters), 1):
+            old_filter_node_name = format_filter_node_name(filters[i].name, selected_layer_index, i)
             filter_node = material_channel_node.node_tree.nodes.get(old_filter_node_name)
 
             if filter_node:
-                filter_node.name = format_filter_node_name(filters[i].name, selected_layer_index, i)
+                filter_node.name = format_filter_node_name(filters[i].name, selected_layer_index, i - 1)
                 filter_node.label = filter_node.name
-                filters[i + 1].stack_index = i
+                filters[i].stack_index = i - 1
 
 def re_link_material_filter_nodes(material_channel_name):
     '''Re-links all material filter nodes in the given material channel.'''
@@ -201,7 +198,8 @@ def re_link_material_filter_nodes(material_channel_name):
                         material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[4])
                     case 'CURVE_RGB':
                         material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[1])
-                
+
+# TODO: Remove this in favor of calling re-link or re-index functions individually as required.  
 def update_material_filter_nodes(context):
     '''Updates the index stored in filter node names, and re-links material filters. This should generally called after adding or removing filter nodes.'''
     # If there are no material layers there shouldn't be any material filters, don't update the material filter nodes.
@@ -559,20 +557,22 @@ class MATLAY_OT_delete_layer_filter(Operator):
             if filter_node:
                 material_channel_node.node_tree.nodes.remove(filter_node)
 
-        # Reset the selected filter index.
-        context.scene.matlay_material_filter_stack.selected_filter_index = max(min(selected_filter_index - 1, len(filters) - 1), 0)
-
-        # Remove the filter stack slot.
-        filters.remove(selected_filter_index)
-
         # Re-index and re-link material filter nodes.
         number_of_filter_nodes = len(get_material_filter_nodes(selected_layer_index, "COLOR"))
         if number_of_filter_nodes > 0:
             update_material_filter_nodes(context)
 
+        # Remove the filter stack slot.
+        filters.remove(selected_filter_index)
+        
+        # Reset the selected filter index.
+        context.scene.matlay_material_filter_stack.selected_filter_index = max(min(selected_filter_index - 1, len(filters) - 1), 0)
+
         # Re-link layers.
         for material_channel_name in material_channel_list:
             layer_nodes.relink_layers(material_channel_name, context)
+
+            # TODO: Organize nodes.
 
         return{'FINISHED'}
 

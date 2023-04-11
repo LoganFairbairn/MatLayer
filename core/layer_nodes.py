@@ -3,6 +3,7 @@
 import bpy
 from . import material_channels
 from ..core import layer_filters
+from ..core import layer_masks
 from ..utilities import info_messages
 
 # Node organization settings.
@@ -94,7 +95,6 @@ def get_total_number_of_layers(context):
 
 #----------------------------- LAYER FRAME FUNCTIONS -----------------------------#
 
-# TODO: Replace 'layers' argument with context.
 def get_layer_frame_name(layers, layer_stack_index):
     '''Gets the frame name for the given layer stack index.'''
     return layers[layer_stack_index].name + "_" + str(layers[layer_stack_index].id) + "_" + str(layer_stack_index)
