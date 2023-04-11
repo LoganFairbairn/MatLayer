@@ -329,7 +329,7 @@ def draw_material_filters(column, context, layout):
     row = column.row(align=True)
     row.scale_y = 2
     row.scale_x = 10
-    row.operator("matlay.add_layer_filter_menu", icon='FILTER', text="")
+    row.operator("matlay.add_layer_filter_menu", icon='ADD', text="")
     row.operator("matlay.move_filter_up", icon='TRIA_UP', text="")
     row.operator("matlay.move_filter_down", icon='TRIA_DOWN', text="")
     row.operator("matlay.delete_layer_filter", icon='TRASH', text="")
