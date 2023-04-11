@@ -247,7 +247,7 @@ class MATLAY_OT_move_material_layer(Operator):
 
         # 3. Remove the tilda from the end of the layer nodes names that belong to the moved layer and correct the index stored there.
         for material_channel_name in material_channel_list:
-            frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_index, context)
+            frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_index, context, get_edited=True)
             frame.name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(moving_to_layer_index)
             frame.label = frame.name
 
