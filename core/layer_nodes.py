@@ -119,16 +119,7 @@ def get_layer_frame(material_channel_name, layer_stack_index, context, get_edite
         else:
             layer_frame_name = get_layer_frame_name(layers, layer_stack_index)
             frame = material_channel_node.node_tree.nodes.get(layer_frame_name)
-
-        if frame:
-            return frame
-    
-        # If a frame still wasn't found, throw an error.
-        else:
-            info_messages.popup_message_box("Layer frame missing, this may mean the layer stack format is corrupted. This is generally caused by users manually editing the material node tree. Manually fix the layer stack and refresh the layer stack or make a new material from scratch.", title="Material Node Tree Error", icon='ERROR')
-            print("Layer frame missing: " + layer_frame_name)
-            return None
-
+        return frame
     else:
         print("Error: Failed to get layer frame, material channel node is invalid.")
         return None
