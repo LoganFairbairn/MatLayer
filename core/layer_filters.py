@@ -56,8 +56,8 @@ def update_filter_height_channel_toggle(self, context):
 
 #----------------------------- CORE MATERIAL FILTER FUNCTIONS -----------------------------#
 
-def get_filter_name(filter_type):
-    '''Returns the given name of a filter based on it's type.'''
+def filter_type_to_node_name(filter_type):
+    '''Returns the default name for a filter based on it's type.'''
     match filter_type:
         case 'ShaderNodeInvert':
             return 'INVERT'
@@ -273,15 +273,7 @@ def add_material_layer_filter(filter_type, context):
         return
 
     # Define a node name based on the provided filter type.
-    match filter_type:
-        case 'ShaderNodeInvert':
-            node_name = 'INVERT'
-        case 'ShaderNodeValToRGB':
-            node_name = 'VALTORGB'
-        case 'ShaderNodeHueSaturation':
-            node_name = 'HUESAT'
-        case 'ShaderNodeRGBCurve':
-            node_name = 'CURVERGB'
+    node_name = filter_type_to_node_name(filter_type)
     
     # Add a new layer filter slot, name and select it.
     filters.add()
