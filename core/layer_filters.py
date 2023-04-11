@@ -92,7 +92,15 @@ def get_material_filter_node(material_channel_name, material_layer_stack_index, 
                      return node
     return None
 
-def get_material_filter_nodes(material_layer_stack_index, material_channel_name, get_edited=False):
+def get_filter_stack_index(e):
+    '''Returns the layer frame id from the layer frame name / label.'''
+    if e:
+        filter_name_info = e.name.split('_')
+        return filter_name_info[2]
+    else:
+        print("Error: Material filter invalid when attempting to read the filter stack index for organization.")
+
+def get_material_filter_nodes(material_layer_stack_index, material_channel_name, get_edited=False, organize_by_filter_index=False):
     '''Returns all the filter nodes in the given material layer and within the given material channel. If get edited is passed as true, all nodes part of the given material layer marked as being edited (signified by a tilda at the end of their name) will be returned.'''
     filter_nodes = []
     material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
@@ -110,6 +118,11 @@ def get_material_filter_nodes(material_layer_stack_index, material_channel_name,
                             filter_nodes.append(node)
                     else:
                         filter_nodes.append(node)
+    
+    # Organize filter nodes by their filter index if requested.
+    if organize_by_filter_index:
+        filter_nodes.sort(key=get_filter_stack_index)
+
     return filter_nodes
 
 def get_filter_nodes_count(material_layer_stack_index):
@@ -184,7 +197,7 @@ def update_material_filter_node_indicies(material_channel_name):
 def re_link_material_filter_nodes(material_channel_name):
     '''Re-links all material filter nodes in the given material channel.'''
     selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
-    filter_nodes = get_material_filter_nodes(selected_material_layer_index, material_channel_name)
+    filter_nodes = get_material_filter_nodes(selected_material_layer_index, material_channel_name, get_edited=False, organize_by_filter_index=True)
 
     material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
     for i in range(0, len(filter_nodes)):
