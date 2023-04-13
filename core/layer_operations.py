@@ -4,6 +4,8 @@ from bpy.props import BoolProperty, StringProperty
 from . import material_channels
 from . import matlay_materials
 from ..core import layer_nodes
+from ..core import layer_filters
+from ..core import layer_masks
 from ..core.layer_filters import FILTER_NODE_TYPES
 from ..utilities.viewport_setting_adjuster import set_material_shading
 from ..utilities import info_messages
@@ -251,18 +253,27 @@ class MATLAY_OT_move_material_layer(Operator):
             frame.name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(moving_to_layer_index)
             frame.label = frame.name
 
-            all_layer_nodes = layer_nodes.get_all_nodes_in_layer(material_channel_name, selected_layer_index, context, True)
-            for node in all_layer_nodes:
-                node_info = node.name.split('_')
+            # Remove the tilda from layer nodes.
+            material_nodes = layer_nodes.get_all_material_layer_nodes(material_channel_name, selected_layer_index, context, True)
+            for material_node in material_nodes:
+                node_info = material_node.name.split('_')
+                material_node.name = node_info[0] + "_" + str(moving_to_layer_index)
+                material_node.label = material_node.name
 
-                # Rename based on node type (as the name formating for nodes can be different).
-                if node.bl_static_type in FILTER_NODE_TYPES:
-                    new_node_name = node_info[0] + "_" + str(moving_to_layer_index) + "_" + node_info[2].replace('~', '')
-                    node.name = new_node_name
+            # Remove the tilda from filter nodes.
+            filter_nodes = layer_filters.get_material_filter_nodes(selected_layer_index, material_channel_name, True, False)
+            for filter_node in filter_nodes:
+                node_info = filter_nodes.name.split('_')
+                filter_node.name = node_info[0] + "_" + str(moving_to_layer_index) + "_" + node_info[2].replace('~', '')
+                filter_node.label = filter_node.name
 
-                else:
-                    node.name = node_info[0] + "_" + str(moving_to_layer_index)
-                node.label = node.name
+            # Remove the tilda from mask nodes.
+            mask_nodes = layer_masks.get_all_mask_nodes_in_layer(selected_layer_index, material_channel_name, True)
+            for mask_node in mask_nodes:
+                node_info = mask_node.name.split('_')
+                mask_node.name = node_info[0] + "_" + str(moving_to_layer_index) + "_" + node_info[2].replace('~', '')
+                mask_node.label = mask_node.name
+                
         layers[selected_layer_index].cached_frame_name = frame.name
 
         # 4. Move the selected layer on the ui layer stack.

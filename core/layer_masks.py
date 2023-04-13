@@ -599,12 +599,12 @@ def add_mask(mask_type, context):
     layer_nodes.update_layer_nodes(context)
 
     # Create a black or white mask image for the new mask.
-    '''
     match mask_type:
         case 'BLACK_MASK':
+            bpy.ops.matlay.add_mask_image(image_fill='BLACK')
 
         case 'WHITE_MASK':
-    '''
+            bpy.ops.matlay.add_mask_image(image_fill='WHITE')
 
 #----------------------------- MASK PROPERTIES & OPERATORS -----------------------------#
 

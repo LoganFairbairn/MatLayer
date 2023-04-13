@@ -58,6 +58,16 @@ def get_layer_node_from_name(node_name, material_channel, context):
     else:
         print("Error: Failed to get: " + node_name)
 
+def get_all_material_layer_nodes(material_channel_name, material_layer_index, context, get_edited=False):
+    '''Returns an array of all material nodes in a specified material layer (doesn't return layer filter or layer mask nodes).'''
+    nodes = []
+    for node_name in LAYER_NODE_NAMES:
+        node = get_layer_node(node_name, material_channel_name, material_layer_index, context, get_edited)
+        if not node:
+            print("Error: Missing " + node_name + " from " + material_channel_name + ".")
+        nodes.append(node)
+    return nodes
+
 def get_all_nodes_in_layer(material_channel_name, material_layer_index, context, get_edited=False):
     '''Returns an array of all nodes that belong to the specified layer within the specified material channel.'''
     nodes = []
