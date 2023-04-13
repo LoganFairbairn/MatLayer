@@ -192,72 +192,84 @@ def update_projection_blend(self, context):
             texture_node.projection_blend = layers[selected_layer_index].projection.texture_extension
 
 def update_projection_offset_x(self, context):
-    if context.scene.matlay_layer_stack.auto_update_layer_properties:
-        layers = context.scene.matlay_layers
-        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+        return 
 
-        material_channel_list = material_channels.get_material_channel_list()
-        for material_channel_name in material_channel_list:
-            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+    layers = context.scene.matlay_layers
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
-            if mapping_node:
-                mapping_node.inputs[1].default_value[0] = layers[selected_layer_index].projection.projection_offset_x
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+
+        if mapping_node:
+            mapping_node.inputs[1].default_value[0] = layers[selected_layer_index].projection.projection_offset_x
 
 def update_projection_offset_y(self, context):
-    if context.scene.matlay_layer_stack.auto_update_layer_properties:
-        layers = context.scene.matlay_layers
-        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+        return 
 
-        material_channel_list = material_channels.get_material_channel_list()
-        for material_channel_name in material_channel_list:
-            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+    layers = context.scene.matlay_layers
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
-            if mapping_node:
-                mapping_node.inputs[1].default_value[1] = layers[selected_layer_index].projection.projection_offset_y
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+
+        if mapping_node:
+            mapping_node.inputs[1].default_value[1] = layers[selected_layer_index].projection.projection_offset_y
 
 def update_projection_rotation(self, context):
     '''Updates the layer projections rotation for all layers.'''
-    if context.scene.matlay_layer_stack.auto_update_layer_properties:
-        layers = context.scene.matlay_layers
-        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+        return 
 
-        material_channel_list = material_channels.get_material_channel_list()
-        for material_channel_name in material_channel_list:
-            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
-            if mapping_node:
-                mapping_node.inputs[2].default_value[2] = layers[selected_layer_index].projection.projection_rotation
+    layers = context.scene.matlay_layers
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+        if mapping_node:
+            mapping_node.inputs[2].default_value[2] = layers[selected_layer_index].projection.projection_rotation
 
 def update_projection_scale_x(self, context):
     '''Updates the layer projections x scale for all mapping nodes in the selected layer.'''
-    if context.scene.matlay_layer_stack.auto_update_layer_properties:
-        layers = context.scene.matlay_layers
-        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+        return 
+    
+    layers = context.scene.matlay_layers
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
-        material_channel_list = material_channels.get_material_channel_list()
-        for material_channel_name in material_channel_list:
-            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
-            if mapping_node:
-                mapping_node.inputs[3].default_value[0] = layers[selected_layer_index].projection.projection_scale_x
+        if mapping_node:
+            mapping_node.inputs[3].default_value[0] = layers[selected_layer_index].projection.projection_scale_x
 
-            if self.match_layer_scale:
-                layers[selected_layer_index].projection.projection_scale_y = layers[selected_layer_index].projection.projection_scale_x
+        if self.match_layer_scale:
+            layers[selected_layer_index].projection.projection_scale_y = layers[selected_layer_index].projection.projection_scale_x
 
 def update_projection_scale_y(self, context):
-    if context.scene.matlay_layer_stack.auto_update_layer_properties:
-        layers = context.scene.matlay_layers
-        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+        return 
+    layers = context.scene.matlay_layers
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
-        material_channel_list = material_channels.get_material_channel_list()
-        for material_channel_name in material_channel_list:
-            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
-            
-            if mapping_node:
-                mapping_node.inputs[3].default_value[1] = layers[selected_layer_index].projection.projection_scale_y
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+        
+        if mapping_node:
+            mapping_node.inputs[3].default_value[1] = layers[selected_layer_index].projection.projection_scale_y
 
 def update_match_layer_scale(self, context):
     '''Updates matching of the projected layer scales.'''
-    if self.match_layer_scale and context.scene.matlay_layer_stack.auto_update_layer_properties:
+    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+        return 
+    
+    if self.match_layer_scale:
         layers = context.scene.matlay_layers
         layer_index = context.scene.matlay_layer_stack.layer_index
         layers[layer_index].projection.projection_scale_y = layers[layer_index].projection.projection_scale_x

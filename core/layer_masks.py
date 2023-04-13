@@ -34,8 +34,25 @@ MAX_MASK_COUNT = 5
 
 #----------------------------- MASK AUTO UPDATING FUNCTIONS -----------------------------#
 
+def update_mask_stack_index(self, context):
+    '''Performs actions when the mask stack index is changed.'''
+    if context.scene.matlay_mask_stack.auto_update_properties == False:
+        return
+    
+    # If the mask is an image type, select the image mask so users can edited it.
+    selected_mask = context.scene.matlay_masks[context.scene.matlay_mask_stack.selected_mask_index]
+    if selected_mask.node_type == 'TEXTURE':
+        if selected_mask.mask_image != None:
+            context.scene.tool_settings.image_paint.canvas = selected_mask.mask_image
+
+    # Refreshed the mash stack for the selected material layer.
+    refresh_mask_stack(context)
+
 def update_mask_node_type(self, context):
     '''Updates the mask node type.'''
+    if context.scene.matlay_mask_stack.auto_update_properties == False:
+        return
+
     selected_material_index = context.scene.matlay_layer_stack.layer_index
     selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
     masks = context.scene.matlay_masks
@@ -103,6 +120,9 @@ def update_mask_node_type(self, context):
 
 def update_mask_image(self, context):
     '''Updates the mask image in all material channels when the mask image is manually changed.'''
+    if context.scene.matlay_mask_stack.auto_update_properties == False:
+        return
+
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
     for material_channel_name in material_channels.get_material_channel_list():
@@ -110,19 +130,12 @@ def update_mask_image(self, context):
         if mask_texture_node:
             mask_texture_node.image = self.mask_image
 
-def update_mask_stack_index(self, context):
-    '''Performs actions when the mask stack index is changed.'''
-
-    # If the mask is an image type, select the image mask so users can edited it.
-    selected_mask = context.scene.matlay_masks[context.scene.matlay_mask_stack.selected_mask_index]
-    if selected_mask.node_type == 'TEXTURE':
-        if selected_mask.mask_image != None:
-            context.scene.tool_settings.image_paint.canvas = selected_mask.mask_image
-
 def update_mask_hidden(self, context):
     '''Hides / unhides masks when the hide icon on the mask layer stack is clicked by a user.'''
+    if context.scene.matlay_mask_stack.auto_update_properties == False:
+        return
+
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
 
     for material_channel_name in material_channels.get_material_channel_list():
         mask_nodes = get_mask_nodes(material_channel_name, selected_material_layer_index, self.stack_index)
@@ -135,10 +148,12 @@ def update_mask_hidden(self, context):
             else:
                 node.mute = False
 
+#----------------------------- UPDATE MASK PROJECTION -----------------------------#
+
 def update_layer_projection(self, context):
     '''Changes the layer projection by reconnecting nodes.'''
-    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
-        return 
+    if context.scene.matlay_mask_stack.auto_update_properties == False:
+        return
     
     layers = context.scene.matlay_layers
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
@@ -185,8 +200,8 @@ def update_layer_projection(self, context):
 
 def update_projection_interpolation(self, context):
     '''Updates the image texture interpolation mode when it's changed.'''
-    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
-        return 
+    if context.scene.matlay_mask_stack.auto_update_properties == False:
+        return
     
     layers = context.scene.matlay_layers
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
@@ -198,8 +213,8 @@ def update_projection_interpolation(self, context):
 
 def update_projection_extension(self, context):
     '''Updates the image texture extension projection mode when it's changed.'''
-    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
-        return 
+    if context.scene.matlay_mask_stack.auto_update_properties == False:
+        return
     
     layers = context.scene.matlay_layers
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
@@ -211,7 +226,7 @@ def update_projection_extension(self, context):
 
 def update_projection_blend(self, context):
     '''Updates the projection blend node values when the cube projection blend value is changed.'''
-    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+    if context.scene.matlay_mask_stack.auto_update_properties == False:
         return
 
     layers = context.scene.matlay_layers
@@ -223,6 +238,9 @@ def update_projection_blend(self, context):
             texture_node.projection_blend = layers[selected_layer_index].projection.texture_extension
 
 def update_projection_offset_x(self, context):
+    if context.scene.matlay_mask_stack.auto_update_properties == False:
+        return
+    
     if context.scene.matlay_layer_stack.auto_update_layer_properties:
         layers = context.scene.matlay_layers
         selected_layer_index = context.scene.matlay_layer_stack.layer_index
@@ -235,6 +253,9 @@ def update_projection_offset_x(self, context):
                 mapping_node.inputs[1].default_value[0] = layers[selected_layer_index].projection.projection_offset_x
 
 def update_projection_offset_y(self, context):
+    if context.scene.matlay_mask_stack.auto_update_properties == False:
+        return
+    
     if context.scene.matlay_layer_stack.auto_update_layer_properties:
         layers = context.scene.matlay_layers
         selected_layer_index = context.scene.matlay_layer_stack.layer_index
@@ -247,6 +268,9 @@ def update_projection_offset_y(self, context):
                 mapping_node.inputs[1].default_value[1] = layers[selected_layer_index].projection.projection_offset_y
 
 def update_projection_rotation(self, context):
+    if context.scene.matlay_mask_stack.auto_update_properties == False:
+        return
+    
     '''Updates the layer projections rotation for all layers.'''
     if context.scene.matlay_layer_stack.auto_update_layer_properties:
         layers = context.scene.matlay_layers
@@ -259,6 +283,9 @@ def update_projection_rotation(self, context):
                 mapping_node.inputs[2].default_value[2] = layers[selected_layer_index].projection.projection_rotation
 
 def update_projection_scale_x(self, context):
+    if context.scene.matlay_mask_stack.auto_update_properties == False:
+        return
+    
     '''Updates the layer projections x scale for all mapping nodes in the selected layer.'''
     if context.scene.matlay_layer_stack.auto_update_layer_properties:
         layers = context.scene.matlay_layers
@@ -275,6 +302,9 @@ def update_projection_scale_x(self, context):
                 layers[selected_layer_index].projection.projection_scale_y = layers[selected_layer_index].projection.projection_scale_x
 
 def update_projection_scale_y(self, context):
+    if context.scene.matlay_mask_stack.auto_update_properties == False:
+        return
+    
     if context.scene.matlay_layer_stack.auto_update_layer_properties:
         layers = context.scene.matlay_layers
         selected_layer_index = context.scene.matlay_layer_stack.layer_index
@@ -287,6 +317,9 @@ def update_projection_scale_y(self, context):
                 mapping_node.inputs[3].default_value[1] = layers[selected_layer_index].projection.projection_scale_y
 
 def update_match_layer_scale(self, context):
+    if context.scene.matlay_mask_stack.auto_update_properties == False:
+        return
+    
     '''Updates matching of the projected layer scales.'''
     if self.match_layer_scale and context.scene.matlay_layer_stack.auto_update_layer_properties:
         layers = context.scene.matlay_layers
@@ -511,13 +544,11 @@ def refresh_mask_stack(context):
         masks[selected_mask_index].projection.projection_mode = 'FLAT'
 
     # Read hidden (muted) masks.
-    material_channel_node = material_channels.get_material_channel_node(context, 'COLOR')
-    if material_channel_node:
-        for i in range(0, len(masks)):
-            mask_node = get_mask_node('MaskTexture', 'COLOR', selected_material_index, i)
-            if mask_node:
-                if mask_node.mute:
-                    masks[i].hidden = True
+    for i in range(0, len(masks)):
+        mask_node = get_mask_node('MaskTexture', material_channel_name, selected_material_index, i)
+        if mask_node:
+            if mask_node.mute:
+                masks[i].hidden = True
 
     # 6. Re-enable auto-updating for mask properties.
     mask_stack.auto_update_properties = True
