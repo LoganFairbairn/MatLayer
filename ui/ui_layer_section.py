@@ -4,6 +4,7 @@ import bpy
 from ..core import matlay_materials
 from ..core import material_channels
 from ..core import layer_nodes
+from ..core import layer_masks
 from ..core import layer_stack as ls
 from ..core import layer_filters
 from ..core import texture_set_settings as tss
@@ -408,13 +409,74 @@ def draw_mask_stack(column):
     subrow.scale_y = 2
     subrow.template_list("MATLAY_UL_mask_stack", "Masks", bpy.context.scene, "matlay_masks", mask_stack, "selected_mask_index", sort_reverse=True)
 
-def draw_mask_texture_properties(column):
+def draw_mask_node_properties(column):
     selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
+    selected_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
+    selected_material_channel = bpy.context.scene.matlay_layer_stack.selected_material_channel
     masks = bpy.context.scene.matlay_masks
 
     subrow = column.row(align=True)
     subrow.scale_y = 1.4
-    subrow.prop(masks[selected_mask_index], "texture_type")
+    subrow.label(text="Mask Node Type")
+    subrow.prop(masks[selected_mask_index], "node_type", text="")
+
+    # Draw node properties based on mask node type.
+    mask_node = layer_masks.get_mask_node('MaskTexture', selected_material_channel, selected_layer_index, selected_mask_index)
+    if mask_node:
+        subrow = column.row(align=True)
+        subrow.scale_y = 1.4
+        match mask_node.bl_static_type:
+            case 'TEX_IMAGE':
+                selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
+                masks = bpy.context.scene.matlay_masks
+                subrow.prop(masks[selected_mask_index], 'mask_image', text="")
+
+                # Draw buttons to add / import / delete image masks quickly.
+                subrow.operator("matlay.add_mask_image", icon="ADD", text="")
+                subrow.operator("matlay.import_mask_image", icon="IMPORT", text="")
+                subrow.operator("matlay.delete_mask_image", icon="TRASH", text="")
+
+            case 'GROUP_NODE':
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.template_ID(mask_node, "node_tree") 
+
+            case 'TEX_NOISE':
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node.inputs[2], "default_value", text="Scale", slider=True)
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node.inputs[3], "default_value", text="Detail", slider=True)
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node.inputs[4], "default_value", text="Roughness", slider=True)
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node.inputs[5], "default_value", text="Distortion", slider=True)
+
+            case 'VORONOI':
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node.inputs[2], "default_value", text="Scale", slider=True)
+
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node.inputs[3], "default_value", text="Randomness", slider=True)
+
+            case 'MUSGRAVE':
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node.inputs[2], "default_value", text="Scale", slider=True)
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node.inputs[3], "default_value", text="Detail", slider=True)
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node.inputs[4], "default_value", text="Dimension", slider=True)
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node.inputs[5], "default_value", text="Lacunarity", slider=True)
 
 def draw_mask_projection_settings(column):
     selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
@@ -422,7 +484,53 @@ def draw_mask_projection_settings(column):
 
     subrow = column.row(align=True)
     subrow.scale_y = 1.4
-    subrow.label(text="Mask Projection Settings")
+    row = column.row()
+    row.scale_y = SCALE_Y
+    row.prop(masks[selected_mask_index].projection, "projection_mode", text="Projection")
+
+    row = column.row()
+    row.scale_y = SCALE_Y
+    row.prop(masks[selected_mask_index].projection, "texture_interpolation", text="Interpolation")
+
+    row = column.row()
+    row.scale_y = SCALE_Y
+    row.prop(masks[selected_mask_index].projection, "texture_extension", text="Extension")
+
+    if masks[selected_mask_index].projection.projection_mode == 'BOX':
+        row = column.row()
+        row.scale_y = SCALE_Y
+        row.prop(masks[selected_mask_index].projection, "projection_blend")
+
+    row = column.row()
+    row.scale_y = SCALE_Y
+    row.prop(masks[selected_mask_index].projection, "projection_offset_x")
+    row.prop(masks[selected_mask_index].projection, "projection_offset_y")
+            
+    row = column.row()
+    row.scale_y = SCALE_Y
+    row.prop(masks[selected_mask_index].projection, "projection_rotation", slider=True)
+
+    split = column.split()
+    col = split.column()
+    col.ui_units_x = 1
+    col.scale_y = SCALE_Y
+    col.prop(masks[selected_mask_index].projection, "projection_scale_x")
+
+    col = split.column()
+    col.ui_units_x = 0.1
+    col.scale_y = SCALE_Y
+    if masks[selected_mask_index].projection.match_layer_scale:
+        col.prop(masks[selected_mask_index].projection, "match_layer_scale", text="", icon="LOCKED")
+
+    else:
+        col.prop(masks[selected_mask_index].projection, "match_layer_scale", text="", icon="UNLOCKED")
+           
+    col = split.column()
+    col.ui_units_x = 2
+    col.scale_y = SCALE_Y
+    if masks[selected_mask_index].projection.match_layer_scale:
+        col.enabled = False
+    col.prop(masks[selected_mask_index].projection, "projection_scale_y")
 
 def draw_mask_filter_stack(column):
     '''Draws the mask filter stack with operators for material layer masks.'''
@@ -458,7 +566,7 @@ def draw_mask_properties(column):
 
     match mask_stack.mask_property_tab:
         case 'MASK':
-            draw_mask_texture_properties(column)
+            draw_mask_node_properties(column)
     
         case 'PROJECTION':
             draw_mask_projection_settings(column)

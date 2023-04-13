@@ -85,25 +85,6 @@ class MATLAY_OT_add_layer_image(Operator):
         
         return {'FINISHED'}
 
-class MATLAY_OT_delete_layer_image(Operator):
-    '''Deletes the current layer image from Blender's data'''
-    bl_idname = "matlay.delete_layer_image"
-    bl_label = "Delete Layer Image"
-    bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Deletes the current layer image from Blender's data and saved texture files. If you want to unlink the image from the texture node without deleting the image, use the 'x' button inside the image texture block"
-
-    # Specified material channel.
-    material_channel_name: bpy.props.StringProperty()
-
-    def execute(self, context):
-        selected_layer_index = context.scene.matlay_layer_stack.layer_index
-        texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel_name, selected_layer_index, context)
-
-        if texture_node.image:
-            bpy.data.images.remove(texture_node.image )
-        
-        return {'FINISHED'}
-    
 class MATLAY_OT_import_texture(Operator, ImportHelper):
     '''Imports a texture to use for the selected layer.'''
     bl_idname = "matlay.import_texture"
@@ -157,33 +138,20 @@ class MATLAY_OT_import_texture(Operator, ImportHelper):
 
         return {'FINISHED'}
 
-class MATLAY_OT_import_mask_image(Operator, ImportHelper):
-    '''Imports an image to use as a mask for the selected layer.'''
-    bl_idname = "matlay.import_mask_image"
-    bl_label = "Import Mask Image"
-    bl_description = "Opens a menu that allows the user to import an image to use as a mask"
-    
-    filter_glob: bpy.props.StringProperty(
-        default='*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.bmp',
-        options={'HIDDEN'}
-    )
+class MATLAY_OT_delete_layer_image(Operator):
+    '''Deletes the current layer image from Blender's data'''
+    bl_idname = "matlay.delete_layer_image"
+    bl_label = "Delete Layer Image"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Deletes the current layer image from Blender's data and saved texture files. If you want to unlink the image from the texture node without deleting the image, use the 'x' button inside the image texture block"
+
+    # Specified material channel.
+    material_channel_name: bpy.props.StringProperty()
 
     def execute(self, context):
-        layers = context.scene.matlay_layers
-        layer_index = context.scene.matlay_layer_stack.layer_index
-
-        head_tail = os.path.split(self.filepath)
-        image_name = head_tail[1]
-
-        bpy.ops.image.open(filepath=self.filepath)
-        
-        group_node = layer_nodes.get_channel_node_group(context)
-        mask_node = group_node.nodes.get(layers[layer_index].mask_node_name)
-
-        if mask_node != None:
-            mask_image = bpy.data.images[image_name]
-            mask_node.image = mask_image
-
-            layer_nodes.update_layer_nodes(context)
-        
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel_name, selected_layer_index, context)
+        if texture_node:
+            if texture_node.image:
+                bpy.data.images.remove(texture_node.image)
         return {'FINISHED'}

@@ -157,14 +157,13 @@ def update_material_filter_node_indicies(material_channel_name):
         for i in range(0, len(filters)):
             temp_filter_node_name = format_filter_node_name(filters[i].name, selected_layer_index, i)
             temp_filter_node = material_channel_node.node_tree.nodes.get(temp_filter_node_name)
-            if not  temp_filter_node:
+            if not temp_filter_node:
                 filter_deleted = True
                 changed_filter_index = i
                 break
 
-    # 3. Rename filter nodes above the added material filter on the filter stack if any exist (in reverse order to avoid naming conflicts).
+    # 3. Rename filter nodes above the newly added material filter on the filter stack if any exist (in reverse order to avoid naming conflicts).
     if filter_added:
-        number_of_filters = len(filters)
         for i in range(len(filters), changed_filter_index + 1, -1):
             index = i - 1
             filter_node_name = filters[index].name + "_" + str(selected_layer_index) + "_" + str(index - 1)
@@ -284,6 +283,7 @@ def add_material_layer_filter(filter_type, context):
     selected_layer_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
+    # Stop users from adding too many material filters.
     if len(filters) >= MAX_LAYER_FILTER_COUNT:
         info_messages.popup_message_box("You can't have more than {0} filters on a single layer. This is a safeguard to stop users from adding an unnecessary amount of filters, which will impact performance.".format(MAX_LAYER_FILTER_COUNT), 'User Error', 'ERROR')
         return
@@ -590,7 +590,7 @@ class MATLAY_OT_delete_layer_filter(Operator):
         # Reset the selected filter index.
         context.scene.matlay_material_filter_stack.selected_filter_index = max(min(selected_filter_index - 1, len(filters) - 1), 0)
 
-        # Re-link and re-organize layer nodes.
+        # Re-link and re-organize layers.
         layer_nodes.update_layer_nodes(context)
 
         return{'FINISHED'}

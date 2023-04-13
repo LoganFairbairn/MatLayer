@@ -4,6 +4,7 @@ import bpy
 from bpy.types import PropertyGroup
 from . import material_channels
 from ..core import layer_nodes
+from ..core import layer_masks
 from . import layer_filters
 
 MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", "EMISSION", "SCATTERING")
@@ -25,10 +26,6 @@ def update_selected_material_channel(self, context):
 
 def update_layer_index(self, context):
     '''Updates stuff when the selected layer is changed.'''
-
-    # Update the ui to display material layer properties.
-    context.scene.matlay_layer_stack.layer_property_tab = 'MATERIAL'
-
     # Select an the texture image for the selected material channel in the selected layer.
     selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
@@ -42,9 +39,7 @@ def update_layer_index(self, context):
                 context.scene.tool_settings.image_paint.canvas = texture_node.image
 
     layer_filters.refresh_material_filter_stack(context)
-
-    # Swap back to editing the material.
-    self.layer_properties_tab = "MATERIAL"
+    layer_masks.refresh_mask_stack(context)
 
 def verify_layer_stack_index(layer_stack_index, context):
     '''Verifies the given layer stack index exists.'''
