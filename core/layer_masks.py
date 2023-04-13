@@ -573,6 +573,8 @@ def add_default_mask_nodes(context):
             mask_mix_node.name = format_mask_node_name("MaskMix", selected_layer_index, selected_mask_index, True)
             mask_mix_node.label = mask_mix_node.name
             mask_mix_node.inputs[0].default_value = 1.0
+            mask_mix_node.inputs[1].default_value = (0.0, 0.0, 0.0, 1.0)
+            mask_mix_node.inputs[2].default_value = (0.0, 0.0, 0.0, 1.0)
             mask_mix_node.use_clamp = True
                 
             # Link newly created nodes.
@@ -865,11 +867,12 @@ class MATLAY_OT_add_mask_image(Operator):
         # 3. Add the new image to the selected mask (for all material channels).
         selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
         selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+        masks = context.scene.matlay_masks
 
         for material_channel_name in material_channels.get_material_channel_list():
             mask_texture_node = get_mask_node('MaskTexture',  material_channel_name, selected_material_layer_index, selected_mask_index)
             if mask_texture_node:
-                mask_texture_node.image = bpy.data.image[image_name]
+                masks[selected_mask_index].mask_image = bpy.data.images[image_name]
 
                 # Select the new image so it can be edited.
                 context.scene.tool_settings.image_paint.canvas = mask_texture_node.image
