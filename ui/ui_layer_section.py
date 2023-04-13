@@ -558,10 +558,13 @@ def draw_mask_properties(column):
         return
     
     mask_stack = bpy.context.scene.matlay_mask_stack
+    selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
+
     subrow = column.row(align=True)
     subrow.scale_y = 1.4
     subrow.prop_enum(mask_stack, "mask_property_tab", 'MASK', text='Mask')
-    subrow.prop_enum(mask_stack, "mask_property_tab", 'PROJECTION', text='Projection')
+    if masks[selected_mask_index].node_type == 'TEXTURE':
+        subrow.prop_enum(mask_stack, "mask_property_tab", 'PROJECTION', text='Projection')
     subrow.prop_enum(mask_stack, "mask_property_tab", 'FILTERS', text='Filters')
 
     match mask_stack.mask_property_tab:
