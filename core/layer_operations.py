@@ -241,10 +241,26 @@ class MATLAY_OT_move_material_layer(Operator):
             frame.name = layers[moving_to_layer_index].name + "_" + str(layers[moving_to_layer_index].id) + "_" + str(selected_layer_index)
             frame.label = frame.name
 
-            all_layer_nodes = layer_nodes.get_all_nodes_in_layer(material_channel_name, moving_to_layer_index, context)
-            for node in all_layer_nodes:
-                node_info = node.name.split('_')
-                layer_nodes.rename_layer_node(node, node_info[0], selected_layer_index)
+            # Rename / re-index material nodes.
+            material_nodes = layer_nodes.get_all_material_layer_nodes(material_channel_name, moving_to_layer_index, context, False)
+            for material_node in material_nodes:
+                node_info = material_node.name.split('_')
+                material_node.name = node_info[0] + "_" + str(selected_layer_index)
+                material_node.label = material_node.name
+
+            # Rename / re-index filter nodes.
+            filter_nodes = layer_filters.get_material_filter_nodes(moving_to_layer_index, material_channel_name, False, False)
+            for filter_node in filter_nodes:
+                node_info = filter_nodes.name.split('_')
+                filter_node.name = node_info[0] + "_" + str(selected_layer_index) + "_" + node_info[2]
+                filter_node.label = filter_node.name
+
+            # Rename / re-index mask nodes.
+            mask_nodes = layer_masks.get_all_mask_nodes_in_layer(moving_to_layer_index, material_channel_name, False)
+            for mask_node in mask_nodes:
+                node_info = mask_node.name.split('_')
+                mask_node.name = node_info[0] + "_" + str(selected_layer_index) + "_" + node_info[2]
+                mask_node.label = mask_node.name
         layers[moving_to_layer_index].cached_frame_name = frame.name
 
         # 3. Remove the tilda from the end of the layer nodes names that belong to the moved layer and correct the index stored there.
