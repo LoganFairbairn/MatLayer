@@ -560,9 +560,9 @@ def draw_mask_properties(column):
     mask_stack = bpy.context.scene.matlay_mask_stack
     subrow = column.row(align=True)
     subrow.scale_y = 1.4
-    subrow.prop_enum(mask_stack, "mask_property_tab", 'MASK', text='MASK')
-    subrow.prop_enum(mask_stack, "mask_property_tab", 'PROJECTION', text='PROJECTION')
-    subrow.prop_enum(mask_stack, "mask_property_tab", 'FILTERS', text='FILTERS')
+    subrow.prop_enum(mask_stack, "mask_property_tab", 'MASK', text='Mask')
+    subrow.prop_enum(mask_stack, "mask_property_tab", 'PROJECTION', text='Projection')
+    subrow.prop_enum(mask_stack, "mask_property_tab", 'FILTERS', text='Filters')
 
     match mask_stack.mask_property_tab:
         case 'MASK':
@@ -582,17 +582,17 @@ def draw_layer_properties(column, context, layout):
 
     subrow = column.row(align=True)
     subrow.scale_y = 1.4
-    subrow.prop_enum(context.scene.matlay_layer_stack, "layer_property_tab", 'MATERIAL', text='EDIT MATERIAL')
-    subrow.prop_enum(context.scene.matlay_layer_stack, "layer_property_tab", 'MASK', text='EDIT MASK')
+    subrow.prop_enum(context.scene.matlay_layer_stack, "layer_property_tab", 'MATERIAL', text='EDIT MATERIAL', icon='MATERIAL')
+    subrow.prop_enum(context.scene.matlay_layer_stack, "layer_property_tab", 'MASK', text='EDIT MASK', icon='MOD_MASK')
 
     # Draw layer materials based on the selected tab.
     match layer_property_tab:
         case 'MATERIAL':
             subrow = column.row(align=True)
             subrow.scale_y = 1.4
-            subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'MATERIAL', text='MATERIAL')
-            subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'PROJECTION', text='PROJECTION')
-            subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'FILTERS', text='FILTERS')
+            subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'MATERIAL', text="Material")
+            subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'PROJECTION', text="Projection")
+            subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'FILTERS', text="Filters")
             subrow = column.column()
             subrow.separator()
             
