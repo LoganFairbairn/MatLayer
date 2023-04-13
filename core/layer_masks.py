@@ -456,57 +456,61 @@ def refresh_mask_stack(context):
     mask_stack = context.scene.matlay_mask_stack
     selected_material_index = context.scene.matlay_layer_stack.layer_index
 
-    # 1. Disable auto-updating for mask properties.
+    # Only clear the mask stack if no masks exist on the selected material layer.
+    masks.clear()
+    total_number_of_masks = count_masks(selected_material_index, context)
+    if total_number_of_masks <= 0:
+        return
+    
+    # 1. Disable auto-updating for mask properties (properties auto-updating when being set can cause errors).
     mask_stack.auto_update_properties = False
 
     # 2. Cache the selected mask index so we can refresh it to the closest index.
     previously_selected_mask_index = mask_stack.selected_mask_index
+    
+    # 3. Refresh the mask stack for the selected layer.
+    for i in range(0, total_number_of_masks):
+        masks.add()
+        masks[i].stack_index = i
+        masks[i].name = 'MASK'
 
-    # 3. Clear the mask stack.
-    masks.clear()
-
-    # 4. Update the mask node properties by reading the material node tree.
-    # Mask nodes across all material channels should have the same settings, so we'll only check the color material channel nodes.
-    total_number_of_masks = count_masks(selected_material_index, context)
-    material_channel_name = 'COLOR'
-    material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
-    if material_channel_node:
-        for i in range(0, total_number_of_masks):
-            # Add a new mask slot and assign an index.
-            masks.add()
-            masks[i].stack_index = i
-            masks[i].name = 'MASK'
-
-            # Update mapping projection.
-            mapping_node = get_mask_node('MaskMapping', material_channel_name, selected_material_index, i)
-            if mapping_node:
-                masks[i].projection.projection_offset_x = mapping_node.inputs[1].default_value[0]
-                masks[i].projection.projection_offset_y = mapping_node.inputs[1].default_value[1]
-                masks[i].projection.projection_rotation = mapping_node.inputs[2].default_value[2]
-                masks[i].projection.projection_scale_x = mapping_node.inputs[3].default_value[0]
-                masks[i].projection.projection_scale_y = mapping_node.inputs[3].default_value[1]
-                if masks[i].projection.projection_scale_x != masks[i].projection.projection_scale_y:
-                    masks[i].projection.match_layer_scale = False
-
-            # Update coord node projection values.
-            mask_texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_index, i)
-            if mask_texture_node and mask_texture_node.type == 'TEX_IMAGE':
-                masks[i].projection.projection_blend = mask_texture_node.projection_blend
-                masks[i].projection.texture_extension = mask_texture_node.extension
-                masks[i].projection.texture_interpolation = mask_texture_node.interpolation
-                masks[i].projection.projection_mode = mask_texture_node.projection
-            else:
-                masks[i].projection.projection_mode = 'FLAT'
-    else:
-        info_messages.popup_message_box("Missing " + material_channel_name + " group node.", "Material Stack Corrupted", 'ERROR')
-
-    # 5. Reset the selected mask index.
+    # 4. Reset the selected mask index.
     if len(masks) > 0 and previously_selected_mask_index < len(masks) - 1 and previously_selected_mask_index >= 0:
         mask_stack.selected_mask_index = previously_selected_mask_index
     else:
         mask_stack.selected_mask_index
 
-    # 6. Read hidden (muted) masks.
+    # 5. Update ui properties for the selected mask.
+    # Mask nodes settings across all material channels should be the same, only read from the color material channel nodes.
+    material_channel_name = 'COLOR'
+    selected_mask_index = mask_stack.selected_mask_index
+    texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_index, selected_mask_index)
+    if texture_node:
+        if texture_node.image:
+            masks[selected_mask_index].mask_image = texture_node.image
+
+    # Update mapping projection.
+    mapping_node = get_mask_node('MaskMapping', material_channel_name, selected_material_index, selected_mask_index)
+    if mapping_node:
+        masks[selected_mask_index].projection.projection_offset_x = mapping_node.inputs[1].default_value[0]
+        masks[selected_mask_index].projection.projection_offset_y = mapping_node.inputs[1].default_value[1]
+        masks[selected_mask_index].projection.projection_rotation = mapping_node.inputs[2].default_value[2]
+        masks[selected_mask_index].projection.projection_scale_x = mapping_node.inputs[3].default_value[0]
+        masks[selected_mask_index].projection.projection_scale_y = mapping_node.inputs[3].default_value[1]
+        if masks[selected_mask_index].projection.projection_scale_x != masks[i].projection.projection_scale_y:
+            masks[selected_mask_index].projection.match_layer_scale = False
+
+    # Update projection mode.
+    mask_texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_index, selected_mask_index)
+    if mask_texture_node and mask_texture_node.type == 'TEX_IMAGE':
+        masks[selected_mask_index].projection.projection_blend = mask_texture_node.projection_blend
+        masks[selected_mask_index].projection.texture_extension = mask_texture_node.extension
+        masks[selected_mask_index].projection.texture_interpolation = mask_texture_node.interpolation
+        masks[selected_mask_index].projection.projection_mode = mask_texture_node.projection
+    else:
+        masks[selected_mask_index].projection.projection_mode = 'FLAT'
+
+    # Read hidden (muted) masks.
     material_channel_node = material_channels.get_material_channel_node(context, 'COLOR')
     if material_channel_node:
         for i in range(0, len(masks)):
@@ -515,7 +519,7 @@ def refresh_mask_stack(context):
                 if mask_node.mute:
                     masks[i].hidden = True
 
-    # 7. Re-enable auto-updating for mask properties.
+    # 6. Re-enable auto-updating for mask properties.
     mask_stack.auto_update_properties = True
 
 def add_mask_slot(context):
