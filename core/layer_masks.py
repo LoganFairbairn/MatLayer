@@ -367,8 +367,9 @@ def update_mask_indicies(context):
         mask_deleted = False
 
         # 1. Check for a newly added mask (signified by a tilda at the end of the node's name).
+        number_of_masks = len(masks)
         for i in range(0, len(masks)):
-            temp_mask_node_name = format_mask_node_name('MaskTexture', selected_layer_index, selected_mask_index, True)
+            temp_mask_node_name = format_mask_node_name('MaskTexture', selected_layer_index, i, True)
             temp_mask_node = material_channel_node.node_tree.nodes.get(temp_mask_node_name)
             if temp_mask_node:
                 mask_added = True
@@ -598,6 +599,8 @@ def add_mask(mask_type, context):
     add_default_mask_nodes(context)
     update_mask_indicies(context)
     relink_layer_mask_nodes(context)
+
+    # TODO: Should only need to re-organize nodes here, instead of re-index & re-link.
     layer_nodes.update_layer_nodes(context)
 
     # Create a black or white mask image for the new mask.
