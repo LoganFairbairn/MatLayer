@@ -57,6 +57,8 @@ def update_mask_node_type(self, context):
     selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
     masks = context.scene.matlay_masks
 
+    # TODO: Error here make node type doesn't change properly.
+
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)

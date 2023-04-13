@@ -201,10 +201,15 @@ def add_normal_baking_nodes(material, bake_image):
 def verify_bake_object():
     '''Verifies the selected object can be baked to.'''
     active_object = bpy.context.active_object
+    
+    # Verify there is a selected object.
+    if len(bpy.context.selected_objects) <= 0:
+        info_messages.popup_message_box("No valid selected objects, select and object to bake from.", title="User Error", icon='ERROR')
+        return False
 
-    # Make sure the active object exists.
+    # Verify the active object exists.
     if active_object == None:
-        info_messages.popup_message_box("Selected object is none.", title="User Error", icon='ERROR')
+        info_messages.popup_message_box("No valid active object, select an object before baking.", title="User Error", icon='ERROR')
         return False
 
     # Make sure the active object is a Mesh.
