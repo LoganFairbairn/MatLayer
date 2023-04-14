@@ -479,8 +479,6 @@ def relink_layer_mask_nodes(context):
         if opacity_node and last_mask_node:
             material_channel_node.node_tree.links.new(last_mask_node.outputs[0], opacity_node.inputs[0])
 
-        
-
 def count_masks(material_stack_index, context):
     '''Counts the total number of masks applied to a specified material layer by reading the material node tree.'''
     count = 0
@@ -1036,6 +1034,19 @@ class MATLAY_OT_import_mask_image(Operator, ImportHelper):
         return {'FINISHED'}
 
 #----------------------------- MASK FILTERS -----------------------------#
+
+def add_mask_filter(filter_type):
+    '''Adds a new filter to the selected layer mask.'''
+
+    # TODO: Stop users from adding too many mask filters.
+
+    # TODO: Define a filter node name based on the provided filter type.
+
+    # TODO: Add a new mask filter slot, name and select it.
+
+    # TODO: Create a new filter node.
+
+    # TODO: Re-organize and re-link nodes.
 
 class MATLAY_mask_filter_stack(PropertyGroup):
     '''Properties for the mask stack.'''

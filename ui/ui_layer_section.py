@@ -565,7 +565,7 @@ def draw_mask_properties(column):
     subrow.prop_enum(mask_stack, "mask_property_tab", 'MASK', text='Mask')
     if masks[selected_mask_index].node_type == 'TEXTURE':
         subrow.prop_enum(mask_stack, "mask_property_tab", 'PROJECTION', text='Projection')
-    subrow.prop_enum(mask_stack, "mask_property_tab", 'FILTERS', text='Filters')
+    subrow.prop_enum(mask_stack, "mask_property_tab", 'FILTERS', text='Mask Filters')
 
     match mask_stack.mask_property_tab:
         case 'MASK':
