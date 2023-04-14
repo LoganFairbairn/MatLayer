@@ -455,20 +455,6 @@ def relink_layer_mask_nodes(context):
     masks = context.scene.matlay_masks
 
     material_channel_list = material_channels.get_material_channel_list()
-
-    '''
-    # 1. Unlink all mask mix nodes.
-    for material_channel_name in material_channel_list:
-        for i in range(0, len(masks)):
-            material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
-            mix_mask_node = get_mask_node('MaskMix', material_channel_name, selected_material_layer_index, i)
-
-            if mix_mask_node:
-                output = mix_mask_node.outputs[0]
-                for l in output.links:
-                    if l != 0:
-                        material_channel_node.node_tree.links.remove(l)
-    '''
     for material_channel_name in material_channel_list:
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
         for i in range(0, len(masks)):
