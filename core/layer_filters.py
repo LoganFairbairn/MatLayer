@@ -190,7 +190,7 @@ def update_material_filter_node_indicies(material_channel_name):
                 filter_node.label = filter_node.name
                 filters[i].stack_index = i - 1
 
-def re_link_material_filter_nodes(material_channel_name):
+def relink_material_filter_nodes(material_channel_name):
     '''Re-links all material filter nodes in the given material channel.'''
     selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
     filter_nodes = get_all_material_filter_nodes(selected_material_layer_index, material_channel_name, get_edited=False, organize_by_filter_index=True)
@@ -237,7 +237,7 @@ def update_material_filter_nodes(context):
         material_channel_names = material_channels.get_material_channel_list()
         for material_channel_name in material_channel_names:
             update_material_filter_node_indicies(material_channel_name)
-            re_link_material_filter_nodes(material_channel_name)
+            relink_material_filter_nodes(material_channel_name)
 
 def refresh_material_filter_stack(context):
     '''Reads layer nodes to re-construct the filter layer stack.'''
