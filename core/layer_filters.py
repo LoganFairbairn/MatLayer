@@ -8,10 +8,13 @@ from ..utilities import info_messages
 # A list of filter node types available in this add-on.
 FILTER_NODE_TYPES = ("INVERT", "VALTORGB", "HUE_SAT", "CURVE_RGB")
 
+# Assigned names for filter nodes.
+FILTER_NODE_NAMES = ("Invert", "Levels", "HueSaturationValue", "RGBCurves")
+
 # The maximum number of filters a single layer can use. Realistically users should never need more filters on a single layer than this.
 MAX_LAYER_FILTER_COUNT = 5
 
-#----------------------------- AUTO UPDATING FUNCTIONS FOR FILTER PROPERTIES -----------------------------#
+#----------------------------- FILTER PROPERTY AUTO UPDATING FUNCTIONS -----------------------------#
 
 def filter_material_channel_toggle(channel_toggle, material_channel_name, context):
     # Mute / unmute filter nodes for the selected layer and filter.
@@ -56,11 +59,11 @@ def update_filter_height_channel_toggle(self, context):
 
 #----------------------------- CORE MATERIAL FILTER FUNCTIONS -----------------------------#
 
-def format_filter_node_name(filter_node_type, material_layer_index, filter_index):
-    '''All nodes made with this add-on must have properly formatted names, this function will return a properly formatted name for a material filter node.'''
-    return  "{0}_{1}_{2}".format(filter_node_type, str(material_layer_index), str(filter_index))
+def format_filter_node_name(filter_node_name, material_layer_index, material_filter_index):
+    '''All nodes made with this add-on must have properly formated names, this function will return a properly formated name for a material filter node.'''
+    return  "{0}_{1}_{2}".format(filter_node_name, str(material_layer_index), str(material_filter_index))
 
-def get_material_filter_node(material_channel_name, material_layer_stack_index, filter_index, get_edited=False):
+def get_material_filter_node(material_channel_name, material_layer_index, material_filter_index, get_edited=False):
     '''Returns the filter node for the given material layer index at the filter index by reading through existing node within the specified material channel'''
     material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
     if material_channel_node:
@@ -71,7 +74,7 @@ def get_material_filter_node(material_channel_name, material_layer_stack_index, 
                 filter_node_material_layer_index = filter_node_info[1]
                 filter_node_index = filter_node_info[2].replace('~', '')
 
-                if int(filter_node_material_layer_index) == material_layer_stack_index and int(filter_node_index) == filter_index:
+                if int(filter_node_material_layer_index) == material_layer_index and int(filter_node_index) == material_filter_index:
                     # Return filer nodes being edited if requested.
                     if get_edited:
                         if '~' in filter_node_info[2]:
@@ -88,6 +91,7 @@ def get_filter_stack_index(e):
     else:
         print("Error: Material filter invalid when attempting to read the filter stack index for organization.")
 
+# TODO: Move material channel name first argument for consistency.
 def get_all_material_filter_nodes(material_layer_stack_index, material_channel_name, get_edited=False, organize_by_filter_index=False):
     '''Returns ALL filter nodes in the given material layer material channel. If get edited is passed as true, all nodes part of the given material layer marked as being edited (signified by a tilda at the end of their name) will be returned.'''
     filter_nodes = []
@@ -130,6 +134,11 @@ def update_material_filter_node_indicies(material_channel_name):
     filters = bpy.context.scene.matlay_material_filters
     filter_added = False
     filter_deleted = False
+
+    # Update layer stack indicies first.
+    number_of_layers = len(filters)
+    for i in range(0, number_of_layers):
+        filters[i].stack_index = i
 
     # 1. Check for a newly added filter (signified by a tilda at the end of the node's name).
     for i in range(0, len(filters)):
@@ -212,6 +221,7 @@ def re_link_material_filter_nodes(material_channel_name):
                     case 'CURVE_RGB':
                         material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[1])
 
+# TODO: Remove this wrapper function, use relink / reindex individually.
 def update_material_filter_nodes(context):
     '''Updates the index stored in filter node names, and re-links material filters. This should generally called after adding or removing filter nodes.'''
     # If there are no material layers there shouldn't be any material filters, don't update the material filter nodes.
@@ -341,7 +351,7 @@ def move_filter_layer(direction, context):
     filters = context.scene.matlay_material_filters
     filter_stack = context.scene.matlay_material_filter_stack
     selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
-    selected_material_stack_index = context.scene.matlay_layer_stack.layer_index
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
     material_channel_list = material_channels.get_material_channel_list()
 
     filter_stack.auto_update_filter_properties = False
@@ -361,25 +371,25 @@ def move_filter_layer(direction, context):
     # 1. Add a tilda to the end of all the filter nodes to signify they are being edited (and to avoid naming conflicts).
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
-        nodes = get_all_material_filter_nodes(material_channel_name, selected_material_stack_index, selected_filter_index)
-        for node in nodes:
+        node = get_material_filter_node(material_channel_name, selected_material_layer_index, selected_filter_index, False)
+        if node:
             node.name = node.name + "~"
             node.label = node.name
 
     # 2. Update the filter node names for the layer below or above the selected index.
     for material_channel_name in material_channel_list:
-        nodes = get_all_material_filter_nodes(material_channel_name, selected_material_stack_index, moving_to_index)
-        for node in nodes:
+        node = get_material_filter_node(material_channel_name, selected_material_layer_index, moving_to_index, False)
+        if node:
             node_info = node.name.split('_')
-            node.name = node_info[0] + "_" + str(selected_material_stack_index) + "_" + str(selected_filter_index)
+            node.name = format_filter_node_name(node_info[0], selected_material_layer_index, selected_filter_index)
             node.label = node.name
 
     # 3. Remove the tilda from the end of the filter node names that were edited and re-index them.
     for material_channel_name in material_channel_list:
-        nodes = get_all_material_filter_nodes(material_channel_name, selected_material_stack_index, selected_filter_index, True)
-        for node in nodes:
+        node = get_material_filter_node(material_channel_name, selected_material_layer_index, selected_filter_index, True)
+        if node:
             node_info = node.name.split('_')
-            node.name = node_info[0] + "_" + str(selected_material_stack_index) + "_" + str(moving_to_index)
+            node.name = format_filter_node_name(node_info[0], selected_material_layer_index, moving_to_index)
             node.label = node.name
 
     # 4. Move the selected filter on the ui stack.
@@ -391,7 +401,6 @@ def move_filter_layer(direction, context):
     context.scene.matlay_material_filter_stack.selected_filter_index = index_to_move_to
 
     # 5. Re-link and organize filter nodes.
-    update_material_filter_nodes(context)
     layer_nodes.update_layer_nodes(context)
 
     filter_stack.auto_update_filter_properties = True
@@ -428,8 +437,7 @@ class MATLAY_UL_layer_filter_stack(bpy.types.UIList):
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             row = layout.row()
-            row.label(text=context.scene.matlay_material_filters[item.stack_index].name)
-            #row.prop(item, "stack_index", text="", emboss=False)
+            row.label(text=str(item.stack_index) + " " + context.scene.matlay_material_filters[item.stack_index].name)
 
 class MATLAY_OT_add_layer_filter_invert(Operator):
     '''Adds an invert filter to the selected layer.'''

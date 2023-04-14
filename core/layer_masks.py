@@ -385,7 +385,6 @@ def update_mask_indicies(context):
     '''Updates mask node indicies.'''
 
     # Update layer stack indicies first.
-    '''Matches mask stack indicies stored in each mask to the stack array indicies (mask stack indicies are stored in the layers for convenience and debugging purposes).'''
     masks = context.scene.matlay_masks
     number_of_layers = len(masks)
     for i in range(0, number_of_layers):

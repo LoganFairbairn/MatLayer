@@ -6,7 +6,6 @@ from . import matlay_materials
 from ..core import layer_nodes
 from ..core import layer_filters
 from ..core import layer_masks
-from ..core.layer_filters import FILTER_NODE_TYPES
 from ..utilities.viewport_setting_adjuster import set_material_shading
 from ..utilities import info_messages
 import random
@@ -249,7 +248,7 @@ class MATLAY_OT_move_material_layer(Operator):
                 material_node.label = material_node.name
 
             # Rename / re-index filter nodes.
-            filter_nodes = layer_filters.get_material_filter_nodes(moving_to_layer_index, material_channel_name, False, False)
+            filter_nodes = layer_filters.get_all_material_filter_nodes(moving_to_layer_index, material_channel_name, False, False)
             for filter_node in filter_nodes:
                 node_info = filter_nodes.name.split('_')
                 filter_node.name = node_info[0] + "_" + str(selected_layer_index) + "_" + node_info[2]
@@ -277,7 +276,7 @@ class MATLAY_OT_move_material_layer(Operator):
                 material_node.label = material_node.name
 
             # Remove the tilda from filter nodes.
-            filter_nodes = layer_filters.get_material_filter_nodes(selected_layer_index, material_channel_name, True, False)
+            filter_nodes = layer_filters.get_all_material_filter_nodes(selected_layer_index, material_channel_name, True, False)
             for filter_node in filter_nodes:
                 node_info = filter_nodes.name.split('_')
                 filter_node.name = node_info[0] + "_" + str(moving_to_layer_index) + "_" + node_info[2].replace('~', '')
