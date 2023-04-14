@@ -436,7 +436,7 @@ def draw_mask_node_properties(column):
                 subrow.operator("matlay.import_mask_image", icon="IMPORT", text="")
                 subrow.operator("matlay.delete_mask_image", icon="TRASH", text="")
 
-            case 'GROUP_NODE':
+            case 'GROUP':
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
                 subrow.template_ID(mask_node, "node_tree") 
@@ -455,7 +455,7 @@ def draw_mask_node_properties(column):
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node.inputs[5], "default_value", text="Distortion", slider=True)
 
-            case 'VORONOI':
+            case 'TEX_VORONOI':
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node.inputs[2], "default_value", text="Scale", slider=True)
@@ -464,7 +464,7 @@ def draw_mask_node_properties(column):
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node.inputs[3], "default_value", text="Randomness", slider=True)
 
-            case 'MUSGRAVE':
+            case 'TEX_MUSGRAVE':
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node.inputs[2], "default_value", text="Scale", slider=True)

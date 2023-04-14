@@ -40,10 +40,13 @@ def update_mask_stack_index(self, context):
         return
     
     # If the mask is an image type, select the image mask so users can edited it.
-    selected_mask = context.scene.matlay_masks[context.scene.matlay_mask_stack.selected_mask_index]
-    if selected_mask.node_type == 'TEXTURE':
-        if selected_mask.mask_image != None:
-            context.scene.tool_settings.image_paint.canvas = selected_mask.mask_image
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    mask_texture_node = get_mask_node('MaskTexture', 'COLOR', selected_material_layer_index, selected_mask_index, False)
+    if mask_texture_node:
+        if mask_texture_node.bl_static_type == 'TEX_IMAGE':
+            if mask_texture_node.mask_image != None:
+                context.scene.tool_settings.image_paint.canvas = mask_texture_node.mask_image
 
     # Refreshed the mash stack for the selected material layer.
     refresh_mask_stack(context)
@@ -74,8 +77,8 @@ def update_mask_node_type(self, context):
 
                 # Connect the mapping and coord node based on projection settings of the mask.
                 selected_mask = masks[selected_mask_index]
-                mapping_node = get_mask_node('MaskMapping', material_channel_name, selected_material_index, selected_mask_index, context)
-                coord_node = get_mask_node("MaskCoord", material_channel_name, selected_material_index, context)
+                mapping_node = get_mask_node('MaskMapping', material_channel_name, selected_material_index, selected_mask_index)
+                coord_node = get_mask_node("MaskCoord", material_channel_name, selected_material_index, selected_mask_index)
 
                 material_channel_node.node_tree.links.new(mapping_node.outputs[0], new_mask_node.inputs[0])
 
@@ -457,10 +460,15 @@ def relink_layer_mask_nodes(context):
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
-
-        # Link mask mix nodes together (for when there are multiple masks applied to one material layer).
         for i in range(0, len(masks)):
+            # Re-link mask texture nodes to their respective mix nodes.
+            mask_texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_layer_index, i)
             mix_mask_node = get_mask_node('MaskMix', material_channel_name, selected_material_layer_index, i)
+
+            if mask_texture_node and mix_mask_node:
+                material_channel_node.node_tree.links.new(mask_texture_node.outputs[0], mix_mask_node.inputs[2])
+
+            # Link mask mix nodes together (for when there are multiple masks applied to one material layer).
             next_mix_mask_node = get_mask_node('MaskMix', material_channel_name, selected_material_layer_index, i + 1)
             if next_mix_mask_node:
                 material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_mask_node.inputs[1])
@@ -470,6 +478,8 @@ def relink_layer_mask_nodes(context):
         last_mask_node = get_mask_node('MaskMix', material_channel_name, selected_material_layer_index, len(masks) - 1)
         if opacity_node and last_mask_node:
             material_channel_node.node_tree.links.new(last_mask_node.outputs[0], opacity_node.inputs[0])
+
+        
 
 def count_masks(material_stack_index, context):
     '''Counts the total number of masks applied to a specified material layer by reading the material node tree.'''
