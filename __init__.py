@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# This file imports and registers all required modules for MatLay (Blender add-on).
+# This file imports and registers all required modules for this add-on.
 
 import bpy
 from bpy.props import PointerProperty, CollectionProperty
