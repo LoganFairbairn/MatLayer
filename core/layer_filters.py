@@ -56,18 +56,6 @@ def update_filter_height_channel_toggle(self, context):
 
 #----------------------------- CORE MATERIAL FILTER FUNCTIONS -----------------------------#
 
-def filter_type_to_node_name(filter_type):
-    '''Filter nodes are assigned names deemed to be more intuitive for a wider audience when compared to the default blender node names, this function returns the assigned name for a filter based on it's type.'''
-    match filter_type:
-        case 'ShaderNodeInvert':
-            return 'Invert'
-        case 'ShaderNodeValToRGB':
-            return 'Levels'
-        case 'ShaderNodeHueSaturation':
-            return 'HueSaturationValue'
-        case 'ShaderNodeRGBCurve':
-            return 'RGBCurves'
-
 def format_filter_node_name(filter_node_type, material_layer_index, filter_index):
     '''All nodes made with this add-on must have properly formatted names, this function will return a properly formatted name for a material filter node.'''
     return  "{0}_{1}_{2}".format(filter_node_type, str(material_layer_index), str(filter_index))
@@ -100,8 +88,8 @@ def get_filter_stack_index(e):
     else:
         print("Error: Material filter invalid when attempting to read the filter stack index for organization.")
 
-def get_material_filter_nodes(material_layer_stack_index, material_channel_name, get_edited=False, organize_by_filter_index=False):
-    '''Returns all the filter nodes in the given material layer and within the given material channel. If get edited is passed as true, all nodes part of the given material layer marked as being edited (signified by a tilda at the end of their name) will be returned.'''
+def get_all_material_filter_nodes(material_layer_stack_index, material_channel_name, get_edited=False, organize_by_filter_index=False):
+    '''Returns ALL filter nodes in the given material layer material channel. If get edited is passed as true, all nodes part of the given material layer marked as being edited (signified by a tilda at the end of their name) will be returned.'''
     filter_nodes = []
     material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
     if material_channel_node:
@@ -196,7 +184,7 @@ def update_material_filter_node_indicies(material_channel_name):
 def re_link_material_filter_nodes(material_channel_name):
     '''Re-links all material filter nodes in the given material channel.'''
     selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
-    filter_nodes = get_material_filter_nodes(selected_material_layer_index, material_channel_name, get_edited=False, organize_by_filter_index=True)
+    filter_nodes = get_all_material_filter_nodes(selected_material_layer_index, material_channel_name, get_edited=False, organize_by_filter_index=True)
 
     material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
     for i in range(0, len(filter_nodes)):
@@ -251,7 +239,7 @@ def refresh_material_filter_stack(context):
     filters.clear()
 
     # Read the material nodes and re-add layer filters to the layer stack.
-    layer_filter_nodes = get_material_filter_nodes(selected_layer_index, selected_material_channel)
+    layer_filter_nodes = get_all_material_filter_nodes(selected_layer_index, selected_material_channel)
     for x in range(0, len(layer_filter_nodes)):
         filters.add()
         node_name = layer_filter_nodes[x].name.split("_")
@@ -289,7 +277,15 @@ def add_material_layer_filter(filter_type, context):
         return
 
     # Define a node name based on the provided filter type.
-    node_name = filter_type_to_node_name(filter_type)
+    match filter_type:
+        case 'ShaderNodeInvert':
+            node_name = 'Invert'
+        case 'ShaderNodeValToRGB':
+            node_name = 'Levels'
+        case 'ShaderNodeHueSaturation':
+            node_name = 'HueSaturationValue'
+        case 'ShaderNodeRGBCurve':
+            node_name = 'RGBCurves'
     
     # Add a new layer filter slot, name and select it.
     filters.add()
@@ -341,94 +337,64 @@ def add_material_layer_filter(filter_type, context):
             setattr(filters[new_filter_index].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", False)
             filter_material_channel_toggle(False, material_channel_name, context)
 
-# TODO: Fix this.
 def move_filter_layer(direction, context):
     filters = context.scene.matlay_material_filters
+    filter_stack = context.scene.matlay_material_filter_stack
     selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_material_stack_index = context.scene.matlay_layer_stack.layer_index
     material_channel_list = material_channels.get_material_channel_list()
 
-    if direction == "DOWN":
-        # Get the filter layer index under the selected layer filter. 
-        under_filter_layer_index = max(min(selected_filter_index - 1, len(filters) - 1), 0)
-        if selected_filter_index - 1 < 0:
-            return
+    filter_stack.auto_update_filter_properties = False
 
-        # Add a tilda to the end of the filter node's name for the filter node that will be moved down on the layer stack.
-        for material_channel_name in material_channel_list:
-            filter_node = get_material_filter_node(material_channel_name, selected_layer_index, selected_filter_index)
-            filter_node.name = filter_node.name + "~"
-            filter_node.label = filter_node.name
-        
-        # Update the name of the material filter node below this one of the filter stack.
-        for material_channel_name in material_channel_list:
-            filter_node = get_material_filter_node(material_channel_name, under_filter_layer_index, selected_filter_index)
-            filter_node.name = format_filter_node_name(filters[selected_filter_index].name, selected_layer_index, selected_filter_index)
-            filter_node.label = filter_node.name
-
-        # Remove the tilda from the end of the layer filter node and decrease it's index to move it down on the filter stack.
-        for material_channel_name in material_channel_list:
-            material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
-            filter_node = material_channel_node.node_tree.nodes.get(filters[under_filter_layer_index] + str(selected_layer_index) + "_" + str(selected_filter_index) + "~")
-            filter_node.name = format_filter_node_name(filters[selected_filter_index].name, selected_layer_index, selected_filter_index - 1)
-            filter_node.label = filter_node.name
-
-        # Update the filter stack index.
-        filters[selected_filter_index].stack_index -= 1
-        filters[under_filter_layer_index].stack_index += 1
-
-        # Move the layer stack slot.
-        index_to_move_to = max(min(selected_filter_index - 1, len(filters) -1), 0)
-        filters.move(selected_filter_index, index_to_move_to)
-        context.scene.matlay_layer_filter_stack.selected_filter_index = index_to_move_to
-
-    if direction == "UP":
-        # Get the filter layer index above the selected later filter.
-        over_layer_index = max(min(selected_filter_index + 1, len(filters) - 1), 0)
-        if selected_filter_index + 1 > len(filters) - 1:
-            return
-        
-        # Add a tilda to the end of the layer frame and the layer nodes names for the selected layer.
-        for material_channel_name in material_channel_list:
-            filter_node = get_material_filter_node(material_channel_name, selected_layer_index, selected_filter_index)
-            filter_node.name = filter_node.name + "~"
-            filter_node.label = filter_node.name
-        
-        # Update the layer nodes for the layer below to have the selected layer index.
-        for material_channel_name in material_channel_list:
-            material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
-            filter_node_name = format_filter_node_name(filters[over_layer_index].name, selected_layer_index, over_layer_index)
-            filter_node = material_channel_node.node_tree.nodes.get(filter_node_name)
-            filter_node.name = format_filter_node_name(filters[selected_filter_index].name, selected_layer_index, selected_filter_index)
-            filter_node.label = filter_node.name
-
-        # Remove the tilda from the end of the filter node and increase it's index.
-        for material_channel_name in material_channel_list:
-            material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
-            filter_node_name = format_filter_node_name(filters[selected_filter_index].name, selected_layer_index, selected_filter_index) + "~"
-            filter_node = material_channel_node.node_tree.nodes.get(filter_node_name)
-            filter_node.name = format_filter_node_name(filters[selected_filter_index + 1].name, selected_layer_index, selected_filter_index + 1)
-            filter_node.label = filter_node.name
-        
-        # Update the filter stack index.
-        filters[selected_filter_index].stack_index += 1
-        filters[over_layer_index].stack_index -= 1
-
-        index_to_move_to = max(min(selected_filter_index + 1, len(filters) - 1), 0)
-        filters.move(selected_filter_index, index_to_move_to)
-        context.scene.matlay_layer_filter_stack.selected_filter_index = index_to_move_to
-
-    # Re-link layer filter nodes.
-    for material_channel_name in material_channel_list:
-        re_link_material_filter_nodes(material_channel_name, context)
-
-    # TODO: Re-link layers.
-    for material_channel_name in material_channel_list:
-        material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
-        layer_nodes.organize_layer_nodes_in_material_channel(material_channel_name, context)
+    # Don't move the filter out of range.
+    if direction == 'UP' and selected_filter_index + 1 > len(filters) - 1:
+        return
+    if direction == 'DOWN' and selected_filter_index - 1 < 0:
+        return
     
-    # TODO: Re-link orangized.
+    # Get the layer index over or under the selected layer, depending on the direction the layer is being moved.
+    if direction == 'UP':
+        moving_to_index = max(min(selected_filter_index + 1, len(filters) - 1), 0)
+    else:
+        moving_to_index = max(min(selected_filter_index - 1, len(filters) - 1), 0)
 
+    # 1. Add a tilda to the end of all the filter nodes to signify they are being edited (and to avoid naming conflicts).
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        nodes = get_all_material_filter_nodes(material_channel_name, selected_material_stack_index, selected_filter_index)
+        for node in nodes:
+            node.name = node.name + "~"
+            node.label = node.name
+
+    # 2. Update the filter node names for the layer below or above the selected index.
+    for material_channel_name in material_channel_list:
+        nodes = get_all_material_filter_nodes(material_channel_name, selected_material_stack_index, moving_to_index)
+        for node in nodes:
+            node_info = node.name.split('_')
+            node.name = node_info[0] + "_" + str(selected_material_stack_index) + "_" + str(selected_filter_index)
+            node.label = node.name
+
+    # 3. Remove the tilda from the end of the filter node names that were edited and re-index them.
+    for material_channel_name in material_channel_list:
+        nodes = get_all_material_filter_nodes(material_channel_name, selected_material_stack_index, selected_filter_index, True)
+        for node in nodes:
+            node_info = node.name.split('_')
+            node.name = node_info[0] + "_" + str(selected_material_stack_index) + "_" + str(moving_to_index)
+            node.label = node.name
+
+    # 4. Move the selected filter on the ui stack.
+    if direction == 'UP':
+        index_to_move_to = max(min(selected_filter_index + 1, len(filters) - 1), 0)
+    else:
+        index_to_move_to = max(min(selected_filter_index - 1, len(filters) - 1), 0)
+    filters.move(selected_filter_index, index_to_move_to)
+    context.scene.matlay_material_filter_stack.selected_filter_index = index_to_move_to
+
+    # 5. Re-link and organize filter nodes.
+    update_material_filter_nodes(context)
+    layer_nodes.update_layer_nodes(context)
+
+    filter_stack.auto_update_filter_properties = True
 
 #----------------------------- OPERATORS -----------------------------#
 
@@ -580,7 +546,7 @@ class MATLAY_OT_delete_layer_filter(Operator):
                 material_channel_node.node_tree.nodes.remove(filter_node)
 
         # Re-index and re-link material filter nodes.
-        number_of_filter_nodes = len(get_material_filter_nodes(selected_layer_index, "COLOR"))
+        number_of_filter_nodes = len(get_all_material_filter_nodes(selected_layer_index, "COLOR"))
         if number_of_filter_nodes > 0:
             update_material_filter_nodes(context)
 
