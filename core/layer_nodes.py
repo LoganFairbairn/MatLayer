@@ -32,7 +32,7 @@ def rename_layer_node(node, node_name, layer_stack_index):
         print("Unable to rename " + node_name + " layer node isn't valid.")
 
 def get_layer_node(node_name, material_channel_name, layer_index, context, get_edited=False):
-    '''Gets a specific layer node using a given name.'''
+    '''Gets a specific layer node using a given name. Valid options include "TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER".'''
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     if material_channel_node:
         if node_name in LAYER_NODE_NAMES:

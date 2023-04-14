@@ -220,6 +220,13 @@ def re_link_material_filter_nodes(material_channel_name):
                         material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[4])
                     case 'CURVE_RGB':
                         material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[1])
+    
+    # If there are no filter nodes, re-connect the color texture to the mix layer node.
+    if len(filter_nodes) <= 0:
+        layer_texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_material_layer_index, bpy.context, False)
+        layer_mix_node = layer_nodes.get_layer_node('MIXLAYER', material_channel_name, selected_material_layer_index, bpy.context, False)
+        if layer_texture_node:
+            material_channel_node.node_tree.links.new(layer_texture_node.outputs[0], layer_mix_node.inputs[2])
 
 # TODO: Remove this wrapper function, use relink / reindex individually.
 def update_material_filter_nodes(context):
@@ -437,7 +444,7 @@ class MATLAY_UL_layer_filter_stack(bpy.types.UIList):
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             row = layout.row()
-            row.label(text=str(item.stack_index) + " " + context.scene.matlay_material_filters[item.stack_index].name)
+            row.label(text=str(item.stack_index + 1) + ". " + context.scene.matlay_material_filters[item.stack_index].name)
 
 class MATLAY_OT_add_layer_filter_invert(Operator):
     '''Adds an invert filter to the selected layer.'''
