@@ -59,6 +59,7 @@ def update_mask_node_type(self, context):
 
     # TODO: Error here make node type doesn't change properly.
 
+
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
@@ -351,13 +352,13 @@ def get_mask_node(mask_node_name, material_channel_name, material_layer_index, m
         info_messages.popup_message_box("Mask node name invalid, did you make a typo in your code?", "Coding Error", 'ERROR')
         return None
 
-def get_mask_nodes(material_channel_name, material_stack_index, mask_stack_index):
+def get_mask_nodes(material_channel_name, material_stack_index, mask_stack_index, get_edited=False):
     '''Returns an array of mask node for the specific mask index.'''
     nodes = []
     material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
     if material_channel_node:
         for name in MASK_NODE_NAMES:
-            mask_node = get_mask_node(name, material_channel_name, material_stack_index, mask_stack_index)
+            mask_node = get_mask_node(name, material_channel_name, material_stack_index, mask_stack_index, get_edited)
             if mask_node:
                 nodes.append(mask_node)
     return nodes
@@ -402,7 +403,6 @@ def update_mask_indicies(context):
         mask_deleted = False
 
         # 1. Check for a newly added mask (signified by a tilda at the end of the node's name).
-        number_of_masks = len(masks)
         for i in range(0, len(masks)):
             temp_mask_node_name = format_mask_node_name('MaskTexture', selected_layer_index, i, True)
             temp_mask_node = material_channel_node.node_tree.nodes.get(temp_mask_node_name)
@@ -563,6 +563,7 @@ def add_mask_slot(context):
     masks.add()
     masks[len(masks) - 1].name = "MASK"
 
+    mask_stack.auto_update_properties = False
     if selected_layer_mask_index < 0:
         move_index = len(masks) - 1
         move_to_index = 0
@@ -576,11 +577,7 @@ def add_mask_slot(context):
         masks.move(move_index, move_to_index)
         mask_stack.selected_mask_index = move_to_index
         selected_layer_mask_index = max(0, min(selected_layer_mask_index + 1, len(masks) - 1))
-
-    if len(masks) == 0:
-        return 0
-    else:
-        return selected_layer_mask_index
+    mask_stack.auto_update_properties = True
 
 def add_default_mask_nodes(context):
     '''Adds default mask nodes to all material channels.'''
@@ -633,6 +630,7 @@ def add_mask(mask_type, context):
         return
 
     add_mask_slot(context)
+    print("Number of masks: " + str(len(masks)))
     add_default_mask_nodes(context)
     update_mask_indicies(context)
     relink_layer_mask_nodes(context)
@@ -647,6 +645,67 @@ def add_mask(mask_type, context):
 
         case 'WHITE_MASK':
             bpy.ops.matlay.add_mask_image(image_fill='WHITE')
+
+def move_mask(direction, context):
+    '''Moves the selected layer mask up or down on the layer stack.'''
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    masks = context.scene.matlay_masks
+    mask_stack = context.scene.matlay_mask_stack
+
+    mask_stack.auto_update_properties = False
+    
+    # Don't move the mask if the user is trying to move the layer out of range.
+    if direction == 'UP' and selected_mask_index + 1 > len(masks) - 1:
+        return
+    if direction == 'DOWN' and selected_mask_index - 1 < 0:
+        return
+    
+    # Get the layer index over or under the selected layer, depending on the direction the layer is being moved.
+    if direction == 'UP':
+        moving_to_index = max(min(selected_mask_index + 1, len(masks) - 1), 0)
+    else:
+        moving_to_index = max(min(selected_mask_index - 1, len(masks) - 1), 0)
+
+    # 1. Add a tilda to the end of all the mask nodes to signify they are being edited (and to avoid naming conflicts).
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        nodes = get_mask_nodes(material_channel_name, selected_material_layer_index, selected_mask_index)
+        for node in nodes:
+            node.name = node.name + "~"
+            node.label = node.name
+
+    # 2. Update the mask node names for the layer below or above the selected index.
+    for material_channel_name in material_channel_list:
+        nodes = get_mask_nodes(material_channel_name, selected_material_layer_index, moving_to_index)
+        for node in nodes:
+            node_info = node.name.split('_')
+            node.name = node_info[0] + "_" + str(selected_material_layer_index) + "_" + str(selected_mask_index)
+            node.label = node.name
+
+    # 3. Remove the tilda from the end of the mask node names that were edited and re-index them.
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        nodes = get_mask_nodes(material_channel_name, selected_material_layer_index, selected_mask_index, True)
+        for node in nodes:
+            node_info = node.name.split('_')
+            node.name = node_info[0] + "_" + str(selected_material_layer_index) + "_" + str(moving_to_index)
+            node.label = node.name
+
+    # 4. Move the selected mask on the ui stack.
+    if direction == 'UP':
+        index_to_move_to = max(min(selected_mask_index + 1, len(masks) - 1), 0)
+    else:
+        index_to_move_to = max(min(selected_mask_index - 1, len(masks) - 1), 0)
+    masks.move(selected_mask_index, index_to_move_to)
+    context.scene.matlay_mask_stack.selected_mask_index = index_to_move_to
+
+    # 6. Re-link and organize mask nodes.
+    update_mask_indicies(context)
+    relink_layer_mask_nodes(context)
+    layer_nodes.update_layer_nodes(context)     # TODO: Swap this out for a function that only organizes all nodes, instead of re-linking and re-indexing nodes too.
+
+    mask_stack.auto_update_properties = True
 
 #----------------------------- MASK PROPERTIES & OPERATORS -----------------------------#
 
@@ -845,6 +904,7 @@ class MATLAY_OT_move_layer_mask_up(Operator):
     bl_description = "Moves the selected layer up on the layer stack"
 
     def execute(self, context):
+        move_mask('UP', context)
         return {'FINISHED'}
 
 class MATLAY_OT_move_layer_mask_down(Operator):
@@ -855,6 +915,7 @@ class MATLAY_OT_move_layer_mask_down(Operator):
     bl_description = "Moves the selected layer down on the layer stack"
 
     def execute(self, context):
+        move_mask('DOWN', context)
         return {'FINISHED'}
 
 class MATLAY_OT_add_mask_image(Operator):

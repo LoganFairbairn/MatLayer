@@ -218,13 +218,13 @@ class MATLAY_OT_move_material_layer(Operator):
         if self.direction == 'DOWN' and selected_layer_index - 1 < 0:
             return{'FINISHED'}
         
-        # Get the layer index under or over the selected layer, depending on the direction the layer is being moved on the layer stack.
+        # 1. Get the layer index under or over the selected layer, depending on the direction the layer is being moved on the layer stack.
         if self.direction == 'UP':
             moving_to_layer_index = max(min(selected_layer_index + 1, len(layers) - 1), 0)
         else:
             moving_to_layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
 
-        # 1. Add a tilda to the end of the all layer nodes in the selected layer (including the frame). Adding a tilda to the end of the node name is the method used to signify which nodes are being actively changed, and is used for avoid naming conflicts with other nodes.
+        # 2. Add a tilda to the end of the all layer nodes in the selected layer (including the frame). Adding a tilda to the end of the node name is the method used to signify which nodes are being actively changed, and is used for avoid naming conflicts with other nodes.
         for material_channel_name in material_channel_list:
             frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_index, context)
             frame.name = frame.name + "~"
@@ -235,7 +235,7 @@ class MATLAY_OT_move_material_layer(Operator):
                 node.name = node.name + "~"
                 node.label = node.name
 
-        # 2. Update the layer node names for the layer below or above with the selected layer index.
+        # 3. Update the layer node names for the layer below or above with the selected layer index.
         for material_channel_name in material_channel_list:
             frame = layer_nodes.get_layer_frame(material_channel_name, moving_to_layer_index, context)
             frame.name = layers[moving_to_layer_index].name + "_" + str(layers[moving_to_layer_index].id) + "_" + str(selected_layer_index)
@@ -263,7 +263,7 @@ class MATLAY_OT_move_material_layer(Operator):
                 mask_node.label = mask_node.name
         layers[moving_to_layer_index].cached_frame_name = frame.name
 
-        # 3. Remove the tilda from the end of the layer nodes names that belong to the moved layer and correct the index stored there.
+        # 4. Remove the tilda from the end of the layer nodes names that belong to the moved layer and correct the index stored there.
         for material_channel_name in material_channel_list:
             frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_index, context, get_edited=True)
             frame.name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(moving_to_layer_index)
@@ -292,7 +292,7 @@ class MATLAY_OT_move_material_layer(Operator):
                 
         layers[selected_layer_index].cached_frame_name = frame.name
 
-        # 4. Move the selected layer on the ui layer stack.
+        # 5. Move the selected layer on the ui layer stack.
         if self.direction == 'UP':
             index_to_move_to = max(min(selected_layer_index + 1, len(layers) - 1), 0)
         else:
@@ -300,7 +300,7 @@ class MATLAY_OT_move_material_layer(Operator):
         layers.move(selected_layer_index, index_to_move_to)
         context.scene.matlay_layer_stack.layer_index = index_to_move_to
 
-        # 5. Update the layer stack (organize, re-link).
+        # 6. Update the layer stack (organize, re-link).
         layer_nodes.update_layer_nodes(context)
 
         return{'FINISHED'}
