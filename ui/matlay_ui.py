@@ -26,7 +26,6 @@ class MATLAY_PT_Panel(bpy.types.Panel):
 
     def draw(self, context):
         panel_properties = context.scene.matlay_panel_properties
-        self.layout.label(text="Something here")
         if check_blend_saved():
             if panel_properties.sections == 'SECTION_TEXTURE_SET':
                 ui_texture_set_section.draw_texture_set_section_ui(self, context)

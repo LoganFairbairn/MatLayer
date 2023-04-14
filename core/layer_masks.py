@@ -57,9 +57,6 @@ def update_mask_node_type(self, context):
     selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
     masks = context.scene.matlay_masks
 
-    # TODO: Error here make node type doesn't change properly.
-
-
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
@@ -1044,7 +1041,7 @@ class MATLAY_UL_mask_filter_stack(UIList):
         self.use_filter_show = False
         self.use_filter_reverse = True
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(text="SOMETHING HERE")
+            layout.label(text="FILTER NAME HERE")
 
 class MATLAY_OT_add_mask_filter_invert(Operator):
     '''Adds an invert adjustment to the masks applied to the selected layer'''
