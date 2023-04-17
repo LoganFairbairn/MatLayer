@@ -72,6 +72,7 @@ def draw_export_section_ui(self, context):
     row.label(text="Emission")
     row.operator("matlay.export_emission", text="", icon='RENDER_STILL')
 
+    '''
     if not export_settings.show_advanced_settings:
         row = layout.row()
         row.scale_x = 10000
@@ -85,3 +86,4 @@ def draw_export_section_ui(self, context):
         row = layout.row()
         row.scale_x = 10000
         row.prop(export_settings, "show_advanced_settings", icon='TRIA_UP', text="")
+    '''
