@@ -459,13 +459,20 @@ def update_mask_indicies(context):
 def relink_layer_mask_nodes(context):
     '''Re-links layer mask nodes to other mask nodes and the layer (by connecting to the material layer's opacity node).'''
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_material_index = bpy.context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
     masks = context.scene.matlay_masks
+    mask_filters = context.scene.matlay_mask_filters
+
+    # 1. Relink existing mask filters together.
+    relink_mask_filter_nodes()
 
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
         for i in range(0, len(masks)):
-            # 1. Unlink all mask mix nodes.
+
+            # 2. Unlink all mask mix nodes.
             mix_mask_node = get_mask_node('MaskMix', material_channel_name, selected_material_layer_index, i)
             if mix_mask_node:
                 output = mix_mask_node.outputs[0]
@@ -473,22 +480,30 @@ def relink_layer_mask_nodes(context):
                     if l != 0:
                         material_channel_node.node_tree.links.remove(l)
 
-            # 2. Re-link mask texture nodes to their respective mix nodes.
-            mask_texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_layer_index, i)
+            # 3. Connect the mask texture node or the last mask filter (if one exists) to the mix mask node.
+            last_node = None
+            last_mask_filter_node = get_mask_filter_node(material_channel_name, selected_material_index, selected_mask_index, len(mask_filters) - 1)
+            if last_mask_filter_node:
+                last_node = last_mask_filter_node
+            else:
+                last_node = get_mask_node('MaskTexture', material_channel_name, selected_material_index, selected_mask_index, False)
 
-            if mask_texture_node and mix_mask_node:
-                material_channel_node.node_tree.links.new(mask_texture_node.outputs[0], mix_mask_node.inputs[2])
+            mix_mask_node = get_mask_node('MaskMix', material_channel_name, selected_material_index, selected_mask_index, False)
+            if mix_mask_node and last_node:
+                material_channel_node.node_tree.links.new(last_node.outputs[0], mix_mask_node.inputs[2])
 
-            # 3. Re-link mask mix nodes together (for when there are multiple masks applied to one material layer).
+            # 4. Re-link to the next mask if another one exists on this layer.
             next_mix_mask_node = get_mask_node('MaskMix', material_channel_name, selected_material_layer_index, i + 1)
             if next_mix_mask_node:
                 material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_mask_node.inputs[1])
 
-        # 4. Link the last mask node to the layer's opacity node.
+        # 5. Link the last mask node to the layer's opacity node.
         opacity_node = layer_nodes.get_layer_node('OPACITY', material_channel_name, selected_material_layer_index, context)
         last_mask_node = get_mask_node('MaskMix', material_channel_name, selected_material_layer_index, len(masks) - 1)
         if opacity_node and last_mask_node:
             material_channel_node.node_tree.links.new(last_mask_node.outputs[0], opacity_node.inputs[0])
+
+
 
 def count_masks(material_stack_index, context):
     '''Counts the total number of masks applied to a specified material layer by reading the material node tree.'''
@@ -1182,12 +1197,6 @@ def relink_mask_filter_nodes():
                     material_channel_node.node_tree.links.new(mask_texture_node.outputs[0], first_mask_filter_node.inputs[1])
                 case 'VALTORGB':
                     material_channel_node.node_tree.links.new(mask_texture_node.outputs[0], first_mask_filter_node.inputs[0])
-
-        # 4. Connect the last mask filter node to the mask mix node.
-        last_mask_filter_node = get_mask_filter_node(material_channel_name, selected_material_index, selected_mask_index, len(mask_filter_nodes) - 1)
-        mix_mask_node = get_mask_node('MaskMix', material_channel_name, selected_material_index, selected_mask_index, False)
-        if mix_mask_node:
-            material_channel_node.node_tree.links.new(last_mask_filter_node.outputs[0], mix_mask_node.inputs[2])
 
 def refresh_mask_filters():
     '''Reads the material node tree to rebuild the mask filter stack in the ui.'''

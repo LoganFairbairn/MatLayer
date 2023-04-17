@@ -205,7 +205,7 @@ def relink_material_filter_nodes(material_channel_name):
         next_filter_node = None
         if len(filter_nodes) - 1 > i:
 
-            # Clear the output links
+            # Unlink all mask filter nodes.
             node_links = material_channel_node.node_tree.links
             for l in node_links:
                 if l.from_node.name == filter_node.name:
