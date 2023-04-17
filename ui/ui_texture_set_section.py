@@ -11,10 +11,6 @@ def draw_texture_set_section_ui(self, context):
     scale_y = 1.4
     texture_set_settings = context.scene.matlay_texture_set_settings
 
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(texture_set_settings, "layer_folder")
-
     split = layout.split(align=True)
 
     col = split.column(align=True)
@@ -40,10 +36,6 @@ def draw_texture_set_section_ui(self, context):
 
     col.prop(texture_set_settings, "image_height", text="")
 
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(texture_set_settings, "thirty_two_bit")
-
     # Draw global material channel toggles.
     layout.label(text="MATERIAL CHANNELS")
     material_channel_list = get_material_channel_list()
@@ -52,3 +44,8 @@ def draw_texture_set_section_ui(self, context):
         row.scale_y = scale_y
         material_channel_name_text = material_channel_name.replace('_', ' ')
         row.prop(texture_set_settings.global_material_channel_toggles, material_channel_name.lower() + "_channel_toggle", text=material_channel_name_text, toggle=1)
+
+    # Draw additional settings.
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(texture_set_settings, "thirty_two_bit")
