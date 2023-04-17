@@ -1145,12 +1145,49 @@ def reindex_mask_filters_nodes():
     
 def relink_mask_filter_nodes():
     '''Relinks all mask filters.'''
+    selected_material_index = bpy.context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
 
-    # TODO: Unlink all mask filter nodes.
+    for material_channel_name in material_channels.get_material_channel_list():
+        mask_filter_nodes = get_all_mask_filter_nodes(material_channel_name, selected_material_index, selected_mask_index, False)
+        material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
 
-    # TODO: Link to the next mask mix node in the mask filter stack if it exists.
+        for i in range(0, len(mask_filter_nodes)):
+            mask_filter_node = mask_filter_nodes[i]
 
-    # TODO: If no more mask filter nodes exist, connect to the mask mix node.
+            next_filter_node = None
+            if len(mask_filter_nodes) - 1 > i:
+
+                # 1. Unlink all mask filter nodes.
+                node_links = material_channel_node.node_tree.links
+                for l in node_links:
+                    if l.from_node.name == mask_filter_node.name:
+                        node_links.remove(l)
+
+                # 2. Link to the next mask mix node in the mask filter stack if it exists.
+                next_filter_node = mask_filter_nodes[i + 1]
+                if next_filter_node:
+                    match next_filter_node.bl_static_type:
+                        case 'INVERT':
+                            material_channel_node.node_tree.links.new(mask_filter_node.outputs[0], next_filter_node.inputs[1])
+                        case 'VALTORGB':
+                            material_channel_node.node_tree.links.new(mask_filter_node.outputs[0], next_filter_node.inputs[0])
+
+        # 3. Connect the mask texture to the first mask filter.
+        first_mask_filter_node = get_mask_filter_node(material_channel_name, selected_material_index, selected_mask_index, 0)
+        mask_texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_index, selected_mask_index, False)
+        if mask_texture_node and first_mask_filter_node:
+            match first_mask_filter_node.bl_static_type:
+                case 'INVERT':
+                    material_channel_node.node_tree.links.new(mask_texture_node.outputs[0], first_mask_filter_node.inputs[1])
+                case 'VALTORGB':
+                    material_channel_node.node_tree.links.new(mask_texture_node.outputs[0], first_mask_filter_node.inputs[0])
+
+        # 4. Connect the last mask filter node to the mask mix node.
+        last_mask_filter_node = get_mask_filter_node(material_channel_name, selected_material_index, selected_mask_index, len(mask_filter_nodes) - 1)
+        mix_mask_node = get_mask_node('MaskMix', material_channel_name, selected_material_index, selected_mask_index, False)
+        if mix_mask_node:
+            material_channel_node.node_tree.links.new(last_mask_filter_node.outputs[0], mix_mask_node.inputs[2])
 
 def refresh_mask_filters():
     '''Reads the material node tree to rebuild the mask filter stack in the ui.'''

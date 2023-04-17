@@ -204,7 +204,6 @@ def relink_material_filter_nodes(material_channel_name):
 
         next_filter_node = None
         if len(filter_nodes) - 1 > i:
-            next_filter_node = filter_nodes[i + 1]
 
             # Clear the output links
             node_links = material_channel_node.node_tree.links
@@ -213,6 +212,7 @@ def relink_material_filter_nodes(material_channel_name):
                     node_links.remove(l)
 
             # Link to the next filter node in the layer stack if it exists.
+            next_filter_node = filter_nodes[i + 1]
             if next_filter_node:
                 match next_filter_node.bl_static_type:
                     case 'INVERT':
