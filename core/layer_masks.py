@@ -371,15 +371,20 @@ def get_all_mask_nodes_in_layer(material_stack_index, material_channel_name, get
     if material_channel_node:
         for i in range(0, MAX_LAYER_MASKS):
             for name in MASK_NODE_NAMES:
-                if get_edited:
-                    mask_node_name = format_mask_node_name(name, material_stack_index, i, True)
-                else:
-                    mask_node_name = format_mask_node_name(name, material_stack_index, i)
+                mask_node_name = format_mask_node_name(name, material_stack_index, i, get_edited)
                 mask_node = material_channel_node.node_tree.nodes.get(mask_node_name)
                 if mask_node:
                     nodes.append(mask_node)
                 else:
                     break
+    
+    # Get all mask filters too.
+    masks = bpy.context.scene.matlay_masks
+    for i in range(0, len(masks)):
+        mask_filter_nodes = get_all_mask_filter_nodes(material_channel_name, material_stack_index, i, get_edited)
+        for node in mask_filter_nodes:
+            nodes.append(node)
+
     return nodes
 
 def update_mask_indicies(context):
@@ -1248,9 +1253,7 @@ class MATLAY_UL_mask_filter_stack(UIList):
             # Draw the filter name based on the filters node type.
             material_layer_index = context.scene.matlay_layer_stack.layer_index
             selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
-            selected_mask_filter_index = context.scene.matlay_mask_filter_stack.selected_mask_filter_index
-
-            mask_filter_node = get_mask_filter_node('COLOR', material_layer_index, selected_mask_index, selected_mask_filter_index, False)
+            mask_filter_node = get_mask_filter_node('COLOR', material_layer_index, selected_mask_index, item.stack_index, False)
             filter_node_name = ""
             if mask_filter_node:
                 match mask_filter_node.bl_static_type:
