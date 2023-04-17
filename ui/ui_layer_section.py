@@ -558,10 +558,7 @@ def draw_mask_filters(column):
             case 'INVERT':
                 subrow = column.row()
                 subrow.scale_y = SCALE_Y
-                subrow.prop(mask_filter_node.inputs[0], "default_value")
-                subrow = column.row()
-                subrow.scale_y = SCALE_Y
-                subrow.prop(mask_filter_node.inputs[1], "default_value")
+                subrow.prop(mask_filter_node.inputs[0], "default_value", text="Invert")
             case 'VALTORGB':
                 subrow = column.row()
                 subrow.scale_y = SCALE_Y
