@@ -544,9 +544,9 @@ def draw_mask_filters(column):
     operator.direction = 'DOWN'
     subrow.operator("matlay.delete_mask_filter", text="", icon='TRASH')
 
-    mask_stack = bpy.context.scene.matlay_mask_stack
+    mask_filter_stack = bpy.context.scene.matlay_mask_filter_stack
     subrow = column.row(align=True)
-    subrow.template_list("MATLAY_UL_mask_filter_stack", "Masks", bpy.context.scene, "matlay_mask_filters", mask_stack, "selected_mask_index", sort_reverse=True)
+    subrow.template_list("MATLAY_UL_mask_filter_stack", "Masks", bpy.context.scene, "matlay_mask_filters", mask_filter_stack, "selected_mask_filter_index", sort_reverse=True)
 
     # Draw node settings based on the node type.
     selected_material_index = bpy.context.scene.matlay_layer_stack.layer_index
