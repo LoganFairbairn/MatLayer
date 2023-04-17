@@ -553,7 +553,7 @@ class MATLAY_OT_refresh_layer_nodes(Operator):
         # Remember the selected layer index before clearing the layer stack.
         original_selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
-        # Clear the layer stack.
+        # Clear the material stack.
         layers = context.scene.matlay_layers
         layers.clear()
 
@@ -580,6 +580,7 @@ class MATLAY_OT_refresh_layer_nodes(Operator):
         read_active_layer_material_channels(material_channel_list, total_number_of_layers, layers, context)
         layer_nodes.organize_all_matlay_materials(context)
         layer_nodes.update_layer_nodes(context)
+        layer_masks.refresh_mask_filter_stack(context)
 
         context.scene.matlay_layer_stack.auto_update_layer_properties = True
 
