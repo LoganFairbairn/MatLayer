@@ -187,7 +187,8 @@ def organize_material_channel_nodes(context):
     active_material_channel_nodes = material_channels.get_all_material_channel_nodes(context)
     header_position = [0.0, 0.0]
     for node in active_material_channel_nodes:
-        if node != None:
+        if node:
+            node.hide = True
             node.location = (-node.width + -NODE_SPACING, header_position[1])
             header_position[1] -= (node.height + (NODE_SPACING * 0.5))
 
@@ -229,6 +230,7 @@ def organize_layer_nodes_in_material_channel(material_channel_name, context):
         # Create a list of all nodes in the layer and then organize them.
         node_list = get_all_nodes_in_layer(material_channel_name, material_layer_index, context)
         for node in node_list:
+            node.hide = True
             node.width = NODE_WIDTH
             node.location = (header_position[0], header_position[1])
             header_position[1] -= (node.dimensions.y) + NODE_SPACING
