@@ -538,15 +538,14 @@ def draw_mask_filter_stack(column):
     subrow.scale_y = 2
     subrow.scale_x = 10
     subrow.operator("matlay.add_layer_mask_filter_menu", text="", icon='ADD')
-    subrow.operator("matlay.delete_mask_filter", text="", icon='TRASH')
     operator = subrow.operator("matlay.move_layer_mask_filter", text="", icon='TRIA_UP')
     operator.direction = 'UP'
     operator = subrow.operator("matlay.move_layer_mask_filter", text="", icon='TRIA_DOWN')
     operator.direction = 'DOWN'
+    subrow.operator("matlay.delete_mask_filter", text="", icon='TRASH')
 
     mask_stack = bpy.context.scene.matlay_mask_stack
     subrow = column.row(align=True)
-    subrow.scale_y = 2
     subrow.template_list("MATLAY_UL_mask_filter_stack", "Masks", bpy.context.scene, "matlay_mask_filters", mask_stack, "selected_mask_index", sort_reverse=True)
 
 def draw_mask_properties(column):

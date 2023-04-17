@@ -7,6 +7,7 @@ from bpy.props import BoolProperty, IntProperty, FloatProperty, StringProperty, 
 
 # Imports from this add-on.
 from ..core.layers import PROJECTION_MODES, TEXTURE_EXTENSION_MODES, TEXTURE_INTERPOLATION_MODES
+from ..core.layer_filters import FILTER_NODE_TYPES
 from . import layer_nodes
 from . import material_channels
 from . import texture_set_settings
@@ -30,7 +31,10 @@ MASK_NODE_TYPES = [
 MASK_NODE_NAMES = ("MaskTexture", "MaskCoord", "MaskMapping", "MaskMix")
 
 # The maximum number of masks a single layer can use. Realistically users should never need more masks on a single layer than this.
-MAX_MASK_COUNT = 5
+MAX_LAYER_MASKS = 5
+
+# The maximum number of mask filter nodes that can be applied to a single mask. Users should never need more masks than the number defined here. Imposing a maximum number of mask filters helps with optimization and proper workflow.
+MAX_MASK_FILTERS = 3
 
 #----------------------------- MASK AUTO UPDATING FUNCTIONS -----------------------------#
 
@@ -365,7 +369,7 @@ def get_all_mask_nodes_in_layer(material_stack_index, material_channel_name, get
     nodes = []
     material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
     if material_channel_node:
-        for i in range(0, MAX_MASK_COUNT):
+        for i in range(0, MAX_LAYER_MASKS):
             for name in MASK_NODE_NAMES:
                 if get_edited:
                     mask_node_name = format_mask_node_name(name, material_stack_index, i, True)
@@ -381,18 +385,16 @@ def get_all_mask_nodes_in_layer(material_stack_index, material_channel_name, get
 def update_mask_indicies(context):
     '''Updates mask node indicies.'''
 
-    # Update layer stack indicies first.
+    # Update mask stack indicies first.
     masks = context.scene.matlay_masks
     number_of_layers = len(masks)
     for i in range(0, number_of_layers):
         masks[i].stack_index = i
     
-    # Update mask node indicies.
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
         selected_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
-        selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
 
         changed_index = -1
         mask_added = False
@@ -486,7 +488,7 @@ def relink_layer_mask_nodes(context):
 def count_masks(material_stack_index, context):
     '''Counts the total number of masks applied to a specified material layer by reading the material node tree.'''
     count = 0
-    for i in range(0, MAX_MASK_COUNT):
+    for i in range(0, MAX_LAYER_MASKS):
         if get_mask_node('MaskTexture', 'COLOR', material_stack_index, i):
             count += 1
         else:
@@ -634,8 +636,8 @@ def add_mask(mask_type, context):
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
     # Stop users from adding too many masks.
-    if len(masks) >= MAX_MASK_COUNT:
-        info_messages.popup_message_box("You can't have more than {0} masks on a single layer. This is a safeguard to stop users from adding an unnecessary amount of masks, which will impact performance.".format(MAX_MASK_COUNT), 'User Error', 'ERROR')
+    if len(masks) >= MAX_LAYER_MASKS:
+        info_messages.popup_message_box("You can't have more than {0} masks on a single layer. This is a safeguard to stop users from adding an unnecessary amount of masks, which will impact performance.".format(MAX_LAYER_MASKS), 'User Error', 'ERROR')
         return
 
     add_mask_slot(context)
@@ -1039,25 +1041,202 @@ class MATLAY_OT_import_mask_image(Operator, ImportHelper):
 
 #----------------------------- MASK FILTERS -----------------------------#
 
-def add_mask_filter(filter_type):
-    '''Adds a new filter to the selected layer mask.'''
+# Mask filter names are all the same (this makes them a bit easier to access in some cases).
+MASK_FILTER_NAME = "MaskFilter"
 
-    # TODO: Stop users from adding too many mask filters.
+def format_mask_filter_node_name(material_layer_index, mask_index, mask_filter_index, get_edited=False):
+    '''All node names including mask node names must be formatted properly so they can be read from the material node tree. This function should be used to properly format the name of a mask filter node. Get edited will return the name of a mask filter node with a tilda at the end, signifying that the node is actively being changed.'''
+    if get_edited:
+        return  "{0}_{1}_{2}_{3}~".format(MASK_FILTER_NAME, str(material_layer_index), str(mask_index), str(mask_filter_index))
+    else:
+        return  "{0}_{1}_{2}_{3}".format(MASK_FILTER_NAME, str(material_layer_index), str(mask_index), str(mask_filter_index))
 
-    # TODO: Define a filter node name based on the provided filter type.
+def get_mask_filter_node(material_channel_name, material_layer_index, mask_index, mask_filter_index, get_edited=False):
+    '''Returns the mask filter node for the given material layer index at the filter index by reading through existing nodes within the specified material channel.'''
+    material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
+    if material_channel_node:
+        node_name = format_mask_filter_node_name(material_layer_index, mask_index, mask_filter_index, get_edited)
+        return material_channel_node.node_tree.nodes.get(node_name)
 
-    # TODO: Add a new mask filter slot, name and select it.
+def get_all_mask_filter_nodes(material_channel_name, material_layer_index, mask_index, get_edited=False):
+    '''Returns all mask filter nodes belonging to the mask at the provided mask index.'''
+    nodes = []
+    material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
+    if material_channel_node:
+        for i in range(0, MAX_MASK_FILTERS):
+            node_name = format_mask_filter_node_name(material_layer_index, mask_index, i, False)
+            node = material_channel_node.node_tree.nodes.get(node_name)
+            if node:
+                nodes.append(node)
+    return nodes
 
-    # TODO: Create a new filter node.
+def reindex_mask_filters_nodes():
+    '''Reindexes mask filters by renaming nodes based added, edited, or deleted nodes.'''
+    selected_material_index = bpy.context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
+    mask_filters = bpy.context.scene.matlay_mask_filters
 
-    # TODO: Re-organize and re-link nodes.
+    for material_channel_name in material_channels.get_material_channel_list():
+        material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
+
+        changed_filter_index = -1
+        filter_added = False
+        filter_deleted = False
+
+        # 1. Update the mask filter indicies first.
+        number_of_filters = len(mask_filters)
+        for i in range(0, number_of_filters):
+            mask_filters[i].stack_index = i
+
+        # 2. Check for a newly added mask filter (signified by a tilda at the end of the node's name).
+        for i in range(0, len(mask_filters)):
+            temp_node_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i) + "~"
+            temp_node = material_channel_node.node_tree.nodes.get(temp_node_name)
+            if temp_node:
+                filter_added = True
+                changed_filter_index = i
+                break
+
+        # 3. Check for a deleted filter.
+        if not filter_added:
+            for i in range(0, len(mask_filters)):
+                temp_node_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i)
+                temp_node = material_channel_node.node_tree.nodes.get(temp_node_name)
+                if not temp_node:
+                    filter_deleted = True
+                    changed_filter_index = i
+                    break
+
+        # 4. Rename filter nodes above the newly added mask filter on the stack if any exist (in reverse order to avoid naming conflicts).
+        if filter_added:
+            for i in range(len(mask_filters), changed_filter_index + 1, -1):
+                index = i - 1
+                node_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, index - 1)
+                node = material_channel_node.node_tree.nodes.get(node_name)
+
+                if node:
+                    node.name = format_mask_filter_node_name(selected_material_index, selected_mask_index, index)
+                    node.label = node.name
+                    mask_filters[index].stack_index = index
+
+            # Remove the tilda from the newly added mask filter.
+            new_node_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, changed_filter_index) + "~"
+            new_node = material_channel_node.node_tree.nodes.get(new_node_name)
+            if new_node:
+                new_node.name = new_node_name.replace('~', '')
+                new_node.label = new_node.name
+                mask_filters[changed_filter_index].stack_index = changed_filter_index
+
+        # 5. Rename mask filter nodes above the deleted mask filter if any exist.
+        if filter_deleted and len(mask_filters) > 0:
+            for i in range(changed_filter_index + 1, len(mask_filters), 1):
+                old_node_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i)
+                old_node = material_channel_node.node_tree.nodes.get(old_node_name)
+
+                if old_node:
+                    old_node.name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i - 1)
+                    old_node.label = old_node.name
+                    mask_filters[i].stack_index = i - 1
+    
+def relink_mask_filter_nodes():
+    '''Relinks all mask filters.'''
+
+    # TODO: Unlink all mask filter nodes.
+
+    # TODO: Link to the next mask mix node in the mask filter stack if it exists.
+
+    # TODO: If no more mask filter nodes exist, connect to the mask mix node.
+
+def refresh_mask_filters():
+    '''Reads the material node tree to rebuild the mask filter stack in the ui.'''
+    print("Placeholder")
+
+def add_mask_filter(filter_type, context):
+    '''Adds a new filter to the selected layer mask. Valid mask filter types include: 'ShaderNodeInvert', 'ShaderNodeValToRGB' '''
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    mask_filters = context.scene.matlay_mask_filters
+    mask_filter_stack = context.scene.matlay_mask_filter_stack
+    selected_mask_filter_index = context.scene.matlay_mask_filter_stack.selected_mask_filter_index
+
+    # Stop users from adding too many mask filters.
+    if len(mask_filters) >= MAX_MASK_FILTERS:
+        info_messages.popup_message_box("You can't have more than {0} filters on a single layer. This is a safeguard to stop users from adding an unnecessary amount of filters, which will impact performance.".format(MAX_MASK_FILTERS), 'User Error', 'ERROR')
+        return
+
+    # Add a new mask filter slot, name and select it.
+    mask_filters.add()
+
+    if selected_mask_filter_index < 0:
+        move_index = len(mask_filters) - 1
+        move_to_index = 0
+        mask_filters.move(move_index, move_to_index)
+        mask_filter_stack.selected_mask_filter_index = move_to_index
+        selected_mask_filter_index = len(mask_filters) - 1
+    
+    else:
+        move_index = len(mask_filters) - 1
+        move_to_index = max(0, min(selected_mask_filter_index + 1, len(mask_filters) - 1))
+        mask_filters.move(move_index, move_to_index)
+        mask_filter_stack.selected_filter_index = move_to_index
+        selected_mask_filter_index = max(0, min(selected_mask_filter_index + 1, len(mask_filters) - 1))
+
+    # Create a new mask filter node (in all material channels).
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
+        if material_channel_node:
+            new_node = material_channel_node.node_tree.nodes.new(filter_type)
+            new_node.name = format_mask_filter_node_name(selected_layer_index, selected_mask_index, selected_mask_filter_index) + "~"
+            new_node.label = new_node.name
+
+            # Add the new nodes to the layer frame.
+            frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_index, context)
+            if frame:
+                new_node.parent = frame
+
+    # Re-index then relink nodes.
+    reindex_mask_filters_nodes()
+    relink_mask_filter_nodes()
+
+    # Re-organize nodes.
+    layer_nodes.update_layer_nodes(context)
+
+def move_mask_filter(direction, context):
+    '''Moves the mask filter up or down on the mask filter stack.'''
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_mask_filter_index = context.scene.matlay_mask_filter_stack.selected_mask_filter_index
+    mask_filters = context.scene.matlay_mask_filters
+    mask_filter_stack = context.scene.matlay_mask_filter_stack
+
+    # Don't move the mask if the user is trying to move the slot out of range.
+    if direction == 'UP' and selected_mask_filter_index + 1 > len(mask_filters) - 1:
+        return
+    if direction == 'DOWN' and selected_mask_filter_index - 1 < 0:
+        return
+    
+    # Get the layer index over or under the selected layer, depending on the direction the layer is being moved.
+    if direction == 'UP':
+        moving_to_index = max(min(selected_mask_filter_index + 1, len(mask_filters) - 1), 0)
+    else:
+        moving_to_index = max(min(selected_mask_filter_index - 1, len(mask_filters) - 1), 0)
+
+    # 1. TODO: Add a tilda to the end of all the mask nodes to signify they are being edited (and to avoid naming conflicts).
+
+    # 2. TODO: Update the mask node names for the layer below or above the selected index.
+
+    # 3. TODO: Remove the tilda from the end of the mask node names that were edited and re-index them.
+
+    # 4. TODO: Move the selected mask on the ui stack.
+
+    # 6. TODO: Re-link and organize mask nodes.
 
 class MATLAY_mask_filter_stack(PropertyGroup):
     '''Properties for the mask stack.'''
-    selected_mask_index: IntProperty(default=-1)
+    selected_mask_filter_index: IntProperty(default=-1)
+    auto_update_properties: BoolProperty(default=True, description="If auto update properties is on, when select mask filter property changes will trigger automatic updates.")
 
 class MATLAY_mask_filters(PropertyGroup):
-    name: StringProperty(name="Mask Name", description="The name of the layer mask.", default="Invalid Name")
     stack_index: IntProperty(name="Stack Index", description = "The (array) stack index for this filter used to define the order in which filters should be applied to the material", default=-999)
 
 class MATLAY_UL_mask_filter_stack(UIList):
@@ -1066,7 +1245,20 @@ class MATLAY_UL_mask_filter_stack(UIList):
         self.use_filter_show = False
         self.use_filter_reverse = True
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(text="FILTER NAME HERE")
+            # Draw the filter name based on the filters node type.
+            material_layer_index = context.scene.matlay_layer_stack.layer_index
+            selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+            selected_mask_filter_index = context.scene.matlay_mask_filter_stack.selected_mask_filter_index
+
+            mask_filter_node = get_mask_filter_node('COLOR', material_layer_index, selected_mask_index, selected_mask_filter_index, False)
+            filter_node_name = ""
+            if mask_filter_node:
+                match mask_filter_node.bl_static_type:
+                    case 'INVERT':
+                        filter_node_name = "Invert"
+                    case 'VALTORGB':
+                        filter_node_name = "Levels"
+            layout.label(text=filter_node_name + " " + str(item.stack_index))
 
 class MATLAY_OT_add_mask_filter_invert(Operator):
     '''Adds an invert adjustment to the masks applied to the selected layer'''
@@ -1076,6 +1268,7 @@ class MATLAY_OT_add_mask_filter_invert(Operator):
     bl_description = "Adds an invert adjustment to the masks applied to the selected layer"
 
     def execute(self, context):
+        add_mask_filter('ShaderNodeInvert', context)
         return {'FINISHED'}
 
 class MATLAY_OT_add_mask_filter_levels(Operator):
@@ -1086,6 +1279,7 @@ class MATLAY_OT_add_mask_filter_levels(Operator):
     bl_description = "Adds a level adjustment to the masks applied to the selected layer"
 
     def execute(self, context):
+        add_mask_filter('ShaderNodeValToRGB', context)
         return {'FINISHED'}
 
 class MATLAY_OT_add_layer_mask_filter_menu(Operator):
@@ -1126,7 +1320,32 @@ class MATLAY_OT_delete_mask_filter(Operator):
         return bpy.context.scene.matlay_layers
 
     def execute(self, context):
-        # TODO: Delete the selected mask filter.
+        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+        mask_filters = context.scene.matlay_mask_filters
+        selected_mask_filter_index = context.scene.matlay_mask_filter_stack.selected_mask_filter_index
+
+        # 1. Delete the mask filter nodes in all material channels.
+        material_channel_list = material_channels.get_material_channel_list()
+        for material_channel_name in material_channel_list:
+            material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
+            node = get_mask_filter_node(material_channel_name, selected_layer_index, selected_mask_index, selected_mask_filter_index)
+            if node:
+                material_channel_node.node_tree.nodes.remove(node)
+
+        # 2. Re-index and re-link mask filter nodes.
+        reindex_mask_filters_nodes()
+        relink_mask_filter_nodes()
+
+        # 3. Remove the selected mask filter slot.
+        mask_filters.remove(selected_mask_filter_index)
+
+        # 4. Reset the selected mask filter index.
+        context.scene.matlay_mask_filter_stack.selected_mask_filter_index = max(min(selected_mask_filter_index - 1, len(mask_filters) - 1), 0)
+
+        # 5. Re-organize nodes.
+        layer_nodes.update_layer_nodes(context)
+
         return{'FINISHED'}
     
 class MATLAY_OT_move_layer_mask_filter(Operator):
@@ -1139,9 +1358,8 @@ class MATLAY_OT_move_layer_mask_filter(Operator):
     direction: StringProperty(default="True")
 
     def execute(self, context):
-        # TODO: Implement moving layer mask filters up or down on the layer mask filter stack.
         if self.direction == 'UP':
-            print("Moved layer mask filter up.")
+            move_mask_filter('UP', context)
         else:
-            print("Moved layer mask filter down.")
+            move_mask_filter('DOWN', context)
         return {'FINISHED'}

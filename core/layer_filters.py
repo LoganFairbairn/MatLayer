@@ -1,5 +1,5 @@
 import bpy
-from bpy.types import PropertyGroup, Operator
+from bpy.types import PropertyGroup, Operator, UIList
 from bpy.props import BoolProperty, IntProperty, StringProperty, PointerProperty
 from . import material_channels
 from . import layer_nodes
@@ -64,7 +64,7 @@ def format_filter_node_name(filter_node_name, material_layer_index, material_fil
     return  "{0}_{1}_{2}".format(filter_node_name, str(material_layer_index), str(material_filter_index))
 
 def get_material_filter_node(material_channel_name, material_layer_index, material_filter_index, get_edited=False):
-    '''Returns the filter node for the given material layer index at the filter index by reading through existing node within the specified material channel'''
+    '''Returns the filter node for the given material layer index at the filter index by reading through existing nodes within the specified material channel'''
     material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
     if material_channel_node:
         for node in material_channel_node.node_tree.nodes:
@@ -103,13 +103,15 @@ def get_all_material_filter_nodes(material_layer_stack_index, material_channel_n
                 filter_node_info = node_name.split('_')
                 filter_node_material_layer_index = filter_node_info[1]
 
-                if int(filter_node_material_layer_index) == material_layer_stack_index:
-                    # Return filter nodes being edited if requested.
-                    if get_edited:
-                        if '~' in node_name:
+                # The filter node name must be in the filter node name list.
+                if filter_node_info[0] in FILTER_NODE_NAMES:
+                    if int(filter_node_material_layer_index) == material_layer_stack_index:
+                        # Return filter nodes being edited if requested.
+                        if get_edited:
+                            if '~' in node_name:
+                                filter_nodes.append(node)
+                        else:
                             filter_nodes.append(node)
-                    else:
-                        filter_nodes.append(node)
     
     # Organize filter nodes by their filter index if requested.
     if organize_by_filter_index:
@@ -129,18 +131,19 @@ def get_filter_nodes_count(material_layer_stack_index):
 def update_material_filter_node_indicies(material_channel_name):
     '''Renames all filter nodes with correct indicies by checking the node tree for newly added, edited (signified by a tilda at the end of their name), or deleted filter nodes'''
     material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
-    changed_filter_index = -1
     selected_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
     filters = bpy.context.scene.matlay_material_filters
+
+    changed_filter_index = -1
     filter_added = False
     filter_deleted = False
 
-    # Update layer stack indicies first.
+    # 1. Update layer stack indicies first.
     number_of_layers = len(filters)
     for i in range(0, number_of_layers):
         filters[i].stack_index = i
 
-    # 1. Check for a newly added filter (signified by a tilda at the end of the node's name).
+    # 2. Check for a newly added filter (signified by a tilda at the end of the node's name).
     for i in range(0, len(filters)):
         temp_filter_node_name = format_filter_node_name(filters[i].name, selected_layer_index, i) + "~"
         temp_filter_node = material_channel_node.node_tree.nodes.get(temp_filter_node_name)
@@ -149,7 +152,7 @@ def update_material_filter_node_indicies(material_channel_name):
             changed_filter_index = i
             break
 
-    # 2. Check for a deleted filter.
+    # 3. Check for a deleted filter.
     if not filter_added:
         for i in range(0, len(filters)):
             temp_filter_node_name = format_filter_node_name(filters[i].name, selected_layer_index, i)
@@ -159,7 +162,7 @@ def update_material_filter_node_indicies(material_channel_name):
                 changed_filter_index = i
                 break
 
-    # 3. Rename filter nodes above the newly added material filter on the filter stack if any exist (in reverse order to avoid naming conflicts).
+    # 4. Rename filter nodes above the newly added material filter on the filter stack if any exist (in reverse order to avoid naming conflicts).
     if filter_added:
         for i in range(len(filters), changed_filter_index + 1, -1):
             index = i - 1
@@ -179,7 +182,7 @@ def update_material_filter_node_indicies(material_channel_name):
             new_filter_node.label = new_filter_node.name
             filters[changed_filter_index].stack_index = changed_filter_index
 
-    # 4. Rename filter layer nodes above the deleted filter layer if any exist.
+    # 5. Rename filter layer nodes above the deleted filter layer if any exist.
     if filter_deleted and len(filters) > 0:
         for i in range(changed_filter_index + 1, len(filters), 1):
             old_filter_node_name = format_filter_node_name(filters[i].name, selected_layer_index, i)
@@ -436,7 +439,7 @@ class MATLAY_material_filter_stack(PropertyGroup):
     selected_filter_index: IntProperty(default=-1)
     auto_update_filter_properties: BoolProperty(name="Update Filter Properties", description="When true, changing filter properties will trigger automatic updates.", default=True)
 
-class MATLAY_UL_layer_filter_stack(bpy.types.UIList):
+class MATLAY_UL_layer_filter_stack(UIList):
     '''Draws the material filter stack.'''
     def draw_item(self, context, layout, data, item, icon, active_data, index):
         self.use_filter_show = False
