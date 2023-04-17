@@ -532,7 +532,7 @@ def draw_mask_projection_settings(column):
         col.enabled = False
     col.prop(masks[selected_mask_index].projection, "projection_scale_y")
 
-def draw_mask_filter_stack(column):
+def draw_mask_filters(column):
     '''Draws the mask filter stack with operators for material layer masks.'''
     subrow = column.row(align=True)
     subrow.scale_y = 2
@@ -547,6 +547,25 @@ def draw_mask_filter_stack(column):
     mask_stack = bpy.context.scene.matlay_mask_stack
     subrow = column.row(align=True)
     subrow.template_list("MATLAY_UL_mask_filter_stack", "Masks", bpy.context.scene, "matlay_mask_filters", mask_stack, "selected_mask_index", sort_reverse=True)
+
+    # Draw node settings based on the node type.
+    selected_material_index = bpy.context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
+    selected_mask_filter_index = bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_index
+    mask_filter_node = layer_masks.get_mask_filter_node('COLOR', selected_material_index, selected_mask_index, selected_mask_filter_index, False)
+    if mask_filter_node:
+        match mask_filter_node.bl_static_type:
+            case 'INVERT':
+                subrow = column.row()
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_filter_node.inputs[0], "default_value")
+                subrow = column.row()
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_filter_node.inputs[1], "default_value")
+            case 'VALTORGB':
+                subrow = column.row()
+                subrow.scale_y = SCALE_Y
+                column.template_color_ramp(mask_filter_node, "color_ramp")
 
 def draw_mask_properties(column):
     '''Draws tabs and properties for the seelcted layer mask.'''
@@ -574,7 +593,7 @@ def draw_mask_properties(column):
             draw_mask_projection_settings(column)
     
         case 'FILTERS':
-            draw_mask_filter_stack(column)
+            draw_mask_filters(column)
 
 #----------------- DRAW (ALL) LAYER PROPERTIES ----------------------#
 
