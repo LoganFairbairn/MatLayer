@@ -27,3 +27,7 @@ Development Principles:
 - Simplicity
 - Ease of use
 - Workflow Speed
+
+Workflow Help:
+- When using this add-on, you are intended to only use the add-on ui, and NOT manually edit the material nodes.
+- This add-on currently supports 1 material per object.
