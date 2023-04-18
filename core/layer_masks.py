@@ -1103,7 +1103,7 @@ def get_all_mask_filter_nodes(material_channel_name, material_layer_index, mask_
 def get_all_mask_filter_nodes_in_layer(material_channel_name, material_layer_index, get_edited=False):
     '''Returns an array of all mask filter nodes within the given material index.'''
     nodes = []
-    for i in range(0, len(bpy.context.scene.matlay_masks)):
+    for i in range(0, MAX_MASK_FILTERS):
         mask_filter_nodes = get_all_mask_filter_nodes(material_channel_name, material_layer_index, i, get_edited)
         for node in mask_filter_nodes:
             nodes.append(node)
