@@ -31,4 +31,5 @@ Development Principles:
 
 Workflow Help:
 - When using this add-on, you are intended to only use the add-on ui, and NOT manually edit the material nodes.
-- This add-on currently supports 1 material per object.
+- This add-on currently supports 1 material per object, it will support editing multiple materials on the same object in the future.
+- Almost all user interface elements have a detailed tooltip when you hover your mouse over them.
