@@ -75,12 +75,20 @@ def bake_and_export_material_channel(material_channel_name, context):
     # Bake to the image texture.
     bpy.context.scene.render.bake.use_selected_to_active = False
 
+    # Cache the render engine so we can reset it after baking.
+    original_render_engine = bpy.context.scene.render.engine
+
+    bpy.context.scene.render.engine = 'CYCLES'
+
     if material_channel_name == 'NORMAL':
         bpy.ops.object.bake(type='NORMAL')
     
     else:
         bpy.ops.object.bake(type='EMIT')
 
+    # Reset the render engine.
+    bpy.context.scene.render.engine = original_render_engine
+    
     # Save the image.
     if export_image:
         if export_image.is_dirty:
