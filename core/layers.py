@@ -189,7 +189,7 @@ def update_projection_blend(self, context):
     for material_channel_name in material_channel_list:
         texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_index, context)
         if texture_node and texture_node.type == 'TEX_IMAGE':
-            texture_node.projection_blend = layers[selected_layer_index].projection.texture_extension
+            texture_node.projection_blend = layers[selected_layer_index].projection.projection_blend
 
 def update_projection_offset_x(self, context):
     if not context.scene.matlay_layer_stack.auto_update_layer_properties:
