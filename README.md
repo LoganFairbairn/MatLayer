@@ -1,7 +1,8 @@
 # MatLay
-MatLay is an add-on for Blender that drastically speeds up the material workflow by replacing the material node workflow in Blender with a layer stack workflow, offering automation for common mesh map baking, and automating file handling.
 
-Note: Current version availabe is a development build, expect bugs.
+IMPORTANT: Current version available is a development build, expect bugs.
+
+MatLay is an add-on for Blender that drastically speeds up the material workflow by replacing the material node workflow in Blender with a layer stack workflow, offering automation for common mesh map baking, and automating file handling.
 
 ![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/ExampleScreenShot.png?raw=true)
 
