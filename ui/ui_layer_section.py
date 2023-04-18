@@ -142,7 +142,7 @@ def draw_layer_material_channel_toggles(column, context):
                 number_of_drawn_channel_toggles = 0
 
 def draw_texture_node_settings(column, texture_node, texture_node_type, layer, material_channel_name, context):
-    '''Draws the texture setting based on the given texture node type.'''
+    '''Draws the texture node setting based on the given texture node type.'''
     principled_bsdf_node = context.active_object.active_material.node_tree.nodes.get('Principled BSDF')
 
     match texture_node_type:
@@ -179,6 +179,9 @@ def draw_texture_node_settings(column, texture_node, texture_node_type, layer, m
         case "NOISE":
             subrow = column.row(align=True)
             subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node, "noise_dimensions", text="", slider=True)
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
             subrow.prop(texture_node.inputs[2], "default_value", text="Scale", slider=True)
             subrow = column.row(align=True)
             subrow.scale_y = SCALE_Y
@@ -193,13 +196,27 @@ def draw_texture_node_settings(column, texture_node, texture_node_type, layer, m
         case "VORONOI":
             subrow = column.row(align=True)
             subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node, "voronoi_dimensions", text="", slider=True)
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node, "feature", text="", slider=True)
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node, "distance", text="", slider=True)
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
             subrow.prop(texture_node.inputs[2], "default_value", text="Scale", slider=True)
-
             subrow = column.row(align=True)
             subrow.scale_y = SCALE_Y
             subrow.prop(texture_node.inputs[3], "default_value", text="Randomness", slider=True)
 
         case "MUSGRAVE":
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node, "musgrave_dimensions", text="", slider=True)
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node, "musgrave_type", text="", slider=True)
             subrow = column.row(align=True)
             subrow.scale_y = SCALE_Y
             subrow.prop(texture_node.inputs[2], "default_value", text="Scale", slider=True)
@@ -212,6 +229,12 @@ def draw_texture_node_settings(column, texture_node, texture_node_type, layer, m
             subrow = column.row(align=True)
             subrow.scale_y = SCALE_Y
             subrow.prop(texture_node.inputs[5], "default_value", text="Lacunarity", slider=True)
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node.inputs[6], "default_value", text="Offset", slider=True)
+            subrow = column.row(align=True)
+            subrow.scale_y = SCALE_Y
+            subrow.prop(texture_node.inputs[7], "default_value", text="Gain", slider=True)
 
     # Draw additional settings for specific material channels.
     subrow = column.row()
@@ -441,7 +464,10 @@ def draw_mask_node_properties(column):
                 subrow.scale_y = SCALE_Y
                 subrow.template_ID(mask_node, "node_tree") 
 
-            case 'TEX_NOISE':
+            case "TEX_NOISE":
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node, "noise_dimensions", text="", slider=True)
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node.inputs[2], "default_value", text="Scale", slider=True)
@@ -455,16 +481,30 @@ def draw_mask_node_properties(column):
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node.inputs[5], "default_value", text="Distortion", slider=True)
 
-            case 'TEX_VORONOI':
+            case "TEX_VORONOI":
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node, "voronoi_dimensions", text="", slider=True)
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node, "feature", text="", slider=True)
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node, "distance", text="", slider=True)
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node.inputs[2], "default_value", text="Scale", slider=True)
-
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node.inputs[3], "default_value", text="Randomness", slider=True)
 
-            case 'TEX_MUSGRAVE':
+            case "TEX_MUSGRAVE":
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node, "musgrave_dimensions", text="", slider=True)
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node, "musgrave_type", text="", slider=True)
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node.inputs[2], "default_value", text="Scale", slider=True)
@@ -477,6 +517,12 @@ def draw_mask_node_properties(column):
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node.inputs[5], "default_value", text="Lacunarity", slider=True)
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node.inputs[6], "default_value", text="Offset", slider=True)
+                subrow = column.row(align=True)
+                subrow.scale_y = SCALE_Y
+                subrow.prop(mask_node.inputs[7], "default_value", text="Gain", slider=True)
 
 def draw_mask_projection_settings(column):
     selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
