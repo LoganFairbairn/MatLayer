@@ -156,7 +156,7 @@ def update_mask_hidden(self, context):
 
 #----------------------------- UPDATE MASK PROJECTION -----------------------------#
 
-def update_layer_projection(self, context):
+def update_mask_projection_mode(self, context):
     '''Changes the layer projection by reconnecting nodes.'''
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
@@ -204,7 +204,7 @@ def update_layer_projection(self, context):
                         material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
                         texture_node.projection = 'TUBE'
 
-def update_projection_interpolation(self, context):
+def update_mask_projection_interpolation(self, context):
     '''Updates the image texture interpolation mode when it's changed.'''
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
@@ -217,7 +217,7 @@ def update_projection_interpolation(self, context):
         if texture_node and texture_node.type == 'TEX_IMAGE':
             texture_node.interpolation = layers[selected_layer_index].projection.texture_interpolation
 
-def update_projection_extension(self, context):
+def update_mask_projection_extension(self, context):
     '''Updates the image texture extension projection mode when it's changed.'''
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
@@ -230,7 +230,7 @@ def update_projection_extension(self, context):
         if texture_node and texture_node.type == 'TEX_IMAGE':
             texture_node.extension = layers[selected_layer_index].projection.texture_extension
 
-def update_projection_blend(self, context):
+def update_mask_projection_blend(self, context):
     '''Updates the projection blend node values when the cube projection blend value is changed.'''
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
@@ -243,7 +243,7 @@ def update_projection_blend(self, context):
         if texture_node and texture_node.type == 'TEX_IMAGE':
             texture_node.projection_blend = layers[selected_layer_index].projection.texture_extension
 
-def update_projection_offset_x(self, context):
+def update_mask_projection_offset_x(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
@@ -258,7 +258,7 @@ def update_projection_offset_x(self, context):
             if mapping_node:
                 mapping_node.inputs[1].default_value[0] = layers[selected_layer_index].projection.projection_offset_x
 
-def update_projection_offset_y(self, context):
+def update_mask_projection_offset_y(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
@@ -273,7 +273,7 @@ def update_projection_offset_y(self, context):
             if mapping_node:
                 mapping_node.inputs[1].default_value[1] = layers[selected_layer_index].projection.projection_offset_y
 
-def update_projection_rotation(self, context):
+def update_mask_projection_rotation(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
@@ -288,7 +288,7 @@ def update_projection_rotation(self, context):
             if mapping_node:
                 mapping_node.inputs[2].default_value[2] = layers[selected_layer_index].projection.projection_rotation
 
-def update_projection_scale_x(self, context):
+def update_mask_projection_scale_x(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
@@ -307,7 +307,7 @@ def update_projection_scale_x(self, context):
             if self.match_layer_scale:
                 layers[selected_layer_index].projection.projection_scale_y = layers[selected_layer_index].projection.projection_scale_x
 
-def update_projection_scale_y(self, context):
+def update_mask_projection_scale_y(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
@@ -322,11 +322,11 @@ def update_projection_scale_y(self, context):
             if mapping_node:
                 mapping_node.inputs[3].default_value[1] = layers[selected_layer_index].projection.projection_scale_y
 
-def update_match_layer_scale(self, context):
+def update_mask_match_scale(self, context):
+    '''Updates matching of the projected mask scale.'''
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
-    '''Updates matching of the projected layer scales.'''
     if self.match_layer_scale and context.scene.matlay_layer_stack.auto_update_layer_properties:
         layers = context.scene.matlay_layers
         layer_index = context.scene.matlay_layer_stack.layer_index
@@ -750,16 +750,16 @@ def move_mask(direction, context):
 
 class MaskProjectionSettings(PropertyGroup):
     '''Projection settings for this add-on.'''
-    projection_mode: EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT')
-    texture_extension: EnumProperty(items=TEXTURE_EXTENSION_MODES, name="Extension", description="", default='REPEAT')
-    texture_interpolation: EnumProperty(items=TEXTURE_INTERPOLATION_MODES, name="Interpolation", description="", default='Linear')
-    projection_blend: FloatProperty(name="Projection Blend", description="The projection blend amount", default=0.5, min=0.0, max=1.0, subtype='FACTOR')
-    projection_offset_x: FloatProperty(name="Offset X", description="Projected x offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR')
-    projection_offset_y: FloatProperty(name="Offset Y", description="Projected y offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR')
-    projection_rotation: FloatProperty(name="Rotation", description="Projected rotation of the selected layer", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE')
-    projection_scale_x: FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR')
-    projection_scale_y: FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR')
-    match_layer_scale: BoolProperty(name="Match Layer Scale", default=True,update=update_match_layer_scale)
+    projection_mode: EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT', update=update_mask_projection_mode)
+    texture_extension: EnumProperty(items=TEXTURE_EXTENSION_MODES, name="Extension", description="", default='REPEAT', update=update_mask_projection_extension)
+    texture_interpolation: EnumProperty(items=TEXTURE_INTERPOLATION_MODES, name="Interpolation", description="", default='Linear', update=update_mask_projection_interpolation)
+    projection_blend: FloatProperty(name="Projection Blend", description="The projection blend amount", default=0.5, min=0.0, max=1.0, subtype='FACTOR', update=update_mask_projection_blend)
+    projection_offset_x: FloatProperty(name="Offset X", description="Projected x offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_mask_projection_offset_x)
+    projection_offset_y: FloatProperty(name="Offset Y", description="Projected y offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_mask_projection_offset_y)
+    projection_rotation: FloatProperty(name="Rotation", description="Projected rotation of the selected layer", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_mask_projection_rotation)
+    projection_scale_x: FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_mask_projection_scale_x)
+    projection_scale_y: FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_mask_projection_scale_y)
+    match_layer_scale: BoolProperty(name="Match Layer Scale", default=True,update=update_mask_match_scale)
     match_layer_mask_scale: BoolProperty(name="Match Layer Mask Scale", default=True)
 
 class MATLAY_mask_stack(PropertyGroup):
@@ -1043,7 +1043,7 @@ class MATLAY_OT_import_mask_image(Operator, ImportHelper):
     bl_description = "Opens a new window from which a user can import an image that will be inserted into the selected mask texture slot"
 
     filter_glob: bpy.props.StringProperty(
-        default='*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.bmp',
+        default='*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.bmp;*.exr',
         options={'HIDDEN'}
     )
 

@@ -104,7 +104,7 @@ def update_hidden(self, context):
 
 #----------------------------- UPDATE PROJECTION SETTINGS -----------------------------#
 
-def update_layer_projection(self, context):
+def update_layer_projection_mode(self, context):
     '''Changes the layer projection by reconnecting nodes.'''
     if not context.scene.matlay_layer_stack.auto_update_layer_properties:
         return 
@@ -685,7 +685,7 @@ class MaterialChannelNodeType(PropertyGroup):
  
 class ProjectionSettings(PropertyGroup):
     '''Projection settings for this add-on.'''
-    projection_mode: EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT', update=update_layer_projection)
+    projection_mode: EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT', update=update_layer_projection_mode)
     texture_extension: EnumProperty(items=TEXTURE_EXTENSION_MODES, name="Extension", description="", default='REPEAT', update=update_projection_extension)
     texture_interpolation: EnumProperty(items=TEXTURE_INTERPOLATION_MODES, name="Interpolation", description="", default='Linear', update=update_projection_interpolation)
     projection_blend: FloatProperty(name="Projection Blend", description="The projection blend amount", default=0.5, min=0.0, max=1.0, subtype='FACTOR', update=update_projection_blend)

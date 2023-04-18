@@ -95,7 +95,7 @@ class MATLAY_OT_import_texture(Operator, ImportHelper):
     material_channel_name: bpy.props.StringProperty()
 
     filter_glob: bpy.props.StringProperty(
-        default='*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.bmp',
+        default='*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.bmp;*.exr',
         options={'HIDDEN'}
     )
 
