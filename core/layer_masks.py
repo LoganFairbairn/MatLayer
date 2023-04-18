@@ -173,8 +173,7 @@ def update_mask_projection_mode(self, context):
         texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_layer_index, selected_mask_index, False)
         coord_node = get_mask_node('MaskCoord', material_channel_name, selected_material_layer_index, selected_mask_index, False)
         mapping_node = get_mask_node('MaskMapping', material_channel_name, selected_material_layer_index, selected_mask_index, False)
-
-        # TODO: Change the projection mode for all texture nodes in all material channels.
+        
         if texture_node.bl_static_type == 'TEX_IMAGE':
             # Unlink the coordinate node.
             if coord_node:
