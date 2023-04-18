@@ -84,10 +84,14 @@ def get_all_nodes_in_layer(material_channel_name, material_layer_index, context,
     for filter_node in filter_nodes:
         nodes.append(filter_node)
 
-    # Get existing mask nodes.
+    # Get mask nodes.
     mask_nodes = layer_masks.get_all_mask_nodes_in_layer(material_layer_index, material_channel_name, get_edited)
     for mask_node in mask_nodes:
         nodes.append(mask_node)
+
+    # Get mask filter nodes.
+    mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, material_layer_index, get_edited)
+    nodes = nodes + mask_filter_nodes
 
     return nodes
 

@@ -260,6 +260,13 @@ class MATLAY_OT_move_material_layer(Operator):
                 node_info = mask_node.name.split('_')
                 mask_node.name = node_info[0] + "_" + str(selected_layer_index) + "_" + node_info[2]
                 mask_node.label = mask_node.name
+
+            # Rename / re-index mask filter nodes.
+            mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, moving_to_layer_index, False)
+            for mask_filter_node in mask_nodes:
+                node_info = mask_filter_node.name.split('_')
+                mask_filter_node.name = layer_masks.format_mask_filter_node_name(moving_to_layer_index, node_info[2], node_info[3], False)
+                mask_filter_node.label = mask_filter_node.name
         layers[moving_to_layer_index].cached_frame_name = frame.name
 
         # 4. Remove the tilda from the end of the layer nodes names that belong to the moved layer and correct the index stored there.
@@ -288,6 +295,13 @@ class MATLAY_OT_move_material_layer(Operator):
                 node_info = mask_node.name.split('_')
                 mask_node.name = node_info[0] + "_" + str(moving_to_layer_index) + "_" + node_info[2].replace('~', '')
                 mask_node.label = mask_node.name
+
+            # Remove the tilda from mask filter nodes.
+            mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, selected_layer_index, True)
+            for mask_filter_node in mask_filter_nodes:
+                node_info = mask_filter_node.name.split('_')
+                mask_filter_node.name = layer_masks.format_mask_filter_node_name(moving_to_layer_index, node_info[2], node_info[3], False)
+                mask_filter_node.label = mask_filter_node.name
                 
         layers[selected_layer_index].cached_frame_name = frame.name
 
@@ -324,12 +338,11 @@ class MATLAY_OT_delete_layer(Operator):
         for material_channel_name in material_channel_list:
             material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
 
-            # Remove layer frame.
+            # Remove layer frame and layer nodes.
             frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_index, context)
             if frame != None:
                 material_channel_node.node_tree.nodes.remove(frame)
 
-            # Removed layer nodes.
             node_list = layer_nodes.get_all_nodes_in_layer(material_channel_name, selected_layer_index, context)
             for node in node_list:
                 material_channel_node.node_tree.nodes.remove(node)
@@ -571,6 +584,7 @@ class MATLAY_OT_refresh_layer_nodes(Operator):
         # This is to avoid node types from automatically being replaced when the node type is updated as doing so can cause errors when reading values (likely due to blender parameter update functions not being thread safe).
         context.scene.matlay_layer_stack.auto_update_layer_properties = False
 
+        # Read material layer stuff.
         read_layer_name_and_id(layers, context)
         read_layer_opacity(total_number_of_layers, layers, selected_material_channel, context)
         read_texture_node_values(material_channel_list, total_number_of_layers, layers, context)

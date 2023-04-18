@@ -379,14 +379,6 @@ def get_all_mask_nodes_in_layer(material_stack_index, material_channel_name, get
                     nodes.append(mask_node)
                 else:
                     break
-    
-    # Get all mask filters too.
-    masks = bpy.context.scene.matlay_masks
-    for i in range(0, len(masks)):
-        mask_filter_nodes = get_all_mask_filter_nodes(material_channel_name, material_stack_index, i, get_edited)
-        for node in mask_filter_nodes:
-            nodes.append(node)
-
     return nodes
 
 def update_mask_indicies(context):
@@ -538,6 +530,8 @@ def refresh_mask_stack(context):
         masks.add()
         masks[i].stack_index = i
         masks[i].name = 'MASK'
+
+        # TODO: Read the node type.
 
     # 4. Reset the selected mask index.
     if len(masks) > 0 and previously_selected_mask_index < len(masks) - 1 and previously_selected_mask_index >= 0:
@@ -1084,10 +1078,20 @@ def get_all_mask_filter_nodes(material_channel_name, material_layer_index, mask_
     material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
     if material_channel_node:
         for i in range(0, MAX_MASK_FILTERS):
-            node_name = format_mask_filter_node_name(material_layer_index, mask_index, i, False)
+            node_name = format_mask_filter_node_name(material_layer_index, mask_index, i, get_edited)
             node = material_channel_node.node_tree.nodes.get(node_name)
             if node:
                 nodes.append(node)
+    return nodes
+
+def get_all_mask_filter_nodes_in_layer(material_channel_name, material_layer_index, get_edited=False):
+    '''Returns an array of all mask filter nodes within the given material index.'''
+    nodes = []
+    masks = bpy.context.scene.matlay_masks
+    for i in range(0, len(masks)):
+        mask_filter_nodes = get_all_mask_filter_nodes(material_channel_name, material_layer_index, i, get_edited)
+        for node in mask_filter_nodes:
+            nodes.append(node)
     return nodes
 
 def reindex_mask_filters_nodes():
