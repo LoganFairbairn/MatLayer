@@ -4,7 +4,7 @@ import os
 import bpy
 import bpy.utils.previews       # Imported for loading texture previews as icons.
 from ..core import layer_nodes
-from ..core import layer_filters
+from ..core import material_filters
 from ..utilities import image_file_handling
 
 def draw_layer_hidden_icon(layout, item):

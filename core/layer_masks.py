@@ -7,7 +7,7 @@ from bpy.props import BoolProperty, IntProperty, FloatProperty, StringProperty, 
 
 # Imports from this add-on.
 from ..core.layers import PROJECTION_MODES, TEXTURE_EXTENSION_MODES, TEXTURE_INTERPOLATION_MODES
-from ..core.layer_filters import FILTER_NODE_TYPES
+from .material_filters import FILTER_NODE_TYPES
 from . import layer_nodes
 from . import material_channels
 from . import texture_set_settings

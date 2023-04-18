@@ -5,7 +5,7 @@ from bpy.types import PropertyGroup
 from . import material_channels
 from ..core import layer_nodes
 from ..core import layer_masks
-from . import layer_filters
+from . import material_filters
 
 MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", "EMISSION", "SCATTERING")
 
@@ -38,7 +38,7 @@ def update_layer_index(self, context):
             if texture_node.image:
                 context.scene.tool_settings.image_paint.canvas = texture_node.image
 
-    layer_filters.refresh_material_filter_stack(context)
+    material_filters.refresh_material_filter_stack(context)
     layer_masks.read_masks(context)
 
 def verify_layer_stack_index(layer_stack_index, context):

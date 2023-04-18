@@ -2,7 +2,7 @@
 
 import bpy
 from . import material_channels
-from ..core import layer_filters
+from . import material_filters
 from ..core import layer_masks
 from ..utilities import info_messages
 
@@ -80,7 +80,7 @@ def get_all_nodes_in_layer(material_channel_name, material_layer_index, context,
         nodes.append(node)
 
     # Get existing material filter nodes.
-    filter_nodes = layer_filters.get_all_material_filter_nodes(material_layer_index, material_channel_name, get_edited, organize_by_filter_index=True)
+    filter_nodes = material_filters.get_all_material_filter_nodes(material_layer_index, material_channel_name, get_edited, organize_by_filter_index=True)
     nodes = nodes + filter_nodes
 
     # Get mask nodes.
@@ -272,9 +272,9 @@ def relink_layers(material_channel_name, context):
                     material_channel_node.node_tree.links.remove(l)
 
         # Disconnect all filter nodes.
-        total_filter_nodes = layer_filters.get_filter_nodes_count(i)
+        total_filter_nodes = material_filters.get_filter_nodes_count(i)
         for x in range(total_filter_nodes - 1):
-            last_material_filter_node = layer_filters.get_material_filter_node(material_channel_name, x, total_filter_nodes - 1)
+            last_material_filter_node = material_filters.get_material_filter_node(material_channel_name, x, total_filter_nodes - 1)
             if last_material_filter_node:
                 for l in last_material_filter_node.outputs[0].links:
                     if l != 0:
@@ -288,8 +288,8 @@ def relink_layers(material_channel_name, context):
         next_mix_layer_node = get_layer_node("MIXLAYER", material_channel_name, next_layer_index, context)
         texture_node = get_layer_node("TEXTURE", material_channel_name, current_layer_index, context)
 
-        total_filter_nodes = layer_filters.get_filter_nodes_count(i)
-        first_material_filter_node = layer_filters.get_material_filter_node(material_channel_name, i, 0)
+        total_filter_nodes = material_filters.get_filter_nodes_count(i)
+        first_material_filter_node = material_filters.get_material_filter_node(material_channel_name, i, 0)
 
         # ALWAYS connect the texture output to the first material filter based on it's type (if one exists).
         if first_material_filter_node:
@@ -304,7 +304,7 @@ def relink_layers(material_channel_name, context):
                     material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[1])
 
             # Connect the last filter node to the current mix node.
-            last_material_filter_node = layer_filters.get_material_filter_node(material_channel_name, i, total_filter_nodes - 1)
+            last_material_filter_node = material_filters.get_material_filter_node(material_channel_name, i, total_filter_nodes - 1)
             if last_material_filter_node:
                 material_channel_node.node_tree.links.new(last_material_filter_node.outputs[0], current_mix_layer_node.inputs[2])
 
@@ -336,7 +336,7 @@ def update_layer_nodes(context):
     for material_channel in material_channel_names:
         update_layer_indicies(context)
         update_layer_node_indicies(material_channel, context)
-        layer_filters.update_material_filter_nodes(context)
+        material_filters.update_material_filter_nodes(context)
         layer_masks.reindex_mask_filters_nodes()
         layer_masks.relink_mask_filter_nodes()
         organize_layer_nodes_in_material_channel(material_channel, context)
