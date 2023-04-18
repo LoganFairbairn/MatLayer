@@ -10,7 +10,7 @@ Pros:
 - One-click exporting for textures
 - Texture set material channel management
 - Texture file management
-- Supports adding custom group nodes to the layer stack
+- Custom group nodes can be added to the layer stack
 
 Cons:
 - No layer folders
