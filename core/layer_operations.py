@@ -594,6 +594,9 @@ class MATLAY_OT_refresh_layer_nodes(Operator):
         read_active_layer_material_channels(material_channel_list, total_number_of_layers, layers, context)
         layer_nodes.organize_all_matlay_materials(context)
         layer_nodes.update_layer_nodes(context)
+
+        # Read masks.
+        layer_masks.read_masks(context)
         layer_masks.refresh_mask_filter_stack(context)
 
         context.scene.matlay_layer_stack.auto_update_layer_properties = True

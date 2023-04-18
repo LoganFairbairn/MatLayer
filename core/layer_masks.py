@@ -497,7 +497,7 @@ def relink_layer_mask_nodes(context):
         if opacity_node and last_mask_node:
             material_channel_node.node_tree.links.new(last_mask_node.outputs[0], opacity_node.inputs[0])
 
-def count_masks(material_stack_index, context):
+def count_masks(material_stack_index):
     '''Counts the total number of masks applied to a specified material layer by reading the material node tree.'''
     count = 0
     for i in range(0, MAX_LAYER_MASKS):
@@ -507,7 +507,7 @@ def count_masks(material_stack_index, context):
             break
     return count
 
-def refresh_mask_stack(context):
+def read_masks(context):
     '''Reads the material node tree into the mask stack.'''
     masks = context.scene.matlay_masks
     mask_stack = context.scene.matlay_mask_stack
@@ -515,7 +515,7 @@ def refresh_mask_stack(context):
 
     # Only clear the mask stack if no masks exist on the selected material layer.
     masks.clear()
-    total_number_of_masks = count_masks(selected_material_index, context)
+    total_number_of_masks = count_masks(selected_material_index)
     if total_number_of_masks <= 0:
         return
     
@@ -531,25 +531,41 @@ def refresh_mask_stack(context):
         masks[i].stack_index = i
         masks[i].name = 'MASK'
 
-        # TODO: Read the node type.
-
     # 4. Reset the selected mask index.
     if len(masks) > 0 and previously_selected_mask_index < len(masks) - 1 and previously_selected_mask_index >= 0:
         mask_stack.selected_mask_index = previously_selected_mask_index
     else:
         mask_stack.selected_mask_index
 
-    # 5. Update ui properties for the selected mask.
+    # 5. Read ui properties for the selected mask.
     # Mask nodes settings across all material channels should be the same, only read from the color material channel nodes.
     material_channel_name = 'COLOR'
     selected_mask_index = mask_stack.selected_mask_index
     texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_index, selected_mask_index)
     if texture_node:
+        # TODO: Read the node type.
+        match texture_node.bl_static_type:
+            case 'TEX_IMAGE':
+                masks[selected_mask_index].node_type = 'TEXTURE'
+
+            case 'GROUP':
+                masks[selected_mask_index].node_type = 'GROUP'
+            
+            case 'TEX_NOISE':
+                masks[selected_mask_index].node_type = 'NOISE'
+
+            case 'TEX_VORONOI':
+                masks[selected_mask_index].node_type = 'VORONOI'
+
+            case 'TEX_MUSGRAVE':
+                masks[selected_mask_index].node_type = 'MUSGRAVE'
+
+
         if texture_node.bl_static_type == 'TEX_IMAGE':
             if texture_node.image:
                 masks[selected_mask_index].mask_image = texture_node.image
 
-    # Update mapping projection.
+    # Read mapping projection.
     mapping_node = get_mask_node('MaskMapping', material_channel_name, selected_material_index, selected_mask_index)
     if mapping_node:
         masks[selected_mask_index].projection.projection_offset_x = mapping_node.inputs[1].default_value[0]
@@ -560,7 +576,7 @@ def refresh_mask_stack(context):
         if masks[selected_mask_index].projection.projection_scale_x != masks[i].projection.projection_scale_y:
             masks[selected_mask_index].projection.match_layer_scale = False
 
-    # Update projection mode.
+    # Read projection mode.
     mask_texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_index, selected_mask_index)
     if mask_texture_node and mask_texture_node.type == 'TEX_IMAGE':
         masks[selected_mask_index].projection.projection_blend = mask_texture_node.projection_blend
@@ -1087,8 +1103,7 @@ def get_all_mask_filter_nodes(material_channel_name, material_layer_index, mask_
 def get_all_mask_filter_nodes_in_layer(material_channel_name, material_layer_index, get_edited=False):
     '''Returns an array of all mask filter nodes within the given material index.'''
     nodes = []
-    masks = bpy.context.scene.matlay_masks
-    for i in range(0, len(masks)):
+    for i in range(0, len(bpy.context.scene.matlay_masks)):
         mask_filter_nodes = get_all_mask_filter_nodes(material_channel_name, material_layer_index, i, get_edited)
         for node in mask_filter_nodes:
             nodes.append(node)

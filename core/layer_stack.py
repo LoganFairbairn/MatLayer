@@ -39,7 +39,7 @@ def update_layer_index(self, context):
                 context.scene.tool_settings.image_paint.canvas = texture_node.image
 
     layer_filters.refresh_material_filter_stack(context)
-    layer_masks.refresh_mask_stack(context)
+    layer_masks.read_masks(context)
 
 def verify_layer_stack_index(layer_stack_index, context):
     '''Verifies the given layer stack index exists.'''
