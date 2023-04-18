@@ -25,5 +25,5 @@ Cons:
 
 Development Principles:
 - Simplicity
-- Ease of use.
+- Ease of use
 - Workflow Speed
