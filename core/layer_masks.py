@@ -543,7 +543,6 @@ def read_masks(context):
     selected_mask_index = mask_stack.selected_mask_index
     texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_index, selected_mask_index)
     if texture_node:
-        # TODO: Read the node type.
         match texture_node.bl_static_type:
             case 'TEX_IMAGE':
                 masks[selected_mask_index].node_type = 'TEXTURE'
