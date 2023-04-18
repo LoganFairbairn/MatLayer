@@ -141,8 +141,9 @@ def update_layer_projection_mode(self, context):
                         material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
                         texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
                         if texture_node and texture_node.type == 'TEX_IMAGE':
-                            texture_node.projection_blend = self.projection_blend
-                        texture_node.projection = 'BOX'
+                            texture_node.projection = 'BOX'
+                            texture_node.projection_blend = 0.3
+                            self.projection_blend = 0.3
 
                     if layers[selected_layer_index].projection.projection_mode == 'SPHERE':
                         material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
@@ -688,7 +689,7 @@ class ProjectionSettings(PropertyGroup):
     projection_mode: EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT', update=update_layer_projection_mode)
     texture_extension: EnumProperty(items=TEXTURE_EXTENSION_MODES, name="Extension", description="", default='REPEAT', update=update_projection_extension)
     texture_interpolation: EnumProperty(items=TEXTURE_INTERPOLATION_MODES, name="Interpolation", description="", default='Linear', update=update_projection_interpolation)
-    projection_blend: FloatProperty(name="Projection Blend", description="The projection blend amount", default=0.5, min=0.0, max=1.0, subtype='FACTOR', update=update_projection_blend)
+    projection_blend: FloatProperty(name="Projection Blend", description="The projection blend amount", default=0.3, min=0.0, max=1.0, subtype='FACTOR', update=update_projection_blend)
     projection_offset_x: FloatProperty(name="Offset X", description="Projected x offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_x)
     projection_offset_y: FloatProperty(name="Offset Y", description="Projected y offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_y)
     projection_rotation: FloatProperty(name="Rotation", description="Projected rotation of the selected layer", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projection_rotation)

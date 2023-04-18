@@ -174,8 +174,9 @@ def update_mask_projection_mode(self, context):
         coord_node = get_mask_node('MaskCoord', material_channel_name, selected_material_layer_index, selected_mask_index, False)
         mapping_node = get_mask_node('MaskMapping', material_channel_name, selected_material_layer_index, selected_mask_index, False)
 
+        # TODO: Change the projection mode for all texture nodes in all material channels.
         if texture_node.bl_static_type == 'TEX_IMAGE':
-            # Delink the coordinate node.
+            # Unlink the coordinate node.
             if coord_node:
                 outputs = coord_node.outputs
                 for o in outputs:
@@ -183,18 +184,18 @@ def update_mask_projection_mode(self, context):
                         if l != 0:
                             material_channel_node.node_tree.links.remove(l)
                 
+                # Connect the nodes based on the projection type.
                 if selected_mask_index > -1:
-                    # Connect the nodes based on the projection type.
                     if masks[selected_mask_index].projection.projection_mode == 'FLAT':
                         material_channel_node.node_tree.links.new(coord_node.outputs[2], mapping_node.inputs[0])
                         texture_node.projection = 'FLAT'
 
                     if masks[selected_mask_index].projection.projection_mode == 'BOX':
                         material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
-                        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_mask_index, context)
                         if texture_node and texture_node.type == 'TEX_IMAGE':
-                            texture_node.projection_blend = self.projection_blend
-                        texture_node.projection = 'BOX'
+                            texture_node.projection = 'BOX'
+                            texture_node.projection_blend = 0.3
+                            self.projection_blend = 0.3
 
                     if masks[selected_mask_index].projection.projection_mode == 'SPHERE':
                         material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
@@ -756,7 +757,7 @@ class MaskProjectionSettings(PropertyGroup):
     projection_mode: EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT', update=update_mask_projection_mode)
     texture_extension: EnumProperty(items=TEXTURE_EXTENSION_MODES, name="Extension", description="", default='REPEAT', update=update_mask_projection_extension)
     texture_interpolation: EnumProperty(items=TEXTURE_INTERPOLATION_MODES, name="Interpolation", description="", default='Linear', update=update_mask_projection_interpolation)
-    projection_blend: FloatProperty(name="Projection Blend", description="The projection blend amount", default=0.5, min=0.0, max=1.0, subtype='FACTOR', update=update_mask_projection_blend)
+    projection_blend: FloatProperty(name="Projection Blend", description="The projection blend amount", default=0.3, min=0.0, max=1.0, subtype='FACTOR', update=update_mask_projection_blend)
     projection_offset_x: FloatProperty(name="Offset X", description="Projected x offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_mask_projection_offset_x)
     projection_offset_y: FloatProperty(name="Offset Y", description="Projected y offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_mask_projection_offset_y)
     projection_rotation: FloatProperty(name="Rotation", description="Projected rotation of the selected layer", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_mask_projection_rotation)
