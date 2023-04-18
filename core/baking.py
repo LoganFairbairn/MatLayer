@@ -353,9 +353,14 @@ def bake_mesh_map(bake_type):
 
     # Cache original materials applied to the active object so the materials can be re-applied after baking and apply the temporary bake material to all material slots.
     original_materials = []
-    for x in bpy.context.object.material_slots:
-        original_materials.append(x.material)
-        x.material = temp_bake_material
+    if len(bpy.context.object.material_slots) > 0:
+        for x in bpy.context.object.material_slots:
+            original_materials.append(x.material)
+            x.material = temp_bake_material
+
+    # Add a new material slot.
+    else:
+        bpy.context.object.data.materials.append(temp_bake_material)
 
     # Add a node setup based on the bake type.
     match bake_type:
@@ -383,6 +388,9 @@ def bake_mesh_map(bake_type):
         case 'HIGH_QUALITY':
             bpy.data.scenes["Scene"].cycles.samples = 128
 
+    # Cache the render engine so we can reset it after baking.
+    original_render_engine = bpy.context.scene.render.engine
+
     bpy.context.scene.render.engine = 'CYCLES'
     match bake_type:
         case 'NORMALS':
@@ -404,6 +412,9 @@ def bake_mesh_map(bake_type):
             bpy.context.scene.render.bake.use_selected_to_active = False
             bpy.ops.object.bake(type='EMIT')
 
+    # Reset the render engine.
+    bpy.context.scene.render.engine = original_render_engine
+
     # High the high poly object, there's no need for it to be visible anymore.
     high_poly_object = bpy.context.scene.matlay_baking_settings.high_poly_object
     if high_poly_object:
@@ -416,10 +427,19 @@ def bake_mesh_map(bake_type):
         else:
             info_messages.popup_message_box("Baked image pixel data wasn't updated during baking.", "MatLay baking error.", 'ERROR')
 
-    # Re-apply the materials that were originally on the object and delete the temporary material.
-    for i in range(0, len(bpy.context.object.material_slots)):
-        bpy.context.object.material_slots[i].material = original_materials[i]
+    # Re-apply the materials that were originally on the object and 
+    if len(original_materials) <= 0:
+        bpy.ops.object.material_slot_remove(0)
+    else:
+        for i in range(0, len(original_materials)):
+            bpy.context.object.material_slots[i].material = original_materials[i]
+        
+    # Delete the temporary bake material.
     bpy.data.materials.remove(temp_bake_material)
+
+    # Reset the render engine.
+    bpy.context.scene.render.engine = 'BLENDER_EEVEE'
+
 
 class MATLAY_OT_bake(Operator):
     '''Bakes all checked mesh texture maps in succession. Note that this function (especially on slower computers, or when using a CPU for rendering) can take a few minutes.'''
