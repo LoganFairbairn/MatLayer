@@ -519,16 +519,16 @@ def draw_mask_projection_settings(column):
     col = split.column()
     col.ui_units_x = 0.1
     col.scale_y = SCALE_Y
-    if masks[selected_mask_index].projection.match_layer_scale:
-        col.prop(masks[selected_mask_index].projection, "match_layer_scale", text="", icon="LOCKED")
+    if masks[selected_mask_index].projection.match_layer_mask_scale:
+        col.prop(masks[selected_mask_index].projection, "match_layer_mask_scale", text="", icon="LOCKED")
 
     else:
-        col.prop(masks[selected_mask_index].projection, "match_layer_scale", text="", icon="UNLOCKED")
+        col.prop(masks[selected_mask_index].projection, "match_layer_mask_scale", text="", icon="UNLOCKED")
            
     col = split.column()
     col.ui_units_x = 2
     col.scale_y = SCALE_Y
-    if masks[selected_mask_index].projection.match_layer_scale:
+    if masks[selected_mask_index].projection.match_layer_mask_scale:
         col.enabled = False
     col.prop(masks[selected_mask_index].projection, "projection_scale_y")
 

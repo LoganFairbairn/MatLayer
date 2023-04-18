@@ -161,46 +161,46 @@ def update_mask_projection_mode(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
-    layers = context.scene.matlay_layers
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
+    masks = context.scene.matlay_masks
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
 
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
 
-        # Get nodes.
-        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_index, context)
-        coord_node = layer_nodes.get_layer_node("COORD", material_channel_name, selected_layer_index, context)
-        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+        #  Get nodes.
+        texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_layer_index, selected_mask_index, False)
+        coord_node = get_mask_node('MaskCoord', material_channel_name, selected_material_layer_index, selected_mask_index, False)
+        mapping_node = get_mask_node('MaskMapping', material_channel_name, selected_material_layer_index, selected_mask_index, False)
 
-        if texture_node.type == 'TEX_IMAGE':
-            # Delink coordinate node.
+        if texture_node.bl_static_type == 'TEX_IMAGE':
+            # Delink the coordinate node.
             if coord_node:
                 outputs = coord_node.outputs
                 for o in outputs:
                     for l in o.links:
                         if l != 0:
                             material_channel_node.node_tree.links.remove(l)
-
-                if selected_layer_index > -1:
-                    # Connect nodes based on projection type.
-                    if layers[selected_layer_index].projection.projection_mode == 'FLAT':
+                
+                if selected_mask_index > -1:
+                    # Connect the nodes based on the projection type.
+                    if masks[selected_mask_index].projection.projection_mode == 'FLAT':
                         material_channel_node.node_tree.links.new(coord_node.outputs[2], mapping_node.inputs[0])
                         texture_node.projection = 'FLAT'
 
-                    if layers[selected_layer_index].projection.projection_mode == 'BOX':
+                    if masks[selected_mask_index].projection.projection_mode == 'BOX':
                         material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
-                        texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
+                        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_mask_index, context)
                         if texture_node and texture_node.type == 'TEX_IMAGE':
                             texture_node.projection_blend = self.projection_blend
                         texture_node.projection = 'BOX'
 
-                    if layers[selected_layer_index].projection.projection_mode == 'SPHERE':
+                    if masks[selected_mask_index].projection.projection_mode == 'SPHERE':
                         material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
                         texture_node.projection = 'SPHERE'
 
-                    if layers[selected_layer_index].projection.projection_mode == 'TUBE':
+                    if masks[selected_mask_index].projection.projection_mode == 'TUBE':
                         material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
                         texture_node.projection = 'TUBE'
 
@@ -209,128 +209,131 @@ def update_mask_projection_interpolation(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
-    layers = context.scene.matlay_layers
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    masks = context.scene.matlay_masks
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
-        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_index, context)
+        texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_layer_index, selected_mask_index, False)
         if texture_node and texture_node.type == 'TEX_IMAGE':
-            texture_node.interpolation = layers[selected_layer_index].projection.texture_interpolation
+            texture_node.interpolation = masks[selected_mask_index].projection.texture_interpolation
 
 def update_mask_projection_extension(self, context):
     '''Updates the image texture extension projection mode when it's changed.'''
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
-    layers = context.scene.matlay_layers
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    masks = context.scene.matlay_masks
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
-        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_index, context)
+        texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_layer_index, selected_mask_index, False)
         if texture_node and texture_node.type == 'TEX_IMAGE':
-            texture_node.extension = layers[selected_layer_index].projection.texture_extension
+            texture_node.extension = masks[selected_mask_index].projection.texture_extension
 
 def update_mask_projection_blend(self, context):
     '''Updates the projection blend node values when the cube projection blend value is changed.'''
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
 
-    layers = context.scene.matlay_layers
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    masks = context.scene.matlay_masks
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
-        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_index, context)
+        texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_layer_index, selected_mask_index, False)
         if texture_node and texture_node.type == 'TEX_IMAGE':
-            texture_node.projection_blend = layers[selected_layer_index].projection.texture_extension
+            texture_node.projection_blend = masks[selected_mask_index].projection.projection_blend
 
 def update_mask_projection_offset_x(self, context):
+    '''Updates the mask projected x offset for the selected mask when the property is changed in the ui.'''
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
-    if context.scene.matlay_layer_stack.auto_update_layer_properties:
-        layers = context.scene.matlay_layers
-        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    masks = context.scene.matlay_masks
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
 
-        material_channel_list = material_channels.get_material_channel_list()
-        for material_channel_name in material_channel_list:
-            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
-
-            if mapping_node:
-                mapping_node.inputs[1].default_value[0] = layers[selected_layer_index].projection.projection_offset_x
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = get_mask_node('MaskMapping', material_channel_name, selected_material_layer_index, selected_mask_index, False)
+        if mapping_node:
+            mapping_node.inputs[1].default_value[0] = masks[selected_mask_index].projection.projection_offset_x
 
 def update_mask_projection_offset_y(self, context):
+    '''Updates the mask projected y offset for the selected mask when the property is changed in the ui.'''
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
-    if context.scene.matlay_layer_stack.auto_update_layer_properties:
-        layers = context.scene.matlay_layers
-        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    masks = context.scene.matlay_masks
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
 
-        material_channel_list = material_channels.get_material_channel_list()
-        for material_channel_name in material_channel_list:
-            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
-
-            if mapping_node:
-                mapping_node.inputs[1].default_value[1] = layers[selected_layer_index].projection.projection_offset_y
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = get_mask_node('MaskMapping', material_channel_name, selected_material_layer_index, selected_mask_index, False)
+        if mapping_node:
+            mapping_node.inputs[1].default_value[1] = masks[selected_mask_index].projection.projection_offset_y
 
 def update_mask_projection_rotation(self, context):
+    '''Updates the masks projection rotation when the mask rotation property is changed in the ui.'''
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
-    '''Updates the layer projections rotation for all layers.'''
-    if context.scene.matlay_layer_stack.auto_update_layer_properties:
-        layers = context.scene.matlay_layers
-        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    masks = context.scene.matlay_masks
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
 
-        material_channel_list = material_channels.get_material_channel_list()
-        for material_channel_name in material_channel_list:
-            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
-            if mapping_node:
-                mapping_node.inputs[2].default_value[2] = layers[selected_layer_index].projection.projection_rotation
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = get_mask_node('MaskMapping', material_channel_name, selected_material_layer_index, selected_mask_index, False)
+        if mapping_node:
+            mapping_node.inputs[2].default_value[2] = masks[selected_mask_index].projection.projection_rotation
 
 def update_mask_projection_scale_x(self, context):
+    '''Updates the mask projected x scale for the selected mask when the property is changed in the ui.'''
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
-    '''Updates the layer projections x scale for all mapping nodes in the selected layer.'''
-    if context.scene.matlay_layer_stack.auto_update_layer_properties:
-        layers = context.scene.matlay_layers
-        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    masks = context.scene.matlay_masks
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
 
-        material_channel_list = material_channels.get_material_channel_list()
-        for material_channel_name in material_channel_list:
-            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
-
-            if mapping_node:
-                mapping_node.inputs[3].default_value[0] = layers[selected_layer_index].projection.projection_scale_x
-
-            if self.match_layer_scale:
-                layers[selected_layer_index].projection.projection_scale_y = layers[selected_layer_index].projection.projection_scale_x
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = get_mask_node('MaskMapping', material_channel_name, selected_material_layer_index, selected_mask_index, False)
+        if mapping_node:
+            mapping_node.inputs[3].default_value[0] = masks[selected_mask_index].projection.projection_scale_x
+        if self.match_layer_mask_scale:
+            masks[selected_mask_index].projection.projection_scale_y = masks[selected_mask_index].projection.projection_scale_x
 
 def update_mask_projection_scale_y(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
-    if context.scene.matlay_layer_stack.auto_update_layer_properties:
-        layers = context.scene.matlay_layers
-        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    masks = context.scene.matlay_masks
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
 
-        material_channel_list = material_channels.get_material_channel_list()
-        for material_channel_name in material_channel_list:
-            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
-            
-            if mapping_node:
-                mapping_node.inputs[3].default_value[1] = layers[selected_layer_index].projection.projection_scale_y
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = get_mask_node('MaskMapping', material_channel_name, selected_material_layer_index, selected_mask_index, False)
+        if mapping_node:
+            mapping_node.inputs[3].default_value[1] = masks[selected_mask_index].projection.projection_scale_y
 
 def update_mask_match_scale(self, context):
     '''Updates matching of the projected mask scale.'''
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
-    if self.match_layer_scale and context.scene.matlay_layer_stack.auto_update_layer_properties:
-        layers = context.scene.matlay_layers
-        layer_index = context.scene.matlay_layer_stack.layer_index
-        layers[layer_index].projection.projection_scale_y = layers[layer_index].projection.projection_scale_x
+    if self.match_layer_mask_scale:
+        masks = context.scene.matlay_masks
+        selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+        masks[selected_mask_index].projection.projection_scale_y = masks[selected_mask_index].projection.projection_scale_x
 
 #----------------------------- CORE MASK FUNCTIONS -----------------------------#
 
@@ -759,8 +762,7 @@ class MaskProjectionSettings(PropertyGroup):
     projection_rotation: FloatProperty(name="Rotation", description="Projected rotation of the selected layer", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_mask_projection_rotation)
     projection_scale_x: FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_mask_projection_scale_x)
     projection_scale_y: FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_mask_projection_scale_y)
-    match_layer_scale: BoolProperty(name="Match Layer Scale", default=True,update=update_mask_match_scale)
-    match_layer_mask_scale: BoolProperty(name="Match Layer Mask Scale", default=True)
+    match_layer_mask_scale: BoolProperty(name="Match Layer Mask Scale", default=True, update=update_mask_match_scale)
 
 class MATLAY_mask_stack(PropertyGroup):
     '''Properties for the mask stack.'''
