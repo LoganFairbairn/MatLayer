@@ -263,7 +263,7 @@ class MATLAY_OT_move_material_layer(Operator):
 
             # Rename / re-index mask filter nodes.
             mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, moving_to_layer_index, False)
-            for mask_filter_node in mask_nodes:
+            for mask_filter_node in mask_filter_nodes:
                 node_info = mask_filter_node.name.split('_')
                 mask_filter_node.name = layer_masks.format_mask_filter_node_name(moving_to_layer_index, node_info[2], node_info[3], False)
                 mask_filter_node.label = mask_filter_node.name
