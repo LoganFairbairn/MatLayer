@@ -6,9 +6,12 @@ from . import matlay_materials
 from ..core import layer_nodes
 from . import material_filters
 from ..core import layer_masks
-from ..utilities.viewport_setting_adjuster import set_material_shading
+from ..utilities.matlay_utils import set_material_shading
 from ..utilities import info_messages
+from ..utilities import matlay_utils
 import random
+
+
 
 def add_layer_slot(context):
     '''Creates a layer slot.'''
@@ -178,6 +181,7 @@ class MATLAY_OT_add_layer(Operator):
     bl_description = "Adds a layer with default numeric material values to the layer stack"
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
         matlay_materials.prepare_material(context)
         material_channels.create_channel_group_nodes(context)
         material_channels.create_empty_group_node(context)
@@ -206,6 +210,8 @@ class MATLAY_OT_move_material_layer(Operator):
         if self.direction not in self._ValidDirections:
             print("Error: Direction given to move material layer is invalid.")
             return{'FINISHED'}
+
+        matlay_utils.set_valid_mode()
 
         layers = context.scene.matlay_layers
         selected_layer_index = context.scene.matlay_layer_stack.layer_index
@@ -333,6 +339,8 @@ class MATLAY_OT_delete_layer(Operator):
         layers = context.scene.matlay_layers
         selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
+        matlay_utils.set_valid_mode()
+
         # Remove all nodes for all material channels.
         material_channel_list = material_channels.get_material_channel_list()
         for material_channel_name in material_channel_list:
@@ -340,7 +348,7 @@ class MATLAY_OT_delete_layer(Operator):
 
             # Remove layer frame and layer nodes.
             frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_index, context)
-            if frame != None:
+            if frame:
                 material_channel_node.node_tree.nodes.remove(frame)
 
             node_list = layer_nodes.get_all_nodes_in_layer(material_channel_name, selected_layer_index, context)
@@ -373,9 +381,10 @@ class MATLAY_OT_duplicate_layer(Operator):
         return None
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
+
         layers = context.scene.matlay_layers
         selected_layer_index = context.scene.matlay_layer_stack.layer_index
-
         original_layer_index = selected_layer_index
 
         # Duplicate layer information into a new layer.
@@ -402,6 +411,8 @@ class MATLAY_OT_image_editor_export(Operator):
         return False
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
+
         export_image = context.scene.tool_settings.image_paint.canvas
 
         if export_image != None:

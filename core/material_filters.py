@@ -4,6 +4,7 @@ from bpy.props import BoolProperty, IntProperty, StringProperty, PointerProperty
 from . import material_channels
 from . import layer_nodes
 from ..utilities import info_messages
+from ..utilities import matlay_utils
 
 # A list of filter node types available in this add-on.
 FILTER_NODE_TYPES = ("INVERT", "VALTORGB", "HUE_SAT", "CURVE_RGB")
@@ -462,6 +463,7 @@ class MATLAY_OT_add_layer_filter_invert(Operator):
         return bpy.context.scene.matlay_layers
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
         add_material_layer_filter('ShaderNodeInvert', context)
         return{'FINISHED'}
 
@@ -477,6 +479,7 @@ class MATLAY_OT_add_layer_filter_levels(Operator):
         return bpy.context.scene.matlay_layers
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
         add_material_layer_filter('ShaderNodeValToRGB', context)
         return{'FINISHED'}
 
@@ -492,6 +495,7 @@ class MATLAY_OT_add_layer_filter_hsv(Operator):
         return bpy.context.scene.matlay_layers
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
         add_material_layer_filter('ShaderNodeHueSaturation', context)
         return{'FINISHED'}
 
@@ -507,6 +511,7 @@ class MATLAY_OT_add_layer_filter_rgb_curves(Operator):
         return bpy.context.scene.matlay_layers
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
         add_material_layer_filter('ShaderNodeRGBCurve', context)
         return{'FINISHED'}
 
@@ -555,6 +560,8 @@ class MATLAY_OT_delete_layer_filter(Operator):
         selected_layer_index = context.scene.matlay_layer_stack.layer_index
         selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
 
+        matlay_utils.set_valid_mode()
+
         # Delete the material filter nodes.
         material_channel_list = material_channels.get_material_channel_list()
         for material_channel_name in material_channel_list:
@@ -591,6 +598,7 @@ class MATLAY_OT_move_layer_filter_up(Operator):
         return bpy.context.scene.matlay_layers
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
         move_filter_layer("UP", context)
         return{'FINISHED'}
 
@@ -606,5 +614,6 @@ class MATLAY_OT_move_layer_filter_down(Operator):
         return bpy.context.scene.matlay_layers
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
         move_filter_layer("DOWN", context)
         return{'FINISHED'}

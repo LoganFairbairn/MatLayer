@@ -11,6 +11,7 @@ from .material_filters import FILTER_NODE_TYPES
 from . import layer_nodes
 from . import material_channels
 from . import texture_set_settings
+from ..utilities import matlay_utils
 from ..utilities import info_messages
 
 # Imports for saving / importing mask images.
@@ -837,6 +838,7 @@ class MATLAY_OT_add_black_layer_mask(Operator):
         return bpy.context.scene.matlay_layers
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
         add_mask('BLACK_MASK', context)
         return{'FINISHED'}
 
@@ -852,6 +854,7 @@ class MATLAY_OT_add_white_layer_mask(Operator):
         return bpy.context.scene.matlay_layers
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
         add_mask('WHITE_MASK', context)
         return{'FINISHED'}
     
@@ -867,6 +870,7 @@ class MATLAY_OT_add_empty_layer_mask(Operator):
         return bpy.context.scene.matlay_layers
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
         add_mask('EMPTY', context)
         return{'FINISHED'}
 
@@ -913,6 +917,8 @@ class MATLAY_OT_delete_layer_mask(Operator):
         selected_layer_index = context.scene.matlay_layer_stack.layer_index
         masks = context.scene.matlay_masks
 
+        matlay_utils.set_valid_mode()
+
         # 1. Delete the mask nodes (in all material channels).
         for material_channel_name in material_channels.get_material_channel_list():
             material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
@@ -945,6 +951,7 @@ class MATLAY_OT_move_layer_mask_up(Operator):
     bl_description = "Moves the selected layer up on the layer stack"
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
         move_mask('UP', context)
         return {'FINISHED'}
 
@@ -956,6 +963,7 @@ class MATLAY_OT_move_layer_mask_down(Operator):
     bl_description = "Moves the selected layer down on the layer stack"
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
         move_mask('DOWN', context)
         return {'FINISHED'}
 
@@ -970,6 +978,8 @@ class MATLAY_OT_add_mask_image(Operator):
     image_fill: StringProperty(default='BLACK')
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
+
         # 1. Assign the new mask image a name.
         image_name = "Mask_" + str(random.randrange(10000,99999))
         while bpy.data.images.get(image_name) != None:
@@ -1029,6 +1039,8 @@ class MATLAY_OT_delete_mask_image(Operator):
     bl_description = "Deletes the mask image from Blender's data."
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
+
         selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
         selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
         mask_texture_node  = get_mask_node('MaskTexture', 'COLOR', selected_material_layer_index, selected_mask_index)
@@ -1050,6 +1062,8 @@ class MATLAY_OT_import_mask_image(Operator, ImportHelper):
     )
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
+
         # 1. Open a window to allow the user to import an image into blender.
         head_tail = os.path.split(self.filepath)
         image_name = head_tail[1]
@@ -1393,6 +1407,7 @@ class MATLAY_OT_add_mask_filter_invert(Operator):
     bl_description = "Adds an invert adjustment to the masks applied to the selected layer"
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
         add_mask_filter('ShaderNodeInvert', context)
         return {'FINISHED'}
 
@@ -1404,6 +1419,7 @@ class MATLAY_OT_add_mask_filter_levels(Operator):
     bl_description = "Adds a level adjustment to the masks applied to the selected layer"
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
         add_mask_filter('ShaderNodeValToRGB', context)
         return {'FINISHED'}
 
@@ -1450,6 +1466,8 @@ class MATLAY_OT_delete_mask_filter(Operator):
         mask_filters = context.scene.matlay_mask_filters
         selected_mask_filter_index = context.scene.matlay_mask_filter_stack.selected_mask_filter_index
 
+        matlay_utils.set_valid_mode()
+
         # 1. Delete the mask filter nodes in all material channels.
         material_channel_list = material_channels.get_material_channel_list()
         for material_channel_name in material_channel_list:
@@ -1483,6 +1501,7 @@ class MATLAY_OT_move_layer_mask_filter(Operator):
     direction: StringProperty(default="True")
 
     def execute(self, context):
+        matlay_utils.set_valid_mode()
         if self.direction == 'UP':
             move_mask_filter('UP', context)
         else:
