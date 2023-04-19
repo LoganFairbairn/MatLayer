@@ -283,30 +283,6 @@ def create_empty_group_node(context):
         new_node_group.outputs.new('NodeSocketColor', 'Color')
         group_output_node.inputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
 
-def disconnect_material_channel(context, material_channel_name):
-    '''Disconnects the specified material channel group node from the main principled BSDF shader.'''
-    node_links = context.active_object.active_material.node_tree.links
-    material_channel_node = get_material_channel_node(context, material_channel_name)
-
-    if material_channel_node:
-        for l in node_links:
-            if l.from_node.name == material_channel_node.name:
-                node_links.remove(l)
-
-    # If one of the height or normal material channels were disconnected, and one of them is still active, connect it directly to the principled bsdf shader.
-    principled_bsdf_node = context.active_object.active_material.node_tree.nodes.get('Principled BSDF')
-    texture_set_settings = bpy.context.scene.matlay_texture_set_settings
-
-    if material_channel_name == 'NORMAL':
-        if texture_set_settings.global_material_channel_toggles.height_channel_toggle:
-            height_material_channel_node = get_material_channel_node(context, "HEIGHT")
-            node_links.new(height_material_channel_node.outputs[0], principled_bsdf_node.inputs[22])
-
-    if material_channel_name == 'HEIGHT':
-        if texture_set_settings.global_material_channel_toggles.normal_channel_toggle:
-            normal_material_channel_node = get_material_channel_node(context, "NORMAL")
-            node_links.new(normal_material_channel_node.outputs[0], principled_bsdf_node.inputs[22])
-
 def connect_material_channel(context, material_channel_name):
     '''Connects the specified material channel group node to the main principled BSDF shader or a secondary node.'''
     material_nodes = context.active_object.active_material.node_tree.nodes
@@ -363,6 +339,30 @@ def connect_material_channel(context, material_channel_name):
 
         if material_channel_name == "EMISSION":
             node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[19])
+
+def disconnect_material_channel(context, material_channel_name):
+    '''Disconnects the specified material channel group node from the main principled BSDF shader.'''
+    node_links = context.active_object.active_material.node_tree.links
+    material_channel_node = get_material_channel_node(context, material_channel_name)
+
+    if material_channel_node:
+        for l in node_links:
+            if l.from_node.name == material_channel_node.name:
+                node_links.remove(l)
+
+    # If one of the height or normal material channels were disconnected, and one of them is still active, connect it directly to the principled bsdf shader.
+    principled_bsdf_node = context.active_object.active_material.node_tree.nodes.get('Principled BSDF')
+    texture_set_settings = bpy.context.scene.matlay_texture_set_settings
+
+    if material_channel_name == 'NORMAL':
+        if texture_set_settings.global_material_channel_toggles.height_channel_toggle:
+            height_material_channel_node = get_material_channel_node(context, "HEIGHT")
+            node_links.new(height_material_channel_node.outputs[0], principled_bsdf_node.inputs[22])
+
+    if material_channel_name == 'HEIGHT':
+        if texture_set_settings.global_material_channel_toggles.normal_channel_toggle:
+            normal_material_channel_node = get_material_channel_node(context, "NORMAL")
+            node_links.new(normal_material_channel_node.outputs[0], principled_bsdf_node.inputs[22])
 
 def validate_material_channel_name(material_channel_name):
     if material_channel_name in MATERIAL_CHANNEL_NAMES:
@@ -459,19 +459,25 @@ def isolate_material_channel(isolate, material_channel_name, context):
 
             # If the height material channel isn't active, connect the normal channel directly to the principled bsdf.
             if texture_set_settings.global_material_channel_toggles.height_channel_toggle:
-                node_links.new(material_channel_node.outputs[0], mix_normal_maps_node.inputs[1])
+                node_links.new(material_channel_node.outputs[0], mix_normal_maps_node.inputs[4])
             else:
                 node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[22])
 
         if texture_set_settings.global_material_channel_toggles.height_channel_toggle:
             material_channel_node = get_material_channel_node(context, "HEIGHT")
+            
+            print("Keys: "  + str(mix_normal_maps_node.inputs.keys()))
 
             # If the normal material channel isn't active, connect the height channel directly to the pricipled bsdf.
             if texture_set_settings.global_material_channel_toggles.normal_channel_toggle:
-                node_links.new(material_channel_node.outputs[0], mix_normal_maps_node.inputs[2])
+                mix_normal_maps_node.get('A')
+                node_links.new(material_channel_node.outputs[0], mix_normal_maps_node.inputs[5])
 
             else:
                 node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[22])
+
+        # Re-connect the normal mix node to the principled bsdf shader.
+        node_links.new(mix_normal_maps_node.outputs[1], principled_bsdf_node.inputs[22])
 
         # Re-connect the height and normal material channels to the bump and normal map nodes inside the material channels.
         normal_material_channel_node = get_material_channel_node(context, "NORMAL")
@@ -497,9 +503,6 @@ def isolate_material_channel(isolate, material_channel_name, context):
                     height_material_channel_node.node_tree.links.remove(link)
             height_material_channel_node.node_tree.links.new(last_height_mix_node.outputs[0], bump_node.inputs[0])
             height_material_channel_node.node_tree.links.new(bump_node.outputs[0], height_group_output_node.inputs[0])
-
-        # Re-connect the normal mix node to the principled bsdf shader.
-        node_links.new(mix_normal_maps_node.outputs[0], principled_bsdf_node.inputs[22])
 
 class MATLAY_OT_toggle_material_channel_preview(Operator):
     bl_idname = "matlay.toggle_material_channel_preview"
