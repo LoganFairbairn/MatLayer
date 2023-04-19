@@ -4,7 +4,7 @@ import bpy
 from . import material_channels
 from . import material_filters
 from ..core import layer_masks
-from ..utilities import info_messages
+from ..utilities import matlay_utils
 
 # Node organization settings.
 NODE_WIDTH = 300
@@ -181,6 +181,8 @@ def mute_layer_material_channel(mute, layer_stack_index, material_channel_name, 
         node = get_layer_node(node_name, material_channel_name, layer_stack_index, context)
         if node:
             node.mute = mute
+
+    matlay_utils.set_valid_material_shading_mode(context)
 
 #----------------------------- NODE ORGANIZATION FUNCTIONS -----------------------------#
 

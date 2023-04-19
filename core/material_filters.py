@@ -29,7 +29,9 @@ def filter_material_channel_toggle(channel_toggle, material_channel_name, contex
 
     # Mute
     else:
-        filter_node.mute = True    
+        filter_node.mute = True
+    
+    matlay_utils.set_valid_material_shading_mode(context)
 
 def update_filter_color_channel_toggle(self, context):
     filter_material_channel_toggle(self.color_channel_toggle, 'COLOR', context)

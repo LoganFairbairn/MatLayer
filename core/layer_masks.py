@@ -60,6 +60,8 @@ def update_mask_node_type(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
 
+    matlay_utils.set_valid_material_shading_mode(context)
+
     selected_material_index = context.scene.matlay_layer_stack.layer_index
     selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
     masks = context.scene.matlay_masks
@@ -130,6 +132,8 @@ def update_mask_image(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
 
+    matlay_utils.set_valid_material_shading_mode(context)
+
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
     for material_channel_name in material_channels.get_material_channel_list():
@@ -142,6 +146,8 @@ def update_mask_hidden(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
 
+    matlay_utils.set_valid_material_shading_mode(context)
+    
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
 
     for material_channel_name in material_channels.get_material_channel_list():
@@ -161,6 +167,8 @@ def update_mask_projection_mode(self, context):
     '''Changes the layer projection by reconnecting nodes.'''
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
+    
+    matlay_utils.set_valid_material_shading_mode(context)
     
     masks = context.scene.matlay_masks
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
@@ -210,6 +218,8 @@ def update_mask_projection_interpolation(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
+    matlay_utils.set_valid_material_shading_mode(context)
+    
     masks = context.scene.matlay_masks
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
@@ -224,6 +234,8 @@ def update_mask_projection_extension(self, context):
     '''Updates the image texture extension projection mode when it's changed.'''
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
+    
+    matlay_utils.set_valid_material_shading_mode(context)
     
     masks = context.scene.matlay_masks
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
@@ -240,6 +252,8 @@ def update_mask_projection_blend(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
 
+    matlay_utils.set_valid_material_shading_mode(context)
+
     masks = context.scene.matlay_masks
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
@@ -255,6 +269,8 @@ def update_mask_projection_offset_x(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
+    matlay_utils.set_valid_material_shading_mode(context)
+
     masks = context.scene.matlay_masks
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
@@ -270,6 +286,8 @@ def update_mask_projection_offset_y(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
+    matlay_utils.set_valid_material_shading_mode(context)
+
     masks = context.scene.matlay_masks
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
@@ -285,6 +303,8 @@ def update_mask_projection_rotation(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
+    matlay_utils.set_valid_material_shading_mode(context)
+
     masks = context.scene.matlay_masks
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
@@ -300,6 +320,8 @@ def update_mask_projection_scale_x(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
+    matlay_utils.set_valid_material_shading_mode(context)
+
     masks = context.scene.matlay_masks
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
@@ -316,6 +338,8 @@ def update_mask_projection_scale_y(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
+    matlay_utils.set_valid_material_shading_mode(context)
+
     masks = context.scene.matlay_masks
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
@@ -331,6 +355,8 @@ def update_mask_match_scale(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
+    matlay_utils.set_valid_material_shading_mode(context)
+
     if self.match_layer_mask_scale:
         masks = context.scene.matlay_masks
         selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
