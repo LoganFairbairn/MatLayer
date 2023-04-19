@@ -480,23 +480,23 @@ def isolate_material_channel(isolate, material_channel_name, context):
         normal_map_node = normal_material_channel_node.node_tree.nodes.get('Normal Map')
         normal_group_output_node = normal_material_channel_node.node_tree.nodes.get('Group Output')
 
-        if last_normal_mix_node:
+        if last_normal_mix_node and normal_map_node:
             for link in material_channel_node.node_tree.links:
                 if link.from_node == last_normal_mix_node:
                     material_channel_node.node_tree.links.remove(link)
-        normal_material_channel_node.node_tree.links.new(last_normal_mix_node.outputs[0], normal_map_node.inputs[0])
-        normal_material_channel_node.node_tree.links.new(normal_map_node.outputs[0], normal_group_output_node.inputs[0])
+            normal_material_channel_node.node_tree.links.new(last_normal_mix_node.outputs[0], normal_map_node.inputs[0])
+            normal_material_channel_node.node_tree.links.new(normal_map_node.outputs[0], normal_group_output_node.inputs[0])
 
         height_material_channel_node = get_material_channel_node(context, "HEIGHT")
         last_height_mix_node = layer_nodes.get_layer_node("MIXLAYER", "HEIGHT", last_layer_index, context)
-        bump_node = material_channel_node.node_tree.nodes.get('Bump')
+        bump_node = height_material_channel_node.node_tree.nodes.get('Bump')
         height_group_output_node = height_material_channel_node.node_tree.nodes.get('Group Output')
-        if last_height_mix_node:
+        if last_height_mix_node and bump_node:
             for link in height_material_channel_node.node_tree.links:
                 if link.from_node == last_height_mix_node:
                     height_material_channel_node.node_tree.links.remove(link)
-        height_material_channel_node.node_tree.links.new(last_height_mix_node.outputs[0], bump_node.inputs[0])
-        height_material_channel_node.node_tree.links.new(bump_node.outputs[0], height_group_output_node.inputs[0])
+            height_material_channel_node.node_tree.links.new(last_height_mix_node.outputs[0], bump_node.inputs[0])
+            height_material_channel_node.node_tree.links.new(bump_node.outputs[0], height_group_output_node.inputs[0])
 
         # Re-connect the normal mix node to the principled bsdf shader.
         node_links.new(mix_normal_maps_node.outputs[0], principled_bsdf_node.inputs[22])
