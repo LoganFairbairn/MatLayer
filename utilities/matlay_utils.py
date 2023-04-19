@@ -7,8 +7,8 @@ def set_valid_mode():
     if (bpy.context.object.mode != 'TEXTURE_PAINT' and bpy.context.object.mode != 'OBJECT'):
         bpy.ops.object.mode_set(mode = 'TEXTURE_PAINT')
 
-# TODO: Change this to switch out of shaded / wireframe mode to material or rendered preview.
-def set_material_shading(context):
-    '''Sets the material preview mode to material.'''
+def set_valid_material_shading_mode(context):
+    '''Verifies the user is using material or rendered shading mode and corrects the shading mode if they are using a different mode. This allows users to visually see the changes they to the material make when calling select operators.'''
     if context.space_data.type == 'VIEW_3D':
-        context.space_data.shading.type = 'MATERIAL'
+        if context.space_data.shading.type != 'MATERIAL' and context.space_data.shading.type != 'RENDERED':
+            context.space_data.shading.type = 'MATERIAL'

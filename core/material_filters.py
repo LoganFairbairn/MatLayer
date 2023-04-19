@@ -465,6 +465,7 @@ class MATLAY_OT_add_layer_filter_invert(Operator):
     def execute(self, context):
         matlay_utils.set_valid_mode()
         add_material_layer_filter('ShaderNodeInvert', context)
+        matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAY_OT_add_layer_filter_levels(Operator):
@@ -481,6 +482,7 @@ class MATLAY_OT_add_layer_filter_levels(Operator):
     def execute(self, context):
         matlay_utils.set_valid_mode()
         add_material_layer_filter('ShaderNodeValToRGB', context)
+        matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAY_OT_add_layer_filter_hsv(Operator):
@@ -497,6 +499,7 @@ class MATLAY_OT_add_layer_filter_hsv(Operator):
     def execute(self, context):
         matlay_utils.set_valid_mode()
         add_material_layer_filter('ShaderNodeHueSaturation', context)
+        matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAY_OT_add_layer_filter_rgb_curves(Operator):
@@ -513,6 +516,7 @@ class MATLAY_OT_add_layer_filter_rgb_curves(Operator):
     def execute(self, context):
         matlay_utils.set_valid_mode()
         add_material_layer_filter('ShaderNodeRGBCurve', context)
+        matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAY_OT_add_layer_filter_menu(Operator):
@@ -584,6 +588,8 @@ class MATLAY_OT_delete_layer_filter(Operator):
         # Re-link and re-organize layers.
         layer_nodes.update_layer_nodes(context)
 
+        matlay_utils.set_valid_material_shading_mode(context)
+
         return{'FINISHED'}
 
 class MATLAY_OT_move_layer_filter_up(Operator):
@@ -600,6 +606,7 @@ class MATLAY_OT_move_layer_filter_up(Operator):
     def execute(self, context):
         matlay_utils.set_valid_mode()
         move_filter_layer("UP", context)
+        matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAY_OT_move_layer_filter_down(Operator):
@@ -616,4 +623,5 @@ class MATLAY_OT_move_layer_filter_down(Operator):
     def execute(self, context):
         matlay_utils.set_valid_mode()
         move_filter_layer("DOWN", context)
+        matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}

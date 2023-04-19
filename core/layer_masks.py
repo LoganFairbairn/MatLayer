@@ -840,6 +840,7 @@ class MATLAY_OT_add_black_layer_mask(Operator):
     def execute(self, context):
         matlay_utils.set_valid_mode()
         add_mask('BLACK_MASK', context)
+        matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAY_OT_add_white_layer_mask(Operator):
@@ -856,6 +857,7 @@ class MATLAY_OT_add_white_layer_mask(Operator):
     def execute(self, context):
         matlay_utils.set_valid_mode()
         add_mask('WHITE_MASK', context)
+        matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
     
 class MATLAY_OT_add_empty_layer_mask(Operator):
@@ -872,6 +874,7 @@ class MATLAY_OT_add_empty_layer_mask(Operator):
     def execute(self, context):
         matlay_utils.set_valid_mode()
         add_mask('EMPTY', context)
+        matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAY_OT_open_layer_mask_menu(Operator):
@@ -941,6 +944,8 @@ class MATLAY_OT_delete_layer_mask(Operator):
         relink_layer_mask_nodes(context)
         layer_nodes.update_layer_nodes(context)
 
+        matlay_utils.set_valid_material_shading_mode(context)
+
         return{'FINISHED'}
 
 class MATLAY_OT_move_layer_mask_up(Operator):
@@ -953,6 +958,7 @@ class MATLAY_OT_move_layer_mask_up(Operator):
     def execute(self, context):
         matlay_utils.set_valid_mode()
         move_mask('UP', context)
+        matlay_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
 class MATLAY_OT_move_layer_mask_down(Operator):
@@ -965,6 +971,7 @@ class MATLAY_OT_move_layer_mask_down(Operator):
     def execute(self, context):
         matlay_utils.set_valid_mode()
         move_mask('DOWN', context)
+        matlay_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
 class MATLAY_OT_add_mask_image(Operator):
@@ -1029,6 +1036,8 @@ class MATLAY_OT_add_mask_image(Operator):
                 # Select the new image so it can be edited.
                 context.scene.tool_settings.image_paint.canvas = mask_texture_node.image
 
+        matlay_utils.set_valid_material_shading_mode(context)
+
         return {'FINISHED'}
 
 class MATLAY_OT_delete_mask_image(Operator):
@@ -1047,6 +1056,9 @@ class MATLAY_OT_delete_mask_image(Operator):
         if mask_texture_node:
             if mask_texture_node.image != None:
                 bpy.data.images.remove(mask_texture_node.image)
+
+        matlay_utils.set_valid_material_shading_mode(context)
+
         return {'FINISHED'}
 
 class MATLAY_OT_import_mask_image(Operator, ImportHelper):
@@ -1081,6 +1093,8 @@ class MATLAY_OT_import_mask_image(Operator, ImportHelper):
 
         # 3. Set the mask colorspace to non-color data.
         image.colorspace_settings.name = 'Non-Color'
+
+        matlay_utils.set_valid_material_shading_mode(context)
 
         return {'FINISHED'}
 
@@ -1409,6 +1423,7 @@ class MATLAY_OT_add_mask_filter_invert(Operator):
     def execute(self, context):
         matlay_utils.set_valid_mode()
         add_mask_filter('ShaderNodeInvert', context)
+        matlay_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
 class MATLAY_OT_add_mask_filter_levels(Operator):
@@ -1421,6 +1436,7 @@ class MATLAY_OT_add_mask_filter_levels(Operator):
     def execute(self, context):
         matlay_utils.set_valid_mode()
         add_mask_filter('ShaderNodeValToRGB', context)
+        matlay_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
 class MATLAY_OT_add_layer_mask_filter_menu(Operator):
@@ -1489,6 +1505,7 @@ class MATLAY_OT_delete_mask_filter(Operator):
         # 5. Re-organize nodes.
         layer_nodes.update_layer_nodes(context)
 
+        matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
     
 class MATLAY_OT_move_layer_mask_filter(Operator):
@@ -1506,4 +1523,5 @@ class MATLAY_OT_move_layer_mask_filter(Operator):
             move_mask_filter('UP', context)
         else:
             move_mask_filter('DOWN', context)
+        matlay_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}

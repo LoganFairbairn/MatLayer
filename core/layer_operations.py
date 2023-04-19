@@ -6,7 +6,6 @@ from . import matlay_materials
 from ..core import layer_nodes
 from . import material_filters
 from ..core import layer_masks
-from ..utilities.matlay_utils import set_material_shading
 from ..utilities import info_messages
 from ..utilities import matlay_utils
 import random
@@ -187,7 +186,7 @@ class MATLAY_OT_add_layer(Operator):
         material_channels.create_empty_group_node(context)
         add_layer_slot(context)
         add_default_layer_nodes(context)
-        set_material_shading(context)       # Set the viewport to material shading mode (so users can see the applied material).
+        matlay_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
 class MATLAY_OT_move_material_layer(Operator):
@@ -322,6 +321,8 @@ class MATLAY_OT_move_material_layer(Operator):
         # 6. Update the layer stack (organize, re-link).
         layer_nodes.update_layer_nodes(context)
 
+        matlay_utils.set_valid_material_shading_mode(context)
+
         return{'FINISHED'}
 
 class MATLAY_OT_delete_layer(Operator):
@@ -364,7 +365,7 @@ class MATLAY_OT_delete_layer(Operator):
         # Update the layer nodes.
         layer_nodes.update_layer_nodes(context)
 
-
+        matlay_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
 class MATLAY_OT_duplicate_layer(Operator):
@@ -397,6 +398,8 @@ class MATLAY_OT_duplicate_layer(Operator):
 
         # TODO: Update layer nodes indicies.
 
+        matlay_utils.set_valid_material_shading_mode(context)
+
         return{'FINISHED'}
 
 class MATLAY_OT_image_editor_export(Operator):
@@ -426,6 +429,7 @@ class MATLAY_OT_image_editor_export(Operator):
                 self.report({'ERROR'}, "Export image can't be packed to export to an external image editor.")
             #bpy.ops.image.external_edit(filepath=export_image.filepath)
 
+        matlay_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
 #----------------------------- READING / REFRESHING LAYER PROPERTIES -----------------------------#
