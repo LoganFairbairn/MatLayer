@@ -6,7 +6,7 @@ from ..core import material_channels
 from ..core import layer_nodes
 from ..core import layer_masks
 from ..core import layer_stack as ls
-from ..core import material_filters
+from ..core import material_filters as mf
 from ..core import texture_set_settings as tss
 from .import ui_section_tabs
 
@@ -381,7 +381,7 @@ def draw_material_filters(column, context, layout):
     selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
-    filter_node = material_filters.get_material_filter_node(selected_material_channel, selected_layer_index, selected_filter_index)
+    filter_node = mf.get_material_filter_node(selected_material_channel, selected_layer_index, selected_filter_index)
     if filter_node:
         match filter_node.bl_static_type:
             case 'INVERT':

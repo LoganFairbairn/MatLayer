@@ -4,7 +4,7 @@ from bpy.props import BoolProperty, StringProperty
 from . import material_channels
 from . import matlay_materials
 from ..core import layer_nodes
-from . import material_filters
+from ..core import material_filters
 from ..core import layer_masks
 from ..utilities import info_messages
 from ..utilities import matlay_utils
@@ -253,7 +253,7 @@ class MATLAY_OT_move_material_layer(Operator):
                 material_node.label = material_node.name
 
             # Rename / re-index filter nodes.
-            filter_nodes = material_filters.get_all_material_filter_nodes(moving_to_layer_index, material_channel_name, False, False)
+            filter_nodes = material_filters.get_all_material_filter_nodes(material_channel_name, moving_to_layer_index, False)
             for filter_node in filter_nodes:
                 node_info = filter_nodes.name.split('_')
                 filter_node.name = node_info[0] + "_" + str(selected_layer_index) + "_" + node_info[2]
@@ -280,28 +280,24 @@ class MATLAY_OT_move_material_layer(Operator):
             frame.name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(moving_to_layer_index)
             frame.label = frame.name
 
-            # Remove the tilda from layer nodes.
             material_nodes = layer_nodes.get_all_material_layer_nodes(material_channel_name, selected_layer_index, context, True)
             for material_node in material_nodes:
                 node_info = material_node.name.split('_')
                 material_node.name = node_info[0] + "_" + str(moving_to_layer_index)
                 material_node.label = material_node.name
 
-            # Remove the tilda from filter nodes.
-            filter_nodes = material_filters.get_all_material_filter_nodes(selected_layer_index, material_channel_name, True, False)
+            filter_nodes = material_filters.get_all_material_filter_nodes(material_channel_name, selected_layer_index, True)
             for filter_node in filter_nodes:
-                node_info = filter_nodes.name.split('_')
-                filter_node.name = node_info[0] + "_" + str(moving_to_layer_index) + "_" + node_info[2].replace('~', '')
+                node_info = filter_node.name.split('_')
+                filter_node.name = material_filters.format_filter_node_name(moving_to_layer_index, node_info[2].replace('~', ''))
                 filter_node.label = filter_node.name
 
-            # Remove the tilda from mask nodes.
             mask_nodes = layer_masks.get_all_mask_nodes_in_layer(selected_layer_index, material_channel_name, True)
             for mask_node in mask_nodes:
                 node_info = mask_node.name.split('_')
                 mask_node.name = node_info[0] + "_" + str(moving_to_layer_index) + "_" + node_info[2].replace('~', '')
                 mask_node.label = mask_node.name
 
-            # Remove the tilda from mask filter nodes.
             mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, selected_layer_index, True)
             for mask_filter_node in mask_filter_nodes:
                 node_info = mask_filter_node.name.split('_')
@@ -614,7 +610,7 @@ class MATLAY_OT_refresh_layer_nodes(Operator):
         # Read masks.
         layer_masks.read_masks(context)
         layer_masks.refresh_mask_filter_stack(context)
-
+        
         # Organize / relink nodes.
         layer_nodes.organize_all_matlay_materials(context)
         layer_nodes.update_layer_nodes(context)

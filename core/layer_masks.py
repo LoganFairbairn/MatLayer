@@ -122,7 +122,7 @@ def update_mask_node_type(self, context):
         new_mask_node.label = new_mask_node.name
 
         # Re-link the mask nodes.
-        relink_layer_mask_nodes(context)
+        relink_mask_nodes(context)
 
         # Re-organize nodes.
         layer_nodes.update_layer_nodes(context)
@@ -480,15 +480,14 @@ def update_mask_indicies(context):
                         mask_node.label = mask_node.name
                         masks[i].stack_index = i - 1
 
-def relink_layer_mask_nodes(context):
+def relink_mask_nodes(context):
     '''Re-links layer mask nodes to other mask nodes and the layer (by connecting to the material layer's opacity node).'''
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_material_index = bpy.context.scene.matlay_layer_stack.layer_index
     selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
     masks = context.scene.matlay_masks
-    mask_filters = context.scene.matlay_mask_filters
 
-    # 1. Relink existing mask filters together.
+    # 1. Relink existing mask filters together for all masks.
     relink_mask_filter_nodes()
 
     material_channel_list = material_channels.get_material_channel_list()
@@ -496,7 +495,7 @@ def relink_layer_mask_nodes(context):
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
         for i in range(0, len(masks)):
 
-            # 2. Unlink all mask mix nodes.
+            # 2. Unlink all mask mixing nodes.
             mix_mask_node = get_mask_node('MaskMix', material_channel_name, selected_material_layer_index, i)
             if mix_mask_node:
                 output = mix_mask_node.outputs[0]
@@ -504,9 +503,10 @@ def relink_layer_mask_nodes(context):
                     if l != 0:
                         material_channel_node.node_tree.links.remove(l)
 
-            # 3. Connect the mask texture node or the last mask filter (if one exists) to the mix mask node.
+            # 3. Connect the last node in the mask to the mix mask mix node.
             last_node = None
-            last_mask_filter_node = get_mask_filter_node(material_channel_name, selected_material_index, selected_mask_index, len(mask_filters) - 1)
+            number_of_mask_filters = len(get_all_mask_filter_nodes(material_channel_name, selected_material_index, i))
+            last_mask_filter_node = get_mask_filter_node(material_channel_name, selected_material_index, selected_mask_index, number_of_mask_filters - 1)
             if last_mask_filter_node:
                 last_node = last_mask_filter_node
             else:
@@ -516,7 +516,7 @@ def relink_layer_mask_nodes(context):
             if mix_mask_node and last_node:
                 material_channel_node.node_tree.links.new(last_node.outputs[0], mix_mask_node.inputs[2])
 
-            # 4. Re-link to the next mask if another one exists on this layer.
+            # 4. Re-link to the next mask mixing node if another exists.
             next_mix_mask_node = get_mask_node('MaskMix', material_channel_name, selected_material_layer_index, i + 1)
             if next_mix_mask_node:
                 material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_mask_node.inputs[1])
@@ -702,10 +702,13 @@ def add_mask(mask_type, context):
     add_mask_slot(context)
     add_default_mask_nodes(context)
     update_mask_indicies(context)
-    relink_layer_mask_nodes(context)
+    relink_mask_nodes(context)
 
     # TODO: Should only need to re-organize nodes here, instead of re-index & re-link.
     layer_nodes.update_layer_nodes(context)
+        
+    # Refresh the mask filter stack.
+    refresh_mask_filter_stack(context)
 
     # Create a black or white mask image for the new mask.
     match mask_type:
@@ -714,6 +717,7 @@ def add_mask(mask_type, context):
 
         case 'WHITE_MASK':
             bpy.ops.matlay.add_mask_image(image_fill='WHITE')
+
 
 def move_mask(direction, context):
     '''Moves the selected layer mask up or down on the layer stack.'''
@@ -771,7 +775,7 @@ def move_mask(direction, context):
 
     # 6. Re-link and organize mask nodes.
     update_mask_indicies(context)
-    relink_layer_mask_nodes(context)
+    relink_mask_nodes(context)
     layer_nodes.update_layer_nodes(context)     # TODO: Swap this out for a function that only organizes all nodes, instead of re-linking and re-indexing nodes too.
 
     mask_stack.auto_update_mask_properties = True
@@ -957,7 +961,7 @@ class MATLAY_OT_delete_layer_mask(Operator):
 
         # 2. Re-index and re-link any remaining layer mask nodes.
         update_mask_indicies(context)
-        relink_layer_mask_nodes(context)
+        relink_mask_nodes(context)
 
         # 3. Remove the mask slot.
         masks.remove(selected_mask_index)
@@ -967,7 +971,6 @@ class MATLAY_OT_delete_layer_mask(Operator):
 
         # TODO: Optimization write a function in layer nodes that organizes all layer nodes in all material channels WITHOUT re-linking or re-indexing nodes.
         # 5. Re-link and re-organize layers.
-        relink_layer_mask_nodes(context)
         layer_nodes.update_layer_nodes(context)
 
         matlay_utils.set_valid_material_shading_mode(context)
@@ -1127,7 +1130,7 @@ class MATLAY_OT_import_mask_image(Operator, ImportHelper):
 #----------------------------- MASK FILTERS -----------------------------#
 
 # Mask filter names are all the same (this makes them a bit easier to access in some cases).
-MASK_FILTER_NAME = "MaskFilter"
+MASK_FILTER_NAME = "MASK-FILTER"
 
 def format_mask_filter_node_name(material_layer_index, mask_index, mask_filter_index, get_edited=False):
     '''All node names including mask node names must be formatted properly so they can be read from the material node tree. This function should be used to properly format the name of a mask filter node. Get edited will return the name of a mask filter node with a tilda at the end, signifying that the node is actively being changed.'''
@@ -1241,19 +1244,33 @@ def relink_mask_filter_nodes():
         mask_filter_nodes = get_all_mask_filter_nodes(material_channel_name, selected_material_index, selected_mask_index, False)
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
 
+        # 1. Connect the mask texture to either a filter or the mask mix node.
+        mask_texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_index, selected_mask_index, False)
+        if mask_texture_node:
+            first_mask_filter_node = get_mask_filter_node(material_channel_name, selected_material_index, selected_mask_index, 0)
+            if first_mask_filter_node:
+                match first_mask_filter_node.bl_static_type:
+                    case 'INVERT':
+                        material_channel_node.node_tree.links.new(mask_texture_node.outputs[0], first_mask_filter_node.inputs[1])
+                    case 'VALTORGB':
+                        material_channel_node.node_tree.links.new(mask_texture_node.outputs[0], first_mask_filter_node.inputs[0])
+            else:
+                mask_mix_node = get_mask_node('MaskMix', material_channel_name, selected_mask_index, selected_mask_index, False)
+                if mask_mix_node:
+                    material_channel_node.node_tree.links.new(mask_texture_node.outputs[0], mask_mix_node.inputs[2])
+
+        # 2. Unlink all mask filter nodes, then re-link all mask filter nodes to the next filter if another exists.
         for i in range(0, len(mask_filter_nodes)):
             mask_filter_node = mask_filter_nodes[i]
 
             next_filter_node = None
             if len(mask_filter_nodes) - 1 > i:
 
-                # 1. Unlink all mask filter nodes.
                 node_links = material_channel_node.node_tree.links
                 for l in node_links:
                     if l.from_node.name == mask_filter_node.name:
                         node_links.remove(l)
 
-                # 2. Link to the next mask mix node in the mask filter stack if it exists.
                 next_filter_node = mask_filter_nodes[i + 1]
                 if next_filter_node:
                     match next_filter_node.bl_static_type:
@@ -1261,16 +1278,6 @@ def relink_mask_filter_nodes():
                             material_channel_node.node_tree.links.new(mask_filter_node.outputs[0], next_filter_node.inputs[1])
                         case 'VALTORGB':
                             material_channel_node.node_tree.links.new(mask_filter_node.outputs[0], next_filter_node.inputs[0])
-
-        # 3. Connect the mask texture to the first mask filter.
-        first_mask_filter_node = get_mask_filter_node(material_channel_name, selected_material_index, selected_mask_index, 0)
-        mask_texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_index, selected_mask_index, False)
-        if mask_texture_node and first_mask_filter_node:
-            match first_mask_filter_node.bl_static_type:
-                case 'INVERT':
-                    material_channel_node.node_tree.links.new(mask_texture_node.outputs[0], first_mask_filter_node.inputs[1])
-                case 'VALTORGB':
-                    material_channel_node.node_tree.links.new(mask_texture_node.outputs[0], first_mask_filter_node.inputs[0])
 
 def refresh_mask_filter_stack(context):
     '''Reads the material node tree to rebuild the mask filter stack in the ui.'''
@@ -1310,7 +1317,6 @@ def add_mask_filter(filter_type, context):
     selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
     mask_filters = context.scene.matlay_mask_filters
     mask_filter_stack = context.scene.matlay_mask_filter_stack
-    selected_mask_filter_index = context.scene.matlay_mask_filter_stack.selected_mask_filter_index
 
     # Stop users from adding too many mask filters.
     if len(mask_filters) >= MAX_MASK_FILTERS:
@@ -1320,19 +1326,19 @@ def add_mask_filter(filter_type, context):
     # Add a new mask filter slot, name and select it.
     mask_filters.add()
 
-    if selected_mask_filter_index < 0:
+    if mask_filter_stack.selected_mask_filter_index < 0:
         move_index = len(mask_filters) - 1
         move_to_index = 0
         mask_filters.move(move_index, move_to_index)
-        mask_filter_stack.selected_mask_filter_index = move_to_index
-        selected_mask_filter_index = len(mask_filters) - 1
+        mask_filter_stack.selected_mask_filter_index  = len(mask_filters) - 1
     
     else:
         move_index = len(mask_filters) - 1
-        move_to_index = max(0, min(selected_mask_filter_index + 1, len(mask_filters) - 1))
+        move_to_index = max(0, min(mask_filter_stack.selected_mask_filter_index + 1, len(mask_filters) - 1))
         mask_filters.move(move_index, move_to_index)
-        mask_filter_stack.selected_filter_index = move_to_index
-        selected_mask_filter_index = max(0, min(selected_mask_filter_index + 1, len(mask_filters) - 1))
+        mask_filter_stack.selected_mask_filter_index = max(0, min(mask_filter_stack.selected_mask_filter_index + 1, len(mask_filters) - 1))
+
+    print("Selected mask filter index: " + str(mask_filter_stack.selected_mask_filter_index))
 
     # Create a new mask filter node (in all material channels).
     material_channel_list = material_channels.get_material_channel_list()
@@ -1340,7 +1346,7 @@ def add_mask_filter(filter_type, context):
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
         if material_channel_node:
             new_node = material_channel_node.node_tree.nodes.new(filter_type)
-            new_node.name = format_mask_filter_node_name(selected_layer_index, selected_mask_index, selected_mask_filter_index) + "~"
+            new_node.name = format_mask_filter_node_name(selected_layer_index, selected_mask_index, mask_filter_stack.selected_mask_filter_index) + "~"
             new_node.label = new_node.name
 
             # Add the new nodes to the layer frame.
@@ -1350,7 +1356,7 @@ def add_mask_filter(filter_type, context):
 
     # Re-index then relink nodes.
     reindex_mask_filters_nodes()
-    relink_mask_filter_nodes()
+    relink_mask_nodes(context)
 
     # Re-organize nodes.
     layer_nodes.update_layer_nodes(context)
@@ -1520,7 +1526,7 @@ class MATLAY_OT_delete_mask_filter(Operator):
 
         # 2. Re-index and re-link mask filter nodes.
         reindex_mask_filters_nodes()
-        relink_mask_filter_nodes()
+        relink_mask_nodes(context)
 
         # 3. Remove the selected mask filter slot.
         mask_filters.remove(selected_mask_filter_index)

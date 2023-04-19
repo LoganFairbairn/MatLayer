@@ -80,7 +80,7 @@ def get_all_nodes_in_layer(material_channel_name, material_layer_index, context,
         nodes.append(node)
 
     # Get existing material filter nodes.
-    filter_nodes = material_filters.get_all_material_filter_nodes(material_layer_index, material_channel_name, get_edited, organize_by_filter_index=True)
+    filter_nodes = material_filters.get_all_material_filter_nodes(material_channel_name, material_layer_index, get_edited)
     nodes = nodes + filter_nodes
 
     # Get mask nodes.
