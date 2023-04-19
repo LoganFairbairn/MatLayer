@@ -690,9 +690,6 @@ def add_default_mask_nodes(context):
 def add_mask(mask_type, context):
     '''Adds a mask of the specified type to the selected material layer.'''
     masks = context.scene.matlay_masks
-    mask_stack = context.scene.matlay_mask_stack
-    selected_layer_mask_index = mask_stack.selected_mask_index
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
     # Stop users from adding too many masks.
     if len(masks) >= MAX_LAYER_MASKS:
@@ -717,6 +714,9 @@ def add_mask(mask_type, context):
 
         case 'WHITE_MASK':
             bpy.ops.matlay.add_mask_image(image_fill='WHITE')
+
+    # Select the mask section so users can quickly edit the new mask.
+    context.scene.matlay_mask_stack.mask_property_tab = 'MASK'
 
 
 def move_mask(direction, context):
