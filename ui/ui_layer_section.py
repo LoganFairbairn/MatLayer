@@ -297,7 +297,7 @@ def draw_material_projection_settings(column, context):
     row.scale_y = SCALE_Y
     row.prop(layers[selected_layer_index].projection, "projection_offset_x")
     row.prop(layers[selected_layer_index].projection, "projection_offset_y")
-    if layers[selected_layer_index].projection != 'FLAT':
+    if layers[selected_layer_index].projection.projection_mode != 'FLAT':
         row.prop(layers[selected_layer_index].projection, "projection_offset_z")
             
     row = column.row()
@@ -315,7 +315,7 @@ def draw_material_projection_settings(column, context):
         col.enabled = False
     col.prop(layers[selected_layer_index].projection, "projection_scale_y")
 
-    if layers[selected_layer_index].projection != 'FLAT':
+    if layers[selected_layer_index].projection.projection_mode != 'FLAT':
         col = row.split()
         if layers[selected_layer_index].projection.match_layer_scale:
             col.enabled = False
@@ -562,7 +562,8 @@ def draw_mask_projection_settings(column):
     row.scale_y = SCALE_Y
     row.prop(masks[selected_mask_index].projection, "projection_offset_x")
     row.prop(masks[selected_mask_index].projection, "projection_offset_y")
-    row.prop(masks[selected_mask_index].projection, "projection_offset_z")
+    if masks[selected_mask_index].projection.projection_mode != 'FLAT':
+        row.prop(masks[selected_mask_index].projection, "projection_offset_z")
 
     row = column.row()
     row.scale_y = SCALE_Y
@@ -578,10 +579,11 @@ def draw_mask_projection_settings(column):
         col.enabled = False
     col.prop(masks[selected_mask_index].projection, "projection_scale_y")
 
-    col = row.split()
-    if masks[selected_mask_index].projection.match_layer_mask_scale:
-        col.enabled = False
-    col.prop(masks[selected_mask_index].projection, "projection_scale_z")
+    if masks[selected_mask_index].projection.projection_mode != 'FLAT':
+        col = row.split()
+        if masks[selected_mask_index].projection.match_layer_mask_scale:
+            col.enabled = False
+        col.prop(masks[selected_mask_index].projection, "projection_scale_z")
 
     col = row.split()
     if masks[selected_mask_index].projection.match_layer_mask_scale:

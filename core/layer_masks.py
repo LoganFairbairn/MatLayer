@@ -946,6 +946,8 @@ class MATLAY_OT_add_empty_layer_mask(Operator):
         matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
+
+
 class MATLAY_OT_open_layer_mask_menu(Operator):
     '''Opens a menu of masks that can be added to the selected material layer.'''
     bl_idname = "matlay.open_layer_mask_menu"
