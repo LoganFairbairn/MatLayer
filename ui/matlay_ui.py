@@ -1,17 +1,19 @@
 # Draws the matlay user interface.
 
 import bpy
-from .import ui_layer_section
-from .import ui_baking_section
-from .import ui_export_section
-from .import ui_texture_set_section
+from . import ui_layer_section
+from . import ui_baking_section
+from . import ui_export_section
+from . import ui_texture_set_section
+from . import ui_settings_section
 
 class MATLAY_panel_properties(bpy.types.PropertyGroup):
     sections: bpy.props.EnumProperty(
         items=[('SECTION_TEXTURE_SET', "TEXTURE SET", "This section contains texture set settings and mesh map baking options."),
                ('SECTION_BAKING', "BAKING", "This section contains operations to quickly bake mesh maps for your models."),
                ('SECTION_LAYERS', "LAYERS", "This section contains a layer stack for the active material."),
-               ('SECTION_EXPORT', "EXPORT", "This section contains operations to quickly export textures made with MatLay.")],
+               ('SECTION_EXPORT', "EXPORT", "This section contains operations to quickly export textures made with MatLay."),
+               ('SECTION_SETTINGS', "SETTINGS", "This section contains general add-on settings for this add-on.")],
         name="MatLay Sections",
         description="Current matlay category",
         default='SECTION_LAYERS'
@@ -27,17 +29,21 @@ class MATLAY_PT_Panel(bpy.types.Panel):
     def draw(self, context):
         panel_properties = context.scene.matlay_panel_properties
         if check_blend_saved():
-            if panel_properties.sections == 'SECTION_TEXTURE_SET':
-                ui_texture_set_section.draw_texture_set_section_ui(self, context)
+            match panel_properties.sections:
+                case 'SECTION_TEXTURE_SET':
+                    ui_texture_set_section.draw_texture_set_section_ui(self, context)
 
-            if panel_properties.sections == 'SECTION_BAKING':
-                ui_baking_section.draw_baking_section_ui(self, context)
+                case 'SECTION_BAKING':
+                    ui_baking_section.draw_baking_section_ui(self, context)
                 
-            if panel_properties.sections == "SECTION_LAYERS":
-                ui_layer_section.draw_layers_section_ui(self, context)
+                case "SECTION_LAYERS":
+                    ui_layer_section.draw_layers_section_ui(self, context)
 
-            if panel_properties.sections == 'SECTION_EXPORT':
-                ui_export_section.draw_export_section_ui(self, context)
+                case 'SECTION_EXPORT':
+                    ui_export_section.draw_export_section_ui(self, context)
+
+                case 'SECTION_SETTINGS':
+                    ui_settings_section.draw_ui_settings_section(self, context)           
 
         else:
             layout = self.layout
