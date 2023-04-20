@@ -192,6 +192,8 @@ def relink_material_filter_nodes(material_channel_name):
                         material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[4])
                     case 'CURVE_RGB':
                         material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[1])
+                    case 'BRIGHTCONTRAST':
+                        material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[0])
     
     # If there are no filter nodes, re-connect the color texture to the mix layer node.
     if len(filter_nodes) <= 0:
@@ -305,6 +307,7 @@ def add_material_layer_filter(filter_type, context):
                     filter_node.parent = frame
 
     # Re-organize and re-link material layer nodes so mix nodes will automatically connect with filter nodes.
+    update_material_filter_nodes(context)
     layer_nodes.update_layer_nodes(context)
 
     # Toggle the material filter off for all material channels excluding color, because users will generally want the material filter to only apply for one material channel anyways. This makes it slightly faster for users to toggle on the material channel they want the material filter to apply to.
@@ -405,6 +408,7 @@ class MATLAY_UL_layer_filter_stack(UIList):
                 node_info = filter_node.name.split('_')
                 row.label(text=str(item.stack_index + 1) + ". " + node_info[0])
 
+# TODO: These should be "material" filters instead of layer filters for accuracy.
 class MATLAY_OT_add_layer_filter_invert(Operator):
     '''Adds an invert filter to the selected layer.'''
     bl_idname = "matlay.add_layer_filter_invert"
@@ -444,7 +448,7 @@ class MATLAY_OT_add_layer_filter_hsv(Operator):
     '''Adds a hue, saturation, value adjustment to the selected layer.'''
     bl_idname = "matlay.add_layer_filter_hsv"
     bl_label = "Add HSV"
-    bl_description = "Adds a HSV adjustment to the selected layer"
+    bl_description = "Adds a hue, saturation, value adjustment to the selected layer"
     bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
@@ -458,7 +462,7 @@ class MATLAY_OT_add_layer_filter_hsv(Operator):
         return{'FINISHED'}
 
 class MATLAY_OT_add_layer_filter_rgb_curves(Operator):
-    '''Adds level adjustment to the selected layer.'''
+    '''Adds a RGB curves adjustment to the selected layer.'''
     bl_idname = "matlay.add_layer_filter_rgb_curves"
     bl_label = "Add RGB Curves"
     bl_description = "Adds a RGB curves adjustment to the selected layer"
@@ -471,6 +475,23 @@ class MATLAY_OT_add_layer_filter_rgb_curves(Operator):
     def execute(self, context):
         matlay_utils.set_valid_mode()
         add_material_layer_filter('ShaderNodeRGBCurve', context)
+        matlay_utils.set_valid_material_shading_mode(context)
+        return{'FINISHED'}
+
+class MATLAY_OT_add_layer_filter_bright_contrast(Operator):
+    '''Adds a brightness and contrast filter to the selected layer.'''
+    bl_idname = "matlay.add_layer_filter_bright_contrast"
+    bl_label = "Add Brightness / Contrast"
+    bl_description = "Adds a brightness and contrast filter to the selected layer"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @ classmethod
+    def poll(cls, context):
+        return bpy.context.scene.matlay_layers
+
+    def execute(self, context):
+        matlay_utils.set_valid_mode()
+        add_material_layer_filter('ShaderNodeBrightContrast', context)
         matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
@@ -502,6 +523,7 @@ class MATLAY_OT_add_layer_filter_menu(Operator):
         col.operator("matlay.add_layer_filter_levels", text="Levels")
         col.operator("matlay.add_layer_filter_hsv", text="HSV")
         col.operator("matlay.add_layer_filter_rgb_curves", text="RGB Curves")
+        col.operator("matlay.add_layer_filter_bright_contrast", text="Brightness / Contrast")
 
 class MATLAY_OT_delete_layer_filter(Operator):
     '''Deletes the selected layer filter.'''

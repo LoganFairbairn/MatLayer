@@ -304,6 +304,8 @@ def relink_layers(material_channel_name, context):
                     material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[4])
                 case 'CURVE_RGB':
                     material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[1])
+                case 'BRIGHTCONTRAST':
+                    material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[0])
 
             # Connect the last filter node to the current mix node.
             last_material_filter_node = material_filters.get_material_filter_node(material_channel_name, i, total_filter_nodes - 1)

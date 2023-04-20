@@ -415,6 +415,14 @@ def draw_material_filters(column, context, layout):
                 row.prop(filter_node.inputs[0], "default_value", text="Fac")
                 column.template_curve_mapping(filter_node, "mapping", type='COLOR')
 
+            case 'BRIGHTCONTRAST':
+                row = column.row()
+                row.scale_y = 1.4
+                row.prop(filter_node.inputs[1], "default_value", text="Brightness")
+                row = column.row()
+                row.scale_y = 1.4
+                row.prop(filter_node.inputs[2], "default_value", text="Contrast")
+
 #----------------- DRAW MASK EDITING UI ----------------------#
 
 def draw_mask_stack(column):
