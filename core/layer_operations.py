@@ -179,12 +179,13 @@ class MATLAY_OT_add_layer(Operator):
 
     def execute(self, context):
         matlay_utils.set_valid_mode()
-        matlay_materials.prepare_material(context)
-        material_channels.create_channel_group_nodes(context)
-        material_channels.create_empty_group_node(context)
-        add_layer_slot(context)
-        add_default_layer_nodes(context)
-        matlay_utils.set_valid_material_shading_mode(context)
+        material_prepared = matlay_materials.prepare_material(context)
+        if material_prepared:
+            material_channels.create_channel_group_nodes(context)
+            material_channels.create_empty_group_node(context)
+            add_layer_slot(context)
+            add_default_layer_nodes(context)
+            matlay_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
 class MATLAY_OT_move_material_layer(Operator):

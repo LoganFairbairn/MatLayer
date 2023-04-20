@@ -1,6 +1,7 @@
 # This file contains functions for creating and verifying materials made with this add-on.
 
 import bpy
+from ..utilities import info_messages
 
 # Returns true if the material on the active object is compatible with this add-on.
 def verify_material(context):
@@ -68,7 +69,11 @@ def prepare_material(context):
     active_material = context.active_object.active_material
 
     # Add a new MatLay material if there is none.
-    if active_object != None:
+    if active_object:
+
+        if active_object.type != 'MESH':
+            info_messages.popup_message_box("Selected object must be a mesh to create a material.", title="User Error", icon='ERROR')
+            return False
 
         # There is no active material, make one.
         if active_material == None:
@@ -79,18 +84,16 @@ def prepare_material(context):
         else:
             # If the material is a matlay material, it's good to go!
             if verify_material(context):
-                return {'FINISHED'}
+                return True
 
             # If the material isn't a matlay material, make a new material.
             else:
                 remove_all_material_slots()
                 create_matlay_material(context, active_object)
-    return {'FINISHED'}
+    return False
 
 def remove_all_material_slots():
     '''Removes all material slots for the selected mesh.'''
-
-    # TODO: Verify the selected object is a mesh before attempting to remove material slots.
     for x in bpy.context.object.material_slots:
         bpy.context.object.active_material_index = 0
         bpy.ops.object.material_slot_remove()
