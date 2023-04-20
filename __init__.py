@@ -48,6 +48,9 @@ from .core.exporting import MATLAY_exporting_settings, MATLAY_OT_export, MATLAY_
 # Import tool / utility modules.
 from .utilities.image_file_handling import MATLAY_OT_add_layer_image, MATLAY_OT_delete_layer_image, MATLAY_OT_import_texture
 
+# Import settings.
+from .core.general_settings import MATLAY_OT_append_workspace
+
 # Import user interface modules.
 from .ui.matlay_ui import *
 from .ui.popup_add_mask import *
@@ -162,7 +165,10 @@ classes = (
     GlobalMaterialChannelToggles,
     MATLAY_texture_set_settings,
 
-    # Main Panel & General Settings
+    # General Settings
+    MATLAY_OT_append_workspace,
+
+    # Main Panel
     MATLAY_panel_properties,
     MATLAY_PT_Panel
 )
