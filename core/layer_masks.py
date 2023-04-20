@@ -861,6 +861,7 @@ class MATLAY_OT_add_black_layer_mask(Operator):
     bl_idname = "matlay.add_black_layer_mask"
     bl_label = "Add Black Mask"
     bl_description = "Creates a new completely black texture and adds it to a new mask. Use this for when only a portion of the object is planned to be masked"
+    bl_options = {'REGISTER', 'UNDO'}
 
     # Disable the button when there is no active object.
     @ classmethod
@@ -878,6 +879,7 @@ class MATLAY_OT_add_white_layer_mask(Operator):
     bl_idname = "matlay.add_white_layer_mask"
     bl_label = "Add White Mask"
     bl_description = "Adds a mask to the selected layer"
+    bl_options = {'REGISTER', 'UNDO'}
 
     # Disable the button when there is no active object.
     @ classmethod
@@ -895,6 +897,7 @@ class MATLAY_OT_add_empty_layer_mask(Operator):
     bl_idname = "matlay.add_empty_layer_mask"
     bl_label = "Add Empty Mask"
     bl_description = "Adds a layer mask to the selected layer with no texture assigned to it's texture slot"
+    bl_options = {'REGISTER', 'UNDO'}
 
     # Disable the button when there is no active object.
     @ classmethod
@@ -938,6 +941,7 @@ class MATLAY_OT_open_layer_mask_menu(Operator):
 class MATLAY_OT_delete_layer_mask(Operator):
     bl_idname = "matlay.delete_layer_mask"
     bl_label = "Delete Layer Mask"
+    bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Deletes the mask for the selected layer if one exists"
 
     # Disable the button when there is no active object.
@@ -1502,6 +1506,7 @@ class MATLAY_OT_delete_mask_filter(Operator):
     bl_idname = "matlay.delete_mask_filter"
     bl_label = "Delete Mask Filter"
     bl_description = "Deletes the mask filter"
+    bl_options = {'REGISTER', 'UNDO'}
 
     # Disable the button when there is no active object.
     @ classmethod
