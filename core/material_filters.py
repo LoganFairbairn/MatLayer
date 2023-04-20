@@ -438,10 +438,10 @@ class MATLAY_OT_add_layer_filter_invert(Operator):
         matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
-class MATLAY_OT_add_layer_filter_levels(Operator):
+class MATLAY_OT_add_layer_filter_val_to_rgb(Operator):
     '''Adds level adjustment to the selected layer.'''
-    bl_idname = "matlay.add_layer_filter_levels"
-    bl_label = "Add Levels"
+    bl_idname = "matlay.add_layer_filter_val_to_rgb"
+    bl_label = "Add Value to RGB"
     bl_description = "Adds a level adjustment (color ramp) to the selected layer"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -531,7 +531,7 @@ class MATLAY_OT_add_layer_filter_menu(Operator):
         col = split.column(align=True)
         col.scale_y = 1.4
         col.operator("matlay.add_layer_filter_invert", text="Invert")
-        col.operator("matlay.add_layer_filter_levels", text="Levels")
+        col.operator("matlay.add_layer_filter_val_to_rgb", text="Value to RGB")
         col.operator("matlay.add_layer_filter_hsv", text="HSV")
         col.operator("matlay.add_layer_filter_rgb_curves", text="RGB Curves")
         col.operator("matlay.add_layer_filter_bright_contrast", text="Brightness / Contrast")

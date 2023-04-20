@@ -37,7 +37,7 @@ from .core.layer_masks import MaskProjectionSettings, MATLAY_mask_stack, MATLAY_
 from .core.layer_operations import *
 
 # Import material filter modules.
-from .core.material_filters import FiltersMaterialChannelToggles, MATLAY_material_filter_stack, MATLAY_UL_layer_filter_stack, MATLAY_material_filters, MATLAY_OT_add_layer_filter_menu, MATLAY_OT_add_layer_filter_rgb_curves, MATLAY_OT_add_layer_filter_hsv, MATLAY_OT_add_layer_filter_invert, MATLAY_OT_add_layer_filter_levels, MATLAY_OT_add_layer_filter_bright_contrast, MATLAY_OT_delete_layer_filter, MATLAY_OT_move_layer_filter_up, MATLAY_OT_move_layer_filter_down
+from .core.material_filters import FiltersMaterialChannelToggles, MATLAY_material_filter_stack, MATLAY_UL_layer_filter_stack, MATLAY_material_filters, MATLAY_OT_add_layer_filter_menu, MATLAY_OT_add_layer_filter_rgb_curves, MATLAY_OT_add_layer_filter_hsv, MATLAY_OT_add_layer_filter_invert, MATLAY_OT_add_layer_filter_val_to_rgb, MATLAY_OT_add_layer_filter_bright_contrast, MATLAY_OT_delete_layer_filter, MATLAY_OT_move_layer_filter_up, MATLAY_OT_move_layer_filter_down
 
 # Import baking modules.
 from .core.baking import MATLAY_baking_settings, MATLAY_OT_bake, MATLAY_OT_bake_ambient_occlusion, MATLAY_OT_bake_curvature, MATLAY_OT_bake_thickness, MATLAY_OT_bake_normals, MATLAY_OT_delete_ao_map, MATLAY_OT_delete_curvature_map, MATLAY_OT_delete_thickness_map, MATLAY_OT_delete_normal_map
@@ -142,7 +142,7 @@ classes = (
     MATLAY_OT_add_layer_filter_rgb_curves,
     MATLAY_OT_add_layer_filter_hsv,
     MATLAY_OT_add_layer_filter_invert,
-    MATLAY_OT_add_layer_filter_levels,
+    MATLAY_OT_add_layer_filter_val_to_rgb,
     MATLAY_OT_add_layer_filter_bright_contrast,
     MATLAY_OT_delete_layer_filter,
     MATLAY_OT_move_layer_filter_up,
