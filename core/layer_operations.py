@@ -568,9 +568,12 @@ class MATLAY_OT_refresh_layer_nodes(Operator):
     auto_called: BoolProperty(name="Auto Called", description="Should be true if refreshing layers was automatically called (i.e selecting a different object automatically refreshes the layer stack). This is used to avoid printing errors.", default=False)
 
     def execute(self, context):
+        material_stack = context.scene.matlay_layer_stack
+
         # Only read the layer stack for materials made with this add-on. 
         # Materials must follow a strict format to be able to be properly read, making materials not made with this add-on incompatible.
         if matlay_materials.verify_material(context) == False:
+            material_stack.layer_index = -1
             if self.auto_called == False:
                 self.report({'ERROR'}, "Material is not a MatLay material, a material doesn't exist on the selected object, or the material is corrupted; ui can't be refreshed.")
             return {'FINISHED'}
@@ -588,9 +591,9 @@ class MATLAY_OT_refresh_layer_nodes(Operator):
 
         # After reading the layer stack, the number of layers may be different, reset the selected layer index if required.
         if total_number_of_layers >= original_selected_layer_index:
-            selected_layer_index = original_selected_layer_index
+            material_stack.layer_index = original_selected_layer_index
         else:
-            selected_layer_index = 0
+            material_stack.layer_index = 0
 
         # Turn auto updating for layer properties off.
         # This is to avoid node types from automatically being replaced when the node type is updated as doing so can cause errors when reading values (likely due to blender parameter update functions not being thread safe).
@@ -600,7 +603,7 @@ class MATLAY_OT_refresh_layer_nodes(Operator):
         read_layer_name_and_id(layers, context)
         read_layer_opacity(total_number_of_layers, layers, selected_material_channel, context)
         read_texture_node_values(material_channel_list, total_number_of_layers, layers, context)
-        read_layer_projection_values(layers[selected_layer_index], selected_layer_index, context)
+        read_layer_projection_values(layers[material_stack.layer_index], material_stack.layer_index, context)
         read_globally_active_material_channels(context)
         read_hidden_layers(total_number_of_layers, layers, material_channel_list, context)
         read_active_layer_material_channels(material_channel_list, total_number_of_layers, layers, context)
