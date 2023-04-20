@@ -1,8 +1,8 @@
 # This module provides functions to edit layer material nodes created with this add-on.
 
 import bpy
-from . import material_channels
-from . import material_filters
+from ..core import material_channels
+from ..core import material_filters
 from ..core import layer_masks
 from ..utilities import matlay_utils
 
@@ -371,7 +371,6 @@ def update_layer_node_indicies(material_channel_name, context):
     for i in range(0, len(layers)):
         temp_node_name = get_layer_node_name("TEXTURE", i) + "~"
         node = material_channel_node.node_tree.nodes.get(temp_node_name)
-
         if node:
             node_added = True
             changed_layer_index = i
@@ -382,39 +381,56 @@ def update_layer_node_indicies(material_channel_name, context):
     if not node_added:
         for i in range(0, len(layers)):
             frame = get_layer_frame(material_channel_name, i, context)
-
             if not frame:
                 node_deleted = True
                 changed_layer_index = i
                 break
 
 
-    # 3. Rename the all layer nodes starting with the changed layer and remove the tilda from the newly added layer.
+    # 3. Re-index the all layer nodes above the changed layer if any exist.
     if node_added:
         for i in range(len(layers), changed_layer_index + 1, -1):
             index = i - 1
-            frame = material_channel_node.node_tree.nodes.get(layers[index].name + "_" + str(layers[index].id) + "_" + str(index - 1))
 
+            # Re-index the layer frame.
+            frame = material_channel_node.node_tree.nodes.get(layers[index].name + "_" + str(layers[index].id) + "_" + str(index - 1))
             frame.name = layers[index].name + "_" + str(layers[index].id) + "_" + str(index)
             frame.label = frame.name
-
-            # Update the cached layer frame name.
             layers[index].cached_frame_name = frame.name
 
+            # Re-index the layer nodes.
             for node_name in layer_node_names:
                 node = get_layer_node(node_name, material_channel_name, index - 1, context)
                 rename_layer_node(node, node_name, index)
 
-        # Remove the tilda from the new frame.
+            # Re-index all filter nodes.
+            material_filter_nodes = material_filters.get_all_material_filter_nodes(material_channel_name, index - 1, False)
+            for node in material_filter_nodes:
+                node_info = node.name.split('_')
+                node.name = material_filters.format_filter_node_name(index, node_info[2], False)
+                node.label = node.name
+
+            # Re-index all mask nodes.
+            mask_nodes = layer_masks.get_all_mask_nodes_in_layer(index - 1, material_channel_name, False)
+            for node in mask_nodes:
+                node_info = node.name.split('_')
+                node.name = layer_masks.format_mask_node_name(node_info[0], index, node_info[2], False)
+                node.label = node.name
+
+            # Re-index all mask filter nodes.
+            mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, index - 1, False)
+            for node in mask_filter_nodes:
+                node_info = node.name.split('_')
+                node.name = layer_masks.format_mask_filter_node_name(index, node_info[2], node_info[3], False)
+                node.label = node.name
+
+        # 4. Remove the tilda from the new frame and nodes.
         temp_frame_name = layers[changed_layer_index].name + "_" + str(layers[changed_layer_index].id) + "_" + str(changed_layer_index) + "~"
         frame = material_channel_node.node_tree.nodes.get(temp_frame_name)
         frame.name = layers[changed_layer_index].name + "_" + str(layers[changed_layer_index].id) + "_" + str(changed_layer_index)
         frame.label = frame.name
-
-        # Update the cached layer frame name (used for accessing nodes if their name changes).
         layers[changed_layer_index].cached_frame_name = frame.name
-
-        # Remove the tilda from the new nodes.
+        
         for node_name in layer_node_names:
             temp_node_name = get_layer_node_name(node_name, changed_layer_index) + "~"
             node = material_channel_node.node_tree.nodes.get(temp_node_name)
