@@ -3,6 +3,8 @@ from bpy.types import Operator
 from bpy.utils import resource_path
 from pathlib import Path
 
+from ..utilities import info_messages
+
 class MATLAY_OT_append_workspace(Operator):
     '''Appends a suggested layout for using this add-on.'''
     bl_idname = "matlay.append_workspace"
@@ -14,6 +16,11 @@ class MATLAY_OT_append_workspace(Operator):
         return context.active_object
 
     def execute(self, context):
+        workspace = bpy.data.workspaces.get('Matlay')
+        if workspace:
+            info_messages.popup_message_box("The default workspace already exists, manually delete it and click this operator again to re-load the workspace.", 'Info', 'INFO')
+            return {'FINISHED'}
+
 
         USER = Path(resource_path('USER'))
         ADDON = "Matlay"
