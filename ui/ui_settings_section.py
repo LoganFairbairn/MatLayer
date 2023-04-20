@@ -14,3 +14,15 @@ def draw_ui_settings_section(self, context):
     row = layout.row()
     row.scale_y = scale_y
     row.prop(bpy.context.scene.render, 'engine')
+
+    if bpy.context.scene.render.engine == 'BLENDER_EEVEE':
+        row = layout.row()
+        row.scale_y = 1.2
+        row.prop(bpy.context.scene.eevee, 'use_bloom', text="Bloom (glow)")
+        row = layout.row()
+        row.scale_y = 1.2
+        row.prop(bpy.context.scene.eevee, 'use_gtao')
+        row = layout.row()
+        row.scale_y = 1.2
+        row.prop(bpy.context.scene.eevee, 'use_ssr')
+
