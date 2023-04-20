@@ -330,19 +330,24 @@ def relink_layers(material_channel_name, context):
 
 #----------------------------- LAYER UPDATING FUNCTIONS -----------------------------#
 
+# TODO: Remove this wrapper function in favor of relinking / organizing in separate functions.
 def update_layer_nodes(context):
-    '''Re-organizes all nodes in all material channels for every layer and re-links all layers together. This should generally be called after editing layer nodes.'''
+    '''Re-organizes and re-links layer nodes together. This should generally be called after editing layer nodes.'''
     organize_material_channel_nodes(context)
 
     material_channel_names = material_channels.get_material_channel_list()
     for material_channel in material_channel_names:
         update_layer_indicies(context)
         update_layer_node_indicies(material_channel, context)
-        material_filters.update_material_filter_nodes(context)
-        layer_masks.reindex_mask_filters_nodes()
-        layer_masks.relink_mask_filter_nodes()
         organize_layer_nodes_in_material_channel(material_channel, context)
         relink_layers(material_channel, context)
+
+    # Relink masks and filters.
+    material_filters.update_material_filter_nodes(context)
+    layer_masks.update_mask_indicies(context)
+    layer_masks.relink_mask_nodes(context)
+    layer_masks.reindex_mask_filters_nodes()
+    layer_masks.relink_mask_filter_nodes()
 
 def update_layer_indicies(context):
     '''Matches layer stack indicies stored in each layer to the layer stack array indicies (layer stack indicies are stored in the layers for convenience and debugging purposes).'''
