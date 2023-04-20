@@ -43,4 +43,7 @@ class MATLAY_OT_append_workspace(Operator):
         # Set the current workspace to the appended workspace.
         bpy.context.window.workspace = bpy.data.workspaces['Matlay']
 
+        # Reset the main pannel tab.
+        context.scene.matlay_panel_properties.sections = 'SECTION_TEXTURE_SET'
+
         return {'FINISHED'}
