@@ -10,8 +10,6 @@ from ..utilities import info_messages
 from ..utilities import matlay_utils
 import random
 
-
-
 def add_layer_slot(context):
     '''Creates a layer slot.'''
     layers = context.scene.matlay_layers
