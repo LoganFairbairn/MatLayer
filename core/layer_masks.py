@@ -717,7 +717,6 @@ def add_mask(mask_type, context):
     # Select the mask section so users can quickly edit the new mask.
     context.scene.matlay_mask_stack.mask_property_tab = 'MASK'
 
-
 def move_mask(direction, context):
     '''Moves the selected layer mask up or down on the layer stack.'''
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
@@ -1019,11 +1018,16 @@ class MATLAY_OT_add_mask_image(Operator):
     def execute(self, context):
         matlay_utils.set_valid_mode()
 
-        # 1. Assign the new mask image a name.
-        image_name = "Mask_" + str(random.randrange(10000,99999))
-        while bpy.data.images.get(image_name) != None:
-            image_name = "Mask_" + str(random.randrange(10000,99999))
+        active_object = bpy.context.active_object
+        if not active_object:
+            info_messages.popup_message_box("No selected object when adding a layer image.", 'User Error', 'ERROR')
+            return
 
+        # 1. Assign the new mask image a name.
+        image_name = active_object.name + "_Mask_" + str(random.randrange(10000,99999))
+        while bpy.data.images.get(image_name) != None:
+            image_name = active_object.name + "_Mask_" + str(random.randrange(10000,99999))
+            
         # 2. Create a new image of the texture size defined in the texture set settings.
         image_width = texture_set_settings.get_texture_width()
         image_height = texture_set_settings.get_texture_height()

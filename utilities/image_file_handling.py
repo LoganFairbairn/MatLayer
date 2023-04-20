@@ -6,6 +6,7 @@ from bpy_extras.io_utils import ImportHelper        # For importing images.
 import random
 import os                                           # For saving layer images.
 from ..import layer_nodes
+from ..utilities import info_messages
 
 def get_random_image_id():
     '''Generates a random image id number.'''
@@ -25,11 +26,15 @@ class MATLAY_OT_add_layer_image(Operator):
         layers = context.scene.matlay_layers
         layer_index = context.scene.matlay_layer_stack.layer_index
 
+        active_object = bpy.context.active_object
+        if not active_object:
+            info_messages.popup_message_box("No selected object when adding a layer image.", 'User Error', 'ERROR')
+            return
+        
         # Assign the new image the layer name + a random image id number.
-        layer_name = layers[layer_index].name.replace(" ", "")
-        image_name = layer_name + "_" + get_random_image_id()
+        image_name = active_object.name + "_" + get_random_image_id()
         while bpy.data.images.get(image_name) != None:
-            image_name = layer_name + "_" + get_random_image_id()
+            image_name = active_object.name + "_" + get_random_image_id()
 
         # Create a new image of the texture size defined in the texture set settings.
         texture_set_settings = context.scene.matlay_texture_set_settings
