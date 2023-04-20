@@ -437,21 +437,43 @@ def update_layer_node_indicies(material_channel_name, context):
             rename_layer_node(node, node_name, changed_layer_index)
 
 
-    # 4. Rename layer nodes past the deleted layer if they exist.
+    # 4. Re-index all nodes on layers past the deleted layer if any exist.
     if node_deleted and len(layers) > 0:
         for i in range(changed_layer_index, len(layers), 1):
             index = i + 1
 
+            # Re-index layer frames.
             old_frame_name = layers[index - 1].name + "_" + str(layers[index - 1].id) + "_" + str(index)
             frame = material_channel_node.node_tree.nodes.get(old_frame_name)
-
             new_frame_name = layers[index - 1].name + "_" + str(layers[index - 1].id) + "_" + str(index - 1)
             frame.name = new_frame_name
             frame.label = frame.name
-
-            # Update the cached layer frame name.
             layers[changed_layer_index].cached_frame_name = frame.name
 
+            # Re-index layer nodes.
             for node_name in layer_node_names:
                 node = get_layer_node(node_name, material_channel_name, index, context)
                 rename_layer_node(node, node_name, index - 1)
+
+            # Re-index all filter nodes.
+            material_filter_nodes = material_filters.get_all_material_filter_nodes(material_channel_name, index , False)
+            for node in material_filter_nodes:
+                node_info = node.name.split('_')
+                node.name = material_filters.format_filter_node_name(index - 1, node_info[2], False)
+                node.label = node.name
+
+            # Re-index all mask nodes.
+            mask_nodes = layer_masks.get_all_mask_nodes_in_layer(index, material_channel_name, False)
+            for node in mask_nodes:
+                node_info = node.name.split('_')
+                node.name = layer_masks.format_mask_node_name(node_info[0], index - 1, node_info[2], False)
+                node.label = node.name
+
+            # Re-index all mask filter nodes.
+            mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, index, False)
+            for node in mask_filter_nodes:
+                node_info = node.name.split('_')
+                node.name = layer_masks.format_mask_filter_node_name(index - 1, node_info[2], node_info[3], False)
+                node.label = node.name
+
+            
