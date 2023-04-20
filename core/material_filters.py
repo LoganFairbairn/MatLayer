@@ -405,8 +405,19 @@ class MATLAY_UL_layer_filter_stack(UIList):
             row = layout.row()
             filter_node = get_material_filter_node('COLOR', bpy.context.scene.matlay_layer_stack.layer_index, item.stack_index, False)
             if filter_node:
-                node_info = filter_node.name.split('_')
-                row.label(text=str(item.stack_index + 1) + ". " + node_info[0])
+                filter_name = ""
+                match filter_node.bl_static_type:
+                    case 'INVERT':
+                        filter_name = "Invert"
+                    case 'VALTORGB':
+                        filter_name = "Value to RGB"
+                    case 'HUE_SAT':
+                        filter_name = "Hue Saturation Value"
+                    case 'CURVE_RGB':
+                        filter_name = "Curve RGB"
+                    case 'BRIGHTCONTRAST':
+                        filter_name = "Brightness & Contrast"
+                row.label(text=str(item.stack_index + 1) + ". " + filter_name)
 
 # TODO: These should be "material" filters instead of layer filters for accuracy.
 class MATLAY_OT_add_layer_filter_invert(Operator):
