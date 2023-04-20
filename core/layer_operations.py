@@ -570,7 +570,7 @@ class MATLAY_OT_refresh_layer_nodes(Operator):
         # Materials must follow a strict format to be able to be properly read, making materials not made with this add-on incompatible.
         if matlay_materials.verify_material(context) == False:
             if self.auto_called == False:
-                self.report({'ERROR'}, "Material is not a MatLay material, can't read / refresh the layer stack.")
+                self.report({'ERROR'}, "Material is not a MatLay material, a material doesn't exist on the selected object, or the material is corrupted; ui can't be refreshed.")
             return {'FINISHED'}
         
         # Remember the selected layer index before clearing the layer stack.
