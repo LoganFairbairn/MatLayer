@@ -302,24 +302,19 @@ def draw_material_projection_settings(column, context):
     row.scale_y = SCALE_Y
     row.prop(layers[selected_layer_index].projection, "projection_rotation", slider=True)
 
-    split = column.split()
-    col = split.column()
-    col.ui_units_x = 1
-    col.scale_y = SCALE_Y
+
+    row = column.row()
+    row.scale_y = SCALE_Y
+    col = row.split()
     col.prop(layers[selected_layer_index].projection, "projection_scale_x")
 
-    col = split.column()
-    col.ui_units_x = 0.1
-    col.scale_y = SCALE_Y
+    col = row.split()
     if layers[selected_layer_index].projection.match_layer_scale:
-        col.prop(layers[selected_layer_index].projection, "match_layer_scale", text="", icon="LOCKED")
-
+        col.prop(layers[selected_layer_index].projection, "match_layer_scale", icon="LOCKED", icon_only=True)
     else:
-        col.prop(layers[selected_layer_index].projection, "match_layer_scale", text="", icon="UNLOCKED")
-           
-    col = split.column()
-    col.ui_units_x = 2
-    col.scale_y = SCALE_Y
+        col.prop(layers[selected_layer_index].projection, "match_layer_scale", icon="UNLOCKED", icon_only=True)
+
+    col = row.split()
     if layers[selected_layer_index].projection.match_layer_scale:
         col.enabled = False
     col.prop(layers[selected_layer_index].projection, "projection_scale_y")
@@ -564,24 +559,19 @@ def draw_mask_projection_settings(column):
     row.scale_y = SCALE_Y
     row.prop(masks[selected_mask_index].projection, "projection_rotation", slider=True)
 
-    split = column.split()
-    col = split.column()
-    col.ui_units_x = 1
-    col.scale_y = SCALE_Y
+    row = column.row()
+    row.scale_y = SCALE_Y
+    col = row.split()
     col.prop(masks[selected_mask_index].projection, "projection_scale_x")
 
-    col = split.column()
-    col.ui_units_x = 0.1
-    col.scale_y = SCALE_Y
+    col = row.split()
     if masks[selected_mask_index].projection.match_layer_mask_scale:
         col.prop(masks[selected_mask_index].projection, "match_layer_mask_scale", text="", icon="LOCKED")
 
     else:
         col.prop(masks[selected_mask_index].projection, "match_layer_mask_scale", text="", icon="UNLOCKED")
-           
-    col = split.column()
-    col.ui_units_x = 2
-    col.scale_y = SCALE_Y
+
+    col = row.split()
     if masks[selected_mask_index].projection.match_layer_mask_scale:
         col.enabled = False
     col.prop(masks[selected_mask_index].projection, "projection_scale_y")
