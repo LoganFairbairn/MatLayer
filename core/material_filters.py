@@ -10,9 +10,6 @@ from ..utilities import matlay_utils
 # All MATERIAL filter nodes will use this name.
 FILTER_NODE_NAME = 'FILTER'
 
-# A list of filter node types available in this add-on.
-FILTER_NODE_TYPES = ("INVERT", "VALTORGB", "HUE_SAT", "CURVE_RGB")
-
 # The maximum number of filters a single layer can use. Realistically users should never need more filters on a single layer than this.
 MAX_LAYER_FILTER_COUNT = 5
 
