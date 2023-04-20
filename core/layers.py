@@ -235,6 +235,22 @@ def update_projection_offset_y(self, context):
         if mapping_node:
             mapping_node.inputs[1].default_value[1] = layers[selected_layer_index].projection.projection_offset_y
 
+def update_projection_offset_z(self, context):
+    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+        return 
+
+    matlay_utils.set_valid_material_shading_mode(context)
+
+    layers = context.scene.matlay_layers
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+
+        if mapping_node:
+            mapping_node.inputs[1].default_value[2] = layers[selected_layer_index].projection.projection_offset_z
+
 def update_projection_rotation(self, context):
     '''Updates the layer projections rotation for all layers.'''
     if not context.scene.matlay_layer_stack.auto_update_layer_properties:
@@ -270,6 +286,7 @@ def update_projection_scale_x(self, context):
 
         if self.match_layer_scale:
             layers[selected_layer_index].projection.projection_scale_y = layers[selected_layer_index].projection.projection_scale_x
+            layers[selected_layer_index].projection.projection_scale_z = layers[selected_layer_index].projection.projection_scale_x
 
 def update_projection_scale_y(self, context):
     if not context.scene.matlay_layer_stack.auto_update_layer_properties:
@@ -287,6 +304,23 @@ def update_projection_scale_y(self, context):
         if mapping_node:
             mapping_node.inputs[3].default_value[1] = layers[selected_layer_index].projection.projection_scale_y
 
+def update_projection_scale_z(self, context):
+    '''Updates the layer projections x scale for all mapping nodes in the selected layer.'''
+    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+        return 
+    
+    matlay_utils.set_valid_material_shading_mode(context)
+
+    layers = context.scene.matlay_layers
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+
+        if mapping_node:
+            mapping_node.inputs[3].default_value[2] = layers[selected_layer_index].projection.projection_scale_z
+
 def update_match_layer_scale(self, context):
     '''Updates matching of the projected layer scales.'''
     if not context.scene.matlay_layer_stack.auto_update_layer_properties:
@@ -298,6 +332,7 @@ def update_match_layer_scale(self, context):
         layers = context.scene.matlay_layers
         layer_index = context.scene.matlay_layer_stack.layer_index
         layers[layer_index].projection.projection_scale_y = layers[layer_index].projection.projection_scale_x
+        layers[layer_index].projection.projection_scale_z = layers[layer_index].projection.projection_scale_x
 
 #----------------------------- UPDATE MATERIAL CHANNEL TOGGLES (mute / unmute material channels for individual layers) -----------------------------#
 
@@ -652,7 +687,6 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
 
     # Re-link nodes.
     
-
 def update_color_channel_node_type(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties:
         replace_texture_node(self.color_node_type, "COLOR", self, context)
@@ -739,9 +773,11 @@ class ProjectionSettings(PropertyGroup):
     projection_blend: FloatProperty(name="Projection Blend", description="The projection blend amount", default=0.3, min=0.0, max=1.0, subtype='FACTOR', update=update_projection_blend)
     projection_offset_x: FloatProperty(name="Offset X", description="Projected x offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_x)
     projection_offset_y: FloatProperty(name="Offset Y", description="Projected y offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_y)
+    projection_offset_z: FloatProperty(name="Offset Z", description="Projected z offset of the selected layer, only available in some projection modes", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_z)
     projection_rotation: FloatProperty(name="Rotation", description="Projected rotation of the selected layer", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projection_rotation)
     projection_scale_x: FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_x)
     projection_scale_y: FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_y)
+    projection_scale_z: FloatProperty(name="Scale Z", description="Projected z scale of the selected layer, only available in some projection modes", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_z)
     match_layer_scale: BoolProperty(name="Match Layer Scale", default=True,update=update_match_layer_scale)
     match_layer_mask_scale: BoolProperty(name="Match Layer Mask Scale", default=True)
 

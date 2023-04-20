@@ -297,6 +297,23 @@ def update_mask_projection_offset_y(self, context):
         if mapping_node:
             mapping_node.inputs[1].default_value[1] = masks[selected_mask_index].projection.projection_offset_y
 
+def update_mask_projection_offset_z(self, context):
+    '''Updates the mask projected z offset for the selected mask when the property is changed in the ui.'''
+    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+        return
+    
+    matlay_utils.set_valid_material_shading_mode(context)
+
+    masks = context.scene.matlay_masks
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = get_mask_node('MaskMapping', material_channel_name, selected_material_layer_index, selected_mask_index, False)
+        if mapping_node:
+            mapping_node.inputs[1].default_value[2] = masks[selected_mask_index].projection.projection_offset_z
+
 def update_mask_projection_rotation(self, context):
     '''Updates the masks projection rotation when the mask rotation property is changed in the ui.'''
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
@@ -332,6 +349,7 @@ def update_mask_projection_scale_x(self, context):
             mapping_node.inputs[3].default_value[0] = masks[selected_mask_index].projection.projection_scale_x
         if self.match_layer_mask_scale:
             masks[selected_mask_index].projection.projection_scale_y = masks[selected_mask_index].projection.projection_scale_x
+            masks[selected_mask_index].projection.projection_scale_z = masks[selected_mask_index].projection.projection_scale_x
 
 def update_mask_projection_scale_y(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
@@ -349,6 +367,23 @@ def update_mask_projection_scale_y(self, context):
         if mapping_node:
             mapping_node.inputs[3].default_value[1] = masks[selected_mask_index].projection.projection_scale_y
 
+def update_mask_projection_scale_z(self, context):
+    '''Updates the mask projected z scale for the selected mask when the property is changed in the ui.'''
+    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+        return
+    
+    matlay_utils.set_valid_material_shading_mode(context)
+
+    masks = context.scene.matlay_masks
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = get_mask_node('MaskMapping', material_channel_name, selected_material_layer_index, selected_mask_index, False)
+        if mapping_node:
+            mapping_node.inputs[3].default_value[2] = masks[selected_mask_index].projection.projection_scale_z
+
 def update_mask_match_scale(self, context):
     '''Updates matching of the projected mask scale.'''
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
@@ -360,6 +395,7 @@ def update_mask_match_scale(self, context):
         masks = context.scene.matlay_masks
         selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
         masks[selected_mask_index].projection.projection_scale_y = masks[selected_mask_index].projection.projection_scale_x
+        masks[selected_mask_index].projection.projection_scale_z = masks[selected_mask_index].projection.projection_scale_x
 
 #----------------------------- CORE MASK FUNCTIONS -----------------------------#
 
@@ -788,9 +824,11 @@ class MaskProjectionSettings(PropertyGroup):
     projection_blend: FloatProperty(name="Projection Blend", description="The projection blend amount", default=0.3, min=0.0, max=1.0, subtype='FACTOR', update=update_mask_projection_blend)
     projection_offset_x: FloatProperty(name="Offset X", description="Projected x offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_mask_projection_offset_x)
     projection_offset_y: FloatProperty(name="Offset Y", description="Projected y offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_mask_projection_offset_y)
+    projection_offset_z: FloatProperty(name="Offset Z", description="Projected z offset of the selected layer, only available in some projection modes", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_mask_projection_offset_z)
     projection_rotation: FloatProperty(name="Rotation", description="Projected rotation of the selected layer", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_mask_projection_rotation)
     projection_scale_x: FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_mask_projection_scale_x)
     projection_scale_y: FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_mask_projection_scale_y)
+    projection_scale_z: FloatProperty(name="Scale Z", description="Projected z scale of the selected layer, only available in some projection modes", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_mask_projection_scale_z)
     match_layer_mask_scale: BoolProperty(name="Match Layer Mask Scale", default=True, update=update_mask_match_scale)
 
 class MATLAY_mask_stack(PropertyGroup):

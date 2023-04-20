@@ -297,27 +297,35 @@ def draw_material_projection_settings(column, context):
     row.scale_y = SCALE_Y
     row.prop(layers[selected_layer_index].projection, "projection_offset_x")
     row.prop(layers[selected_layer_index].projection, "projection_offset_y")
+    if layers[selected_layer_index].projection != 'FLAT':
+        row.prop(layers[selected_layer_index].projection, "projection_offset_z")
             
     row = column.row()
     row.scale_y = SCALE_Y
     row.prop(layers[selected_layer_index].projection, "projection_rotation", slider=True)
 
-
     row = column.row()
+
     row.scale_y = SCALE_Y
     col = row.split()
     col.prop(layers[selected_layer_index].projection, "projection_scale_x")
 
     col = row.split()
     if layers[selected_layer_index].projection.match_layer_scale:
-        col.prop(layers[selected_layer_index].projection, "match_layer_scale", icon="LOCKED", icon_only=True)
-    else:
-        col.prop(layers[selected_layer_index].projection, "match_layer_scale", icon="UNLOCKED", icon_only=True)
+        col.enabled = False
+    col.prop(layers[selected_layer_index].projection, "projection_scale_y")
+
+    if layers[selected_layer_index].projection != 'FLAT':
+        col = row.split()
+        if layers[selected_layer_index].projection.match_layer_scale:
+            col.enabled = False
+        col.prop(layers[selected_layer_index].projection, "projection_scale_z")
 
     col = row.split()
     if layers[selected_layer_index].projection.match_layer_scale:
-        col.enabled = False
-    col.prop(layers[selected_layer_index].projection, "projection_scale_y")
+        col.prop(layers[selected_layer_index].projection, "match_layer_scale", icon="LOCKED", icon_only=True)
+    else:
+        col.prop(layers[selected_layer_index].projection, "match_layer_scale", icon="UNLOCKED", icon_only=True)
 
 def draw_filter_material_channel_toggles(column, context):
     '''Draws material channel toggles for material filters.'''
@@ -554,7 +562,8 @@ def draw_mask_projection_settings(column):
     row.scale_y = SCALE_Y
     row.prop(masks[selected_mask_index].projection, "projection_offset_x")
     row.prop(masks[selected_mask_index].projection, "projection_offset_y")
-            
+    row.prop(masks[selected_mask_index].projection, "projection_offset_z")
+
     row = column.row()
     row.scale_y = SCALE_Y
     row.prop(masks[selected_mask_index].projection, "projection_rotation", slider=True)
@@ -566,15 +575,20 @@ def draw_mask_projection_settings(column):
 
     col = row.split()
     if masks[selected_mask_index].projection.match_layer_mask_scale:
-        col.prop(masks[selected_mask_index].projection, "match_layer_mask_scale", text="", icon="LOCKED")
-
-    else:
-        col.prop(masks[selected_mask_index].projection, "match_layer_mask_scale", text="", icon="UNLOCKED")
+        col.enabled = False
+    col.prop(masks[selected_mask_index].projection, "projection_scale_y")
 
     col = row.split()
     if masks[selected_mask_index].projection.match_layer_mask_scale:
         col.enabled = False
-    col.prop(masks[selected_mask_index].projection, "projection_scale_y")
+    col.prop(masks[selected_mask_index].projection, "projection_scale_z")
+
+    col = row.split()
+    if masks[selected_mask_index].projection.match_layer_mask_scale:
+        col.prop(masks[selected_mask_index].projection, "match_layer_mask_scale", text="", icon="LOCKED")
+
+    else:
+        col.prop(masks[selected_mask_index].projection, "match_layer_mask_scale", text="", icon="UNLOCKED")
 
 def draw_mask_filters(column):
     '''Draws the mask filter stack with operators for material layer masks.'''
