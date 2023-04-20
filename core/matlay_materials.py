@@ -70,7 +70,6 @@ def prepare_material(context):
 
     # Add a new MatLay material if there is none.
     if active_object:
-
         if active_object.type != 'MESH':
             info_messages.popup_message_box("Selected object must be a mesh to create a material.", title="User Error", icon='ERROR')
             return False
@@ -79,8 +78,9 @@ def prepare_material(context):
         if active_material == None:
             remove_all_material_slots()
             create_matlay_material(context, active_object)
+            return True
 
-        # There is a material, make sure it's a MatLay material.
+        # There is a material, make sure it's a valid material made with this add-on.
         else:
             # If the material is a matlay material, it's good to go!
             if verify_material(context):
@@ -90,6 +90,7 @@ def prepare_material(context):
             else:
                 remove_all_material_slots()
                 create_matlay_material(context, active_object)
+            return True
     return False
 
 def remove_all_material_slots():
