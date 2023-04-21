@@ -212,13 +212,12 @@ def add_layer(type, context):
 
             bpy.ops.matlay.add_layer_image(material_channel_name='COLOR')
 
-
 class MATLAY_OT_add_material_layer(Operator):
     '''Adds a layer with a full material'''
     bl_idname = "matlay.add_material_layer"
     bl_label = "Add Material Layer"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Adds a layer with default numeric material values to the layer stack"
+    bl_description = "Adds a layer with a full material"
 
     def execute(self, context):
         add_layer('MATERIAL', context)
@@ -229,7 +228,7 @@ class MATLAY_OT_add_paint_layer(Operator):
     bl_idname = "matlay.add_paint_layer"
     bl_label = "Add Paint Layer"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Adds a layer with default numeric material values to the layer stack"
+    bl_description = "Add a material layer with all material channels turned off, excluding color, and creates a new image texture for the color material channel. Use this operator to add layers you intend to manually paint onto"
 
     def execute(self, context):
         add_layer('PAINT', context)
