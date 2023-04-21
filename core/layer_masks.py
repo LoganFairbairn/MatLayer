@@ -1553,7 +1553,7 @@ class MATLAY_OT_add_layer_mask_filter_menu(Operator):
         col = split.column(align=True)
         col.scale_y = 1.4
         col.operator("matlay.add_mask_filter_invert")
-        col.operator("matlay.add_mask_filter_val_to_rgb")
+        col.operator("matlay.add_mask_filter_val_to_rgb", text="Value to RGB (levels)")
 
 class MATLAY_OT_delete_mask_filter(Operator):
     bl_idname = "matlay.delete_mask_filter"
