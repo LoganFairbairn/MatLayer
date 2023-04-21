@@ -74,7 +74,7 @@ def draw_layer_operations(column):
     subrow = column.row(align=True)
     subrow.scale_y = 2.0
     subrow.scale_x = 10
-    subrow.operator("matlay.add_layer", icon="ADD", text="")
+    subrow.operator("matlay.add_layer_menu", icon="ADD", text="")
     operator = subrow.operator("matlay.move_material_layer", icon="TRIA_UP", text="")
     operator.direction = 'UP'
     operator = subrow.operator("matlay.move_material_layer", icon="TRIA_DOWN", text="")

@@ -152,7 +152,9 @@ classes = (
 
     # Layer Operations
     MATLAY_UL_layer_list,
-    MATLAY_OT_add_layer,
+    MATLAY_OT_add_material_layer,
+    MATLAY_OT_add_paint_layer,
+    MATLAY_OT_add_layer_menu,
     MATLAY_OT_delete_layer,
     MATLAY_OT_duplicate_layer,
     MATLAY_OT_move_material_layer,

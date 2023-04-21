@@ -107,6 +107,9 @@ def add_default_layer_nodes(context):
             # Create nodes & set node settings specific to each material channel. *
             texture_node = None
             if material_channel_list[i] == "COLOR":
+                #if type == 'PAINT':
+                #    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexImage')
+                #else:
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.25, 0.25, 0.25, 1.0)
 
@@ -172,25 +175,88 @@ def add_default_layer_nodes(context):
     # Update the layer nodes.
     layer_nodes.update_layer_nodes(context)
 
-class MATLAY_OT_add_layer(Operator):
-    '''Adds a layer with default numeric material values to the layer stack'''
-    bl_idname = "matlay.add_layer"
-    bl_label = "Add Layer"
+def add_layer(type, context):
+    matlay_utils.set_valid_mode()
+    material_prepared = matlay_materials.prepare_material(context)
+    if material_prepared:
+        material_channels.create_channel_group_nodes(context)
+        material_channels.create_empty_group_node(context)
+        add_layer_slot(context)
+        add_default_layer_nodes(context)
+        matlay_utils.set_valid_material_shading_mode(context)
+        context.scene.matlay_layer_stack.layer_property_tab = 'MATERIAL'
+        context.scene.matlay_layer_stack.material_property_tab = 'MATERIAL'
+
+        # For paint layers, turn off all material channels excluding color, and create a new image for the color material channel.
+        if type == 'PAINT':
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE_COLOR", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "METALLIC", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SPECULAR", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "ROUGHNESS", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "EMISSION", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "NORMAL", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "HEIGHT", context)
+
+            new_layer = context.scene.matlay_layers[context.scene.matlay_layer_stack.layer_index]
+            new_layer.material_channel_toggles.subsurface_channel_toggle = False
+            new_layer.material_channel_toggles.subsurface_color_channel_toggle = False
+            new_layer.material_channel_toggles.metallic_channel_toggle = False
+            new_layer.material_channel_toggles.specular_channel_toggle = False
+            new_layer.material_channel_toggles.roughness_channel_toggle = False
+            new_layer.material_channel_toggles.emission_channel_toggle = False
+            new_layer.material_channel_toggles.normal_channel_toggle = False
+            new_layer.material_channel_toggles.height_channel_toggle = False
+
+            new_layer.channel_node_types.color_node_type = 'TEXTURE'
+
+            bpy.ops.matlay.add_layer_image(material_channel_name='COLOR')
+
+
+class MATLAY_OT_add_material_layer(Operator):
+    '''Adds a layer with a full material'''
+    bl_idname = "matlay.add_material_layer"
+    bl_label = "Add Material Layer"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Adds a layer with default numeric material values to the layer stack"
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
-        material_prepared = matlay_materials.prepare_material(context)
-        if material_prepared:
-            material_channels.create_channel_group_nodes(context)
-            material_channels.create_empty_group_node(context)
-            add_layer_slot(context)
-            add_default_layer_nodes(context)
-            matlay_utils.set_valid_material_shading_mode(context)
-            context.scene.matlay_layer_stack.layer_property_tab = 'MATERIAL'
-            context.scene.matlay_layer_stack.material_property_tab = 'MATERIAL'
+        add_layer('MATERIAL', context)
         return {'FINISHED'}
+
+class MATLAY_OT_add_paint_layer(Operator):
+    '''Add a material layer with all material channels turned off, excluding color, and creates a new image texture for the color material channel. Use this operator to add layers you intend to manually paint onto'''
+    bl_idname = "matlay.add_paint_layer"
+    bl_label = "Add Paint Layer"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Adds a layer with default numeric material values to the layer stack"
+
+    def execute(self, context):
+        add_layer('PAINT', context)
+        return {'FINISHED'}
+
+class MATLAY_OT_add_layer_menu(Operator):
+    '''Opens a menu of options to add a layer in different methods.'''
+    bl_label = ""
+    bl_idname = "matlay.add_layer_menu"
+    bl_description = "Opens a menu of options to add a layer in different methods"
+
+    # Runs when the add layer button in the popup is clicked.
+    def execute(self, context):
+        return {'FINISHED'}
+
+    # Opens the popup when the add layer button is clicked.
+    def invoke(self, context, event):
+        return context.window_manager.invoke_popup(self, width=150)
+
+    # Draws the properties in the popup.
+    def draw(self, context):
+        layout = self.layout
+        split = layout.split()
+        col = split.column(align=True)
+        col.scale_y = 1.4
+        col.operator("matlay.add_material_layer", text="Fill", icon='MATERIAL_DATA')
+        col.operator("matlay.add_paint_layer", text="Paint", icon='BRUSHES_ALL')
 
 class MATLAY_OT_move_material_layer(Operator):
     """Moves the selected material layer on the layer stack."""
@@ -459,7 +525,6 @@ class MATLAY_OT_edit_uvs_externally(Operator):
             self.report({'ERROR'}, "No active object, please select an object to export the UV layout from.")
         
         return{'FINISHED'}
-
 
 class MATLAY_OT_edit_image_externally(Operator):
     '''Exports the selected image to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor).'''
