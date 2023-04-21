@@ -684,7 +684,7 @@ def add_mask_slot(context):
         selected_layer_mask_index = max(0, min(selected_layer_mask_index + 1, len(masks) - 1))
     mask_stack.auto_update_mask_properties = True
 
-def add_default_mask_nodes(context):
+def add_default_mask_nodes(mask_type, context):
     '''Adds default mask nodes to all material channels.'''
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
@@ -694,8 +694,28 @@ def add_default_mask_nodes(context):
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
         if material_channel_node:
                 
-            # Create default mask nodes.
-            mask_node = material_channel_node.node_tree.nodes.new('ShaderNodeTexImage')
+            # Create a mask texture node based on the provided mask type.
+            match mask_type:
+                case 'GROUP_NODE':
+                    mask_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
+                    empty_group_node = bpy.data.node_groups['MATLAY_EMPTY']
+                    if not empty_group_node:
+                        material_channels.create_empty_group_node(context)
+                    mask_node.node_tree = bpy.data.node_groups['MATLAY_EMPTY']
+                    context.scene.matlay_masks[selected_mask_index].node_type = 'GROUP_NODE'
+                case 'NOISE':
+                    mask_node = material_channel_node.node_tree.nodes.new('ShaderNodeTexNoise')
+                    context.scene.matlay_masks[selected_mask_index].node_type = 'NOISE'
+                case 'VORONOI':
+                    mask_node = material_channel_node.node_tree.nodes.new('ShaderNodeTexVoronoi')
+                    context.scene.matlay_masks[selected_mask_index].node_type = 'VORONOI'
+                case 'MUSGRAVE':
+                    mask_node = material_channel_node.node_tree.nodes.new('ShaderNodeTexMusgrave')
+                    context.scene.matlay_masks[selected_mask_index].node_type = 'MUSGRAVE'
+                case _:
+                    mask_node = material_channel_node.node_tree.nodes.new('ShaderNodeTexImage')
+                    context.scene.matlay_masks[selected_mask_index].node_type = 'TEXTURE'
+
             mask_node.name = format_mask_node_name("MaskTexture", selected_layer_index, selected_mask_index, True)
             mask_node.label = mask_node.name
                 
@@ -720,7 +740,9 @@ def add_default_mask_nodes(context):
             # Link newly created nodes.
             material_channel_node.node_tree.links.new(mask_node.outputs[0], mask_mix_node.inputs[2])
             material_channel_node.node_tree.links.new(mask_coord_node.outputs[2], mask_mapping_node.inputs[0])
-            material_channel_node.node_tree.links.new(mask_mapping_node.outputs[0], mask_node.inputs[0])
+
+            if mask_type == "BLACK_MASK" or mask_type == "WHITE_MASK" or mask_type == "EMPTY_MASK":
+                material_channel_node.node_tree.links.new(mask_mapping_node.outputs[0], mask_node.inputs[0])
 
 def add_mask(mask_type, context):
     '''Adds a mask of the specified type to the selected material layer.'''
@@ -732,7 +754,7 @@ def add_mask(mask_type, context):
         return
 
     add_mask_slot(context)
-    add_default_mask_nodes(context)
+    add_default_mask_nodes(mask_type, context)
     update_mask_indicies(context)
     relink_mask_nodes(context)
 
@@ -946,6 +968,78 @@ class MATLAY_OT_add_empty_layer_mask(Operator):
         matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
+class MATLAY_OT_add_group_node_layer_mask(Operator):
+    '''Adds a layer mask with an empty group node to the selected material layer'''
+    bl_idname = "matlay.add_group_node_layer_mask"
+    bl_label = "Add Group Node Mask"
+    bl_description = "Adds a layer mask with an empty group node to the selected material layer."
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable the button when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return bpy.context.scene.matlay_layers
+
+    def execute(self, context):
+        matlay_utils.set_valid_mode()
+        add_mask('GROUP_NODE', context)
+        matlay_utils.set_valid_material_shading_mode(context)
+        return{'FINISHED'}
+
+class MATLAY_OT_add_noise_layer_mask(Operator):
+    '''Adds a layer mask with an procedural noise node to the selected material layer.'''
+    bl_idname = "matlay.add_noise_layer_mask"
+    bl_label = "Add Noise Node Mask"
+    bl_description = "Adds a layer mask with an procedural noise node to the selected material layer"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable the button when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return bpy.context.scene.matlay_layers
+
+    def execute(self, context):
+        matlay_utils.set_valid_mode()
+        add_mask('NOISE', context)
+        matlay_utils.set_valid_material_shading_mode(context)
+        return{'FINISHED'}
+
+class MATLAY_OT_add_voronoi_layer_mask(Operator):
+    '''Adds a layer mask with a procedural voronoi node to the selected material layer.'''
+    bl_idname = "matlay.add_voronoi_layer_mask"
+    bl_label = "Add Voronoi Node Mask"
+    bl_description = "Adds a layer mask with a procedural voronoi node to the selected material layer"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable the button when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return bpy.context.scene.matlay_layers
+
+    def execute(self, context):
+        matlay_utils.set_valid_mode()
+        add_mask('VORONOI', context)
+        matlay_utils.set_valid_material_shading_mode(context)
+        return{'FINISHED'}
+
+class MATLAY_OT_add_musgrave_layer_mask(Operator):
+    '''Adds a layer mask with a procedural musgrave node to the selected material layer.'''
+    bl_idname = "matlay.add_musgrave_layer_mask"
+    bl_label = "Add Musgrave Node Mask"
+    bl_description = "Adds a layer mask with a procedural musgrave node to the selected material layer"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable the button when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return bpy.context.scene.matlay_layers
+
+    def execute(self, context):
+        matlay_utils.set_valid_mode()
+        add_mask('MUSGRAVE', context)
+        matlay_utils.set_valid_material_shading_mode(context)
+        return{'FINISHED'}
+
 class MATLAY_OT_open_layer_mask_menu(Operator):
     '''Opens a menu of masks that can be added to the selected material layer.'''
     bl_idname = "matlay.open_layer_mask_menu"
@@ -970,9 +1064,13 @@ class MATLAY_OT_open_layer_mask_menu(Operator):
         split = layout.split()
         col = split.column(align=True)
         col.scale_y = 1.4
-        col.operator("matlay.add_black_layer_mask", text="Black Mask")
-        col.operator("matlay.add_white_layer_mask", text="White Mask")
-        col.operator("matlay.add_empty_layer_mask", text="Empty Mask")
+        col.operator("matlay.add_black_layer_mask", text="Add Black Mask")
+        col.operator("matlay.add_white_layer_mask", text="Add White Mask")
+        col.operator("matlay.add_empty_layer_mask", text="Add Empty Mask")
+        col.operator("matlay.add_group_node_layer_mask", text="Add Group Node Mask")
+        col.operator("matlay.add_noise_layer_mask", text="Add Noise Mask")
+        col.operator("matlay.add_voronoi_layer_mask", text="Add Voronoi Mask")
+        col.operator("matlay.add_musgrave_layer_mask", text="Add Musgrave Mask")
 
 class MATLAY_OT_delete_layer_mask(Operator):
     bl_idname = "matlay.delete_layer_mask"
