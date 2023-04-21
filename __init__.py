@@ -160,6 +160,7 @@ classes = (
     MATLAY_OT_refresh_layer_nodes,
     MATLAY_OT_add_layer_image,
     MATLAY_OT_delete_layer_image,
+    MATLAY_OT_edit_uvs_externally,
     MATLAY_OT_edit_image_externally,
     MATLAY_OT_reload_image,
 

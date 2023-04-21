@@ -401,31 +401,29 @@ class MATLAY_OT_duplicate_layer(Operator):
 
         return{'FINISHED'}
 
-class MATLAY_OT_edit_image_externally(Operator):
-    '''Exports the selected image to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor).'''
-    bl_idname = "matlay.edit_image_externally"
-    bl_label = "Edit with External Image Editor"
-    bl_description = "Exports the selected image to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor)"
+class MATLAY_OT_edit_uvs_externally(Operator):
+    """Exports the selected object's UV layout to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor)."""
+    bl_idname = "matlay.edit_uvs_externally"
+    bl_label = "Edit UVs Externally"
+    bl_description = "Exports the selected object's UV layout to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor)"
 
-    image_type: bpy.props.StringProperty()
-    material_channel_name: bpy.props.StringProperty()
-
-    @ classmethod
-    def poll(cls, context):
-        return context.scene.matlay_layers
+    #@ classmethod
+    #def poll(cls, context):
+    #    bpy.context.active_object != None
 
     def execute(self, context):
-
-        # Validate the provided image type & material channel name.
-        if self.image_type != 'LAYER' and self.image_type != 'MASK':
-            self.report({'ERROR'}, "Programming error, invalid type provided to edit image externally operator.")
-            return {'FINISHED'}
-    
         matlay_utils.set_valid_mode()
         original_mode = bpy.context.object.mode
 
+        active_object = bpy.context.active_object
+
         # Export UV layout.
-        if bpy.context.active_object:
+        if active_object:
+
+            # Ensure the active object has an active uv layer.
+            if active_object.data.uv_layers.active == None:
+                self.report({'ERROR'}, "Active object has no active UV layout to export UVs for. Add one, or select a different object.")
+                return{'FINISHED'}
 
             # Set edit mode and select all uvs.
             bpy.ops.object.mode_set(mode = 'EDIT')
@@ -456,6 +454,34 @@ class MATLAY_OT_edit_image_externally(Operator):
 
             # Reset mode.
             bpy.ops.object.mode_set(mode = original_mode)
+
+        else:
+            self.report({'ERROR'}, "No active object, please select an object to export the UV layout from.")
+        
+        return{'FINISHED'}
+
+
+class MATLAY_OT_edit_image_externally(Operator):
+    '''Exports the selected image to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor).'''
+    bl_idname = "matlay.edit_image_externally"
+    bl_label = "Edit Image Externally"
+    bl_description = "Exports the selected image to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor)"
+
+    image_type: bpy.props.StringProperty()
+    material_channel_name: bpy.props.StringProperty()
+
+    @ classmethod
+    def poll(cls, context):
+        return context.scene.matlay_layers
+
+    def execute(self, context):
+
+        # Validate the provided image type & material channel name.
+        if self.image_type != 'LAYER' and self.image_type != 'MASK':
+            self.report({'ERROR'}, "Programming error, invalid type provided to edit image externally operator.")
+            return {'FINISHED'}
+    
+        matlay_utils.set_valid_mode()
 
         # Get the texture node to export the image from based on the provided type.
         if self.image_type == 'LAYER':

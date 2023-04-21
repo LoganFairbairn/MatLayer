@@ -17,6 +17,10 @@ def draw_ui_settings_section(self, context):
 
     row = layout.row()
     row.scale_y = scale_y
+    row.operator("matlay.edit_uvs_externally", icon='UV_ISLANDSEL')
+
+    row = layout.row()
+    row.scale_y = scale_y
     row.prop(bpy.context.scene.render, 'engine')
 
     if bpy.context.scene.render.engine == 'BLENDER_EEVEE':
