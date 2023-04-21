@@ -62,12 +62,19 @@ class MATLAY_OT_delete_unused_images(Operator):
                 folder_images.append(file_path)
                 print("Added file: " + file_path)
         
+        deleted_unused_images = False
         for path in folder_images:
             if path not in used_image_paths:
                 if os.path.exists(path):
                     os.remove(path)
                     print("Deleted unused image: " + path)
+                    deleted_unused_images = True
 
+        if deleted_unused_images:
+            self.report({'INFO'}, "Deleted unused images.")
+        else:
+            self.report({'INFO'}, "No unused images to delete.")
+            
         return{'FINISHED'}
 
 class MATLAY_OT_append_workspace(Operator):
