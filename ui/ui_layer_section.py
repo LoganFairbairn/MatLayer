@@ -40,7 +40,6 @@ def draw_layers_section_ui(self, context):
             
         selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
 
-
         selected_material_channel_active = get_material_channel_active(context, selected_material_channel)
         if len(context.scene.matlay_layers) > 0:
             if selected_material_channel_active:
