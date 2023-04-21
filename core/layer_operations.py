@@ -6,9 +6,11 @@ from . import matlay_materials
 from ..core import layer_nodes
 from ..core import material_filters
 from ..core import layer_masks
+from ..core import texture_set_settings
 from ..utilities import info_messages
 from ..utilities import matlay_utils
 import random
+import os
 
 def add_layer_slot(context):
     '''Creates a layer slot.'''
@@ -399,35 +401,115 @@ class MATLAY_OT_duplicate_layer(Operator):
 
         return{'FINISHED'}
 
-class MATLAY_OT_image_editor_export(Operator):
-    '''Exports the selected image paint canvas to the image editor defined in Blender's preferences'''
-    bl_idname = "matlay.image_editor_export"
-    bl_label = "Export to External Image Editor"
-    bl_description = "Operator not yet implemented"
-    #bl_description = "Exports the select image layer to the image editor defined in Blender's preferences"
+class MATLAY_OT_edit_image_externally(Operator):
+    '''Exports the selected image to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor).'''
+    bl_idname = "matlay.edit_image_externally"
+    bl_label = "Edit with External Image Editor"
+    bl_description = "Exports the selected image to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor)"
+
+    image_type: bpy.props.StringProperty()
+    material_channel_name: bpy.props.StringProperty()
 
     @ classmethod
     def poll(cls, context):
-        return False
+        return context.scene.matlay_layers
 
     def execute(self, context):
+
+        # Validate the provided image type & material channel name.
+        if self.image_type != 'LAYER' and self.image_type != 'MASK':
+            self.report({'ERROR'}, "Programming error, invalid type provided to edit image externally operator.")
+            return {'FINISHED'}
+    
         matlay_utils.set_valid_mode()
+        original_mode = bpy.context.object.mode
 
-        export_image = context.scene.tool_settings.image_paint.canvas
+        # Export UV layout.
+        if bpy.context.active_object:
 
-        if export_image != None:
-            if export_image.packed_file == None:
-                if export_image.file_format == '' or export_image.filepath == '':
-                    if export_image.is_dirty:
-                        export_image.save()
-                else:
-                    self.report({'ERROR'}, "Export image has no defined filepath.")
+            # Set edit mode and select all uvs.
+            bpy.ops.object.mode_set(mode = 'EDIT')
+            bpy.ops.uv.select_all(action='SELECT')
+
+            # Save UV layout to folder.
+            matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
+            if os.path.exists(matlay_image_path) == False:
+                os.mkdir(matlay_image_path)
+
+            uv_layout_path = os.path.join(matlay_image_path, "UVLayouts")
+            if os.path.exists(uv_layout_path) == False:
+                os.mkdir(uv_layout_path)
+        
+            uv_image_name = bpy.context.active_object.name + "_" + "UVLayout"
+            uv_layout_path += "/" + uv_image_name + ".png"
+            bpy.ops.uv.export_layout(filepath=uv_layout_path, size=(texture_set_settings.get_texture_width(), texture_set_settings.get_texture_height()))
+
+            # Load the UV layout into Blender's data so it can be exported directly from Blender.
+            uv_image = bpy.data.images.get(uv_image_name + ".png")
+            if uv_image:
+                bpy.data.images.remove(uv_image)
+            uv_layout_image = bpy.data.images.load(uv_layout_path)
+
+            # Select and export UV layout.
+            context.scene.tool_settings.image_paint.canvas = uv_layout_image
+            bpy.ops.image.external_edit(filepath=uv_layout_image.filepath)
+
+            # Reset mode.
+            bpy.ops.object.mode_set(mode = original_mode)
+
+        # Get the texture node to export the image from based on the provided type.
+        if self.image_type == 'LAYER':
+            selected_layer_index = context.scene.matlay_layer_stack.layer_index
+            texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel_name, selected_layer_index, context)
+
+        else:
+            selected_layer_index = context.scene.matlay_layer_stack.layer_index
+            selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+            texture_node = layer_masks.get_mask_node('MaskTexture', 'COLOR', selected_layer_index, selected_mask_index, False)
+
+        # Select the image texture for exporting.
+        if texture_node:
+            if texture_node.bl_static_type == 'TEX_IMAGE':
+                context.scene.tool_settings.image_paint.canvas = texture_node.image
             else:
-                self.report({'ERROR'}, "Export image can't be packed to export to an external image editor.")
-            #bpy.ops.image.external_edit(filepath=export_image.filepath)
+                self.report({'ERROR'}, "Texture node type incorrect for exporting image to an image editor.")
 
-        matlay_utils.set_valid_material_shading_mode(context)
+        # Adjust to correct modes, and validate image being exported before exporting the image to an external image editor.
+        export_image = context.scene.tool_settings.image_paint.canvas
+        if export_image:
+            if not export_image.packed_file:
+                if export_image.file_format != '':
+                    if export_image.filepath != '':
+                        if export_image.is_dirty:
+                            export_image.save()
+                    else:
+                        self.report({'ERROR'}, "Export image has no defined filepath.")
+                else:
+                    self.report({'ERROR'}, "Export image has no defined file format.")
+            else:
+                self.report({'ERROR'}, "Export image is packed, unpack and save the image to a folder to export to an external image editor.")
+            bpy.ops.image.external_edit(filepath=export_image.filepath)
+            matlay_utils.set_valid_material_shading_mode(context)
+        
         return {'FINISHED'}
+
+class MATLAY_OT_reload_image(Operator):
+    """Reloads the selected image from the disk."""
+    bl_idname = "matlay.reload_image"
+    bl_label = "Reload Image"
+    bl_description = "Reloads the selected image from the disk."
+
+    @ classmethod
+    def poll(cls, context):
+        return context.scene.matlay_layers
+
+    def execute(self, context):
+        # Temporarily switch to the correct context to perform the image reload.
+        previous_context = bpy.context.area.ui_type
+        bpy.context.area.ui_type = 'IMAGE_EDITOR'
+        bpy.ops.image.reload()
+        bpy.context.area.ui_type = previous_context
+        return{'FINISHED'}
 
 #----------------------------- READING / REFRESHING LAYER PROPERTIES -----------------------------#
 

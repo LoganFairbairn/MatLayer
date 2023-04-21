@@ -23,9 +23,6 @@ class MATLAY_OT_add_layer_image(Operator):
     material_channel_name: bpy.props.StringProperty()
 
     def execute(self, context):
-        layers = context.scene.matlay_layers
-        layer_index = context.scene.matlay_layer_stack.layer_index
-
         active_object = bpy.context.active_object
         if not active_object:
             info_messages.popup_message_box("No selected object when adding a layer image.", 'User Error', 'ERROR')
@@ -73,11 +70,21 @@ class MATLAY_OT_add_layer_image(Operator):
                                   use_stereo_3d=False,
                                   tiled=False)
         
-        # TODO: Research automatic packing after image creation is complete.
-        # Pack the image into Blender's data.
-        # Packing layer images is a fairly optimal and simple method for managing layer images.
+        # Save to a folder. This allows users to use the edit externally function (to edit within a 2D image editor of their choice) later if desired.
+        matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
+        if os.path.exists(matlay_image_path) == False:
+            os.mkdir(matlay_image_path)
+
+        layer_image_path = os.path.join(matlay_image_path, "Layers")
+        if os.path.exists(layer_image_path) == False:
+            os.mkdir(layer_image_path)
+
         image = bpy.data.images[image_name]
-        image.pack()
+        image.filepath = layer_image_path + "/" + image_name + ".png"
+        image.file_format = 'PNG'
+
+        if image:
+            image.save()
 
         # Add the new image to the selected layer.
         selected_layer_index = context.scene.matlay_layer_stack.layer_index

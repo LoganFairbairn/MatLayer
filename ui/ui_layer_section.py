@@ -81,7 +81,6 @@ def draw_layer_operations(column):
     operator = subrow.operator("matlay.move_material_layer", icon="TRIA_DOWN", text="")
     operator.direction = 'DOWN'
     subrow.operator("matlay.duplicate_layer", icon="DUPLICATE", text="")
-    subrow.operator("matlay.image_editor_export", icon="EXPORT", text="")
     subrow.operator("matlay.delete_layer", icon="TRASH", text="")
 
 def draw_selected_material_channel(column, context):
@@ -163,12 +162,14 @@ def draw_texture_node_settings(column, texture_node, texture_node_type, layer, m
 
             # Draw buttons to add / import / delete image textures quickly.
             add_layer_image_operator = subrow.operator("matlay.add_layer_image", icon="ADD", text="")
-            import_texture_operator = subrow.operator("matlay.import_texture", icon="IMPORT", text="")
-            delete_layer_image_operator = subrow.operator("matlay.delete_layer_image", icon="TRASH", text="")
-
-            # Notify the operators the desired material channel work for the specified material channel.
             add_layer_image_operator.material_channel_name = material_channel_name
+            import_texture_operator = subrow.operator("matlay.import_texture", icon="IMPORT", text="")
             import_texture_operator.material_channel_name = material_channel_name
+            export_image_operator = subrow.operator("matlay.edit_image_externally", icon="TPAINT_HLT", text="")
+            export_image_operator.material_channel_name = material_channel_name
+            export_image_operator.image_type = 'LAYER'
+            subrow.operator("matlay.reload_image", icon="FILE_REFRESH", text="")
+            delete_layer_image_operator = subrow.operator("matlay.delete_layer_image", icon="TRASH", text="")
             delete_layer_image_operator.material_channel_name = material_channel_name
 
         case "GROUP_NODE":
@@ -468,7 +469,11 @@ def draw_mask_node_properties(column):
                 # Draw buttons to add / import / delete image masks quickly.
                 subrow.operator("matlay.add_mask_image", icon="ADD", text="")
                 subrow.operator("matlay.import_mask_image", icon="IMPORT", text="")
+                export_image_operator = subrow.operator("matlay.edit_image_externally", icon="TPAINT_HLT", text="")
+                subrow.operator("matlay.reload_image", icon="FILE_REFRESH", text="")
                 subrow.operator("matlay.delete_mask_image", icon="TRASH", text="")
+
+                export_image_operator.image_type = 'MASK'
 
             case 'GROUP':
                 subrow = column.row(align=True)

@@ -946,8 +946,6 @@ class MATLAY_OT_add_empty_layer_mask(Operator):
         matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
-
-
 class MATLAY_OT_open_layer_mask_menu(Operator):
     '''Opens a menu of masks that can be added to the selected material layer.'''
     bl_idname = "matlay.open_layer_mask_menu"
@@ -1095,9 +1093,21 @@ class MATLAY_OT_add_mask_image(Operator):
                                   use_stereo_3d=False,
                                   tiled=False)
         
-        # TODO: Packing doesn't work after creating a new layer because the image file isn't considered 'dirty' as no pixels were changed.
+        # Save to a folder. This allows users to use the edit externally function (to edit within a 2D image editor of their choice) later if desired.
+        matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
+        if os.path.exists(matlay_image_path) == False:
+            os.mkdir(matlay_image_path)
+
+        mask_image_path = os.path.join(matlay_image_path, "Masks")
+        if os.path.exists(mask_image_path) == False:
+            os.mkdir(mask_image_path)
+
         image = bpy.data.images[image_name]
-        image.pack()
+        image.filepath = mask_image_path + "/" + image_name + ".png"
+        image.file_format = 'PNG'
+
+        if image:
+            image.save()
 
         # 3. Add the new image to the selected mask (for all material channels).
         selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
