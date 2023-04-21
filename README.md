@@ -14,7 +14,7 @@ Pros:
 - One-click baking for mesh maps
 - One-click exporting for textures
 - Texture set material channel management
-- Texture file management
+- Automatic texture file and setting management
 - Custom group nodes can be added to the layer stack
 
 Cons:
