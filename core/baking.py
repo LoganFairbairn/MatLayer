@@ -39,8 +39,8 @@ class MATLAY_baking_settings(bpy.types.PropertyGroup):
     show_advanced_settings: BoolProperty(name="Show Advanced Settings", description="Click to show / hide advanced baking settings. Advanced settings generally don't need to be edited", default=False)
     bake_type: EnumProperty(items=SELECTED_BAKE_TYPE, name="Bake Types", description="Bake type currently selected", default='AMBIENT_OCCLUSION')
     output_quality: EnumProperty(items=QUALITY_SETTINGS, name="Output Quality", description="Output quality of the baked mesh maps", default='RECOMMENDED_QUALITY')
-    output_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS,name="Output Height",description="Image size for the baked texure map result(s)", default='FIVE_TWELVE', update=update_bake_width)
-    output_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Output Height", description="Image size for the baked texure map result(s)", default='FIVE_TWELVE')
+    output_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS,name="Output Height",description="Image size for the baked texure map result(s)", default='TWOK', update=update_bake_width)
+    output_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Output Height", description="Image size for the baked texure map result(s)", default='TWOK')
     match_bake_resolution: BoolProperty(name="Match Bake Resoltion", description="When toggled on, the bake resolution's width and height will be synced", default=True, update=update_match_bake_resolution)
     bake_ambient_occlusion: BoolProperty(name="Bake Ambient Occlusion", description="Toggle for baking ambient occlusion as part of the batch baking operator", default=True)
     ambient_occlusion_image_name: StringProperty(name="", description="The baking AO image", default="")
@@ -443,7 +443,6 @@ def bake_mesh_map(bake_type):
 
     # Reset the render engine.
     bpy.context.scene.render.engine = 'BLENDER_EEVEE'
-
 
 class MATLAY_OT_bake(Operator):
     '''Bakes all checked mesh texture maps in succession. Note that this function (especially on slower computers, or when using a CPU for rendering) can take a few minutes.'''
