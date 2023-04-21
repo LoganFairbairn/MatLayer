@@ -31,7 +31,7 @@ from .core.layer_stack import *
 from .core.material_channels import MATLAY_OT_toggle_material_channel_preview
 
 # Import layer masking modules.
-from .core.layer_masks import MaskProjectionSettings, MATLAY_mask_stack, MATLAY_masks, MATLAY_UL_mask_stack, MATLAY_OT_add_black_layer_mask, MATLAY_OT_add_white_layer_mask, MATLAY_OT_add_empty_layer_mask, MATLAY_OT_open_layer_mask_menu, MATLAY_OT_delete_layer_mask,MATLAY_OT_move_layer_mask_up, MATLAY_OT_move_layer_mask_down, MATLAY_OT_add_mask_image, MATLAY_OT_delete_mask_image, MATLAY_OT_import_mask_image, MATLAY_mask_filter_stack, MATLAY_mask_filters, MATLAY_UL_mask_filter_stack, MATLAY_OT_add_mask_filter_invert, MATLAY_OT_add_mask_filter_levels, MATLAY_OT_add_layer_mask_filter_menu, MATLAY_OT_delete_mask_filter, MATLAY_OT_move_layer_mask_filter
+from .core.layer_masks import MaskProjectionSettings, MATLAY_mask_stack, MATLAY_masks, MATLAY_UL_mask_stack, MATLAY_OT_add_black_layer_mask, MATLAY_OT_add_white_layer_mask, MATLAY_OT_add_empty_layer_mask, MATLAY_OT_open_layer_mask_menu, MATLAY_OT_delete_layer_mask,MATLAY_OT_move_layer_mask_up, MATLAY_OT_move_layer_mask_down, MATLAY_OT_add_mask_image, MATLAY_OT_delete_mask_image, MATLAY_OT_import_mask_image, MATLAY_mask_filter_stack, MATLAY_mask_filters, MATLAY_UL_mask_filter_stack, MATLAY_OT_add_mask_filter_invert, MATLAY_OT_add_mask_filter_val_to_rgb, MATLAY_OT_add_layer_mask_filter_menu, MATLAY_OT_delete_mask_filter, MATLAY_OT_move_layer_mask_filter
 
 # Import layer operations.
 from .core.layer_operations import *
@@ -129,7 +129,7 @@ classes = (
     MATLAY_mask_filters,
     MATLAY_UL_mask_filter_stack,
     MATLAY_OT_add_mask_filter_invert,
-    MATLAY_OT_add_mask_filter_levels,
+    MATLAY_OT_add_mask_filter_val_to_rgb,
     MATLAY_OT_add_layer_mask_filter_menu,
     MATLAY_OT_delete_mask_filter,
     MATLAY_OT_move_layer_mask_filter,

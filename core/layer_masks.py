@@ -1499,7 +1499,7 @@ class MATLAY_UL_mask_filter_stack(UIList):
                     case 'INVERT':
                         filter_node_name = "Invert"
                     case 'VALTORGB':
-                        filter_node_name = "Levels"
+                        filter_node_name = "Value to RGB"
             layout.label(text=filter_node_name + " " + str(item.stack_index))
 
 class MATLAY_OT_add_mask_filter_invert(Operator):
@@ -1515,10 +1515,10 @@ class MATLAY_OT_add_mask_filter_invert(Operator):
         matlay_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
-class MATLAY_OT_add_mask_filter_levels(Operator):
+class MATLAY_OT_add_mask_filter_val_to_rgb(Operator):
     '''Adds a level adjustment to the masks applied to the selected layer'''
-    bl_idname = "matlay.add_mask_filter_levels"
-    bl_label = "Add Levels Mask Filter"
+    bl_idname = "matlay.add_mask_filter_val_to_rgb"
+    bl_label = "Add Val to RGB Mask Filter"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Adds a level adjustment to the masks applied to the selected layer"
 
@@ -1553,7 +1553,7 @@ class MATLAY_OT_add_layer_mask_filter_menu(Operator):
         col = split.column(align=True)
         col.scale_y = 1.4
         col.operator("matlay.add_mask_filter_invert")
-        col.operator("matlay.add_mask_filter_levels")
+        col.operator("matlay.add_mask_filter_val_to_rgb")
 
 class MATLAY_OT_delete_mask_filter(Operator):
     bl_idname = "matlay.delete_mask_filter"
