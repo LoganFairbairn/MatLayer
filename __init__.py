@@ -49,7 +49,7 @@ from .core.exporting import MATLAY_exporting_settings, MATLAY_OT_export, MATLAY_
 from .utilities.image_file_handling import MATLAY_OT_add_layer_image, MATLAY_OT_delete_layer_image, MATLAY_OT_import_texture
 
 # Import settings.
-from .core.general_settings import MATLAY_OT_append_workspace
+from .core.general_settings import MATLAY_OT_append_workspace, MATLAY_OT_delete_unused_images
 
 # Import user interface modules.
 from .ui.matlay_ui import *
@@ -169,6 +169,7 @@ classes = (
 
     # General Settings
     MATLAY_OT_append_workspace,
+    MATLAY_OT_delete_unused_images,
 
     # Main Panel
     MATLAY_panel_properties,
