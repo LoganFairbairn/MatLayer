@@ -92,27 +92,20 @@ def draw_baking_section_ui(self, context):
 
     #----------------------------- BAKE SETTINGS -----------------------------#
 
-    split = layout.split()
-    col = split.column()
-    col.ui_units_x = 1
-    col.scale_y = scale_y
+    row = layout.row()
+    row.scale_y = 1.4
+
+    col = row.split()
     col.prop(baking_settings, "output_width", text="")
 
-    col = split.column()
-    col.ui_units_x = 0.1
-    col.scale_y = scale_y
+    col = row.split()
     if baking_settings.match_bake_resolution:
         col.prop(baking_settings, "match_bake_resolution", text="", icon="LOCKED")
 
     else:
         col.prop(baking_settings, "match_bake_resolution", text="", icon="UNLOCKED")
 
-    col = split.column()
-    col.ui_units_x = 2
-    col.scale_y = scale_y
-    if baking_settings.match_bake_resolution:
-        col.enabled = False
-        
+    col = row.split()
     col.prop(baking_settings, "output_height", text="")
 
     row = layout.row()
