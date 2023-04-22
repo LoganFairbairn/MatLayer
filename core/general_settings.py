@@ -8,6 +8,83 @@ from ..core import layer_masks
 from ..utilities import info_messages
 import os
 
+class MATLAY_OT_append_workspace(Operator):
+    '''Appends a suggested layout for using this add-on.'''
+    bl_idname = "matlay.append_workspace"
+    bl_label = "Append Workspace"
+    bl_description = "Appends a suggested workspace for using this add-on"
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        workspace = bpy.data.workspaces.get('Matlay')
+        if workspace:
+            info_messages.popup_message_box("The default workspace already exists, manually delete it and click this operator again to re-load the workspace.", 'Info', 'INFO')
+            return {'FINISHED'}
+
+
+        USER = Path(resource_path('USER'))
+        ADDON = "Matlay"
+        BLEND_FILE = "Matlay.blend"
+        source_path =  str(USER / "scripts/addons" / ADDON / "blend" / BLEND_FILE)
+
+        blendfile = source_path
+        section = "\\WorkSpace\\"
+        object = "Matlay"
+
+        filepath  = blendfile + section + object
+        directory = blendfile + section
+        filename  = object
+
+        bpy.ops.wm.append(
+            filepath=filepath, 
+            filename=filename,
+            directory=directory)
+
+        # Set the current workspace to the appended workspace.
+        bpy.context.window.workspace = bpy.data.workspaces['Matlay']
+
+        # Reset the main pannel tab.
+        context.scene.matlay_panel_properties.sections = 'SECTION_TEXTURE_SET'
+
+        return {'FINISHED'}
+
+class MATLAY_OT_append_basic_brushes(Operator):
+    '''Appends basic brush presets to the current blend file.'''
+    bl_idname = "matlay.append_basic_brushes"
+    bl_label = "Append Basic Brushes"
+    bl_description = "Not yet implemented"
+
+    @ classmethod
+    def poll(cls, context):
+        #return context.active_object
+        return False
+
+    def execute(self, context):
+        USER = Path(resource_path('USER'))
+        ADDON = "Matlay"
+        BLEND_FILE = "Matlay.blend"
+        source_path =  str(USER / "scripts/addons" / ADDON / "blend" / BLEND_FILE)
+
+        blendfile = source_path
+        section = "\\Brushes\\"
+        object = "Matlay"
+
+        filepath  = blendfile + section + object
+        directory = blendfile + section
+        filename  = object
+
+
+        # TODO: Append all brushes here.
+        bpy.ops.wm.append(
+            filepath=filepath, 
+            filename=filename,
+            directory=directory)
+
+        return {'FINISHED'}
+
 class MATLAY_OT_delete_unused_images(Operator):
     """Deletes unused saved layer and mask images from folders."""
     bl_idname = "matlay.delete_unused_images"
@@ -77,45 +154,3 @@ class MATLAY_OT_delete_unused_images(Operator):
             
         return{'FINISHED'}
 
-class MATLAY_OT_append_workspace(Operator):
-    '''Appends a suggested layout for using this add-on.'''
-    bl_idname = "matlay.append_workspace"
-    bl_label = "Append Workspace"
-    bl_description = "Appends a suggested workspace for using this add-on"
-
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def execute(self, context):
-        workspace = bpy.data.workspaces.get('Matlay')
-        if workspace:
-            info_messages.popup_message_box("The default workspace already exists, manually delete it and click this operator again to re-load the workspace.", 'Info', 'INFO')
-            return {'FINISHED'}
-
-
-        USER = Path(resource_path('USER'))
-        ADDON = "Matlay"
-        BLEND_FILE = "Matlay.blend"
-        source_path =  str(USER / "scripts/addons" / ADDON / "blend" / BLEND_FILE)
-
-        blendfile = source_path
-        section = "\\WorkSpace\\"
-        object = "Matlay"
-
-        filepath  = blendfile + section + object
-        directory = blendfile + section
-        filename  = object
-
-        bpy.ops.wm.append(
-            filepath=filepath, 
-            filename=filename,
-            directory=directory)
-
-        # Set the current workspace to the appended workspace.
-        bpy.context.window.workspace = bpy.data.workspaces['Matlay']
-
-        # Reset the main pannel tab.
-        context.scene.matlay_panel_properties.sections = 'SECTION_TEXTURE_SET'
-
-        return {'FINISHED'}
