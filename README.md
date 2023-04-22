@@ -20,9 +20,9 @@ Features:
 Limitations:
 - No layer folders
 - Baking and exporting for textures can be very slow
-- (Currently) No ID map masking support
-- (Currently) No displacement layer stack
-- (Currently) no blur filter
+- (currently) no ID map masking support
+- (currently) no displacement layer stack
+- (currently) no blur filter
 
 Workflow Help:
 - When using this add-on, you are intended to use ONLY the add-on ui, and NOT manually edit the material nodes.
