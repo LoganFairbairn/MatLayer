@@ -1,4 +1,5 @@
 import bpy
+from bpy_extras.io_utils import ImportHelper
 from bpy.types import Operator
 from bpy.props import BoolProperty, StringProperty
 from . import material_channels
@@ -53,7 +54,7 @@ def add_layer_slot(context):
                 id_exists = False
                 layers[selected_layer_index].id = new_id
 
-def add_default_layer_nodes(context):
+def add_default_layer_nodes(type, context, decal_image=None, decal_object=None):
     '''Adds default layer nodes for all layers.'''
 
     # Get the new layer index within the layer stack (which is added to the node names).
@@ -104,49 +105,57 @@ def add_default_layer_nodes(context):
             mapping_node.label = mapping_node.name
             new_nodes.append(mapping_node)
 
-            # Create nodes & set node settings specific to each material channel. *
+            # If the layer type is a decal layer, set properties.
+            if type == 'DECAL':
+                mapping_node.inputs[1].default_value = (0.5, 0.5, 0.5)
+                mapping_node.inputs[3].default_value = (0.5, 0.5, 0.5)
+
+            # Create nodes & set node settings specific to each material channel or layer type. *
             texture_node = None
-            if material_channel_list[i] == "COLOR":
-                #if type == 'PAINT':
-                #    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexImage')
-                #else:
-                texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
-                texture_node.outputs[0].default_value = (0.25, 0.25, 0.25, 1.0)
+            if type == 'DECAL':
+                texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexImage')
+                texture_node.extension = 'CLIP'
+                texture_node.image = decal_image
 
-            if material_channel_list[i] == "SUBSURFACE":
-                texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
-                texture_node.outputs[0].default_value = 0.0
+            else:
+                if material_channel_list[i] == "COLOR":
+                    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
+                    texture_node.outputs[0].default_value = (0.25, 0.25, 0.25, 1.0)
 
-            if material_channel_list[i] == "SUBSURFACE_COLOR":
-                texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
-                texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
+                if material_channel_list[i] == "SUBSURFACE":
+                    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
+                    texture_node.outputs[0].default_value = 0.0
 
-            if material_channel_list[i] == "METALLIC":
-                texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
-                texture_node.outputs[0].default_value = 0.0
+                if material_channel_list[i] == "SUBSURFACE_COLOR":
+                    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
+                    texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
 
-            if material_channel_list[i] == "SPECULAR":
-                texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
-                texture_node.outputs[0].default_value = 0.5
+                if material_channel_list[i] == "METALLIC":
+                    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
+                    texture_node.outputs[0].default_value = 0.0
 
-            if material_channel_list[i] == "ROUGHNESS":
-                texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
-                texture_node.outputs[0].default_value = 0.5
-                layers[selected_layer_index].roughness_layer_color_preview = (0.5, 0.5, 0.5)
+                if material_channel_list[i] == "SPECULAR":
+                    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
+                    texture_node.outputs[0].default_value = 0.5
 
-            if material_channel_list[i] == "NORMAL":
-                texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
-                texture_node.outputs[0].default_value = (0.5, 0.5, 1.0, 1.0)
-                mix_layer_node.inputs[1].default_value = (0.5, 0.5, 1.0, 1.0)
-                
-            if material_channel_list[i] == "HEIGHT":
-                texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
-                texture_node.outputs[0].default_value = 0.0
-                mix_layer_node.blend_type = 'MIX'
+                if material_channel_list[i] == "ROUGHNESS":
+                    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
+                    texture_node.outputs[0].default_value = 0.5
+                    layers[selected_layer_index].roughness_layer_color_preview = (0.5, 0.5, 0.5)
 
-            if material_channel_list[i] == "EMISSION":
-                texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
-                texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
+                if material_channel_list[i] == "NORMAL":
+                    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
+                    texture_node.outputs[0].default_value = (0.5, 0.5, 1.0, 1.0)
+                    mix_layer_node.inputs[1].default_value = (0.5, 0.5, 1.0, 1.0)
+                    
+                if material_channel_list[i] == "HEIGHT":
+                    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
+                    texture_node.outputs[0].default_value = 0.0
+                    mix_layer_node.blend_type = 'MIX'
+
+                if material_channel_list[i] == "EMISSION":
+                    texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
+                    texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
 
             # Set the texture node name & label.
             texture_node_name = layer_nodes.get_layer_node_name("TEXTURE", new_layer_index) + "~"
@@ -158,13 +167,20 @@ def add_default_layer_nodes(context):
             link = material_channel_node.node_tree.links.new
             link(texture_node.outputs[0], mix_layer_node.inputs[2])
             link(opacity_node.outputs[0], mix_layer_node.inputs[0])
-            link(coord_node.outputs[2], mapping_node.inputs[0])
 
-            # Create a layer frame and frame layer nodes.
+            if type == 'DECAL':
+                link(coord_node.outputs[3], mapping_node.inputs[0])
+                link(texture_node.outputs[1], opacity_node.inputs[0])
+                link(mapping_node.outputs[0], texture_node.inputs[0])
+                coord_node.object = decal_object
+
+            else:
+                link(coord_node.outputs[2], mapping_node.inputs[0])
+
+            # Frame layer nodes.
             frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
             frame.name = layer_nodes.get_frame_name(new_layer_index, context) + "~"
             frame.label = frame.name
-
             for n in new_nodes:
                 n.parent = frame
 
@@ -175,20 +191,22 @@ def add_default_layer_nodes(context):
     # Update the layer nodes.
     layer_nodes.update_layer_nodes(context)
 
-def add_layer(type, context):
+def add_layer(type, context, decal_image=None, decal_object=None):
+    context.scene.matlay_layer_stack.auto_update_layer_properties = False
+
     matlay_utils.set_valid_mode()
     material_prepared = matlay_materials.prepare_material(context)
     if material_prepared:
         material_channels.create_channel_group_nodes(context)
         material_channels.create_empty_group_node(context)
         add_layer_slot(context)
-        add_default_layer_nodes(context)
+        add_default_layer_nodes(type, context, decal_image, decal_object)
         matlay_utils.set_valid_material_shading_mode(context)
         context.scene.matlay_layer_stack.layer_property_tab = 'MATERIAL'
         context.scene.matlay_layer_stack.material_property_tab = 'MATERIAL'
 
         # For paint layers, turn off all material channels excluding color, and create a new image for the color material channel.
-        if type == 'PAINT':
+        if type == 'PAINT' or type == 'DECAL':
             layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE", context)
             layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE_COLOR", context)
             layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "METALLIC", context)
@@ -210,7 +228,40 @@ def add_layer(type, context):
 
             new_layer.channel_node_types.color_node_type = 'TEXTURE'
 
+            new_layer.type = 'DECAL'
+
+        if type == 'PAINT':
             bpy.ops.matlay.add_layer_image(material_channel_name='COLOR')
+
+    context.scene.matlay_layer_stack.auto_update_layer_properties = True
+
+class MATLAY_OT_add_decal_layer(Operator):
+    '''Opens a window from which you can choose an image to use as a decal (similar to a sticker) and adds it to the scene.'''
+    bl_idname = "matlay.add_decal_layer"
+    bl_label = "Add Decal Layer"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Opens a window from which you can choose an image to use as a decal (similar to a sticker) and adds it to the scene"
+
+    def execute(self, context):
+        matlay_utils.set_valid_mode()
+
+        # Add an empty to define transform projection for the decal.
+        previously_selected_object = bpy.context.active_object
+        bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.empty_add(type='SINGLE_ARROW', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+        decal_object = bpy.context.active_object
+        bpy.context.scene.matlay_layers[bpy.context.scene.matlay_layer_stack.layer_index].decal_object = bpy.context.active_object
+
+        decal_layer_object = bpy.context.scene.matlay_layers[bpy.context.scene.matlay_layer_stack.layer_index].decal_object
+
+        bpy.context.active_object.select_set(False)
+        previously_selected_object.select_set(True)
+        bpy.context.view_layer.objects.active = previously_selected_object
+
+        # Add a decal layer with the imported image.
+        add_layer('DECAL', context, None, decal_object)
+
+        return {'FINISHED'}
 
 class MATLAY_OT_add_material_layer(Operator):
     '''Adds a layer with a full material'''
@@ -254,8 +305,9 @@ class MATLAY_OT_add_layer_menu(Operator):
         split = layout.split()
         col = split.column(align=True)
         col.scale_y = 1.4
-        col.operator("matlay.add_material_layer", text="Fill", icon='MATERIAL_DATA')
-        col.operator("matlay.add_paint_layer", text="Paint", icon='BRUSHES_ALL')
+        col.operator("matlay.add_material_layer", text="Add Fill", icon='MATERIAL_DATA')
+        col.operator("matlay.add_paint_layer", text="Add Paint", icon='BRUSHES_ALL')
+        col.operator("matlay.add_decal_layer", text="Add Decal", icon='OUTLINER_OB_FONT')
 
 class MATLAY_OT_move_material_layer(Operator):
     """Moves the selected material layer on the layer stack."""
@@ -419,6 +471,15 @@ class MATLAY_OT_delete_layer(Operator):
             node_list = layer_nodes.get_all_nodes_in_layer(material_channel_name, selected_layer_index, context)
             for node in node_list:
                 material_channel_node.node_tree.nodes.remove(node)
+
+        # Remove the decal object if one exists.
+        decal_object = bpy.context.scene.matlay_layers[bpy.context.scene.matlay_layer_stack.layer_index].decal_object
+        if decal_object != None:
+            previously_selected_object = bpy.context.active_object
+            previously_selected_object.select_set(False)
+            decal_object.select_set(True)
+            bpy.ops.object.delete(use_global=False)
+            previously_selected_object.select_set(True)
 
         # Remove the layer slot from the layer stack.
         layers.remove(selected_layer_index)
@@ -620,6 +681,25 @@ def read_layer_opacity(total_number_of_layers, layers, selected_material_channel
         opacity_node = layer_nodes.get_layer_node('OPACITY', selected_material_channel, i, context)
         layers[i].opacity = opacity_node.inputs[1].default_value
 
+def read_decal_layer_properties(material_channel_list, total_number_of_layers, layers, context):
+    '''Read properties for decal layers.'''
+    # Check for a valid object in the coord node if one is provided, this is a decal layer update the layer type.
+    for material_channel_name in material_channel_list:
+        material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
+        if material_channel_node:
+            for i in range(total_number_of_layers):
+                coord_node = layer_nodes.get_layer_node('COORD', material_channel_name, i, context)
+                if not coord_node:
+                    info_messages.popup_message_box("Error reading coord node.", "Reading Node Error", 'ERROR')
+                    return
+                
+                if coord_node.object != None:
+                    layers[i].type = 'DECAL'
+                    layers[i].decal_object = coord_node.object
+
+                else:
+                    layers[i].type = 'MATERIAL'
+
 def read_texture_node_values(material_channel_list, total_number_of_layers, layers, context):
     '''Updates texture node values stored in layers by reading the material node trees.'''
     for material_channel_name in material_channel_list:
@@ -774,6 +854,7 @@ class MATLAY_OT_refresh_layer_nodes(Operator):
         # Read material layer stuff.
         read_layer_name_and_id(layers, context)
         read_layer_opacity(total_number_of_layers, layers, selected_material_channel, context)
+        read_decal_layer_properties(material_channel_list, total_number_of_layers, layers, context)
         read_texture_node_values(material_channel_list, total_number_of_layers, layers, context)
         read_layer_projection_values(layers[material_stack.layer_index], material_stack.layer_index, context)
         read_globally_active_material_channels(context)

@@ -2,7 +2,7 @@
 
 import bpy
 from bpy.types import Operator, PropertyGroup
-from bpy.props import BoolProperty, FloatProperty, PointerProperty, FloatVectorProperty, EnumProperty
+from bpy.props import BoolProperty, FloatProperty, PointerProperty, FloatVectorProperty, EnumProperty, StringProperty, IntProperty
 from ..core import layer_nodes
 from . import material_channels
 from ..utilities.info_messages import popup_message_box
@@ -804,14 +804,18 @@ class MaterialChannelUniformValues(PropertyGroup):
     uniform_height_value: FloatProperty(name="Uniform Height Value", description="Uniform height value for this layer", default=0.0, min=0, max=1, update=update_uniform_height_value)
 
 class MATLAY_layers(PropertyGroup):
-    layer_stack_array_index: bpy.props.IntProperty(name="Layer Stack Array Index", description="The array index of this layer within the layer stack, stored to make it easy to access the array index of a specific layer.", default=-9)
-    id: bpy.props.IntProperty(name="ID", description="Unique numeric ID for the selected layer.", default=0)
-    name: bpy.props.StringProperty(name="", description="The name of the layer", default="Layer Naming Error", update=update_layer_name)
+    type: StringProperty(default='MATERIAL', name="Layer Type", description="Type used to identify layers. Valid types include: 'MATERIAL', 'DECAL'")
+    layer_stack_array_index: bpy.props.IntProperty(name="Layer Stack Array Index", description="The array index of this layer within the layer stack, stored to make it easy to access the array index of a specific layer", default=-9)
+    id: IntProperty(name="ID", description="Unique numeric ID for the selected layer", default=0)
+    name: StringProperty(name="", description="The name of the layer", default="Layer Naming Error", update=update_layer_name)
     cached_frame_name: bpy.props.StringProperty(name="", description="A cached version of the layer name. This allows layer nodes using the layers previous layer name to be accessed until they are renamed.", default="Layer Naming Error")
     opacity: FloatProperty(name="Opacity", description="Layers Opacity", default=1.0, min=0.0, soft_max=1.0, subtype='FACTOR', update=update_layer_opacity)
-    hidden: BoolProperty(name="Hidden", description="Show if the layer is hidden.", update=update_hidden)
+    hidden: BoolProperty(name="Hidden", description="Show if the layer is hidden", update=update_hidden)
     material_channel_toggles: bpy.props.PointerProperty(type=MaterialChannelToggles, name="Material Channel Toggles")
     channel_node_types: PointerProperty(type=MaterialChannelNodeType, name="Channel Node Types")
     projection: PointerProperty(type=ProjectionSettings, name="Projection Settings")
     color_channel_values: PointerProperty(type=MaterialChannelColors, name="Color Channel Values")
     uniform_channel_values: PointerProperty(type=MaterialChannelUniformValues, name="Uniform Channel Values")
+
+    # Decal layer properties.
+    decal_object: PointerProperty(type=bpy.types.Object, name="Decal Object", description="The object that is used to adjust the transform for the decal projection.")

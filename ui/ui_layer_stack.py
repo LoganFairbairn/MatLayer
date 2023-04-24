@@ -16,6 +16,15 @@ def draw_layer_hidden_icon(layout, item):
     elif item.hidden == False:
         row.prop(item, "hidden", text="", emboss=False, icon='HIDE_OFF')
 
+def draw_decal_warning(layout, item):
+    '''Draw a warning if there is no valid decal object for a decal layer (layer is useless without it).'''
+    layers = bpy.context.scene.matlay_layers
+    if layers[item.layer_stack_array_index].type == 'DECAL':
+        row = layout.row()
+        row.scale_x = 0.7
+        if not layers[item.layer_stack_array_index].decal_object:
+            row.template_icon(2)
+
 def draw_material_channel_preview(layout, item, selected_material_channel, context):
     '''Draws a preview of what the material will look like for the selected material channel.'''
     row = layout.row(align=True)
@@ -80,6 +89,7 @@ class MATLAY_UL_layer_list(bpy.types.UIList):
 
             if context.active_object.active_material:
                 draw_layer_hidden_icon(layout, item)
+                draw_decal_warning(layout, item)
                 #draw_material_channel_preview(layout, item, selected_material_channel, context)
                 #draw_layer_mask_preview(layout)
                 draw_layer_name(layout, item)
