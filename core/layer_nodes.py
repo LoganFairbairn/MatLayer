@@ -99,7 +99,7 @@ def get_total_number_of_layers(context):
 
 #----------------------------- LAYER FRAME FUNCTIONS -----------------------------#
 
-def get_layer_frame_name(layers, layer_stack_index):
+def format_layer_frame_name(layers, layer_stack_index):
     '''Gets the frame name for the given layer stack index.'''
     return layers[layer_stack_index].name + "_" + str(layers[layer_stack_index].id) + "_" + str(layer_stack_index)
 
@@ -121,7 +121,7 @@ def get_layer_frame(material_channel_name, layer_stack_index, context, get_edite
 
         # Return the frame.
         else:
-            layer_frame_name = get_layer_frame_name(layers, layer_stack_index)
+            layer_frame_name = format_layer_frame_name(layers, layer_stack_index)
             frame = material_channel_node.node_tree.nodes.get(layer_frame_name)
         return frame
     else:
@@ -387,10 +387,17 @@ def update_layer_node_indicies(material_channel_name, context):
             layers[index].cached_frame_name = frame.name
 
             # Re-index the layer nodes.
+            material_nodes = get_all_material_layer_nodes(material_channel_name, index - 1, context)
+            for node in material_nodes:
+                node.name = format_material_node_name(node_name, index, False)
+                node.label = node.name
+
+            '''
             for node_name in LAYER_NODE_NAMES:
                 node = get_layer_node(node_name, material_channel_name, index - 1, context)
                 node.name = format_material_node_name(node_name, index, False)
                 node.label = node.name
+            '''
 
             # Re-index all filter nodes.
             material_filter_nodes = material_filters.get_all_material_filter_nodes(material_channel_name, index - 1, False)
