@@ -352,9 +352,6 @@ def update_layer_node_indicies(material_channel_name, context):
 
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     changed_layer_index = -1
-
-    layers = context.scene.matlay_layers
-
     node_added = False
     node_deleted = False
 

@@ -68,13 +68,7 @@ def add_material_layer(type, context):
     add_layer_slot(context)
     new_layer_index = context.scene.matlay_layer_stack.layer_index
     layers = context.scene.matlay_layers
-    '''
-    new_layer_index = 0
-    if len(layers) == 0:
-        new_layer_index = 0
-    else:
-        new_layer_index = selected_layer_index
-    '''
+
     # 3. Add new nodes with default values based on the provided type.
     material_channel_list = material_channels.get_material_channel_list()
     for i in range(0, len(material_channel_list)):
@@ -229,13 +223,7 @@ def add_decal_layer(context):
 
     # 3. Add a new layer slot for the new layer.
     add_layer_slot(context)
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    layers = context.scene.matlay_layers
-    new_layer_index = 0
-    if len(layers) == 0:
-        new_layer_index = 0
-    else:
-        new_layer_index = selected_layer_index
+    new_layer_index = context.scene.matlay_layer_stack.layer_index
 
     # 3. Add new nodes for all material channels.
     material_channel_list = material_channels.get_material_channel_list()
@@ -355,8 +343,7 @@ def add_decal_layer(context):
 
     # Re-select the decal object so users can adjust it.
     bpy.ops.object.select_all(action='DESELECT')
-
-
+    new_layer.decal_object.select_set(True)
 
     # 8. Set a valid shading mode and ui tabs.
     matlay_utils.set_valid_material_shading_mode(context)
