@@ -265,13 +265,13 @@ def add_decal_layer(context):
             mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
             mapping_node.name = layer_nodes.format_material_node_name("MAPPING", new_layer_index, True)
             mapping_node.label = mapping_node.name
-            mapping_node.inputs[0].default_value = (0.5, 0.5, 0.0)
+            mapping_node.inputs[1].default_value = (0.5, 0.5, 0.0)
             new_nodes.append(mapping_node)
 
             decal_mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
             decal_mapping_node.name = layer_nodes.format_material_node_name("DECALMAPPING", new_layer_index, True)
             decal_mapping_node.label = decal_mapping_node.name
-            decal_mapping_node.inputs[1].default_value = (0.0, 90.0, 180.0)
+            decal_mapping_node.inputs[2].default_value = (0.0, 90.0, 180.0)
             new_nodes.append(decal_mapping_node)
 
             decal_mask_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexGradient')
