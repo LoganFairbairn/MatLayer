@@ -38,17 +38,6 @@ def get_layer_node(node_name, material_channel_name, layer_index, context, get_e
         else:
             print("ERROR: Layer node name not found in layer node list. Do you have a typo in a layer node name somewhere in your code?")
 
-def get_layer_node_from_name(node_name, material_channel, context):
-    '''Gets the desired layer node using it's name.'''
-    material_channel_node = material_channels.get_material_channel_node(context, material_channel)
-    node = material_channel_node.node_tree.nodes.get(node_name)
-
-    if node:
-        return node
-
-    else:
-        print("Error: Failed to get: " + node_name)
-
 def get_all_material_layer_nodes(material_channel_name, material_layer_index, context, get_edited=False):
     '''Returns an array of all material nodes in a specified material layer (doesn't return layer filter or layer mask nodes).'''
     nodes = []
