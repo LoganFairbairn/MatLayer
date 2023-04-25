@@ -22,15 +22,6 @@ def format_material_node_name(node_name, material_layer_index, get_edited=False)
         node_name += '~'
     return node_name
 
-def rename_layer_node(node, node_name, layer_stack_index):
-    '''Renames both the node name and the node's label to the new node name.'''
-    if node:
-        node.name = node_name + "_" + str(layer_stack_index)
-        node.label = node.name
-
-    else:
-        print("Unable to rename " + node_name + " layer node isn't valid.")
-
 def get_layer_node(node_name, material_channel_name, layer_index, context, get_edited=False):
     '''Gets a specific layer node using a given name. Valid options include "TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER".'''
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
@@ -402,7 +393,8 @@ def update_layer_node_indicies(material_channel_name, context):
             # Re-index the layer nodes.
             for node_name in LAYER_NODE_NAMES:
                 node = get_layer_node(node_name, material_channel_name, index - 1, context)
-                rename_layer_node(node, node_name, index)
+                node.name = format_material_node_name(node_name, index, False)
+                node.label = node.name
 
             # Re-index all filter nodes.
             material_filter_nodes = material_filters.get_all_material_filter_nodes(material_channel_name, index - 1, False)
@@ -435,7 +427,8 @@ def update_layer_node_indicies(material_channel_name, context):
         for node_name in LAYER_NODE_NAMES:
             temp_node_name = format_material_node_name(node_name, changed_layer_index) + "~"
             node = material_channel_node.node_tree.nodes.get(temp_node_name)
-            rename_layer_node(node, node_name, changed_layer_index)
+            node.name = format_material_node_name(node_name, changed_layer_index)
+            node.label = node.name
 
 
     # 4. Re-index all nodes on layers past the deleted layer if any exist.
@@ -452,9 +445,10 @@ def update_layer_node_indicies(material_channel_name, context):
             layers[changed_layer_index].cached_frame_name = frame.name
 
             # Re-index all material layer nodes.
-            for node_name in layer_node_names:
+            for node_name in LAYER_NODE_NAMES:
                 node = get_layer_node(node_name, material_channel_name, index, context)
-                rename_layer_node(node, node_name, index - 1)
+                node.name = format_material_node_name(node_name, index - 1)
+                node.label = node.name
 
             # Re-index all filter nodes.
             material_filter_nodes = material_filters.get_all_material_filter_nodes(material_channel_name, index , False)
