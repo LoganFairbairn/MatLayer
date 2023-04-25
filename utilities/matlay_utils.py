@@ -17,9 +17,10 @@ def set_valid_mode():
 
 def set_valid_material_shading_mode(context):
     '''Verifies the user is using material or rendered shading mode and corrects the shading mode if they are using a different mode. This allows users to visually see the changes they to the material make when calling select operators.'''
-    if context.space_data.type == 'VIEW_3D':
-        if context.space_data.shading.type != 'MATERIAL' and context.space_data.shading.type != 'RENDERED':
-            context.space_data.shading.type = 'MATERIAL'
+    if context.space_data:
+        if context.space_data.type == 'VIEW_3D':
+            if context.space_data.shading.type != 'MATERIAL' and context.space_data.shading.type != 'RENDERED':
+                context.space_data.shading.type = 'MATERIAL'
 
 class MATLAY_OT_set_decal_layer_snapping(Operator):
     '''Sets optimal snapping settings for positioning decal layers. You can disable the snapping mode by selecting the magnet icon in the middle top area of the 3D viewport.'''
