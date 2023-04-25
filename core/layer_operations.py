@@ -162,6 +162,7 @@ def add_material_layer(type, context):
         link(texture_node.outputs[0], mix_layer_node.inputs[2])
         if texture_node.bl_static_type == 'TEX_IMAGE':
             link(mapping_node.outputs[0], texture_node.inputs[0])
+            link(texture_node.outputs[1], opacity_node.inputs[0])
 
         # 5. Frame nodes.
         frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
