@@ -148,22 +148,6 @@ def get_layer_frame_nodes(context):
     layer_frame_nodes.sort(key=get_layer_frame_id)
     return layer_frame_nodes
 
-#----------------------------- LAYER MASK FUNCTIONS -----------------------------#
-
-def get_all_layer_mask_nodes(layer_stack_index, material_channel_name, context):
-    '''Gets all the mask nodes for a given layer.'''
-    mask_nodes = []
-
-    material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
-    for i in range(0, 20):
-        mask_node = material_channel_node.node_tree.nodes.get("MASK_" + str(layer_stack_index) + "_" + str(i + 1))
-        if mask_node:
-            mask_nodes.append()
-        else:
-            break
-
-    return mask_nodes
-
 #----------------------------- LAYER MUTING FUNCTIONS -----------------------------#
 
 def mute_layer_material_channel(mute, layer_stack_index, material_channel_name, context):
