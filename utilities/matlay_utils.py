@@ -66,10 +66,17 @@ class MATLAY_OT_append_workspace(Operator):
         directory = blendfile + section
         filename  = object
 
+        '''
         bpy.ops.wm.append(
             filepath=filepath, 
             filename=filename,
             directory=directory)
+        '''
+
+        print("Current file: " + os.path.dirname(__file__))
+        
+        with bpy.data.libraries.load(source_path) as (data_from, data_to):
+            data_to.workspaces = ["Matlay"]
 
         # Set the current workspace to the appended workspace.
         bpy.context.window.workspace = bpy.data.workspaces['Matlay']

@@ -26,7 +26,7 @@ def format_material_node_name(node_name, material_layer_index, get_edited=False)
     return node_name
 
 def get_layer_node(node_name, material_channel_name, layer_index, context, get_edited=False):
-    '''Gets a specific layer node using a given name. Valid options include "TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER".'''
+    '''Gets a specific layer node using a given name. Valid options include "TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER", "DECALMASK", "DECALMAPPING", "DECALMASKADJUSTMENT", "DECALMASKMIX" '''
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     if material_channel_node:
         if node_name in LAYER_NODE_NAMES:
