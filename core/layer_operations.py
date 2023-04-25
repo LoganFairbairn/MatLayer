@@ -127,12 +127,12 @@ def add_material_layer(type, context):
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
             texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
 
-        texture_node.name = layer_nodes.get_layer_node_name("TEXTURE", new_layer_index) + "~"
+        texture_node.name = layer_nodes.format_material_node_name("TEXTURE", new_layer_index, True)
         texture_node.label = texture_node.name
         new_nodes.append(texture_node)
 
         opacity_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMath')
-        opacity_node.name = layer_nodes.get_layer_node_name("OPACITY", new_layer_index) + "~"
+        opacity_node.name = layer_nodes.format_material_node_name("OPACITY", new_layer_index, True)
         opacity_node.label = opacity_node.name
         opacity_node.inputs[0].default_value = 1.0
         opacity_node.inputs[1].default_value = 1.0
@@ -141,7 +141,7 @@ def add_material_layer(type, context):
         new_nodes.append(opacity_node)
 
         mix_layer_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMixRGB')
-        mix_layer_node.name = layer_nodes.get_layer_node_name("MIXLAYER", new_layer_index) + "~"
+        mix_layer_node.name = layer_nodes.format_material_node_name("MIXLAYER", new_layer_index, True)
         mix_layer_node.label = mix_layer_node.name
         mix_layer_node.inputs[1].default_value = (0.0, 0.0, 0.0, 1.0)
         mix_layer_node.inputs[2].default_value = (0.0, 0.0, 0.0, 1.0)
@@ -149,12 +149,12 @@ def add_material_layer(type, context):
         new_nodes.append(mix_layer_node)
 
         coord_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexCoord')
-        coord_node.name = layer_nodes.get_layer_node_name("COORD", new_layer_index) + "~"
+        coord_node.name = layer_nodes.format_material_node_name("COORD", new_layer_index, True)
         coord_node.label = coord_node.name
         new_nodes.append(coord_node)
 
         mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
-        mapping_node.name = layer_nodes.get_layer_node_name("MAPPING", new_layer_index) + "~"
+        mapping_node.name = layer_nodes.format_material_node_name("MAPPING", new_layer_index, True)
         mapping_node.label = mapping_node.name
         new_nodes.append(mapping_node)
 
@@ -245,12 +245,12 @@ def add_decal_layer(context):
 
             new_nodes = []
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
-            texture_node.name = layer_nodes.get_layer_node_name("TEXTURE", new_layer_index) + "~"
+            texture_node.name = layer_nodes.format_material_node_name("TEXTURE", new_layer_index) + "~"
             texture_node.label = texture_node.name
             new_nodes.append(texture_node)
 
             opacity_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMath')
-            opacity_node.name = layer_nodes.get_layer_node_name("OPACITY", new_layer_index) + "~"
+            opacity_node.name = layer_nodes.format_material_node_name("OPACITY", new_layer_index) + "~"
             opacity_node.label = opacity_node.name
             opacity_node.inputs[0].default_value = 1.0
             opacity_node.inputs[1].default_value = 1.0
@@ -259,7 +259,7 @@ def add_decal_layer(context):
             new_nodes.append(opacity_node)
 
             mix_layer_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMixRGB')
-            mix_layer_node.name = layer_nodes.get_layer_node_name("MIXLAYER", new_layer_index) + "~"
+            mix_layer_node.name = layer_nodes.format_material_node_name("MIXLAYER", new_layer_index) + "~"
             mix_layer_node.label = mix_layer_node.name
             mix_layer_node.inputs[1].default_value = (0.0, 0.0, 0.0, 1.0)
             mix_layer_node.inputs[2].default_value = (0.0, 0.0, 0.0, 1.0)
@@ -267,18 +267,18 @@ def add_decal_layer(context):
             new_nodes.append(mix_layer_node)
 
             coord_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexCoord')
-            coord_node.name = layer_nodes.get_layer_node_name("COORD", new_layer_index) + "~"
+            coord_node.name = layer_nodes.format_material_node_name("COORD", new_layer_index) + "~"
             coord_node.label = coord_node.name
             new_nodes.append(coord_node)
 
             mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
-            mapping_node.name = layer_nodes.get_layer_node_name("MAPPING", new_layer_index) + "~"
+            mapping_node.name = layer_nodes.format_material_node_name("MAPPING", new_layer_index) + "~"
             mapping_node.label = mapping_node.name
             mapping_node.inputs[0].default_value = (0.5, 0.5, 0.0)
             new_nodes.append(mapping_node)
 
             decal_mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
-            decal_mapping_node.name = layer_nodes.get_layer_node_name("DECALMAPPING", new_layer_index) + "~"
+            decal_mapping_node.name = layer_nodes.format_material_node_name("DECALMAPPING", new_layer_index) + "~"
             decal_mapping_node.label = decal_mapping_node.name
             decal_mapping_node.inputs[1].default_value = (0.0, 90.0, 180.0)
             new_nodes.append(decal_mapping_node)
@@ -352,6 +352,11 @@ def add_decal_layer(context):
     new_layer.channel_node_types.color_node_type = 'TEXTURE'
     new_layer.type = 'DECAL'
     context.scene.matlay_layer_stack.auto_update_layer_properties = True
+
+    # Re-select the decal object so users can adjust it.
+    bpy.ops.object.select_all(action='DESELECT')
+
+
 
     # 8. Set a valid shading mode and ui tabs.
     matlay_utils.set_valid_material_shading_mode(context)

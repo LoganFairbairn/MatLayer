@@ -15,8 +15,12 @@ LAYER_NODE_NAMES = ("TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER")
 
 #----------------------------- LAYER NODE FUNCTIONS -----------------------------#
 
-def get_layer_node_name(node_name, layer_stack_index):
-    return node_name + "_" + str(layer_stack_index)
+def format_material_node_name(node_name, material_layer_index, get_edited=False):
+    '''Formats a material node name to follow the required naming convention for material nodes.'''
+    node_name = "{0}_{1}".format(node_name, str(material_layer_index))
+    if get_edited:
+        node_name += '~'
+    return node_name
 
 def rename_layer_node(node, node_name, layer_stack_index):
     '''Renames both the node name and the node's label to the new node name.'''
@@ -366,7 +370,7 @@ def update_layer_node_indicies(material_channel_name, context):
 
     # 1. Check for a newly added layer (signified by a tilda at the end of the node's name).
     for i in range(0, len(layers)):
-        temp_node_name = get_layer_node_name("TEXTURE", i) + "~"
+        temp_node_name = format_material_node_name("TEXTURE", i) + "~"
         node = material_channel_node.node_tree.nodes.get(temp_node_name)
         if node:
             node_added = True
@@ -429,7 +433,7 @@ def update_layer_node_indicies(material_channel_name, context):
         layers[changed_layer_index].cached_frame_name = frame.name
         
         for node_name in LAYER_NODE_NAMES:
-            temp_node_name = get_layer_node_name(node_name, changed_layer_index) + "~"
+            temp_node_name = format_material_node_name(node_name, changed_layer_index) + "~"
             node = material_channel_node.node_tree.nodes.get(temp_node_name)
             rename_layer_node(node, node_name, changed_layer_index)
 
