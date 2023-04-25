@@ -88,14 +88,13 @@ def get_total_number_of_layers(context):
 
 #----------------------------- LAYER FRAME FUNCTIONS -----------------------------#
 
-def format_layer_frame_name(layers, layer_stack_index):
-    '''Gets the frame name for the given layer stack index.'''
-    return layers[layer_stack_index].name + "_" + str(layers[layer_stack_index].id) + "_" + str(layer_stack_index)
-
-def get_frame_name(layer_stack_array_index, context):
-    '''Returns the frame name.'''
-    layers = context.scene.matlay_layers
-    return layers[layer_stack_array_index].name + "_" + str(layers[layer_stack_array_index].id) + "_" + str(layer_stack_array_index)
+def get_layer_frame_name(layer_stack_index, get_edited=False):
+    '''Returns a formatted layer frame name which follows the naming convention for layer frames created with this add-on.'''
+    layers = bpy.context.scene.matlay_layers
+    frame_name = "{0}_{1}_{2}".format(layers[layer_stack_index].name, str(layers[layer_stack_index].id), str(layer_stack_index))
+    if get_edited:
+        frame_name += '~'
+    return frame_name
 
 def get_layer_frame(material_channel_name, layer_stack_index, context, get_edited=False):
     '''Returns the frame node for the given layer. This function requires the layer id to be stored in the layer stack.'''
@@ -110,7 +109,7 @@ def get_layer_frame(material_channel_name, layer_stack_index, context, get_edite
 
         # Return the frame.
         else:
-            layer_frame_name = format_layer_frame_name(layers, layer_stack_index)
+            layer_frame_name = get_layer_frame_name(layer_stack_index)
             frame = material_channel_node.node_tree.nodes.get(layer_frame_name)
         return frame
     else:

@@ -162,7 +162,7 @@ def add_material_layer(type, context):
 
         # 5. Frame nodes.
         frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
-        frame.name = layer_nodes.get_frame_name(new_layer_index, context) + "~"
+        frame.name = layer_nodes.get_layer_frame_name(new_layer_index, True)
         frame.label = frame.name
         for n in new_nodes:
             n.parent = frame
@@ -310,7 +310,7 @@ def add_decal_layer(context):
 
             # 5. Frame layer nodes.
             frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
-            frame.name = layer_nodes.get_frame_name(new_layer_index, context) + "~"
+            frame.name = layer_nodes.get_layer_frame_name(new_layer_index, True)
             frame.label = frame.name
             for n in new_nodes:
                 n.parent = frame
