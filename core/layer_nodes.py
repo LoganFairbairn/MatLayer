@@ -136,7 +136,7 @@ def get_layer_frame_nodes(context):
     layer_frame_nodes.sort(key=get_layer_frame_id)
     return layer_frame_nodes
 
-#----------------------------- LAYER MUTING FUNCTIONS -----------------------------#
+#----------------------------- LAYER FUNCTIONS -----------------------------#
 
 def mute_layer_material_channel(mute, layer_stack_index, material_channel_name, context):
     '''Mutes (hides) or unhides all layer nodes for a specific material channel.'''
@@ -146,8 +146,6 @@ def mute_layer_material_channel(mute, layer_stack_index, material_channel_name, 
             node.mute = mute
 
     matlay_utils.set_valid_material_shading_mode(context)
-
-#----------------------------- NODE ORGANIZATION FUNCTIONS -----------------------------#
 
 def organize_material_channel_nodes(context):
     '''Organizes material channel nodes.'''
@@ -220,8 +218,6 @@ def organize_all_matlay_materials(context):
     for material_channel in material_channel_names:
         organize_layer_nodes_in_material_channel(material_channel, context)
 
-#----------------------------- NODE LINKING FUNCTIONS -----------------------------#
-
 def relink_layers(material_channel_name, context):
     '''Re-links all layers in the given material channel together.'''
     layers = context.scene.matlay_layers
@@ -292,8 +288,6 @@ def relink_layers(material_channel_name, context):
             else:
                 group_output_node = material_channel_node.node_tree.nodes.get("Group Output")
                 material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], group_output_node.inputs[0])
-
-#----------------------------- LAYER UPDATING FUNCTIONS -----------------------------#
 
 # TODO: Remove this wrapper function in favor of relinking / organizing in separate functions.
 def update_layer_nodes(context):
