@@ -21,7 +21,6 @@ def set_valid_material_shading_mode(context):
         if context.space_data.shading.type != 'MATERIAL' and context.space_data.shading.type != 'RENDERED':
             context.space_data.shading.type = 'MATERIAL'
 
-
 class MATLAY_OT_set_decal_layer_snapping(Operator):
     '''Sets optimal snapping settings for positioning decal layers. You can disable the snapping mode by selecting the magnet icon in the middle top area of the 3D viewport.'''
     bl_idname = "matlay.set_decal_layer_snapping"
