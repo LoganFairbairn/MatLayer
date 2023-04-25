@@ -13,7 +13,7 @@ from ..utilities import matlay_utils
 import random
 import os
 
-def add_layer_slot(context):
+def add_layer_slot(context, layer_type='MATERIAL'):
     '''Creates a layer slot.'''
     layers = context.scene.matlay_layers
     layer_stack = context.scene.matlay_layer_stack
@@ -21,7 +21,10 @@ def add_layer_slot(context):
 
     # Add a new layer slot.
     layers.add()
-    layers[len(layers) - 1].name = "Layer"
+    if layer_type == 'DECAL':
+        layers[len(layers) - 1].name = "{0} {1}".format("Decal", str(len(layers)))
+    else:
+        layers[len(layers) - 1].name = "{0} {1}".format("Layer", str(len(layers)))
 
     # If there is no layer selected, move the layer to the top of the stack.
     if selected_layer_index < 0:
@@ -213,7 +216,7 @@ def add_decal_layer(context):
     material_channels.create_empty_group_node(context)
 
     # Add a new layer slot for the new layer.
-    add_layer_slot(context)
+    add_layer_slot(context, 'DECAL')
     new_layer_index = context.scene.matlay_layer_stack.layer_index
 
     # Add decal object (which allows the user to drag the decal around on the object).
@@ -221,6 +224,7 @@ def add_decal_layer(context):
     bpy.ops.object.select_all(action='DESELECT')
     bpy.ops.object.empty_add(type='CUBE', align='WORLD', location=(0, 0, 0), scale=(1, 1, 0.2))
     decal_object = bpy.context.active_object
+    decal_object.scale = (1.0, 1.0, 0.2)
     bpy.context.scene.matlay_layers[bpy.context.scene.matlay_layer_stack.layer_index].decal_object = bpy.context.active_object
     bpy.context.active_object.select_set(False)
     previously_selected_object.select_set(True)
