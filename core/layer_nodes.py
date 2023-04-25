@@ -296,7 +296,7 @@ def update_layer_nodes(context):
 
     material_channel_names = material_channels.get_material_channel_list()
     for material_channel in material_channel_names:
-        update_layer_node_indicies(material_channel, context)
+        reindex_material_layer_nodes(material_channel, context)
         organize_layer_nodes_in_material_channel(material_channel, context)
         relink_layers(material_channel, context)
 
@@ -307,7 +307,7 @@ def update_layer_nodes(context):
     layer_masks.reindex_mask_filters_nodes()
     layer_masks.relink_mask_filter_nodes()
 
-def update_layer_node_indicies(material_channel_name, context):
+def reindex_material_layer_nodes(material_channel_name, context):
     '''Updates the layer stack indicies stored in material (layer) nodes.'''
 
     # The array index is stored in each layer for convenience, update this index first. Array index stored in each layer should match the layer index order.
