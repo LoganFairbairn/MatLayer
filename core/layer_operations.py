@@ -21,10 +21,20 @@ def add_layer_slot(context, layer_type='MATERIAL'):
 
     # Add a new layer slot.
     layers.add()
+
+    # Set a new layer name.
     if layer_type == 'DECAL':
-        layers[len(layers) - 1].name = "{0} {1}".format("Decal", str(len(layers)))
+        number_of_decal_layers = 0
+        for layer in layers:
+            if layer.type == 'DECAL':
+                number_of_decal_layers += 1
+        layers[len(layers) - 1].name = "{0} {1}".format("Decal", str(number_of_decal_layers + 1))
     else:
-        layers[len(layers) - 1].name = "{0} {1}".format("Layer", str(len(layers)))
+        number_of_material_layers = 0
+        for layer in layers:
+            if layer.type != 'DECAL':
+                number_of_material_layers += 1
+        layers[len(layers) - 1].name = "{0} {1}".format("Layer", str(number_of_material_layers + 1))
 
     # If there is no layer selected, move the layer to the top of the stack.
     if selected_layer_index < 0:
