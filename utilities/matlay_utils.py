@@ -9,6 +9,7 @@ from ..core import layer_nodes
 from ..core import layer_masks
 from ..utilities import info_messages
 import os
+from ..config import ADDON_NAME
 
 def set_valid_mode():
     '''Verifies texture or object mode is being used. This should be used to avoid attempting to run functions in the wrong mode which may throw errors.'''
@@ -53,8 +54,9 @@ class MATLAY_OT_append_workspace(Operator):
             return {'FINISHED'}
 
 
+        print("Addon name: " + ADDON_NAME)
         USER = Path(resource_path('USER'))
-        ADDON = "Matlay"
+        ADDON = ADDON_NAME
         BLEND_FILE = "Matlay.blend"
         source_path =  str(USER / "scripts/addons" / ADDON / "blend" / BLEND_FILE)
 
@@ -62,18 +64,7 @@ class MATLAY_OT_append_workspace(Operator):
         section = "\\WorkSpace\\"
         object = "Matlay"
 
-        filepath  = blendfile + section + object
-        directory = blendfile + section
-        filename  = object
-
-        '''
-        bpy.ops.wm.append(
-            filepath=filepath, 
-            filename=filename,
-            directory=directory)
-        '''
-
-        print("Current file: " + os.path.dirname(__file__))
+        #print("Current file: " + os.path.dirname(__file__))
         
         with bpy.data.libraries.load(source_path) as (data_from, data_to):
             data_to.workspaces = ["Matlay"]
