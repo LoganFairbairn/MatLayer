@@ -8,6 +8,20 @@ from ..core import layer_masks
 from ..utilities import info_messages
 import os
 
+class MATLAY_OT_set_decal_layer_snapping(Operator):
+    '''Sets optimal snapping settings for positioning decal layers. You can disable the snapping mode by selecting the magnet icon in the middle top area of the 3D viewport.'''
+    bl_idname = "matlay.set_decal_layer_snapping"
+    bl_label = "Set Decal Layer Snapping"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Sets optimal snapping settings for positioning decal layers"
+
+    def execute(self, context):
+        bpy.context.scene.tool_settings.use_snap = True
+        bpy.context.scene.tool_settings.snap_elements = {'FACE'}
+        bpy.context.scene.tool_settings.snap_target = 'CENTER'
+        bpy.context.scene.tool_settings.use_snap_align_rotation = True
+        return {'FINISHED'}
+
 class MATLAY_OT_append_workspace(Operator):
     '''Appends a suggested layout for using this add-on.'''
     bl_idname = "matlay.append_workspace"

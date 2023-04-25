@@ -112,6 +112,16 @@ def draw_divider(column):
     subrow.ui_units_x = 10
     subrow.label(text="----------------------------------------------------------------------------------------")
 
+def draw_layer_utility_buttons(column, context):
+    material_layers = context.scene.matlay_layers
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+
+    if material_layers[selected_material_layer_index].type == 'DECAL':
+        subrow = column.row()
+        subrow.scale_y = 1.4
+        subrow.operator("matlay.set_decal_layer_snapping", icon='SNAP_ON')
+        draw_divider(column)
+
 def draw_layer_material_channel_toggles(column, context):
     '''Draws options to quickly toggle material channels on and off.'''
     layers = context.scene.matlay_layers
@@ -683,6 +693,7 @@ def draw_layer_properties(column, context, layout):
                 material_property_tab = context.scene.matlay_layer_stack.material_property_tab
                 match material_property_tab:
                     case 'MATERIAL':
+                        draw_layer_utility_buttons(column, context)
                         draw_layer_material_channel_toggles(column, context)
                         draw_material_channel_node_properties(column, context)
 
