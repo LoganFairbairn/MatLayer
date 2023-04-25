@@ -11,12 +11,15 @@ NODE_WIDTH = 300
 NODE_SPACING = 50
 
 # Set of node names.
-LAYER_NODE_NAMES = ("TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER")
+LAYER_NODE_NAMES = ("TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER", "DECALMASK", "DECALMAPPING", "DECALMASKADJUSTMENT", "DECALMASKMIX")
 
 #----------------------------- LAYER NODE FUNCTIONS -----------------------------#
 
 def format_material_node_name(node_name, material_layer_index, get_edited=False):
     '''Formats a material node name to follow the required naming convention for material nodes.'''
+    if node_name not in LAYER_NODE_NAMES:
+        print("ERROR: Layer node name {0} not found in layer node name list.".format(node_name))
+
     node_name = "{0}_{1}".format(node_name, str(material_layer_index))
     if get_edited:
         node_name += '~'
@@ -43,31 +46,27 @@ def get_all_material_layer_nodes(material_channel_name, material_layer_index, co
     nodes = []
     for node_name in LAYER_NODE_NAMES:
         node = get_layer_node(node_name, material_channel_name, material_layer_index, context, get_edited)
-        if not node:
-            print("Error: Missing " + node_name + " from " + material_channel_name + ".")
-        nodes.append(node)
+        if node:
+            nodes.append(node)
     return nodes
 
 def get_all_nodes_in_layer(material_channel_name, material_layer_index, context, get_edited=False):
-    '''Returns an array of all nodes that belong to the specified layer within the specified material channel.'''
+    '''Returns an array of all nodes that belong to the specified layer (includes mask and filter nodes).'''
     nodes = []
 
-    # Get all of the standard material layer nodes.
-    for node_name in LAYER_NODE_NAMES:
-        node = get_layer_node(node_name, material_channel_name, material_layer_index, context, get_edited)
-        if not node:
-            print("Error: Missing " + node_name + " from " + material_channel_name + ".")
-        nodes.append(node)
+    # Get all material layer nodes.
+    material_nodes = get_all_material_layer_nodes(material_channel_name, material_layer_index, context, get_edited)
+    nodes = nodes + material_nodes
 
-    # Get existing material filter nodes.
+    # Get all material filter nodes.
     filter_nodes = material_filters.get_all_material_filter_nodes(material_channel_name, material_layer_index, get_edited)
     nodes = nodes + filter_nodes
 
-    # Get mask nodes.
+    # Get all mask nodes.
     mask_nodes = layer_masks.get_all_mask_nodes_in_layer(material_layer_index, material_channel_name, get_edited)
     nodes = nodes + mask_nodes
 
-    # Get mask filter nodes.
+    # Get all mask filter nodes.
     mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, material_layer_index, get_edited)
     nodes = nodes + mask_filter_nodes
 
@@ -358,13 +357,6 @@ def reindex_material_layer_nodes(material_channel_name, context):
                 node.name = format_material_node_name(node_name, index, False)
                 node.label = node.name
 
-            '''
-            for node_name in LAYER_NODE_NAMES:
-                node = get_layer_node(node_name, material_channel_name, index - 1, context)
-                node.name = format_material_node_name(node_name, index, False)
-                node.label = node.name
-            '''
-
             # Re-index all filter nodes.
             material_filter_nodes = material_filters.get_all_material_filter_nodes(material_channel_name, index - 1, False)
             for node in material_filter_nodes:
@@ -393,11 +385,19 @@ def reindex_material_layer_nodes(material_channel_name, context):
         frame.label = frame.name
         layers[changed_layer_index].cached_frame_name = frame.name
         
+        material_nodes = get_all_material_layer_nodes(material_channel_name, changed_layer_index, context, True)
+        for node in material_nodes:
+            node_info = node.name.split('_')
+            node.name = format_material_node_name(node_info[0], changed_layer_index)
+            node.label = node.name
+
+        '''
         for node_name in LAYER_NODE_NAMES:
             temp_node_name = format_material_node_name(node_name, changed_layer_index) + "~"
             node = material_channel_node.node_tree.nodes.get(temp_node_name)
             node.name = format_material_node_name(node_name, changed_layer_index)
             node.label = node.name
+        '''
 
 
     # 4. Re-index all nodes on layers past the deleted layer if any exist.
@@ -414,8 +414,8 @@ def reindex_material_layer_nodes(material_channel_name, context):
             layers[changed_layer_index].cached_frame_name = frame.name
 
             # Re-index all material layer nodes.
-            for node_name in LAYER_NODE_NAMES:
-                node = get_layer_node(node_name, material_channel_name, index, context)
+            material_nodes = get_all_material_layer_nodes(material_channel_name, index, context, False)
+            for node in material_nodes:
                 node.name = format_material_node_name(node_name, index - 1)
                 node.label = node.name
 
