@@ -205,36 +205,38 @@ def add_material_layer(type, context):
 def add_decal_layer(context):
     '''Adds a decal layer node setup.'''
 
-    # 1. Add decal object.
-    previously_selected_object = bpy.context.active_object
-    bpy.ops.object.select_all(action='DESELECT')
-    bpy.ops.object.empty_add(type='CUBE', align='WORLD', location=(0, 0, 0), scale=(1, 1, 0.2))
-    bpy.context.scene.matlay_layers[bpy.context.scene.matlay_layer_stack.layer_index].decal_object = bpy.context.active_object
-    bpy.context.active_object.select_set(False)
-    previously_selected_object.select_set(True)
-    bpy.context.view_layer.objects.active = previously_selected_object
-
-    # 2. Validate and prepare the material for the selected object.
+    # Validate and prepare the material for the selected object.
     matlay_utils.set_valid_mode()
     if not matlay_materials.prepare_material(context):
         return
     material_channels.create_channel_group_nodes(context)
     material_channels.create_empty_group_node(context)
 
-    # 3. Add a new layer slot for the new layer.
+    # Add a new layer slot for the new layer.
     add_layer_slot(context)
     new_layer_index = context.scene.matlay_layer_stack.layer_index
 
-    # 3. Add new nodes for all material channels.
+    # Add decal object (which allows the user to drag the decal around on the object).
+    previously_selected_object = bpy.context.active_object
+    bpy.ops.object.select_all(action='DESELECT')
+    bpy.ops.object.empty_add(type='CUBE', align='WORLD', location=(0, 0, 0), scale=(1, 1, 0.2))
+    decal_object = bpy.context.active_object
+    bpy.context.scene.matlay_layers[bpy.context.scene.matlay_layer_stack.layer_index].decal_object = bpy.context.active_object
+    bpy.context.active_object.select_set(False)
+    previously_selected_object.select_set(True)
+    bpy.context.view_layer.objects.active = previously_selected_object
+
+    # Add new nodes for all material channels.
     material_channel_list = material_channels.get_material_channel_list()
     for i in range(0, len(material_channel_list)):
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_list[i])
         if material_channels.verify_material_channel(material_channel_node):
 
             new_nodes = []
-            texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
+            texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexImage')
             texture_node.name = layer_nodes.format_material_node_name("TEXTURE", new_layer_index) + "~"
             texture_node.label = texture_node.name
+            texture_node.extension = 'CLIP'
             new_nodes.append(texture_node)
 
             opacity_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMath')
@@ -247,7 +249,7 @@ def add_decal_layer(context):
             new_nodes.append(opacity_node)
 
             mix_layer_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMixRGB')
-            mix_layer_node.name = layer_nodes.format_material_node_name("MIXLAYER", new_layer_index) + "~"
+            mix_layer_node.name = layer_nodes.format_material_node_name("MIXLAYER", new_layer_index, True)
             mix_layer_node.label = mix_layer_node.name
             mix_layer_node.inputs[1].default_value = (0.0, 0.0, 0.0, 1.0)
             mix_layer_node.inputs[2].default_value = (0.0, 0.0, 0.0, 1.0)
@@ -255,38 +257,39 @@ def add_decal_layer(context):
             new_nodes.append(mix_layer_node)
 
             coord_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexCoord')
-            coord_node.name = layer_nodes.format_material_node_name("COORD", new_layer_index) + "~"
+            coord_node.name = layer_nodes.format_material_node_name("COORD", new_layer_index, True)
             coord_node.label = coord_node.name
+            coord_node.object = decal_object
             new_nodes.append(coord_node)
 
             mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
-            mapping_node.name = layer_nodes.format_material_node_name("MAPPING", new_layer_index) + "~"
+            mapping_node.name = layer_nodes.format_material_node_name("MAPPING", new_layer_index, True)
             mapping_node.label = mapping_node.name
             mapping_node.inputs[0].default_value = (0.5, 0.5, 0.0)
             new_nodes.append(mapping_node)
 
             decal_mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
-            decal_mapping_node.name = layer_nodes.format_material_node_name("DECALMAPPING", new_layer_index) + "~"
+            decal_mapping_node.name = layer_nodes.format_material_node_name("DECALMAPPING", new_layer_index, True)
             decal_mapping_node.label = decal_mapping_node.name
             decal_mapping_node.inputs[1].default_value = (0.0, 90.0, 180.0)
             new_nodes.append(decal_mapping_node)
 
             decal_mask_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexGradient')
-            decal_mask_node.name = "DECALMASK_" + str(new_layer_index) + "~"
+            decal_mask_node.name = layer_nodes.format_material_node_name("DECALMASK", new_layer_index, True)
             decal_mask_node.label = decal_mask_node.name
             decal_mask_node.gradient_type = 'LINEAR'
             new_nodes.append(decal_mask_node)
 
             decal_mask_adjustment_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValToRGB')
-            decal_mask_adjustment_node.name = "DECALMASKADJUSTMENT_" + str(new_layer_index) + "~"
+            decal_mask_adjustment_node.name = layer_nodes.format_material_node_name("DECALMASKADJUSTMENT", new_layer_index, True)
             decal_mask_adjustment_node.label = decal_mask_adjustment_node.name
             decal_mask_adjustment_node.color_ramp.elements[0].position = 0.3
-            decal_mask_adjustment_node.color_ramp.elements[0].color = (1.0, 1.0, 1.0)
+            decal_mask_adjustment_node.color_ramp.elements[0].color = (1.0, 1.0, 1.0, 1.0)
             decal_mask_adjustment_node.color_ramp.elements[1].position = 1.0
-            decal_mask_adjustment_node.color_ramp.elements[1].color = (0.0, 0.0, 0.0)
+            decal_mask_adjustment_node.color_ramp.elements[1].color = (0.0, 0.0, 0.0, 1.0)
 
             decal_mask_mix_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMath')
-            decal_mask_mix_node.name = "DECALMASKMIX_" + str(new_layer_index) + "~"
+            decal_mask_mix_node.name = layer_nodes.format_material_node_name("DECALMASKMIX", new_layer_index, True)
             decal_mask_mix_node.label = decal_mask_mix_node.name
             decal_mask_mix_node.inputs[0].default_value = 1.0
             decal_mask_mix_node.inputs[0].default_value = 1.0
@@ -294,7 +297,7 @@ def add_decal_layer(context):
             decal_mask_mix_node.operation = 'MULTIPLY'
             new_nodes.append(decal_mask_mix_node)
 
-            # 4. Link newly created nodes.
+            # Link newly created nodes.
             link = material_channel_node.node_tree.links.new
 
             link(coord_node.outputs[3], mapping_node.inputs[0])
@@ -302,23 +305,24 @@ def add_decal_layer(context):
             link(texture_node.outputs[0], mix_layer_node.inputs[2])
             link(texture_node.outputs[1], decal_mask_mix_node.inputs[1])
 
-            link(mapping_node.inputs[0], decal_mask_node.inputs[0])
+            link(coord_node.outputs[3], decal_mapping_node.inputs[0])
+            link(decal_mapping_node.outputs[0], decal_mask_node.inputs[0])
             link(decal_mask_node.outputs[0], decal_mask_adjustment_node.inputs[0])
             link(decal_mask_adjustment_node.outputs[0], decal_mask_mix_node.inputs[0])
             link(decal_mask_mix_node.outputs[0], opacity_node.inputs[0])
             link(opacity_node.outputs[0], mix_layer_node.inputs[0])
 
-            # 5. Frame layer nodes.
+            # Frame layer nodes.
             frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
             frame.name = layer_nodes.get_layer_frame_name(new_layer_index, True)
             frame.label = frame.name
             for n in new_nodes:
                 n.parent = frame
         
-    # 6. Re-index and organize layer nodes.
+    # Re-index and organize layer nodes.
     layer_nodes.update_layer_nodes(context)
 
-    # 7. Adjust layer properties.
+    # Adjust layer properties.
     context.scene.matlay_layer_stack.auto_update_layer_properties = False
     layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE", context)
     layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE_COLOR", context)
@@ -345,7 +349,7 @@ def add_decal_layer(context):
     bpy.ops.object.select_all(action='DESELECT')
     new_layer.decal_object.select_set(True)
 
-    # 8. Set a valid shading mode and ui tabs.
+    # Set a valid shading mode and ui tabs.
     matlay_utils.set_valid_material_shading_mode(context)
     context.scene.matlay_layer_stack.layer_property_tab = 'MATERIAL'
     context.scene.matlay_layer_stack.material_property_tab = 'MATERIAL'
