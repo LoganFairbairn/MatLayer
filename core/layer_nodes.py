@@ -15,10 +15,6 @@ LAYER_NODE_NAMES = ("TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER")
 
 #----------------------------- LAYER NODE FUNCTIONS -----------------------------#
 
-def get_layer_node_names():
-    '''Returns a list of all layer node names.'''
-    return LAYER_NODE_NAMES
-
 def get_layer_node_name(node_name, layer_stack_index):
     return node_name + "_" + str(layer_stack_index)
 
@@ -364,7 +360,6 @@ def update_layer_node_indicies(material_channel_name, context):
     changed_layer_index = -1
 
     layers = context.scene.matlay_layers
-    layer_node_names = get_layer_node_names()
 
     node_added = False
     node_deleted = False
@@ -401,7 +396,7 @@ def update_layer_node_indicies(material_channel_name, context):
             layers[index].cached_frame_name = frame.name
 
             # Re-index the layer nodes.
-            for node_name in layer_node_names:
+            for node_name in LAYER_NODE_NAMES:
                 node = get_layer_node(node_name, material_channel_name, index - 1, context)
                 rename_layer_node(node, node_name, index)
 
@@ -433,7 +428,7 @@ def update_layer_node_indicies(material_channel_name, context):
         frame.label = frame.name
         layers[changed_layer_index].cached_frame_name = frame.name
         
-        for node_name in layer_node_names:
+        for node_name in LAYER_NODE_NAMES:
             temp_node_name = get_layer_node_name(node_name, changed_layer_index) + "~"
             node = material_channel_node.node_tree.nodes.get(temp_node_name)
             rename_layer_node(node, node_name, changed_layer_index)
@@ -452,7 +447,7 @@ def update_layer_node_indicies(material_channel_name, context):
             frame.label = frame.name
             layers[changed_layer_index].cached_frame_name = frame.name
 
-            # Re-index layer nodes.
+            # Re-index all material layer nodes.
             for node_name in layer_node_names:
                 node = get_layer_node(node_name, material_channel_name, index, context)
                 rename_layer_node(node, node_name, index - 1)
