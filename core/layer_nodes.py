@@ -11,7 +11,7 @@ NODE_WIDTH = 300
 NODE_SPACING = 50
 
 # Set of node names.
-LAYER_NODE_NAMES = ("TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER", "DECALMASK", "DECALMAPPING", "DECALMASKADJUSTMENT", "DECALMASKMIX")
+LAYER_NODE_NAMES = ("TEXTURE", "OPACITY", "COORD", "MAPPING", "DECALMASK", "DECALMAPPING", "DECALMASKMIX", "DECALMASKADJUSTMENT", "MIXLAYER")
 
 def organize_material_channel_nodes(context):
     '''Organizes all material channel group nodes.'''
