@@ -79,7 +79,7 @@ def organize_all_layer_nodes():
             # Add space between layers.
             header_position[0] -= NODE_SPACING
 
-def relink_layers():
+def relink_material_layers():
     '''Re-links the last node in every material layer to the next layer if one exists.'''
     layers = bpy.context.scene.matlay_layers
 

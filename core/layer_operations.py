@@ -175,8 +175,8 @@ def add_material_layer(type, context):
     # Re-index, organize and relink nodes.
     layer_nodes.reindex_material_layer_nodes()
     layer_nodes.organize_all_layer_nodes()
-    layer_nodes.relink_layers()
     layer_nodes.relink_material_nodes(new_layer_index)
+    layer_nodes.relink_material_layers()
 
     # Adjust layer properties based on provided type.
     if type == 'PAINT':
@@ -203,6 +203,8 @@ def add_material_layer(type, context):
         new_layer.channel_node_types.color_node_type = 'TEXTURE'
 
         context.scene.matlay_layer_stack.auto_update_layer_properties = True
+
+        # Add a new layer image for the paint layer.
         bpy.ops.matlay.add_layer_image(material_channel_name='COLOR')
 
     # Set a valid material shading mode and reset ui tabs.
@@ -316,8 +318,8 @@ def add_decal_layer(context):
     # Re-index, organize and relink layer nodes.
     layer_nodes.reindex_material_layer_nodes()
     layer_nodes.organize_all_layer_nodes()
-    layer_nodes.relink_layers()
     layer_nodes.relink_material_nodes(new_layer_index)
+    layer_nodes.relink_material_layers()
 
     # Adjust layer properties.
     context.scene.matlay_layer_stack.auto_update_layer_properties = False
@@ -556,7 +558,7 @@ class MATLAY_OT_move_material_layer(Operator):
         # 6. Update the layer stack (organize, re-link).
         layer_nodes.reindex_material_layer_nodes()
         layer_nodes.organize_all_layer_nodes()
-        layer_nodes.relink_layers()
+        layer_nodes.relink_material_layers()
 
         # Set a valid shading mode so users can see their change.
         matlay_utils.set_valid_material_shading_mode(context)
@@ -612,7 +614,7 @@ class MATLAY_OT_delete_layer(Operator):
         # Update the layer nodes.
         layer_nodes.reindex_material_layer_nodes()
         layer_nodes.organize_all_layer_nodes()
-        layer_nodes.relink_layers()
+        layer_nodes.relink_material_layers()
 
         matlay_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
@@ -662,7 +664,7 @@ class MATLAY_OT_duplicate_layer(Operator):
         layer_nodes.reindex_material_layer_nodes()
         layer_nodes.organize_all_layer_nodes()
         layer_nodes.relink_material_nodes(new_material_layer_index)
-        layer_nodes.relink_layers()
+        layer_nodes.relink_material_layers()
 
         # Read the properties of the duplicated nodes by refreshing the layer nodes.
         bpy.ops.matlay.read_layer_nodes()
