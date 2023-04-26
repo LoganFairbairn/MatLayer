@@ -610,35 +610,72 @@ class MATLAY_OT_delete_layer(Operator):
         matlay_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
+def duplicate_node(material_channel_node, original_node, new_material_layer_index):
+    '''Duplicates the provided node.'''
+    # Duplicate the node.
+    duplicated_node = material_channel_node.node_tree.nodes.new(original_node.bl_idname)
+
+    # Duplicate the node name and label, but add a tilda at the end of the name to signify the nodes are new and avoid naming conflicts.
+    node_info = original_node.name.split('_')
+    duplicated_node.name = layer_nodes.format_material_node_name(node_info[0], new_material_layer_index, True)
+    duplicated_node.label = duplicated_node.name
+
+    # Duplicate input values.
+    for i in range(0, len(original_node.inputs)):
+        duplicated_node.inputs[i].default_value = original_node.inputs[i].default_value
+
+    # Duplicate output values.
+    for i in range(0, len(original_node.outputs)):
+        duplicated_node.outputs[i].default_value = original_node.outputs[i].default_value
+
+    return duplicated_node
+
 class MATLAY_OT_duplicate_layer(Operator):
     """Duplicates the selected layer."""
     bl_idname = "matlay.duplicate_layer"
     bl_label = ""
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Operator not yet implemented"
-    #bl_description = "Duplicates the selected layer"
+    bl_description = "Duplicates the selected layer"
 
     @ classmethod
     def poll(cls, context):
-        #return context.scene.matlay_layers
-        return None
+        return context.scene.matlay_layers
 
     def execute(self, context):
         matlay_utils.set_valid_mode()
 
         layers = context.scene.matlay_layers
-        selected_layer_index = context.scene.matlay_layer_stack.layer_index
-        original_layer_index = selected_layer_index
+        original_layer_index = context.scene.matlay_layer_stack.layer_index
 
-        # Duplicate layer information into a new layer.
+        # Add a new layer slot.
+        original_layer_type = layers[original_layer_index].type
+        add_layer_slot(context, original_layer_type)
+        new_material_layer_index = context.scene.matlay_layer_stack.layer_index
 
-        # TODO: Create general nodes for the duplicated layer.
+        # Copy the name of the previous layer.
+        layers[new_material_layer_index].name = layers[original_layer_index].name
+        
+        # Duplicate all nodes in the layer.
+        new_nodes = []
+        for material_channel_name in material_channels.get_material_channel_list():
+            material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
+            original_nodes = layer_nodes.get_all_nodes_in_layer(material_channel_name, original_layer_index, context)
+            for node in original_nodes:
+                new_nodes.append(duplicate_node(material_channel_node, node, new_material_layer_index))
 
-        # TODO: Add texture node for the duplicated layer based on the layer being copied.
+            # Create a new layer frame for the new nodes.
+            new_frame = material_channel_node.node_tree.nodes.new('NodeFrame')
+            new_frame.name = layer_nodes.get_layer_frame_name(new_material_layer_index) + '~'
+            new_frame.label = new_frame.name
+            layers[new_material_layer_index].cached_frame_name = layers[new_material_layer_index].name
+            for node in new_nodes:
+                node.parent = new_frame
 
-        # TODO: Copy all the settings from the original layer.
+        # Re-index and re-organize layer nodes.
+        layer_nodes.update_layer_nodes(context)
 
-        # TODO: Update layer nodes indicies.
+        # Refresh layer stack.
+        bpy.ops.matlay.refresh_layer_nodes()
 
         matlay_utils.set_valid_material_shading_mode(context)
 
@@ -986,7 +1023,6 @@ class MATLAY_OT_refresh_layer_nodes(Operator):
         layer_masks.refresh_mask_filter_stack(context)
         
         # Organize / relink nodes.
-        layer_nodes.organize_all_matlay_materials(context)
         layer_nodes.update_layer_nodes(context)
 
         context.scene.matlay_layer_stack.auto_update_layer_properties = True
