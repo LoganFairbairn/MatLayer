@@ -316,12 +316,14 @@ def add_decal_layer(context):
                 n.parent = frame
         
     # Re-index, organize and relink layer nodes.
+    new_layer = context.scene.matlay_layers[context.scene.matlay_layer_stack.layer_index]
+    new_layer.type = 'DECAL'
     layer_nodes.reindex_material_layer_nodes()
     layer_nodes.organize_all_layer_nodes()
     layer_nodes.relink_material_nodes(new_layer_index)
     layer_nodes.relink_material_layers()
 
-    # Adjust layer properties.
+    # Adjust new layer properties.
     context.scene.matlay_layer_stack.auto_update_layer_properties = False
     layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE", context)
     layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE_COLOR", context)
@@ -331,7 +333,6 @@ def add_decal_layer(context):
     layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "EMISSION", context)
     layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "NORMAL", context)
     layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "HEIGHT", context)
-    new_layer = context.scene.matlay_layers[context.scene.matlay_layer_stack.layer_index]
     new_layer.material_channel_toggles.subsurface_channel_toggle = False
     new_layer.material_channel_toggles.subsurface_color_channel_toggle = False
     new_layer.material_channel_toggles.metallic_channel_toggle = False
@@ -341,7 +342,6 @@ def add_decal_layer(context):
     new_layer.material_channel_toggles.normal_channel_toggle = False
     new_layer.material_channel_toggles.height_channel_toggle = False
     new_layer.channel_node_types.color_node_type = 'TEXTURE'
-    new_layer.type = 'DECAL'
     context.scene.matlay_layer_stack.auto_update_layer_properties = True
 
     # Re-select the decal object so users can adjust it.
@@ -370,6 +370,13 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
     # Duplicate output values.
     for i in range(0, len(original_node.outputs)):
         duplicated_node.outputs[i].default_value = original_node.outputs[i].default_value
+
+    # Duplicate values specific to node types.
+    match original_node.bl_static_type:
+        case 'TEX_IMAGE':
+            if original_node.image != None:
+                duplicated_node.image = original_node.image
+                duplicated_node.extension = original_node.extension
 
     return duplicated_node
 
@@ -660,6 +667,9 @@ class MATLAY_OT_duplicate_layer(Operator):
             for node in new_nodes:
                 node.parent = new_frame
 
+        # Copy the node's type.
+        layers[new_material_layer_index].type = layers[original_layer_index].type
+
         # Re-index and re-organize layer nodes.
         layer_nodes.reindex_material_layer_nodes()
         layer_nodes.organize_all_layer_nodes()
@@ -668,6 +678,19 @@ class MATLAY_OT_duplicate_layer(Operator):
 
         # Read the properties of the duplicated nodes by refreshing the layer nodes.
         bpy.ops.matlay.read_layer_nodes()
+
+        # If the original layer was a decal layer, create a new decal object (empty) and copy the transforms of the original.
+        if layers[original_layer_index].type == 'DECAL':
+            new_coord_node = layer_nodes.get_layer_node('COORD', 'COLOR', new_material_layer_index, context)
+            if new_coord_node:
+                bpy.ops.object.select_all(action='DESELECT')
+                bpy.ops.object.empty_add(type='CUBE', align='WORLD', location=(0, 0, 0), scale=(1, 1, 0.2))
+                decal_object = bpy.context.active_object
+                decal_object.scale = (1.0, 1.0, 0.2)
+                bpy.context.scene.matlay_layers[new_material_layer_index].decal_object = bpy.context.active_object
+                new_coord_node.object = decal_object
+
+        # TODO: Toggle material channels off that are off in the original material layer.
 
         matlay_utils.set_valid_material_shading_mode(context)
 
