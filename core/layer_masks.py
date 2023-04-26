@@ -668,7 +668,6 @@ def add_mask_slot(context):
     masks.add()
     masks[len(masks) - 1].name = "MASK"
 
-    mask_stack.auto_update_mask_properties = False
     if selected_layer_mask_index < 0:
         move_index = len(masks) - 1
         move_to_index = 0
@@ -682,7 +681,6 @@ def add_mask_slot(context):
         masks.move(move_index, move_to_index)
         mask_stack.selected_mask_index = move_to_index
         selected_layer_mask_index = max(0, min(selected_layer_mask_index + 1, len(masks) - 1))
-    mask_stack.auto_update_mask_properties = True
 
 def add_default_mask_nodes(mask_type, context):
     '''Adds default mask nodes to all material channels.'''
@@ -746,6 +744,7 @@ def add_default_mask_nodes(mask_type, context):
 
 def add_mask(mask_type, context):
     '''Adds a mask of the specified type to the selected material layer.'''
+    context.scene.matlay_mask_stack.auto_update_mask_properties = False
     masks = context.scene.matlay_masks
 
     # Stop users from adding too many masks.
@@ -757,11 +756,7 @@ def add_mask(mask_type, context):
     add_default_mask_nodes(mask_type, context)
     update_mask_indicies(context)
     relink_mask_nodes(context)
-
-    # TODO: Should only need to re-organize nodes here, instead of re-index & re-link.
-    layer_nodes.update_layer_nodes(context)
-        
-    # Refresh the mask filter stack.
+    layer_nodes.organize_all_layer_nodes()
     refresh_mask_filter_stack(context)
 
     # Create a black or white mask image for the new mask.
@@ -774,6 +769,8 @@ def add_mask(mask_type, context):
 
     # Select the mask section so users can quickly edit the new mask.
     context.scene.matlay_mask_stack.mask_property_tab = 'MASK'
+
+    context.scene.matlay_mask_stack.auto_update_mask_properties = True
 
 def move_mask(direction, context):
     '''Moves the selected layer mask up or down on the layer stack.'''

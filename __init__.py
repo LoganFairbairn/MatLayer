@@ -164,7 +164,7 @@ classes = (
     MATLAY_OT_duplicate_layer,
     MATLAY_OT_move_material_layer,
     MATLAY_OT_import_texture,
-    MATLAY_OT_refresh_layer_nodes,
+    MATLAY_OT_read_layer_nodes,
     MATLAY_OT_add_layer_image,
     MATLAY_OT_delete_layer_image,
     MATLAY_OT_edit_uvs_externally,
@@ -189,7 +189,7 @@ classes = (
 # Refreshes the layer stack when a different object is selected.
 def obj_selected_callback():
     '''Triggers a layer stack refresh when the selected object changes.'''
-    bpy.ops.matlay.refresh_layer_nodes(auto_called=True)
+    bpy.ops.matlay.read_layer_nodes(auto_called=True)
 
 @persistent
 def load_handler(dummy):

@@ -66,7 +66,7 @@ def draw_material_selector(column, context):
     row = column.row(align=True)
     if active_object:
         row.template_ID(active_object, "active_material", new="matlay.add_layer", live_icon=True)
-        row.operator("matlay.refresh_layer_nodes", text="", icon='FILE_REFRESH')
+        row.operator("matlay.read_layer_nodes", text="", icon='FILE_REFRESH')
     row.scale_y = 1.5
 
 def draw_layer_operations(column):

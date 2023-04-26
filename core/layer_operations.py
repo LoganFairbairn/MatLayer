@@ -369,6 +369,26 @@ def add_decal_layer(context):
     context.scene.matlay_layer_stack.layer_property_tab = 'MATERIAL'
     context.scene.matlay_layer_stack.material_property_tab = 'MATERIAL'
 
+def duplicate_node(material_channel_node, original_node, new_material_layer_index):
+    '''Duplicates the provided node.'''
+    # Duplicate the node.
+    duplicated_node = material_channel_node.node_tree.nodes.new(original_node.bl_idname)
+
+    # Duplicate the node name and label, but add a tilda at the end of the name to signify the nodes are new and avoid naming conflicts.
+    node_info = original_node.name.split('_')
+    duplicated_node.name = layer_nodes.format_material_node_name(node_info[0], new_material_layer_index, True)
+    duplicated_node.label = duplicated_node.name
+
+    # Duplicate input values.
+    for i in range(0, len(original_node.inputs)):
+        duplicated_node.inputs[i].default_value = original_node.inputs[i].default_value
+
+    # Duplicate output values.
+    for i in range(0, len(original_node.outputs)):
+        duplicated_node.outputs[i].default_value = original_node.outputs[i].default_value
+
+    return duplicated_node
+
 class MATLAY_OT_add_decal_layer(Operator):
     '''Opens a window from which you can choose an image to use as a decal (similar to a sticker) and adds it to the scene.'''
     bl_idname = "matlay.add_decal_layer"
@@ -610,30 +630,10 @@ class MATLAY_OT_delete_layer(Operator):
         matlay_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
-def duplicate_node(material_channel_node, original_node, new_material_layer_index):
-    '''Duplicates the provided node.'''
-    # Duplicate the node.
-    duplicated_node = material_channel_node.node_tree.nodes.new(original_node.bl_idname)
-
-    # Duplicate the node name and label, but add a tilda at the end of the name to signify the nodes are new and avoid naming conflicts.
-    node_info = original_node.name.split('_')
-    duplicated_node.name = layer_nodes.format_material_node_name(node_info[0], new_material_layer_index, True)
-    duplicated_node.label = duplicated_node.name
-
-    # Duplicate input values.
-    for i in range(0, len(original_node.inputs)):
-        duplicated_node.inputs[i].default_value = original_node.inputs[i].default_value
-
-    # Duplicate output values.
-    for i in range(0, len(original_node.outputs)):
-        duplicated_node.outputs[i].default_value = original_node.outputs[i].default_value
-
-    return duplicated_node
-
 class MATLAY_OT_duplicate_layer(Operator):
     """Duplicates the selected layer."""
     bl_idname = "matlay.duplicate_layer"
-    bl_label = ""
+    bl_label = "Duplicate Layer"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Duplicates the selected layer"
 
@@ -672,10 +672,11 @@ class MATLAY_OT_duplicate_layer(Operator):
                 node.parent = new_frame
 
         # Re-index and re-organize layer nodes.
-        layer_nodes.update_layer_nodes(context)
+        layer_nodes.reindex_material_layer_nodes()
+        layer_nodes.relink_all_layer_nodes()
 
-        # Refresh layer stack.
-        bpy.ops.matlay.refresh_layer_nodes()
+        # Read the properties of the duplicated nodes by refreshing the layer nodes.
+        bpy.ops.matlay.read_layer_nodes()
 
         matlay_utils.set_valid_material_shading_mode(context)
 
@@ -966,10 +967,10 @@ def read_active_layer_material_channels(material_channel_list, total_number_of_l
 
             setattr(layers[i].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", material_channel_active)
 
-class MATLAY_OT_refresh_layer_nodes(Operator):
-    bl_idname = "matlay.refresh_layer_nodes"
-    bl_label = "Refresh Layer Nodes"
-    bl_description = "Refreshes the material nodes by reading the material nodes in the active material updating the properties stored within the user interface"
+class MATLAY_OT_read_layer_nodes(Operator):
+    bl_idname = "matlay.read_layer_nodes"
+    bl_label = "Read Layer Nodes"
+    bl_description = "Updates the user interface to match the active material's node tree. This is called automatically when selecting a new object"
 
     auto_called: BoolProperty(name="Auto Called", description="Should be true if refreshing layers was automatically called (i.e selecting a different object automatically refreshes the layer stack). This is used to avoid printing errors.", default=False)
 

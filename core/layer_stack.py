@@ -7,6 +7,7 @@ from ..core import layer_nodes
 from ..core import layer_masks
 from . import material_filters
 
+# List of all material channel names available in this add-on.
 MATERIAL_CHANNEL_NAMES = ("COLOR", "METALLIC", "ROUGHNESS", "NORMAL", "HEIGHT", "EMISSION", "SCATTERING")
 
 def update_selected_material_channel(self, context):
