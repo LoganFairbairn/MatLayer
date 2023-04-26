@@ -24,7 +24,7 @@ from bpy.app.handlers import persistent
 from .core.texture_set_settings import MATLAY_texture_set_settings, GlobalMaterialChannelToggles
 
 # Import layer related modules.
-from .core.layers import *
+from .core.material_layers import *
 from .core.layer_stack import *
 
 # Import material channel modules.

@@ -6,7 +6,7 @@ from bpy.types import Operator, PropertyGroup, UIList
 from bpy.props import BoolProperty, IntProperty, FloatProperty, StringProperty, EnumProperty, PointerProperty
 
 # Imports from this add-on.
-from ..core.layers import PROJECTION_MODES, TEXTURE_EXTENSION_MODES, TEXTURE_INTERPOLATION_MODES
+from .material_layers import PROJECTION_MODES, TEXTURE_EXTENSION_MODES, TEXTURE_INTERPOLATION_MODES
 from . import layer_nodes
 from . import material_channels
 from . import texture_set_settings
