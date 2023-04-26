@@ -60,7 +60,6 @@ def bake_and_export_material_channel(material_channel_name, context):
                                      tiled=False)
     export_image = bpy.data.images[export_image_name]
 
-
     # Create a folder for the exported texture files.
     matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
     if os.path.exists(matlay_image_path) == False:
@@ -78,9 +77,6 @@ def bake_and_export_material_channel(material_channel_name, context):
     image_node.image = export_image
     image_node.select = True
     material_nodes.active = image_node
-
-    
-    context.scene.tool_settings.image_paint.canvas = export_image
 
     # Cache the render engine so we can reset it after baking.
     original_render_engine = bpy.context.scene.render.engine
@@ -109,7 +105,6 @@ def bake_and_export_material_channel(material_channel_name, context):
     # De-isolate the material channel.
     material_channels.isolate_material_channel(False, material_channel_name, context)
     
-
 class MATLAY_OT_export(Operator):
     bl_idname = "matlay.export"
     bl_label = "Batch Export"
