@@ -165,6 +165,7 @@ def add_material_layer(type, context):
         mapping_node.label = mapping_node.name
         new_nodes.append(mapping_node)
 
+        # TODO: Don't link here, let the linking functions take care of that.
         # 4. Link newly created nodes.
         link = material_channel_node.node_tree.links.new
         link(coord_node.outputs[2], mapping_node.inputs[0])
@@ -181,8 +182,11 @@ def add_material_layer(type, context):
         for n in new_nodes:
             n.parent = frame
 
-    # 6. Re-index and organize layer nodes.
-    layer_nodes.update_layer_nodes(context)
+    # 6. Re-index, organize and relink nodes.
+    layer_nodes.reindex_material_layer_nodes()
+    layer_nodes.organize_all_layer_nodes()
+    layer_nodes.relink_layers()
+    layer_nodes.relink_material_nodes(new_layer_index)
 
     # 7. Adjust layer properties based on provided type.
     if type == 'PAINT':

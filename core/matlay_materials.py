@@ -1,6 +1,7 @@
 # This file contains functions for creating and verifying materials made with this add-on.
 
 import bpy
+from ..core import layer_nodes
 from ..utilities import info_messages
 
 # Returns true if the material on the active object is compatible with this add-on.
@@ -30,7 +31,7 @@ def create_matlay_material(context, active_object):
     layers = context.scene.matlay_layers
     layer_stack = context.scene.matlay_layer_stack
 
-    # Clear all layers.
+    # Clear all layers and reset the layer index.
     layers.clear()
     layer_stack.layer_index = -1
     

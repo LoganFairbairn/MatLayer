@@ -260,6 +260,9 @@ def create_channel_group_nodes(context):
     add_material_channel(context, height_group_node_name, layer_stack.node_default_width, "HEIGHT")
     add_material_channel(context, emission_group_node_name, layer_stack.node_default_width, "EMISSION")
 
+    # Organize the newly created group nodes.
+    layer_nodes.organize_material_channel_nodes(context)
+
 def create_empty_group_node(context):
     '''Creates an empty group node as a placeholder for custom group nodes.'''
     empty_group_node_name = "MATLAY_EMPTY"
