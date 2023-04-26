@@ -25,7 +25,6 @@ from .core.texture_set_settings import MATLAY_texture_set_settings, GlobalMateri
 
 # Import layer related modules.
 from .core.material_layers import *
-from .core.layer_stack import *
 
 # Import material channel modules.
 from .core.material_channels import MATLAY_OT_toggle_material_channel_preview

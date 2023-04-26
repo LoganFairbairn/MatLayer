@@ -3,12 +3,12 @@
 import bpy
 from ..core import matlay_materials
 from ..core import material_channels
+from ..core import material_layers
 from ..core import layer_nodes
 from ..core import layer_masks
-from ..core import layer_stack as ls
 from ..core import material_filters as mf
 from ..core import texture_set_settings as tss
-from .import ui_section_tabs
+from ..ui import ui_section_tabs
 
 SCALE_Y = 1.4
 
@@ -27,7 +27,7 @@ def draw_layers_section_ui(self, context):
         column1 = split.column()
         if context.active_object.active_material:
             if matlay_materials.verify_material(context):
-                if ls.verify_layer_stack_index(context.scene.matlay_layer_stack.layer_index, context):
+                if material_layers.verify_layer_stack_index(context.scene.matlay_layer_stack.layer_index, context):
                     draw_layer_properties(column1, context, layout)
         else:
             column1.label(text="No active material, add a layer to begin editing.")
@@ -698,7 +698,7 @@ def draw_layer_properties(column, context, layout):
             subrow.separator()
             
             selected_layer_index = context.scene.matlay_layer_stack.layer_index
-            if ls.verify_layer_stack_index(selected_layer_index, context):
+            if material_layers.verify_layer_stack_index(selected_layer_index, context):
                 material_property_tab = context.scene.matlay_layer_stack.material_property_tab
                 match material_property_tab:
                     case 'MATERIAL':

@@ -10,19 +10,6 @@ from ..utilities import info_messages
 # Material channels are listed in the order of relative sockets in the Principled BSDF node so they will organize properly.
 MATERIAL_CHANNEL_NAMES = ("COLOR", "SUBSURFACE", "SUBSURFACE_COLOR", "METALLIC", "SPECULAR", "ROUGHNESS", "EMISSION", "NORMAL", "HEIGHT")
 
-# Enum for material channels (Used in ).
-MATERIAL_CHANNELS = [
-    ("COLOR", "Color", ""), 
-    ("SUBSURFACE", "Subsurface", ""),
-    ("SUBSURFACE_COLOR", "Subsurface Color", ""),
-    ("METALLIC", "Metallic", ""),
-    ("SPECULAR", "Specular", ""),
-    ("ROUGHNESS", "Roughness", ""),
-    ("EMISSION", "Emission", ""),
-    ("NORMAL", "Normal", ""),
-    ("HEIGHT", "Height", "")
-    ]
-
 def get_material_channel_abbreviation(material_channel_name):
     '''Returns an abbreviation for the material channel name. This can be used to compact the material channel's name when displayed in the user interface.'''
     match material_channel_name:
