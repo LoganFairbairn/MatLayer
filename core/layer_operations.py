@@ -70,19 +70,19 @@ def add_layer_slot(context, layer_type='MATERIAL'):
 def add_material_layer(type, context):
     '''Adds a material layer setup based on the provided type. Valid types include: 'MATERIAL', 'PAINT' '''
 
-    # 1. Validate and prepare the material for the selected object.
+    # Validate and prepare the material for the selected object.
     matlay_utils.set_valid_mode()
     if not matlay_materials.prepare_material(context):
         return
     material_channels.create_channel_group_nodes(context)
     material_channels.create_empty_group_node(context)
 
-    # 2. Add a new layer slot for the new layer.
+    # Add a new layer slot for the new layer.
     add_layer_slot(context)
     new_layer_index = context.scene.matlay_layer_stack.layer_index
     layers = context.scene.matlay_layers
 
-    # 3. Add new nodes with default values based on the provided type.
+    # Add new nodes with default values based on the provided type.
     material_channel_list = material_channels.get_material_channel_list()
     for i in range(0, len(material_channel_list)):
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_list[i])
@@ -165,30 +165,20 @@ def add_material_layer(type, context):
         mapping_node.label = mapping_node.name
         new_nodes.append(mapping_node)
 
-        # TODO: Don't link here, let the linking functions take care of that.
-        # 4. Link newly created nodes.
-        link = material_channel_node.node_tree.links.new
-        link(coord_node.outputs[2], mapping_node.inputs[0])
-        link(opacity_node.outputs[0], mix_layer_node.inputs[0])
-        link(texture_node.outputs[0], mix_layer_node.inputs[2])
-        if texture_node.bl_static_type == 'TEX_IMAGE':
-            link(mapping_node.outputs[0], texture_node.inputs[0])
-            link(texture_node.outputs[1], opacity_node.inputs[0])
-
-        # 5. Frame nodes.
+        # Frame nodes.
         frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
         frame.name = layer_nodes.get_layer_frame_name(new_layer_index, True)
         frame.label = frame.name
         for n in new_nodes:
             n.parent = frame
 
-    # 6. Re-index, organize and relink nodes.
+    # Re-index, organize and relink nodes.
     layer_nodes.reindex_material_layer_nodes()
     layer_nodes.organize_all_layer_nodes()
     layer_nodes.relink_layers()
     layer_nodes.relink_material_nodes(new_layer_index)
 
-    # 7. Adjust layer properties based on provided type.
+    # Adjust layer properties based on provided type.
     if type == 'PAINT':
         context.scene.matlay_layer_stack.auto_update_layer_properties = False
         layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE", context)
@@ -215,7 +205,7 @@ def add_material_layer(type, context):
         context.scene.matlay_layer_stack.auto_update_layer_properties = True
         bpy.ops.matlay.add_layer_image(material_channel_name='COLOR')
 
-    # 8. Set a valid material shading mode and reset ui tabs.
+    # Set a valid material shading mode and reset ui tabs.
     matlay_utils.set_valid_material_shading_mode(context)
     context.scene.matlay_layer_stack.layer_property_tab = 'MATERIAL'
     context.scene.matlay_layer_stack.material_property_tab = 'MATERIAL'
@@ -316,21 +306,6 @@ def add_decal_layer(context):
             decal_mask_mix_node.operation = 'MULTIPLY'
             new_nodes.append(decal_mask_mix_node)
 
-            # Link newly created nodes.
-            link = material_channel_node.node_tree.links.new
-
-            link(coord_node.outputs[3], mapping_node.inputs[0])
-            link(mapping_node.outputs[0], texture_node.inputs[0])
-            link(texture_node.outputs[0], mix_layer_node.inputs[2])
-            link(texture_node.outputs[1], decal_mask_mix_node.inputs[1])
-
-            link(coord_node.outputs[3], decal_mapping_node.inputs[0])
-            link(decal_mapping_node.outputs[0], decal_mask_node.inputs[0])
-            link(decal_mask_node.outputs[0], decal_mask_adjustment_node.inputs[0])
-            link(decal_mask_adjustment_node.outputs[0], decal_mask_mix_node.inputs[0])
-            link(decal_mask_mix_node.outputs[0], opacity_node.inputs[0])
-            link(opacity_node.outputs[0], mix_layer_node.inputs[0])
-
             # Frame layer nodes.
             frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
             frame.name = layer_nodes.get_layer_frame_name(new_layer_index, True)
@@ -338,8 +313,11 @@ def add_decal_layer(context):
             for n in new_nodes:
                 n.parent = frame
         
-    # Re-index and organize layer nodes.
-    layer_nodes.update_layer_nodes(context)
+    # Re-index, organize and relink layer nodes.
+    layer_nodes.reindex_material_layer_nodes()
+    layer_nodes.organize_all_layer_nodes()
+    layer_nodes.relink_layers()
+    layer_nodes.relink_material_nodes(new_layer_index)
 
     # Adjust layer properties.
     context.scene.matlay_layer_stack.auto_update_layer_properties = False
@@ -576,8 +554,11 @@ class MATLAY_OT_move_material_layer(Operator):
         context.scene.matlay_layer_stack.layer_index = index_to_move_to
 
         # 6. Update the layer stack (organize, re-link).
-        layer_nodes.update_layer_nodes(context)
+        layer_nodes.reindex_material_layer_nodes()
+        layer_nodes.organize_all_layer_nodes()
+        layer_nodes.relink_layers()
 
+        # Set a valid shading mode so users can see their change.
         matlay_utils.set_valid_material_shading_mode(context)
 
         return{'FINISHED'}
@@ -629,7 +610,9 @@ class MATLAY_OT_delete_layer(Operator):
         context.scene.matlay_layer_stack.layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
 
         # Update the layer nodes.
-        layer_nodes.update_layer_nodes(context)
+        layer_nodes.reindex_material_layer_nodes()
+        layer_nodes.organize_all_layer_nodes()
+        layer_nodes.relink_layers()
 
         matlay_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
@@ -677,7 +660,9 @@ class MATLAY_OT_duplicate_layer(Operator):
 
         # Re-index and re-organize layer nodes.
         layer_nodes.reindex_material_layer_nodes()
-        layer_nodes.relink_all_layer_nodes()
+        layer_nodes.organize_all_layer_nodes()
+        layer_nodes.relink_material_nodes(new_material_layer_index)
+        layer_nodes.relink_layers()
 
         # Read the properties of the duplicated nodes by refreshing the layer nodes.
         bpy.ops.matlay.read_layer_nodes()
@@ -817,11 +802,12 @@ class MATLAY_OT_reload_image(Operator):
         # Temporarily switch to the correct context to perform the image reload.
         previous_context = bpy.context.area.ui_type
         bpy.context.area.ui_type = 'IMAGE_EDITOR'
+        # TODO: Set the active image to the one that needs to be reloaded, relative to the position of the reload button in the user interface.
         bpy.ops.image.reload()
         bpy.context.area.ui_type = previous_context
         return{'FINISHED'}
 
-#----------------------------- READING / REFRESHING LAYER PROPERTIES -----------------------------#
+#----------------------------- READING / REFRESHING USER INTERFACE PROPERTIES -----------------------------#
 
 def read_layer_name_and_id(layers, context):
     '''Reads the name and id of layers from the material channel.'''
@@ -1025,10 +1011,10 @@ class MATLAY_OT_read_layer_nodes(Operator):
 
         # Read masks.
         layer_masks.read_masks(context)
+
+        # Referesh and organize nodes.
         layer_masks.refresh_mask_filter_stack(context)
-        
-        # Organize / relink nodes.
-        layer_nodes.update_layer_nodes(context)
+        layer_nodes.organize_all_layer_nodes()
 
         context.scene.matlay_layer_stack.auto_update_layer_properties = True
 

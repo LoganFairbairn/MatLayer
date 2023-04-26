@@ -120,11 +120,11 @@ def update_mask_node_type(self, context):
         new_mask_node.name = format_mask_node_name('MaskTexture', selected_material_index, selected_mask_index)
         new_mask_node.label = new_mask_node.name
 
-        # Re-link the mask nodes.
+        # Relink the mask nodes.
         relink_mask_nodes(context)
 
-        # Re-organize nodes.
-        layer_nodes.update_layer_nodes(context)
+        # Organize nodes.
+        layer_nodes.organize_all_layer_nodes()
 
 def update_mask_image(self, context):
     '''Updates the mask image in all material channels when the mask image is manually changed.'''
@@ -829,7 +829,7 @@ def move_mask(direction, context):
     # 6. Re-link and organize mask nodes.
     update_mask_indicies(context)
     relink_mask_nodes(context)
-    layer_nodes.update_layer_nodes(context)     # TODO: Swap this out for a function that only organizes all nodes, instead of re-linking and re-indexing nodes too.
+    layer_nodes.organize_all_layer_nodes()
 
     mask_stack.auto_update_mask_properties = True
 
@@ -1087,27 +1087,27 @@ class MATLAY_OT_delete_layer_mask(Operator):
 
         matlay_utils.set_valid_mode()
 
-        # 1. Delete the mask nodes (in all material channels).
+        # Delete the mask nodes (in all material channels).
         for material_channel_name in material_channels.get_material_channel_list():
             material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
             mask_nodes = get_mask_nodes(material_channel_name, selected_layer_index, selected_mask_index)
             for node in mask_nodes:
                 material_channel_node.node_tree.nodes.remove(node)
 
-        # 2. Re-index and re-link any remaining layer mask nodes.
+        # Re-index and re-link any remaining layer mask nodes.
         update_mask_indicies(context)
         relink_mask_nodes(context)
 
-        # 3. Remove the mask slot.
+        # Remove the mask slot.
         masks.remove(selected_mask_index)
 
-        # 4. Reset the selected mask index.
+        # Reset the selected mask index.
         context.scene.matlay_mask_stack.selected_mask_index = max(min(selected_mask_index - 1, len(masks) - 1), 0)
 
-        # TODO: Optimization write a function in layer nodes that organizes all layer nodes in all material channels WITHOUT re-linking or re-indexing nodes.
-        # 5. Re-link and re-organize layers.
-        layer_nodes.update_layer_nodes(context)
+        # Organize all nodes.
+        layer_nodes.organize_all_layer_nodes()
 
+        # Set a valid material shading mode so users can see their changes.
         matlay_utils.set_valid_material_shading_mode(context)
 
         return{'FINISHED'}
@@ -1509,9 +1509,7 @@ def add_mask_filter(filter_type, context):
     # Re-index then relink nodes.
     reindex_mask_filters_nodes()
     relink_mask_nodes(context)
-
-    # Re-organize nodes.
-    layer_nodes.update_layer_nodes(context)
+    layer_nodes.organize_all_layer_nodes()
 
 def move_mask_filter(direction, context):
     '''Moves the mask filter up or down on the mask filter stack.'''
@@ -1566,7 +1564,8 @@ def move_mask_filter(direction, context):
     context.scene.matlay_mask_filter_stack.selected_mask_filter_index = index_to_move_to   
 
     # 5. Re-link and organize mask filter nodes.
-    layer_nodes.update_layer_nodes(context)
+    layer_nodes.relink_mask_nodes()
+    layer_nodes.organize_all_layer_nodes()
 
     mask_filter_stack.auto_update_properties = True
 
@@ -1688,7 +1687,7 @@ class MATLAY_OT_delete_mask_filter(Operator):
         context.scene.matlay_mask_filter_stack.selected_mask_filter_index = max(min(selected_mask_filter_index - 1, len(mask_filters) - 1), 0)
 
         # 5. Re-organize nodes.
-        layer_nodes.update_layer_nodes(context)
+        layer_nodes.organize_all_layer_nodes()
 
         matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}

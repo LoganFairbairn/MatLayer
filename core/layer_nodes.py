@@ -13,6 +13,212 @@ NODE_SPACING = 50
 # Set of node names.
 LAYER_NODE_NAMES = ("TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER", "DECALMASK", "DECALMAPPING", "DECALMASKADJUSTMENT", "DECALMASKMIX")
 
+def organize_material_channel_nodes(context):
+    '''Organizes all material channel group nodes.'''
+    material_channel_nodes = material_channels.get_all_material_channel_nodes(context)
+    header_position = [0.0, 0.0]
+    for node in material_channel_nodes:
+        if node:
+            node.hide = True
+            node.location = (-node.width + -NODE_SPACING, header_position[1])
+            header_position[1] -= (node.height + (NODE_SPACING * 0.5))
+
+def organize_all_layer_nodes():
+    '''Organizes all nodes (material nodes, filter nodes, and mask nodes) in all material channels.'''
+    layers = bpy.context.scene.matlay_layers
+
+    for material_channel_name in material_channels.get_material_channel_list():
+        material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
+
+        # Organize the output node.
+        group_output_node = material_channel_node.node_tree.nodes.get('Group Output')
+        if group_output_node:
+            group_output_node.location = (0.0, 0.0)
+
+        # Organize the normal map node.
+        if material_channel_name == 'NORMAL':
+            normal_map_node = material_channel_node.node_tree.nodes.get("Normal Map")
+            normal_map_node.location = (0.0, -100.0)
+
+        # Organize the bump node.
+        if material_channel_name == 'HEIGHT':
+            bump_node = material_channel_node.node_tree.nodes.get("Bump")
+            bump_node.location = (0.0, -100.0)
+
+        # Organizes all other layer nodes.
+        header_position = [0.0, 0.0]
+        for i in range(len(layers), 0, -1):
+            material_layer_index = i - 1
+            header_position[0] -= NODE_WIDTH + NODE_SPACING
+            header_position[1] = 0.0
+
+            # IMPORTANT: The nodes won't move when they are framed, delete the layer's frame and re-add it after organization.
+            frame = get_layer_frame(material_channel_name, material_layer_index, bpy.context)
+            if frame:
+                frame_name = frame.name
+                material_channel_node.node_tree.nodes.remove(frame)
+            else:
+                print("Error: frame doesn't exist.")
+
+            # Create a list of all nodes in the layer and then organize them.
+            node_list = get_all_nodes_in_layer(material_channel_name, material_layer_index, bpy.context)
+            for node in node_list:
+                node.hide = True
+                node.width = NODE_WIDTH
+                node.location = (header_position[0], header_position[1])
+                header_position[1] -= (node.dimensions.y) + NODE_SPACING
+
+            # Re-frame the layer nodes.
+            frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
+            frame.name = frame_name
+            frame.label = frame.name
+            layers[material_layer_index].frame_name = frame.name
+            for node in node_list:
+                node.parent = frame
+
+            # Add space between layers.
+            header_position[0] -= NODE_SPACING
+
+def relink_layers():
+    '''Re-links the last node in every material layer to the next layer if one exists.'''
+    layers = bpy.context.scene.matlay_layers
+
+    for material_channel_name in material_channels.get_material_channel_list():
+        material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
+
+        for i in range(len(layers)):
+            # Disconnect all mix layer nodes.
+            mix_layer_node = get_layer_node("MIXLAYER", material_channel_name, i, bpy.context)
+            if mix_layer_node:
+                output = mix_layer_node.outputs[0]
+                for l in output.links:
+                    if l != 0:
+                        material_channel_node.node_tree.links.remove(l)
+
+            # Disconnect all filter nodes.
+            total_filter_nodes = material_filters.get_filter_nodes_count(i)
+            for x in range(total_filter_nodes - 1):
+                last_material_filter_node = material_filters.get_material_filter_node(material_channel_name, x, total_filter_nodes - 1)
+                if last_material_filter_node:
+                    for l in last_material_filter_node.outputs[0].links:
+                        if l != 0:
+                            material_channel_node.node_tree.links.remove(l)
+
+        # Connect mix layer nodes for every layer.
+        for i in range(0, len(layers)):
+            current_layer_index = i
+            next_layer_index = i + 1
+            current_mix_layer_node = get_layer_node("MIXLAYER", material_channel_name, current_layer_index, bpy.context)
+            next_mix_layer_node = get_layer_node("MIXLAYER", material_channel_name, next_layer_index, bpy.context)
+            texture_node = get_layer_node("TEXTURE", material_channel_name, current_layer_index, bpy.context)
+
+            total_filter_nodes = material_filters.get_filter_nodes_count(i)
+            first_material_filter_node = material_filters.get_material_filter_node(material_channel_name, i, 0)
+
+            # ALWAYS connect the texture output to the first material filter based on it's type (if one exists).
+            if first_material_filter_node:
+                match first_material_filter_node.bl_static_type:
+                    case 'INVERT':
+                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[1])
+                    case 'VALTORGB':
+                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[0])
+                    case 'HUE_SAT':
+                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[4])
+                    case 'CURVE_RGB':
+                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[1])
+                    case 'BRIGHTCONTRAST':
+                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[0])
+
+                # Connect the last filter node to the current mix node.
+                last_material_filter_node = material_filters.get_material_filter_node(material_channel_name, i, total_filter_nodes - 1)
+                if last_material_filter_node:
+                    material_channel_node.node_tree.links.new(last_material_filter_node.outputs[0], current_mix_layer_node.inputs[2])
+
+            # Connect the last layer node to the next material layer if another material layer exists.
+            if next_mix_layer_node:
+                material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
+
+            # If no more material layers exist past this one, link the current mix layer node to the group nodes output / bump / normal node.
+            else:
+                if material_channel_name == "HEIGHT":
+                    bump_node = material_channel_node.node_tree.nodes.get("Bump")
+                    material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], bump_node.inputs[2])
+
+                elif material_channel_name == "NORMAL":
+                    normal_map_node = material_channel_node.node_tree.nodes.get("Normal Map")
+                    material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], normal_map_node.inputs[1])
+
+                else:
+                    group_output_node = material_channel_node.node_tree.nodes.get("Group Output")
+                    material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], group_output_node.inputs[0])
+
+def relink_material_nodes(material_layer_index):
+    '''Relinks all material and filter nodes for the specified material layer index.'''
+    material_layers = bpy.context.scene.matlay_layers
+    layer_type = material_layers[material_layer_index].type
+
+    # TODO: Relink all material nodes.
+    for material_channel_name in material_channels.get_material_channel_list():
+        material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
+        link_nodes = material_channel_node.node_tree.links.new
+
+        # Get all material nodes.
+        texture_node = get_layer_node('TEXTURE', material_channel_name, material_layer_index, bpy.context)
+        opacity_node = get_layer_node('OPACITY', material_channel_name, material_layer_index, bpy.context)
+        coord_node = get_layer_node('COORD', material_channel_name, material_layer_index, bpy.context)
+        mapping_node = get_layer_node('MAPPING', material_channel_name, material_layer_index, bpy.context)
+        mix_layer_node = get_layer_node('MIXLAYER', material_channel_name, material_layer_index, bpy.context)
+        if layer_type == 'DECAL':
+            decal_mask_node = get_layer_node('DECALMASK', material_channel_name, material_layer_index, bpy.context)
+            decal_mapping_node = get_layer_node('DECALMAPPING', material_channel_name, material_layer_index, bpy.context)
+            decal_mask_adjustment_node = get_layer_node('DECALMASKADJUSTMENT', material_channel_name, material_layer_index, bpy.context)
+            decal_mask_mix_node = get_layer_node('DECALMASKMIX', material_channel_name, material_layer_index, bpy.context)
+
+        # Unlink all material nodes.
+        material_layer_nodes = get_all_material_layer_nodes(material_channel_name, material_layer_index, bpy.context)
+        for node in material_layer_nodes:
+            for link in node.outputs[0].links:
+                if link != 0:
+                    material_channel_node.node_tree.links.remove(link)
+
+        # Relink all material nodes.
+        if layer_type == 'MATERIAL':
+            link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
+            link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
+            if texture_node.bl_static_type == 'TEX_IMAGE':
+                link_nodes(mapping_node.outputs[0], texture_node.inputs[0])
+                link_nodes(texture_node.outputs[1], opacity_node.inputs[0])
+
+        elif layer_type == 'DECAL':
+            link_nodes(coord_node.outputs[3], mapping_node.inputs[0])
+            link_nodes(mapping_node.outputs[0], texture_node.inputs[0])
+            link_nodes(texture_node.outputs[0], mix_layer_node.inputs[2])
+            link_nodes(texture_node.outputs[1], decal_mask_mix_node.inputs[1])
+
+            link_nodes(coord_node.outputs[3], decal_mapping_node.inputs[0])
+            link_nodes(decal_mapping_node.outputs[0], decal_mask_node.inputs[0])
+            link_nodes(decal_mask_node.outputs[0], decal_mask_adjustment_node.inputs[0])
+            link_nodes(decal_mask_adjustment_node.outputs[0], decal_mask_mix_node.inputs[0])
+            link_nodes(decal_mask_mix_node.outputs[0], opacity_node.inputs[0])
+            link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
+        
+
+        # TODO: Relink material filter nodes with other material filter nodes.
+
+
+        # TODO: Link the last node in the material layer to the mix layer node.
+        last_layer_node = None
+        link_nodes(texture_node.outputs[0], mix_layer_node.inputs[2])
+
+def mute_layer_material_channel(mute, layer_stack_index, material_channel_name, context):
+    '''Mutes (hides) or unhides all layer nodes for the specified material channel.'''
+    for node_name in LAYER_NODE_NAMES:
+        node = get_layer_node(node_name, material_channel_name, layer_stack_index, context)
+        if node:
+            node.mute = mute
+
+    matlay_utils.set_valid_material_shading_mode(context)
+
 #----------------------------- MATERIAL LAYER NODE FUNCTIONS -----------------------------#
 
 # TODO: Move to material_layers.py
@@ -269,181 +475,3 @@ def get_layer_frame_nodes(context):
     # Organize the layer frames in the array by their layer stack index.
     layer_frame_nodes.sort(key=get_layer_frame_id)
     return layer_frame_nodes
-
-
-#----------------------------- NODE ORGANIZATION -----------------------------#
-
-
-def organize_material_channel_nodes(context):
-    '''Organizes all material channel group nodes.'''
-    material_channel_nodes = material_channels.get_all_material_channel_nodes(context)
-    header_position = [0.0, 0.0]
-    for node in material_channel_nodes:
-        if node:
-            node.hide = True
-            node.location = (-node.width + -NODE_SPACING, header_position[1])
-            header_position[1] -= (node.height + (NODE_SPACING * 0.5))
-
-def organize_all_layer_nodes():
-    '''Organizes all nodes (material nodes, filter nodes, and mask nodes) in all material channels.'''
-    layers = bpy.context.scene.matlay_layers
-
-    for material_channel_name in material_channels.get_material_channel_list():
-        material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
-
-        # Organize the output node.
-        group_output_node = material_channel_node.node_tree.nodes.get('Group Output')
-        if group_output_node:
-            group_output_node.location = (0.0, 0.0)
-
-        # Organize the normal map node.
-        if material_channel_name == 'NORMAL':
-            normal_map_node = material_channel_node.node_tree.nodes.get("Normal Map")
-            normal_map_node.location = (0.0, -100.0)
-
-        # Organize the bump node.
-        if material_channel_name == 'HEIGHT':
-            bump_node = material_channel_node.node_tree.nodes.get("Bump")
-            bump_node.location = (0.0, -100.0)
-
-        # Organizes all other layer nodes.
-        header_position = [0.0, 0.0]
-        for i in range(len(layers), 0, -1):
-            material_layer_index = i - 1
-            header_position[0] -= NODE_WIDTH + NODE_SPACING
-            header_position[1] = 0.0
-
-            # IMPORTANT: The nodes won't move when they are framed, delete the layer's frame and re-add it after organization.
-            frame = get_layer_frame(material_channel_name, material_layer_index, bpy.context)
-            if frame:
-                frame_name = frame.name
-                material_channel_node.node_tree.nodes.remove(frame)
-            else:
-                print("Error: frame doesn't exist.")
-
-            # Create a list of all nodes in the layer and then organize them.
-            node_list = get_all_nodes_in_layer(material_channel_name, material_layer_index, bpy.context)
-            for node in node_list:
-                node.hide = True
-                node.width = NODE_WIDTH
-                node.location = (header_position[0], header_position[1])
-                header_position[1] -= (node.dimensions.y) + NODE_SPACING
-
-            # Re-frame the layer nodes.
-            frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
-            frame.name = frame_name
-            frame.label = frame.name
-            layers[material_layer_index].frame_name = frame.name
-            for node in node_list:
-                node.parent = frame
-
-            # Add space between layers.
-            header_position[0] -= NODE_SPACING
-
-#----------------------------- NODE RELINKING FUNCTIONS -----------------------------#
-
-def relink_layers():
-    '''Re-links the last node in every material layer to the next layer if one exists.'''
-    layers = bpy.context.scene.matlay_layers
-
-    for material_channel_name in material_channels.get_material_channel_list():
-        material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
-
-        for i in range(len(layers)):
-            # Disconnect all mix layer nodes.
-            mix_layer_node = get_layer_node("MIXLAYER", material_channel_name, i, bpy.context)
-            if mix_layer_node:
-                output = mix_layer_node.outputs[0]
-                for l in output.links:
-                    if l != 0:
-                        material_channel_node.node_tree.links.remove(l)
-
-            # Disconnect all filter nodes.
-            total_filter_nodes = material_filters.get_filter_nodes_count(i)
-            for x in range(total_filter_nodes - 1):
-                last_material_filter_node = material_filters.get_material_filter_node(material_channel_name, x, total_filter_nodes - 1)
-                if last_material_filter_node:
-                    for l in last_material_filter_node.outputs[0].links:
-                        if l != 0:
-                            material_channel_node.node_tree.links.remove(l)
-
-        # Connect mix layer nodes for every layer.
-        for i in range(0, len(layers)):
-            current_layer_index = i
-            next_layer_index = i + 1
-            current_mix_layer_node = get_layer_node("MIXLAYER", material_channel_name, current_layer_index, bpy.context)
-            next_mix_layer_node = get_layer_node("MIXLAYER", material_channel_name, next_layer_index, bpy.context)
-            texture_node = get_layer_node("TEXTURE", material_channel_name, current_layer_index, bpy.context)
-
-            total_filter_nodes = material_filters.get_filter_nodes_count(i)
-            first_material_filter_node = material_filters.get_material_filter_node(material_channel_name, i, 0)
-
-            # ALWAYS connect the texture output to the first material filter based on it's type (if one exists).
-            if first_material_filter_node:
-                match first_material_filter_node.bl_static_type:
-                    case 'INVERT':
-                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[1])
-                    case 'VALTORGB':
-                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[0])
-                    case 'HUE_SAT':
-                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[4])
-                    case 'CURVE_RGB':
-                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[1])
-                    case 'BRIGHTCONTRAST':
-                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[0])
-
-                # Connect the last filter node to the current mix node.
-                last_material_filter_node = material_filters.get_material_filter_node(material_channel_name, i, total_filter_nodes - 1)
-                if last_material_filter_node:
-                    material_channel_node.node_tree.links.new(last_material_filter_node.outputs[0], current_mix_layer_node.inputs[2])
-
-            # Connect the last layer node to the next material layer if another material layer exists.
-            if next_mix_layer_node:
-                material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
-
-            # If no more material layers exist past this one, link the current mix layer node to the group nodes output / bump / normal node.
-            else:
-                if material_channel_name == "HEIGHT":
-                    bump_node = material_channel_node.node_tree.nodes.get("Bump")
-                    material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], bump_node.inputs[2])
-
-                elif material_channel_name == "NORMAL":
-                    normal_map_node = material_channel_node.node_tree.nodes.get("Normal Map")
-                    material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], normal_map_node.inputs[1])
-
-                else:
-                    group_output_node = material_channel_node.node_tree.nodes.get("Group Output")
-                    material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], group_output_node.inputs[0])
-
-def relink_material_nodes(material_layer_index):
-    '''Relinks all material and filter nodes for the specified material layer index.'''
-    print("Placeholder")
-
-    # TODO: Unlink all material nodes.
-
-    # TODO: Relink all nodes.
-
-def relink_mask_nodes(material_layer_index):
-    '''Relinks all mask and mask filter nodes together in the specified material layer (for all material channels).'''
-    print("Placeholder")
-
-    # TODO: Unlink all material nodes.
-
-    # TODO: Relink all material nodes.
-
-# TODO: Remove this wrapper function in favor of relinking / organizing in separate functions as required.
-def update_layer_nodes(context):
-    '''DEPRECATED: Re-organizes and re-links layer nodes together. This should generally be called after editing layer nodes.'''
-    organize_material_channel_nodes(context)
-    organize_all_layer_nodes()
-    reindex_material_layer_nodes(context)
-    #relink_all_layer_nodes()
-
-def mute_layer_material_channel(mute, layer_stack_index, material_channel_name, context):
-    '''Mutes (hides) or unhides all layer nodes for the specified material channel.'''
-    for node_name in LAYER_NODE_NAMES:
-        node = get_layer_node(node_name, material_channel_name, layer_stack_index, context)
-        if node:
-            node.mute = mute
-
-    matlay_utils.set_valid_material_shading_mode(context)

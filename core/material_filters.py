@@ -97,121 +97,123 @@ def get_filter_nodes_count(material_layer_index):
             number_of_filter_nodes += 1
     return number_of_filter_nodes
 
-def update_material_filter_node_indicies(material_channel_name):
+def reindex_material_filter_nodes():
     '''Renames all filter nodes with correct indicies by checking the node tree for newly added, edited (signified by a tilda at the end of their name), or deleted filter nodes'''
-    material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
+    number_of_material_layers = len(bpy.context.scene.matlay_layers)
+    if number_of_material_layers <= 0:
+        return
+
     selected_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
     filters = bpy.context.scene.matlay_material_filters
 
-    changed_filter_index = -1
-    filter_added = False
-    filter_deleted = False
+    material_channel_names = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_names:
+        material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
 
-    # 1. Update layer stack indicies first.
-    number_of_layers = len(filters)
-    for i in range(0, number_of_layers):
-        filters[i].stack_index = i
+        changed_filter_index = -1
+        filter_added = False
+        filter_deleted = False
 
-    # 2. Check for a newly added filter (signified by a tilda at the end of the node's name).
-    for i in range(0, len(filters)):
-        temp_filter_node_name = format_filter_node_name(selected_layer_index, i) + "~"
-        temp_filter_node = material_channel_node.node_tree.nodes.get(temp_filter_node_name)
-        if temp_filter_node:
-            filter_added = True
-            changed_filter_index = i
-            break
+        # 1. Update layer stack indicies first.
+        number_of_layers = len(filters)
+        for i in range(0, number_of_layers):
+            filters[i].stack_index = i
 
-    # 3. Check for a deleted filter.
-    if not filter_added:
+        # 2. Check for a newly added filter (signified by a tilda at the end of the node's name).
         for i in range(0, len(filters)):
-            temp_filter_node_name = format_filter_node_name(selected_layer_index, i)
+            temp_filter_node_name = format_filter_node_name(selected_layer_index, i) + "~"
             temp_filter_node = material_channel_node.node_tree.nodes.get(temp_filter_node_name)
-            if not temp_filter_node:
-                filter_deleted = True
+            if temp_filter_node:
+                filter_added = True
                 changed_filter_index = i
                 break
 
-    # 4. Rename filter nodes above the newly added material filter on the filter stack if any exist (in reverse order to avoid naming conflicts).
-    if filter_added:
-        for i in range(len(filters), changed_filter_index + 1, -1):
-            index = i - 1
-            filter_node_name = filters[index].name + "_" + str(selected_layer_index) + "_" + str(index - 1)
-            filter_node = material_channel_node.node_tree.nodes.get(filter_node_name)
+        # 3. Check for a deleted filter.
+        if not filter_added:
+            for i in range(0, len(filters)):
+                temp_filter_node_name = format_filter_node_name(selected_layer_index, i)
+                temp_filter_node = material_channel_node.node_tree.nodes.get(temp_filter_node_name)
+                if not temp_filter_node:
+                    filter_deleted = True
+                    changed_filter_index = i
+                    break
 
-            if filter_node:
-                filter_node.name = format_filter_node_name(selected_layer_index, index)
-                filter_node.label = filter_node.name
-                filters[index].stack_index = index
+        # 4. Rename filter nodes above the newly added material filter on the filter stack if any exist (in reverse order to avoid naming conflicts).
+        if filter_added:
+            for i in range(len(filters), changed_filter_index + 1, -1):
+                index = i - 1
+                filter_node_name = filters[index].name + "_" + str(selected_layer_index) + "_" + str(index - 1)
+                filter_node = material_channel_node.node_tree.nodes.get(filter_node_name)
 
-        # Remove the tilda from the newly added filter.
-        new_filter_node_name = format_filter_node_name(selected_layer_index, changed_filter_index) + "~"
-        new_filter_node = material_channel_node.node_tree.nodes.get(new_filter_node_name)
-        if new_filter_node:
-            new_filter_node.name = new_filter_node_name.replace('~', '')
-            new_filter_node.label = new_filter_node.name
-            filters[changed_filter_index].stack_index = changed_filter_index
+                if filter_node:
+                    filter_node.name = format_filter_node_name(selected_layer_index, index)
+                    filter_node.label = filter_node.name
+                    filters[index].stack_index = index
 
-    # 5. Rename filter layer nodes above the deleted filter layer if any exist.
-    if filter_deleted and len(filters) > 0:
-        for i in range(changed_filter_index + 1, len(filters), 1):
-            old_filter_node_name = format_filter_node_name(selected_layer_index, i)
-            filter_node = material_channel_node.node_tree.nodes.get(old_filter_node_name)
+            # Remove the tilda from the newly added filter.
+            new_filter_node_name = format_filter_node_name(selected_layer_index, changed_filter_index) + "~"
+            new_filter_node = material_channel_node.node_tree.nodes.get(new_filter_node_name)
+            if new_filter_node:
+                new_filter_node.name = new_filter_node_name.replace('~', '')
+                new_filter_node.label = new_filter_node.name
+                filters[changed_filter_index].stack_index = changed_filter_index
 
-            if filter_node:
-                filter_node.name = format_filter_node_name(selected_layer_index, i - 1)
-                filter_node.label = filter_node.name
-                filters[i].stack_index = i - 1
+        # 5. Rename filter layer nodes above the deleted filter layer if any exist.
+        if filter_deleted and len(filters) > 0:
+            for i in range(changed_filter_index + 1, len(filters), 1):
+                old_filter_node_name = format_filter_node_name(selected_layer_index, i)
+                filter_node = material_channel_node.node_tree.nodes.get(old_filter_node_name)
 
-def relink_material_filter_nodes(material_channel_name):
+                if filter_node:
+                    filter_node.name = format_filter_node_name(selected_layer_index, i - 1)
+                    filter_node.label = filter_node.name
+                    filters[i].stack_index = i - 1
+
+def relink_material_filter_nodes():
     '''Re-links all material filter nodes in the given material channel.'''
-    selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
-    filter_nodes = get_all_material_filter_nodes(material_channel_name, selected_material_layer_index, get_edited=False)
-    material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
-
-    for i in range(0, len(filter_nodes)):
-        filter_node = filter_nodes[i]
-
-        next_filter_node = None
-        if len(filter_nodes) - 1 > i:
-
-            # Unlink all mask filter nodes.
-            node_links = material_channel_node.node_tree.links
-            for l in node_links:
-                if l.from_node.name == filter_node.name:
-                    node_links.remove(l)
-
-            # Link to the next filter node in the layer stack if it exists.
-            next_filter_node = filter_nodes[i + 1]
-            if next_filter_node:
-                match next_filter_node.bl_static_type:
-                    case 'INVERT':
-                        material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[1])
-                    case 'VALTORGB':
-                        material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[0])
-                    case 'HUE_SAT':
-                        material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[4])
-                    case 'CURVE_RGB':
-                        material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[1])
-                    case 'BRIGHTCONTRAST':
-                        material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[0])
+    number_of_material_layers = len(bpy.context.scene.matlay_layers)
+    if number_of_material_layers <= 0:
+        return
     
-    # If there are no filter nodes, re-connect the color texture to the mix layer node.
-    if len(filter_nodes) <= 0:
-        layer_texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_material_layer_index, bpy.context, False)
-        layer_mix_node = layer_nodes.get_layer_node('MIXLAYER', material_channel_name, selected_material_layer_index, bpy.context, False)
-        if layer_texture_node:
-            material_channel_node.node_tree.links.new(layer_texture_node.outputs[0], layer_mix_node.inputs[2])
+    material_channel_names = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_names:
+        selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
+        filter_nodes = get_all_material_filter_nodes(material_channel_name, selected_material_layer_index, get_edited=False)
+        material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
 
-# TODO: Remove this wrapper function, use relink / reindex individually.
-def update_material_filter_nodes(context):
-    '''Updates the index stored in filter node names, and re-links material filters. This should generally called after adding or removing filter nodes.'''
-    # If there are no material layers there shouldn't be any material filters, don't update the material filter nodes.
-    number_of_material_layers = len(context.scene.matlay_layers)
-    if number_of_material_layers > 0:
-        material_channel_names = material_channels.get_material_channel_list()
-        for material_channel_name in material_channel_names:
-            update_material_filter_node_indicies(material_channel_name)
-            relink_material_filter_nodes(material_channel_name)
+        for i in range(0, len(filter_nodes)):
+            filter_node = filter_nodes[i]
+
+            next_filter_node = None
+            if len(filter_nodes) - 1 > i:
+
+                # Unlink all mask filter nodes.
+                node_links = material_channel_node.node_tree.links
+                for l in node_links:
+                    if l.from_node.name == filter_node.name:
+                        node_links.remove(l)
+
+                # Link to the next filter node in the layer stack if it exists.
+                next_filter_node = filter_nodes[i + 1]
+                if next_filter_node:
+                    match next_filter_node.bl_static_type:
+                        case 'INVERT':
+                            material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[1])
+                        case 'VALTORGB':
+                            material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[0])
+                        case 'HUE_SAT':
+                            material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[4])
+                        case 'CURVE_RGB':
+                            material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[1])
+                        case 'BRIGHTCONTRAST':
+                            material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[0])
+        
+        # If there are no filter nodes, re-connect the color texture to the mix layer node.
+        if len(filter_nodes) <= 0:
+            layer_texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_material_layer_index, bpy.context, False)
+            layer_mix_node = layer_nodes.get_layer_node('MIXLAYER', material_channel_name, selected_material_layer_index, bpy.context, False)
+            if layer_texture_node:
+                material_channel_node.node_tree.links.new(layer_texture_node.outputs[0], layer_mix_node.inputs[2])
 
 def refresh_material_filter_stack(context):
     '''Reads layer nodes to re-construct the filter layer stack.'''
@@ -283,12 +285,8 @@ def add_material_layer_filter(filter_type, context):
         filters.move(move_index, move_to_index)
         filter_stack.selected_filter_index = move_to_index
         selected_layer_filter_index = max(0, min(selected_layer_filter_index + 1, len(filters) - 1))
-
-    new_filter_index = 0
-    if len(filters) == 0:
-        new_filter_index = 0
-    else:
-        new_filter_index = selected_layer_filter_index
+        
+    new_filter_index = selected_layer_filter_index
 
     # Add a shader node for the layer filter (in all material channels).
     material_channel_list = material_channels.get_material_channel_list()
@@ -307,8 +305,10 @@ def add_material_layer_filter(filter_type, context):
                     filter_node.parent = frame
 
     # Re-organize and re-link material layer nodes so mix nodes will automatically connect with filter nodes.
-    update_material_filter_nodes(context)
-    layer_nodes.update_layer_nodes(context)
+    reindex_material_filter_nodes()
+    relink_material_filter_nodes()
+    layer_nodes.organize_all_layer_nodes()
+    layer_nodes.relink_material_nodes(new_filter_index)
 
     # Toggle the material filter off for all material channels excluding color, because users will generally want the material filter to only apply for one material channel anyways. This makes it slightly faster for users to toggle on the material channel they want the material filter to apply to.
     for material_channel_name in material_channel_list:
@@ -368,7 +368,8 @@ def move_filter_layer(direction, context):
     context.scene.matlay_material_filter_stack.selected_filter_index = index_to_move_to
 
     # 5. Re-link and organize filter nodes.
-    layer_nodes.update_layer_nodes(context)
+    layer_nodes.organize_all_layer_nodes()
+    layer_nodes.relink_material_nodes(selected_material_layer_index)
 
     filter_stack.auto_update_filter_properties = True
 
@@ -549,7 +550,7 @@ class MATLAY_OT_delete_layer_filter(Operator):
 
     def execute(self, context):
         filters = context.scene.matlay_material_filters
-        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
         selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
 
         matlay_utils.set_valid_mode()
@@ -558,14 +559,15 @@ class MATLAY_OT_delete_layer_filter(Operator):
         material_channel_list = material_channels.get_material_channel_list()
         for material_channel_name in material_channel_list:
             material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
-            filter_node = get_material_filter_node(material_channel_name, selected_layer_index, selected_filter_index)
+            filter_node = get_material_filter_node(material_channel_name, selected_material_layer_index, selected_filter_index)
             if filter_node:
                 material_channel_node.node_tree.nodes.remove(filter_node)
 
         # Re-index and re-link material filter nodes.
-        number_of_filter_nodes = len(get_all_material_filter_nodes("COLOR", selected_layer_index))
+        number_of_filter_nodes = len(get_all_material_filter_nodes("COLOR", selected_material_layer_index))
         if number_of_filter_nodes > 0:
-            update_material_filter_nodes(context)
+            reindex_material_filter_nodes()
+            relink_material_filter_nodes()
 
         # Remove the filter stack slot.
         filters.remove(selected_filter_index)
@@ -574,7 +576,8 @@ class MATLAY_OT_delete_layer_filter(Operator):
         context.scene.matlay_material_filter_stack.selected_filter_index = max(min(selected_filter_index - 1, len(filters) - 1), 0)
 
         # Re-link and re-organize layers.
-        layer_nodes.update_layer_nodes(context)
+        layer_nodes.organize_all_layer_nodes()
+        layer_nodes.relink_material_nodes(selected_material_layer_index)
 
         matlay_utils.set_valid_material_shading_mode(context)
 

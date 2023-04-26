@@ -777,7 +777,9 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
     texture_node.parent = layer_frame
 
     # Update the layer nodes because they were changed.
-    layer_nodes.update_layer_nodes(context)
+    layer_nodes.organize_all_layer_nodes()
+    layer_nodes.relink_material_nodes()
+    layer_nodes.relink_mask_nodes()
     
 def update_color_channel_node_type(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties:
