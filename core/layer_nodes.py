@@ -157,7 +157,6 @@ def relink_material_nodes(material_layer_index):
     material_layers = bpy.context.scene.matlay_layers
     layer_type = material_layers[material_layer_index].type
 
-    # TODO: Relink all material nodes.
     for material_channel_name in material_channels.get_material_channel_list():
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
         link_nodes = material_channel_node.node_tree.links.new
@@ -181,7 +180,7 @@ def relink_material_nodes(material_layer_index):
                 if link != 0:
                     material_channel_node.node_tree.links.remove(link)
 
-        # Relink all material nodes.
+        # Relink all material nodes based on layer type.
         if layer_type == 'MATERIAL':
             link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
             link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
@@ -202,13 +201,28 @@ def relink_material_nodes(material_layer_index):
             link_nodes(decal_mask_mix_node.outputs[0], opacity_node.inputs[0])
             link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
         
+        # Relink material filter nodes with other material filter nodes.
+        #material_filters.relink_material_filter_nodes()
 
-        # TODO: Relink material filter nodes with other material filter nodes.
-
-
-        # TODO: Link the last node in the material layer to the mix layer node.
-        last_layer_node = None
-        link_nodes(texture_node.outputs[0], mix_layer_node.inputs[2])
+        # Link the last node in the material layer to the mix layer node.
+        filters = bpy.context.scene.matlay_material_filters
+        last_filter_node = material_filters.get_material_filter_node(material_channel_name, material_layer_index, len(filters) - 1)
+        if last_filter_node:
+            first_filter_node = material_filters.get_material_filter_node(material_channel_name, material_layer_index, 0)
+            match first_filter_node.bl_static_type:
+                case 'INVERT':
+                    material_channel_node.node_tree.links.new(texture_node.outputs[0], first_filter_node.inputs[1])
+                case 'VALTORGB':
+                    material_channel_node.node_tree.links.new(texture_node.outputs[0], first_filter_node.inputs[0])
+                case 'HUE_SAT':
+                    material_channel_node.node_tree.links.new(texture_node.outputs[0], first_filter_node.inputs[4])
+                case 'CURVE_RGB':
+                    material_channel_node.node_tree.links.new(texture_node.outputs[0], first_filter_node.inputs[1])
+                case 'BRIGHTCONTRAST':
+                    material_channel_node.node_tree.links.new(texture_node.outputs[0], first_filter_node.inputs[0])
+            link_nodes(last_filter_node.outputs[0], mix_layer_node.inputs[2])
+        else:
+            link_nodes(texture_node.outputs[0], mix_layer_node.inputs[2])
 
 def mute_layer_material_channel(mute, layer_stack_index, material_channel_name, context):
     '''Mutes (hides) or unhides all layer nodes for the specified material channel.'''
