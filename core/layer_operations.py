@@ -970,7 +970,7 @@ def read_active_layer_material_channels(material_channel_list, total_number_of_l
 class MATLAY_OT_read_layer_nodes(Operator):
     bl_idname = "matlay.read_layer_nodes"
     bl_label = "Read Layer Nodes"
-    bl_description = "Updates the user interface to match the active material's node tree. This is called automatically when selecting a new object"
+    bl_description = "Updates the user interface to match the active material's node tree. This is called automatically when selecting an object"
 
     auto_called: BoolProperty(name="Auto Called", description="Should be true if refreshing layers was automatically called (i.e selecting a different object automatically refreshes the layer stack). This is used to avoid printing errors.", default=False)
 
