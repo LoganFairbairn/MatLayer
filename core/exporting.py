@@ -58,7 +58,9 @@ def bake_and_export_material_channel(material_channel_name, context):
                                      float=False, 
                                      use_stereo_3d=False, 
                                      tiled=False)
-    
+    export_image = bpy.data.images[export_image_name]
+
+
     # Create a folder for the exported texture files.
     matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
     if os.path.exists(matlay_image_path) == False:
@@ -68,21 +70,22 @@ def bake_and_export_material_channel(material_channel_name, context):
     if os.path.exists(export_path) == False:
         os.mkdir(export_path)
 
-    export_image = bpy.data.images.get(export_image_name)
     export_image.filepath = export_path + "/" + export_image_name + ".png"
     export_image.file_format = 'PNG'
 
     material_nodes = context.active_object.active_material.node_tree.nodes
     image_node = material_nodes.new('ShaderNodeTexImage')
     image_node.image = export_image
+    image_node.select = True
+    material_nodes.active = image_node
 
-    # Bake to the image texture.
-    bpy.context.scene.render.bake.use_selected_to_active = False
+    
+    context.scene.tool_settings.image_paint.canvas = export_image
 
     # Cache the render engine so we can reset it after baking.
     original_render_engine = bpy.context.scene.render.engine
-
     bpy.context.scene.render.engine = 'CYCLES'
+    bpy.context.scene.render.bake.use_selected_to_active = False
 
     if material_channel_name == 'NORMAL':
         bpy.ops.object.bake(type='NORMAL')
@@ -98,13 +101,14 @@ def bake_and_export_material_channel(material_channel_name, context):
         if export_image.is_dirty:
             export_image.save()
         else:
-            info_messages.popup_message_box("Exported image pixel data wasn't updated during baking.", "MatLay baking error.", 'ERROR')
+            info_messages.popup_message_box("Exported image pixel data wasn't updated during baking.", "MatLay baking error", 'ERROR')
 
     # Delete the image node.
     material_nodes.remove(image_node)
 
     # De-isolate the material channel.
     material_channels.isolate_material_channel(False, material_channel_name, context)
+    
 
 class MATLAY_OT_export(Operator):
     bl_idname = "matlay.export"

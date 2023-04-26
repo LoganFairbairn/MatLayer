@@ -465,8 +465,6 @@ def isolate_material_channel(isolate, material_channel_name, context):
 
         if texture_set_settings.global_material_channel_toggles.height_channel_toggle:
             material_channel_node = get_material_channel_node(context, "HEIGHT")
-            
-            print("Keys: "  + str(mix_normal_maps_node.inputs.keys()))
 
             # If the normal material channel isn't active, connect the height channel directly to the pricipled bsdf.
             if texture_set_settings.global_material_channel_toggles.normal_channel_toggle:

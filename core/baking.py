@@ -229,7 +229,7 @@ def verify_bake_object():
     return True
 
 def create_bake_image(bake_type):
-    '''Creates a new bake image in Blender's data and defines it's save location'''
+    '''Creates a new bake image in Blender's data and define it's save location'''
 
     # Define the baking size based on settings.
     baking_settings = bpy.context.scene.matlay_baking_settings
