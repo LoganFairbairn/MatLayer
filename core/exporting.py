@@ -102,6 +102,9 @@ def bake_and_export_material_channel(material_channel_name, context):
     # Delete the image node.
     material_nodes.remove(image_node)
 
+    # The exported image is already saved to a folder, so it's no longer needed in blend data, remove it.
+    bpy.data.images.remove(export_image)
+
     # De-isolate the material channel.
     material_channels.isolate_material_channel(False, material_channel_name, context)
     
