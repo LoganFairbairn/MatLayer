@@ -7,7 +7,7 @@ from pathlib import Path
 from ..core import material_channels
 from ..core import layer_nodes
 from ..core import layer_masks
-from ..utilities import info_messages
+from . import logging
 import os
 from ..config import ADDON_NAME
 
@@ -50,7 +50,7 @@ class MATLAY_OT_append_workspace(Operator):
     def execute(self, context):
         workspace = bpy.data.workspaces.get('Matlay')
         if workspace:
-            info_messages.popup_message_box("The default workspace already exists, manually delete it and click this operator again to re-load the workspace.", 'Info', 'INFO')
+            logging.popup_message_box("The default workspace already exists, manually delete it and click this operator again to re-load the workspace.", 'Info', 'INFO')
             return {'FINISHED'}
 
 

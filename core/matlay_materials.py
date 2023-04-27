@@ -2,7 +2,7 @@
 
 import bpy
 from ..core import layer_nodes
-from ..utilities import info_messages
+from ..utilities import logging
 
 # Returns true if the material on the active object is compatible with this add-on.
 def verify_material(context):
@@ -72,7 +72,7 @@ def prepare_material(context):
     # Add a new MatLay material if there is none.
     if active_object:
         if active_object.type != 'MESH':
-            info_messages.popup_message_box("Selected object must be a mesh to create a material.", title="User Error", icon='ERROR')
+            logging.popup_message_box("Selected object must be a mesh to create a material.", title="User Error", icon='ERROR')
             return False
 
         # There is no active material, make one.

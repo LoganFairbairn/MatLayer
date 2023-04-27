@@ -3,7 +3,7 @@ from bpy.types import PropertyGroup, Operator, UIList
 from bpy.props import BoolProperty, IntProperty, StringProperty, PointerProperty
 from . import material_channels
 from . import layer_nodes
-from ..utilities import info_messages
+from ..utilities import logging
 from ..utilities import matlay_utils
 
 
@@ -258,7 +258,7 @@ def add_material_layer_filter(filter_type, context):
 
     # Stop users from adding too many material filters.
     if len(filters) >= MAX_LAYER_FILTER_COUNT:
-        info_messages.popup_message_box("You can't have more than {0} filters on a single layer. This is a safeguard to stop users from adding an unnecessary amount of filters, which will impact performance.".format(MAX_LAYER_FILTER_COUNT), 'User Error', 'ERROR')
+        logging.popup_message_box("You can't have more than {0} filters on a single layer. This is a safeguard to stop users from adding an unnecessary amount of filters, which will impact performance.".format(MAX_LAYER_FILTER_COUNT), 'User Error', 'ERROR')
         return
     
     # Add a new layer filter slot, name and select it.

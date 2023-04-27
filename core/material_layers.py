@@ -7,7 +7,7 @@ from ..core import layer_nodes
 from ..core import material_channels
 from ..core import layer_masks
 from ..core import material_filters
-from ..utilities.info_messages import popup_message_box
+from ..utilities.logging import popup_message_box
 from ..utilities import matlay_utils
 
 # List of node types that can be used in the texture slot.

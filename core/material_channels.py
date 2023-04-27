@@ -4,7 +4,7 @@ from cgitb import text
 import bpy
 from bpy.types import Operator
 from ..core import layer_nodes
-from ..utilities import info_messages
+from ..utilities import logging
 
 # List of all channel names.
 # Material channels are listed in the order of relative sockets in the Principled BSDF node so they will organize properly.
@@ -358,7 +358,7 @@ def validate_material_channel_name(material_channel_name):
     if material_channel_name in MATERIAL_CHANNEL_NAMES:
         return True
     else:
-        info_messages.popup_message_box(material_channel_name + " is not a valid material channel name. Did you make a typo in your code?", "Programming Error", 'ERROR')
+        logging.popup_message_box(material_channel_name + " is not a valid material channel name. Did you make a typo in your code?", "Programming Error", 'ERROR')
         return False
 
 def isolate_material_channel(isolate, material_channel_name, context):

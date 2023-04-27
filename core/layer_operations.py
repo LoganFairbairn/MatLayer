@@ -8,7 +8,7 @@ from ..core import layer_nodes
 from ..core import material_filters
 from ..core import layer_masks
 from ..core import texture_set_settings
-from ..utilities import info_messages
+from ..utilities import logging
 from ..utilities import matlay_utils
 import random
 import os
@@ -878,7 +878,7 @@ def read_decal_layer_properties(material_channel_list, total_number_of_layers, l
             for i in range(total_number_of_layers):
                 coord_node = layer_nodes.get_layer_node('COORD', material_channel_name, i, context)
                 if not coord_node:
-                    info_messages.popup_message_box("Error reading coord node.", "Reading Node Error", 'ERROR')
+                    logging.popup_message_box("Error reading coord node.", "Reading Node Error", 'ERROR')
                     return
                 
                 if coord_node.object != None:
@@ -896,7 +896,7 @@ def read_texture_node_values(material_channel_list, total_number_of_layers, laye
             for i in range(total_number_of_layers):
                 texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, i, context)
                 if not texture_node:
-                    info_messages.popup_message_box("Error reading texture node.", "Reading Node Error", 'ERROR')
+                    logging.popup_message_box("Error reading texture node.", "Reading Node Error", 'ERROR')
                     return
 
                 match texture_node.type:
@@ -951,7 +951,7 @@ def read_layer_projection_values(selected_layer, selected_layer_index, context):
         else:
             selected_layer.projection.projection_mode = 'FLAT'
     else:
-        info_messages.popup_message_box("Missing " + material_channel_name + " group node.", "Material Stack Corrupted", 'ERROR')
+        logging.popup_message_box("Missing " + material_channel_name + " group node.", "Material Stack Corrupted", 'ERROR')
 
 def read_globally_active_material_channels(context):
     '''Updates globally active / inactive material channels per layer by reading the material node trees.'''

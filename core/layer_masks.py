@@ -11,7 +11,7 @@ from . import layer_nodes
 from . import material_channels
 from . import texture_set_settings
 from ..utilities import matlay_utils
-from ..utilities import info_messages
+from ..utilities import logging
 
 # Imports for saving / importing mask images.
 import os
@@ -417,7 +417,7 @@ def get_mask_node(mask_node_name, material_channel_name, material_layer_index, m
                 node_name = format_mask_node_name(mask_node_name, material_layer_index, mask_index)
             return material_channel_node.node_tree.nodes.get(node_name)
     else:
-        info_messages.popup_message_box("Mask node name invalid, did you make a typo in your code?", "Coding Error", 'ERROR')
+        logging.popup_message_box("Mask node name invalid, did you make a typo in your code?", "Coding Error", 'ERROR')
         return None
 
 def get_mask_nodes(material_channel_name, material_stack_index, mask_stack_index, get_edited=False):
@@ -749,7 +749,7 @@ def add_mask(mask_type, context):
 
     # Stop users from adding too many masks.
     if len(masks) >= MAX_LAYER_MASKS:
-        info_messages.popup_message_box("You can't have more than {0} masks on a single layer. This is a safeguard to stop users from adding an unnecessary amount of masks, which will impact performance.".format(MAX_LAYER_MASKS), 'User Error', 'ERROR')
+        logging.popup_message_box("You can't have more than {0} masks on a single layer. This is a safeguard to stop users from adding an unnecessary amount of masks, which will impact performance.".format(MAX_LAYER_MASKS), 'User Error', 'ERROR')
         return
 
     add_mask_slot(context)
@@ -1153,7 +1153,7 @@ class MATLAY_OT_add_mask_image(Operator):
         
         active_object = bpy.context.active_object
         if not active_object:
-            info_messages.popup_message_box("No selected object when adding a layer image.", 'User Error', 'ERROR')
+            logging.popup_message_box("No selected object when adding a layer image.", 'User Error', 'ERROR')
             return
 
         # 1. Assign the new mask image a name.
@@ -1474,7 +1474,7 @@ def add_mask_filter(filter_type, context):
 
     # Stop users from adding too many mask filters.
     if len(mask_filters) >= MAX_MASK_FILTERS:
-        info_messages.popup_message_box("You can't have more than {0} filters on a single layer. This is a safeguard to stop users from adding an unnecessary amount of filters, which will impact performance.".format(MAX_MASK_FILTERS), 'User Error', 'ERROR')
+        logging.popup_message_box("You can't have more than {0} filters on a single layer. This is a safeguard to stop users from adding an unnecessary amount of filters, which will impact performance.".format(MAX_MASK_FILTERS), 'User Error', 'ERROR')
         return
 
     # Add a new mask filter slot, name and select it.

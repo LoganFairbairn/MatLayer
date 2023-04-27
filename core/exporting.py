@@ -5,7 +5,7 @@ from bpy.props import BoolProperty, StringProperty
 from . import material_channels
 from ..core import baking
 from . import texture_set_settings
-from ..utilities import info_messages
+from ..utilities import logging
 from . import matlay_materials
 
 #----------------------------- EXPORT SETTINGS -----------------------------#
@@ -38,7 +38,7 @@ def bake_and_export_material_channel(material_channel_name, context):
     
     # Ensure there is a material on the active object.
     if bpy.context.active_object.active_material == None:
-        info_messages.popup_message_box("Selected object doesn't have an active material.", title="User Error", icon='ERROR')
+        logging.popup_message_box("Selected object doesn't have an active material.", title="User Error", icon='ERROR')
         return
     
     # Force save all textures (unsaved texture will not bake to textures properly).
@@ -102,7 +102,7 @@ def bake_and_export_material_channel(material_channel_name, context):
         if export_image.is_dirty:
             export_image.save()
         else:
-            info_messages.popup_message_box("Exported image pixel data wasn't updated during baking.", "MatLay baking error", 'ERROR')
+            logging.popup_message_box("Exported image pixel data wasn't updated during baking.", "MatLay baking error", 'ERROR')
 
     # Delete the image node.
     material_nodes.remove(image_node)

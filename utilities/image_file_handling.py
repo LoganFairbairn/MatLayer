@@ -6,7 +6,7 @@ from bpy_extras.io_utils import ImportHelper        # For importing images.
 import random
 import os                                           # For saving layer images.
 from ..import layer_nodes
-from ..utilities import info_messages
+from . import logging
 
 def get_random_image_id():
     '''Generates a random image id number.'''
@@ -25,7 +25,7 @@ class MATLAY_OT_add_layer_image(Operator):
     def execute(self, context):
         active_object = bpy.context.active_object
         if not active_object:
-            info_messages.popup_message_box("No selected object when adding a layer image.", 'User Error', 'ERROR')
+            logging.popup_message_box("No selected object when adding a layer image.", 'User Error', 'ERROR')
             return
         
         # Assign the new image the layer name + a random image id number.
