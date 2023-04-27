@@ -712,6 +712,7 @@ class MATLAY_OT_duplicate_layer(Operator):
 
         matlay_utils.set_valid_material_shading_mode(context)
 
+        logging.log("Duplicated layer.")
         return{'FINISHED'}
 
 class MATLAY_OT_edit_uvs_externally(Operator):
