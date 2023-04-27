@@ -155,7 +155,13 @@ def relink_material_layers():
 def relink_material_nodes(material_layer_index):
     '''Relinks all material and filter nodes for the specified material layer index.'''
     material_layers = bpy.context.scene.matlay_layers
-    layer_type = material_layers[material_layer_index].type
+
+    # Identify if the layer is a decal layer by checking for a valid object in the coord node.
+    decal_layer = False
+    coord_node = get_layer_node('COORD', 'COLOR', material_layer_index, bpy.context)
+    if coord_node:
+        if coord_node.object != None:
+            decal_layer = True
 
     for material_channel_name in material_channels.get_material_channel_list():
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
@@ -167,7 +173,7 @@ def relink_material_nodes(material_layer_index):
         coord_node = get_layer_node('COORD', material_channel_name, material_layer_index, bpy.context)
         mapping_node = get_layer_node('MAPPING', material_channel_name, material_layer_index, bpy.context)
         mix_layer_node = get_layer_node('MIXLAYER', material_channel_name, material_layer_index, bpy.context)
-        if layer_type == 'DECAL':
+        if decal_layer:
             decal_mask_node = get_layer_node('DECALMASK', material_channel_name, material_layer_index, bpy.context)
             decal_mapping_node = get_layer_node('DECALMAPPING', material_channel_name, material_layer_index, bpy.context)
             decal_mask_adjustment_node = get_layer_node('DECALMASKADJUSTMENT', material_channel_name, material_layer_index, bpy.context)
@@ -180,15 +186,8 @@ def relink_material_nodes(material_layer_index):
                 if link != 0:
                     material_channel_node.node_tree.links.remove(link)
 
-        # Relink all material nodes based on layer type.
-        if layer_type == 'MATERIAL':
-            link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
-            link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
-            if texture_node.bl_static_type == 'TEX_IMAGE':
-                link_nodes(mapping_node.outputs[0], texture_node.inputs[0])
-                link_nodes(texture_node.outputs[1], opacity_node.inputs[0])
-
-        elif layer_type == 'DECAL':
+        # If the coord node has a valid object, assume it's a decal layer and connect it as such.
+        if decal_layer:
             link_nodes(coord_node.outputs[3], mapping_node.inputs[0])
             link_nodes(mapping_node.outputs[0], texture_node.inputs[0])
             link_nodes(texture_node.outputs[0], mix_layer_node.inputs[2])
@@ -200,6 +199,13 @@ def relink_material_nodes(material_layer_index):
             link_nodes(decal_mask_adjustment_node.outputs[0], decal_mask_mix_node.inputs[0])
             link_nodes(decal_mask_mix_node.outputs[0], opacity_node.inputs[0])
             link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
+
+        else:
+            link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
+            link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
+            if texture_node.bl_static_type == 'TEX_IMAGE':
+                link_nodes(mapping_node.outputs[0], texture_node.inputs[0])
+                link_nodes(texture_node.outputs[1], opacity_node.inputs[0])
         
         # Relink material filter nodes with other material filter nodes.
         material_filters.relink_material_filter_nodes()

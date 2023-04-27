@@ -232,7 +232,6 @@ def add_decal_layer(context):
     bpy.ops.object.empty_add(type='CUBE', align='WORLD', location=(0, 0, 0), scale=(1, 1, 0.2))
     decal_object = bpy.context.active_object
     decal_object.scale = (1.0, 1.0, 0.2)
-    bpy.context.scene.matlay_layers[bpy.context.scene.matlay_layer_stack.layer_index].decal_object = bpy.context.active_object
     bpy.context.active_object.select_set(False)
     previously_selected_object.select_set(True)
     bpy.context.view_layer.objects.active = previously_selected_object
@@ -346,7 +345,7 @@ def add_decal_layer(context):
 
     # Re-select the decal object so users can adjust it.
     bpy.ops.object.select_all(action='DESELECT')
-    new_layer.decal_object.select_set(True)
+    decal_object.select_set(True)
 
     # Set a valid shading mode and ui tabs.
     matlay_utils.set_valid_material_shading_mode(context)
@@ -614,7 +613,7 @@ class MATLAY_OT_delete_layer(Operator):
 
     def execute(self, context):
         layers = context.scene.matlay_layers
-        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
 
         matlay_utils.set_valid_mode()
 
@@ -624,28 +623,30 @@ class MATLAY_OT_delete_layer(Operator):
             material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
 
             # Remove layer frame and layer nodes.
-            frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_index, context)
+            frame = layer_nodes.get_layer_frame(material_channel_name, selected_material_layer_index, context)
             if frame:
                 material_channel_node.node_tree.nodes.remove(frame)
 
-            node_list = layer_nodes.get_all_nodes_in_layer(material_channel_name, selected_layer_index, context)
+            node_list = layer_nodes.get_all_nodes_in_layer(material_channel_name, selected_material_layer_index, context)
             for node in node_list:
                 material_channel_node.node_tree.nodes.remove(node)
 
         # Remove the decal object if one exists.
-        decal_object = bpy.context.scene.matlay_layers[bpy.context.scene.matlay_layer_stack.layer_index].decal_object
-        if decal_object != None:
-            previously_selected_object = bpy.context.active_object
-            previously_selected_object.select_set(False)
-            decal_object.select_set(True)
-            bpy.ops.object.delete(use_global=False)
-            previously_selected_object.select_set(True)
+        coord_node = layer_nodes.get_layer_node('COORD', 'COLOR', selected_material_layer_index, context)
+        if coord_node:
+            if coord_node.object != None:
+                previously_selected_object = bpy.context.active_object
+                bpy.ops.object.select_all(action='DESELECT')
+                coord_node.object.select_set(True)
+                bpy.ops.object.delete(use_global=False)
+                if previously_selected_object:
+                    previously_selected_object.select_set(True)
 
         # Remove the layer slot from the layer stack.
-        layers.remove(selected_layer_index)
+        layers.remove(selected_material_layer_index)
 
         # Reset the layer stack index while keeping it within range of existing indicies in the layer stack.
-        context.scene.matlay_layer_stack.layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
+        context.scene.matlay_layer_stack.layer_index = max(min(selected_material_layer_index - 1, len(layers) - 1), 0)
 
         # Update the layer nodes.
         layer_nodes.reindex_material_layer_nodes()
@@ -672,6 +673,26 @@ class MATLAY_OT_duplicate_layer(Operator):
         layers = context.scene.matlay_layers
         original_material_layer_index = context.scene.matlay_layer_stack.layer_index
 
+        # If the original layer was a decal layer, create a new decal object (empty) and copy the transforms of the original.
+        new_decal_object = None
+        original_coord_node = layer_nodes.get_layer_node('COORD', 'COLOR', original_material_layer_index, context)
+        if original_coord_node:
+            if original_coord_node.object != None:
+
+                previously_selected_object = bpy.context.active_object
+                for obj in bpy.context.selected_objects:
+                    obj.select_set(False)
+                bpy.ops.object.empty_add(type='CUBE', align='WORLD', location=(0, 0, 0), scale=(1, 1, 0.2))
+                new_decal_object = bpy.context.active_object
+                new_decal_object.location = original_coord_node.object.location
+                new_decal_object.rotation_euler = original_coord_node.object.rotation_euler
+                new_decal_object.scale = original_coord_node.object.scale
+                bpy.context.active_object.select_set(False)
+                previously_selected_object.select_set(True)
+                bpy.context.view_layer.objects.active = previously_selected_object
+
+
+
         # Add a new layer slot.
         original_layer_type = layers[original_material_layer_index].type
         add_layer_slot(context, original_layer_type)
@@ -696,11 +717,16 @@ class MATLAY_OT_duplicate_layer(Operator):
             for node in new_nodes:
                 node.parent = new_frame
 
-        # Copy the node's type.
-        layers[new_material_layer_index].type = layers[original_material_layer_index].type
-
         # Re-index and re-organize layer nodes.
         layer_nodes.reindex_material_layer_nodes()
+
+        # For decal layers, assign the decal object to the coord node.
+        if new_decal_object != None:
+            new_coord_node = layer_nodes.get_layer_node('COORD', 'COLOR', new_material_layer_index, context)
+            if new_coord_node:
+                new_coord_node.object = new_decal_object
+
+
         layer_nodes.organize_all_layer_nodes()
         layer_nodes.relink_material_nodes(new_material_layer_index)
         layer_nodes.relink_material_layers()
@@ -708,25 +734,12 @@ class MATLAY_OT_duplicate_layer(Operator):
         # Read the properties of the duplicated nodes by refreshing the layer nodes.
         read_layer_nodes(context)
 
-        # If the original layer was a decal layer, create a new decal object (empty) and copy the transforms of the original.
-        if layers[original_material_layer_index].type == 'DECAL':
-            original_coord_node = layer_nodes.get_layer_node('COORD', 'COLOR', original_material_layer_index, context)
-            new_coord_node = layer_nodes.get_layer_node('COORD', 'COLOR', new_material_layer_index, context)
-
-            if new_coord_node:
-                bpy.ops.object.select_all(action='DESELECT')
-                bpy.ops.object.empty_add(type='CUBE', align='WORLD', location=(0, 0, 0), scale=(1, 1, 0.2))
-                new_decal_object = bpy.context.active_object
-                new_decal_object.scale = (1.0, 1.0, 0.2)
-                bpy.context.scene.matlay_layers[new_material_layer_index].decal_object = bpy.context.active_object
-                new_coord_node.object = new_decal_object
-                
-                if original_coord_node:
-                    original_decal_object = original_coord_node.object
-                    if original_decal_object:
-                        new_decal_object.location = original_decal_object.location
-                        new_decal_object.rotation_euler = original_decal_object.rotation_euler
-                        new_decal_object.scale = original_decal_object.scale
+        # For decal layers, select the decal object.
+        if new_decal_object != None:
+            for obj in bpy.context.selected_objects:
+                obj.select_set(False)
+            new_decal_object.select_set(True)
+            bpy.context.view_layer.objects.active = new_decal_object
 
         matlay_utils.set_valid_material_shading_mode(context)
 

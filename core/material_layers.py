@@ -912,7 +912,3 @@ class MATLAY_layers(PropertyGroup):
     projection: PointerProperty(type=ProjectionSettings, name="Projection Settings")
     color_channel_values: PointerProperty(type=MaterialChannelColors, name="Color Channel Values")
     uniform_channel_values: PointerProperty(type=MaterialChannelUniformValues, name="Uniform Channel Values")
-
-    # TODO: Remove this, just use the object stored in the coord node.
-    # Decal layer properties.
-    decal_object: PointerProperty(type=bpy.types.Object, name="Decal Object", description="The object that is used to adjust the transform for the decal projection.")
