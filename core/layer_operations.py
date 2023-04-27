@@ -363,6 +363,10 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
     duplicated_node.name = layer_nodes.format_material_node_name(node_info[0], new_material_layer_index, True)
     duplicated_node.label = duplicated_node.name
 
+    # Copy muted values for nodes.
+    if original_node.mute:
+        duplicated_node.mute = True
+
     # Duplicate values specific to node types.
     match original_node.bl_static_type:
         case 'TEX_IMAGE':
@@ -693,7 +697,7 @@ class MATLAY_OT_duplicate_layer(Operator):
         layer_nodes.relink_material_layers()
 
         # Read the properties of the duplicated nodes by refreshing the layer nodes.
-        bpy.ops.matlay.read_layer_nodes()
+        read_layer_nodes(context)
 
         # If the original layer was a decal layer, create a new decal object (empty) and copy the transforms of the original.
         if layers[original_layer_index].type == 'DECAL':
@@ -705,8 +709,6 @@ class MATLAY_OT_duplicate_layer(Operator):
                 decal_object.scale = (1.0, 1.0, 0.2)
                 bpy.context.scene.matlay_layers[new_material_layer_index].decal_object = bpy.context.active_object
                 new_coord_node.object = decal_object
-
-        # TODO: Toggle material channels off that are off in the original material layer.
 
         matlay_utils.set_valid_material_shading_mode(context)
 
@@ -998,6 +1000,52 @@ def read_active_layer_material_channels(material_channel_list, total_number_of_l
 
             setattr(layers[i].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", material_channel_active)
 
+def read_layer_nodes(context):
+    material_stack = context.scene.matlay_layer_stack
+    
+    # Remember the selected layer index before clearing the layer stack.
+    original_selected_layer_index = context.scene.matlay_layer_stack.layer_index
+
+    # Clear the material stack.
+    layers = context.scene.matlay_layers
+    layers.clear()
+
+    total_number_of_layers = layer_nodes.get_total_number_of_layers(context)
+    material_channel_list = material_channels.get_material_channel_list()
+    selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
+
+    # After reading the layer stack, the number of layers may be different, reset the selected layer index if required.
+    if total_number_of_layers >= original_selected_layer_index:
+        material_stack.layer_index = original_selected_layer_index
+    else:
+        material_stack.layer_index = 0
+
+    # Turn auto updating for layer properties off.
+    # This is to avoid node types from automatically being replaced when the node type is updated as doing so can cause errors when reading values (likely due to blender parameter update functions not being thread safe).
+    context.scene.matlay_layer_stack.auto_update_layer_properties = False
+
+    # Read material layer stuff.
+    read_layer_name_and_id(layers, context)
+    read_layer_opacity(total_number_of_layers, layers, selected_material_channel, context)
+    read_decal_layer_properties(material_channel_list, total_number_of_layers, layers, context)
+    read_texture_node_values(material_channel_list, total_number_of_layers, layers, context)
+    read_layer_projection_values(layers[material_stack.layer_index], material_stack.layer_index, context)
+    read_globally_active_material_channels(context)
+    read_hidden_layers(total_number_of_layers, layers, material_channel_list, context)
+    read_active_layer_material_channels(material_channel_list, total_number_of_layers, layers, context)
+
+    # Read filter nodes.
+    material_filters.refresh_material_filter_stack(context)
+
+    # Read masks.
+    layer_masks.read_masks(context)
+
+    # Referesh and organize nodes.
+    layer_masks.refresh_mask_filter_stack(context)
+    layer_nodes.organize_all_layer_nodes()
+
+    context.scene.matlay_layer_stack.auto_update_layer_properties = True
+
 class MATLAY_OT_read_layer_nodes(Operator):
     bl_idname = "matlay.read_layer_nodes"
     bl_label = "Read Layer Nodes"
@@ -1016,48 +1064,7 @@ class MATLAY_OT_read_layer_nodes(Operator):
                 self.report({'ERROR'}, "Material is not a MatLay material, a material doesn't exist on the selected object, or the material is corrupted; ui can't be refreshed.")
             return {'FINISHED'}
         
-        # Remember the selected layer index before clearing the layer stack.
-        original_selected_layer_index = context.scene.matlay_layer_stack.layer_index
-
-        # Clear the material stack.
-        layers = context.scene.matlay_layers
-        layers.clear()
-
-        total_number_of_layers = layer_nodes.get_total_number_of_layers(context)
-        material_channel_list = material_channels.get_material_channel_list()
-        selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
-
-        # After reading the layer stack, the number of layers may be different, reset the selected layer index if required.
-        if total_number_of_layers >= original_selected_layer_index:
-            material_stack.layer_index = original_selected_layer_index
-        else:
-            material_stack.layer_index = 0
-
-        # Turn auto updating for layer properties off.
-        # This is to avoid node types from automatically being replaced when the node type is updated as doing so can cause errors when reading values (likely due to blender parameter update functions not being thread safe).
-        context.scene.matlay_layer_stack.auto_update_layer_properties = False
-
-        # Read material layer stuff.
-        read_layer_name_and_id(layers, context)
-        read_layer_opacity(total_number_of_layers, layers, selected_material_channel, context)
-        read_decal_layer_properties(material_channel_list, total_number_of_layers, layers, context)
-        read_texture_node_values(material_channel_list, total_number_of_layers, layers, context)
-        read_layer_projection_values(layers[material_stack.layer_index], material_stack.layer_index, context)
-        read_globally_active_material_channels(context)
-        read_hidden_layers(total_number_of_layers, layers, material_channel_list, context)
-        read_active_layer_material_channels(material_channel_list, total_number_of_layers, layers, context)
-
-        # Read filter nodes.
-        material_filters.refresh_material_filter_stack(context)
-
-        # Read masks.
-        layer_masks.read_masks(context)
-
-        # Referesh and organize nodes.
-        layer_masks.refresh_mask_filter_stack(context)
-        layer_nodes.organize_all_layer_nodes()
-
-        context.scene.matlay_layer_stack.auto_update_layer_properties = True
+        read_layer_nodes(context)
 
         self.report({'INFO'}, "Refreshed layer stack.")
 
