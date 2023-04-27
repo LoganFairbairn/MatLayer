@@ -390,6 +390,15 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
             duplicated_node.musgrave_dimensions = original_node.musgrave_dimensions
             duplicated_node.musgrave_type = original_node.musgrave_type
 
+        case 'MATH':
+            duplicated_node.operation = original_node.operation
+            duplicated_node.use_clamp = original_node.use_clamp
+
+        case 'VALTORGB':
+            for i in range(0, len(original_node.color_ramp.elements)):
+                duplicated_node.color_ramp.elements[i].color = original_node.color_ramp.elements[i].color
+                duplicated_node.color_ramp.elements[i].position = original_node.color_ramp.elements[i].position
+
     # Duplicate input values.
     for i in range(0, len(original_node.inputs)):
         duplicated_node.inputs[i].default_value = original_node.inputs[i].default_value
@@ -661,21 +670,21 @@ class MATLAY_OT_duplicate_layer(Operator):
         matlay_utils.set_valid_mode()
 
         layers = context.scene.matlay_layers
-        original_layer_index = context.scene.matlay_layer_stack.layer_index
+        original_material_layer_index = context.scene.matlay_layer_stack.layer_index
 
         # Add a new layer slot.
-        original_layer_type = layers[original_layer_index].type
+        original_layer_type = layers[original_material_layer_index].type
         add_layer_slot(context, original_layer_type)
         new_material_layer_index = context.scene.matlay_layer_stack.layer_index
 
         # Copy the name of the previous layer.
-        layers[new_material_layer_index].name = layers[original_layer_index].name
+        layers[new_material_layer_index].name = layers[original_material_layer_index].name
         
         # Duplicate all nodes in the layer.
         new_nodes = []
         for material_channel_name in material_channels.get_material_channel_list():
             material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
-            original_nodes = layer_nodes.get_all_nodes_in_layer(material_channel_name, original_layer_index, context)
+            original_nodes = layer_nodes.get_all_nodes_in_layer(material_channel_name, original_material_layer_index, context)
             for node in original_nodes:
                 new_nodes.append(duplicate_node(material_channel_node, node, new_material_layer_index))
 
@@ -688,7 +697,7 @@ class MATLAY_OT_duplicate_layer(Operator):
                 node.parent = new_frame
 
         # Copy the node's type.
-        layers[new_material_layer_index].type = layers[original_layer_index].type
+        layers[new_material_layer_index].type = layers[original_material_layer_index].type
 
         # Re-index and re-organize layer nodes.
         layer_nodes.reindex_material_layer_nodes()
@@ -700,15 +709,24 @@ class MATLAY_OT_duplicate_layer(Operator):
         read_layer_nodes(context)
 
         # If the original layer was a decal layer, create a new decal object (empty) and copy the transforms of the original.
-        if layers[original_layer_index].type == 'DECAL':
+        if layers[original_material_layer_index].type == 'DECAL':
+            original_coord_node = layer_nodes.get_layer_node('COORD', 'COLOR', original_material_layer_index, context)
             new_coord_node = layer_nodes.get_layer_node('COORD', 'COLOR', new_material_layer_index, context)
+
             if new_coord_node:
                 bpy.ops.object.select_all(action='DESELECT')
                 bpy.ops.object.empty_add(type='CUBE', align='WORLD', location=(0, 0, 0), scale=(1, 1, 0.2))
-                decal_object = bpy.context.active_object
-                decal_object.scale = (1.0, 1.0, 0.2)
+                new_decal_object = bpy.context.active_object
+                new_decal_object.scale = (1.0, 1.0, 0.2)
                 bpy.context.scene.matlay_layers[new_material_layer_index].decal_object = bpy.context.active_object
-                new_coord_node.object = decal_object
+                new_coord_node.object = new_decal_object
+                
+                if original_coord_node:
+                    original_decal_object = original_coord_node.object
+                    if original_decal_object:
+                        new_decal_object.location = original_decal_object.location
+                        new_decal_object.rotation_euler = original_decal_object.rotation_euler
+                        new_decal_object.scale = original_decal_object.scale
 
         matlay_utils.set_valid_material_shading_mode(context)
 
