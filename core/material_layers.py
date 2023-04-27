@@ -673,13 +673,13 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
 
     matlay_utils.set_valid_material_shading_mode(context)
 
-    selected_layer_stack_index = context.scene.matlay_layer_stack.layer_index
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     link = material_channel_node.node_tree.links.new
-    selected_layer = bpy.context.scene.matlay_layers[selected_layer_stack_index]
+    selected_layer = bpy.context.scene.matlay_layers[selected_material_layer_index]
     
     # Delete the old layer node.
-    old_texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_stack_index, context)
+    old_texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_material_layer_index, context)
     if old_texture_node:
         material_channel_node.node_tree.nodes.remove(old_texture_node)
 
@@ -727,13 +727,13 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexImage')
 
             # Correct opacity and mapping links for texture image nodes.
-            opacity_node = layer_nodes.get_layer_node("OPACITY", material_channel_name, selected_layer_stack_index, context)
+            opacity_node = layer_nodes.get_layer_node("OPACITY", material_channel_name, selected_material_layer_index, context)
             link(texture_node.outputs[1], opacity_node.inputs[0])
 
-            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_stack_index, context)
+            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_material_layer_index, context)
             link(mapping_node.outputs[0], texture_node.inputs[0])
 
-            coord_node = layer_nodes.get_layer_node("COORD", material_channel_name, selected_layer_stack_index, context)
+            coord_node = layer_nodes.get_layer_node("COORD", material_channel_name, selected_material_layer_index, context)
             match selected_layer.projection.projection_mode:
                 case 'FLAT':
                     link(coord_node.outputs[2], mapping_node.inputs[0])
@@ -764,22 +764,22 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexMusgrave')
 
     # Update the new texture nodes name and label.
-    texture_node.name = "TEXTURE_" + str(selected_layer_stack_index)
+    texture_node.name = "TEXTURE_" + str(selected_material_layer_index)
     texture_node.label = texture_node.name
     self.texture_node_name = texture_node.name
 
     # Link the new texture node to the mix layer node.
-    mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel_name, selected_layer_stack_index, context)
+    mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel_name, selected_material_layer_index, context)
     link(texture_node.outputs[0], mix_layer_node.inputs[2])
 
     # Parent the new node to the layer's frame.
-    layer_frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_stack_index, context)
+    layer_frame = layer_nodes.get_layer_frame(material_channel_name, selected_material_layer_index, context)
     texture_node.parent = layer_frame
 
     # Update the layer nodes because they were changed.
     layer_nodes.organize_all_layer_nodes()
-    layer_nodes.relink_material_nodes()
-    layer_nodes.relink_mask_nodes()
+    layer_nodes.relink_material_nodes(selected_material_layer_index)
+    layer_masks.relink_mask_nodes()
     
 def update_color_channel_node_type(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties:

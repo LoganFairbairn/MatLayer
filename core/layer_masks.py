@@ -121,7 +121,7 @@ def update_mask_node_type(self, context):
         new_mask_node.label = new_mask_node.name
 
         # Relink the mask nodes.
-        relink_mask_nodes(context)
+        relink_mask_nodes()
 
         # Organize nodes.
         layer_nodes.organize_all_layer_nodes()
@@ -515,19 +515,19 @@ def update_mask_indicies(context):
                         mask_node.label = mask_node.name
                         masks[i].stack_index = i - 1
 
-def relink_mask_nodes(context):
+def relink_mask_nodes():
     '''Re-links layer mask nodes to other mask nodes and the layer (by connecting to the material layer's opacity node).'''
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
     selected_material_index = bpy.context.scene.matlay_layer_stack.layer_index
     selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
-    masks = context.scene.matlay_masks
+    masks = bpy.context.scene.matlay_masks
 
     # 1. Relink existing mask filters together for all masks.
     relink_mask_filter_nodes()
 
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
-        material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
+        material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
         for i in range(0, len(masks)):
 
             # 2. Unlink all mask mixing nodes.
@@ -557,7 +557,7 @@ def relink_mask_nodes(context):
                 material_channel_node.node_tree.links.new(mix_mask_node.outputs[0], next_mix_mask_node.inputs[1])
 
         # 5. Link the last mask node to the layer's opacity node.
-        opacity_node = layer_nodes.get_layer_node('OPACITY', material_channel_name, selected_material_layer_index, context)
+        opacity_node = layer_nodes.get_layer_node('OPACITY', material_channel_name, selected_material_layer_index, bpy.context)
         last_mask_node = get_mask_node('MaskMix', material_channel_name, selected_material_layer_index, len(masks) - 1)
         if opacity_node and last_mask_node:
             material_channel_node.node_tree.links.new(last_mask_node.outputs[0], opacity_node.inputs[0])
@@ -755,7 +755,7 @@ def add_mask(mask_type, context):
     add_mask_slot(context)
     add_default_mask_nodes(mask_type, context)
     update_mask_indicies(context)
-    relink_mask_nodes(context)
+    relink_mask_nodes()
     layer_nodes.organize_all_layer_nodes()
     refresh_mask_filter_stack(context)
 
@@ -828,7 +828,7 @@ def move_mask(direction, context):
 
     # 6. Re-link and organize mask nodes.
     update_mask_indicies(context)
-    relink_mask_nodes(context)
+    relink_mask_nodes()
     layer_nodes.organize_all_layer_nodes()
 
     mask_stack.auto_update_mask_properties = True
@@ -1096,7 +1096,7 @@ class MATLAY_OT_delete_layer_mask(Operator):
 
         # Re-index and re-link any remaining layer mask nodes.
         update_mask_indicies(context)
-        relink_mask_nodes(context)
+        relink_mask_nodes()
 
         # Remove the mask slot.
         masks.remove(selected_mask_index)
@@ -1508,7 +1508,7 @@ def add_mask_filter(filter_type, context):
 
     # Re-index then relink nodes.
     reindex_mask_filters_nodes()
-    relink_mask_nodes(context)
+    relink_mask_nodes()
     layer_nodes.organize_all_layer_nodes()
 
 def move_mask_filter(direction, context):
@@ -1678,7 +1678,7 @@ class MATLAY_OT_delete_mask_filter(Operator):
 
         # 2. Re-index and re-link mask filter nodes.
         reindex_mask_filters_nodes()
-        relink_mask_nodes(context)
+        relink_mask_nodes()
 
         # 3. Remove the selected mask filter slot.
         mask_filters.remove(selected_mask_filter_index)

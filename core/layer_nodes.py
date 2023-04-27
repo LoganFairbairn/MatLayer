@@ -202,7 +202,7 @@ def relink_material_nodes(material_layer_index):
             link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
         
         # Relink material filter nodes with other material filter nodes.
-        #material_filters.relink_material_filter_nodes()
+        material_filters.relink_material_filter_nodes()
 
         # Link the last node in the material layer to the mix layer node.
         filters = bpy.context.scene.matlay_material_filters

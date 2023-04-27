@@ -363,6 +363,29 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
     duplicated_node.name = layer_nodes.format_material_node_name(node_info[0], new_material_layer_index, True)
     duplicated_node.label = duplicated_node.name
 
+    # Duplicate values specific to node types.
+    match original_node.bl_static_type:
+        case 'TEX_IMAGE':
+            if original_node.image != None:
+                duplicated_node.image = original_node.image
+                duplicated_node.extension = original_node.extension
+        
+        case 'GROUP':
+            if original_node.node_tree != None:
+                duplicated_node.node_tree = original_node.node_tree
+
+        case 'TEX_NOISE':
+            duplicated_node.noise_dimensions = original_node.noise_dimensions
+
+        case 'TEX_VORONOI':
+            duplicated_node.voronoi_dimensions = original_node.voronoi_dimensions
+            duplicated_node.feature = original_node.feature
+            duplicated_node.distance = original_node.distance
+
+        case 'TEX_MUSGRAVE':
+            duplicated_node.musgrave_dimensions = original_node.musgrave_dimensions
+            duplicated_node.musgrave_type = original_node.musgrave_type
+
     # Duplicate input values.
     for i in range(0, len(original_node.inputs)):
         duplicated_node.inputs[i].default_value = original_node.inputs[i].default_value
@@ -370,13 +393,6 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
     # Duplicate output values.
     for i in range(0, len(original_node.outputs)):
         duplicated_node.outputs[i].default_value = original_node.outputs[i].default_value
-
-    # Duplicate values specific to node types.
-    match original_node.bl_static_type:
-        case 'TEX_IMAGE':
-            if original_node.image != None:
-                duplicated_node.image = original_node.image
-                duplicated_node.extension = original_node.extension
 
     return duplicated_node
 
