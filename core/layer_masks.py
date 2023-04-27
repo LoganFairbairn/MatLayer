@@ -1188,6 +1188,8 @@ class MATLAY_OT_add_mask_image(Operator):
                                   use_stereo_3d=False,
                                   tiled=False)
         
+        image.colorspace_settings.name = 'Non-Color'
+        
         # Save to a folder. This allows users to use the edit externally function (to edit within a 2D image editor of their choice) later if desired.
         matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
         if os.path.exists(matlay_image_path) == False:
