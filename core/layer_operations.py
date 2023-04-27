@@ -294,7 +294,7 @@ def add_decal_layer(context):
             decal_mask_adjustment_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValToRGB')
             decal_mask_adjustment_node.name = layer_nodes.format_material_node_name("DECALMASKADJUSTMENT", new_layer_index, True)
             decal_mask_adjustment_node.label = decal_mask_adjustment_node.name
-            decal_mask_adjustment_node.color_ramp.elements[0].position = 0.3
+            decal_mask_adjustment_node.color_ramp.elements[0].position = 0.75
             decal_mask_adjustment_node.color_ramp.elements[0].color = (1.0, 1.0, 1.0, 1.0)
             decal_mask_adjustment_node.color_ramp.elements[1].position = 1.0
             decal_mask_adjustment_node.color_ramp.elements[1].color = (0.0, 0.0, 0.0, 1.0)
