@@ -40,6 +40,11 @@ def bake_and_export_material_channel(material_channel_name, context):
     if bpy.context.active_object.active_material == None:
         info_messages.popup_message_box("Selected object doesn't have an active material.", title="User Error", icon='ERROR')
         return
+    
+    # Force save all textures (unsaved texture will not bake to textures properly).
+    for image in bpy.data.images:
+        if image.filepath != '':
+            image.save()
 
     # Isolate the material channel.
     material_channels.isolate_material_channel(True, material_channel_name, context)

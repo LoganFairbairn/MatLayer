@@ -1150,7 +1150,7 @@ class MATLAY_OT_add_mask_image(Operator):
 
     def execute(self, context):
         matlay_utils.set_valid_mode()
-
+        
         active_object = bpy.context.active_object
         if not active_object:
             info_messages.popup_message_box("No selected object when adding a layer image.", 'User Error', 'ERROR')
