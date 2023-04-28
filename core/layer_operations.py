@@ -620,6 +620,19 @@ class MATLAY_OT_delete_layer(Operator):
 
         matlay_utils.set_valid_mode()
 
+        # Remove the decal object if one exists.
+        coord_node = layer_nodes.get_layer_node('COORD', 'COLOR', selected_material_layer_index, context)
+        if coord_node:
+            if coord_node.object != None:
+                previously_selected_object = bpy.context.active_object
+                bpy.ops.object.select_all(action='DESELECT')
+                coord_node.object.select_set(True)
+                bpy.context.view_layer.objects.active = coord_node.object
+                bpy.ops.object.delete(use_global=False)
+                if previously_selected_object:
+                    previously_selected_object.select_set(True)
+                    bpy.context.view_layer.objects.active = previously_selected_object
+
         # Remove all nodes for all material channels.
         material_channel_list = material_channels.get_material_channel_list()
         for material_channel_name in material_channel_list:
@@ -633,17 +646,6 @@ class MATLAY_OT_delete_layer(Operator):
             node_list = layer_nodes.get_all_nodes_in_layer(material_channel_name, selected_material_layer_index, context)
             for node in node_list:
                 material_channel_node.node_tree.nodes.remove(node)
-
-        # Remove the decal object if one exists.
-        coord_node = layer_nodes.get_layer_node('COORD', 'COLOR', selected_material_layer_index, context)
-        if coord_node:
-            if coord_node.object != None:
-                previously_selected_object = bpy.context.active_object
-                bpy.ops.object.select_all(action='DESELECT')
-                coord_node.object.select_set(True)
-                bpy.ops.object.delete(use_global=False)
-                if previously_selected_object:
-                    previously_selected_object.select_set(True)
 
         # Remove the layer slot from the layer stack.
         layers.remove(selected_material_layer_index)

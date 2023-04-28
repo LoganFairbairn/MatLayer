@@ -282,7 +282,9 @@ def draw_material_channel_node_properties(column, context):
             subrow.label(text=material_channel_names[i].replace("_", " "))
 
             # Draw the node type (allows users to see the selected node type for each material channel and easily switch it).
-            if layers[selected_layer_index].type != 'DECAL':
+            if layers[selected_layer_index].type == 'DECAL' and material_channel_names[i] == 'COLOR':
+                subrow.label(text="Texture")
+            else:
                 subrow.prop(layers[selected_layer_index].channel_node_types, material_channel_names[i].lower() + "_node_type", text="")
             
             # Draw user interface settings for the material channel node based on it's type.
