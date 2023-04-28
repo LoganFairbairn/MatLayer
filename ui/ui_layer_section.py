@@ -126,14 +126,6 @@ def draw_layer_utility_buttons(column, context):
         subrow = column.row()
         subrow.scale_y = 1.4
         subrow.operator("matlay.set_decal_layer_snapping", icon='SNAP_ON')
-
-        # Draw the decal depth masking.
-        decal_mapping_node = layer_nodes.get_layer_node('DECALMAPPING', 'COLOR', selected_material_layer_index, context, False)
-        if decal_mapping_node:
-            subrow = column.row()
-            subrow.scale_y = 1.4
-            subrow.prop(decal_mapping_node.inputs[1], "default_value", text="Decal Depth Cutoff", slider=True, index=0)
-
         draw_divider(column)
 
 def draw_layer_material_channel_toggles(column, context):
