@@ -1188,7 +1188,6 @@ class MATLAY_OT_add_mask_image(Operator):
                                   use_stereo_3d=False,
                                   tiled=False)
         
-        image.colorspace_settings.name = 'Non-Color'
         
         # Save to a folder. This allows users to use the edit externally function (to edit within a 2D image editor of their choice) later if desired.
         matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
@@ -1200,6 +1199,7 @@ class MATLAY_OT_add_mask_image(Operator):
             os.mkdir(mask_image_path)
 
         image = bpy.data.images[image_name]
+        image.colorspace_settings.name = 'Non-Color'
         image.filepath = mask_image_path + "/" + image_name + ".png"
         image.file_format = 'PNG'
 
@@ -1214,9 +1214,10 @@ class MATLAY_OT_add_mask_image(Operator):
         for material_channel_name in material_channels.get_material_channel_list():
             mask_texture_node = get_mask_node('MaskTexture',  material_channel_name, selected_material_layer_index, selected_mask_index)
             if mask_texture_node:
+                mask_texture_node.image = image
                 masks[selected_mask_index].mask_image = bpy.data.images[image_name]
 
-                # Select the new image so it can be edited.
+                # Select the new mask texture so it can be edited.
                 context.scene.tool_settings.image_paint.canvas = mask_texture_node.image
 
         matlay_utils.set_valid_material_shading_mode(context)
