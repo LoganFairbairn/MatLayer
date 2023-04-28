@@ -96,9 +96,10 @@ def draw_selected_material_channel(column, context):
 
 def draw_layer_stack(column, context):
     '''Draws the material layer stack along with it's operators and material channel.'''
-    subrow = column.row(align=True)
-    subrow.template_list("MATLAY_UL_layer_list", "Layers", context.scene, "matlay_layers", context.scene.matlay_layer_stack, "layer_index", sort_reverse=True)
-    subrow.scale_y = 2
+    if len(context.scene.matlay_layers) > 0:
+        subrow = column.row(align=True)
+        subrow.template_list("MATLAY_UL_layer_list", "Layers", context.scene, "matlay_layers", context.scene.matlay_layer_stack, "layer_index", sort_reverse=True)
+        subrow.scale_y = 2
 
 
 #----------------- DRAW MATERIAL EDITING UI ----------------------#

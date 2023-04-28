@@ -1033,6 +1033,12 @@ def read_active_layer_material_channels(material_channel_list, total_number_of_l
             setattr(layers[i].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", material_channel_active)
 
 def read_layer_nodes(context):
+    '''Reads the material node tree to define the layer stack user interface properties.'''
+
+    # Only read layer nodes if the active object is a mesh.
+    if bpy.context.active_object.type != 'MESH':
+        return
+    
     material_stack = context.scene.matlay_layer_stack
     
     # Remember the selected layer index before clearing the layer stack.
@@ -1048,9 +1054,9 @@ def read_layer_nodes(context):
 
     # After reading the layer stack, the number of layers may be different, reset the selected layer index if required.
     if total_number_of_layers >= original_selected_layer_index:
-        material_stack.layer_index = original_selected_layer_index
+        context.scene.matlay_layer_stack.layer_index = original_selected_layer_index
     else:
-        material_stack.layer_index = 0
+        context.scene.matlay_layer_stack.layer_index = 0
 
     # Turn auto updating for layer properties off.
     # This is to avoid node types from automatically being replaced when the node type is updated as doing so can cause errors when reading values (likely due to blender parameter update functions not being thread safe).
@@ -1065,14 +1071,8 @@ def read_layer_nodes(context):
     read_globally_active_material_channels(context)
     read_hidden_layers(total_number_of_layers, layers, material_channel_list, context)
     read_active_layer_material_channels(material_channel_list, total_number_of_layers, layers, context)
-
-    # Read filter nodes.
     material_filters.refresh_material_filter_stack(context)
-
-    # Read masks.
     layer_masks.read_masks(context)
-
-    # Referesh and organize nodes.
     layer_masks.refresh_mask_filter_stack(context)
     layer_nodes.organize_all_layer_nodes()
 
@@ -1086,12 +1086,10 @@ class MATLAY_OT_read_layer_nodes(Operator):
     auto_called: BoolProperty(name="Auto Called", description="Should be true if refreshing layers was automatically called (i.e selecting a different object automatically refreshes the layer stack). This is used to avoid printing errors.", default=False)
 
     def execute(self, context):
-        material_stack = context.scene.matlay_layer_stack
-
         # Only read the layer stack for materials made with this add-on. 
         # Materials must follow a strict format to be able to be properly read, making materials not made with this add-on incompatible.
         if matlay_materials.verify_material(context) == False:
-            material_stack.layer_index = -1
+            bpy.context.scene.matlay_layers.clear()
             if self.auto_called == False:
                 self.report({'ERROR'}, "Material is not a MatLay material, a material doesn't exist on the selected object, or the material is corrupted; ui can't be refreshed.")
             return {'FINISHED'}
