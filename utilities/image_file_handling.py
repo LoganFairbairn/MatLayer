@@ -145,18 +145,6 @@ class MATLAY_OT_add_layer_image(Operator):
         
         return {'FINISHED'}
 
-class MATLAY_OT_add_layer_image(Operator):
-    bl_idname = "matlay.add_layer_image"
-    bl_label = "Add Layer Image"
-    bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Creates a image within Blender's data and adds it to the selected layer"
-
-    # Specified material channel.
-    material_channel_name: bpy.props.StringProperty()
-
-    def execute(self, context):
-        return {'FINISHED'}
-
 class MATLAY_OT_import_texture(Operator, ImportHelper):
     bl_idname = "matlay.import_texture"
     bl_label = "Import Texture"
