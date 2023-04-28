@@ -9,7 +9,7 @@ from ..core import layer_nodes
 from ..core import layer_masks
 from . import logging
 import os
-from ..config import ADDON_NAME
+from ..preferences import ADDON_NAME
 
 def set_valid_mode():
     '''Verifies texture or object mode is being used. This should be used to avoid attempting to run functions in the wrong mode which may throw errors.'''

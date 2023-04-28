@@ -20,6 +20,9 @@ from bpy.props import PointerProperty, CollectionProperty
 import bpy.utils.previews       # Imported for loading texture previews as icons.
 from bpy.app.handlers import persistent
 
+# Import add-on preference settings.
+from .preferences import AddonPreferences
+
 # Import texture set modules.
 from .core.texture_set_settings import MATLAY_texture_set_settings, GlobalMaterialChannelToggles
 
@@ -69,6 +72,9 @@ bl_info = {
 
 # List of classes to be registered.
 classes = (
+    # Preferences
+    AddonPreferences,
+
     # Baking
     MATLAY_baking_settings,
     MATLAY_OT_bake,
