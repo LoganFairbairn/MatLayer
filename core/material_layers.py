@@ -85,8 +85,23 @@ def update_layer_index(self, context):
     material_filters.refresh_material_filter_stack(context)
     layer_masks.read_masks(context)
 
-def verify_layer_stack_index(layer_stack_index, context):
-    '''Verifies the given layer stack index exists.'''
+def validate_selected_material_layer_index():
+    '''Validates that the selected material filter index is within a valid range. This should be used as a safety check to avoid running operators that require a valid index.'''
+
+    material_layers = bpy.context.scene.matlay_layers
+    selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
+
+    if selected_material_layer_index < len(material_layers) and selected_material_layer_index >= 0:
+        if len(material_layers) > 0:
+            bpy.context.scene.matlay_layer_stack.layer_index = 0
+            return True
+        else:
+            bpy.context.scene.matlay_layer_stack.layer_index = -1
+            return False
+    return True
+
+def validate_material_layer_stack_index(layer_stack_index, context):
+    '''Verifies a specific material layer stack index exists.'''
     layers = context.scene.matlay_layers
     if layer_stack_index <= len(layers) - 1 and layer_stack_index >= 0:
         return True

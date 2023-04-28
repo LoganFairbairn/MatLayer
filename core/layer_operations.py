@@ -4,6 +4,7 @@ from bpy.types import Operator
 from bpy.props import BoolProperty, StringProperty
 from . import material_channels
 from . import matlay_materials
+from ..core import material_layers
 from ..core import layer_nodes
 from ..core import material_filters
 from ..core import layer_masks
@@ -484,6 +485,8 @@ class MATLAY_OT_move_material_layer(Operator):
         return context.scene.matlay_layers
 
     def execute(self, context):
+        material_layers.validate_selected_material_layer_index()
+
         # If the direction given to move the layer on the layer stack is invalid, throw an error.
         if self.direction not in self._ValidDirections:
             print("Error: Direction given to move material layer is invalid.")
@@ -615,6 +618,8 @@ class MATLAY_OT_delete_layer(Operator):
         return context.scene.matlay_layers
 
     def execute(self, context):
+        material_layers.validate_selected_material_layer_index()
+
         layers = context.scene.matlay_layers
         selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
 
@@ -673,6 +678,7 @@ class MATLAY_OT_duplicate_layer(Operator):
         return context.scene.matlay_layers
 
     def execute(self, context):
+        material_layers.validate_selected_material_layer_index()
         matlay_utils.set_valid_mode()
 
         layers = context.scene.matlay_layers
@@ -759,12 +765,13 @@ class MATLAY_OT_edit_uvs_externally(Operator):
 
     #@ classmethod
     #def poll(cls, context):
-    #    bpy.context.active_object != None
+    #   bpy.context.active_object
 
     def execute(self, context):
+        material_layers.validate_selected_material_layer_index()
         matlay_utils.set_valid_mode()
-        original_mode = bpy.context.object.mode
 
+        original_mode = bpy.context.object.mode
         active_object = bpy.context.active_object
 
         # Export UV layout.
@@ -824,7 +831,8 @@ class MATLAY_OT_edit_image_externally(Operator):
         return context.scene.matlay_layers
 
     def execute(self, context):
-
+        material_layers.validate_selected_material_layer_index()
+        
         # Validate the provided image type & material channel name.
         if self.image_type != 'LAYER' and self.image_type != 'MASK':
             self.report({'ERROR'}, "Programming error, invalid type provided to edit image externally operator.")
@@ -882,6 +890,7 @@ class MATLAY_OT_reload_image(Operator):
         return context.scene.matlay_layers
 
     def execute(self, context):
+        material_layers.validate_selected_material_layer_index()
 
         # Set the active image to the one that needs to be reloaded, relative to the position of the reload button in the user interface.
         selected_material_layer_index = context.scene.matlay_layer_stack.layer_index

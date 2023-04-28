@@ -28,7 +28,7 @@ def draw_layers_section_ui(self, context):
         if bpy.context.active_object.type == 'MESH':
             if context.active_object.active_material:
                 if matlay_materials.verify_material(context):
-                    if material_layers.verify_layer_stack_index(context.scene.matlay_layer_stack.layer_index, context):
+                    if material_layers.validate_material_layer_stack_index(context.scene.matlay_layer_stack.layer_index, context):
                         draw_layer_properties(column1, context, layout)
             else:
                 column1.label(text="No active material, add a layer to begin editing.")
@@ -701,7 +701,7 @@ def draw_layer_properties(column, context, layout):
             subrow.separator()
             
             selected_layer_index = context.scene.matlay_layer_stack.layer_index
-            if material_layers.verify_layer_stack_index(selected_layer_index, context):
+            if material_layers.validate_material_layer_stack_index(selected_layer_index, context):
                 material_property_tab = context.scene.matlay_layer_stack.material_property_tab
                 match material_property_tab:
                     case 'MATERIAL':

@@ -60,6 +60,21 @@ def update_filter_height_channel_toggle(self, context):
 
 #----------------------------- CORE MATERIAL FILTER FUNCTIONS -----------------------------#
 
+def validate_filter_selected_index():
+    '''Validates that the selected material filter index is within a valid range. This should be used as a safety check to avoid running operators that require a valid index.'''
+
+    material_filters = bpy.context.scene.matlay_material_filters
+    selected_material_filter_index = bpy.context.scene.matlay_material_filter_stack.selected_filter_index
+
+    if selected_material_filter_index < len(material_filters) and selected_material_filter_index >= 0:
+        if len(material_filters) > 0:
+            bpy.context.scene.matlay_material_filter_stack.selected_filter_index = 0
+            return True
+        else:
+            bpy.context.scene.matlay_material_filter_stack.selected_filter_index = -1
+            return False
+    return True
+
 def format_filter_node_name(material_layer_index, material_filter_index, get_edited=False):
     '''All nodes made with this add-on must have properly formated names, this function will return a properly formated name for a material filter node.'''
     name = "{0}_{1}_{2}".format(FILTER_NODE_NAME, str(material_layer_index), str(material_filter_index))
@@ -251,6 +266,8 @@ def refresh_material_filter_stack(context):
 
 def add_material_layer_filter(filter_type, context):
     '''Creates a new material layer filter slot and node.'''
+    validate_filter_selected_index()
+
     filters = context.scene.matlay_material_filters
     filter_stack = context.scene.matlay_material_filter_stack
     selected_layer_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
@@ -309,6 +326,8 @@ def add_material_layer_filter(filter_type, context):
             filter_material_channel_toggle(False, material_channel_name, context)
 
 def move_filter_layer(direction, context):
+    validate_filter_selected_index()
+    
     filters = context.scene.matlay_material_filters
     filter_stack = context.scene.matlay_material_filter_stack
     selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
@@ -542,6 +561,8 @@ class MATLAY_OT_delete_layer_filter(Operator):
         return bpy.context.scene.matlay_layers
 
     def execute(self, context):
+        validate_filter_selected_index()
+
         filters = context.scene.matlay_material_filters
         selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
         selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index

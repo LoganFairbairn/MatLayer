@@ -399,6 +399,20 @@ def update_mask_match_scale(self, context):
 
 #----------------------------- CORE MASK FUNCTIONS -----------------------------#
 
+def validate_mask_selected_index():
+    '''Validates that the selected mask index is within a valid range. This should be used as a safety check to avoid running operators that require a valid mask index.'''
+    masks = bpy.context.scene.matlay_masks
+    selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
+
+    if selected_mask_index < len(masks) and selected_mask_index >= 0:
+        if len(masks) > 0:
+            bpy.context.scene.matlay_mask_stack.selected_mask_index = 0
+            return True
+        else:
+            bpy.context.scene.matlay_mask_stack.selected_mask_index = -1
+            return False
+    return True
+
 def format_mask_node_name(mask_node_name, material_layer_index, mask_index, get_edited=False):
     '''All node names including mask node names must be formatted properly so they can be re-read from the layer stack. This function should be used to properly format the name of a mask node. Get edited will return the name of a mask node with a tilda at the end, signifying that the node is actively being changed.'''
     if get_edited:
@@ -1287,6 +1301,20 @@ class MATLAY_OT_import_mask_image(Operator, ImportHelper):
 # Mask filter names are all the same (this makes them a bit easier to access in some cases).
 MASK_FILTER_NAME = "MASK-FILTER"
 
+def validate_selected_mask_filter_index():
+    '''Validates that the selected mask filter index is within a valid range. This should be used as a safety check to avoid running operators that require a valid index.'''
+    mask_filters = bpy.context.scene.matlay_mask_filters
+    selected_mask_filter_index = bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_stack
+    
+    if selected_mask_filter_index < len(mask_filters) and selected_mask_filter_index >= 0:
+        if len(mask_filters) > 0:
+            bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_stack = 0
+            return True
+        else:
+            bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_stack = -1
+            return False
+    return True
+
 def format_mask_filter_node_name(material_layer_index, mask_index, mask_filter_index, get_edited=False):
     '''All node names including mask node names must be formatted properly so they can be read from the material node tree. This function should be used to properly format the name of a mask filter node. Get edited will return the name of a mask filter node with a tilda at the end, signifying that the node is actively being changed.'''
     if get_edited:
@@ -1468,6 +1496,8 @@ def refresh_mask_filter_stack(context):
 
 def add_mask_filter(filter_type, context):
     '''Adds a new filter to the selected layer mask. Valid mask filter types include: 'ShaderNodeInvert', 'ShaderNodeValToRGB' '''
+    validate_selected_mask_filter_index()
+
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
     mask_filters = context.scene.matlay_mask_filters
@@ -1516,6 +1546,8 @@ def add_mask_filter(filter_type, context):
 
 def move_mask_filter(direction, context):
     '''Moves the mask filter up or down on the mask filter stack.'''
+    validate_selected_mask_filter_index()
+
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
     selected_mask_filter_index = context.scene.matlay_mask_filter_stack.selected_mask_filter_index
@@ -1664,6 +1696,8 @@ class MATLAY_OT_delete_mask_filter(Operator):
         return bpy.context.scene.matlay_layers
 
     def execute(self, context):
+        validate_selected_mask_filter_index()
+
         selected_layer_index = context.scene.matlay_layer_stack.layer_index
         selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
         mask_filters = context.scene.matlay_mask_filters
