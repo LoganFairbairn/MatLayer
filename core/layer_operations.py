@@ -887,7 +887,7 @@ class MATLAY_OT_reload_image(Operator):
         selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
         if self.reload_mask:
             selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
-            texture_node = layer_masks.get_mask_node('TEXTURE', 'COLOR', selected_material_layer_index, selected_mask_index)
+            texture_node = layer_masks.get_mask_node('MaskTexture', 'COLOR', selected_material_layer_index, selected_mask_index)
         else:
             texture_node = layer_nodes.get_layer_node('TEXTURE', self.material_channel_name, selected_material_layer_index, context)
 
