@@ -208,8 +208,8 @@ class MATLAY_OT_import_texture_set(Operator, ImportHelper):
 
             # Replace common separators with a space.
             separators = ['_', '.', '-', '__', '--', '#']
-            for sep in separators:
-                filename = filename.replace(sep, ' ')
+            for seperator in separators:
+                filename = filename.replace(seperator, ' ')
 
             # Return all components split by a space with lowercase characters.
             components = filename.split(' ')
@@ -223,13 +223,6 @@ class MATLAY_OT_import_texture_set(Operator, ImportHelper):
                 if component in material_channel_id_words:
                     material_channel = material_channel_id_words[component]
                     break
-
-            if material_channel != '':
-                print(filename + " goes into " + material_channel)
-                print("{0} goes into {1}".format(filename, material_channel))
-            else:
-                print("{0} can't be identified.".format(filename))
-
             return material_channel
 
         for file in self.files:
@@ -245,10 +238,10 @@ class MATLAY_OT_import_texture_set(Operator, ImportHelper):
                 setattr(material_layers[selected_material_layer_index].channel_node_types, attribute_name, 'TEXTURE')
 
             # Import the image.
-            head_tail = os.path.split(self.filepath)
-            image_name = head_tail[1]
-            bpy.ops.image.open(filepath=self.filepath)
-            imported_image = bpy.data.images[image_name]
+            folder_directory = os.path.split(self.filepath)
+            image_path = os.path.join(folder_directory[0], file.name)
+            bpy.ops.image.open(filepath=image_path)
+            imported_image = bpy.data.images[file.name]
 
             # Place the image into a material channel based on it's name.
             texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_material_layer_index, context)
