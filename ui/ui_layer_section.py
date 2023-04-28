@@ -123,6 +123,7 @@ def draw_layer_utility_buttons(column, context):
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
 
     if material_layers[selected_material_layer_index].type == 'DECAL':
+        column.label(text="LAYER UTILITIES")
         subrow = column.row()
         subrow.scale_y = 1.4
         subrow.operator("matlay.set_decal_layer_snapping", icon='SNAP_ON')
