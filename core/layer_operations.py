@@ -874,17 +874,36 @@ class MATLAY_OT_reload_image(Operator):
     bl_label = "Reload Image"
     bl_description = "Reloads the selected image from the disk."
 
+    reload_mask: bpy.props.BoolProperty(default=False)
+    material_channel_name: bpy.props.StringProperty(default='COLOR')
+
     @ classmethod
     def poll(cls, context):
         return context.scene.matlay_layers
 
     def execute(self, context):
-        # Temporarily switch to the correct context to perform the image reload.
-        previous_context = bpy.context.area.ui_type
-        bpy.context.area.ui_type = 'IMAGE_EDITOR'
-        # TODO: Set the active image to the one that needs to be reloaded, relative to the position of the reload button in the user interface.
-        bpy.ops.image.reload()
-        bpy.context.area.ui_type = previous_context
+
+        # Set the active image to the one that needs to be reloaded, relative to the position of the reload button in the user interface.
+        selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+        if self.reload_mask:
+            selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+            texture_node = layer_masks.get_mask_node('TEXTURE', 'COLOR', selected_material_layer_index, selected_mask_index)
+        else:
+            texture_node = layer_nodes.get_layer_node('TEXTURE', self.material_channel_name, selected_material_layer_index, context)
+
+        if texture_node:
+            if texture_node.image != None:
+                # Temporarily switch to the correct ui area / context and select the texture that needs to be reloaded.
+                previously_selected_image = context.scene.tool_settings.image_paint.canvas
+                context.scene.tool_settings.image_paint.canvas = texture_node.image
+                previous_context = bpy.context.area.ui_type
+                bpy.context.area.ui_type = 'IMAGE_EDITOR'
+                bpy.ops.image.reload()
+                bpy.context.area.ui_type = previous_context
+                context.scene.tool_settings.image_paint.canvas = previously_selected_image
+            else:
+                self.report({'ERROR'}, "No valid texture to reload.")
+
         return{'FINISHED'}
 
 #----------------------------- READING / REFRESHING USER INTERFACE PROPERTIES -----------------------------#

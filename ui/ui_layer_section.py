@@ -184,7 +184,8 @@ def draw_texture_node_settings(column, texture_node, texture_node_type, layer, m
             export_image_operator = subrow.operator("matlay.edit_image_externally", icon="TPAINT_HLT", text="")
             export_image_operator.material_channel_name = material_channel_name
             export_image_operator.image_type = 'LAYER'
-            subrow.operator("matlay.reload_image", icon="FILE_REFRESH", text="")
+            reload_image_operator = subrow.operator("matlay.reload_image", icon="FILE_REFRESH", text="")
+            reload_image_operator.material_channel_name = material_channel_name
             delete_layer_image_operator = subrow.operator("matlay.delete_layer_image", icon="TRASH", text="")
             delete_layer_image_operator.material_channel_name = material_channel_name
 
@@ -489,7 +490,8 @@ def draw_mask_node_properties(column):
                 subrow.operator("matlay.add_mask_image", icon="ADD", text="")
                 subrow.operator("matlay.import_mask_image", icon="IMPORT", text="")
                 export_image_operator = subrow.operator("matlay.edit_image_externally", icon="TPAINT_HLT", text="")
-                subrow.operator("matlay.reload_image", icon="FILE_REFRESH", text="")
+                reload_image_operator = subrow.operator("matlay.reload_image", icon="FILE_REFRESH", text="")
+                reload_image_operator.reload_mask = True
                 subrow.operator("matlay.delete_mask_image", icon="TRASH", text="")
 
                 export_image_operator.image_type = 'MASK'
