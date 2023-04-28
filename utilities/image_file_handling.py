@@ -6,7 +6,8 @@ from bpy_extras.io_utils import ImportHelper        # For importing images.
 import random
 import os                                           # For saving layer images.
 from ..import layer_nodes
-from . import logging
+from .. import logging
+from ..import preferences
 
 def get_random_image_id():
     '''Generates a random image id number.'''
@@ -147,6 +148,25 @@ class MATLAY_OT_import_texture(Operator, ImportHelper):
 
             case 'SCATTERING':
                 image.colorspace_settings.name = 'sRGB'
+
+        # Save the imported image to a folder if user preferences say to do so. This helps with texture organization by keeping externally imported textures next to the saved blend file.
+        '''
+        addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
+        if addon_preferences.save_imported_textures:
+            matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
+            if os.path.exists(matlay_image_path) == False:
+                os.mkdir(matlay_image_path)
+
+            layer_image_path = os.path.join(matlay_image_path, "Layers")
+            if os.path.exists(layer_image_path) == False:
+                os.mkdir(layer_image_path)
+
+            image.filepath = layer_image_path + "/" + image_name + ".png"
+            image.file_format = 'PNG'
+
+            if image:
+                image.save()
+        '''
 
         return {'FINISHED'}
 

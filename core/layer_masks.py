@@ -12,6 +12,7 @@ from . import material_channels
 from . import texture_set_settings
 from ..utilities import matlay_utils
 from ..utilities import logging
+from .. import preferences
 
 # Imports for saving / importing mask images.
 import os
@@ -1274,12 +1275,12 @@ class MATLAY_OT_import_mask_image(Operator, ImportHelper):
     def execute(self, context):
         matlay_utils.set_valid_mode()
 
-        # 1. Open a window to allow the user to import an image into blender.
+        # Open a window to allow the user to import an image into blender.
         head_tail = os.path.split(self.filepath)
         image_name = head_tail[1]
         bpy.ops.image.open(filepath=self.filepath)
 
-        # 2. Put the imported mask into the selected mask texture slot (for all material channels).
+        # Put the imported mask into the selected mask texture slot (for all material channels).
         selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
         selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
         for material_channel_name in material_channels.get_material_channel_list():
@@ -1289,8 +1290,26 @@ class MATLAY_OT_import_mask_image(Operator, ImportHelper):
                 if image:
                     mask_texture_node.image = image
 
-        # 3. Set the mask colorspace to non-color data.
+        # Set the mask colorspace to non-color data.
         image.colorspace_settings.name = 'Non-Color'
+
+        # Save the imported image to a folder if user preferences say to do so. This helps with texture organization by keeping externally imported textures next to the saved blend file.
+        addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
+        if addon_preferences.save_imported_textures:
+            matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
+            if os.path.exists(matlay_image_path) == False:
+                os.mkdir(matlay_image_path)
+
+            layer_image_path = os.path.join(matlay_image_path, "Layers")
+            if os.path.exists(layer_image_path) == False:
+                os.mkdir(layer_image_path)
+
+            image = bpy.data.images[image_name]
+            image.filepath = layer_image_path + "/" + image_name + ".png"
+            image.file_format = 'PNG'
+
+            if image:
+                image.save()
 
         matlay_utils.set_valid_material_shading_mode(context)
 

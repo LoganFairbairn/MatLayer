@@ -6,10 +6,6 @@ from bpy.props import StringProperty, BoolProperty
 
 ADDON_NAME = __package__
 
-def get_addon_package_name():
-    '''Returns the add-ons package name (generally used for accessing add-on files with correct file paths).'''
-    return ADDON_NAME
-
 class AddonPreferences(AddonPreferences):
     bl_idname = ADDON_NAME
 
@@ -17,6 +13,12 @@ class AddonPreferences(AddonPreferences):
         name="Save Imported Textures", 
         default=True, 
         description="Saves all imported textures to the 'Layers' folder. This helps provided a constant external folder for saving images used in layers which helps keep your files consistent."
+    )
+
+    auto_delete_unused_images: BoolProperty(
+        name="Delete Unused Images on Export",
+        default=True,
+        description="Deletes all images not used within a layer or mask when textures are exported. This helps avoid unused images taking up memory, but could delete textures you intend to use in extremely rare cases."
     )
 
     layer_texture_folder: StringProperty(
@@ -42,7 +44,8 @@ class AddonPreferences(AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
+        layout.prop(self, "auto_delete_unused_images")
         layout.prop(self, "save_imported_textures")
-        layout.prop(self, "layer_texture_folder")
-        layout.prop(self, "mesh_map_texture_folder")
-        layout.prop(self, "exported_textures_folder")
+        #layout.prop(self, "layer_texture_folder")
+        #layout.prop(self, "mesh_map_texture_folder")
+        #layout.prop(self, "exported_textures_folder")
