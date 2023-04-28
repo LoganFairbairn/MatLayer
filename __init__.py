@@ -48,7 +48,7 @@ from .core.baking import MATLAY_baking_settings, MATLAY_OT_bake, MATLAY_OT_bake_
 from .core.exporting import MATLAY_exporting_settings, MATLAY_OT_export, MATLAY_OT_export_base_color, MATLAY_OT_export_subsurface, MATLAY_OT_export_subsurface_color, MATLAY_OT_export_metallic, MATLAY_OT_export_specular, MATLAY_OT_export_roughness, MATLAY_OT_export_normals, MATLAY_OT_export_height, MATLAY_OT_export_emission
 
 # Import tool / utility modules.
-from .utilities.image_file_handling import MATLAY_OT_add_layer_image, MATLAY_OT_delete_layer_image, MATLAY_OT_import_texture
+from .utilities.image_file_handling import MATLAY_OT_add_layer_image, MATLAY_OT_delete_layer_image, MATLAY_OT_import_texture, MATLAY_OT_import_texture_set
 
 # Import settings.
 from .utilities.matlay_utils import MATLAY_OT_set_decal_layer_snapping, MATLAY_OT_append_workspace, MATLAY_OT_append_basic_brushes, MATLAY_OT_delete_unused_images
@@ -169,6 +169,7 @@ classes = (
     MATLAY_OT_duplicate_layer,
     MATLAY_OT_move_material_layer,
     MATLAY_OT_import_texture,
+    MATLAY_OT_import_texture_set,
     MATLAY_OT_read_layer_nodes,
     MATLAY_OT_add_layer_image,
     MATLAY_OT_delete_layer_image,

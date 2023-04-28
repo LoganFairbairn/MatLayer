@@ -272,6 +272,10 @@ def draw_material_channel_node_properties(column, context):
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
     texture_set_settings = context.scene.matlay_texture_set_settings
 
+    subrow = column.row()
+    subrow.scale_y = SCALE_Y
+    subrow.operator("matlay.import_texture_set", icon='IMPORT')
+
     material_channel_names = material_channels.get_material_channel_list()
     for i in range(0, len(material_channel_names)):
         texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_names[i], selected_layer_index, context)
