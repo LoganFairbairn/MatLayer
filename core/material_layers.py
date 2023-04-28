@@ -232,25 +232,26 @@ def update_layer_projection_mode(self, context):
 
                 if selected_layer_index > -1:
                     # Connect nodes based on projection type.
-                    if layers[selected_layer_index].projection.projection_mode == 'FLAT':
-                        material_channel_node.node_tree.links.new(coord_node.outputs[2], mapping_node.inputs[0])
-                        texture_node.projection = 'FLAT'
+                    match layers[selected_layer_index].projection.projection_mode:
+                        case 'FLAT':
+                            material_channel_node.node_tree.links.new(coord_node.outputs[2], mapping_node.inputs[0])
+                            texture_node.projection = 'FLAT'
 
-                    if layers[selected_layer_index].projection.projection_mode == 'BOX':
-                        material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
-                        texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
-                        if texture_node and texture_node.type == 'TEX_IMAGE':
-                            texture_node.projection = 'BOX'
-                            texture_node.projection_blend = 0.3
-                            self.projection_blend = 0.3
+                        case 'BOX':
+                            material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
+                            texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
+                            if texture_node and texture_node.type == 'TEX_IMAGE':
+                                texture_node.projection = 'BOX'
+                                texture_node.projection_blend = 0.3
+                                self.projection_blend = 0.3
 
-                    if layers[selected_layer_index].projection.projection_mode == 'SPHERE':
-                        material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
-                        texture_node.projection = 'SPHERE'
+                        case 'SPHERE':
+                            material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
+                            texture_node.projection = 'SPHERE'
 
-                    if layers[selected_layer_index].projection.projection_mode == 'TUBE':
-                        material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
-                        texture_node.projection = 'TUBE'
+                        case 'TUBE':
+                            material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
+                            texture_node.projection = 'TUBE'
 
 def update_projection_interpolation(self, context):
     '''Updates the image texture interpolation mode when it's changed.'''
@@ -779,7 +780,7 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
     # Update the layer nodes because they were changed.
     layer_nodes.organize_all_layer_nodes()
     layer_nodes.relink_material_nodes(selected_material_layer_index)
-    layer_masks.relink_mask_nodes()
+    layer_nodes.relink_material_layers()
     
 def update_color_channel_node_type(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties:

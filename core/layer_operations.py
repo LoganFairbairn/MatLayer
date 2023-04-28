@@ -371,6 +371,9 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
         case 'TEX_IMAGE':
             if original_node.image != None:
                 duplicated_node.image = original_node.image
+                duplicated_node.interpolation = original_node.interpolation
+                duplicated_node.projection = original_node.projection
+                duplicated_node.projection_blend = original_node.projection_blend
                 duplicated_node.extension = original_node.extension
         
         case 'GROUP':
@@ -691,8 +694,6 @@ class MATLAY_OT_duplicate_layer(Operator):
                 previously_selected_object.select_set(True)
                 bpy.context.view_layer.objects.active = previously_selected_object
 
-
-
         # Add a new layer slot.
         original_layer_type = layers[original_material_layer_index].type
         add_layer_slot(context, original_layer_type)
@@ -726,7 +727,6 @@ class MATLAY_OT_duplicate_layer(Operator):
             if new_coord_node:
                 new_coord_node.object = new_decal_object
 
-
         layer_nodes.organize_all_layer_nodes()
         layer_nodes.relink_material_nodes(new_material_layer_index)
         layer_nodes.relink_material_layers()
@@ -741,6 +741,9 @@ class MATLAY_OT_duplicate_layer(Operator):
             new_decal_object.select_set(True)
             bpy.context.view_layer.objects.active = new_decal_object
 
+        # Duplicate the projection mode of the previous layer.
+        layers[new_material_layer_index].projection.projection_mode = layers[original_material_layer_index].projection.projection_mode
+        
         matlay_utils.set_valid_material_shading_mode(context)
 
         logging.log("Duplicated layer.")
@@ -956,32 +959,36 @@ def read_texture_node_values(material_channel_list, total_number_of_layers, laye
                     case 'TEX_VORONOI':
                         setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'VORONOI')
 
-def read_layer_projection_values(selected_layer, selected_layer_index, context):
+def read_layer_projection_values(material_layers, context):
     '''Update the projection values in the user interface for the selected layer.'''
-    # Using the color material channel as the projection is the same among all material channels.
+    # Read the projection values from the color material channel because projection values among all material channels should be identical.
     material_channel_name = 'COLOR'
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     if material_channel_node:
-        # Update offset, rotation and scale values.
-        mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, selected_layer_index, context)
-        if mapping_node:
-            selected_layer.projection.projection_offset_x = mapping_node.inputs[1].default_value[0]
-            selected_layer.projection.projection_offset_y = mapping_node.inputs[1].default_value[1]
-            selected_layer.projection.projection_rotation = mapping_node.inputs[2].default_value[2]
-            selected_layer.projection.projection_scale_x = mapping_node.inputs[3].default_value[0]
-            selected_layer.projection.projection_scale_y = mapping_node.inputs[3].default_value[1]
-            if selected_layer.projection.projection_scale_x != selected_layer.projection.projection_scale_y:
-                selected_layer.projection.match_layer_scale = False
+        for i in range(0, len(material_layers)):
+            # Update offset, rotation and scale values.
+            mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, i, context)
+            if mapping_node:
+                material_layers[i].projection.projection_offset_x = mapping_node.inputs[1].default_value[0]
+                material_layers[i].projection.projection_offset_y = mapping_node.inputs[1].default_value[1]
+                material_layers[i].projection.projection_offset_z = mapping_node.inputs[1].default_value[2]
+                material_layers[i].projection.projection_rotation = mapping_node.inputs[2].default_value[2]
+                material_layers[i].projection.projection_scale_x = mapping_node.inputs[3].default_value[0]
+                material_layers[i].projection.projection_scale_y = mapping_node.inputs[3].default_value[1]
+                material_layers[i].projection.projection_scale_z = mapping_node.inputs[3].default_value[2]
+                if material_layers[i].projection.projection_scale_x != material_layers[i].projection.projection_scale_y:
+                    material_layers[i].projection.match_layer_scale = False
 
-        # Update the projection values specific to image texture projection.
-        texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_layer_index, context)
-        if texture_node and texture_node.type == 'TEX_IMAGE':
-            selected_layer.projection.projection_blend = texture_node.projection_blend
-            selected_layer.projection.texture_extension = texture_node.extension
-            selected_layer.projection.texture_interpolation = texture_node.interpolation
-            selected_layer.projection.projection_mode = texture_node.projection
-        else:
-            selected_layer.projection.projection_mode = 'FLAT'
+            # Update the projection values specific to image texture projection.
+            texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, i, context)
+            if texture_node:
+                if texture_node.type == 'TEX_IMAGE':
+                    material_layers[i].projection.projection_blend = texture_node.projection_blend
+                    material_layers[i].projection.texture_extension = texture_node.extension
+                    material_layers[i].projection.texture_interpolation = texture_node.interpolation
+                    material_layers[i].projection.projection_mode = texture_node.projection
+                else:
+                    material_layers[i].projection.projection_mode = 'FLAT'
     else:
         logging.popup_message_box("Missing " + material_channel_name + " group node.", "Material Stack Corrupted", 'ERROR')
 
@@ -1039,14 +1046,12 @@ def read_layer_nodes(context):
     if bpy.context.active_object.type != 'MESH':
         return
     
-    material_stack = context.scene.matlay_layer_stack
-    
     # Remember the selected layer index before clearing the layer stack.
     original_selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
     # Clear the material stack.
-    layers = context.scene.matlay_layers
-    layers.clear()
+    material_layers = context.scene.matlay_layers
+    material_layers.clear()
 
     total_number_of_layers = layer_nodes.get_total_number_of_layers(context)
     material_channel_list = material_channels.get_material_channel_list()
@@ -1063,14 +1068,14 @@ def read_layer_nodes(context):
     context.scene.matlay_layer_stack.auto_update_layer_properties = False
 
     # Read material layer stuff.
-    read_layer_name_and_id(layers, context)
-    read_layer_opacity(total_number_of_layers, layers, selected_material_channel, context)
-    read_decal_layer_properties(material_channel_list, total_number_of_layers, layers, context)
-    read_texture_node_values(material_channel_list, total_number_of_layers, layers, context)
-    read_layer_projection_values(layers[material_stack.layer_index], material_stack.layer_index, context)
+    read_layer_name_and_id(material_layers, context)
+    read_layer_opacity(total_number_of_layers, material_layers, selected_material_channel, context)
+    read_decal_layer_properties(material_channel_list, total_number_of_layers, material_layers, context)
+    read_texture_node_values(material_channel_list, total_number_of_layers, material_layers, context)
+    read_layer_projection_values(material_layers, context)
     read_globally_active_material_channels(context)
-    read_hidden_layers(total_number_of_layers, layers, material_channel_list, context)
-    read_active_layer_material_channels(material_channel_list, total_number_of_layers, layers, context)
+    read_hidden_layers(total_number_of_layers, material_layers, material_channel_list, context)
+    read_active_layer_material_channels(material_channel_list, total_number_of_layers, material_layers, context)
     material_filters.refresh_material_filter_stack(context)
     layer_masks.read_masks(context)
     layer_masks.refresh_mask_filter_stack(context)

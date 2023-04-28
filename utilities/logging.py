@@ -8,7 +8,7 @@ LOG_FUNCTIONS = True
 def log(log_message):
     '''Prints the given message to Blender's console window. This function helps log functions called by this add-on for debugging purposes.'''
     if LOG_FUNCTIONS:
-        print("Matlay Log: {0}".format(log_message))
+        print("Matlay: {0}".format(log_message))
 
 def popup_message_box(message = "", title = "Message Box", icon = 'INFO'):
     def draw_popup_box(self, context):
