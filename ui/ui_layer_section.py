@@ -25,12 +25,13 @@ def draw_layers_section_ui(self, context):
 
         # Layer properties (first column).
         column1 = split.column()
-        if context.active_object.active_material:
-            if matlay_materials.verify_material(context):
-                if material_layers.verify_layer_stack_index(context.scene.matlay_layer_stack.layer_index, context):
-                    draw_layer_properties(column1, context, layout)
-        else:
-            column1.label(text="No active material, add a layer to begin editing.")
+        if bpy.context.active_object.type == 'MESH':
+            if context.active_object.active_material:
+                if matlay_materials.verify_material(context):
+                    if material_layers.verify_layer_stack_index(context.scene.matlay_layer_stack.layer_index, context):
+                        draw_layer_properties(column1, context, layout)
+            else:
+                column1.label(text="No active material, add a layer to begin editing.")
 
         # Layer stack (second column).
         column2 = split.column()
@@ -41,15 +42,19 @@ def draw_layers_section_ui(self, context):
         selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
 
         selected_material_channel_active = get_material_channel_active(context, selected_material_channel)
-        if len(context.scene.matlay_layers) > 0:
-            if selected_material_channel_active:
-                draw_layer_stack(column2, context)
+        if bpy.context.active_object.type == 'MESH':
+            if len(context.scene.matlay_layers) > 0:
+                if selected_material_channel_active:
+                    draw_layer_stack(column2, context)
+                else:
+                    subrow = column2.row(align=True)
+                    subrow.label(text="Selected material channel inactive in texture set.")
             else:
                 subrow = column2.row(align=True)
-                subrow.label(text="Selected material channel inactive in texture set.")
+                subrow.label(text="No layers, add a layer to see the layer stack.")
         else:
             subrow = column2.row(align=True)
-            subrow.label(text="No layers, add a layer to see the layer stack.")
+            subrow.label(text="Select a mesh to be able to edit materials.")
 
     else:
         layout = self.layout
