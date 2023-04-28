@@ -66,7 +66,7 @@ def validate_filter_selected_index():
     material_filters = bpy.context.scene.matlay_material_filters
     selected_material_filter_index = bpy.context.scene.matlay_material_filter_stack.selected_filter_index
 
-    if selected_material_filter_index < len(material_filters) and selected_material_filter_index >= 0:
+    if selected_material_filter_index > (len(material_filters) - 1) or selected_material_filter_index < 0:
         if len(material_filters) > 0:
             bpy.context.scene.matlay_material_filter_stack.selected_filter_index = 0
             return True

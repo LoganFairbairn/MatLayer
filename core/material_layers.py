@@ -91,7 +91,7 @@ def validate_selected_material_layer_index():
     material_layers = bpy.context.scene.matlay_layers
     selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
 
-    if selected_material_layer_index < len(material_layers) and selected_material_layer_index >= 0:
+    if selected_material_layer_index > (len(material_layers) - 1) or selected_material_layer_index < 0:
         if len(material_layers) > 0:
             bpy.context.scene.matlay_layer_stack.layer_index = 0
             return True
