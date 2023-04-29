@@ -30,6 +30,8 @@ material_channel_id_words = {
     "emit": 'EMISSION',
     "normal": 'NORMAL',
     "nor": 'NORMAL',
+    "ngl": 'NORMAL',
+    "ndx": 'NORMAL',
     "height": 'HEIGHT',
     "bump": 'HEIGHT'
 }
@@ -61,6 +63,12 @@ def set_image_colorspace(image, material_channel_name):
 
         case 'SCATTERING':
             image.colorspace_settings.name = 'sRGB'
+
+def check_for_directx(filename):
+    if "NormalDX" in filename or "NDX" in filename:
+        return True
+    else:
+        return False
 
 class MATLAY_OT_add_layer_image(Operator):
     bl_idname = "matlay.add_layer_image"
@@ -176,6 +184,10 @@ class MATLAY_OT_import_texture(Operator, ImportHelper):
         # For specific material channels, imported textures automatically have their color space corrected.
         set_image_colorspace(image, self.material_channel_name)
 
+        # Print information about using DirectX normal maps for users if it's detected they are using one.
+        if check_for_directx(image_name) and self.material_channel_name == 'NORMAL':
+            self.report({'INFO'}, "You may have imported a DirectX normal map which will cause your imported normal map to appear inverted. You should use an OpenGL normal map instead or fix the textures name if it's already an OpenGL normal map.")
+
         return {'FINISHED'}
 
 class MATLAY_OT_import_texture_set(Operator, ImportHelper):
@@ -250,6 +262,10 @@ class MATLAY_OT_import_texture_set(Operator, ImportHelper):
 
             # Update the imported images colorspace based on it's specified material channel.
             set_image_colorspace(imported_image, material_channel_name)
+
+            # Print information about using DirectX normal maps for users if it's detected they are using one.
+            if check_for_directx(file.name):
+                self.report({'INFO'}, "You may have imported a DirectX normal map which will cause your imported normal map to appear inverted. You should use an OpenGL normal map instead or fix the textures name if it's already an OpenGL normal map.")
 
         return {'FINISHED'}
 
