@@ -1323,14 +1323,14 @@ MASK_FILTER_NAME = "MASK-FILTER"
 def validate_selected_mask_filter_index():
     '''Validates that the selected mask filter index is within a valid range. This should be used as a safety check to avoid running operators that require a valid index.'''
     mask_filters = bpy.context.scene.matlay_mask_filters
-    selected_mask_filter_index = bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_stack
+    selected_mask_filter_index = bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_index
     
     if selected_mask_filter_index > (len(mask_filters) - 1) and selected_mask_filter_index < 0:
         if len(mask_filters) > 0:
-            bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_stack = 0
+            bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_index = 0
             return True
         else:
-            bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_stack = -1
+            bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_index = -1
             return False
     return True
 
