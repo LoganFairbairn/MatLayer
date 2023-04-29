@@ -21,7 +21,7 @@ material_channel_id_words = {
     "subsurf": 'SUBSURFACE',
     "ss": 'SUBSURFACE',
     "metallic": 'METALLIC',
-    "metal": 'METAL',
+    "metal": 'METALLIC',
     "specular": 'SPECULAR',
     "spec": 'SPECULAR',
     "roughness": 'ROUGHNESS',
