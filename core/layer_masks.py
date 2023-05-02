@@ -1385,6 +1385,7 @@ class MATLAY_OT_import_mask_image(Operator, ImportHelper):
         image.colorspace_settings.name = 'Non-Color'
 
         # Save the imported image to a folder if user preferences say to do so. This helps with texture organization by keeping externally imported textures next to the saved blend file.
+        '''
         addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
         if addon_preferences.save_imported_textures:
             matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
@@ -1401,6 +1402,7 @@ class MATLAY_OT_import_mask_image(Operator, ImportHelper):
 
             if image:
                 image.save()
+        '''
 
         matlay_utils.set_valid_material_shading_mode(context)
 
