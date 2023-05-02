@@ -14,8 +14,9 @@ from ..utilities import matlay_utils
 import random
 import os
 
-def add_layer_slot(context, layer_type='MATERIAL'):
+def add_layer_slot(layer_type):
     '''Creates a layer slot.'''
+    context = bpy.context
     layers = context.scene.matlay_layers
     layer_stack = context.scene.matlay_layer_stack
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
@@ -68,22 +69,11 @@ def add_layer_slot(context, layer_type='MATERIAL'):
                 id_exists = False
                 layers[selected_layer_index].id = new_id
 
-def add_material_layer(type, context):
-    '''Adds a material layer setup based on the provided type. Valid types include: 'MATERIAL', 'PAINT' '''
+def add_default_layer_nodes(layer_type, decal_object):
+    '''Adds default nodes based on the provided layer type.'''
+    context = bpy.context
+    new_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
 
-    # Validate and prepare the material for the selected object.
-    matlay_utils.set_valid_mode()
-    if not matlay_materials.prepare_material(context):
-        return
-    material_channels.create_channel_group_nodes(context)
-    material_channels.create_empty_group_node(context)
-
-    # Add a new layer slot for the new layer.
-    add_layer_slot(context)
-    new_layer_index = context.scene.matlay_layer_stack.layer_index
-    layers = context.scene.matlay_layers
-
-    # Add new nodes with default values based on the provided type.
     material_channel_list = material_channels.get_material_channel_list()
     for i in range(0, len(material_channel_list)):
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_list[i])
@@ -94,8 +84,9 @@ def add_material_layer(type, context):
 
         texture_node = None
         if material_channel_list[i] == "COLOR":
-            if type == 'PAINT':
+            if layer_type == 'PAINT' or layer_type == 'DECAL':
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexImage')
+                texture_node.extension = 'CLIP'
             else:
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.25, 0.25, 0.25, 1.0)
@@ -119,7 +110,6 @@ def add_material_layer(type, context):
         if material_channel_list[i] == "ROUGHNESS":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
             texture_node.outputs[0].default_value = 0.5
-            layers[new_layer_index].roughness_layer_color_preview = (0.5, 0.5, 0.5)
 
         if material_channel_list[i] == "NORMAL":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
@@ -159,11 +149,15 @@ def add_material_layer(type, context):
         coord_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexCoord')
         coord_node.name = layer_nodes.format_material_node_name("COORD", new_layer_index, True)
         coord_node.label = coord_node.name
+        if layer_type == 'DECAL':
+            coord_node.object = decal_object
         new_nodes.append(coord_node)
 
         mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
         mapping_node.name = layer_nodes.format_material_node_name("MAPPING", new_layer_index, True)
         mapping_node.label = mapping_node.name
+        if layer_type == 'DECAL':
+            mapping_node.inputs[1].default_value = (0.5, 0.5, 0.0)
         new_nodes.append(mapping_node)
 
         # Frame nodes.
@@ -173,48 +167,56 @@ def add_material_layer(type, context):
         for n in new_nodes:
             n.parent = frame
 
-    # Re-index, organize and relink nodes.
-    layer_nodes.reindex_material_layer_nodes()
-    layer_nodes.organize_all_layer_nodes()
-    layer_nodes.relink_material_nodes(new_layer_index)
-    layer_nodes.relink_material_layers()
+def set_default_layer_properties(layer_type):
+    '''Sets default layer properties based on the provided layer type.'''
+    context = bpy.context
+    new_layer = context.scene.matlay_layers[context.scene.matlay_layer_stack.layer_index]
 
-    # Adjust layer properties based on provided type.
-    if type == 'PAINT':
-        context.scene.matlay_layer_stack.auto_update_layer_properties = False
-        layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE", context)
-        layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE_COLOR", context)
-        layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "METALLIC", context)
-        layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SPECULAR", context)
-        layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "ROUGHNESS", context)
-        layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "EMISSION", context)
-        layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "NORMAL", context)
-        layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "HEIGHT", context)
+    match layer_type:
+        case 'FILL':
+            new_layer.type = layer_type
 
-        new_layer = context.scene.matlay_layers[context.scene.matlay_layer_stack.layer_index]
-        new_layer.material_channel_toggles.subsurface_channel_toggle = False
-        new_layer.material_channel_toggles.subsurface_color_channel_toggle = False
-        new_layer.material_channel_toggles.metallic_channel_toggle = False
-        new_layer.material_channel_toggles.specular_channel_toggle = False
-        new_layer.material_channel_toggles.roughness_channel_toggle = False
-        new_layer.material_channel_toggles.emission_channel_toggle = False
-        new_layer.material_channel_toggles.normal_channel_toggle = False
-        new_layer.material_channel_toggles.height_channel_toggle = False
+        case 'PAINT':
+            new_layer.type = 'FILL'
 
-        new_layer.channel_node_types.color_node_type = 'TEXTURE'
+            context.scene.matlay_layer_stack.auto_update_layer_properties = False
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE_COLOR", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "METALLIC", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SPECULAR", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "ROUGHNESS", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "EMISSION", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "NORMAL", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "HEIGHT", context)
 
-        context.scene.matlay_layer_stack.auto_update_layer_properties = True
+            new_layer.material_channel_toggles.subsurface_channel_toggle = False
+            new_layer.material_channel_toggles.subsurface_color_channel_toggle = False
+            new_layer.material_channel_toggles.metallic_channel_toggle = False
+            new_layer.material_channel_toggles.specular_channel_toggle = False
+            new_layer.material_channel_toggles.roughness_channel_toggle = False
+            new_layer.material_channel_toggles.emission_channel_toggle = False
+            new_layer.material_channel_toggles.normal_channel_toggle = False
+            new_layer.material_channel_toggles.height_channel_toggle = False
 
-        # Add a new layer image for the paint layer.
-        bpy.ops.matlay.add_layer_image(material_channel_name='COLOR')
+            new_layer.channel_node_types.color_node_type = 'TEXTURE'
 
-    # Set a valid material shading mode and reset ui tabs.
-    matlay_utils.set_valid_material_shading_mode(context)
-    context.scene.matlay_layer_stack.layer_property_tab = 'MATERIAL'
-    context.scene.matlay_layer_stack.material_property_tab = 'MATERIAL'
+            context.scene.matlay_layer_stack.auto_update_layer_properties = True
 
-def add_decal_layer(context):
-    '''Adds a decal layer node setup.'''
+            # Add a new layer image for the paint layer.
+            bpy.ops.matlay.add_layer_image(material_channel_name='COLOR')
+
+        case 'DECAL':
+            new_layer.type = layer_type
+
+            context.scene.matlay_layer_stack.auto_update_layer_properties = False
+
+            new_layer.channel_node_types.color_node_type = 'TEXTURE'
+
+            context.scene.matlay_layer_stack.auto_update_layer_properties = True
+
+def add_layer(layer_type, decal_object=None):
+    '''Adds a material layer setup based on the provided layer type.'''
+    context = bpy.context
 
     # Validate and prepare the material for the selected object.
     matlay_utils.set_valid_mode()
@@ -223,132 +225,20 @@ def add_decal_layer(context):
     material_channels.create_channel_group_nodes(context)
     material_channels.create_empty_group_node(context)
 
-    # Add a new layer slot for the new layer.
-    add_layer_slot(context, 'DECAL')
-    new_layer_index = context.scene.matlay_layer_stack.layer_index
-
-    # Add decal object (which allows the user to drag the decal around on the object).
-    previously_selected_object = bpy.context.active_object
-    bpy.ops.object.select_all(action='DESELECT')
-    bpy.ops.object.empty_add(type='CUBE', align='WORLD', location=(0, 0, 0), scale=(1, 1, 0.2))
-    decal_object = bpy.context.active_object
-    decal_object.scale = (1.0, 1.0, 0.2)
-    bpy.context.active_object.select_set(False)
-    previously_selected_object.select_set(True)
-    bpy.context.view_layer.objects.active = previously_selected_object
-
-    # Add new nodes for all material channels.
-    material_channel_list = material_channels.get_material_channel_list()
-    for i in range(0, len(material_channel_list)):
-        material_channel_node = material_channels.get_material_channel_node(context, material_channel_list[i])
-        if material_channels.verify_material_channel(material_channel_node):
-
-            new_nodes = []
-            texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexImage')
-            texture_node.name = layer_nodes.format_material_node_name("TEXTURE", new_layer_index) + "~"
-            texture_node.label = texture_node.name
-            texture_node.extension = 'CLIP'
-            new_nodes.append(texture_node)
-
-            opacity_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMath')
-            opacity_node.name = layer_nodes.format_material_node_name("OPACITY", new_layer_index) + "~"
-            opacity_node.label = opacity_node.name
-            opacity_node.inputs[0].default_value = 1.0
-            opacity_node.inputs[1].default_value = 1.0
-            opacity_node.use_clamp = True
-            opacity_node.operation = 'MULTIPLY'
-            new_nodes.append(opacity_node)
-
-            mix_layer_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMixRGB')
-            mix_layer_node.name = layer_nodes.format_material_node_name("MIXLAYER", new_layer_index, True)
-            mix_layer_node.label = mix_layer_node.name
-            mix_layer_node.inputs[1].default_value = (0.0, 0.0, 0.0, 1.0)
-            mix_layer_node.inputs[2].default_value = (0.0, 0.0, 0.0, 1.0)
-            mix_layer_node.use_clamp = True
-            new_nodes.append(mix_layer_node)
-
-            coord_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexCoord')
-            coord_node.name = layer_nodes.format_material_node_name("COORD", new_layer_index, True)
-            coord_node.label = coord_node.name
-            coord_node.object = decal_object
-            new_nodes.append(coord_node)
-
-            mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
-            mapping_node.name = layer_nodes.format_material_node_name("MAPPING", new_layer_index, True)
-            mapping_node.label = mapping_node.name
-            mapping_node.inputs[1].default_value = (0.5, 0.5, 0.0)
-            new_nodes.append(mapping_node)
-
-            decal_mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
-            decal_mapping_node.name = layer_nodes.format_material_node_name("DECALMAPPING", new_layer_index, True)
-            decal_mapping_node.label = decal_mapping_node.name
-            decal_mapping_node.inputs[2].default_value = (0.0, 90.0, 180.0)
-            new_nodes.append(decal_mapping_node)
-
-            decal_mask_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexGradient')
-            decal_mask_node.name = layer_nodes.format_material_node_name("DECALMASK", new_layer_index, True)
-            decal_mask_node.label = decal_mask_node.name
-            decal_mask_node.gradient_type = 'LINEAR'
-            new_nodes.append(decal_mask_node)
-
-            decal_mask_adjustment_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValToRGB')
-            decal_mask_adjustment_node.name = layer_nodes.format_material_node_name("DECALMASKADJUSTMENT", new_layer_index, True)
-            decal_mask_adjustment_node.label = decal_mask_adjustment_node.name
-            decal_mask_adjustment_node.color_ramp.elements[0].position = 0.75
-            decal_mask_adjustment_node.color_ramp.elements[0].color = (1.0, 1.0, 1.0, 1.0)
-            decal_mask_adjustment_node.color_ramp.elements[1].position = 1.0
-            decal_mask_adjustment_node.color_ramp.elements[1].color = (0.0, 0.0, 0.0, 1.0)
-
-            decal_mask_mix_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMath')
-            decal_mask_mix_node.name = layer_nodes.format_material_node_name("DECALMASKMIX", new_layer_index, True)
-            decal_mask_mix_node.label = decal_mask_mix_node.name
-            decal_mask_mix_node.inputs[0].default_value = 1.0
-            decal_mask_mix_node.inputs[0].default_value = 1.0
-            decal_mask_mix_node.use_clamp = True
-            decal_mask_mix_node.operation = 'MULTIPLY'
-            new_nodes.append(decal_mask_mix_node)
-
-            # Frame layer nodes.
-            frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
-            frame.name = layer_nodes.get_layer_frame_name(new_layer_index, True)
-            frame.label = frame.name
-            for n in new_nodes:
-                n.parent = frame
-        
-    # Re-index, organize and relink layer nodes.
-    new_layer = context.scene.matlay_layers[context.scene.matlay_layer_stack.layer_index]
-    new_layer.type = 'DECAL'
+    # Add a new layer slot and default nodes.
+    add_layer_slot(layer_type)
+    add_default_layer_nodes(layer_type, decal_object)
+    
+    # Re-index, organize and relink nodes.
     layer_nodes.reindex_material_layer_nodes()
     layer_nodes.organize_all_layer_nodes()
-    layer_nodes.relink_material_nodes(new_layer_index)
+    layer_nodes.relink_material_nodes(context.scene.matlay_layer_stack.layer_index)
     layer_nodes.relink_material_layers()
 
-    # Adjust new layer properties.
-    context.scene.matlay_layer_stack.auto_update_layer_properties = False
-    layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE", context)
-    layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE_COLOR", context)
-    layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "METALLIC", context)
-    layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SPECULAR", context)
-    layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "ROUGHNESS", context)
-    layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "EMISSION", context)
-    layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "NORMAL", context)
-    layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "HEIGHT", context)
-    new_layer.material_channel_toggles.subsurface_channel_toggle = False
-    new_layer.material_channel_toggles.subsurface_color_channel_toggle = False
-    new_layer.material_channel_toggles.metallic_channel_toggle = False
-    new_layer.material_channel_toggles.specular_channel_toggle = False
-    new_layer.material_channel_toggles.roughness_channel_toggle = False
-    new_layer.material_channel_toggles.emission_channel_toggle = False
-    new_layer.material_channel_toggles.normal_channel_toggle = False
-    new_layer.material_channel_toggles.height_channel_toggle = False
-    new_layer.channel_node_types.color_node_type = 'TEXTURE'
-    context.scene.matlay_layer_stack.auto_update_layer_properties = True
+    # Set default layer properties.
+    set_default_layer_properties(layer_type)    
 
-    # Re-select the decal object so users can adjust it.
-    bpy.ops.object.select_all(action='DESELECT')
-    decal_object.select_set(True)
-
-    # Set a valid shading mode and ui tabs.
+    # Set a valid material shading mode and reset ui tabs.
     matlay_utils.set_valid_material_shading_mode(context)
     context.scene.matlay_layer_stack.layer_property_tab = 'MATERIAL'
     context.scene.matlay_layer_stack.material_property_tab = 'MATERIAL'
@@ -413,40 +303,56 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
     return duplicated_node
 
 class MATLAY_OT_add_decal_layer(Operator):
-    '''Opens a window from which you can choose an image to use as a decal (similar to a sticker) and adds it to the scene.'''
     bl_idname = "matlay.add_decal_layer"
     bl_label = "Add Decal Layer"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Opens a window from which you can choose an image to use as a decal (similar to a sticker) and adds it to the scene"
 
     def execute(self, context):
-        add_decal_layer(context)
+
+        # Add decal object (which allows the user to drag the decal around on the object).
+        matlay_utils.set_valid_mode()
+        previously_selected_object = bpy.context.active_object
+        bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.empty_add(type='CUBE', align='WORLD', location=(0, 0, 0), scale=(1, 1, 0.2))
+        decal_object = bpy.context.active_object
+        decal_object.scale = (1.0, 1.0, 0.2)
+        bpy.context.active_object.select_set(False)
+        previously_selected_object.select_set(True)
+        bpy.context.view_layer.objects.active = previously_selected_object
+
+        add_layer('DECAL', decal_object)
+
+        # Automatically add a mask for the decal set to use alpha.
+        layer_masks.add_mask('DECAL', use_alpha=True)
+
+        # Re-select the decal object so users can adjust it.
+        bpy.ops.object.select_all(action='DESELECT')
+        decal_object.select_set(True)
+
         return {'FINISHED'}
 
 class MATLAY_OT_add_material_layer(Operator):
-    '''Adds a layer with a full material'''
     bl_idname = "matlay.add_material_layer"
     bl_label = "Add Material Layer"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Adds a layer with a full material"
 
     def execute(self, context):
-        add_material_layer('MATERIAL', context)
+        add_layer('MATERIAL')
         return {'FINISHED'}
 
 class MATLAY_OT_add_paint_layer(Operator):
-    '''Add a material layer with all material channels turned off, excluding color, and creates a new image texture for the color material channel. Use this operator to add layers you intend to manually paint onto'''
     bl_idname = "matlay.add_paint_layer"
     bl_label = "Add Paint Layer"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Add a material layer with all material channels turned off, excluding color, and creates a new image texture for the color material channel. Use this operator to add layers you intend to manually paint onto"
 
     def execute(self, context):
-        add_material_layer('PAINT', context)
+        add_layer('PAINT')
         return {'FINISHED'}
 
 class MATLAY_OT_add_layer_menu(Operator):
-    '''Opens a menu of options to add a layer in different methods.'''
     bl_label = ""
     bl_idname = "matlay.add_layer_menu"
     bl_description = "Opens a menu of options to add a layer in different methods"
@@ -470,7 +376,6 @@ class MATLAY_OT_add_layer_menu(Operator):
         col.operator("matlay.add_decal_layer", text="Add Decal", icon='OUTLINER_OB_FONT')
 
 class MATLAY_OT_move_material_layer(Operator):
-    """Moves the selected material layer on the layer stack."""
     bl_idname = "matlay.move_material_layer"
     bl_label = "Move Layer"
     bl_options = {'REGISTER', 'UNDO'}
@@ -607,7 +512,6 @@ class MATLAY_OT_move_material_layer(Operator):
         return{'FINISHED'}
 
 class MATLAY_OT_delete_layer(Operator):
-    '''Deletes the selected layer from the layer stack.'''
     bl_idname = "matlay.delete_layer"
     bl_label = "Delete Layer"
     bl_options = {'REGISTER', 'UNDO'}
@@ -667,7 +571,6 @@ class MATLAY_OT_delete_layer(Operator):
         return {'FINISHED'}
 
 class MATLAY_OT_duplicate_layer(Operator):
-    """Duplicates the selected layer."""
     bl_idname = "matlay.duplicate_layer"
     bl_label = "Duplicate Layer"
     bl_options = {'REGISTER', 'UNDO'}
@@ -704,7 +607,7 @@ class MATLAY_OT_duplicate_layer(Operator):
 
         # Add a new layer slot.
         original_layer_type = layers[original_material_layer_index].type
-        add_layer_slot(context, original_layer_type)
+        add_layer_slot(original_layer_type)
         new_material_layer_index = context.scene.matlay_layer_stack.layer_index
 
         # Copy the name of the previous layer.
@@ -758,7 +661,6 @@ class MATLAY_OT_duplicate_layer(Operator):
         return{'FINISHED'}
 
 class MATLAY_OT_edit_uvs_externally(Operator):
-    """Exports the selected object's UV layout to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor)."""
     bl_idname = "matlay.edit_uvs_externally"
     bl_label = "Edit UVs Externally"
     bl_description = "Exports the selected object's UV layout to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor)"
@@ -816,7 +718,6 @@ class MATLAY_OT_edit_uvs_externally(Operator):
         return{'FINISHED'}
 
 class MATLAY_OT_edit_image_externally(Operator):
-    '''Exports the selected image to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor).'''
     bl_idname = "matlay.edit_image_externally"
     bl_label = "Edit Image Externally"
     bl_description = "Exports the selected image to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor)"
@@ -875,10 +776,9 @@ class MATLAY_OT_edit_image_externally(Operator):
         return {'FINISHED'}
 
 class MATLAY_OT_reload_image(Operator):
-    """Reloads the selected image from the disk."""
     bl_idname = "matlay.reload_image"
     bl_label = "Reload Image"
-    bl_description = "Reloads the selected image from the disk."
+    bl_description = "Reloads the selected image from the disk"
 
     reload_mask: bpy.props.BoolProperty(default=False)
     material_channel_name: bpy.props.StringProperty(default='COLOR')
@@ -949,7 +849,7 @@ def read_decal_layer_properties(material_channel_list, total_number_of_layers, l
                     layers[i].decal_object = coord_node.object
 
                 else:
-                    layers[i].type = 'MATERIAL'
+                    layers[i].type = 'FILL'
 
 def read_texture_node_values(material_channel_list, total_number_of_layers, layers, context):
     '''Updates texture node values stored in layers by reading the material node trees.'''
@@ -1105,7 +1005,7 @@ def read_layer_nodes(context):
     read_hidden_layers(total_number_of_layers, material_layers, material_channel_list, context)
     read_active_layer_material_channels(material_channel_list, total_number_of_layers, material_layers, context)
     material_filters.refresh_material_filter_stack(context)
-    layer_masks.read_masks(context)
+    layer_masks.read_mask_nodes(context)
     layer_masks.refresh_mask_filter_stack(context)
     layer_nodes.organize_all_layer_nodes()
 

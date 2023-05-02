@@ -119,15 +119,18 @@ def draw_divider(column):
     subrow.label(text="----------------------------------------------------------------------------------------")
 
 def draw_layer_utility_buttons(column, context):
+    '''Draws buttons with helpful utility functions for the selected layer.'''
     material_layers = context.scene.matlay_layers
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
 
+    column.label(text="LAYER UTILITY FUNCTIONS")
+    subrow = column.row(align=True)
+    subrow.scale_y = 1.4
+    subrow.operator("matlay.import_texture_set", icon='MATERIAL')
+    
     if material_layers[selected_material_layer_index].type == 'DECAL':
-        column.label(text="LAYER UTILITIES")
-        subrow = column.row()
-        subrow.scale_y = 1.4
-        subrow.operator("matlay.set_decal_layer_snapping", icon='SNAP_ON')
-        draw_divider(column)
+        subrow.operator("matlay.set_decal_layer_snapping", icon='SNAP_ON', text="Decal Snapping")
+    draw_divider(column)
 
 def draw_layer_material_channel_toggles(column, context):
     '''Draws options to quickly toggle material channels on and off.'''
@@ -271,10 +274,6 @@ def draw_material_channel_node_properties(column, context):
     layers = context.scene.matlay_layers
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
     texture_set_settings = context.scene.matlay_texture_set_settings
-
-    subrow = column.row()
-    subrow.scale_y = SCALE_Y
-    subrow.operator("matlay.import_texture_set", icon='IMPORT')
 
     material_channel_names = material_channels.get_material_channel_list()
     for i in range(0, len(material_channel_names)):
@@ -488,17 +487,18 @@ def draw_mask_node_properties(column):
             case 'TEX_IMAGE':
                 selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
                 masks = bpy.context.scene.matlay_masks
+
                 subrow.prop(masks[selected_mask_index], 'mask_image', text="")
 
                 # Draw buttons to add / import / delete image masks quickly.
                 subrow.operator("matlay.add_mask_image", icon="ADD", text="")
                 subrow.operator("matlay.import_mask_image", icon="IMPORT", text="")
                 export_image_operator = subrow.operator("matlay.edit_image_externally", icon="TPAINT_HLT", text="")
+                export_image_operator.image_type = 'MASK'
                 reload_image_operator = subrow.operator("matlay.reload_image", icon="FILE_REFRESH", text="")
                 reload_image_operator.reload_mask = True
+                subrow.prop(masks[selected_mask_index], 'use_alpha', icon='IMAGE_ALPHA', icon_only=True, toggle=True)
                 subrow.operator("matlay.delete_mask_image", icon="TRASH", text="")
-
-                export_image_operator.image_type = 'MASK'
 
             case 'GROUP':
                 subrow = column.row(align=True)
@@ -566,14 +566,17 @@ def draw_mask_node_properties(column):
                 subrow.prop(mask_node.inputs[7], "default_value", text="Gain", slider=True)
 
 def draw_mask_projection_settings(column):
+    selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
     selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
     masks = bpy.context.scene.matlay_masks
 
-    subrow = column.row(align=True)
-    subrow.scale_y = 1.4
-    row = column.row()
-    row.scale_y = SCALE_Y
-    row.prop(masks[selected_mask_index].projection, "projection_mode", text="Projection")
+    # Decal layers can't swap their projection modes, don't draw this option in the user interface.
+    if not layer_nodes.check_decal_layer(selected_material_layer_index):
+        subrow = column.row(align=True)
+        subrow.scale_y = 1.4
+        row = column.row()
+        row.scale_y = SCALE_Y
+        row.prop(masks[selected_mask_index].projection, "projection_mode", text="Projection")
 
     row = column.row()
     row.scale_y = SCALE_Y
@@ -687,6 +690,7 @@ def draw_mask_properties(column):
 def draw_layer_properties(column, context, layout):
     '''Draws material and mask properties for the selected layer based on the selected tab.'''
     layer_property_tab = context.scene.matlay_layer_stack.layer_property_tab
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
 
     subrow = column.row(align=True)
     subrow.scale_y = 1.4
@@ -699,13 +703,13 @@ def draw_layer_properties(column, context, layout):
             subrow = column.row(align=True)
             subrow.scale_y = 1.4
             subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'MATERIAL', text="Material")
-            subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'PROJECTION', text="Projection")
+            if not layer_nodes.check_decal_layer(selected_material_layer_index):
+                subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'PROJECTION', text="Projection")
             subrow.prop_enum(context.scene.matlay_layer_stack, "material_property_tab", 'FILTERS', text="Filters")
             subrow = column.column()
             subrow.separator()
             
-            selected_layer_index = context.scene.matlay_layer_stack.layer_index
-            if material_layers.validate_material_layer_stack_index(selected_layer_index, context):
+            if material_layers.validate_material_layer_stack_index(selected_material_layer_index, context):
                 material_property_tab = context.scene.matlay_layer_stack.material_property_tab
                 match material_property_tab:
                     case 'MATERIAL':

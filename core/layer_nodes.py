@@ -11,7 +11,7 @@ NODE_WIDTH = 300
 NODE_SPACING = 50
 
 # Set of node names.
-LAYER_NODE_NAMES = ("TEXTURE", "OPACITY", "COORD", "MAPPING", "DECALMASK", "DECALMAPPING", "DECALMASKMIX", "DECALMASKADJUSTMENT", "MIXLAYER")
+LAYER_NODE_NAMES = ("TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER")
 
 def organize_material_channel_nodes(context):
     '''Organizes all material channel group nodes.'''
@@ -154,7 +154,6 @@ def relink_material_layers():
 
 def relink_material_nodes(material_layer_index):
     '''Relinks all material and filter nodes for the specified material layer index.'''
-    material_layers = bpy.context.scene.matlay_layers
 
     # Identify if the layer is a decal layer by checking for a valid object in the coord node.
     decal_layer = False
@@ -173,11 +172,6 @@ def relink_material_nodes(material_layer_index):
         coord_node = get_layer_node('COORD', material_channel_name, material_layer_index, bpy.context)
         mapping_node = get_layer_node('MAPPING', material_channel_name, material_layer_index, bpy.context)
         mix_layer_node = get_layer_node('MIXLAYER', material_channel_name, material_layer_index, bpy.context)
-        if decal_layer:
-            decal_mask_node = get_layer_node('DECALMASK', material_channel_name, material_layer_index, bpy.context)
-            decal_mapping_node = get_layer_node('DECALMAPPING', material_channel_name, material_layer_index, bpy.context)
-            decal_mask_adjustment_node = get_layer_node('DECALMASKADJUSTMENT', material_channel_name, material_layer_index, bpy.context)
-            decal_mask_mix_node = get_layer_node('DECALMASKMIX', material_channel_name, material_layer_index, bpy.context)
 
         # Unlink all material nodes.
         material_layer_nodes = get_all_material_layer_nodes(material_channel_name, material_layer_index, bpy.context)
@@ -187,25 +181,15 @@ def relink_material_nodes(material_layer_index):
                     material_channel_node.node_tree.links.remove(link)
 
         # If the coord node has a valid object, assume it's a decal layer and connect it as such.
-        if decal_layer:
+        if check_decal_layer(material_layer_index):
             link_nodes(coord_node.outputs[3], mapping_node.inputs[0])
-            link_nodes(mapping_node.outputs[0], texture_node.inputs[0])
-            link_nodes(texture_node.outputs[0], mix_layer_node.inputs[2])
-            link_nodes(texture_node.outputs[1], decal_mask_mix_node.inputs[1])
-
-            link_nodes(coord_node.outputs[3], decal_mapping_node.inputs[0])
-            link_nodes(decal_mapping_node.outputs[0], decal_mask_node.inputs[0])
-            link_nodes(decal_mask_node.outputs[0], decal_mask_adjustment_node.inputs[0])
-            link_nodes(decal_mask_adjustment_node.outputs[0], decal_mask_mix_node.inputs[0])
-            link_nodes(decal_mask_mix_node.outputs[0], opacity_node.inputs[0])
-            link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
-
         else:
             link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
-            link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
-            if texture_node.bl_static_type == 'TEX_IMAGE':
-                link_nodes(mapping_node.outputs[0], texture_node.inputs[0])
-                link_nodes(texture_node.outputs[1], opacity_node.inputs[0])
+
+        link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
+        if texture_node.bl_static_type == 'TEX_IMAGE':
+            link_nodes(mapping_node.outputs[0], texture_node.inputs[0])
+            link_nodes(texture_node.outputs[1], opacity_node.inputs[0])
         
         # Relink material filter nodes with other material filter nodes.
         material_filters.relink_material_filter_nodes()
@@ -239,6 +223,8 @@ def mute_layer_material_channel(mute, layer_stack_index, material_channel_name, 
 
     matlay_utils.set_valid_material_shading_mode(context)
 
+
+
 #----------------------------- MATERIAL LAYER NODE FUNCTIONS -----------------------------#
 
 # TODO: Move to material_layers.py
@@ -254,7 +240,7 @@ def format_material_node_name(node_name, material_layer_index, get_edited=False)
     return node_name
 
 def get_layer_node(node_name, material_channel_name, layer_index, context, get_edited=False):
-    '''Gets a specific layer node using a given name. Valid options include "TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER", "DECALMASK", "DECALMAPPING", "DECALMASKADJUSTMENT", "DECALMASKMIX" '''
+    '''Gets a specific layer node using a given name. Valid options include "TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER" '''
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     if material_channel_node:
         if node_name in LAYER_NODE_NAMES:
@@ -356,7 +342,7 @@ def reindex_material_layer_nodes():
 
                 # Re-index the layer frame.
                 frame_name = layers[index].name + "_" + str(layers[index].id) + "_" + str(index - 1)
-                frame = material_channel_node.node_tree.nodes.get(layers[index].name + "_" + str(layers[index].id) + "_" + str(index - 1))
+                frame = material_channel_node.node_tree.nodes.get(frame_name)
                 frame.name = layers[index].name + "_" + str(layers[index].id) + "_" + str(index)
                 frame.label = frame.name
                 layers[index].cached_frame_name = frame.name
@@ -443,6 +429,14 @@ def reindex_material_layer_nodes():
                     node.name = layer_masks.format_mask_filter_node_name(index - 1, node_info[2], node_info[3], False)
                     node.label = node.name
 
+def check_decal_layer(material_layer_index):
+    '''Checks if the material layer at the provided material layer index is a decal layer.'''
+    # Check if the material layer is a decal layer by checking if there is an object within the coord node of the layer.
+    coord_node = get_layer_node('COORD', 'COLOR', material_layer_index, bpy.context)
+    if coord_node:
+        if coord_node.object != None:
+            return True
+    return False
 
 #----------------------------- LAYER FRAME FUNCTIONS -----------------------------#
 

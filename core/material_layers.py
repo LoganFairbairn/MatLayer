@@ -53,6 +53,11 @@ MATERIAL_CHANNELS = [
     ("HEIGHT", "Height", "")
     ]
 
+MATERIAL_LAYER_TYPES = [
+    ("FILL", "Fill", "A layer that fills the entier object with a material."), 
+    ("DECAL", "Decal", "A material projected onto the model using a decal object (empty) which allows users to dynamically position textures.")
+]
+
 def update_selected_material_channel(self, context):
     '''Updates values when the selected material channel is updated.'''
     layers = context.scene.matlay_layers
@@ -83,7 +88,7 @@ def update_layer_index(self, context):
                 context.scene.tool_settings.image_paint.canvas = texture_node.image
 
     material_filters.refresh_material_filter_stack(context)
-    layer_masks.read_masks(context)
+    layer_masks.read_mask_nodes(context)
 
 def validate_selected_material_layer_index():
     '''Validates that the selected material filter index is within a valid range. This should be used as a safety check to avoid running operators that require a valid index.'''
@@ -916,14 +921,14 @@ class MaterialChannelUniformValues(PropertyGroup):
     uniform_height_value: FloatProperty(name="Uniform Height Value", description="Uniform height value for this layer", default=0.0, min=0, max=1, update=update_uniform_height_value)
 
 class MATLAY_layers(PropertyGroup):
-    type: StringProperty(default='MATERIAL', name="Layer Type", description="Type used to identify layers. Valid types include: 'MATERIAL', 'DECAL'")
-    layer_stack_array_index: bpy.props.IntProperty(name="Layer Stack Array Index", description="The array index of this layer within the layer stack, stored to make it easy to access the array index of a specific layer", default=-9)
+    layer_stack_array_index: IntProperty(name="Layer Stack Array Index", description="The array index of this layer within the layer stack, stored to make it easy to access the array index of a specific layer", default=-9)
     id: IntProperty(name="ID", description="Unique numeric ID for the selected layer", default=0)
+    type: EnumProperty(items=MATERIAL_LAYER_TYPES, default='FILL', name="Layer Type", description="Type used to identify layers. Valid types include: 'FILL', 'DECAL'")
     name: StringProperty(name="", description="The name of the layer", default="Layer Naming Error", update=update_layer_name)
-    cached_frame_name: bpy.props.StringProperty(name="", description="A cached version of the layer name. This allows layer nodes using the layers previous layer name to be accessed until they are renamed.", default="Layer Naming Error")
+    cached_frame_name: StringProperty(name="", description="A cached version of the layer name. This allows layer nodes using the layers previous layer name to be accessed until they are renamed.", default="Layer Naming Error")
     opacity: FloatProperty(name="Opacity", description="Layers Opacity", default=1.0, min=0.0, soft_max=1.0, subtype='FACTOR', update=update_layer_opacity)
     hidden: BoolProperty(name="Hidden", description="Show if the layer is hidden", update=update_hidden)
-    material_channel_toggles: bpy.props.PointerProperty(type=MaterialChannelToggles, name="Material Channel Toggles")
+    material_channel_toggles: PointerProperty(type=MaterialChannelToggles, name="Material Channel Toggles")
     channel_node_types: PointerProperty(type=MaterialChannelNodeType, name="Channel Node Types")
     projection: PointerProperty(type=ProjectionSettings, name="Projection Settings")
     color_channel_values: PointerProperty(type=MaterialChannelColors, name="Color Channel Values")
