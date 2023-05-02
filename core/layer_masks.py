@@ -614,6 +614,22 @@ def relink_mask_nodes(material_layer_index):
             last_mask_filter_node = get_mask_filter_node(material_channel_name, selected_material_index, selected_mask_index, number_of_mask_filters - 1)
             if last_mask_filter_node:
                 last_node = last_mask_filter_node
+
+                # When a filter is present, connect the mask texture node to the first filter node.
+                first_filter_node = get_mask_filter_node(material_channel_name, selected_material_index, selected_mask_index, 0)
+                if first_filter_node:
+                    # Define the input of the filter the mask texture node should connect to based on the filter type.
+                    input = 0
+                    match first_filter_node.bl_static_type:
+                        case 'INVERT':
+                            input = 1
+                        case 'VALTORGB':
+                            input = 0
+
+                    if masks[selected_mask_index].use_alpha and mask_texture_node.bl_static_type == 'TEX_IMAGE':
+                        link(mask_texture_node.outputs[0], first_filter_node.inputs[input])
+                    else:
+                        link(mask_texture_node.outputs[0], first_filter_node.inputs[input])
             else:
                 last_node = mask_texture_node
 
