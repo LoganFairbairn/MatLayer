@@ -267,6 +267,7 @@ def add_material_filter_slot():
     '''Adds a new material filter slot.'''
     filters = bpy.context.scene.matlay_material_filters
     filter_stack = bpy.context.scene.matlay_material_filter_stack
+    selected_layer_filter_index = bpy.context.scene.matlay_material_filter_stack.selected_filter_index
 
     filters.add()
 
