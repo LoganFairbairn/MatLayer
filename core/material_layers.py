@@ -714,7 +714,7 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
             color_value = (0.0, 0.0, 0.0)
             match material_channel_name:
                 case 'COLOR':
-                    color_value = (0.1, 0.1, 0.1)
+                    color_value = (0.25, 0.25, 0.25)
                 case 'SPECULAR':
                     color_value = (0.5, 0.5, 0.5)
                 case 'ROUGHNESS':
