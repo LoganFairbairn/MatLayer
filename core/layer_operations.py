@@ -250,7 +250,20 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
 
     # Duplicate the node name and label, but add a tilda at the end of the name to signify the nodes are new and avoid naming conflicts.
     node_info = original_node.name.split('_')
-    duplicated_node.name = layer_nodes.format_material_node_name(node_info[0], new_material_layer_index, True)
+    node_name = node_info[0]
+
+    # Format node names based on their type.
+    if node_name in layer_nodes.LAYER_NODE_NAMES:
+        duplicated_node.name = layer_nodes.format_material_node_name(node_info[0], new_material_layer_index, True)
+
+    elif node_name == material_filters.FILTER_NODE_NAME:
+        duplicated_node.name = material_filters.format_filter_node_name(new_material_layer_index, node_info[2], True)
+
+    elif node_name in layer_masks.MASK_NODE_NAMES:
+        duplicated_node.name = layer_masks.format_mask_node_name(node_info[0], new_material_layer_index, node_info[2], True)
+
+    elif node_name == layer_masks.MASK_FILTER_NAME:
+        duplicated_node.name = layer_masks.format_mask_filter_node_name(new_material_layer_index, node_info[2], True)
     duplicated_node.label = duplicated_node.name
 
     # Copy muted values for nodes.
@@ -614,12 +627,16 @@ class MATLAY_OT_duplicate_layer(Operator):
         layers[new_material_layer_index].name = layers[original_material_layer_index].name
         
         # Duplicate all nodes in the layer.
-        new_nodes = []
         for material_channel_name in material_channels.get_material_channel_list():
             material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
             original_nodes = layer_nodes.get_all_nodes_in_layer(material_channel_name, original_material_layer_index, context)
+            new_nodes = []
             for node in original_nodes:
-                new_nodes.append(duplicate_node(material_channel_node, node, new_material_layer_index))
+                duplicated_node = duplicate_node(material_channel_node, node, new_material_layer_index)
+                if duplicated_node:
+                    new_nodes.append(duplicated_node)
+                else:
+                    print("Node wasn't duplicated.")
 
             # Create a new layer frame for the new nodes.
             new_frame = material_channel_node.node_tree.nodes.new('NodeFrame')
@@ -629,8 +646,11 @@ class MATLAY_OT_duplicate_layer(Operator):
             for node in new_nodes:
                 node.parent = new_frame
 
-        # Re-index and re-organize layer nodes.
+        # Reindex all nodes.
         layer_nodes.reindex_material_layer_nodes()
+        material_filters.reindex_material_filter_nodes()
+        layer_masks.reindex_mask_nodes(context)
+        layer_masks.reindex_mask_filters_nodes()
 
         # For decal layers, assign the decal object to the coord node.
         if new_decal_object != None:
@@ -638,9 +658,12 @@ class MATLAY_OT_duplicate_layer(Operator):
             if new_coord_node:
                 new_coord_node.object = new_decal_object
 
+        # Organize and relink all nodes.
         layer_nodes.organize_all_layer_nodes()
         layer_nodes.relink_material_nodes(new_material_layer_index)
         layer_nodes.relink_material_layers()
+        material_filters.relink_material_filter_nodes(new_material_layer_index)
+        layer_masks.relink_mask_nodes(new_material_layer_index)
 
         # Read the properties of the duplicated nodes by refreshing the layer nodes.
         read_layer_nodes(context)
@@ -654,10 +677,9 @@ class MATLAY_OT_duplicate_layer(Operator):
 
         # Duplicate the projection mode of the previous layer.
         layers[new_material_layer_index].projection.projection_mode = layers[original_material_layer_index].projection.projection_mode
-        
+
         matlay_utils.set_valid_material_shading_mode(context)
 
-        logging.log("Duplicated layer.")
         return{'FINISHED'}
 
 class MATLAY_OT_edit_uvs_externally(Operator):

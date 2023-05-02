@@ -465,8 +465,6 @@ def get_all_mask_nodes_in_layer(material_stack_index, material_channel_name, get
                 mask_node = material_channel_node.node_tree.nodes.get(mask_node_name)
                 if mask_node:
                     nodes.append(mask_node)
-                else:
-                    break
     return nodes
 
 def reindex_mask_nodes(context):

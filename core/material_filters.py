@@ -184,7 +184,7 @@ def reindex_material_filter_nodes():
                     filter_node.label = filter_node.name
                     filters[i].stack_index = i - 1
 
-def relink_material_filter_nodes():
+def relink_material_filter_nodes(material_layer_index):
     '''Relinks material filter nodes with other material filter nodes.'''
     number_of_material_layers = len(bpy.context.scene.matlay_layers)
     if number_of_material_layers <= 0:
@@ -192,8 +192,7 @@ def relink_material_filter_nodes():
     
     for material_channel_name in material_channels.get_material_channel_list():
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
-        selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
-        filter_nodes = get_all_material_filter_nodes(material_channel_name, selected_material_layer_index, get_edited=False)
+        filter_nodes = get_all_material_filter_nodes(material_channel_name, material_layer_index, get_edited=False)
 
         for i in range(0, len(filter_nodes)):
             filter_node = filter_nodes[i]
