@@ -15,7 +15,7 @@ def draw_texture_set_section_ui(self, context):
 
     col = split.column(align=True)
     col.scale_y = scale_y
-    col.label(text="Size: ")
+    col.label(text="Texture Size: ")
 
     col = split.column()
     col.scale_y = scale_y
