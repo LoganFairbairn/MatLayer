@@ -1604,6 +1604,25 @@ def refresh_mask_filter_stack(context):
     # Allow auto updating for properties again.
     context.scene.matlay_mask_filter_stack.auto_update_properties = True
 
+def add_mask_filter_slot():
+    '''Adds a new layer stack slot for a mask filter.'''
+    mask_filters = bpy.context.scene.matlay_mask_filters
+    mask_filter_stack = bpy.context.scene.matlay_mask_filter_stack
+
+    mask_filters.add()
+
+    if mask_filter_stack.selected_mask_filter_index < 0:
+        move_index = len(mask_filters) - 1
+        move_to_index = 0
+        mask_filters.move(move_index, move_to_index)
+        mask_filter_stack.selected_mask_filter_index  = len(mask_filters) - 1
+    
+    else:
+        move_index = len(mask_filters) - 1
+        move_to_index = max(0, min(mask_filter_stack.selected_mask_filter_index + 1, len(mask_filters) - 1))
+        mask_filters.move(move_index, move_to_index)
+        mask_filter_stack.selected_mask_filter_index = max(0, min(mask_filter_stack.selected_mask_filter_index + 1, len(mask_filters) - 1))
+
 def add_mask_filter(filter_type, context):
     '''Adds a new filter to the selected layer mask. Valid mask filter types include: 'ShaderNodeInvert', 'ShaderNodeValToRGB' '''
     validate_selected_mask_filter_index()
@@ -1619,21 +1638,8 @@ def add_mask_filter(filter_type, context):
         return
 
     # Add a new mask filter slot, name and select it.
-    mask_filters.add()
-
-    if mask_filter_stack.selected_mask_filter_index < 0:
-        move_index = len(mask_filters) - 1
-        move_to_index = 0
-        mask_filters.move(move_index, move_to_index)
-        mask_filter_stack.selected_mask_filter_index  = len(mask_filters) - 1
-    
-    else:
-        move_index = len(mask_filters) - 1
-        move_to_index = max(0, min(mask_filter_stack.selected_mask_filter_index + 1, len(mask_filters) - 1))
-        mask_filters.move(move_index, move_to_index)
-        mask_filter_stack.selected_mask_filter_index = max(0, min(mask_filter_stack.selected_mask_filter_index + 1, len(mask_filters) - 1))
-
-    print("Selected mask filter index: " + str(mask_filter_stack.selected_mask_filter_index))
+    add_mask_filter_slot()
+    new_mask_filter_index = context.scene.matlay_mask_filter_stack.selected_mask_filter_index
 
     # Create a new mask filter node (in all material channels).
     material_channel_list = material_channels.get_material_channel_list()
@@ -1641,7 +1647,7 @@ def add_mask_filter(filter_type, context):
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
         if material_channel_node:
             new_node = material_channel_node.node_tree.nodes.new(filter_type)
-            new_node.name = format_mask_filter_node_name(selected_material_layer_index, selected_mask_index, mask_filter_stack.selected_mask_filter_index) + "~"
+            new_node.name = format_mask_filter_node_name(selected_material_layer_index, selected_mask_index, new_mask_filter_index) + "~"
             new_node.label = new_node.name
 
             # Add the new nodes to the layer frame.

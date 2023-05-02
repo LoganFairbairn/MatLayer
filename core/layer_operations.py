@@ -605,7 +605,6 @@ class MATLAY_OT_duplicate_layer(Operator):
         original_coord_node = layer_nodes.get_layer_node('COORD', 'COLOR', original_material_layer_index, context)
         if original_coord_node:
             if original_coord_node.object != None:
-
                 previously_selected_object = bpy.context.active_object
                 for obj in bpy.context.selected_objects:
                     obj.select_set(False)
@@ -618,25 +617,35 @@ class MATLAY_OT_duplicate_layer(Operator):
                 previously_selected_object.select_set(True)
                 bpy.context.view_layer.objects.active = previously_selected_object
 
-        # Add a new layer slot.
+        # Count layer slot counts on the original layer.
+        original_material_filter_count = len(bpy.context.scene.matlay_material_filters)
+        original_mask_count = len(bpy.context.scene.matlay_masks)
+        original_mask_filter_count = len(bpy.context.scene.matlay_mask_filters)
+
+        # Add a new layer slot and copy the name of the previous layer.
         original_layer_type = layers[original_material_layer_index].type
         add_layer_slot(original_layer_type)
         new_material_layer_index = context.scene.matlay_layer_stack.layer_index
-
-        # Copy the name of the previous layer.
         layers[new_material_layer_index].name = layers[original_material_layer_index].name
+
+        # Create slots for material filters, masks and mask filters to allow the newly duplicated nodes to reindex properly.
+        for i in range(0, original_material_filter_count):
+            material_filters.add_material_filter_slot()
+
+        for i in range(0, original_mask_count):
+            layer_masks.add_mask_slot(context)
+
+        for i in range(0, original_mask_filter_count):
+            layer_masks.add_mask_filter_slot()
         
-        # Duplicate all nodes in the layer.
+        # Duplicate all layer nodes.
         for material_channel_name in material_channels.get_material_channel_list():
             material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
             original_nodes = layer_nodes.get_all_nodes_in_layer(material_channel_name, original_material_layer_index, context)
             new_nodes = []
             for node in original_nodes:
                 duplicated_node = duplicate_node(material_channel_node, node, new_material_layer_index)
-                if duplicated_node:
-                    new_nodes.append(duplicated_node)
-                else:
-                    print("Node wasn't duplicated.")
+                new_nodes.append(duplicated_node)
 
             # Create a new layer frame for the new nodes.
             new_frame = material_channel_node.node_tree.nodes.new('NodeFrame')

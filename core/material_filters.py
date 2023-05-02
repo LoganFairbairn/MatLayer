@@ -263,21 +263,11 @@ def refresh_material_filter_stack(context):
     # Allow auto updating for filter properties again. 
     context.scene.matlay_material_filter_stack.update_filter_properties = True
 
-def add_material_layer_filter(filter_type, context):
-    '''Creates a new material layer filter slot and node.'''
-    validate_filter_selected_index()
+def add_material_filter_slot():
+    '''Adds a new material filter slot.'''
+    filters = bpy.context.scene.matlay_material_filters
+    filter_stack = bpy.context.scene.matlay_material_filter_stack
 
-    filters = context.scene.matlay_material_filters
-    filter_stack = context.scene.matlay_material_filter_stack
-    selected_layer_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-
-    # Stop users from adding too many material filters.
-    if len(filters) >= MAX_LAYER_FILTER_COUNT:
-        logging.popup_message_box("You can't have more than {0} filters on a single layer. This is a safeguard to stop users from adding an unnecessary amount of filters, which will impact performance.".format(MAX_LAYER_FILTER_COUNT), 'User Error', 'ERROR')
-        return
-    
-    # Add a new layer filter slot, name and select it.
     filters.add()
 
     if selected_layer_filter_index < 0:
@@ -293,8 +283,22 @@ def add_material_layer_filter(filter_type, context):
         filters.move(move_index, move_to_index)
         filter_stack.selected_filter_index = move_to_index
         selected_layer_filter_index = max(0, min(selected_layer_filter_index + 1, len(filters) - 1))
-        
-    new_filter_index = selected_layer_filter_index
+
+def add_material_layer_filter(filter_type, context):
+    '''Creates a new material layer filter slot and node.'''
+    validate_filter_selected_index()
+
+    filters = context.scene.matlay_material_filters
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+
+    # Stop users from adding too many material filters.
+    if len(filters) >= MAX_LAYER_FILTER_COUNT:
+        logging.popup_message_box("You can't have more than {0} filters on a single layer. This is a safeguard to stop users from adding an unnecessary amount of filters, which will impact performance.".format(MAX_LAYER_FILTER_COUNT), 'User Error', 'ERROR')
+        return
+    
+    # Add a new layer filter slot, name and select it.
+    add_material_filter_slot()
+    new_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
 
     # Add a shader node for the layer filter (in all material channels).
     material_channel_list = material_channels.get_material_channel_list()
