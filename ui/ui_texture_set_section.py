@@ -8,32 +8,26 @@ def draw_texture_set_section_ui(self, context):
 
     # Draw texture set settings.
     layout = self.layout
-    scale_y = 1.4
+    SCALE_Y = 1.4
     texture_set_settings = context.scene.matlay_texture_set_settings
 
-    split = layout.split(align=True)
+    row = layout.row()
+    row.scale_y = SCALE_Y
 
-    col = split.column(align=True)
-    col.scale_y = scale_y
+    col = row.split()
     col.label(text="Texture Size: ")
-
-    col = split.column()
-    col.scale_y = scale_y
+    
+    col = row.split()
     col.prop(texture_set_settings, "image_width", text="")
 
-    col = split.column()
-    col.scale_y = scale_y
+    col = row.split()
     if texture_set_settings.match_image_resolution:
         col.prop(texture_set_settings, "match_image_resolution", text="", icon="LOCKED")
 
     else:
         col.prop(texture_set_settings, "match_image_resolution", text="", icon="UNLOCKED")
 
-    col = split.column()
-    col.scale_y = scale_y
-    if texture_set_settings.match_image_resolution:
-        col.enabled = False
-
+    col = row.split()
     col.prop(texture_set_settings, "image_height", text="")
 
     # Draw global material channel toggles.
@@ -41,11 +35,11 @@ def draw_texture_set_section_ui(self, context):
     material_channel_list = get_material_channel_list()
     for material_channel_name in material_channel_list:
         row = layout.row()
-        row.scale_y = scale_y
+        row.scale_y = SCALE_Y
         material_channel_name_text = material_channel_name.replace('_', ' ')
         row.prop(texture_set_settings.global_material_channel_toggles, material_channel_name.lower() + "_channel_toggle", text=material_channel_name_text, toggle=1)
 
     # Draw additional settings.
     row = layout.row()
-    row.scale_y = scale_y
+    row.scale_y = SCALE_Y
     row.prop(texture_set_settings, "thirty_two_bit")
