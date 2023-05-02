@@ -105,10 +105,6 @@ class MATLAY_OT_append_workspace(Operator):
     bl_label = "Append Workspace"
     bl_description = "Appends a suggested workspace for using this add-on"
 
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-
     def execute(self, context):
         workspace = bpy.data.workspaces.get('Matlay')
         if workspace:
