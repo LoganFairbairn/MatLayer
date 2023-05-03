@@ -599,6 +599,7 @@ class MATLAY_OT_duplicate_layer(Operator):
     def execute(self, context):
         material_layers.validate_selected_material_layer_index()
         matlay_utils.set_valid_mode()
+        context.scene.matlay_layer_stack.auto_update_layer_properties = False
 
         layers = context.scene.matlay_layers
         original_material_layer_index = context.scene.matlay_layer_stack.layer_index
@@ -684,10 +685,10 @@ class MATLAY_OT_duplicate_layer(Operator):
                         mask_coord_node.object = new_decal_object
 
         # Duplicate properties of original layers and masks.
-        context.scene.matlay_layer_stack.auto_update_layer_properties = False
+        
         if new_decal_object == None:
             layers[new_material_layer_index].projection.projection_mode = layers[original_material_layer_index].projection.projection_mod
-        context.scene.matlay_layer_stack.auto_update_layer_properties = True
+        
 
         # Relink all nodes.
         layer_nodes.relink_material_nodes(new_material_layer_index)
@@ -708,8 +709,8 @@ class MATLAY_OT_duplicate_layer(Operator):
             new_decal_object.select_set(True)
             bpy.context.view_layer.objects.active = new_decal_object
 
+        context.scene.matlay_layer_stack.auto_update_layer_properties = True
         matlay_utils.set_valid_material_shading_mode(context)
-
         return{'FINISHED'}
 
 class MATLAY_OT_edit_uvs_externally(Operator):
