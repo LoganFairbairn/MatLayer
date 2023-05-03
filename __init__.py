@@ -51,7 +51,7 @@ from .core.exporting import MATLAY_exporting_settings, MATLAY_OT_export, MATLAY_
 from .utilities.image_file_handling import MATLAY_OT_add_layer_image, MATLAY_OT_delete_layer_image, MATLAY_OT_import_texture, MATLAY_OT_import_texture_set
 
 # Import settings.
-from .utilities.matlay_utils import MATLAY_OT_set_decal_layer_snapping, MATLAY_OT_append_workspace, MATLAY_OT_append_basic_brushes, MATLAY_OT_delete_unused_images
+from .utilities.matlay_utils import MATLAY_OT_set_decal_layer_snapping, MATLAY_OT_append_workspace, MATLAY_OT_append_basic_brushes, MATLAY_OT_delete_unused_external_images
 
 # Import user interface modules.
 from .ui.matlay_ui import *
@@ -185,7 +185,7 @@ classes = (
     MATLAY_OT_set_decal_layer_snapping,
     MATLAY_OT_append_workspace,
     MATLAY_OT_append_basic_brushes,
-    MATLAY_OT_delete_unused_images,
+    MATLAY_OT_delete_unused_external_images,
 
     # Main Panel
     MATLAY_panel_properties,

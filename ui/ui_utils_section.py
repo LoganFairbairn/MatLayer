@@ -16,7 +16,7 @@ def draw_ui_utils_section(self, context):
 
     row = layout.row()
     row.scale_y = scale_y
-    row.operator("matlay.delete_unused_images", icon='TRASH')
+    row.operator("matlay.delete_unused_external_images", icon='TRASH')
 
     row = layout.row()
     row.scale_y = scale_y
