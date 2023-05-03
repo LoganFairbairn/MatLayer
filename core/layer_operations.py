@@ -685,10 +685,8 @@ class MATLAY_OT_duplicate_layer(Operator):
                         mask_coord_node.object = new_decal_object
 
         # Duplicate properties of original layers and masks.
-        
         if new_decal_object == None:
-            layers[new_material_layer_index].projection.projection_mode = layers[original_material_layer_index].projection.projection_mod
-        
+            layers[new_material_layer_index].projection.projection_mode = layers[original_material_layer_index].projection.projection_mode
 
         # Relink all nodes.
         layer_nodes.relink_material_nodes(new_material_layer_index)

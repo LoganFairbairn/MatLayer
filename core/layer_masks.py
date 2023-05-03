@@ -574,9 +574,10 @@ def relink_mask_nodes(material_layer_index):
             # Unlink all mask nodes.
             mask_nodes = get_mask_nodes(material_channel_name, material_layer_index, i)
             for node in mask_nodes:
-                for l in node.outputs[0].links:
-                    if l != 0:
-                        material_channel_node.node_tree.links.remove(l)
+                for output in node.outputs:
+                    for l in output.links:
+                        if l != 0:
+                            material_channel_node.node_tree.links.remove(l)
 
             # Relink mask node setups based on the layer type.
             layer_type = material_layers[material_layer_index].type
@@ -612,13 +613,13 @@ def relink_mask_nodes(material_layer_index):
             last_node = None
             number_of_mask_filters = len(get_all_mask_filter_nodes(material_channel_name, selected_material_index, i))
             last_mask_filter_node = get_mask_filter_node(material_channel_name, selected_material_index, selected_mask_index, number_of_mask_filters - 1)
+
             if last_mask_filter_node:
                 last_node = last_mask_filter_node
 
                 # When a filter is present, connect the mask texture node to the first filter node.
                 first_filter_node = get_mask_filter_node(material_channel_name, selected_material_index, selected_mask_index, 0)
                 if first_filter_node:
-                    # Define the input of the filter the mask texture node should connect to based on the filter type.
                     input = 0
                     match first_filter_node.bl_static_type:
                         case 'INVERT':
@@ -631,14 +632,19 @@ def relink_mask_nodes(material_layer_index):
                     else:
                         link(mask_texture_node.outputs[0], first_filter_node.inputs[input])
             else:
-                last_node = mask_texture_node
+                # If the layer is a decal layer, and there are no mask filters the last node is always the decal mask mix node.
+                if layer_type == 'DECAL':
+                    last_node = get_mask_node('DecalMaskMix', material_channel_name, material_layer_index, i)
+                else:
+                    last_node = mask_texture_node
 
-            if masks[selected_mask_index].use_alpha and mask_texture_node.bl_static_type == 'TEX_IMAGE':
-                link(last_node.outputs[1], mask_mix_node.inputs[2])
-            else:
-                link(last_node.outputs[0], mask_mix_node.inputs[2])
+            if last_node != None:
+                if masks[selected_mask_index].use_alpha and last_node.bl_static_type == 'TEX_IMAGE':
+                    link(last_node.outputs[1], mask_mix_node.inputs[2])
+                else:
+                    link(last_node.outputs[0], mask_mix_node.inputs[2])
 
-        # Link the last mask node to the layer's opacity node.
+        # Link the last mask node to the layer's opacity node to apply the mask.
         opacity_node = layer_nodes.get_layer_node('OPACITY', material_channel_name, material_layer_index, bpy.context)
         last_mask_node = get_mask_node('MaskMix', material_channel_name, material_layer_index, len(masks) - 1)
         if opacity_node and last_mask_node:
