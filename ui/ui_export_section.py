@@ -56,6 +56,12 @@ def draw_export_section_ui(self, context):
 
     row = layout.row()
     row.scale_y = scale_y
+    row.prop(export_settings, "export_emission", text="")
+    row.label(text="Emission")
+    row.operator("matlay.export_emission", text="", icon='RENDER_STILL')
+
+    row = layout.row()
+    row.scale_y = scale_y
     row.prop(export_settings, "export_normals", text="")
     row.label(text="Normals")
     row.operator("matlay.export_normals", text="", icon='RENDER_STILL')
@@ -65,9 +71,3 @@ def draw_export_section_ui(self, context):
     row.prop(export_settings, "export_height", text="")
     row.label(text="Height")
     row.operator("matlay.export_height", text="", icon='RENDER_STILL')
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(export_settings, "export_emission", text="")
-    row.label(text="Emission")
-    row.operator("matlay.export_emission", text="", icon='RENDER_STILL')
