@@ -16,7 +16,7 @@ Features:
 - Automatic texture file and setting management
 - Layers support custom group nodes
 - Exporting and reloading from an external image editor
-- Decal layers.
+- Decal layers
 
 Limitations:
 - No layer folders
