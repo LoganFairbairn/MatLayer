@@ -29,58 +29,85 @@ def update_image_width(self, context):
 #----------------------------- UPDATE GLOBAL MATERIAL CHANNEL TOGGLES (mute / unmute material channels for ALL layers) -----------------------------#
 
 def update_color_channel_toggle(self, context):
+    export_settings = context.scene.matlay_export_settings
     if self.color_channel_toggle == True:
         material_channels.connect_material_channel(context, "COLOR")
+        export_settings.export_base_color = True
     else:
         material_channels.disconnect_material_channel(context, "COLOR")
+        export_settings.export_base_color = False
 
 def update_subsurface_channel_toggle(self, context):
+    export_settings = context.scene.matlay_export_settings
     if self.subsurface_channel_toggle == True:
         material_channels.connect_material_channel(context, "SUBSURFACE")
+        export_settings.export_subsurface = True
     else:
         material_channels.disconnect_material_channel(context, "SUBSURFACE")
+        export_settings.export_subsurface = False
 
 def update_subsurface_color_channel_toggle(self, context):
+    export_settings = context.scene.matlay_export_settings
     if self.subsurface_color_channel_toggle == True:
         material_channels.connect_material_channel(context, "SUBSURFACE_COLOR")
+        export_settings.export_subsurface_color = True
     else:
         material_channels.disconnect_material_channel(context, "SUBSURFACE_COLOR")
+        export_settings.export_subsurface_color = False
 
 def update_metallic_channel_toggle(self, context):
+    export_settings = context.scene.matlay_export_settings
     if self.metallic_channel_toggle == True:
         material_channels.connect_material_channel(context, "METALLIC")
+        export_settings.export_metallic = True
     else:
         material_channels.disconnect_material_channel(context, "METALLIC")
+        export_settings.export_metallic = False
 
 def update_specular_channel_toggle(self, context):
+    export_settings = context.scene.matlay_export_settings
     if self.specular_channel_toggle == True:
         material_channels.connect_material_channel(context, "SPECULAR")
+        export_settings.export_specular = True
     else:
         material_channels.disconnect_material_channel(context, "SPECULAR")
+        export_settings.export_specular = False
 
 def update_roughness_channel_toggle(self, context):
+    export_settings = context.scene.matlay_export_settings
     if self.roughness_channel_toggle == True:
         material_channels.connect_material_channel(context, "ROUGHNESS")
+        export_settings.export_roughness = True
     else:
         material_channels.disconnect_material_channel(context, "ROUGHNESS")
+        export_settings.export_roughness = False
 
 def update_normal_channel_toggle(self, context):
+    export_settings = context.scene.matlay_export_settings
     if self.normal_channel_toggle == True:
         material_channels.connect_material_channel(context, "NORMAL")
+        export_settings.export_normals = True
     else:
         material_channels.disconnect_material_channel(context, "NORMAL")
+        export_settings.export_normals = False
 
 def update_height_channel_toggle(self, context):
+    export_settings = context.scene.matlay_export_settings
     if self.height_channel_toggle == True:
         material_channels.connect_material_channel(context, "HEIGHT")
+        export_settings.export_height = True
     else:
         material_channels.disconnect_material_channel(context, "HEIGHT")
+        export_settings.export_height = False
 
 def update_emission_channel_toggle(self, context):
+    export_settings = context.scene.matlay_export_settings
     if self.emission_channel_toggle == True:
         material_channels.connect_material_channel(context, "EMISSION")
+        export_settings.export_emission = True
     else:
         material_channels.disconnect_material_channel(context, "EMISSION")
+        export_settings.export_emission = False
 
 def get_texture_width():
     '''Returns a numeric value based on the enum for texture width.'''
