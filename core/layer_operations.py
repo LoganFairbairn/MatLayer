@@ -305,6 +305,9 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
                 duplicated_node.color_ramp.elements[i].color = original_node.color_ramp.elements[i].color
                 duplicated_node.color_ramp.elements[i].position = original_node.color_ramp.elements[i].position
 
+        case 'MIXRGB':
+            duplicated_node.use_clamp = original_node.use_clamp
+
     # Duplicate input values.
     for i in range(0, len(original_node.inputs)):
         duplicated_node.inputs[i].default_value = original_node.inputs[i].default_value
@@ -622,18 +625,25 @@ class MATLAY_OT_duplicate_layer(Operator):
         original_mask_count = len(bpy.context.scene.matlay_masks)
         original_mask_filter_count = len(bpy.context.scene.matlay_mask_filters)
 
+        # Store mask properties to transfer to new masks.
+        mask_uses_alpha = []
+        for i in range(0, original_mask_count):
+            mask_uses_alpha.append(bpy.context.scene.matlay_masks[i].use_alpha)
+
         # Add a new layer slot and copy the name of the previous layer.
         original_layer_type = layers[original_material_layer_index].type
         add_layer_slot(original_layer_type)
         new_material_layer_index = context.scene.matlay_layer_stack.layer_index
         layers[new_material_layer_index].name = layers[original_material_layer_index].name
+        layers[new_material_layer_index].type = layers[original_material_layer_index].type
 
-        # Create slots for material filters, masks and mask filters to allow the newly duplicated nodes to reindex properly.
+        # Duplicate slots for material filters, masks and mask filters and their properties (this allow the newly duplicated nodes to reindex properly).
         for i in range(0, original_material_filter_count):
             material_filters.add_material_filter_slot()
 
         for i in range(0, original_mask_count):
             layer_masks.add_mask_slot(context)
+            bpy.context.scene.matlay_masks[i].use_alpha = mask_uses_alpha[i]
 
         for i in range(0, original_mask_filter_count):
             layer_masks.add_mask_filter_slot()
@@ -661,18 +671,32 @@ class MATLAY_OT_duplicate_layer(Operator):
         layer_masks.reindex_mask_nodes(context)
         layer_masks.reindex_mask_filters_nodes()
 
-        # For decal layers, assign the decal object to the coord node.
-        if new_decal_object != None:
-            new_coord_node = layer_nodes.get_layer_node('COORD', 'COLOR', new_material_layer_index, context)
-            if new_coord_node:
-                new_coord_node.object = new_decal_object
+        # For decal layers, assign the new decal object to all coord nodes.
+        if layers[new_material_layer_index].type == 'DECAL':
+            for material_channel_name in material_channels.get_material_channel_list():
+                new_coord_node = layer_nodes.get_layer_node('COORD', material_channel_name, new_material_layer_index, context)
+                if new_coord_node:
+                    new_coord_node.object = new_decal_object
+                
+                for i in range(0, original_mask_count):
+                    mask_coord_node = layer_masks.get_mask_node('MaskCoord', material_channel_name, new_material_layer_index, i)
+                    if mask_coord_node:
+                        mask_coord_node.object = new_decal_object
 
-        # Organize and relink all nodes.
-        layer_nodes.organize_all_layer_nodes()
+        # Duplicate properties of original layers and masks.
+        context.scene.matlay_layer_stack.auto_update_layer_properties = False
+        if new_decal_object == None:
+            layers[new_material_layer_index].projection.projection_mode = layers[original_material_layer_index].projection.projection_mod
+        context.scene.matlay_layer_stack.auto_update_layer_properties = True
+
+        # Relink all nodes.
         layer_nodes.relink_material_nodes(new_material_layer_index)
         layer_nodes.relink_material_layers()
         material_filters.relink_material_filter_nodes(new_material_layer_index)
         layer_masks.relink_mask_nodes(new_material_layer_index)
+
+        # Organize all nodes.
+        layer_nodes.organize_all_layer_nodes()
 
         # Read the properties of the duplicated nodes by refreshing the layer nodes.
         read_layer_nodes(context)
@@ -683,9 +707,6 @@ class MATLAY_OT_duplicate_layer(Operator):
                 obj.select_set(False)
             new_decal_object.select_set(True)
             bpy.context.view_layer.objects.active = new_decal_object
-
-        # Duplicate the projection mode of the previous layer.
-        layers[new_material_layer_index].projection.projection_mode = layers[original_material_layer_index].projection.projection_mode
 
         matlay_utils.set_valid_material_shading_mode(context)
 
@@ -1059,6 +1080,14 @@ class MATLAY_OT_read_layer_nodes(Operator):
             return {'FINISHED'}
         
         read_layer_nodes(context)
+
+        # If read layer nodes is manually called, also relink material layers.
+        if not self.auto_called:
+            selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+            material_filters.relink_material_filter_nodes(selected_material_layer_index)
+            layer_masks.relink_mask_nodes(selected_material_layer_index)
+            layer_masks.relink_mask_filter_nodes()
+            layer_nodes.relink_material_layers()
 
         self.report({'INFO'}, "Refreshed layer stack.")
 
