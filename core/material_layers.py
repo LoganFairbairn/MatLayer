@@ -790,9 +790,7 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
     # Update the layer nodes because they were changed.
     layer_nodes.organize_all_layer_nodes()
     layer_nodes.relink_material_nodes(selected_material_layer_index)
-    
-    # Relink masks / filters too?
-
+    layer_masks.relink_mask_nodes(selected_material_layer_index)
     layer_nodes.relink_material_layers()
     
 def update_color_channel_node_type(self, context):
