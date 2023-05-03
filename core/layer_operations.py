@@ -263,7 +263,7 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
         duplicated_node.name = layer_masks.format_mask_node_name(node_info[0], new_material_layer_index, node_info[2], True)
 
     elif node_name == layer_masks.MASK_FILTER_NAME:
-        duplicated_node.name = layer_masks.format_mask_filter_node_name(new_material_layer_index, node_info[2], True)
+        duplicated_node.name = layer_masks.format_mask_filter_node_name(new_material_layer_index, node_info[2], node_info[3], True)
     duplicated_node.label = duplicated_node.name
 
     # Copy muted values for nodes.
