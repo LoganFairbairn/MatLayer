@@ -86,11 +86,10 @@ def delete_unused_layer_images(self, context):
         self.report({'INFO'}, "No unused images to delete.")
 
 class MATLAY_OT_set_decal_layer_snapping(Operator):
-    '''Sets optimal snapping settings for positioning decal layers. You can disable the snapping mode by selecting the magnet icon in the middle top area of the 3D viewport.'''
     bl_idname = "matlay.set_decal_layer_snapping"
     bl_label = "Set Decal Layer Snapping"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Sets optimal snapping settings for positioning decal layers"
+    bl_description = "Sets optimal snapping settings for positioning decal layers. You can disable the snapping mode by selecting the magnet icon in the middle top area of the 3D viewport"
 
     def execute(self, context):
         bpy.context.scene.tool_settings.use_snap = True
@@ -100,7 +99,6 @@ class MATLAY_OT_set_decal_layer_snapping(Operator):
         return {'FINISHED'}
 
 class MATLAY_OT_append_workspace(Operator):
-    '''Appends a suggested layout for using this add-on.'''
     bl_idname = "matlay.append_workspace"
     bl_label = "Append Workspace"
     bl_description = "Appends a suggested workspace for using this add-on"
@@ -110,8 +108,7 @@ class MATLAY_OT_append_workspace(Operator):
         if workspace:
             logging.popup_message_box("The default workspace already exists, manually delete it and click this operator again to re-load the workspace.", 'Info', 'INFO')
             return {'FINISHED'}
-
-        print("Addon name: " + ADDON_NAME)
+        
         USER = Path(resource_path('USER'))
         ADDON = ADDON_NAME
         BLEND_FILE = "Matlay.blend"
@@ -129,36 +126,30 @@ class MATLAY_OT_append_workspace(Operator):
         return {'FINISHED'}
 
 class MATLAY_OT_append_basic_brushes(Operator):
-    '''Appends basic brush presets to the current blend file.'''
     bl_idname = "matlay.append_basic_brushes"
     bl_label = "Append Basic Brushes"
-    bl_description = "Not yet implemented"
-
-    @ classmethod
-    def poll(cls, context):
-        #return context.active_object
-        return False
+    bl_description = "Appends basic brush presets to the current blend file"
 
     def execute(self, context):
+        # Delete any Matlay brushes if they exist before re-importing them.
+        for brush in bpy.data.brushes:
+            if brush.name.startswith("Matlay_"):
+                bpy.data.brushes.remove(brush)
+
         USER = Path(resource_path('USER'))
-        ADDON = "Matlay"
         BLEND_FILE = "Matlay.blend"
-        source_path =  str(USER / "scripts/addons" / ADDON / "blend" / BLEND_FILE)
+        source_path =  str(USER / "scripts/addons" / ADDON_NAME / "blend" / BLEND_FILE)
 
-        blendfile = source_path
-        section = "\\Brushes\\"
-        object = "Matlay"
-
-        filepath  = blendfile + section + object
-        directory = blendfile + section
-        filename  = object
-
-
-        # TODO: Append all brushes here.
-        bpy.ops.wm.append(
-            filepath=filepath, 
-            filename=filename,
-            directory=directory)
+        with bpy.data.libraries.load(source_path) as (data_from, data_to):
+            data_to.brushes = [name for name in data_from.brushes if name.startswith("Matlay_")]
+            
+        # For all loaded brushes, assign a brush icon image.
+        brush_preview_images_path = str(USER / "scripts/addons" / ADDON_NAME / "brush_icons")
+        for brush in bpy.data.brushes:
+            if brush.name.startswith("Matlay_"):
+                brush.use_custom_icon = True
+                brush_icon_name = brush.name.split('_')[1]
+                brush.icon_filepath = os.path.join(brush_preview_images_path, brush_icon_name + ".png")
 
         return {'FINISHED'}
 
