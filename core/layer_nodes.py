@@ -155,13 +155,6 @@ def relink_material_layers():
 def relink_material_nodes(material_layer_index):
     '''Relinks all material and filter nodes for the specified material layer index.'''
 
-    # Identify if the layer is a decal layer by checking for a valid object in the coord node.
-    decal_layer = False
-    coord_node = get_layer_node('COORD', 'COLOR', material_layer_index, bpy.context)
-    if coord_node:
-        if coord_node.object != None:
-            decal_layer = True
-
     for material_channel_name in material_channels.get_material_channel_list():
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
         link_nodes = material_channel_node.node_tree.links.new
@@ -184,7 +177,19 @@ def relink_material_nodes(material_layer_index):
         if check_decal_layer(material_layer_index):
             link_nodes(coord_node.outputs[3], mapping_node.inputs[0])
         else:
-            link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
+            # Connect to the coord node based on layer projection mode.
+            match bpy.context.scene.matlay_layers[material_layer_index].projection.projection_mode:
+                case 'FLAT':
+                    link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
+
+                case 'TRI-PLANAR':
+                    link_nodes(coord_node.outputs[0], mapping_node.inputs[0])
+
+                case 'SPHERE':
+                    link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
+
+                case 'TUBE':
+                    link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
 
         link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
         if texture_node.bl_static_type == 'TEX_IMAGE':

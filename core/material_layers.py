@@ -600,6 +600,7 @@ def update_emission_channel_color(self, context):
         if node and node.type == 'RGB':
             node.outputs[0].default_value = (self.emission_channel_color.r, self.emission_channel_color.g, self.emission_channel_color.b, 1)
 
+
 #----------------------------- UPDATE UNIFORM LAYER VALUES -----------------------------#
 # To have correct min / max values for sliders when the user is using uniform value nodes in the user interface
 # When these values which are displayed in the ui are updated, they automatically update their respective value nodes in the node tree through these functions.
@@ -747,26 +748,14 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
         case "TEXTURE":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexImage')
 
-            # Correct opacity and mapping links for texture image nodes.
-            opacity_node = layer_nodes.get_layer_node("OPACITY", material_channel_name, selected_material_layer_index, context)
-            link(texture_node.outputs[1], opacity_node.inputs[0])
+            # For decal layers, correct the texture extension.
+            if selected_layer.type == 'DECAL':
+                texture_node.extension = 'CLIP'
 
-            mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_material_layer_index, context)
-            link(mapping_node.outputs[0], texture_node.inputs[0])
-
-            coord_node = layer_nodes.get_layer_node("COORD", material_channel_name, selected_material_layer_index, context)
-            match selected_layer.projection.projection_mode:
-                case 'FLAT':
-                    link(coord_node.outputs[2], mapping_node.inputs[0])
-
-                case 'TRI-PLANAR':
-                    link(coord_node.outputs[0], mapping_node.inputs[0])
-
-                case 'SPHERE':
-                    link(coord_node.outputs[2], mapping_node.inputs[0])
-
-                case 'TUBE':
-                    link(coord_node.outputs[2], mapping_node.inputs[0])
+            # For all other layers, apply the layer's projection for texture node settings.
+            else:
+                texture_node.extension = selected_layer.projection.texture_extension
+                texture_node.interpolation = selected_layer.projection.texture_interpolation
 
         case "GROUP_NODE":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
@@ -800,6 +789,9 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
     # Update the layer nodes because they were changed.
     layer_nodes.organize_all_layer_nodes()
     layer_nodes.relink_material_nodes(selected_material_layer_index)
+    
+    # Relink masks / filters too?
+
     layer_nodes.relink_material_layers()
     
 def update_color_channel_node_type(self, context):
