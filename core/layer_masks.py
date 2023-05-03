@@ -543,7 +543,6 @@ def reindex_mask_nodes(context):
 def relink_mask_nodes(material_layer_index):
     '''Re-links layer mask nodes.'''
     material_layers = bpy.context.scene.matlay_layers
-    selected_material_index = bpy.context.scene.matlay_layer_stack.layer_index
     masks = bpy.context.scene.matlay_masks
     selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
 
@@ -611,14 +610,14 @@ def relink_mask_nodes(material_layer_index):
 
             # Connect the last node in the mask to the mix mask mix node.
             last_node = None
-            number_of_mask_filters = len(get_all_mask_filter_nodes(material_channel_name, selected_material_index, i))
-            last_mask_filter_node = get_mask_filter_node(material_channel_name, selected_material_index, selected_mask_index, number_of_mask_filters - 1)
+            number_of_mask_filters = len(get_all_mask_filter_nodes(material_channel_name, material_layer_index, i))
+            last_mask_filter_node = get_mask_filter_node(material_channel_name, material_layer_index, selected_mask_index, number_of_mask_filters - 1)
 
             if last_mask_filter_node:
                 last_node = last_mask_filter_node
 
                 # When a filter is present, connect the mask texture node to the first filter node.
-                first_filter_node = get_mask_filter_node(material_channel_name, selected_material_index, selected_mask_index, 0)
+                first_filter_node = get_mask_filter_node(material_channel_name, material_layer_index, selected_mask_index, 0)
                 if first_filter_node:
                     input = 0
                     match first_filter_node.bl_static_type:

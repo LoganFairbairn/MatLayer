@@ -337,7 +337,11 @@ class MATLAY_OT_add_decal_layer(Operator):
         previously_selected_object.select_set(True)
         bpy.context.view_layer.objects.active = previously_selected_object
 
+        # Add a new decal layer.
         add_layer('DECAL', decal_object)
+
+        # The layer stacks must be updated before adding a mask.
+        read_layer_nodes(context)
 
         # Automatically add a mask for the decal set to use alpha.
         layer_masks.add_mask('DECAL', use_alpha=True)
