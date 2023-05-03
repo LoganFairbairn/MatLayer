@@ -26,13 +26,6 @@ def update_image_width(self, context):
         if texture_set_settings.image_height != texture_set_settings.image_width:
             texture_set_settings.image_height = texture_set_settings.image_width
 
-# TODO: Is this even used?
-def update_pack_images(self, context):
-    texture_set_settings = context.scene.matlay_texture_set_settings
-
-    if texture_set_settings.pack_images:
-        bpy.ops.file.autopack_toggle()
-
 #----------------------------- UPDATE GLOBAL MATERIAL CHANNEL TOGGLES (mute / unmute material channels for ALL layers) -----------------------------#
 
 def update_color_channel_toggle(self, context):
