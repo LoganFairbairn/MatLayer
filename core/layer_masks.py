@@ -1400,18 +1400,16 @@ class MATLAY_OT_import_mask_image(Operator, ImportHelper):
         image_name = head_tail[1]
         bpy.ops.image.open(filepath=self.filepath)
 
-        # Put the imported mask into the selected mask texture slot (for all material channels).
-        selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+        imported_image = bpy.data.images.get(image_name)
+        if not imported_image:
+            return
+        
+        # Add the imported mask image to the masks image data.
         selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
-        for material_channel_name in material_channels.get_material_channel_list():
-            mask_texture_node = get_mask_node('MaskTexture',  material_channel_name, selected_material_layer_index, selected_mask_index)
-            if mask_texture_node:
-                image = bpy.data.images.get(image_name)
-                if image:
-                    mask_texture_node.image = image
+        context.scene.matlay_masks[selected_mask_index].mask_image = imported_image
 
         # Set the mask colorspace to non-color data.
-        image.colorspace_settings.name = 'Non-Color'
+        imported_image.colorspace_settings.name = 'Non-Color'
 
         # Save the imported image to a folder if user preferences say to do so. This helps with texture organization by keeping externally imported textures next to the saved blend file.
         '''
