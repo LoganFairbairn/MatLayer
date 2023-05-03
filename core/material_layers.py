@@ -23,7 +23,7 @@ TEXTURE_NODE_TYPES = [
 
 PROJECTION_MODES = [
     ("FLAT", "Flat", "Projects the texture using the model's UV map."),
-    ("BOX", "Tri-Planar Projection", "Also known as 'cube, or box' projection, this projection method projects onto the 3D model from all axises."),
+    ("BOX", "Box (Tri-Planar Projection)", "Also known as 'cube, or box' projection, this projection method projects onto the 3D model from all axises."),
     ("SPHERE", "Sphere", ""),
     ("TUBE", "Tube", "")
     ]
