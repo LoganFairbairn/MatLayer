@@ -661,6 +661,8 @@ def count_masks(material_stack_index):
 
 def read_mask_nodes(context):
     '''Reads the material node tree into the mask stack.'''
+    validate_mask_selected_index()
+    
     masks = context.scene.matlay_masks
     mask_stack = context.scene.matlay_mask_stack
     selected_material_index = context.scene.matlay_layer_stack.layer_index

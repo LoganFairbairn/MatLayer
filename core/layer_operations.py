@@ -1025,10 +1025,18 @@ def read_active_layer_material_channels(material_channel_list, total_number_of_l
 def read_layer_nodes(context):
     '''Reads the material node tree to define the layer stack user interface properties.'''
 
+    # Only read layer nodes if there is an active object.
+    if not bpy.context.active_object:
+        return
+
     # Only read layer nodes if the active object is a mesh.
     if bpy.context.active_object.type != 'MESH':
         return
     
+    # Turn auto updating for layer properties off.
+    # This is to avoid node types from automatically being replaced when the node type is updated as doing so can cause errors when reading values (likely due to blender parameter update functions not being thread safe).
+    context.scene.matlay_layer_stack.auto_update_layer_properties = False
+
     # Remember the selected layer index before clearing the layer stack.
     original_selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
@@ -1045,10 +1053,6 @@ def read_layer_nodes(context):
         context.scene.matlay_layer_stack.layer_index = original_selected_layer_index
     else:
         context.scene.matlay_layer_stack.layer_index = 0
-
-    # Turn auto updating for layer properties off.
-    # This is to avoid node types from automatically being replaced when the node type is updated as doing so can cause errors when reading values (likely due to blender parameter update functions not being thread safe).
-    context.scene.matlay_layer_stack.auto_update_layer_properties = False
 
     # Read material layer stuff.
     read_layer_name_and_id(material_layers, context)
