@@ -13,7 +13,7 @@ SELECTED_BAKE_TYPE = [
     ("AMBIENT_OCCLUSION", "Ambient Occlusion", ""), 
     ("CURVATURE", "Curvature", ""),
     ("THICKNESS", "Thickness", ""),
-    ("NORMAL", "Normal", "")
+    ("NORMAL", "Normals", "")
     ]
 
 QUALITY_SETTINGS = [
@@ -36,7 +36,6 @@ def update_bake_width(self, context):
             baking_settings.output_height = baking_settings.output_width
 
 class MATLAY_baking_settings(bpy.types.PropertyGroup):
-    show_advanced_settings: BoolProperty(name="Show Advanced Settings", description="Click to show / hide advanced baking settings. Advanced settings generally don't need to be edited", default=False)
     bake_type: EnumProperty(items=SELECTED_BAKE_TYPE, name="Bake Types", description="Bake type currently selected", default='AMBIENT_OCCLUSION')
     output_quality: EnumProperty(items=QUALITY_SETTINGS, name="Output Quality", description="Output quality of the baked mesh maps", default='RECOMMENDED_QUALITY')
     output_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS,name="Output Height",description="Image size for the baked texure map result(s)", default='TWOK', update=update_bake_width)

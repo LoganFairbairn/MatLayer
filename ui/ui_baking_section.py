@@ -45,7 +45,13 @@ def draw_thickness_settings(layout, baking_settings, scale_y):
     row.prop(baking_settings, "thickness_samples", slider=True)
 
 def draw_normal_settings(layout, baking_settings, scale_y):
-    layout.label(text="Normal Bake Settings")
+    row = layout.row()
+    row.scale_y = 1.4
+    row.prop(bpy.data.scenes["Scene"].render.bake, "cage_extrusion", slider=True)
+
+    row = layout.row()
+    row.scale_y = 1.4
+    row.prop(bpy.data.scenes["Scene"].render.bake, "max_ray_distance", slider=True)
 
 def draw_baking_section_ui(self, context):
     '''Draws the baking section user interface'''
@@ -120,43 +126,37 @@ def draw_baking_section_ui(self, context):
 
     #----------------------------- ADVANCED SETTINGS -----------------------------#
 
-    if not baking_settings.show_advanced_settings:
-        row = layout.row()
-        row.scale_x = 10000
-        row.prop(baking_settings, "show_advanced_settings", icon='TRIA_DOWN', text="")
+    row = layout.row()
+    row.separator()
+    row = layout.row()
+    row.separator()
+    layout.label(text="ADVANCED SETTINGS")
 
-    if baking_settings.show_advanced_settings:
-        layout.label(text="ADVANCED SETTINGS")
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(bpy.data.scenes["Scene"].render.bake, "margin", slider=True)
 
-        row = layout.row()
-        row.scale_y = scale_y
-        row.prop(bpy.data.scenes["Scene"].render.bake, "margin", slider=True)
-
-        if baking_settings.high_poly_object != None:
-            row = layout.row()
-            row.scale_y = scale_y
-            row.prop(baking_settings, "cage_extrusion", slider=True)
-            row = layout.row()
-            row.scale_y = scale_y
-            row.prop(bpy.data.scenes["Scene"].render.bake, "max_ray_distance", slider=True)
-
+    if baking_settings.high_poly_object != None:
         row = layout.row()
         row.scale_y = scale_y
-        row.prop(baking_settings, "bake_type")
-
-        match baking_settings.bake_type:
-            case 'AMBIENT_OCCLUSION':
-                draw_ambient_occlusion_settings(layout, baking_settings, scale_y)
-
-            case 'CURVATURE':
-                draw_curvature_settings(layout, baking_settings, scale_y)
-
-            case 'THICKNESS':
-                draw_thickness_settings(layout, baking_settings, scale_y)
-
-            case 'NORMAL':
-                draw_normal_settings(layout, baking_settings, scale_y)
-
+        row.prop(baking_settings, "cage_extrusion", slider=True)
         row = layout.row()
-        row.scale_x = 10000
-        row.prop(baking_settings, "show_advanced_settings", icon='TRIA_UP', text="")
+        row.scale_y = scale_y
+        row.prop(bpy.data.scenes["Scene"].render.bake, "max_ray_distance", slider=True)
+
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "bake_type", text="Bake Settings For")
+
+    match baking_settings.bake_type:
+        case 'AMBIENT_OCCLUSION':
+            draw_ambient_occlusion_settings(layout, baking_settings, scale_y)
+
+        case 'CURVATURE':
+            draw_curvature_settings(layout, baking_settings, scale_y)
+
+        case 'THICKNESS':
+            draw_thickness_settings(layout, baking_settings, scale_y)
+
+        case 'NORMAL':
+            draw_normal_settings(layout, baking_settings, scale_y)

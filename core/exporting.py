@@ -14,7 +14,6 @@ from ..utilities import matlay_utils
 
 class MATLAY_exporting_settings(PropertyGroup):
     export_folder: StringProperty(default="", description="Path to folder location where exported texture are saved. If empty, an export folder will be created next to your .blend file and exported textures will be automatically saved there.", name="Export Folder Path")
-    show_advanced_settings: BoolProperty(default=False, name="Show Advanced Settings", description="Click to show / hide advanced baking settings. Advanced settings generally don't need to be edited")
     export_base_color: BoolProperty(default=True, name="Export Base Color", description="Include the base color in batch exporting")
     export_subsurface: BoolProperty(default=True, name="Export Subsurface", description="Include the subsurface in batch exporting")
     export_subsurface_color: BoolProperty(default=True, name="Export Subsurface Color", description="Include the subsurface color in batch exporting")
