@@ -87,8 +87,9 @@ def update_layer_index(self, context):
             if texture_node.image:
                 context.scene.tool_settings.image_paint.canvas = texture_node.image
 
-    material_filters.refresh_material_filter_stack(context)
+    material_filters.read_material_filter_nodes(context)
     layer_masks.read_mask_nodes(context)
+    layer_masks.read_mask_filter_nodes(context)
 
 def validate_selected_material_layer_index():
     '''Validates that the selected material filter index is within a valid range. This should be used as a safety check to avoid running operators that require a valid index.'''

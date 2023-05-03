@@ -53,7 +53,7 @@ def update_mask_stack_index(self, context):
             if mask_texture_node.image != None:
                 context.scene.tool_settings.image_paint.canvas = mask_texture_node.image
 
-    refresh_mask_filter_stack(context)
+    read_mask_filter_nodes(context)
 
 def update_mask_node_type(self, context):
     '''Updates the mask node type.'''
@@ -904,7 +904,7 @@ def add_mask(mask_type, use_alpha=False):
     reindex_mask_nodes(context)
     relink_mask_nodes(selected_material_layer_index)
     layer_nodes.organize_all_layer_nodes()
-    refresh_mask_filter_stack(context)
+    read_mask_filter_nodes(context)
 
     # Create a black or white mask image for the new mask.
     match mask_type:
@@ -1603,7 +1603,7 @@ def relink_mask_filter_nodes():
                         case 'VALTORGB':
                             material_channel_node.node_tree.links.new(mask_filter_node.outputs[0], next_filter_node.inputs[0])
 
-def refresh_mask_filter_stack(context):
+def read_mask_filter_nodes(context):
     '''Reads the material node tree to rebuild the mask filter stack in the ui.'''
     mask_filters = context.scene.matlay_mask_filters
     mask_filter_stack = context.scene.matlay_mask_filter_stack

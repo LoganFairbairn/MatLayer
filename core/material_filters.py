@@ -221,7 +221,7 @@ def relink_material_filter_nodes(material_layer_index):
                         case 'BRIGHTCONTRAST':
                             material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[0])
 
-def refresh_material_filter_stack(context):
+def read_material_filter_nodes(context):
     '''Reads layer nodes to re-construct the filter layer stack.'''
     filters = context.scene.matlay_material_filters
     filter_stack = context.scene.matlay_material_filter_stack

@@ -1063,9 +1063,9 @@ def read_layer_nodes(context):
     read_globally_active_material_channels(context)
     read_hidden_layers(total_number_of_layers, material_layers, material_channel_list, context)
     read_active_layer_material_channels(material_channel_list, total_number_of_layers, material_layers, context)
-    material_filters.refresh_material_filter_stack(context)
+    material_filters.read_material_filter_nodes(context)
     layer_masks.read_mask_nodes(context)
-    layer_masks.refresh_mask_filter_stack(context)
+    layer_masks.read_mask_filter_nodes(context)
     layer_nodes.organize_all_layer_nodes()
 
     context.scene.matlay_layer_stack.auto_update_layer_properties = True
