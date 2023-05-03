@@ -689,7 +689,7 @@ def read_mask_nodes(context):
     if len(masks) > 0 and previously_selected_mask_index < len(masks) - 1 and previously_selected_mask_index >= 0:
         mask_stack.selected_mask_index = previously_selected_mask_index
     else:
-        mask_stack.selected_mask_index
+        mask_stack.selected_mask_index = 0
 
     # Read properties from the mask nodes into the user interface.
     # Mask nodes settings across all material channels should be the same, only read from the color material channel nodes.
