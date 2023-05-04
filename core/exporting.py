@@ -88,12 +88,7 @@ def bake_and_export_material_channel(material_channel_name, context, self):
     original_render_engine = bpy.context.scene.render.engine
     bpy.context.scene.render.engine = 'CYCLES'
     bpy.context.scene.render.bake.use_selected_to_active = False
-
-    if material_channel_name == 'NORMAL':
-        bpy.ops.object.bake(type='NORMAL')
-    
-    else:
-        bpy.ops.object.bake(type='EMIT')
+    bpy.ops.object.bake(type='EMIT')
 
     # Reset the render engine.
     bpy.context.scene.render.engine = original_render_engine

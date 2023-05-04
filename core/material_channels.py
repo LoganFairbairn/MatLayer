@@ -478,7 +478,7 @@ def isolate_material_channel(isolate, material_channel_name, context):
             for link in material_channel_node.node_tree.links:
                 if link.from_node == last_normal_mix_node:
                     material_channel_node.node_tree.links.remove(link)
-            normal_material_channel_node.node_tree.links.new(last_normal_mix_node.outputs[0], normal_map_node.inputs[0])
+            normal_material_channel_node.node_tree.links.new(last_normal_mix_node.outputs[0], normal_map_node.inputs[1])
             normal_material_channel_node.node_tree.links.new(normal_map_node.outputs[0], normal_group_output_node.inputs[0])
 
         height_material_channel_node = get_material_channel_node(context, "HEIGHT")
