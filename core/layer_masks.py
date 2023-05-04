@@ -583,7 +583,8 @@ def relink_mask_nodes(material_layer_index):
             match layer_type:
                 case 'FILL':
                     link(mask_coord_node.outputs[2], mask_mapping_node.inputs[0])
-                    link(mask_mapping_node.outputs[0], mask_texture_node.inputs[0])
+                    if mask_texture_node.bl_static_type == 'TEX_IMAGE':
+                        link(mask_mapping_node.outputs[0], mask_texture_node.inputs[0])
 
                 case 'DECAL':
                     decal_mapping_node = get_mask_node('DecalMapping', material_channel_name, material_layer_index, i)
@@ -592,11 +593,13 @@ def relink_mask_nodes(material_layer_index):
                     decal_mask_mix_node = get_mask_node('DecalMaskMix', material_channel_name, material_layer_index, i)
 
                     link(mask_coord_node.outputs[3], mask_mapping_node.inputs[0])
-                    link(mask_mapping_node.outputs[0], mask_texture_node.inputs[0])
-                    if mask_texture_node.bl_static_type == 'TEX_IMAGE' and masks[selected_mask_index].use_alpha:
-                        link(mask_texture_node.outputs[1], decal_mask_mix_node.inputs[1])
-                    else:
-                        link(mask_texture_node.outputs[0], decal_mask_mix_node.inputs[1])
+                    if mask_texture_node.bl_static_type == 'TEX_IMAGE':
+                        link(mask_mapping_node.outputs[0], mask_texture_node.inputs[0])
+                        
+                        if masks[selected_mask_index].use_alpha:
+                            link(mask_texture_node.outputs[1], decal_mask_mix_node.inputs[1])
+                        else:
+                            link(mask_texture_node.outputs[0], decal_mask_mix_node.inputs[1])
 
                     link(mask_coord_node.outputs[3], decal_mapping_node.inputs[0])
                     link(decal_mapping_node.outputs[0], decal_mask_node.inputs[0])
@@ -702,7 +705,7 @@ def read_mask_nodes(context):
                 masks[selected_mask_index].node_type = 'TEXTURE'
 
             case 'GROUP':
-                masks[selected_mask_index].node_type = 'GROUP'
+                masks[selected_mask_index].node_type = 'GROUP_NODE'
             
             case 'TEX_NOISE':
                 masks[selected_mask_index].node_type = 'NOISE'
