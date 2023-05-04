@@ -5,6 +5,7 @@ from ..core import material_channels
 from ..core import material_filters
 from ..core import layer_masks
 from ..utilities import matlay_utils
+from ..utilities import logging
 
 # Node organization settings.
 NODE_WIDTH = 300

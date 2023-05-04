@@ -9,6 +9,7 @@ from ..core import layer_masks
 from ..core import material_filters
 from ..utilities.logging import popup_message_box
 from ..utilities import matlay_utils
+from ..utilities import logging
 
 # List of node types that can be used in the texture slot.
 TEXTURE_NODE_TYPES = [
@@ -86,7 +87,7 @@ def update_layer_index(self, context):
         if texture_node.bl_idname == "ShaderNodeTexImage":
             if texture_node.image:
                 context.scene.tool_settings.image_paint.canvas = texture_node.image
-
+                
     material_filters.read_material_filter_nodes(context)
     layer_masks.read_mask_nodes(context)
     layer_masks.read_mask_filter_nodes(context)
