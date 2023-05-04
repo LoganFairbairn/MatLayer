@@ -416,7 +416,6 @@ def draw_material_filters(column, context, layout):
             case 'VALTORGB':
                 row = column.row()
                 row.scale_y = 1.4
-                row.prop(filter_node.inputs[0], "default_value", text="Fac")
                 column.template_color_ramp(filter_node, "color_ramp")
 
             case 'HUE_SAT':
