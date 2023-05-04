@@ -174,7 +174,7 @@ def relink_material_nodes(material_layer_index):
                 if link != 0:
                     material_channel_node.node_tree.links.remove(link)
 
-        # If the coord node has a valid object, assume it's a decal layer and connect it as such.
+        # If the selected layer is a decal layer, use object coordinates.
         if check_decal_layer(material_layer_index):
             link_nodes(coord_node.outputs[3], mapping_node.inputs[0])
         else:
@@ -183,7 +183,7 @@ def relink_material_nodes(material_layer_index):
                 case 'FLAT':
                     link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
 
-                case 'TRI-PLANAR':
+                case 'BOX':
                     link_nodes(coord_node.outputs[0], mapping_node.inputs[0])
 
                 case 'SPHERE':

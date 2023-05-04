@@ -231,49 +231,33 @@ def update_layer_projection_mode(self, context):
     matlay_utils.set_valid_material_shading_mode(context)
     
     layers = context.scene.matlay_layers
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
 
-    material_channel_list = material_channels.get_material_channel_list()
-    for material_channel_name in material_channel_list:
-        material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
+    # Change node properties based on projection type.
+    for material_channel_name in material_channels.get_material_channel_list():
+        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_material_layer_index, context)
+        if texture_node:
+            if texture_node.type == 'TEX_IMAGE':
+                match layers[selected_material_layer_index].projection.projection_mode:
+                    case 'FLAT':
+                        texture_node.projection = 'FLAT'
 
-        # Get nodes.
-        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_index, context)
-        coord_node = layer_nodes.get_layer_node("COORD", material_channel_name, selected_layer_index, context)
-        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
-
-        if texture_node.type == 'TEX_IMAGE':
-            # Delink coordinate node.
-            if coord_node:
-                outputs = coord_node.outputs
-                for o in outputs:
-                    for l in o.links:
-                        if l != 0:
-                            material_channel_node.node_tree.links.remove(l)
-
-                if selected_layer_index > -1:
-                    # Connect nodes based on projection type.
-                    match layers[selected_layer_index].projection.projection_mode:
-                        case 'FLAT':
-                            material_channel_node.node_tree.links.new(coord_node.outputs[2], mapping_node.inputs[0])
-                            texture_node.projection = 'FLAT'
-
-                        case 'BOX':
-                            material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
-                            texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
-                            if texture_node and texture_node.type == 'TEX_IMAGE':
+                    case 'BOX':
+                        if texture_node:
+                            if texture_node.type == 'TEX_IMAGE':
                                 texture_node.projection = 'BOX'
-                                texture_node.projection_blend = 0.3
-                                self.projection_blend = 0.3
+                                #texture_node.projection_blend = 0.3
+                                #self.projection_blend = 0.3
 
-                        case 'SPHERE':
-                            material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
-                            texture_node.projection = 'SPHERE'
+                    case 'SPHERE':
+                        texture_node.projection = 'SPHERE'
 
-                        case 'TUBE':
-                            material_channel_node.node_tree.links.new(coord_node.outputs[0], mapping_node.inputs[0])
-                            texture_node.projection = 'TUBE'
+                    case 'TUBE':
+                        texture_node.projection = 'TUBE'
+
+    # Relink material channel nodes.
+    layer_nodes.relink_material_nodes(selected_material_layer_index)
+    layer_nodes.relink_material_layers()
 
 def update_projection_interpolation(self, context):
     '''Updates the image texture interpolation mode when it's changed.'''
