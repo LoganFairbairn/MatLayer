@@ -405,6 +405,12 @@ def draw_material_filters(column, context, layout):
     selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
     selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
+
+    row = column.row()
+    row.scale_y = SCALE_Y
+    row.label(text="Filter Settings for: ")
+    row.prop(context.scene.matlay_layer_stack, "selected_material_channel", text="")
+
     filter_node = mf.get_material_filter_node(selected_material_channel, selected_layer_index, selected_filter_index)
     if filter_node:
         match filter_node.bl_static_type:
@@ -641,6 +647,8 @@ def draw_mask_filters(column):
     selected_material_index = bpy.context.scene.matlay_layer_stack.layer_index
     selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
     selected_mask_filter_index = bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_index
+
+    # TODO: Update this to use filter properties instead of reading directly from the nodes.
     mask_filter_node = layer_masks.get_mask_filter_node('COLOR', selected_material_index, selected_mask_index, selected_mask_filter_index, False)
     if mask_filter_node:
         match mask_filter_node.bl_static_type:

@@ -1776,8 +1776,8 @@ class MATLAY_UL_mask_filter_stack(UIList):
                     case 'INVERT':
                         filter_node_name = "Invert"
                     case 'VALTORGB':
-                        filter_node_name = "Value to RGB"
-            layout.label(text=filter_node_name + " " + str(item.stack_index))
+                        filter_node_name = "Value to RGB (levels)"
+            layout.label(text="{0}. {1}".format(item.stack_index + 1, filter_node_name))
 
 class MATLAY_OT_add_mask_filter_invert(Operator):
     '''Adds an invert adjustment to the masks applied to the selected layer'''
