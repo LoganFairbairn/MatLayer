@@ -102,7 +102,7 @@ def draw_baking_section_ui(self, context):
     row.scale_y = 1.4
 
     col = row.split()
-    col.prop(baking_settings, "output_width", text="")
+    col.prop(baking_settings, "output_width", text="Bake Size")
 
     col = row.split()
     if baking_settings.match_bake_resolution:
@@ -112,6 +112,8 @@ def draw_baking_section_ui(self, context):
         col.prop(baking_settings, "match_bake_resolution", text="", icon="UNLOCKED")
 
     col = row.split()
+    if baking_settings.match_bake_resolution:
+        col.enabled = False
     col.prop(baking_settings, "output_height", text="")
 
     row = layout.row()

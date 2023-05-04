@@ -23,11 +23,12 @@ def draw_texture_set_section_ui(self, context):
     col = row.split()
     if texture_set_settings.match_image_resolution:
         col.prop(texture_set_settings, "match_image_resolution", text="", icon="LOCKED")
-
     else:
         col.prop(texture_set_settings, "match_image_resolution", text="", icon="UNLOCKED")
 
     col = row.split()
+    if texture_set_settings.match_image_resolution:
+        col.enabled = False
     col.prop(texture_set_settings, "image_height", text="")
 
     # Draw global material channel toggles.
