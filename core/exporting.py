@@ -44,7 +44,7 @@ def bake_and_export_material_channel(material_channel_name, context, self):
     
     # Force save all textures (unsaved texture will not bake to textures properly).
     for image in bpy.data.images:
-        if image.filepath != '':
+        if image.filepath != '' and image.is_dirty and image.has_data:
             image.save()
 
     # Isolate the material channel.
