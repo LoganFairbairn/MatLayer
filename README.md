@@ -28,6 +28,7 @@ Limitations:
 Workflow Help:
 - When using this add-on, you are intended to use ONLY the add-on ui, and NOT manually edit the material nodes.
 - This add-on currently supports 1 material per object, it will support editing multiple materials on the same object in the future.
+- You can have as many material layers as you'd like, however it's better to minimize the amount of layers you use for optimization purposes. Most object's materials can be created with 3 - 15 material layers.
 - Almost all user interface elements have a detailed tooltip when you hover your mouse over them.
 
 Platforms: Windows, Linux (untested)
