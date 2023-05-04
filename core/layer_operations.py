@@ -590,7 +590,11 @@ class MATLAY_OT_delete_layer(Operator):
         layer_nodes.organize_all_layer_nodes()
         layer_nodes.relink_material_layers()
 
+        # Set a valid material shading mode and reset ui tabs.
         matlay_utils.set_valid_material_shading_mode(context)
+        context.scene.matlay_layer_stack.layer_property_tab = 'MATERIAL'
+        context.scene.matlay_layer_stack.material_property_tab = 'MATERIAL'
+        
         return {'FINISHED'}
 
 class MATLAY_OT_duplicate_layer(Operator):
