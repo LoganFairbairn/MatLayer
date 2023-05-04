@@ -114,6 +114,8 @@ def bake_and_export_material_channel(material_channel_name, context, self):
     # De-isolate the material channel.
     material_channels.isolate_material_channel(False, material_channel_name, context)
 
+    self.report({'INFO'}, "Finished exporting textures. You can find any exported textures in {0}".format(export_path))
+
     # Delete unused images.
     addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
     if addon_preferences.auto_delete_unused_images:

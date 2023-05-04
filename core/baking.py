@@ -333,7 +333,7 @@ def create_temp_bake_material(bake_type):
 
     return bake_material
 
-def bake_mesh_map(bake_type):
+def bake_mesh_map(bake_type, self):
     # Verify that there is a valid object to bake mesh maps for.
     if verify_bake_object() == False:
         return
@@ -443,6 +443,11 @@ def bake_mesh_map(bake_type):
     # Reset the render engine.
     bpy.context.scene.render.engine = 'BLENDER_EEVEE'
 
+    # Display a finished message.
+    matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
+    bake_path = os.path.join(matlay_image_path, "MeshMaps")
+    self.report({'INFO'}, "Baking mesh maps complete. You can find all bake mesh maps here: {0}".format(bake_path))
+
 class MATLAY_OT_bake(Operator):
     '''Bakes all checked mesh texture maps in succession. Note that this function (especially on slower computers, or when using a CPU for rendering) can take a few minutes.'''
     bl_idname = "matlay.bake"
@@ -458,16 +463,16 @@ class MATLAY_OT_bake(Operator):
         baking_settings = context.scene.matlay_baking_settings
 
         if baking_settings.bake_ambient_occlusion:
-            bpy.ops.matlay.bake_ambient_occlusion()
+            bake_mesh_map('AMBIENT_OCCLUSION', self)
 
         if baking_settings.bake_curvature:
-            bpy.ops.matlay.bake_curvature()
+            bake_mesh_map('CURVATURE', self)
 
         if baking_settings.bake_thickness:
-            bpy.ops.matlay.bake_thickness()
+            bake_mesh_map('THICKNESS', self)
 
         if baking_settings.bake_normals:
-            bpy.ops.matlay.bake_normals()
+            bake_mesh_map('NORMALS', self)
 
         return {'FINISHED'}
 
@@ -481,7 +486,7 @@ class MATLAY_OT_bake_ambient_occlusion(Operator):
         return context.active_object
 
     def execute(self, context):
-        bake_mesh_map('AMBIENT_OCCLUSION')
+        bake_mesh_map('AMBIENT_OCCLUSION', self)
         return {'FINISHED'}
 
 class MATLAY_OT_bake_curvature(Operator):
@@ -494,7 +499,7 @@ class MATLAY_OT_bake_curvature(Operator):
         return context.active_object
 
     def execute(self, context):
-        bake_mesh_map('CURVATURE')
+        bake_mesh_map('CURVATURE', self)
         return {'FINISHED'}
 
 class MATLAY_OT_bake_thickness(Operator):
@@ -507,7 +512,7 @@ class MATLAY_OT_bake_thickness(Operator):
         return context.active_object
 
     def execute(self, context):
-        bake_mesh_map('THICKNESS')
+        bake_mesh_map('THICKNESS', self)
         return {'FINISHED'}
     
 class MATLAY_OT_bake_normals(Operator):
@@ -520,7 +525,7 @@ class MATLAY_OT_bake_normals(Operator):
         return context.active_object
 
     def execute(self, context):
-        bake_mesh_map('NORMALS')
+        bake_mesh_map('NORMALS', self)
         return {'FINISHED'}
 
 
