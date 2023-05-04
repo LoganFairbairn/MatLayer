@@ -246,6 +246,7 @@ class MATLAY_OT_import_texture_set(Operator, ImportHelper):
                     if material_channel in material_channel_occurance:
                         material_channel_occurance[material_channel] += 1
 
+        selected_image_file = False
         for file in self.files:
             # Start by assuming the correct material channel is the one that appears the least in the file name.
             # I.E: Selected files: RoughMetal_002_2k_Color, RoughMetal_002_2k_Normal, RoughMetal_002_2k_Metalic, RoughMetal_002_2k_Rough
@@ -287,6 +288,11 @@ class MATLAY_OT_import_texture_set(Operator, ImportHelper):
                 image_path = os.path.join(folder_directory[0], file.name)
                 bpy.ops.image.open(filepath=image_path)
                 imported_image = bpy.data.images[file.name]
+
+                # Select the first image file in the canvas painting window.
+                if selected_image_file == False:
+                    context.scene.tool_settings.image_paint.canvas = imported_image
+                    selected_image_file = True
 
                 # Place the image into a material channel based on it's name.
                 texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_material_layer_index, context)
