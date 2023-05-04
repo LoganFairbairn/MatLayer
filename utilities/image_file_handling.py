@@ -10,8 +10,8 @@ from ..import layer_nodes
 from .. import logging
 
 
-# List of words that may be in image texture names that could be used to identify material channels.
-material_channel_id_words = {
+# Dictionary of words / tags that may be in image texture names that could be used to identify material channels.
+material_channel_tags = {
     "color": 'COLOR',
     "colour": 'COLOR',
     "diffuse": 'COLOR',
@@ -21,6 +21,7 @@ material_channel_id_words = {
     "subsurf": 'SUBSURFACE',
     "ss": 'SUBSURFACE',
     "metallic": 'METALLIC',
+    "metalness": 'METALLIC',
     "metal": 'METALLIC',
     "specular": 'SPECULAR',
     "spec": 'SPECULAR',
@@ -193,7 +194,7 @@ class MATLAY_OT_import_texture(Operator, ImportHelper):
 class MATLAY_OT_import_texture_set(Operator, ImportHelper):
     bl_idname = "matlay.import_texture_set"
     bl_label = "Import Texture Set"
-    bl_description = "Imports multiple selected textures into material channels based on file names. This function requires decent file naming conventions for imported textures to work properly"
+    bl_description = "Imports multiple selected textures into material channels based on file names. This function requires decent texture file naming conventions to work properly"
     bl_options = {'REGISTER', 'UNDO'}
     
     files: bpy.props.CollectionProperty(
@@ -227,46 +228,77 @@ class MATLAY_OT_import_texture_set(Operator, ImportHelper):
             components = filename.split(' ')
             components = [c.lower() for c in components]
             return components
-        
-        def parse_material_channel_from_name(filename):
-            components = split_filename_by_components(filename)
-            material_channel = ''
-            for component in components:
-                if component in material_channel_id_words:
-                    material_channel = material_channel_id_words[component]
-                    break
-            return material_channel
+
+        # Assign points to all material channel id tags that appear in selected file names. Material channels that appear more than once are assigned a lower point value.
+        material_channel_occurance = {}
+        for file in self.files:
+            tags = split_filename_by_components(file.name)
+            for tag in tags:
+                if tag not in material_channel_occurance and tag in material_channel_tags:
+                    material_channel = material_channel_tags[tag]
+                    material_channel_occurance[material_channel] = 0
 
         for file in self.files:
-            # Split the file name into components.
-            material_channel_name = parse_material_channel_from_name(file.name)
+            tags = split_filename_by_components(file.name)
+            for tag in tags:
+                if tag in material_channel_tags:
+                    material_channel = material_channel_tags[tag]
+                    if material_channel in material_channel_occurance:
+                        material_channel_occurance[material_channel] += 1
 
-            # If the material channel the texture is supposed to be placed into isn't already using a texture, change the material channels node type to texture.
-            material_layers = context.scene.matlay_layers
-            selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-            attribute_name = material_channel_name.lower() + "_node_type"
-            material_channel_node_type = getattr(material_layers[selected_material_layer_index].channel_node_types, attribute_name)
-            if material_channel_node_type != 'TEXTURE':
-                setattr(material_layers[selected_material_layer_index].channel_node_types, attribute_name, 'TEXTURE')
+        for file in self.files:
+            # Start by assuming the correct material channel is the one that appears the least in the file name.
+            # I.E: Selected files: RoughMetal_002_2k_Color, RoughMetal_002_2k_Normal, RoughMetal_002_2k_Metalic, RoughMetal_002_2k_Rough
+            # Color material channel file = RoughMetal_002_2k_Color (because the 'color' tag appears the least among all selected files).
+            tags = split_filename_by_components(file.name)
+            material_channel_names_in_filename = []
+            for tag in tags:
+                if tag in material_channel_tags:
+                    material_channel_names_in_filename.append(material_channel_tags[tag])
 
-            # Import the image.
-            folder_directory = os.path.split(self.filepath)
-            image_path = os.path.join(folder_directory[0], file.name)
-            bpy.ops.image.open(filepath=image_path)
-            imported_image = bpy.data.images[file.name]
+            # Only import files that have a material channel name detected in the file name.
+            if len(material_channel_names_in_filename) > 0:
+                selected_material_channel_name = material_channel_names_in_filename[0]
+                material_channel_occurances_equal = True
+                for material_channel_name in material_channel_names_in_filename:
+                    if material_channel_occurance[material_channel_name] < material_channel_occurance[selected_material_channel_name]:
+                        selected_material_channel_name = material_channel_name
+                        material_channel_occurances_equal = False
+                
+                # If all material channels identified in the files name occur equally throughout all selected filenames, use the material channel that occurs the most in the files name.
+                # I.E: Selected files: RoughMetal_002_2k_Color, RoughMetal_002_2k_Normal, RoughMetal_002_2k_Metalic, RoughMetal_002_2k_Rough
+                # Roughness material channel file = RoughMetal_002_2k_Rough (because roughness appears twice)
+                selected_material_channel_name = material_channel_names_in_filename[0]
+                if material_channel_occurances_equal:
+                    for material_channel_name in material_channel_names_in_filename:
+                        if material_channel_occurance[material_channel_name] > material_channel_occurance[selected_material_channel_name]:
+                            selected_material_channel_name = material_channel_name
+                            
+                # Change the material channels node type to a texture node.
+                material_layers = context.scene.matlay_layers
+                selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+                attribute_name = material_channel_name.lower() + "_node_type"
+                material_channel_node_type = getattr(material_layers[selected_material_layer_index].channel_node_types, attribute_name)
+                if material_channel_node_type != 'TEXTURE':
+                    setattr(material_layers[selected_material_layer_index].channel_node_types, attribute_name, 'TEXTURE')
 
-            # Place the image into a material channel based on it's name.
-            texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_material_layer_index, context)
-            if texture_node:
-                texture_node.image = imported_image
+                # Import the image.
+                folder_directory = os.path.split(self.filepath)
+                image_path = os.path.join(folder_directory[0], file.name)
+                bpy.ops.image.open(filepath=image_path)
+                imported_image = bpy.data.images[file.name]
 
-            # Update the imported images colorspace based on it's specified material channel.
-            set_image_colorspace(imported_image, material_channel_name)
+                # Place the image into a material channel based on it's name.
+                texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_material_layer_index, context)
+                if texture_node:
+                    texture_node.image = imported_image
 
-            # Print information about using DirectX normal maps for users if it's detected they are using one.
-            if check_for_directx(file.name):
-                self.report({'INFO'}, "You may have imported a DirectX normal map which will cause your imported normal map to appear inverted. You should use an OpenGL normal map instead or fix the textures name if it's already an OpenGL normal map.")
+                # Update the imported images colorspace based on it's specified material channel.
+                set_image_colorspace(imported_image, material_channel_name)
 
+                # Print information about using DirectX normal maps for users if it's detected they are using one.
+                if check_for_directx(file.name):
+                    self.report({'INFO'}, "You may have imported a DirectX normal map which will cause your imported normal map to appear inverted. You should use an OpenGL normal map instead or fix the textures name if it's already an OpenGL normal map.")
         return {'FINISHED'}
 
 class MATLAY_OT_delete_layer_image(Operator):
