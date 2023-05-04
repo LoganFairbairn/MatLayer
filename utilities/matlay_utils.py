@@ -123,6 +123,8 @@ class MATLAY_OT_append_workspace(Operator):
         # Reset the main pannel tab.
         context.scene.matlay_panel_properties.sections = 'SECTION_TEXTURE_SET'
 
+        self.report({'INFO'}, "Appended workspace (check the workspaces / user interface layouts at the top of your screen).")
+
         return {'FINISHED'}
 
 class MATLAY_OT_append_basic_brushes(Operator):
@@ -150,6 +152,8 @@ class MATLAY_OT_append_basic_brushes(Operator):
                 brush.use_custom_icon = True
                 brush_icon_name = brush.name.split('_')[1]
                 brush.icon_filepath = os.path.join(brush_preview_images_path, brush_icon_name + ".png")
+
+        self.report({'INFO'}, "Appended basic brushes. Check the brush presets to see them (Texture Paint Mode -> Tool (3D view sidebar) -> Brushes)")
 
         return {'FINISHED'}
 
