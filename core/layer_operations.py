@@ -325,18 +325,19 @@ class MATLAY_OT_add_decal_layer(Operator):
     bl_description = "Opens a window from which you can choose an image to use as a decal (similar to a sticker) and adds it to the scene"
 
     def execute(self, context):
-
         # Add decal object (which allows the user to drag the decal around on the object).
-        matlay_utils.set_valid_mode()
+        # Must be in object mode to add the decal object and select it after the decal layer is created.
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
         previously_selected_object = bpy.context.active_object
-        bpy.ops.object.select_all(action='DESELECT')
+        for obj in bpy.context.selected_objects:
+            obj.select_set(False)
         bpy.ops.object.empty_add(type='CUBE', align='WORLD', location=(0, 0, 0), scale=(1, 1, 0.2))
         decal_object = bpy.context.active_object
         decal_object.scale = (1.0, 1.0, 0.2)
         bpy.context.active_object.select_set(False)
         previously_selected_object.select_set(True)
         bpy.context.view_layer.objects.active = previously_selected_object
-
+        
         # Add a new decal layer.
         add_layer('DECAL', decal_object)
 
@@ -347,8 +348,10 @@ class MATLAY_OT_add_decal_layer(Operator):
         layer_masks.add_mask('DECAL', use_alpha=True)
 
         # Re-select the decal object so users can adjust it.
-        bpy.ops.object.select_all(action='DESELECT')
+        for obj in bpy.context.selected_objects:
+            obj.select_set(False)
         decal_object.select_set(True)
+        bpy.context.view_layer.objects.active = decal_object
 
         return {'FINISHED'}
 
@@ -602,11 +605,14 @@ class MATLAY_OT_duplicate_layer(Operator):
 
     def execute(self, context):
         material_layers.validate_selected_material_layer_index()
-        matlay_utils.set_valid_mode()
-        context.scene.matlay_layer_stack.auto_update_layer_properties = False
-
         layers = context.scene.matlay_layers
         original_material_layer_index = context.scene.matlay_layer_stack.layer_index
+
+        # Must be in object mode to add the decal object and select it after the decal layer is created.
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+        
+        # Auto updating for layer properties should be off.
+        context.scene.matlay_layer_stack.auto_update_layer_properties = False
 
         # If the original layer was a decal layer, create a new decal object (empty) and copy the transforms of the original.
         new_decal_object = None
