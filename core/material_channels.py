@@ -489,7 +489,7 @@ def isolate_material_channel(isolate, material_channel_name, context):
             for link in height_material_channel_node.node_tree.links:
                 if link.from_node == last_height_mix_node:
                     height_material_channel_node.node_tree.links.remove(link)
-            height_material_channel_node.node_tree.links.new(last_height_mix_node.outputs[0], bump_node.inputs[0])
+            height_material_channel_node.node_tree.links.new(last_height_mix_node.outputs[0], bump_node.inputs[2])
             height_material_channel_node.node_tree.links.new(bump_node.outputs[0], height_group_output_node.inputs[0])
 
 class MATLAY_OT_toggle_material_channel_preview(Operator):
