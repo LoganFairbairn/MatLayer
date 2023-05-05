@@ -233,7 +233,7 @@ class MATLAY_OT_export_roughness(Operator):
 class MATLAY_OT_export_normals(Operator):
     bl_idname = "matlay.export_normals"
     bl_label = "Export Normals"
-    bl_description = "Bakes the MatLay normal channel and saves the result to the export folder"
+    bl_description = "Bakes the MatLay normal channel and saves the result to the export folder. The height material channel will also be converted and baked into the normal map"
 
     @ classmethod
     def poll(cls, context):
