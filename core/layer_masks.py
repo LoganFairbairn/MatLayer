@@ -883,6 +883,11 @@ def add_default_mask_nodes(mask_type, context):
                 decal_mask_mix_node.operation = 'MULTIPLY'
                 new_nodes.append(decal_mask_mix_node)
 
+            # Adjust properties of nodes based on the material channel.
+            match material_channel_name:
+                case 'NORMAL':
+                    mask_mix_node.inputs[1].default_value = (0.5, 0.5, 1.0, 1.0)
+
             # Frame new nodes.
             frame = layer_nodes.get_layer_frame(material_channel_name, selected_material_layer_index, context)
             for n in new_nodes:

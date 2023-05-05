@@ -82,6 +82,37 @@ def add_default_layer_nodes(layer_type, decal_object):
         
         new_nodes = []
 
+        opacity_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMath')
+        opacity_node.name = layer_nodes.format_material_node_name("OPACITY", new_layer_index, True)
+        opacity_node.label = opacity_node.name
+        opacity_node.inputs[0].default_value = 1.0
+        opacity_node.inputs[1].default_value = 1.0
+        opacity_node.use_clamp = True
+        opacity_node.operation = 'MULTIPLY'
+        new_nodes.append(opacity_node)
+
+        mix_layer_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMixRGB')
+        mix_layer_node.name = layer_nodes.format_material_node_name("MIXLAYER", new_layer_index, True)
+        mix_layer_node.label = mix_layer_node.name
+        mix_layer_node.inputs[1].default_value = (0.0, 0.0, 0.0, 1.0)
+        mix_layer_node.inputs[2].default_value = (0.0, 0.0, 0.0, 1.0)
+        mix_layer_node.use_clamp = True
+        new_nodes.append(mix_layer_node)
+
+        coord_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexCoord')
+        coord_node.name = layer_nodes.format_material_node_name("COORD", new_layer_index, True)
+        coord_node.label = coord_node.name
+        if layer_type == 'DECAL':
+            coord_node.object = decal_object
+        new_nodes.append(coord_node)
+
+        mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
+        mapping_node.name = layer_nodes.format_material_node_name("MAPPING", new_layer_index, True)
+        mapping_node.label = mapping_node.name
+        if layer_type == 'DECAL':
+            mapping_node.inputs[1].default_value = (0.5, 0.5, 0.0)
+        new_nodes.append(mapping_node)
+
         texture_node = None
         if material_channel_list[i] == "COLOR":
             if layer_type == 'PAINT' or layer_type == 'DECAL':
@@ -119,7 +150,6 @@ def add_default_layer_nodes(layer_type, decal_object):
         if material_channel_list[i] == "HEIGHT":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
             texture_node.outputs[0].default_value = 0.0
-            mix_layer_node.blend_type = 'MIX'
 
         if material_channel_list[i] == "EMISSION":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
@@ -128,37 +158,6 @@ def add_default_layer_nodes(layer_type, decal_object):
         texture_node.name = layer_nodes.format_material_node_name("TEXTURE", new_layer_index, True)
         texture_node.label = texture_node.name
         new_nodes.append(texture_node)
-
-        opacity_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMath')
-        opacity_node.name = layer_nodes.format_material_node_name("OPACITY", new_layer_index, True)
-        opacity_node.label = opacity_node.name
-        opacity_node.inputs[0].default_value = 1.0
-        opacity_node.inputs[1].default_value = 1.0
-        opacity_node.use_clamp = True
-        opacity_node.operation = 'MULTIPLY'
-        new_nodes.append(opacity_node)
-
-        mix_layer_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMixRGB')
-        mix_layer_node.name = layer_nodes.format_material_node_name("MIXLAYER", new_layer_index, True)
-        mix_layer_node.label = mix_layer_node.name
-        mix_layer_node.inputs[1].default_value = (0.0, 0.0, 0.0, 1.0)
-        mix_layer_node.inputs[2].default_value = (0.0, 0.0, 0.0, 1.0)
-        mix_layer_node.use_clamp = True
-        new_nodes.append(mix_layer_node)
-
-        coord_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexCoord')
-        coord_node.name = layer_nodes.format_material_node_name("COORD", new_layer_index, True)
-        coord_node.label = coord_node.name
-        if layer_type == 'DECAL':
-            coord_node.object = decal_object
-        new_nodes.append(coord_node)
-
-        mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
-        mapping_node.name = layer_nodes.format_material_node_name("MAPPING", new_layer_index, True)
-        mapping_node.label = mapping_node.name
-        if layer_type == 'DECAL':
-            mapping_node.inputs[1].default_value = (0.5, 0.5, 0.0)
-        new_nodes.append(mapping_node)
 
         # Frame nodes.
         frame = material_channel_node.node_tree.nodes.new(type='NodeFrame')
