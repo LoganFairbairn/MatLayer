@@ -48,7 +48,8 @@ def bake_and_export_material_channel(material_channel_name, context, self):
             image.save()
 
     # Isolate the material channel.
-    material_channels.isolate_material_channel(True, material_channel_name, context)
+    if material_channel_name != 'NORMAL':
+        material_channels.isolate_material_channel(True, material_channel_name, context)
 
     # Create a new image in Blender's data and image node.
     export_image_name = bpy.context.active_object.name + "_" + material_channel_name
@@ -88,7 +89,10 @@ def bake_and_export_material_channel(material_channel_name, context, self):
     original_render_engine = bpy.context.scene.render.engine
     bpy.context.scene.render.engine = 'CYCLES'
     bpy.context.scene.render.bake.use_selected_to_active = False
-    bpy.ops.object.bake(type='EMIT')
+    if material_channel_name == 'NORMAL':
+        bpy.ops.object.bake(type='NORMAL')
+    else:
+        bpy.ops.object.bake(type='EMIT')
 
     # Reset the render engine.
     bpy.context.scene.render.engine = original_render_engine
@@ -107,14 +111,10 @@ def bake_and_export_material_channel(material_channel_name, context, self):
     bpy.data.images.remove(export_image)
 
     # De-isolate the material channel.
-    material_channels.isolate_material_channel(False, material_channel_name, context)
+    if material_channel_name != 'NORMAL':
+        material_channels.isolate_material_channel(False, material_channel_name, context)
 
     self.report({'INFO'}, "Finished exporting textures. You can find any exported textures in {0}".format(export_path))
-
-    # Delete unused images.
-    addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
-    if addon_preferences.auto_delete_unused_images:
-        matlay_utils.delete_unused_layer_images(self, context)
     
 class MATLAY_OT_export(Operator):
     bl_idname = "matlay.export"
