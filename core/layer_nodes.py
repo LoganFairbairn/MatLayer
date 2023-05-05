@@ -283,7 +283,7 @@ def get_all_nodes_in_layer(material_channel_name, material_layer_index, context,
     nodes = nodes + filter_nodes
 
     # Get all mask nodes.
-    mask_nodes = layer_masks.get_all_mask_nodes_in_layer(material_layer_index, material_channel_name, get_edited)
+    mask_nodes = layer_masks.get_mask_nodes_in_material_layer(material_layer_index, material_channel_name, get_edited)
     nodes = nodes + mask_nodes
 
     # Get all mask filter nodes.
@@ -368,7 +368,7 @@ def reindex_material_layer_nodes():
                     node.label = node.name
 
                 # Re-index all mask nodes.
-                mask_nodes = layer_masks.get_all_mask_nodes_in_layer(index - 1, material_channel_name, False)
+                mask_nodes = layer_masks.get_mask_nodes_in_material_layer(index - 1, material_channel_name, False)
                 for node in mask_nodes:
                     node_info = node.name.split('_')
                     node.name = layer_masks.format_mask_node_name(node_info[0], index, node_info[2], False)
@@ -423,7 +423,7 @@ def reindex_material_layer_nodes():
                     node.label = node.name
 
                 # Re-index all mask nodes.
-                mask_nodes = layer_masks.get_all_mask_nodes_in_layer(index, material_channel_name, False)
+                mask_nodes = layer_masks.get_mask_nodes_in_material_layer(index, material_channel_name, False)
                 for node in mask_nodes:
                     node_info = node.name.split('_')
                     node.name = layer_masks.format_mask_node_name(node_info[0], index - 1, node_info[2], False)

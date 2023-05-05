@@ -444,7 +444,7 @@ def get_mask_node(mask_node_name, material_channel_name, material_layer_index, m
         return None
 
 def get_mask_nodes(material_channel_name, material_stack_index, mask_stack_index, get_edited=False):
-    '''Returns an array of mask node for the specific mask index.'''
+    '''Returns an array of all mask nodes for the specified mask index.'''
     nodes = []
     material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
     if material_channel_node:
@@ -454,7 +454,7 @@ def get_mask_nodes(material_channel_name, material_stack_index, mask_stack_index
                 nodes.append(mask_node)
     return nodes
 
-def get_all_mask_nodes_in_layer(material_stack_index, material_channel_name, get_edited=False):
+def get_mask_nodes_in_material_layer(material_stack_index, material_channel_name, get_edited=False):
     '''Returns all the mask nodes in the given material layer within the given material channel. If get edited is passed as true, all nodes part of the given material layer marked as being edited (signified by a tilda at the end of their name) will be returned.'''
     nodes = []
     material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
@@ -1222,10 +1222,21 @@ class MATLAY_OT_delete_layer_mask(Operator):
     def execute(self, context):
         selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
         selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
-        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
         masks = context.scene.matlay_masks
 
         matlay_utils.set_valid_mode()
+
+        # Delete all mask nodes from all material channels.
+        for material_channel_name in material_channels.get_material_channel_list():
+            material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
+            mask_nodes = get_mask_nodes(material_channel_name, selected_material_layer_index, selected_mask_index)
+            for node in mask_nodes:
+                material_channel_node.node_tree.nodes.remove(node)
+
+            mask_filter_nodes = get_all_mask_filter_nodes(material_channel_name, selected_material_layer_index, selected_mask_index)
+            for mask_filter_node in mask_filter_nodes:
+                material_channel_node.node_tree.nodes.remove(mask_filter_node)
 
         # Delete all the mask filter group nodes associated with this layer.
         masks = bpy.context.scene.matlay_masks
@@ -1235,13 +1246,6 @@ class MATLAY_OT_delete_layer_mask(Operator):
             mask_filter_node_tree = bpy.data.node_groups.get(mask_filter_name)
             if mask_filter_node_tree:
                 bpy.data.node_groups.remove(mask_filter_node_tree)
-
-        # Delete the mask nodes (in all material channels).
-        for material_channel_name in material_channels.get_material_channel_list():
-            material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
-            mask_nodes = get_mask_nodes(material_channel_name, selected_layer_index, selected_mask_index)
-            for node in mask_nodes:
-                material_channel_node.node_tree.nodes.remove(node)
 
         # Re-index and re-link any remaining layer mask nodes.
         reindex_mask_nodes(context)

@@ -453,7 +453,7 @@ class MATLAY_OT_move_material_layer(Operator):
                 filter_node.name += '~'
                 filter_node.label = filter_node.name
 
-            mask_nodes = layer_masks.get_all_mask_nodes_in_layer(selected_material_layer_index, material_channel_name)
+            mask_nodes = layer_masks.get_mask_nodes_in_material_layer(selected_material_layer_index, material_channel_name)
             for mask_node in mask_nodes:
                 mask_node.name += '~'
                 mask_node.label = mask_node.name
@@ -485,7 +485,7 @@ class MATLAY_OT_move_material_layer(Operator):
                 filter_node.label = filter_node.name
 
             # Rename / re-index mask nodes.
-            mask_nodes = layer_masks.get_all_mask_nodes_in_layer(moving_to_layer_index, material_channel_name)
+            mask_nodes = layer_masks.get_mask_nodes_in_material_layer(moving_to_layer_index, material_channel_name)
             for mask_node in mask_nodes:
                 node_info = mask_node.name.split('_')
                 mask_node.name = node_info[0] + "_" + str(selected_material_layer_index) + "_" + node_info[2]
@@ -518,7 +518,7 @@ class MATLAY_OT_move_material_layer(Operator):
                 filter_node.name = material_filters.format_filter_node_name(moving_to_layer_index, node_info[2].replace('~', ''))
                 filter_node.label = filter_node.name
 
-            mask_nodes = layer_masks.get_all_mask_nodes_in_layer(selected_material_layer_index, material_channel_name, True)
+            mask_nodes = layer_masks.get_mask_nodes_in_material_layer(selected_material_layer_index, material_channel_name, True)
             for mask_node in mask_nodes:
                 node_info = mask_node.name.split('_')
                 mask_node.name = node_info[0] + "_" + str(moving_to_layer_index) + "_" + node_info[2].replace('~', '')
