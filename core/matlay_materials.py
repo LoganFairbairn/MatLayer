@@ -1,7 +1,6 @@
 # This file contains functions for creating and verifying materials made with this add-on.
 
 import bpy
-from ..core import layer_nodes
 from ..utilities import logging
 
 # Returns true if the material on the active object is compatible with this add-on.

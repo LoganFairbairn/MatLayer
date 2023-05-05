@@ -378,8 +378,9 @@ def reindex_material_layer_nodes():
                 mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, index - 1, False)
                 for node in mask_filter_nodes:
                     node_info = node.name.split('_')
-                    node.name = layer_masks.format_mask_filter_node_name(index, node_info[2], node_info[3], False)
-                    node.label = node.name
+                    old_name = layer_masks.format_mask_filter_node_name(index - 1, node_info[3], node_info[4])
+                    new_name = layer_masks.format_mask_filter_node_name(index, node_info[3], node_info[4])
+                    layer_masks.rename_mask_filter_node(material_channel_name, old_name, new_name)
 
             # 4. Remove the tilda from the new frame and nodes.
             temp_frame_name = layers[changed_layer_index].name + "_" + str(layers[changed_layer_index].id) + "_" + str(changed_layer_index) + "~"
@@ -432,8 +433,14 @@ def reindex_material_layer_nodes():
                 mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, index, False)
                 for node in mask_filter_nodes:
                     node_info = node.name.split('_')
+                    old_name = layer_masks.format_mask_filter_node_name(index, node_info[3], node_info[4])
+                    new_name = layer_masks.format_mask_filter_node_name(index - 1, node_info[3], node_info[4])
+                    layer_masks.rename_mask_filter_node(material_channel_name, old_name, new_name)
+
+                    '''
                     node.name = layer_masks.format_mask_filter_node_name(index - 1, node_info[2], node_info[3], False)
                     node.label = node.name
+                    '''
 
 def check_decal_layer(material_layer_index):
     '''Checks if the material layer at the provided material layer index is a decal layer.'''

@@ -422,105 +422,123 @@ class MATLAY_OT_move_material_layer(Operator):
         matlay_utils.set_valid_mode()
 
         layers = context.scene.matlay_layers
-        selected_layer_index = context.scene.matlay_layer_stack.layer_index
+        selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
         material_channel_list = material_channels.get_material_channel_list()
 
         # Don't move the layer if the user is trying to move the layer out of range.
-        if self.direction == 'UP' and selected_layer_index + 1 > len(layers) - 1:
+        if self.direction == 'UP' and selected_material_layer_index + 1 > len(layers) - 1:
             return{'FINISHED'}
-        if self.direction == 'DOWN' and selected_layer_index - 1 < 0:
+        if self.direction == 'DOWN' and selected_material_layer_index - 1 < 0:
             return{'FINISHED'}
         
-        # 1. Get the layer index under or over the selected layer, depending on the direction the layer is being moved on the layer stack.
+        # Get the layer index under or over the selected layer, depending on the direction the layer is being moved on the layer stack.
         if self.direction == 'UP':
-            moving_to_layer_index = max(min(selected_layer_index + 1, len(layers) - 1), 0)
+            moving_to_layer_index = max(min(selected_material_layer_index + 1, len(layers) - 1), 0)
         else:
-            moving_to_layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
+            moving_to_layer_index = max(min(selected_material_layer_index - 1, len(layers) - 1), 0)
 
-        # 2. Add a tilda to the end of the all layer nodes in the selected layer (including the frame). Adding a tilda to the end of the node name is the method used to signify which nodes are being actively changed, and is used for avoid naming conflicts with other nodes.
+        # Add a tilda to the end of the all layer nodes in the selected layer (including the frame). Adding a tilda to the end of the node name is the method used to signify which nodes are being actively changed, and is used for avoid naming conflicts with other nodes.
         for material_channel_name in material_channel_list:
-            frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_index, context)
+            frame = layer_nodes.get_layer_frame(material_channel_name, selected_material_layer_index, context)
             frame.name = frame.name + "~"
             frame.label = frame.name
 
-            all_layer_nodes = layer_nodes.get_all_nodes_in_layer(material_channel_name, selected_layer_index, context)
-            for node in all_layer_nodes:
-                node.name = node.name + "~"
-                node.label = node.name
+            material_nodes = layer_nodes.get_all_material_layer_nodes(material_channel_name, selected_material_layer_index, context)
+            for material_node in material_nodes:
+                material_node.name += '~'
+                material_node.label = material_node.name
 
-        # 3. Update the layer node names for the layer below or above with the selected layer index.
+            filter_nodes = material_filters.get_all_material_filter_nodes(material_channel_name, selected_material_layer_index)
+            for filter_node in filter_nodes:
+                filter_node.name += '~'
+                filter_node.label = filter_node.name
+
+            mask_nodes = layer_masks.get_all_mask_nodes_in_layer(selected_material_layer_index, material_channel_name)
+            for mask_node in mask_nodes:
+                mask_node.name += '~'
+                mask_node.label = mask_node.name
+
+            mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, selected_material_layer_index)
+            for mask_filter_node in mask_filter_nodes:
+                old_name = mask_filter_node.name
+                new_name = mask_filter_node.name + '~'
+                layer_masks.rename_mask_filter_node(material_channel_name, old_name, new_name)
+
+        # Update the layer node names for the layer below or above with the selected layer (depending on the direction the layer is being moved in).
         for material_channel_name in material_channel_list:
             frame = layer_nodes.get_layer_frame(material_channel_name, moving_to_layer_index, context)
-            frame.name = layers[moving_to_layer_index].name + "_" + str(layers[moving_to_layer_index].id) + "_" + str(selected_layer_index)
+            frame.name = layers[moving_to_layer_index].name + "_" + str(layers[moving_to_layer_index].id) + "_" + str(selected_material_layer_index)
             frame.label = frame.name
 
             # Rename / re-index material nodes.
             material_nodes = layer_nodes.get_all_material_layer_nodes(material_channel_name, moving_to_layer_index, context, False)
             for material_node in material_nodes:
                 node_info = material_node.name.split('_')
-                material_node.name = node_info[0] + "_" + str(selected_layer_index)
+                material_node.name = node_info[0] + "_" + str(selected_material_layer_index)
                 material_node.label = material_node.name
 
             # Rename / re-index filter nodes.
             filter_nodes = material_filters.get_all_material_filter_nodes(material_channel_name, moving_to_layer_index, False)
             for filter_node in filter_nodes:
                 node_info = filter_nodes.name.split('_')
-                filter_node.name = node_info[0] + "_" + str(selected_layer_index) + "_" + node_info[2]
+                filter_node.name = node_info[0] + "_" + str(selected_material_layer_index) + "_" + node_info[2]
                 filter_node.label = filter_node.name
 
             # Rename / re-index mask nodes.
-            mask_nodes = layer_masks.get_all_mask_nodes_in_layer(moving_to_layer_index, material_channel_name, False)
+            mask_nodes = layer_masks.get_all_mask_nodes_in_layer(moving_to_layer_index, material_channel_name)
             for mask_node in mask_nodes:
                 node_info = mask_node.name.split('_')
-                mask_node.name = node_info[0] + "_" + str(selected_layer_index) + "_" + node_info[2]
+                mask_node.name = node_info[0] + "_" + str(selected_material_layer_index) + "_" + node_info[2]
                 mask_node.label = mask_node.name
 
             # Rename / re-index mask filter nodes.
-            mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, moving_to_layer_index, False)
+            mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, moving_to_layer_index)
             for mask_filter_node in mask_filter_nodes:
                 node_info = mask_filter_node.name.split('_')
-                mask_filter_node.name = layer_masks.format_mask_filter_node_name(selected_layer_index, node_info[2], node_info[3], False)
-                mask_filter_node.label = mask_filter_node.name
+                old_name = layer_masks.format_mask_filter_node_name(moving_to_layer_index, node_info[3], node_info[4])
+                new_name = layer_masks.format_mask_filter_node_name(selected_material_layer_index, node_info[3], node_info[4])
+                layer_masks.rename_mask_filter_node(material_channel_name, old_name, new_name)
         layers[moving_to_layer_index].cached_frame_name = frame.name
 
-        # 4. Remove the tilda from the end of the layer nodes names that belong to the moved layer and correct the index stored there.
+        # Remove the tilda from the end of the layer nodes names that belong to the moved layer and correct the index stored there.
         for material_channel_name in material_channel_list:
-            frame = layer_nodes.get_layer_frame(material_channel_name, selected_layer_index, context, get_edited=True)
-            frame.name = layers[selected_layer_index].name + "_" + str(layers[selected_layer_index].id) + "_" + str(moving_to_layer_index)
+            frame = layer_nodes.get_layer_frame(material_channel_name, selected_material_layer_index, context, get_edited=True)
+            frame.name = layers[selected_material_layer_index].name + "_" + str(layers[selected_material_layer_index].id) + "_" + str(moving_to_layer_index)
             frame.label = frame.name
 
-            material_nodes = layer_nodes.get_all_material_layer_nodes(material_channel_name, selected_layer_index, context, True)
+            material_nodes = layer_nodes.get_all_material_layer_nodes(material_channel_name, selected_material_layer_index, context, True)
             for material_node in material_nodes:
                 node_info = material_node.name.split('_')
                 material_node.name = node_info[0] + "_" + str(moving_to_layer_index)
                 material_node.label = material_node.name
 
-            filter_nodes = material_filters.get_all_material_filter_nodes(material_channel_name, selected_layer_index, True)
+            filter_nodes = material_filters.get_all_material_filter_nodes(material_channel_name, selected_material_layer_index, True)
             for filter_node in filter_nodes:
                 node_info = filter_node.name.split('_')
                 filter_node.name = material_filters.format_filter_node_name(moving_to_layer_index, node_info[2].replace('~', ''))
                 filter_node.label = filter_node.name
 
-            mask_nodes = layer_masks.get_all_mask_nodes_in_layer(selected_layer_index, material_channel_name, True)
+            mask_nodes = layer_masks.get_all_mask_nodes_in_layer(selected_material_layer_index, material_channel_name, True)
             for mask_node in mask_nodes:
                 node_info = mask_node.name.split('_')
                 mask_node.name = node_info[0] + "_" + str(moving_to_layer_index) + "_" + node_info[2].replace('~', '')
                 mask_node.label = mask_node.name
 
-            mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, selected_layer_index, True)
+            mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, selected_material_layer_index, True)
             for mask_filter_node in mask_filter_nodes:
                 node_info = mask_filter_node.name.split('_')
-                mask_filter_node.name = layer_masks.format_mask_filter_node_name(moving_to_layer_index, node_info[2], node_info[3], False)
-                mask_filter_node.label = mask_filter_node.name
+                old_name = layer_masks.format_mask_filter_node_name(selected_material_layer_index, node_info[3], node_info[4])
+                new_name = layer_masks.format_mask_filter_node_name(moving_to_layer_index, node_info[3], node_info[4]).replace('~', '')
+                layer_masks.rename_mask_filter_node(material_channel_name, old_name, new_name)
                 
-        layers[selected_layer_index].cached_frame_name = frame.name
+        layers[selected_material_layer_index].cached_frame_name = frame.name
 
-        # 5. Move the selected layer on the ui layer stack.
+        # Move the selected layer on the ui layer stack.
         if self.direction == 'UP':
-            index_to_move_to = max(min(selected_layer_index + 1, len(layers) - 1), 0)
+            index_to_move_to = max(min(selected_material_layer_index + 1, len(layers) - 1), 0)
         else:
-            index_to_move_to = max(min(selected_layer_index - 1, len(layers) - 1), 0)
-        layers.move(selected_layer_index, index_to_move_to)
+            index_to_move_to = max(min(selected_material_layer_index - 1, len(layers) - 1), 0)
+        layers.move(selected_material_layer_index, index_to_move_to)
         context.scene.matlay_layer_stack.layer_index = index_to_move_to
 
         # 6. Update the layer stack (organize, re-link).
@@ -564,6 +582,16 @@ class MATLAY_OT_delete_layer(Operator):
                     previously_selected_object.select_set(True)
                     bpy.context.view_layer.objects.active = previously_selected_object
 
+        # Remove all group nodes for all mask filters on all masks the layer being deleted.
+        masks = bpy.context.scene.matlay_masks
+        mask_filters = bpy.context.scene.matlay_mask_filters
+        for i in range(0, len(masks)):
+            for x in range(0, len(mask_filters)):
+                mask_filter_name = layer_masks.format_mask_filter_node_name(selected_material_layer_index, i, x)
+                mask_filter_node_tree = bpy.data.node_groups.get(mask_filter_name)
+                if mask_filter_node_tree:
+                    bpy.data.node_groups.remove(mask_filter_node_tree)
+        
         # Remove all nodes for all material channels.
         material_channel_list = material_channels.get_material_channel_list()
         for material_channel_name in material_channel_list:

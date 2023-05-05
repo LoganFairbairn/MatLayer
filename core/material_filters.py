@@ -581,7 +581,7 @@ class MATLAY_OT_delete_layer_filter(Operator):
             if filter_node:
                 material_channel_node.node_tree.nodes.remove(filter_node)
 
-        # Re-index and re-link material filter nodes.
+        # Re-index material filter nodes.
         number_of_filter_nodes = len(get_all_material_filter_nodes("COLOR", selected_material_layer_index))
         if number_of_filter_nodes > 0:
             reindex_material_filter_nodes()
