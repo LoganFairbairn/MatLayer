@@ -314,34 +314,34 @@ def reindex_material_layer_nodes():
     for i in range(0, number_of_layers):
         layers[i].layer_stack_array_index = i
 
-    for material_channel_name in material_channels.get_material_channel_list():
+    changed_layer_index = -1
+    node_added = False
+    node_deleted = False
 
-        material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
-        changed_layer_index = -1
-        node_added = False
-        node_deleted = False
+    # Check for a newly added layer (signified by a tilda at the end of the node's name).
+    material_channel_name = 'COLOR'
+    material_channel_node = material_channels.get_material_channel_node(bpy.context, 'COLOR')
+    for i in range(0, len(layers)):
+        temp_node_name = format_material_node_name("TEXTURE", i) + "~"
+        node = material_channel_node.node_tree.nodes.get(temp_node_name)
+        if node:
+            node_added = True
+            changed_layer_index = i
+            break
 
-        # 1. Check for a newly added layer (signified by a tilda at the end of the node's name).
+    # Check for a deleted layer (if there isn't a newly added layer).
+    if not node_added:
         for i in range(0, len(layers)):
-            temp_node_name = format_material_node_name("TEXTURE", i) + "~"
-            node = material_channel_node.node_tree.nodes.get(temp_node_name)
-            if node:
-                node_added = True
+            frame = get_layer_frame(material_channel_name, i, bpy.context)
+            if not frame:
+                node_deleted = True
                 changed_layer_index = i
                 break
 
+    for material_channel_name in material_channels.get_material_channel_list():
+        material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
 
-        # 2. Check for a deleted layer (if there isn't a newly added layer).
-        if not node_added:
-            for i in range(0, len(layers)):
-                frame = get_layer_frame(material_channel_name, i, bpy.context)
-                if not frame:
-                    node_deleted = True
-                    changed_layer_index = i
-                    break
-
-
-        # 3. Re-index the all layer nodes above the changed layer if any exist.
+        # Re-index the all layer nodes above the changed layer if any exist.
         if node_added:
             for i in range(len(layers), changed_layer_index + 1, -1):
                 index = i - 1
@@ -374,15 +374,15 @@ def reindex_material_layer_nodes():
                     node.name = layer_masks.format_mask_node_name(node_info[0], index, node_info[2], False)
                     node.label = node.name
 
-                # Re-index all mask filter nodes.
+                # Re-index all mask filter group nodes.
                 mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, index - 1, False)
                 for node in mask_filter_nodes:
                     node_info = node.name.split('_')
                     old_name = layer_masks.format_mask_filter_node_name(index - 1, node_info[3], node_info[4])
                     new_name = layer_masks.format_mask_filter_node_name(index, node_info[3], node_info[4])
-                    layer_masks.rename_mask_filter_node(material_channel_name, old_name, new_name)
+                    layer_masks.rename_mask_filter_group_node(material_channel_name, old_name, new_name)
 
-            # 4. Remove the tilda from the new frame and nodes.
+            # Remove the tilda from the new frame and nodes.
             temp_frame_name = layers[changed_layer_index].name + "_" + str(layers[changed_layer_index].id) + "_" + str(changed_layer_index) + "~"
             frame = material_channel_node.node_tree.nodes.get(temp_frame_name)
             frame.name = layers[changed_layer_index].name + "_" + str(layers[changed_layer_index].id) + "_" + str(changed_layer_index)
@@ -395,7 +395,7 @@ def reindex_material_layer_nodes():
                 node.name = format_material_node_name(node_info[0], changed_layer_index)
                 node.label = node.name
 
-        # 4. Re-index all nodes on layers past the deleted layer if any exist.
+        # Re-index all nodes on layers past the deleted layer if any exist.
         if node_deleted and len(layers) > 0:
             for i in range(changed_layer_index, len(layers), 1):
                 index = i + 1
@@ -408,39 +408,62 @@ def reindex_material_layer_nodes():
                 frame.label = frame.name
                 layers[changed_layer_index].cached_frame_name = frame.name
 
-                # Re-index all material layer nodes.
+                # Re-index material layer nodes.
                 material_nodes = get_all_material_layer_nodes(material_channel_name, index, bpy.context, False)
                 for node in material_nodes:
                     node_info = node.name.split('_')
                     node.name = format_material_node_name(node_info[0], index - 1)
                     node.label = node.name
 
-                # Re-index all filter nodes.
+                # Re-index filter nodes.
                 material_filter_nodes = material_filters.get_all_material_filter_nodes(material_channel_name, index, False)
                 for node in material_filter_nodes:
                     node_info = node.name.split('_')
                     node.name = material_filters.format_filter_node_name(index - 1, node_info[2])
                     node.label = node.name
 
-                # Re-index all mask nodes.
+                # Re-index mask nodes.
                 mask_nodes = layer_masks.get_mask_nodes_in_material_layer(index, material_channel_name, False)
                 for node in mask_nodes:
                     node_info = node.name.split('_')
                     node.name = layer_masks.format_mask_node_name(node_info[0], index - 1, node_info[2], False)
                     node.label = node.name
 
-                # Re-index all mask filter nodes.
+                # Re-index mask filter nodes.
                 mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, index, False)
                 for node in mask_filter_nodes:
                     node_info = node.name.split('_')
                     old_name = layer_masks.format_mask_filter_node_name(index, node_info[3], node_info[4])
                     new_name = layer_masks.format_mask_filter_node_name(index - 1, node_info[3], node_info[4])
-                    layer_masks.rename_mask_filter_node(material_channel_name, old_name, new_name)
+                    layer_masks.rename_mask_filter_group_node(material_channel_name, old_name, new_name)
 
-                    '''
-                    node.name = layer_masks.format_mask_filter_node_name(index - 1, node_info[2], node_info[3], False)
-                    node.label = node.name
-                    '''
+    if node_added:
+        masks = bpy.context.scene.matlay_masks
+        mask_filters = bpy.context.scene.matlay_mask_filters
+
+        # TODO: Reindex mask filter node trees above the newly added layer.
+        for c in range(len(layers), changed_layer_index + 1, -1):
+            for i in range(0, len(masks)):
+                for x in range(0, len(mask_filters)):
+                    old_name = layer_masks.format_mask_filter_node_name(index - 2, i, x)
+                    new_name = layer_masks.format_mask_filter_node_name(index - 1, i, x)
+                    layer_masks.rename_mask_filter_node_tree(old_name, new_name)
+            
+        # TODO: Remove the tilda from all mask filter node trees for all mask nodes.
+        for i in range(0, len(masks)):
+            for x in range(0, len(mask_filters)):
+                old_name = layer_masks.format_mask_filter_node_name(changed_layer_index, i, x)
+                new_name = layer_masks.format_mask_filter_node_name(changed_layer_index, i, x)
+                layer_masks.rename_mask_filter_node_tree(old_name, new_name)
+
+    if node_deleted:
+        for i in range(changed_layer_index, len(layers), 1):
+            index = i + 1
+            mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, index, False)
+            for node in mask_filter_nodes:
+                old_name = layer_masks.format_mask_filter_node_name(index + 1, node_info[3], node_info[4])
+                new_name = layer_masks.format_mask_filter_node_name(index, node_info[3], node_info[4])
+                layer_masks.rename_mask_filter_node_tree(old_name, new_name)
 
 def check_decal_layer(material_layer_index):
     '''Checks if the material layer at the provided material layer index is a decal layer.'''

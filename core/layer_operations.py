@@ -437,6 +437,28 @@ class MATLAY_OT_move_material_layer(Operator):
         else:
             moving_to_layer_index = max(min(selected_material_layer_index - 1, len(layers) - 1), 0)
 
+        # Move mask filter node trees for all masks.
+        mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer('COLOR', selected_material_layer_index)
+        for node in mask_filter_nodes:
+            node_info = node.name.split('_')
+            old_name = layer_masks.format_mask_filter_node_name(selected_material_layer_index, node_info[3], node_info[4])
+            new_name = old_name + '~'
+            layer_masks.rename_mask_filter_node_tree(old_name, new_name)
+
+        mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer('COLOR', moving_to_layer_index)
+        for node in mask_filter_nodes:
+            node_info = node.name.split('_')
+            old_name = layer_masks.format_mask_filter_node_name(moving_to_layer_index, node_info[3], node_info[4])
+            new_name = layer_masks.format_mask_filter_node_name(selected_material_layer_index, node_info[3], node_info[4])
+            layer_masks.rename_mask_filter_node_tree(old_name, new_name)
+        
+        mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer('COLOR', selected_material_layer_index)
+        for node in mask_filter_nodes:
+            node_info = node.name.split('_')
+            old_name = layer_masks.format_mask_filter_node_name(selected_material_layer_index, node_info[3], node_info[4], True)
+            new_name = layer_masks.format_mask_filter_node_name(moving_to_layer_index, node_info[3], node_info[4])
+            layer_masks.rename_mask_filter_node_tree(old_name, new_name)
+
         # Add a tilda to the end of the all layer nodes in the selected layer (including the frame). Adding a tilda to the end of the node name is the method used to signify which nodes are being actively changed, and is used for avoid naming conflicts with other nodes.
         for material_channel_name in material_channel_list:
             frame = layer_nodes.get_layer_frame(material_channel_name, selected_material_layer_index, context)
@@ -462,7 +484,7 @@ class MATLAY_OT_move_material_layer(Operator):
             for mask_filter_node in mask_filter_nodes:
                 old_name = mask_filter_node.name
                 new_name = mask_filter_node.name + '~'
-                layer_masks.rename_mask_filter_node(material_channel_name, old_name, new_name)
+                layer_masks.rename_mask_filter_group_node(material_channel_name, old_name, new_name)
 
         # Update the layer node names for the layer below or above with the selected layer (depending on the direction the layer is being moved in).
         for material_channel_name in material_channel_list:
@@ -497,7 +519,7 @@ class MATLAY_OT_move_material_layer(Operator):
                 node_info = mask_filter_node.name.split('_')
                 old_name = layer_masks.format_mask_filter_node_name(moving_to_layer_index, node_info[3], node_info[4])
                 new_name = layer_masks.format_mask_filter_node_name(selected_material_layer_index, node_info[3], node_info[4])
-                layer_masks.rename_mask_filter_node(material_channel_name, old_name, new_name)
+                layer_masks.rename_mask_filter_group_node(material_channel_name, old_name, new_name)
         layers[moving_to_layer_index].cached_frame_name = frame.name
 
         # Remove the tilda from the end of the layer nodes names that belong to the moved layer and correct the index stored there.
@@ -529,7 +551,7 @@ class MATLAY_OT_move_material_layer(Operator):
                 node_info = mask_filter_node.name.split('_')
                 old_name = layer_masks.format_mask_filter_node_name(selected_material_layer_index, node_info[3], node_info[4])
                 new_name = layer_masks.format_mask_filter_node_name(moving_to_layer_index, node_info[3], node_info[4]).replace('~', '')
-                layer_masks.rename_mask_filter_node(material_channel_name, old_name, new_name)
+                layer_masks.rename_mask_filter_group_node(material_channel_name, old_name, new_name)
                 
         layers[selected_material_layer_index].cached_frame_name = frame.name
 
