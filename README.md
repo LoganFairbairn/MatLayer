@@ -34,3 +34,4 @@ Workflow Help:
 - Almost all user interface elements have a detailed tooltip when you hover your mouse over them.
 
 Platforms: Windows, Linux (untested)
+Tested with Blender versions: 3.4.1
