@@ -441,7 +441,7 @@ def reindex_material_layer_nodes():
         masks = bpy.context.scene.matlay_masks
         mask_filters = bpy.context.scene.matlay_mask_filters
 
-        # TODO: Reindex mask filter node trees above the newly added layer.
+        # Reindex mask filter node trees above the newly added layer.
         for c in range(len(layers), changed_layer_index + 1, -1):
             for i in range(0, len(masks)):
                 for x in range(0, len(mask_filters)):
@@ -449,7 +449,7 @@ def reindex_material_layer_nodes():
                     new_name = layer_masks.format_mask_filter_node_name(index - 1, i, x)
                     layer_masks.rename_mask_filter_node_tree(old_name, new_name)
             
-        # TODO: Remove the tilda from all mask filter node trees for all mask nodes.
+        # Remove the tilda from all mask filter node trees for all mask nodes.
         for i in range(0, len(masks)):
             for x in range(0, len(mask_filters)):
                 old_name = layer_masks.format_mask_filter_node_name(changed_layer_index, i, x)

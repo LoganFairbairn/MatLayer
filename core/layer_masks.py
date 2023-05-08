@@ -1984,7 +1984,8 @@ class MATLAY_OT_delete_mask_filter(Operator):
 
         # Reset the selected mask filter index.
         context.scene.matlay_mask_filter_stack.selected_mask_filter_index = max(min(selected_mask_filter_index - 1, len(mask_filters) - 1), 0)
-        selected_material_layer_index = context.scene.matlay_mask_filter_stack.selected_mask_filter_index
+
+        # Relink mask nodes.
         relink_mask_nodes(selected_material_layer_index)
         
         # Re-organize nodes.
