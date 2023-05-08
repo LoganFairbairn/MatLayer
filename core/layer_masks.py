@@ -613,14 +613,15 @@ def relink_mask_nodes(material_layer_index):
 
             # Connect the last node in the mask to the mix mask mix node.
             last_node = None
-            number_of_mask_filters = len(get_all_mask_filter_nodes(material_channel_name, material_layer_index, i))
-            last_mask_filter_node = get_mask_filter_group_node(material_channel_name, material_layer_index, selected_mask_index, number_of_mask_filters - 1)
+            last_mask_index = len(masks) - 1
+            mask_filter_nodes = get_all_mask_filter_nodes(material_channel_name, material_layer_index, last_mask_index)
+            last_mask_filter_node = get_mask_filter_group_node(material_channel_name, material_layer_index, last_mask_index, len(mask_filter_nodes) - 1)
 
             if last_mask_filter_node:
                 last_node = last_mask_filter_node
 
                 # When a filter is present, connect the mask texture node to the first filter node.
-                first_filter_node = get_mask_filter_group_node(material_channel_name, material_layer_index, selected_mask_index, 0)
+                first_filter_node = get_mask_filter_group_node(material_channel_name, material_layer_index, last_mask_index, 0)
                 if first_filter_node:
                     if masks[selected_mask_index].use_alpha and mask_texture_node.bl_static_type == 'TEX_IMAGE':
                         link(mask_texture_node.outputs[1], first_filter_node.inputs[0])
