@@ -689,56 +689,53 @@ def read_mask_nodes(context):
         mask_stack.selected_mask_index = 0
 
     # Read properties from the mask nodes into the user interface.
-    # Mask nodes settings across all material channels should be the same, only read from the color material channel nodes.
-    material_channel_name = 'COLOR'
-    selected_mask_index = mask_stack.selected_mask_index
-    texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_index, selected_mask_index)
-    if texture_node:
-        match texture_node.bl_static_type:
-            case 'TEX_IMAGE':
-                masks[selected_mask_index].node_type = 'TEXTURE'
+    for i in range(0, total_number_of_masks):
+        texture_node = get_mask_node('MaskTexture', 'COLOR', selected_material_index, i)
+        if texture_node:
+            match texture_node.bl_static_type:
+                case 'TEX_IMAGE':
+                    masks[i].node_type = 'TEXTURE'
 
-            case 'GROUP':
-                masks[selected_mask_index].node_type = 'GROUP_NODE'
-            
-            case 'TEX_NOISE':
-                masks[selected_mask_index].node_type = 'NOISE'
+                case 'GROUP':
+                    masks[i].node_type = 'GROUP_NODE'
+                
+                case 'TEX_NOISE':
+                    masks[i].node_type = 'NOISE'
 
-            case 'TEX_VORONOI':
-                masks[selected_mask_index].node_type = 'VORONOI'
+                case 'TEX_VORONOI':
+                    masks[i].node_type = 'VORONOI'
 
-            case 'TEX_MUSGRAVE':
-                masks[selected_mask_index].node_type = 'MUSGRAVE'
+                case 'TEX_MUSGRAVE':
+                    masks[i].node_type = 'MUSGRAVE'
 
 
-        if texture_node.bl_static_type == 'TEX_IMAGE':
-            if texture_node.image:
-                masks[selected_mask_index].mask_image = texture_node.image
+            if texture_node.bl_static_type == 'TEX_IMAGE':
+                if texture_node.image:
+                    masks[i].mask_image = texture_node.image
 
-    # Read mapping projection.
-    mapping_node = get_mask_node('MaskMapping', material_channel_name, selected_material_index, selected_mask_index)
-    if mapping_node:
-        masks[selected_mask_index].projection.projection_offset_x = mapping_node.inputs[1].default_value[0]
-        masks[selected_mask_index].projection.projection_offset_y = mapping_node.inputs[1].default_value[1]
-        masks[selected_mask_index].projection.projection_rotation = mapping_node.inputs[2].default_value[2]
-        masks[selected_mask_index].projection.projection_scale_x = mapping_node.inputs[3].default_value[0]
-        masks[selected_mask_index].projection.projection_scale_y = mapping_node.inputs[3].default_value[1]
-        if masks[selected_mask_index].projection.projection_scale_x != masks[i].projection.projection_scale_y:
-            masks[selected_mask_index].projection.match_layer_scale = False
+        # Read mapping projection.
+        mapping_node = get_mask_node('MaskMapping', 'COLOR', selected_material_index, i)
+        if mapping_node:
+            masks[i].projection.projection_offset_x = mapping_node.inputs[1].default_value[0]
+            masks[i].projection.projection_offset_y = mapping_node.inputs[1].default_value[1]
+            masks[i].projection.projection_rotation = mapping_node.inputs[2].default_value[2]
+            masks[i].projection.projection_scale_x = mapping_node.inputs[3].default_value[0]
+            masks[i].projection.projection_scale_y = mapping_node.inputs[3].default_value[1]
+            if masks[i].projection.projection_scale_x != masks[i].projection.projection_scale_y:
+                masks[i].projection.match_layer_scale = False
 
-    # Read projection mode.
-    mask_texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_index, selected_mask_index)
-    if mask_texture_node and mask_texture_node.type == 'TEX_IMAGE':
-        masks[selected_mask_index].projection.projection_blend = mask_texture_node.projection_blend
-        masks[selected_mask_index].projection.texture_extension = mask_texture_node.extension
-        masks[selected_mask_index].projection.texture_interpolation = mask_texture_node.interpolation
-        masks[selected_mask_index].projection.projection_mode = mask_texture_node.projection
-    else:
-        masks[selected_mask_index].projection.projection_mode = 'FLAT'
+        # Read projection mode.
+        mask_texture_node = get_mask_node('MaskTexture', 'COLOR', selected_material_index, i)
+        if mask_texture_node and mask_texture_node.type == 'TEX_IMAGE':
+            masks[i].projection.projection_blend = mask_texture_node.projection_blend
+            masks[i].projection.texture_extension = mask_texture_node.extension
+            masks[i].projection.texture_interpolation = mask_texture_node.interpolation
+            masks[i].projection.projection_mode = mask_texture_node.projection
+        else:
+            masks[i].projection.projection_mode = 'FLAT'
 
-    # Read hidden (muted) masks and mask alpha mode.
-    for i in range(0, len(masks)):
-        mask_texture_node = get_mask_node('MaskTexture', material_channel_name, selected_material_index, i)
+        # Read hidden (muted) masks and mask alpha mode.
+        mask_texture_node = get_mask_node('MaskTexture', 'COLOR', selected_material_index, i)
         if mask_texture_node:
             if mask_texture_node.mute:
                 masks[i].hidden = True
