@@ -613,20 +613,18 @@ def relink_mask_nodes(material_layer_index):
 
             # Connect the last node in the mask to the mix mask mix node.
             last_node = None
-            last_mask_index = len(masks) - 1
-            mask_filter_nodes = get_all_mask_filter_nodes(material_channel_name, material_layer_index, last_mask_index)
-            last_mask_filter_node = get_mask_filter_group_node(material_channel_name, material_layer_index, last_mask_index, len(mask_filter_nodes) - 1)
+            mask_filter_nodes = get_all_mask_filter_nodes(material_channel_name, material_layer_index, i)
+            last_mask_filter_node = get_mask_filter_group_node(material_channel_name, material_layer_index, i, len(mask_filter_nodes) - 1)
 
+            # When a mask filter exists, connect the mask texture node to the first mask filter node.
             if last_mask_filter_node:
-                last_node = last_mask_filter_node
-
-                # When a filter is present, connect the mask texture node to the first filter node.
-                first_filter_node = get_mask_filter_group_node(material_channel_name, material_layer_index, last_mask_index, 0)
+                first_filter_node = get_mask_filter_group_node(material_channel_name, material_layer_index, i, 0)
                 if first_filter_node:
                     if masks[selected_mask_index].use_alpha and mask_texture_node.bl_static_type == 'TEX_IMAGE':
                         link(mask_texture_node.outputs[1], first_filter_node.inputs[0])
                     else:
                         link(mask_texture_node.outputs[0], first_filter_node.inputs[0])
+                last_node = last_mask_filter_node
             else:
                 # If the layer is a decal layer, and there are no mask filters the last node is always the decal mask mix node.
                 if layer_type == 'DECAL':
@@ -634,17 +632,19 @@ def relink_mask_nodes(material_layer_index):
                 else:
                     last_node = mask_texture_node
 
+            # Connect the mask texture or the last mask filter to the mask mix node.
             if last_node != None:
                 if last_node.bl_static_type == 'TEX_IMAGE' and masks[selected_mask_index].use_alpha:
                     link(last_node.outputs[1], mask_mix_node.inputs[2])
                 else:
                     link(last_node.outputs[0], mask_mix_node.inputs[2])
 
-        # Link the last mask node to the layer's opacity node to apply the mask.
+        # Link the last mask mix node to the layer's opacity node to apply the combined masks.
+        total_masks = count_masks(material_layer_index)
+        last_mask_mix_node = get_mask_node('MaskMix', material_channel_name, material_layer_index, total_masks - 1)
         opacity_node = layer_nodes.get_layer_node('OPACITY', material_channel_name, material_layer_index, bpy.context)
-        last_mask_node = get_mask_node('MaskMix', material_channel_name, material_layer_index, len(masks) - 1)
-        if opacity_node and last_mask_node:
-            material_channel_node.node_tree.links.new(last_mask_node.outputs[0], opacity_node.inputs[0])
+        if opacity_node and last_mask_mix_node:
+            material_channel_node.node_tree.links.new(last_mask_mix_node.outputs[0], opacity_node.inputs[0])
 
 def count_masks(material_stack_index):
     '''Counts the total number of masks applied to a specified material layer by reading the material node tree.'''
