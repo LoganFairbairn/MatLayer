@@ -109,6 +109,8 @@ class MATLAY_OT_append_workspace(Operator):
             logging.popup_message_box("The default workspace already exists, manually delete it and click this operator again to re-load the workspace.", 'Info', 'INFO')
             return {'FINISHED'}
         
+        previously_selected_object = bpy.context.active_object
+
         USER = Path(resource_path('USER'))
         ADDON = ADDON_NAME
         BLEND_FILE = "Matlay.blend"
@@ -122,6 +124,14 @@ class MATLAY_OT_append_workspace(Operator):
 
         # Reset the main pannel tab.
         context.scene.matlay_panel_properties.sections = 'SECTION_TEXTURE_SET'
+        
+        # Frame selected objects.
+        '''
+        bpy.ops.object.select_all(action='DESELECT')
+        previously_selected_object.select_set(True)
+        bpy.context.view_layer.objects.active = previously_selected_object
+        bpy.ops.view3d.view_selected(use_all_regions=True)
+        '''
 
         self.report({'INFO'}, "Appended workspace (check the workspaces / user interface layouts at the top of your screen).")
 
