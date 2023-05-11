@@ -741,6 +741,9 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
             else:
                 texture_node.extension = selected_layer.projection.texture_extension
                 texture_node.interpolation = selected_layer.projection.texture_interpolation
+                texture_node.projection = selected_layer.projection.projection_mode
+                if selected_layer.projection.projection_mode == 'BOX':
+                    texture_node.projection_blend = selected_layer.projection.projection_blend
 
         case "GROUP_NODE":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
