@@ -246,8 +246,7 @@ def update_layer_projection_mode(self, context):
                         if texture_node:
                             if texture_node.type == 'TEX_IMAGE':
                                 texture_node.projection = 'BOX'
-                                #texture_node.projection_blend = 0.3
-                                #self.projection_blend = 0.3
+                                texture_node.projection_blend = self.projection_blend
 
                     case 'SPHERE':
                         texture_node.projection = 'SPHERE'
