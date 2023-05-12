@@ -12,7 +12,7 @@ NODE_WIDTH = 300
 NODE_SPACING = 50
 
 # Set of node names.
-LAYER_NODE_NAMES = ("TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER")
+LAYER_NODE_NAMES = ("TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER", "NORMALROTATIONFIX")
 
 def organize_material_channel_nodes(context):
     '''Organizes all material channel group nodes.'''
@@ -166,6 +166,8 @@ def relink_material_nodes(material_layer_index):
         coord_node = get_layer_node('COORD', material_channel_name, material_layer_index, bpy.context)
         mapping_node = get_layer_node('MAPPING', material_channel_name, material_layer_index, bpy.context)
         mix_layer_node = get_layer_node('MIXLAYER', material_channel_name, material_layer_index, bpy.context)
+        if material_channel_name == 'NORMAL':
+            normal_rotation_fix_node = get_layer_node('NORMALROTATIONFIX', material_channel_name, material_layer_index, bpy.context)
 
         # Unlink all material nodes.
         material_layer_nodes = get_all_material_layer_nodes(material_channel_name, material_layer_index, bpy.context)
@@ -194,8 +196,12 @@ def relink_material_nodes(material_layer_index):
 
         link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
         if texture_node.bl_static_type == 'TEX_IMAGE':
+            # Connect the texture node to the normal rotation fix node in the normal material channel.
+            if material_channel_name == 'NORMAL':
+                link_nodes(texture_node.outputs[1], normal_rotation_fix_node.inputs[0])
+            else:
+                link_nodes(texture_node.outputs[1], opacity_node.inputs[0])
             link_nodes(mapping_node.outputs[0], texture_node.inputs[0])
-            link_nodes(texture_node.outputs[1], opacity_node.inputs[0])
         
         # Relink material filter nodes with other material filter nodes.
         material_filters.relink_material_filter_nodes(material_layer_index)
@@ -204,21 +210,33 @@ def relink_material_nodes(material_layer_index):
         filters = bpy.context.scene.matlay_material_filters
         last_filter_node = material_filters.get_material_filter_node(material_channel_name, material_layer_index, len(filters) - 1)
         if last_filter_node:
+            if material_channel_name == 'NORMAL':
+                node_to_filter_node = normal_rotation_fix_node
+                link_nodes(mapping_node.outputs[1], normal_rotation_fix_node.inputs[1])
+                link_nodes(texture_node.outputs[0], node_to_filter_node.inputs[0])
+            else:
+                node_to_filter_node = texture_node
+
             first_filter_node = material_filters.get_material_filter_node(material_channel_name, material_layer_index, 0)
             match first_filter_node.bl_static_type:
                 case 'INVERT':
-                    material_channel_node.node_tree.links.new(texture_node.outputs[0], first_filter_node.inputs[1])
+                    material_channel_node.node_tree.links.new(node_to_filter_node.outputs[0], first_filter_node.inputs[1])
                 case 'VALTORGB':
-                    material_channel_node.node_tree.links.new(texture_node.outputs[0], first_filter_node.inputs[0])
+                    material_channel_node.node_tree.links.new(node_to_filter_node.outputs[0], first_filter_node.inputs[0])
                 case 'HUE_SAT':
-                    material_channel_node.node_tree.links.new(texture_node.outputs[0], first_filter_node.inputs[4])
+                    material_channel_node.node_tree.links.new(node_to_filter_node.outputs[0], first_filter_node.inputs[4])
                 case 'CURVE_RGB':
-                    material_channel_node.node_tree.links.new(texture_node.outputs[0], first_filter_node.inputs[1])
+                    material_channel_node.node_tree.links.new(node_to_filter_node.outputs[0], first_filter_node.inputs[1])
                 case 'BRIGHTCONTRAST':
-                    material_channel_node.node_tree.links.new(texture_node.outputs[0], first_filter_node.inputs[0])
+                    material_channel_node.node_tree.links.new(node_to_filter_node.outputs[0], first_filter_node.inputs[0])
             link_nodes(last_filter_node.outputs[0], mix_layer_node.inputs[2])
         else:
-            link_nodes(texture_node.outputs[0], mix_layer_node.inputs[2])
+            if material_channel_name == 'NORMAL':
+                link_nodes(texture_node.outputs[0], normal_rotation_fix_node.inputs[0])
+                link_nodes(mapping_node.outputs[1], normal_rotation_fix_node.inputs[1])
+                link_nodes(normal_rotation_fix_node.outputs[0], mix_layer_node.inputs[2])
+            else:
+                link_nodes(texture_node.outputs[0], mix_layer_node.inputs[2])
 
 def mute_layer_material_channel(mute, layer_stack_index, material_channel_name, context):
     '''Mutes (hides) or unhides all layer nodes for the specified material channel.'''

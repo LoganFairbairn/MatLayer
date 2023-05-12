@@ -90,16 +90,26 @@ def get_blend_assets_path():
     blend_assets_path = str(Path(resource_path('USER')) / "scripts/addons" / ADDON_NAME / "blend" / "Matlay.blend")
     return blend_assets_path
 
-def get_uv_mapping_node_group():
+def get_uv_mapping_node_tree():
     '''Returns a custom mapping node group for UV / flat projection, appends the custom group node if it doesn't already exist.'''
-    custom_uv_mapping_node_tree_name = "Matlay_OffsetRotationScale"
-    custom_uv_mapping_node_group = bpy.data.node_groups.get(custom_uv_mapping_node_tree_name)
-    if custom_uv_mapping_node_group == None:
+    node_tree_name = "Matlay_OffsetRotationScale"
+    node_tree = bpy.data.node_groups.get(node_tree_name)
+    if node_tree == None:
         blend_assets_path = get_blend_assets_path()
         with bpy.data.libraries.load(blend_assets_path) as (data_from, data_to):
-            data_to.node_groups = [custom_uv_mapping_node_tree_name]
-        return bpy.data.node_groups[custom_uv_mapping_node_tree_name]
-    return custom_uv_mapping_node_group
+            data_to.node_groups = [node_tree_name]
+        return bpy.data.node_groups[node_tree_name]
+    return node_tree
+
+def get_normal_map_rotation_fix_node_tree():
+    node_tree_name = "Matlay_FixNormalMapRotation"
+    node_tree = bpy.data.node_groups.get(node_tree_name)
+    if node_tree == None:
+        blend_assets_path = get_blend_assets_path()
+        with bpy.data.libraries.load(blend_assets_path) as (data_from, data_to):
+            data_to.node_groups = [node_tree_name]
+        return bpy.data.node_groups[node_tree_name]
+    return node_tree
 
 class MATLAY_OT_set_decal_layer_snapping(Operator):
     bl_idname = "matlay.set_decal_layer_snapping"

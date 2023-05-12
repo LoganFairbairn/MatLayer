@@ -74,13 +74,20 @@ def add_default_layer_nodes(layer_type, decal_object):
     context = bpy.context
     new_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
 
-    material_channel_list = material_channels.get_material_channel_list()
-    for i in range(0, len(material_channel_list)):
-        material_channel_node = material_channels.get_material_channel_node(context, material_channel_list[i])
+    for material_channel_name in material_channels.get_material_channel_list():
+        material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
         if not material_channels.verify_material_channel(material_channel_node):
             return
         
         new_nodes = []
+
+        # Add nodes to fix normal map rotation.
+        if material_channel_name == 'NORMAL':
+            normal_rotation_fix_node_tree = matlay_utils.get_normal_map_rotation_fix_node_tree()
+            normal_rotation_fix_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
+            normal_rotation_fix_node.name = layer_nodes.format_material_node_name("NORMALROTATIONFIX", new_layer_index, True)
+            normal_rotation_fix_node.label = normal_rotation_fix_node.name
+            normal_rotation_fix_node.node_tree =normal_rotation_fix_node_tree
 
         opacity_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMath')
         opacity_node.name = layer_nodes.format_material_node_name("OPACITY", new_layer_index, True)
@@ -106,7 +113,7 @@ def add_default_layer_nodes(layer_type, decal_object):
             coord_node.object = decal_object
         new_nodes.append(coord_node)
 
-        custom_uv_mapping = matlay_utils.get_uv_mapping_node_group()
+        custom_uv_mapping = matlay_utils.get_uv_mapping_node_tree()
         mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
         mapping_node.name = layer_nodes.format_material_node_name("MAPPING", new_layer_index, True)
         mapping_node.label = mapping_node.name
@@ -116,7 +123,7 @@ def add_default_layer_nodes(layer_type, decal_object):
         new_nodes.append(mapping_node)
 
         texture_node = None
-        if material_channel_list[i] == "COLOR":
+        if material_channel_name== "COLOR":
             if layer_type == 'PAINT' or layer_type == 'DECAL':
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexImage')
                 texture_node.extension = 'CLIP'
@@ -124,36 +131,36 @@ def add_default_layer_nodes(layer_type, decal_object):
                 texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
                 texture_node.outputs[0].default_value = (0.25, 0.25, 0.25, 1.0)
 
-        if material_channel_list[i] == "SUBSURFACE":
+        if material_channel_name == "SUBSURFACE":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
             texture_node.outputs[0].default_value = 0.0
 
-        if material_channel_list[i] == "SUBSURFACE_COLOR":
+        if material_channel_name == "SUBSURFACE_COLOR":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
             texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
 
-        if material_channel_list[i] == "METALLIC":
+        if material_channel_name == "METALLIC":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
             texture_node.outputs[0].default_value = 0.0
 
-        if material_channel_list[i] == "SPECULAR":
+        if material_channel_name == "SPECULAR":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
             texture_node.outputs[0].default_value = 0.5
 
-        if material_channel_list[i] == "ROUGHNESS":
+        if material_channel_name == "ROUGHNESS":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
             texture_node.outputs[0].default_value = 0.5
 
-        if material_channel_list[i] == "NORMAL":
+        if material_channel_name == "NORMAL":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
             texture_node.outputs[0].default_value = (0.5, 0.5, 1.0, 1.0)
             mix_layer_node.inputs[1].default_value = (0.5, 0.5, 1.0, 1.0)
             
-        if material_channel_list[i] == "HEIGHT":
+        if material_channel_name == "HEIGHT":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
             texture_node.outputs[0].default_value = 0.0
 
-        if material_channel_list[i] == "EMISSION":
+        if material_channel_name == "EMISSION":
             texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
             texture_node.outputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
 
@@ -1155,6 +1162,7 @@ class MATLAY_OT_read_layer_nodes(Operator):
             material_filters.relink_material_filter_nodes(selected_material_layer_index)
             layer_masks.relink_mask_nodes(selected_material_layer_index)
             layer_masks.relink_mask_filter_nodes()
+            layer_nodes.relink_material_nodes(selected_material_layer_index)
             layer_nodes.relink_material_layers()
 
         self.report({'INFO'}, "Refreshed layer stack.")
