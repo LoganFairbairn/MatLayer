@@ -120,7 +120,6 @@ def draw_divider(column):
 
 def draw_layer_utility_buttons(column, context):
     '''Draws buttons with helpful utility functions for the selected layer.'''
-    material_layers = context.scene.matlay_layers
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
 
     column.label(text="LAYER UTILITY FUNCTIONS")
@@ -128,8 +127,9 @@ def draw_layer_utility_buttons(column, context):
     subrow.scale_y = 1.4
     subrow.operator("matlay.import_texture_set", icon='MATERIAL')
     
-    if material_layers[selected_material_layer_index].type == 'DECAL':
+    if context.scene.matlay_layers[selected_material_layer_index].type == 'DECAL':
         subrow.operator("matlay.set_decal_layer_snapping", icon='SNAP_ON', text="Decal Snapping")
+
     draw_divider(column)
 
 def draw_layer_material_channel_toggles(column, context):

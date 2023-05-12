@@ -92,6 +92,11 @@ def update_layer_index(self, context):
     layer_masks.read_mask_nodes(context)
     layer_masks.read_mask_filter_nodes(context)
 
+def update_fix_normal_rotations(self, context):
+    '''Relinks nodes when the fix normal map rotation value is updated.'''
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    layer_nodes.relink_material_nodes(selected_material_layer_index)
+
 def validate_selected_material_layer_index():
     '''Validates that the selected material filter index is within a valid range. This should be used as a safety check to avoid running operators that require a valid index.'''
 
