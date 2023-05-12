@@ -106,9 +106,11 @@ def add_default_layer_nodes(layer_type, decal_object):
             coord_node.object = decal_object
         new_nodes.append(coord_node)
 
-        mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMapping')
+        custom_uv_mapping = matlay_utils.get_uv_mapping_node_group()
+        mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
         mapping_node.name = layer_nodes.format_material_node_name("MAPPING", new_layer_index, True)
         mapping_node.label = mapping_node.name
+        mapping_node.node_tree = custom_uv_mapping
         if layer_type == 'DECAL':
             mapping_node.inputs[1].default_value = (0.5, 0.5, 0.0)
         new_nodes.append(mapping_node)
@@ -1008,20 +1010,20 @@ def read_layer_projection_values(material_layers, context):
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     if material_channel_node:
         for i in range(0, len(material_layers)):
-            # Update offset, rotation and scale values.
+            # Read offset, rotation and scale values.
             mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, i, context)
             if mapping_node:
-                material_layers[i].projection.projection_offset_x = mapping_node.inputs[1].default_value[0]
-                material_layers[i].projection.projection_offset_y = mapping_node.inputs[1].default_value[1]
-                material_layers[i].projection.projection_offset_z = mapping_node.inputs[1].default_value[2]
-                material_layers[i].projection.projection_rotation = mapping_node.inputs[2].default_value[2]
+                material_layers[i].projection.projection_rotation = mapping_node.inputs[1].default_value
+                material_layers[i].projection.projection_offset_x = mapping_node.inputs[2].default_value[0]
+                material_layers[i].projection.projection_offset_y = mapping_node.inputs[2].default_value[1]
+                material_layers[i].projection.projection_offset_z = mapping_node.inputs[2].default_value[2]
                 material_layers[i].projection.projection_scale_x = mapping_node.inputs[3].default_value[0]
                 material_layers[i].projection.projection_scale_y = mapping_node.inputs[3].default_value[1]
                 material_layers[i].projection.projection_scale_z = mapping_node.inputs[3].default_value[2]
                 if material_layers[i].projection.projection_scale_x != material_layers[i].projection.projection_scale_y:
                     material_layers[i].projection.match_layer_scale = False
 
-            # Update the projection values specific to image texture projection.
+            # Read the projection values specific to image texture projection.
             texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, i, context)
             if texture_node:
                 if texture_node.type == 'TEX_IMAGE':

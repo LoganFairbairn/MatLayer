@@ -365,7 +365,7 @@ def update_projection_rotation(self, context):
     for material_channel_name in material_channel_list:
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
         if mapping_node:
-            mapping_node.inputs[2].default_value[2] = layers[selected_layer_index].projection.projection_rotation
+            mapping_node.inputs[1].default_value = layers[selected_layer_index].projection.projection_rotation
 
 def update_projection_scale_x(self, context):
     '''Updates the layer projections x scale for all mapping nodes in the selected layer.'''

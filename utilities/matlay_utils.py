@@ -85,6 +85,22 @@ def delete_unused_layer_images(self, context):
     else:
         self.report({'INFO'}, "No unused images to delete.")
 
+def get_blend_assets_path():
+    '''Returns the asset path for the blend file.'''
+    blend_assets_path = str(Path(resource_path('USER')) / "scripts/addons" / ADDON_NAME / "blend" / "Matlay.blend")
+    return blend_assets_path
+
+def get_uv_mapping_node_group():
+    '''Returns a custom mapping node group for UV / flat projection, appends the custom group node if it doesn't already exist.'''
+    custom_uv_mapping_node_tree_name = "Matlay_OffsetRotationScale"
+    custom_uv_mapping_node_group = bpy.data.node_groups.get(custom_uv_mapping_node_tree_name)
+    if custom_uv_mapping_node_group == None:
+        blend_assets_path = get_blend_assets_path()
+        with bpy.data.libraries.load(blend_assets_path) as (data_from, data_to):
+            data_to.node_groups = [custom_uv_mapping_node_tree_name]
+        return bpy.data.node_groups[custom_uv_mapping_node_tree_name]
+    return custom_uv_mapping_node_group
+
 class MATLAY_OT_set_decal_layer_snapping(Operator):
     bl_idname = "matlay.set_decal_layer_snapping"
     bl_label = "Set Decal Layer Snapping"
