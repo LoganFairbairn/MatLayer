@@ -107,6 +107,7 @@ classes = (
     MaterialChannelToggles,
     MaterialChannelNodeType,
     ProjectionSettings,
+    MaterialChannelTextures,
     MaterialChannelColors,
     MaterialChannelUniformValues,
     MATLAY_OT_open_material_layer_settings,
@@ -191,6 +192,8 @@ classes = (
     MATLAY_panel_properties,
     MATLAY_PT_Panel
 )
+
+# TODO: Subscribe to active material index changes.
 
 # Refreshes the layer stack when a different object is selected.
 def obj_selected_callback():

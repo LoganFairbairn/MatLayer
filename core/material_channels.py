@@ -386,7 +386,7 @@ def isolate_material_channel(isolate, material_channel_name, context):
         # Correct node connections for height / normal map channels so they preview as color rather than as vector rgb values.
         normal_channel_node = get_material_channel_node(context, "NORMAL")
         last_layer_index = layer_nodes.get_total_number_of_layers(context) - 1
-        last_normal_mix_node = layer_nodes.get_layer_node("MIXLAYER", "NORMAL", last_layer_index, context)
+        last_normal_mix_node = layer_nodes.get_layer_node("MIX-LAYER", "NORMAL", last_layer_index, context)
         group_output_node = normal_channel_node.node_tree.nodes.get('Group Output')
         if last_normal_mix_node:
             for link in normal_channel_node.node_tree.links:
@@ -395,7 +395,7 @@ def isolate_material_channel(isolate, material_channel_name, context):
                     normal_channel_node.node_tree.links.new(last_normal_mix_node.outputs[0], group_output_node.inputs[0])
     
         height_channel_node = get_material_channel_node(context, "HEIGHT")
-        last_height_mix_node = layer_nodes.get_layer_node("MIXLAYER", "HEIGHT", last_layer_index, context)
+        last_height_mix_node = layer_nodes.get_layer_node("MIX-LAYER", "HEIGHT", last_layer_index, context)
         group_output_node = height_channel_node.node_tree.nodes.get('Group Output')
         if last_height_mix_node:
             for link in height_channel_node.node_tree.links:
@@ -470,7 +470,7 @@ def isolate_material_channel(isolate, material_channel_name, context):
         # Re-connect the height and normal material channels to the bump and normal map nodes inside the material channels.
         normal_material_channel_node = get_material_channel_node(context, "NORMAL")
         last_layer_index = layer_nodes.get_total_number_of_layers(context) - 1
-        last_normal_mix_node = layer_nodes.get_layer_node("MIXLAYER", "NORMAL", last_layer_index, context)
+        last_normal_mix_node = layer_nodes.get_layer_node("MIX-LAYER", "NORMAL", last_layer_index, context)
         normal_map_node = normal_material_channel_node.node_tree.nodes.get('Normal Map')
         normal_group_output_node = normal_material_channel_node.node_tree.nodes.get('Group Output')
 
@@ -482,7 +482,7 @@ def isolate_material_channel(isolate, material_channel_name, context):
             normal_material_channel_node.node_tree.links.new(normal_map_node.outputs[0], normal_group_output_node.inputs[0])
 
         height_material_channel_node = get_material_channel_node(context, "HEIGHT")
-        last_height_mix_node = layer_nodes.get_layer_node("MIXLAYER", "HEIGHT", last_layer_index, context)
+        last_height_mix_node = layer_nodes.get_layer_node("MIX-LAYER", "HEIGHT", last_layer_index, context)
         bump_node = height_material_channel_node.node_tree.nodes.get('Bump')
         height_group_output_node = height_material_channel_node.node_tree.nodes.get('Group Output')
         if last_height_mix_node and bump_node:

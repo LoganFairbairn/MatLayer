@@ -64,7 +64,7 @@ def draw_layer_blending(layout, item, selected_material_channel, context):
     col.prop(item, "opacity", text="", emboss=True)
 
     # Draw the layer's blend mode.
-    mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", selected_material_channel, item.layer_stack_array_index, context)
+    mix_layer_node = layer_nodes.get_layer_node("MIX-LAYER", selected_material_channel, item.layer_stack_array_index, context)
     if mix_layer_node:
         col.prop(mix_layer_node, "blend_type", text="")
 

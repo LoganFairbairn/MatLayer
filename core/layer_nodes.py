@@ -11,8 +11,8 @@ from ..utilities import logging
 NODE_WIDTH = 300
 NODE_SPACING = 50
 
-# Set of node names.
-LAYER_NODE_NAMES = ("TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER", "NORMALROTATIONFIX")
+# Constant names for all material nodes. All material nodes must use one of these names.
+LAYER_NODE_NAMES = ('TEXTURE', 'OPACITY', 'COORD', 'MAPPING', 'MIX-LAYER', 'NORMAL-ROTATION-FIX', 'TEXTURE-SAMPLE-1', 'TEXTURE-SAMPLE-2', 'TEXTURE-SAMPLE-3')
 
 def organize_material_channel_nodes(context):
     '''Organizes all material channel group nodes.'''
@@ -89,7 +89,7 @@ def relink_material_layers():
 
         for i in range(len(layers)):
             # Disconnect all mix layer nodes.
-            mix_layer_node = get_layer_node("MIXLAYER", material_channel_name, i, bpy.context)
+            mix_layer_node = get_layer_node("MIX-LAYER", material_channel_name, i, bpy.context)
             if mix_layer_node:
                 output = mix_layer_node.outputs[0]
                 for l in output.links:
@@ -109,8 +109,8 @@ def relink_material_layers():
         for i in range(0, len(layers)):
             current_layer_index = i
             next_layer_index = i + 1
-            current_mix_layer_node = get_layer_node("MIXLAYER", material_channel_name, current_layer_index, bpy.context)
-            next_mix_layer_node = get_layer_node("MIXLAYER", material_channel_name, next_layer_index, bpy.context)
+            current_mix_layer_node = get_layer_node("MIX-LAYER", material_channel_name, current_layer_index, bpy.context)
+            next_mix_layer_node = get_layer_node("MIX-LAYER", material_channel_name, next_layer_index, bpy.context)
             texture_node = get_layer_node("TEXTURE", material_channel_name, current_layer_index, bpy.context)
 
             total_filter_nodes = material_filters.get_filter_nodes_count(i)
@@ -160,15 +160,6 @@ def relink_material_nodes(material_layer_index):
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
         link_nodes = material_channel_node.node_tree.links.new
 
-        # Get all material nodes.
-        texture_node = get_layer_node('TEXTURE', material_channel_name, material_layer_index, bpy.context)
-        opacity_node = get_layer_node('OPACITY', material_channel_name, material_layer_index, bpy.context)
-        coord_node = get_layer_node('COORD', material_channel_name, material_layer_index, bpy.context)
-        mapping_node = get_layer_node('MAPPING', material_channel_name, material_layer_index, bpy.context)
-        mix_layer_node = get_layer_node('MIXLAYER', material_channel_name, material_layer_index, bpy.context)
-        if material_channel_name == 'NORMAL':
-            normal_rotation_fix_node = get_layer_node('NORMALROTATIONFIX', material_channel_name, material_layer_index, bpy.context)
-
         # Unlink all material nodes.
         material_layer_nodes = get_all_material_layer_nodes(material_channel_name, material_layer_index, bpy.context)
         for node in material_layer_nodes:
@@ -176,17 +167,41 @@ def relink_material_nodes(material_layer_index):
                 if link != 0:
                     material_channel_node.node_tree.links.remove(link)
 
+        # Get material nodes.
+        texture_node = get_layer_node('TEXTURE', material_channel_name, material_layer_index, bpy.context)
+        coord_node = get_layer_node('COORD', material_channel_name, material_layer_index, bpy.context)
+        mapping_node = get_layer_node('MAPPING', material_channel_name, material_layer_index, bpy.context)
+        opacity_node = get_layer_node('OPACITY', material_channel_name, material_layer_index, bpy.context)
+        mix_layer_node = get_layer_node('MIX-LAYER', material_channel_name, material_layer_index, bpy.context)
+        normal_rotation_fix_node = get_layer_node('NORMAL-ROTATION-FIX', material_channel_name, material_layer_index, bpy.context)
+
         # If the selected layer is a decal layer, use object coordinates.
         if check_decal_layer(material_layer_index):
             link_nodes(coord_node.outputs[3], mapping_node.inputs[0])
+
         else:
             # Connect to the coord node based on layer projection mode.
-            match bpy.context.scene.matlay_layers[material_layer_index].projection.projection_mode:
+            match bpy.context.scene.matlay_layers[material_layer_index].projection.mode:
                 case 'FLAT':
                     link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
 
-                case 'BOX':
-                    link_nodes(coord_node.outputs[0], mapping_node.inputs[0])
+                case 'TRIPLANAR':
+                    # Link triplanar texture samples for material channels that use an image texture.
+                    if texture_node.bl_static_type == 'GROUP':
+                        if texture_node.node_tree.name == 'MATLAY_TRIPLANAR' or texture_node.node_tree.name == 'MATLAY_TRIPLANAR_NORMALS':
+                            texture_sample_1 = get_layer_node('TEXTURE-SAMPLE-1', material_channel_name, material_layer_index, bpy.context)
+                            texture_sample_2 = get_layer_node('TEXTURE-SAMPLE-2', material_channel_name, material_layer_index, bpy.context)
+                            texture_sample_3 = get_layer_node('TEXTURE-SAMPLE-3', material_channel_name, material_layer_index, bpy.context)
+
+                            link_nodes(mapping_node.outputs[0], texture_sample_1.inputs[0])
+                            link_nodes(mapping_node.outputs[1], texture_sample_2.inputs[0])
+                            link_nodes(mapping_node.outputs[2], texture_sample_3.inputs[0])
+                            link_nodes(texture_sample_1.outputs[0], texture_node.inputs[0])
+                            link_nodes(texture_sample_2.outputs[0], texture_node.inputs[1])
+                            link_nodes(texture_sample_3.outputs[0], texture_node.inputs[2])
+                            link_nodes(mapping_node.outputs[3], texture_node.inputs[3])
+                            if material_channel_name == 'NORMAL':
+                                link_nodes(mapping_node.outputs[4], texture_node.inputs[4])
 
                 case 'SPHERE':
                     link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
@@ -194,15 +209,18 @@ def relink_material_nodes(material_layer_index):
                 case 'TUBE':
                     link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
 
-        link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
+
+        # Plug the mapping node into image textures when using flat / uv projection.
         if texture_node.bl_static_type == 'TEX_IMAGE':
-            # Connect the texture node to the normal rotation fix node in the normal material channel.
-            if material_channel_name == 'NORMAL':
-                link_nodes(texture_node.outputs[1], normal_rotation_fix_node.inputs[0])
-            else:
-                link_nodes(texture_node.outputs[1], opacity_node.inputs[0])
             link_nodes(mapping_node.outputs[0], texture_node.inputs[0])
-        
+
+        # Apply layer opacity by connecting the opacity node to the material layer.
+        link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
+
+        # Fix normal map rotation by linking to normal map rotation fix node.
+        if texture_node.bl_static_type == 'TEX_IMAGE' and material_channel_name == 'NORMAL':
+            link_nodes(texture_node.outputs[0], normal_rotation_fix_node.inputs[0])        
+
         # Relink material filter nodes with other material filter nodes.
         material_filters.relink_material_filter_nodes(material_layer_index)
 
@@ -264,7 +282,7 @@ def format_material_node_name(node_name, material_layer_index, get_edited=False)
     return node_name
 
 def get_layer_node(node_name, material_channel_name, layer_index, context, get_edited=False):
-    '''Gets a specific layer node using a given name. Valid options include "TEXTURE", "OPACITY", "COORD", "MAPPING", "MIXLAYER" '''
+    '''Gets a specific layer node using a given name. Valid options include "TEXTURE", "OPACITY", "COORD", "MAPPING", "MIX-LAYER", "NORMAL-ROTATION-FIX", "MATLAY-TRIPLANAR", "MATLAY-TRIPLANAR-NORMALS", "TEXTURE-SAMPLE-1", "TEXTURE-SAMPLE-2", "TEXTURE-SAMPLE-3" '''
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     if material_channel_node:
         if node_name in LAYER_NODE_NAMES:
@@ -278,6 +296,14 @@ def get_layer_node(node_name, material_channel_name, layer_index, context, get_e
                 return node
         else:
             print("ERROR: Layer node name not found in layer node list. Do you have a typo in a layer node name somewhere in your code?")
+
+def get_triplanar_texture_sample_nodes(material_channel_name, material_layer_index):
+    '''Returns an array of all three triplanar texture sample nodes for the given material layer index.'''
+    triplanar_texture_sample_nodes = []
+    triplanar_texture_sample_nodes.append(get_layer_node('TEXTURE-SAMPLE-1', material_channel_name, material_layer_index, bpy.context))
+    triplanar_texture_sample_nodes.append(get_layer_node('TEXTURE-SAMPLE-2', material_channel_name, material_layer_index, bpy.context))
+    triplanar_texture_sample_nodes.append(get_layer_node('TEXTURE-SAMPLE-3', material_channel_name, material_layer_index, bpy.context))
+    return triplanar_texture_sample_nodes
 
 def get_all_material_layer_nodes(material_channel_name, material_layer_index, context, get_edited=False):
     '''Returns an array of all material nodes in a specified material layer (doesn't return layer filter or layer mask nodes).'''
@@ -491,6 +517,7 @@ def check_decal_layer(material_layer_index):
         if coord_node.object != None:
             return True
     return False
+
 
 #----------------------------- LAYER FRAME FUNCTIONS -----------------------------#
 

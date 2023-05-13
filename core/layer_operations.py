@@ -85,7 +85,7 @@ def add_default_layer_nodes(layer_type, decal_object):
         if material_channel_name == 'NORMAL':
             normal_rotation_fix_node_tree = matlay_utils.get_normal_map_rotation_fix_node_tree()
             normal_rotation_fix_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
-            normal_rotation_fix_node.name = layer_nodes.format_material_node_name("NORMALROTATIONFIX", new_layer_index, True)
+            normal_rotation_fix_node.name = layer_nodes.format_material_node_name("NORMAL-ROTATION-FIX", new_layer_index, True)
             normal_rotation_fix_node.label = normal_rotation_fix_node.name
             normal_rotation_fix_node.node_tree =normal_rotation_fix_node_tree
 
@@ -99,7 +99,7 @@ def add_default_layer_nodes(layer_type, decal_object):
         new_nodes.append(opacity_node)
 
         mix_layer_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeMixRGB')
-        mix_layer_node.name = layer_nodes.format_material_node_name("MIXLAYER", new_layer_index, True)
+        mix_layer_node.name = layer_nodes.format_material_node_name("MIX-LAYER", new_layer_index, True)
         mix_layer_node.label = mix_layer_node.name
         mix_layer_node.inputs[1].default_value = (0.0, 0.0, 0.0, 1.0)
         mix_layer_node.inputs[2].default_value = (0.0, 0.0, 0.0, 1.0)
@@ -285,7 +285,7 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
                 duplicated_node.image = original_node.image
                 duplicated_node.interpolation = original_node.interpolation
                 duplicated_node.projection = original_node.projection
-                duplicated_node.projection_blend = original_node.projection_blend
+                duplicated_node.blending = original_node.blending
                 duplicated_node.extension = original_node.extension
         
         case 'GROUP':
@@ -752,13 +752,13 @@ class MATLAY_OT_duplicate_layer(Operator):
                     new_coord_node.object = new_decal_object
                 
                 for i in range(0, original_mask_count):
-                    mask_coord_node = layer_masks.get_mask_node('MaskCoord', material_channel_name, new_material_layer_index, i)
+                    mask_coord_node = layer_masks.get_mask_node('MASK-COORD', material_channel_name, new_material_layer_index, i)
                     if mask_coord_node:
                         mask_coord_node.object = new_decal_object
 
         # Duplicate properties of original layers and masks.
         if new_decal_object == None:
-            layers[new_material_layer_index].projection.projection_mode = layers[original_material_layer_index].projection.projection_mode
+            layers[new_material_layer_index].projection.mode = layers[original_material_layer_index].projection.mode
 
         # Relink all nodes.
         layer_nodes.relink_material_nodes(new_material_layer_index)
@@ -870,7 +870,7 @@ class MATLAY_OT_edit_image_externally(Operator):
         else:
             selected_layer_index = context.scene.matlay_layer_stack.layer_index
             selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
-            texture_node = layer_masks.get_mask_node('MaskTexture', 'COLOR', selected_layer_index, selected_mask_index, False)
+            texture_node = layer_masks.get_mask_node('MASK-TEXTURE', 'COLOR', selected_layer_index, selected_mask_index, False)
 
         # Select the image texture for exporting.
         if texture_node:
@@ -917,7 +917,7 @@ class MATLAY_OT_reload_image(Operator):
         selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
         if self.reload_mask:
             selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
-            texture_node = layer_masks.get_mask_node('MaskTexture', 'COLOR', selected_material_layer_index, selected_mask_index)
+            texture_node = layer_masks.get_mask_node('MASK-TEXTURE', 'COLOR', selected_material_layer_index, selected_mask_index)
         else:
             texture_node = layer_nodes.get_layer_node('TEXTURE', self.material_channel_name, selected_material_layer_index, context)
 
@@ -996,10 +996,18 @@ def read_texture_node_values(material_channel_list, total_number_of_layers, laye
                         setattr(layers[i].color_channel_values, material_channel_name.lower() + "_channel_color", (color[0], color[1], color[2]))
 
                     case 'GROUP':
-                        setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'GROUP_NODE')
+                        if texture_node.node_tree.name == 'MATLAY_TRIPLANAR' or texture_node.node_tree.name == 'MATLAY_TRIPLANAR_NORMALS':
+                            setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'TEXTURE')
+
+                            texture_sample_node = layer_nodes.get_layer_node('TEXTURE-SAMPLE-1', material_channel_name, i, context)
+                            if texture_sample_node:
+                                setattr(layers[i].material_channel_textures, material_channel_name.lower() + "_channel_texture", texture_sample_node.image)
+                        else:
+                            setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'GROUP_NODE')
 
                     case 'TEX_IMAGE':
                         setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'TEXTURE')
+                        setattr(layers[i].material_channel_textures, material_channel_name.lower() + "_channel_texture", texture_node.image)
 
                     case 'TEX_NOISE':
                         setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'NOISE')
@@ -1017,29 +1025,50 @@ def read_layer_projection_values(material_layers, context):
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     if material_channel_node:
         for i in range(0, len(material_layers)):
-            # Read offset, rotation and scale values.
+            # Read layer projection mode.
             mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, i, context)
-            if mapping_node:
-                material_layers[i].projection.projection_rotation = mapping_node.inputs[1].default_value
-                material_layers[i].projection.projection_offset_x = mapping_node.inputs[2].default_value[0]
-                material_layers[i].projection.projection_offset_y = mapping_node.inputs[2].default_value[1]
-                material_layers[i].projection.projection_offset_z = mapping_node.inputs[2].default_value[2]
-                material_layers[i].projection.projection_scale_x = mapping_node.inputs[3].default_value[0]
-                material_layers[i].projection.projection_scale_y = mapping_node.inputs[3].default_value[1]
-                material_layers[i].projection.projection_scale_z = mapping_node.inputs[3].default_value[2]
-                if material_layers[i].projection.projection_scale_x != material_layers[i].projection.projection_scale_y:
-                    material_layers[i].projection.match_layer_scale = False
-
-            # Read the projection values specific to image texture projection.
             texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, i, context)
-            if texture_node:
-                if texture_node.type == 'TEX_IMAGE':
-                    material_layers[i].projection.projection_blend = texture_node.projection_blend
-                    material_layers[i].projection.texture_extension = texture_node.extension
-                    material_layers[i].projection.texture_interpolation = texture_node.interpolation
-                    material_layers[i].projection.projection_mode = texture_node.projection
+            texture_sample_1 = layer_nodes.get_layer_node('TEXTURE-SAMPLE-1', material_channel_name, i, context)
+            material_layer = material_layers[i]
+            if mapping_node:
+                if mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
+                    if texture_node.bl_static_type == 'TEX_IMAGE':
+                        material_layer.projection.mode = texture_node.projection
+                        material_layer.projection.texture_extension = texture_node.extension
+                        material_layer.projection.texture_interpolation = texture_node.interpolation
+                    else:
+                        material_layer.projection.mode = 'FLAT'
+
+                elif mapping_node.node_tree.name == 'MATLAY_TRIPLANAR_MAPPING':
+                    material_layer.projection.mode = 'TRIPLANAR'
+                    if texture_node.bl_static_type == 'TEX_IMAGE':
+                        material_layer.projection.texture_extension = texture_sample_1.extension
+                        material_layer.projection.texture_interpolation = texture_sample_1.interpolation
+
+                # Read offset, rotation and scale values (based on layer projection mode).
+                if material_layer.projection.mode == 'TRIPLANAR':
+                    material_layer.projection.offset_x = mapping_node.inputs[0].default_value[0]
+                    material_layer.projection.offset_y = mapping_node.inputs[0].default_value[1]
+                    material_layer.projection.offset_z = mapping_node.inputs[0].default_value[2]
+                    material_layer.projection.rotation_x = mapping_node.inputs[1].default_value[0]
+                    material_layer.projection.rotation_y = mapping_node.inputs[1].default_value[1]
+                    material_layer.projection.rotation_z = mapping_node.inputs[1].default_value[2]
+                    material_layer.projection.scale_x = mapping_node.inputs[2].default_value[0]
+                    material_layer.projection.scale_y = mapping_node.inputs[2].default_value[1]
+                    material_layer.projection.scale_z = mapping_node.inputs[2].default_value[2]
+                    material_layer.projection.blending = mapping_node.inputs[3].default_value
+
                 else:
-                    material_layers[i].projection.projection_mode = 'FLAT'
+                    material_layer.projection.offset_x = mapping_node.inputs[1].default_value[0]
+                    material_layer.projection.offset_y = mapping_node.inputs[1].default_value[1]
+                    material_layer.projection.rotation_x = mapping_node.inputs[2].default_value
+                    material_layer.projection.scale_x = mapping_node.inputs[3].default_value[0]
+                    material_layer.projection.scale_y = mapping_node.inputs[3].default_value[0]
+
+                # Read projection scale syncing setting.
+                if material_layer.projection.scale_x != material_layer.projection.scale_y:
+                    material_layer.projection.sync_projection_scale = False
+
     else:
         logging.popup_message_box("Missing " + material_channel_name + " group node.", "Material Stack Corrupted", 'ERROR')
 
@@ -1090,6 +1119,10 @@ def read_active_layer_material_channels(material_channel_list, total_number_of_l
 
             setattr(layers[i].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", material_channel_active)
 
+# TODO: Fill this out.
+#def update_total_node_and_link_count():
+#    '''Counts the number of nodes and links created by this add-on to give a quantitative value to the work saved with this plugin.'''
+
 def read_layer_nodes(context):
     '''Reads the material node tree to define the layer stack user interface properties.'''
 
@@ -1126,8 +1159,8 @@ def read_layer_nodes(context):
     read_layer_name_and_id(material_layers, context)
     read_layer_opacity(total_number_of_layers, material_layers, selected_material_channel, context)
     read_decal_layer_properties(material_channel_list, total_number_of_layers, material_layers, context)
-    read_texture_node_values(material_channel_list, total_number_of_layers, material_layers, context)
     read_layer_projection_values(material_layers, context)
+    read_texture_node_values(material_channel_list, total_number_of_layers, material_layers, context)
     read_globally_active_material_channels(context)
     read_hidden_layers(total_number_of_layers, material_layers, material_channel_list, context)
     read_active_layer_material_channels(material_channel_list, total_number_of_layers, material_layers, context)

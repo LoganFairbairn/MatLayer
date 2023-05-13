@@ -106,6 +106,126 @@ def draw_layer_stack(column, context):
         subrow.template_list("MATLAY_UL_layer_list", "Layers", context.scene, "matlay_layers", context.scene.matlay_layer_stack, "layer_index", sort_reverse=True)
         subrow.scale_y = 2
 
+def draw_projection_settings(projection_settings, column):
+    '''Draws defined projection settings to the user interface.'''
+    
+    # A dual column layout is used so the properties vertically align.
+    split = column.split(factor=0.25)
+    first_column = split.column()
+    first_column.scale_x = 0.1
+    second_column = split.column()
+
+    # Texture projection mode for the layer.
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.label(text="Mode:")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(projection_settings, "mode", text="")
+
+    # Texture interpolation mode for the layer.
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.label(text="Interpolation:")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(projection_settings, "texture_interpolation", text="")
+
+    # Texture Extension Mode
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.label(text="Extension:")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(projection_settings, "texture_extension", text="")
+
+    match projection_settings.mode:
+        case 'FLAT':
+            # Offset
+            row = first_column.row()
+            row.scale_y = SCALE_Y
+            row.label(text="Offset:")
+            row = second_column.row()
+            row.scale_y = SCALE_Y
+            row.prop(projection_settings, "offset_x", text="X", slider=True)
+            row.prop(projection_settings, "offset_y", text="Y", slider=True)
+
+            # Rotation
+            row = first_column.row()
+            row.scale_y = SCALE_Y
+            row.label(text="Rotation:")
+            row = second_column.row()
+            row.scale_y = SCALE_Y
+            row.prop(projection_settings, "rotation_x", text="X", slider=True)
+
+            # Scale
+            row = first_column.row()
+            row.scale_y = SCALE_Y
+            row.label(text="Scale:")
+            row = second_column.row()
+            row.scale_y = SCALE_Y
+            col = row.split()
+            col.prop(projection_settings, "scale_x", text="X", slider=True)
+            col = row.split()
+            if projection_settings.sync_projection_scale:
+                col.prop(projection_settings, "sync_projection_scale", icon="LOCKED", icon_only=True)
+            else:
+                col.prop(projection_settings, "sync_projection_scale", icon="UNLOCKED", icon_only=True)
+            col = row.split()
+            if projection_settings.sync_projection_scale:
+                col.enabled = False
+            col.prop(projection_settings, "scale_y", text="Y", slider=True)
+        
+        case 'TRIPLANAR':
+            # Offset
+            row = first_column.row()
+            row.scale_y = SCALE_Y
+            row.label(text="Offset:")
+            row = second_column.row()
+            row.scale_y = SCALE_Y
+            row.prop(projection_settings, "offset_x", text="X", slider=True)
+            row.prop(projection_settings, "offset_y", text="Y", slider=True)
+            row.prop(projection_settings, "offset_z", text="Z", slider=True)
+
+            # Rotation
+            row = first_column.row()
+            row.scale_y = SCALE_Y
+            row.label(text="Rotation:")
+            row = second_column.row()
+            row.scale_y = SCALE_Y
+            row.prop(projection_settings, "rotation_x", text="X", slider=True)
+            row.prop(projection_settings, "rotation_y", text="Y", slider=True)
+            row.prop(projection_settings, "rotation_z", text="Z", slider=True)
+
+            # Scale
+            row = first_column.row()
+            row.scale_y = SCALE_Y
+            row.label(text="Scale:")
+            row = second_column.row()
+            row.scale_y = SCALE_Y
+            col = row.split()
+            col.prop(projection_settings, "scale_x", text="Scale X", slider=True)
+            col = row.split()
+            if projection_settings.sync_projection_scale:
+                col.enabled = False
+            col.prop(projection_settings, "scale_y", text="Y", slider=True)
+            col = row.split()
+            if projection_settings.sync_projection_scale:
+                col.enabled = False
+            col.prop(projection_settings, "scale_z", text="Z", slider=True)
+            col = row.split()
+            if projection_settings.sync_projection_scale:
+                col.prop(projection_settings, "sync_projection_scale", icon="LOCKED", icon_only=True)
+            else:
+                col.prop(projection_settings, "sync_projection_scale", icon="UNLOCKED", icon_only=True)
+
+            # Triplanar Projection Blending
+            row = first_column.row()
+            row.scale_y = SCALE_Y
+            row.label(text="Blending:")
+            row = second_column.row()
+            row.scale_y = SCALE_Y
+            row.prop(projection_settings, "blending", text="")
 
 #----------------- DRAW MATERIAL EDITING UI ----------------------#
 
@@ -177,7 +297,8 @@ def draw_texture_node_settings(column, texture_node, texture_node_type, layer, m
         case "TEXTURE":
             subrow = column.row(align=True)
             subrow.scale_y = SCALE_Y
-            subrow.prop(texture_node, "image", text="")
+            subrow.prop(layer.material_channel_textures, material_channel_name.lower() + "_channel_texture", text="")
+            #subrow.prop(texture_node, "image", text="")
 
             # Draw buttons to add / import / delete image textures quickly.
             add_layer_image_operator = subrow.operator("matlay.add_layer_image", icon="ADD", text="")
@@ -291,62 +412,6 @@ def draw_material_channel_node_properties(column, context):
             # Draw user interface settings for the material channel node based on it's type.
             texture_node_type = getattr(layers[selected_layer_index].channel_node_types, material_channel_names[i].lower() + "_node_type", None)
             draw_texture_node_settings(column, texture_node, texture_node_type, layers[selected_layer_index], material_channel_names[i], context)
-
-def draw_material_projection_settings(column, context):
-    '''Draws material projection settings.'''
-    layers = context.scene.matlay_layers
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    
-    row = column.row()
-    row.scale_y = SCALE_Y
-    row.prop(layers[selected_layer_index].projection, "projection_mode", text="Projection")
-
-    row = column.row()
-    row.scale_y = SCALE_Y
-    row.prop(layers[selected_layer_index].projection, "texture_interpolation", text="Interpolation")
-
-    row = column.row()
-    row.scale_y = SCALE_Y
-    row.prop(layers[selected_layer_index].projection, "texture_extension", text="Extension")
-
-    if layers[selected_layer_index].projection.projection_mode == 'BOX':
-        row = column.row()
-        row.scale_y = SCALE_Y
-        row.prop(layers[selected_layer_index].projection, "projection_blend")
-
-    row = column.row()
-    row.scale_y = SCALE_Y
-    row.prop(layers[selected_layer_index].projection, "projection_offset_x")
-    row.prop(layers[selected_layer_index].projection, "projection_offset_y")
-    if layers[selected_layer_index].projection.projection_mode != 'FLAT':
-        row.prop(layers[selected_layer_index].projection, "projection_offset_z")
-            
-    row = column.row()
-    row.scale_y = SCALE_Y
-    row.prop(layers[selected_layer_index].projection, "projection_rotation", slider=True)
-
-    row = column.row()
-
-    row.scale_y = SCALE_Y
-    col = row.split()
-    col.prop(layers[selected_layer_index].projection, "projection_scale_x")
-
-    col = row.split()
-    if layers[selected_layer_index].projection.match_layer_scale:
-        col.enabled = False
-    col.prop(layers[selected_layer_index].projection, "projection_scale_y")
-
-    if layers[selected_layer_index].projection.projection_mode != 'FLAT':
-        col = row.split()
-        if layers[selected_layer_index].projection.match_layer_scale:
-            col.enabled = False
-        col.prop(layers[selected_layer_index].projection, "projection_scale_z")
-
-    col = row.split()
-    if layers[selected_layer_index].projection.match_layer_scale:
-        col.prop(layers[selected_layer_index].projection, "match_layer_scale", icon="LOCKED", icon_only=True)
-    else:
-        col.prop(layers[selected_layer_index].projection, "match_layer_scale", icon="UNLOCKED", icon_only=True)
 
 def draw_filter_material_channel_toggles(column, context):
     '''Draws material channel toggles for material filters.'''
@@ -481,12 +546,12 @@ def draw_mask_node_properties(column):
     subrow.prop(masks[selected_mask_index], "node_type", text="")
 
     # Draw node properties based on mask node type.
-    mask_node = layer_masks.get_mask_node('MaskTexture', selected_material_channel, selected_layer_index, selected_mask_index)
+    mask_node = layer_masks.get_mask_node('MASK-TEXTURE', selected_material_channel, selected_layer_index, selected_mask_index)
     if mask_node:
         subrow = column.row(align=True)
         subrow.scale_y = 1.4
-        match mask_node.bl_static_type:
-            case 'TEX_IMAGE':
+        match masks[selected_mask_index].node_type:
+            case 'TEXTURE':
                 selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
                 masks = bpy.context.scene.matlay_masks
 
@@ -502,12 +567,12 @@ def draw_mask_node_properties(column):
                 subrow.prop(masks[selected_mask_index], 'use_alpha', icon='IMAGE_ALPHA', icon_only=True, toggle=True)
                 subrow.operator("matlay.delete_mask_image", icon="TRASH", text="")
 
-            case 'GROUP':
+            case 'GROUP_NODE':
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
                 subrow.template_ID(mask_node, "node_tree") 
 
-            case "TEX_NOISE":
+            case "NOISE":
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node, "noise_dimensions", text="", slider=True)
@@ -524,7 +589,7 @@ def draw_mask_node_properties(column):
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node.inputs[5], "default_value", text="Distortion", slider=True)
 
-            case "TEX_VORONOI":
+            case "VORONOI":
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node, "voronoi_dimensions", text="", slider=True)
@@ -541,7 +606,7 @@ def draw_mask_node_properties(column):
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node.inputs[3], "default_value", text="Randomness", slider=True)
 
-            case "TEX_MUSGRAVE":
+            case "MUSGRAVE":
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node, "musgrave_dimensions", text="", slider=True)
@@ -566,66 +631,6 @@ def draw_mask_node_properties(column):
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node.inputs[7], "default_value", text="Gain", slider=True)
-
-def draw_mask_projection_settings(column):
-    selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
-    masks = bpy.context.scene.matlay_masks
-
-    # Decal layers can't swap their projection modes, don't draw this option in the user interface.
-    if not layer_nodes.check_decal_layer(selected_material_layer_index):
-        subrow = column.row(align=True)
-        subrow.scale_y = 1.4
-        row = column.row()
-        row.scale_y = SCALE_Y
-        row.prop(masks[selected_mask_index].projection, "projection_mode", text="Projection")
-
-    row = column.row()
-    row.scale_y = SCALE_Y
-    row.prop(masks[selected_mask_index].projection, "texture_interpolation", text="Interpolation")
-
-    row = column.row()
-    row.scale_y = SCALE_Y
-    row.prop(masks[selected_mask_index].projection, "texture_extension", text="Extension")
-
-    if masks[selected_mask_index].projection.projection_mode == 'BOX':
-        row = column.row()
-        row.scale_y = SCALE_Y
-        row.prop(masks[selected_mask_index].projection, "projection_blend")
-
-    row = column.row()
-    row.scale_y = SCALE_Y
-    row.prop(masks[selected_mask_index].projection, "projection_offset_x")
-    row.prop(masks[selected_mask_index].projection, "projection_offset_y")
-    if masks[selected_mask_index].projection.projection_mode != 'FLAT':
-        row.prop(masks[selected_mask_index].projection, "projection_offset_z")
-
-    row = column.row()
-    row.scale_y = SCALE_Y
-    row.prop(masks[selected_mask_index].projection, "projection_rotation", slider=True)
-
-    row = column.row()
-    row.scale_y = SCALE_Y
-    col = row.split()
-    col.prop(masks[selected_mask_index].projection, "projection_scale_x")
-
-    col = row.split()
-    if masks[selected_mask_index].projection.match_layer_mask_scale:
-        col.enabled = False
-    col.prop(masks[selected_mask_index].projection, "projection_scale_y")
-
-    if masks[selected_mask_index].projection.projection_mode != 'FLAT':
-        col = row.split()
-        if masks[selected_mask_index].projection.match_layer_mask_scale:
-            col.enabled = False
-        col.prop(masks[selected_mask_index].projection, "projection_scale_z")
-
-    col = row.split()
-    if masks[selected_mask_index].projection.match_layer_mask_scale:
-        col.prop(masks[selected_mask_index].projection, "match_layer_mask_scale", text="", icon="LOCKED")
-
-    else:
-        col.prop(masks[selected_mask_index].projection, "match_layer_mask_scale", text="", icon="UNLOCKED")
 
 def draw_mask_filters(column):
     '''Draws the mask filter stack with operators for material layer masks.'''
@@ -669,11 +674,12 @@ def draw_mask_properties(column):
     
     mask_stack = bpy.context.scene.matlay_mask_stack
     selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
+    selected_material_layer = bpy.context.scene.matlay_layers[bpy.context.scene.matlay_layer_stack.layer_index]
 
     subrow = column.row(align=True)
     subrow.scale_y = 1.4
     subrow.prop_enum(mask_stack, "mask_property_tab", 'MASK', text='Mask')
-    if masks[selected_mask_index].node_type == 'TEXTURE':
+    if masks[selected_mask_index].node_type == 'TEXTURE' and selected_material_layer.type != 'DECAL':
         subrow.prop_enum(mask_stack, "mask_property_tab", 'PROJECTION', text='Projection')
     subrow.prop_enum(mask_stack, "mask_property_tab", 'FILTERS', text='Mask Filters')
 
@@ -682,12 +688,12 @@ def draw_mask_properties(column):
             draw_mask_node_properties(column)
     
         case 'PROJECTION':
-            draw_mask_projection_settings(column)
-    
+            selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
+            masks = bpy.context.scene.matlay_masks
+            draw_projection_settings(masks[selected_mask_index].projection, column)
+            
         case 'FILTERS':
             draw_mask_filters(column)
-
-#----------------- DRAW (ALL) LAYER PROPERTIES ----------------------#
 
 def draw_layer_properties(column, context, layout):
     '''Draws material and mask properties for the selected layer based on the selected tab.'''
@@ -720,7 +726,8 @@ def draw_layer_properties(column, context, layout):
                         draw_material_channel_node_properties(column, context)
 
                     case 'PROJECTION':
-                        draw_material_projection_settings(column, context)
+                        selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+                        draw_projection_settings(context.scene.matlay_layers[selected_material_layer_index].projection, column)
 
                     case 'FILTERS':
                         draw_material_filters(column, context, layout)

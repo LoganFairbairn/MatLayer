@@ -170,17 +170,27 @@ class MATLAY_OT_import_texture(Operator, ImportHelper):
 
     def execute(self, context):
         selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+        selected_material_layer = context.scene.matlay_layers[selected_material_layer_index]
 
         # Open a window to import an image into blender.
         head_tail = os.path.split(self.filepath)
         image_name = head_tail[1]
         bpy.ops.image.open(filepath=self.filepath)
 
-        # Put the selected image into the texture node of the currently selected layer.
-        texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel_name, selected_material_layer_index, context)
+        # Apply the selected image texture to the selected layer based on projection mode.
+        context.scene.matlay_layer_stack.auto_update_layer_properties = False
         image = bpy.data.images[image_name]
-        if texture_node:
-            texture_node.image = image
+        if selected_material_layer.projection.mode == 'TRIPLANAR':
+            triplanar_texture_sample_nodes = layer_nodes.get_triplanar_texture_sample_nodes(self.material_channel_name, selected_material_layer_index)
+            for node in triplanar_texture_sample_nodes:
+                if node:
+                    node.image = image
+                    setattr(selected_material_layer.material_channel_textures, self.material_channel_name.lower() + "_channel_texture", image)
+        else:
+            texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel_name, selected_material_layer_index, context)
+            if texture_node:
+                texture_node.image = image
+        context.scene.matlay_layer_stack.auto_update_layer_properties = True
 
         # For specific material channels, imported textures automatically have their color space corrected.
         set_image_colorspace(image, self.material_channel_name)
@@ -294,10 +304,19 @@ class MATLAY_OT_import_texture_set(Operator, ImportHelper):
                     context.scene.tool_settings.image_paint.canvas = imported_image
                     selected_image_file = True
 
-                # Place the image into a material channel based on it's name.
-                texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_material_layer_index, context)
-                if texture_node:
-                    texture_node.image = imported_image
+                # Place the image into a material channel and nodes based on texture projection and inferred material channel name.
+                selected_material_layer = material_layers[selected_material_layer_index]
+                if selected_material_layer.projection.mode == 'TRIPLANAR':
+                    triplanar_texture_sample_nodes = layer_nodes.get_triplanar_texture_sample_nodes(material_channel_name, selected_material_layer_index)
+                    for node in triplanar_texture_sample_nodes:
+                        if node:
+                            node.image = imported_image
+                            setattr(selected_material_layer.material_channel_textures, material_channel_name.lower() + "_channel_texture", imported_image)
+                else:
+                    texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_material_layer_index, context)
+                    if texture_node:
+                        texture_node.image = imported_image
+                        setattr(selected_material_layer.material_channel_textures, material_channel_name.lower() + "_channel_texture", imported_image)
 
                 # Update the imported images colorspace based on it's specified material channel.
                 set_image_colorspace(imported_image, material_channel_name)

@@ -45,7 +45,7 @@ def delete_unused_layer_images(self, context):
 
     for i in range(0, len(material_layers)):
         for c in range(0, len(masks)):
-            node = layer_masks.get_mask_node('MaskTexture', material_channel_name, i, c, False)
+            node = layer_masks.get_mask_node('MASK-TEXTURE', material_channel_name, i, c, False)
             if node:
                 if node.bl_static_type == 'TEX_IMAGE':
                     if node.image != None and node.image.filepath != '':
@@ -90,26 +90,41 @@ def get_blend_assets_path():
     blend_assets_path = str(Path(resource_path('USER')) / "scripts/addons" / ADDON_NAME / "blend" / "Matlay.blend")
     return blend_assets_path
 
-def get_uv_mapping_node_tree():
-    '''Returns a custom mapping node group for UV / flat projection, appends the custom group node if it doesn't already exist.'''
-    node_tree_name = "Matlay_OffsetRotationScale"
+def append_custom_node_tree(node_tree_name, never_auto_delete):
+    '''Appends a node tree with the provided name from the asset bank blend file for this add-on.'''
     node_tree = bpy.data.node_groups.get(node_tree_name)
     if node_tree == None:
         blend_assets_path = get_blend_assets_path()
         with bpy.data.libraries.load(blend_assets_path) as (data_from, data_to):
             data_to.node_groups = [node_tree_name]
-        return bpy.data.node_groups[node_tree_name]
+
+        # Mark node trees with a 'fake user' to stop them from being auto deleted from the blend file if they are not used.
+        # This makes loading group nodes slightly faster for the next use if they were previously deleted, and allows users to look at the appended group nodes.
+        node_tree = bpy.data.node_groups.get(node_tree_name)
+        if never_auto_delete:
+            node_tree.use_fake_user = True
+        return node_tree
     return node_tree
 
+def get_uv_mapping_node_tree():
+    '''Returns a custom mapping node group for UV / flat projection. The node tree will be appended if it doesn't exist in the current blend file.'''
+    return append_custom_node_tree("MATLAY_OFFSET_ROTATION_SCALE", True)
+
 def get_normal_map_rotation_fix_node_tree():
-    node_tree_name = "Matlay_FixNormalMapRotation"
-    node_tree = bpy.data.node_groups.get(node_tree_name)
-    if node_tree == None:
-        blend_assets_path = get_blend_assets_path()
-        with bpy.data.libraries.load(blend_assets_path) as (data_from, data_to):
-            data_to.node_groups = [node_tree_name]
-        return bpy.data.node_groups[node_tree_name]
-    return node_tree
+    '''Returns a custom node tree designed to fix normal map rotations. The node tree will be appended if it doesn't exist in the current blend file.'''
+    return append_custom_node_tree("MATLAY_FIX_NORMAL_ROTATION", True)
+
+def  get_triplanar_mapping_tree():
+    '''Returns a custom node tree designed specifically for triplanar projection. The node tree will be appended if it doesn't exist in the current blend file.'''
+    return append_custom_node_tree("MATLAY_TRIPLANAR_MAPPING", True)
+
+def get_triplanar_node_tree():
+    '''Returns a custom triplanar projection node tree. The node tree will be appended if it doesn't exist in the current blend file.'''
+    return append_custom_node_tree("MATLAY_TRIPLANAR", True)
+
+def get_normal_triplanar_node_tree():
+    '''Returns a custom triplanar projection node tree specifically for correct normal map projections. The node tree will be appended if it doesn't exist in the current blend file.'''
+    return append_custom_node_tree("MATLAY_TRIPLANAR_NORMALS", True)
 
 class MATLAY_OT_set_decal_layer_snapping(Operator):
     bl_idname = "matlay.set_decal_layer_snapping"

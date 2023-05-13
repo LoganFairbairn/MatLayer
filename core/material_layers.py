@@ -2,14 +2,14 @@
 
 import bpy
 from bpy.types import Operator, PropertyGroup
-from bpy.props import BoolProperty, FloatProperty, PointerProperty, FloatVectorProperty, EnumProperty, StringProperty, IntProperty
+from bpy.props import BoolProperty, FloatProperty, FloatVectorProperty, PointerProperty, EnumProperty, StringProperty, IntProperty
 from ..core import layer_nodes
 from ..core import material_channels
 from ..core import layer_masks
 from ..core import material_filters
 from ..utilities.logging import popup_message_box
 from ..utilities import matlay_utils
-from ..utilities import logging
+import math
 
 # List of node types that can be used in the texture slot.
 TEXTURE_NODE_TYPES = [
@@ -23,10 +23,10 @@ TEXTURE_NODE_TYPES = [
     ]
 
 PROJECTION_MODES = [
-    ("FLAT", "Flat", "Projects the texture using the model's UV map."),
-    ("BOX", "Box (Tri-Planar Projection)", "Also known as 'cube, or box' projection, this projection method projects onto the 3D model from all axises."),
-    ("SPHERE", "Sphere", ""),
-    ("TUBE", "Tube", "")
+    ("FLAT", "UV / Flat", "Projects the texture using the model's UV map."),
+    ("TRIPLANAR", "Triplanar", "Projects the textures onto the object from each axis. This projection method can be used to quickly remove seams from objects."),
+    #("SPHERE", "Sphere", ""),
+    #("TUBE", "Tube", "")
     ]
 
 TEXTURE_EXTENSION_MODES = [
@@ -237,29 +237,105 @@ def update_layer_projection_mode(self, context):
     
     layers = context.scene.matlay_layers
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_material_layer = layers[selected_material_layer_index]
 
-    # Change node properties based on projection type.
+    # Change nodes and properties based on new projection type.
     for material_channel_name in material_channels.get_material_channel_list():
-        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_material_layer_index, context)
-        if texture_node:
-            if texture_node.type == 'TEX_IMAGE':
-                match layers[selected_material_layer_index].projection.projection_mode:
-                    case 'FLAT':
-                        texture_node.projection = 'FLAT'
+        material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
 
-                    case 'BOX':
-                        if texture_node:
-                            if texture_node.type == 'TEX_IMAGE':
-                                texture_node.projection = 'BOX'
-                                texture_node.projection_blend = self.projection_blend
+        match selected_material_layer.projection.mode:
+            case 'FLAT':
+                # Convert the mapping node to the correct space.
+                mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, selected_material_layer_index, context)
+                material_channel_node.node_tree.nodes.remove(mapping_node)
 
-                    case 'SPHERE':
-                        texture_node.projection = 'SPHERE'
+                new_mapping_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
+                new_mapping_node.node_tree = matlay_utils.get_uv_mapping_node_tree()
+                new_mapping_node.name = layer_nodes.format_material_node_name('MAPPING', selected_material_layer_index)
+                new_mapping_node.label = new_mapping_node.name
 
-                    case 'TUBE':
-                        texture_node.projection = 'TUBE'
+                # If the previous projection mode was triplanar, convert triplanar group nodes to texture nodes and remove triplanar texture samples.
+                texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_material_layer_index, context)
+                if texture_node.bl_static_type == 'GROUP':
+                    if texture_node.node_tree.name == 'MATLAY_TRIPLANAR' or texture_node.node_tree.name == 'MATLAY_TRIPLANAR_NORMALS':
+                        material_channel_node.node_tree.nodes.remove(texture_node)
+
+                        triplanar_sample_nodes = []
+                        triplanar_sample_nodes.append(layer_nodes.get_layer_node('TEXTURE-SAMPLE-1', material_channel_name, selected_material_layer_index, context))
+                        triplanar_sample_nodes.append(layer_nodes.get_layer_node('TEXTURE-SAMPLE-2', material_channel_name, selected_material_layer_index, context))
+                        triplanar_sample_nodes.append(layer_nodes.get_layer_node('TEXTURE-SAMPLE-3', material_channel_name, selected_material_layer_index, context))
+
+                        for node in triplanar_sample_nodes:
+                            if node:
+                                material_channel_node.node_tree.nodes.remove(node)
+                        
+                        material_channel_node_type = getattr(selected_material_layer.channel_node_types, material_channel_name.lower() + "_node_type")
+                        if material_channel_node_type == 'TEXTURE':
+                            new_texture_node = material_channel_node.node_tree.nodes.new('ShaderNodeTexImage')
+                            new_texture_node.name = layer_nodes.format_material_node_name('TEXTURE', selected_material_layer_index)
+                            new_texture_node.label = new_texture_node.name
+                            image_texture = getattr(selected_material_layer.material_channel_textures, material_channel_name.lower() + "_channel_texture")
+                            new_texture_node.image = image_texture
+
+
+
+            case 'TRIPLANAR':
+                # Convert all IMAGE TEXTURE nodes to triplanar group nodes.
+                texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_material_layer_index, context)
+                if not texture_node:
+                    print("Error: Texture node does not exist when trying to convert to triplanar texture projection.")
+                    return
+                
+                if texture_node.bl_static_type == 'TEX_IMAGE':
+                    new_texture_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
+                    if material_channel_name == 'NORMAL':
+                        triplanar_node_tree = matlay_utils.get_normal_triplanar_node_tree()
+                    else:
+                        triplanar_node_tree = matlay_utils.get_triplanar_node_tree()
+                    new_texture_node.node_tree = triplanar_node_tree
+                    
+
+                    # Create new image texture nodes to sample from for triplanar projection.
+                    triplanar_sample_nodes = []
+                    triplanar_sample_nodes.append(material_channel_node.node_tree.nodes.new('ShaderNodeTexImage'))
+                    triplanar_sample_nodes.append(material_channel_node.node_tree.nodes.new('ShaderNodeTexImage'))
+                    triplanar_sample_nodes.append(material_channel_node.node_tree.nodes.new('ShaderNodeTexImage'))
+
+                    # Apply the image and other settings to the triplanar texture sample nodes.
+                    for i in range(0, len(triplanar_sample_nodes)):
+                        triplanar_sample_nodes[i].image = texture_node.image
+                        triplanar_sample_nodes[i].projection = 'FLAT'
+                        triplanar_sample_nodes[i].extension = self.texture_extension
+                        triplanar_sample_nodes[i].interpolation = self.texture_interpolation
+                        triplanar_sample_nodes[i].name = layer_nodes.format_material_node_name('TEXTURE-SAMPLE-' + str(i + 1), selected_material_layer_index)
+                        triplanar_sample_nodes[i].label = triplanar_sample_nodes[i].name
+                    
+                    material_channel_node.node_tree.nodes.remove(texture_node)
+                    new_texture_node.name = layer_nodes.format_material_node_name('TEXTURE', selected_material_layer_index)
+                    new_texture_node.label = new_texture_node.name
+                    
+                # Convert all mapping nodes to triplanar coord nodes.
+                mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, selected_material_layer_index, context)
+                if not mapping_node:
+                    print("Error: Mapping node does not exist when trying to convert to triplanar coord nodes.")
+                    return
+                
+                triplanar_coord_node_tree = matlay_utils.get_triplanar_mapping_tree()
+                new_mapping_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
+                new_mapping_node.node_tree = triplanar_coord_node_tree
+                new_mapping_node.inputs[3].default_value = self.blending
+                material_channel_node.node_tree.nodes.remove(mapping_node)
+                new_mapping_node.name = layer_nodes.format_material_node_name('MAPPING', selected_material_layer_index)
+                new_mapping_node.label = new_mapping_node.name
+
+            case 'SPHERE':
+                print("Placeholder")
+
+            case 'TUBE':
+                print("Placeholder")
 
     # Relink material channel nodes.
+    layer_nodes.organize_all_layer_nodes()
     layer_nodes.relink_material_nodes(selected_material_layer_index)
     layer_nodes.relink_material_layers()
 
@@ -293,8 +369,8 @@ def update_projection_extension(self, context):
         if texture_node and texture_node.type == 'TEX_IMAGE':
             texture_node.extension = layers[selected_layer_index].projection.texture_extension
 
-def update_projection_blend(self, context):
-    '''Updates the projection blend node values when the cube projection blend value is changed.'''
+def update_blending(self, context):
+    '''Updates the projection blending value in mapping nodes when the ui projection value is changed.'''
     if not context.scene.matlay_layer_stack.auto_update_layer_properties:
         return
 
@@ -302,11 +378,9 @@ def update_projection_blend(self, context):
 
     layers = context.scene.matlay_layers
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    material_channel_list = material_channels.get_material_channel_list()
-    for material_channel_name in material_channel_list:
-        texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_index, context)
-        if texture_node and texture_node.type == 'TEX_IMAGE':
-            texture_node.projection_blend = layers[selected_layer_index].projection.projection_blend
+    for material_channel_name in material_channels.get_material_channel_list():
+        mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, selected_layer_index, context)
+        mapping_node.inputs[3].default_value = layers[selected_layer_index].projection.blending
 
 def update_projection_offset_x(self, context):
     if not context.scene.matlay_layer_stack.auto_update_layer_properties:
@@ -320,9 +394,8 @@ def update_projection_offset_x(self, context):
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
-
         if mapping_node:
-            mapping_node.inputs[1].default_value[0] = layers[selected_layer_index].projection.projection_offset_x
+            mapping_node.inputs[0].default_value[0] = layers[selected_layer_index].projection.offset_x
 
 def update_projection_offset_y(self, context):
     if not context.scene.matlay_layer_stack.auto_update_layer_properties:
@@ -338,7 +411,7 @@ def update_projection_offset_y(self, context):
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
         if mapping_node:
-            mapping_node.inputs[1].default_value[1] = layers[selected_layer_index].projection.projection_offset_y
+            mapping_node.inputs[0].default_value[1] = layers[selected_layer_index].projection.offset_y
 
 def update_projection_offset_z(self, context):
     if not context.scene.matlay_layer_stack.auto_update_layer_properties:
@@ -354,10 +427,9 @@ def update_projection_offset_z(self, context):
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
         if mapping_node:
-            mapping_node.inputs[1].default_value[2] = layers[selected_layer_index].projection.projection_offset_z
+            mapping_node.inputs[0].default_value[2] = layers[selected_layer_index].projection.offset_z
 
-def update_projection_rotation(self, context):
-    '''Updates the layer projections rotation for all layers.'''
+def update_projection_rotation_x(self, context):
     if not context.scene.matlay_layer_stack.auto_update_layer_properties:
         return 
 
@@ -366,11 +438,50 @@ def update_projection_rotation(self, context):
     layers = context.scene.matlay_layers
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
+    angle = math.radians(layers[selected_layer_index].projection.rotation_x)
+
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
         if mapping_node:
-            mapping_node.inputs[1].default_value = layers[selected_layer_index].projection.projection_rotation
+            if layers[selected_layer_index].projection.mode == 'TRIPLANAR':
+                mapping_node.inputs[1].default_value[0] = angle
+            else:
+                mapping_node.inputs[1].default_value = angle
+
+def update_projection_rotation_y(self, context):
+    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+        return 
+
+    matlay_utils.set_valid_material_shading_mode(context)
+
+    layers = context.scene.matlay_layers
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+
+    angle = math.radians(layers[selected_layer_index].projection.rotation_y)
+
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+        if mapping_node:
+            mapping_node.inputs[1].default_value[1] = angle
+
+def update_projection_rotation_z(self, context):
+    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+        return 
+
+    matlay_utils.set_valid_material_shading_mode(context)
+
+    layers = context.scene.matlay_layers
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+
+    angle = math.radians(layers[selected_layer_index].projection.rotation_z)
+
+    material_channel_list = material_channels.get_material_channel_list()
+    for material_channel_name in material_channel_list:
+        mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
+        if mapping_node:
+            mapping_node.inputs[1].default_value[2] = angle
 
 def update_projection_scale_x(self, context):
     '''Updates the layer projections x scale for all mapping nodes in the selected layer.'''
@@ -387,11 +498,11 @@ def update_projection_scale_x(self, context):
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
         if mapping_node:
-            mapping_node.inputs[3].default_value[0] = layers[selected_layer_index].projection.projection_scale_x
+            mapping_node.inputs[2].default_value[0] = layers[selected_layer_index].projection.scale_x
 
-        if self.match_layer_scale:
-            layers[selected_layer_index].projection.projection_scale_y = layers[selected_layer_index].projection.projection_scale_x
-            layers[selected_layer_index].projection.projection_scale_z = layers[selected_layer_index].projection.projection_scale_x
+        if self.sync_projection_scale:
+            layers[selected_layer_index].projection.scale_y = layers[selected_layer_index].projection.scale_x
+            layers[selected_layer_index].projection.scale_z = layers[selected_layer_index].projection.scale_x
 
 def update_projection_scale_y(self, context):
     if not context.scene.matlay_layer_stack.auto_update_layer_properties:
@@ -407,7 +518,7 @@ def update_projection_scale_y(self, context):
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
         
         if mapping_node:
-            mapping_node.inputs[3].default_value[1] = layers[selected_layer_index].projection.projection_scale_y
+            mapping_node.inputs[2].default_value[1] = layers[selected_layer_index].projection.scale_y
 
 def update_projection_scale_z(self, context):
     '''Updates the layer projections x scale for all mapping nodes in the selected layer.'''
@@ -424,20 +535,20 @@ def update_projection_scale_z(self, context):
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
         if mapping_node:
-            mapping_node.inputs[3].default_value[2] = layers[selected_layer_index].projection.projection_scale_z
+            mapping_node.inputs[2].default_value[2] = layers[selected_layer_index].projection.scale_z
 
-def update_match_layer_scale(self, context):
+def update_sync_projection_scale(self, context):
     '''Updates matching of the projected layer scales.'''
     if not context.scene.matlay_layer_stack.auto_update_layer_properties:
         return
     
     matlay_utils.set_valid_material_shading_mode(context)
     
-    if self.match_layer_scale:
+    if self.sync_projection_scale:
         layers = context.scene.matlay_layers
         layer_index = context.scene.matlay_layer_stack.layer_index
-        layers[layer_index].projection.projection_scale_y = layers[layer_index].projection.projection_scale_x
-        layers[layer_index].projection.projection_scale_z = layers[layer_index].projection.projection_scale_x
+        layers[layer_index].projection.scale_y = layers[layer_index].projection.scale_x
+        layers[layer_index].projection.scale_z = layers[layer_index].projection.scale_x
 
 #----------------------------- UPDATE MATERIAL CHANNEL TOGGLES (mute / unmute material channels for individual layers) -----------------------------#
 
@@ -677,6 +788,61 @@ def update_uniform_emission_value(self, context):
             self.emission_channel_color = (self.uniform_emission_value,self.uniform_emission_value,self.uniform_emission_value)
 
 
+#----------------------------- UPDATE CHANNEL IMAGES -----------------------------#
+
+def update_material_channel_texture(material_channel_name, self, context):
+    '''Updates image texture node values with '''
+    matlay_utils.set_valid_material_shading_mode(context)
+    if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
+        return
+    
+    layers = context.scene.matlay_layers
+    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    layer_projection_mode = layers[selected_layer_index].projection.mode
+
+    new_image = getattr(self, material_channel_name.lower() + "_channel_texture")
+
+    match layer_projection_mode:
+        case 'FLAT':
+            texture_node = layer_nodes.get_layer_node("TEXTURE", material_channel_name, selected_layer_index, context)
+            if texture_node:
+                if texture_node.bl_static_type == 'TEX_IMAGE':
+                    texture_node.image = new_image
+
+        case 'TRIPLANAR':
+            texture_sample_nodes = layer_nodes.get_triplanar_texture_sample_nodes(material_channel_name, selected_layer_index)
+            for node in texture_sample_nodes:
+                if node:
+                    node.image = new_image
+
+def update_color_material_channel_texture(self, context):
+    update_material_channel_texture('COLOR', self, context)
+
+def update_subsurface_color_material_channel_texture(self, context):
+    update_material_channel_texture('SUBSURFACE_COLOR', self, context)
+
+def update_subsurface_material_channel_texture(self, context):
+    update_material_channel_texture('SUBSURFACE', self, context)
+
+def update_metallic_material_channel_texture(self, context):
+    update_material_channel_texture('METALLIC', self, context)
+    
+def update_specular_material_channel_texture(self, context):
+    update_material_channel_texture('SPECULAR', self, context)
+
+def update_roughness_material_channel_texture(self, context):
+    update_material_channel_texture('ROUGHNESS', self, context)
+
+def update_emission_material_channel_texture(self, context):
+    update_material_channel_texture('EMISSION', self, context)
+
+def update_normal_material_channel_texture(self, context):
+    update_material_channel_texture('NORMAL', self, context)
+
+def update_height_material_channel_texture(self, context):
+    update_material_channel_texture('HEIGHT', self, context)
+
+
 #----------------------------- UPDATE TEXTURE NODE TYPES -----------------------------#
 # When nodes that represent the texture value for a material are swapped, they trigger automatic updates for their respective nodes in the node tree through these functions.
 
@@ -696,10 +862,10 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
         material_channel_node.node_tree.nodes.remove(old_texture_node)
 
     # Add the new node and adjust node links based on the provided node type.
-    texture_node = None
+    new_texture_node = None
     match texture_node_type:
         case "COLOR":
-            texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
+            new_texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeRGB')
 
             # Update the layer color property.
             color_value = (0.0, 0.0, 0.0)
@@ -715,10 +881,10 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
                 case _:
                     color_value = (0.5, 0.5, 0.5)
             setattr(selected_layer.color_channel_values, material_channel_name.lower() + "_channel_color", color_value)
-            texture_node.outputs[0].default_value = (color_value[0], color_value[1], color_value[2], 1.0)
+            new_texture_node.outputs[0].default_value = (color_value[0], color_value[1], color_value[2], 1.0)
 
         case "VALUE":
-            texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
+            new_texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeValue')
 
             # Update the layer value property.
             uniform_value = 0.0
@@ -733,51 +899,74 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
                     uniform_value = 0.0
 
             setattr(selected_layer.uniform_channel_values, "uniform_" + material_channel_name.lower() + "_value", uniform_value)
-            texture_node.outputs[0].default_value = uniform_value
+            new_texture_node.outputs[0].default_value = uniform_value
 
         case "TEXTURE":
-            texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexImage')
+            # Create a texture node or a triplanar texture node setup based on layer projection settings.
+            match selected_layer.projection.mode:
+                case 'FLAT':
+                    new_texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexImage')
 
-            # For decal layers, correct the texture extension.
-            if selected_layer.type == 'DECAL':
-                texture_node.extension = 'CLIP'
+                    # For decal layers, correct texture extension.
+                    if selected_layer.type == 'DECAL':
+                        new_texture_node.extension = 'CLIP'
 
-            # For all other layers, apply the layer's projection for texture node settings.
-            else:
-                texture_node.extension = selected_layer.projection.texture_extension
-                texture_node.interpolation = selected_layer.projection.texture_interpolation
-                texture_node.projection = selected_layer.projection.projection_mode
-                if selected_layer.projection.projection_mode == 'BOX':
-                    texture_node.projection_blend = selected_layer.projection.projection_blend
+                case 'TRIPLANAR':
+                    new_texture_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
+                    if material_channel_name == 'NORMAL':
+                        triplanar_node_tree = matlay_utils.get_normal_triplanar_node_tree()
+                    else:
+                        triplanar_node_tree = matlay_utils.get_triplanar_node_tree()
+                    new_texture_node.node_tree = triplanar_node_tree
+
+                    triplanar_sample_nodes = []
+                    triplanar_sample_nodes.append(material_channel_node.node_tree.nodes.new('ShaderNodeTexImage'))
+                    triplanar_sample_nodes.append(material_channel_node.node_tree.nodes.new('ShaderNodeTexImage'))
+                    triplanar_sample_nodes.append(material_channel_node.node_tree.nodes.new('ShaderNodeTexImage'))
+                    
+                    for i in range(0, len(triplanar_sample_nodes)):
+                        triplanar_sample_nodes[i].name = layer_nodes.format_material_node_name('TEXTURE-SAMPLE-' + str(i + 1), selected_material_layer_index)
+                        triplanar_sample_nodes[i].label = triplanar_sample_nodes[i].name
+                        triplanar_sample_nodes[i].image = getattr(selected_layer.material_channel_textures, material_channel_name.lower() + "_channel_texture")
+                        triplanar_sample_nodes[i].projection = 'FLAT'
+                        triplanar_sample_nodes[i].extension = selected_layer.projection.texture_extension
+                        triplanar_sample_nodes[i].interpolation = selected_layer.projection.texture_interpolation
 
         case "GROUP_NODE":
-            texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
+            new_texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
             empty_group_node = bpy.data.node_groups['MATLAY_EMPTY']
             if not empty_group_node:
                 material_channels.create_empty_group_node(context)
-            texture_node.node_tree = bpy.data.node_groups['MATLAY_EMPTY']
+            new_texture_node.node_tree = bpy.data.node_groups['MATLAY_EMPTY']
 
         case "NOISE":
-            texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexNoise')
+            new_texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexNoise')
 
         case "VORONOI":
-            texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexVoronoi')
+            new_texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexVoronoi')
 
         case "MUSGRAVE":
-            texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexMusgrave')
+            new_texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexMusgrave')
+
+    # Remove triplanar sample texture nodes if the material channel is no longer using a texture setup.
+    if texture_node_type != 'TEXTURE':
+        triplanar_sample_nodes = []
+        triplanar_sample_nodes.append(layer_nodes.get_layer_node('TEXTURE-SAMPLE-1', material_channel_name, selected_material_layer_index, context))
+        triplanar_sample_nodes.append(layer_nodes.get_layer_node('TEXTURE-SAMPLE-2', material_channel_name, selected_material_layer_index, context))
+        triplanar_sample_nodes.append(layer_nodes.get_layer_node('TEXTURE-SAMPLE-3', material_channel_name, selected_material_layer_index, context))
+
+        for node in triplanar_sample_nodes:
+            if node:
+                material_channel_node.node_tree.nodes.remove(node)
 
     # Update the new texture nodes name and label.
-    texture_node.name = "TEXTURE_" + str(selected_material_layer_index)
-    texture_node.label = texture_node.name
-    self.texture_node_name = texture_node.name
+    new_texture_node.name = layer_nodes.format_material_node_name('TEXTURE', selected_material_layer_index)
+    new_texture_node.label = new_texture_node.name
+    self.texture_node_name = new_texture_node.name
 
     # Link the new texture node to the mix layer node.
-    mix_layer_node = layer_nodes.get_layer_node("MIXLAYER", material_channel_name, selected_material_layer_index, context)
-    link(texture_node.outputs[0], mix_layer_node.inputs[2])
-
-    # Parent the new node to the layer's frame.
-    layer_frame = layer_nodes.get_layer_frame(material_channel_name, selected_material_layer_index, context)
-    texture_node.parent = layer_frame
+    mix_layer_node = layer_nodes.get_layer_node("MIX-LAYER", material_channel_name, selected_material_layer_index, context)
+    link(new_texture_node.outputs[0], mix_layer_node.inputs[2])
 
     # Update the layer nodes because they were changed.
     layer_nodes.organize_all_layer_nodes()
@@ -865,19 +1054,20 @@ class MaterialChannelNodeType(PropertyGroup):
  
 class ProjectionSettings(PropertyGroup):
     '''Projection settings for this add-on.'''
-    projection_mode: EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT', update=update_layer_projection_mode)
+    mode: EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT', update=update_layer_projection_mode)
     texture_extension: EnumProperty(items=TEXTURE_EXTENSION_MODES, name="Extension", description="", default='REPEAT', update=update_projection_extension)
     texture_interpolation: EnumProperty(items=TEXTURE_INTERPOLATION_MODES, name="Interpolation", description="", default='Linear', update=update_projection_interpolation)
-    projection_blend: FloatProperty(name="Projection Blend", description="The projection blend amount", default=0.3, min=0.0, max=1.0, subtype='FACTOR', update=update_projection_blend)
-    projection_offset_x: FloatProperty(name="Offset X", description="Projected x offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_x)
-    projection_offset_y: FloatProperty(name="Offset Y", description="Projected y offset of the selected layer", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_y)
-    projection_offset_z: FloatProperty(name="Offset Z", description="Projected z offset of the selected layer, only available in some projection modes", default=0.0, min=-1.0, max=1.0, subtype='FACTOR', update=update_projection_offset_z)
-    projection_rotation: FloatProperty(name="Rotation", description="Projected rotation of the selected layer", default=0.0, min=-6.283185, max=6.283185, subtype='ANGLE', update=update_projection_rotation)
-    projection_scale_x: FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_x)
-    projection_scale_y: FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_y)
-    projection_scale_z: FloatProperty(name="Scale Z", description="Projected z scale of the selected layer, only available in some projection modes", default=1.0, step=1, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_z)
-    match_layer_scale: BoolProperty(name="Match Layer Scale", default=True,update=update_match_layer_scale)
-    match_layer_mask_scale: BoolProperty(name="Match Layer Mask Scale", default=True)
+    blending: FloatProperty(name="Projection Blend", description="The projection blend amount", default=4.0, precision=2, min=1.0, max=15.0, subtype='FACTOR', update=update_blending)
+    offset_x: FloatProperty(name="Offset X", description="Projected x offset of the selected layer", default=0.0, min=-1.0, max=1.0, precision=2, subtype='FACTOR', update=update_projection_offset_x)
+    offset_y: FloatProperty(name="Offset Y", description="Projected y offset of the selected layer", default=0.0, min=-1.0, max=1.0, precision=2, subtype='FACTOR', update=update_projection_offset_y)
+    offset_z: FloatProperty(name="Offset Z", description="Projected z offset of the selected layer, only available with triplanar projection", default=0.0, min=-1.0, max=1.0, precision=2, subtype='FACTOR', update=update_projection_offset_z)
+    rotation_x: FloatProperty(name="X Rotation", description="X projection rotation for the selected layer", default=0.0, precision=2, step=0.00001, min=0.0, max=360, update=update_projection_rotation_x)
+    rotation_y: FloatProperty(name="Y Rotation", description="Y projection rotation for the selected layer", default=0.0, precision=2, min=0, max=360, update=update_projection_rotation_y)
+    rotation_z: FloatProperty(name="Z Rotation", description="Z projection rotation for the selected layer", default=0.0, precision=2, min=0, max=360, update=update_projection_rotation_z)
+    scale_x: FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, precision=2, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_x)
+    scale_y: FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, precision=2, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_y)
+    scale_z: FloatProperty(name="Scale Z", description="Projected z scale of the selected layer, only available with triplanar projection", default=1.0, precision=2, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_z)
+    sync_projection_scale: BoolProperty(name="Sync Projection Scale", description="When enabled Y and Z projection (if the projection mode has a z projection) will be synced with the X projection", default=True,update=update_sync_projection_scale)
 
 class MaterialChannelColors(PropertyGroup):
     '''Color values for each material channel. These are used for layer previews when the layer can be accurately displayed using rgb values (rgb node / value node).'''
@@ -890,6 +1080,17 @@ class MaterialChannelColors(PropertyGroup):
     normal_channel_color: FloatVectorProperty(name="Layer preview color for the normal material channel.", description="", default=(0.5, 0.5, 1.0), min=0, max=1, subtype='COLOR', update=update_normal_channel_color)
     height_channel_color: FloatVectorProperty(name="Layer preview color for the height material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_height_channel_color)
     emission_channel_color: FloatVectorProperty(name="Layer preview color for the emission material channel.", description="", default=(0.0, 0.0, 0.0), min=0, max=1, subtype='COLOR', update=update_emission_channel_color)
+
+class MaterialChannelTextures(PropertyGroup):
+    color_channel_texture: PointerProperty(type=bpy.types.Image, update=update_color_material_channel_texture)
+    subsurface_color_channel_texture: PointerProperty(type=bpy.types.Image, update=update_subsurface_color_material_channel_texture)
+    subsurface_channel_texture: PointerProperty(type=bpy.types.Image, update=update_subsurface_material_channel_texture)
+    metallic_channel_texture: PointerProperty(type=bpy.types.Image, update=update_metallic_material_channel_texture)
+    specular_channel_texture: PointerProperty(type=bpy.types.Image, update=update_specular_material_channel_texture)
+    roughness_channel_texture: PointerProperty(type=bpy.types.Image, update=update_roughness_material_channel_texture)
+    normal_channel_texture: PointerProperty(type=bpy.types.Image, update=update_normal_material_channel_texture)
+    height_channel_texture: PointerProperty(type=bpy.types.Image, update=update_height_material_channel_texture)
+    emission_channel_texture: PointerProperty(type=bpy.types.Image, update=update_emission_material_channel_texture)
 
 class MaterialChannelUniformValues(PropertyGroup):
     '''Uniform float values used for each material channel. These are used to represent correct min / max value ranges within the user interface.'''
@@ -916,3 +1117,4 @@ class MATLAY_layers(PropertyGroup):
     projection: PointerProperty(type=ProjectionSettings, name="Projection Settings")
     color_channel_values: PointerProperty(type=MaterialChannelColors, name="Color Channel Values")
     uniform_channel_values: PointerProperty(type=MaterialChannelUniformValues, name="Uniform Channel Values")
+    material_channel_textures: PointerProperty(type=MaterialChannelTextures, name="Material Channel Textures")
