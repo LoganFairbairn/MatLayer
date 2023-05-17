@@ -185,11 +185,12 @@ class MATLAY_OT_import_texture(Operator, ImportHelper):
             for node in triplanar_texture_sample_nodes:
                 if node:
                     node.image = image
-                    setattr(selected_material_layer.material_channel_textures, self.material_channel_name.lower() + "_channel_texture", image)
         else:
             texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel_name, selected_material_layer_index, context)
             if texture_node:
                 texture_node.image = image
+        
+        setattr(selected_material_layer.material_channel_textures, self.material_channel_name.lower() + "_channel_texture", image)
         context.scene.matlay_layer_stack.auto_update_layer_properties = True
 
         # For specific material channels, imported textures automatically have their color space corrected.
