@@ -9,6 +9,12 @@ from . import ui_utils_section
 from . import ui_settings_section
 from .. import matlay_utils
 
+def check_blend_saved():
+    if bpy.path.abspath("//") == "":
+        return False
+    else:
+        return True
+
 class MATLAY_panel_properties(bpy.types.PropertyGroup):
     sections: bpy.props.EnumProperty(
         items=[('SECTION_TEXTURE_SET', "TEXTURE SET", "This section contains settings for the materials textures."),
@@ -50,19 +56,13 @@ class MATLAY_PT_Panel(bpy.types.Panel):
                     ui_utils_section.draw_ui_utils_section(self, context)
 
                 case 'SECTION_SETTINGS':
-                    ui_settings_section.draw_ui_settings_section(self, context)           
+                    ui_settings_section.draw_ui_settings_section(self, context)       
+
+            settings = context.scene.matlay_settings
+            layout.label(text="Matlay has created {0} active nodes and {1} links between them for this material.".format(settings.total_node_count, settings.total_node_link_count))    
 
         else:
             layout.label(text="Save your .blend file to use MatLay.")
             layout.label(text="The .blend path is used to find correct paths for image folders,")
             layout.label(text="where textures, baked mesh maps, or exported textures created ")
             layout.label(text="using this add-on are saved.")
-
-        settings = context.scene.matlay_settings
-        layout.label(text="Matlay has created {0} active nodes and {1} links between them for this material.".format(settings.total_node_count, settings.total_node_link_count))
-            
-def check_blend_saved():
-    if bpy.path.abspath("//") == "":
-        return False
-    else:
-        return True
