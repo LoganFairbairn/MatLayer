@@ -13,7 +13,7 @@ Features:
 - Multi-masking for material layers
 
 - Fast PBR texture set importing
-![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/promo/ImportTextureSet.gif?raw=true)
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/promo/ImportTextureSetShowcase.gif?raw=true)
 
 - One-click batch baking for mesh maps
 ![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/promo/BakingExamples.jpg?raw=true)
