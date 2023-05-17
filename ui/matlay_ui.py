@@ -7,6 +7,7 @@ from . import ui_export_section
 from . import ui_texture_set_section
 from . import ui_utils_section
 from . import ui_settings_section
+from .. import matlay_utils
 
 class MATLAY_panel_properties(bpy.types.PropertyGroup):
     sections: bpy.props.EnumProperty(
@@ -29,6 +30,7 @@ class MATLAY_PT_Panel(bpy.types.Panel):
     bl_category = "MatLay"
 
     def draw(self, context):
+        layout = self.layout
         panel_properties = context.scene.matlay_panel_properties
         if check_blend_saved():
             match panel_properties.sections:
@@ -51,11 +53,13 @@ class MATLAY_PT_Panel(bpy.types.Panel):
                     ui_settings_section.draw_ui_settings_section(self, context)           
 
         else:
-            layout = self.layout
             layout.label(text="Save your .blend file to use MatLay.")
             layout.label(text="The .blend path is used to find correct paths for image folders,")
             layout.label(text="where textures, baked mesh maps, or exported textures created ")
             layout.label(text="using this add-on are saved.")
+
+        settings = context.scene.matlay_settings
+        layout.label(text="Matlay has created {0} active nodes and {1} links between them for this material.".format(settings.total_node_count, settings.total_node_link_count))
             
 def check_blend_saved():
     if bpy.path.abspath("//") == "":

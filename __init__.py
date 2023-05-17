@@ -51,7 +51,7 @@ from .core.exporting import MATLAY_exporting_settings, MATLAY_OT_export, MATLAY_
 from .utilities.image_file_handling import MATLAY_OT_add_layer_image, MATLAY_OT_delete_layer_image, MATLAY_OT_import_texture, MATLAY_OT_import_texture_set
 
 # Import settings.
-from .utilities.matlay_utils import MATLAY_OT_set_decal_layer_snapping, MATLAY_OT_append_workspace, MATLAY_OT_append_basic_brushes, MATLAY_OT_delete_unused_external_images
+from .utilities.matlay_utils import MatlaySettings, MATLAY_OT_set_decal_layer_snapping, MATLAY_OT_append_workspace, MATLAY_OT_append_basic_brushes, MATLAY_OT_delete_unused_external_images
 
 # Import user interface modules.
 from .ui.matlay_ui import *
@@ -183,6 +183,7 @@ classes = (
     MATLAY_texture_set_settings,
 
     # Utilities
+    MatlaySettings,
     MATLAY_OT_set_decal_layer_snapping,
     MATLAY_OT_append_workspace,
     MATLAY_OT_append_basic_brushes,
@@ -215,6 +216,9 @@ def register():
     # Register properties, operators and pannels.
     for cls in classes:
         bpy.utils.register_class(cls)
+        
+    # Settings
+    bpy.types.Scene.matlay_settings = PointerProperty(type=MatlaySettings)
 
     # Panel Properties
     bpy.types.Scene.matlay_panel_properties = PointerProperty(type=MATLAY_panel_properties)

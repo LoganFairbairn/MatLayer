@@ -285,7 +285,7 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
                 duplicated_node.image = original_node.image
                 duplicated_node.interpolation = original_node.interpolation
                 duplicated_node.projection = original_node.projection
-                duplicated_node.blending = original_node.blending
+                duplicated_node.projection_blend = original_node.projection_blend
                 duplicated_node.extension = original_node.extension
         
         case 'GROUP':
@@ -361,6 +361,7 @@ class MATLAY_OT_add_decal_layer(Operator):
         decal_object.select_set(True)
         bpy.context.view_layer.objects.active = decal_object
 
+        matlay_utils.update_total_node_and_link_count()
         return {'FINISHED'}
 
 class MATLAY_OT_add_material_layer(Operator):
@@ -371,6 +372,7 @@ class MATLAY_OT_add_material_layer(Operator):
 
     def execute(self, context):
         add_layer('MATERIAL')
+        matlay_utils.update_total_node_and_link_count()
         return {'FINISHED'}
 
 class MATLAY_OT_add_paint_layer(Operator):
@@ -381,6 +383,7 @@ class MATLAY_OT_add_paint_layer(Operator):
 
     def execute(self, context):
         add_layer('PAINT')
+        matlay_utils.update_total_node_and_link_count()
         return {'FINISHED'}
 
 class MATLAY_OT_add_layer_menu(Operator):
@@ -653,6 +656,7 @@ class MATLAY_OT_delete_layer(Operator):
         context.scene.matlay_layer_stack.layer_property_tab = 'MATERIAL'
         context.scene.matlay_layer_stack.material_property_tab = 'MATERIAL'
         
+        matlay_utils.update_total_node_and_link_count()
         return {'FINISHED'}
 
 class MATLAY_OT_duplicate_layer(Operator):
@@ -781,6 +785,7 @@ class MATLAY_OT_duplicate_layer(Operator):
 
         context.scene.matlay_layer_stack.auto_update_layer_properties = True
         matlay_utils.set_valid_material_shading_mode(context)
+        matlay_utils.update_total_node_and_link_count()
         return{'FINISHED'}
 
 class MATLAY_OT_edit_uvs_externally(Operator):
@@ -1119,10 +1124,6 @@ def read_active_layer_material_channels(material_channel_list, total_number_of_l
 
             setattr(layers[i].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", material_channel_active)
 
-# TODO: Fill this out.
-#def update_total_node_and_link_count():
-#    '''Counts the number of nodes and links created by this add-on to give a quantitative value to the work saved with this plugin.'''
-
 def read_layer_nodes(context):
     '''Reads the material node tree to define the layer stack user interface properties.'''
 
@@ -1197,6 +1198,8 @@ class MATLAY_OT_read_layer_nodes(Operator):
             layer_masks.relink_mask_filter_nodes()
             layer_nodes.relink_material_nodes(selected_material_layer_index)
             layer_nodes.relink_material_layers()
+
+        matlay_utils.update_total_node_and_link_count()
 
         self.report({'INFO'}, "Refreshed layer stack.")
 

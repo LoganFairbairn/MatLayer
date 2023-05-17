@@ -329,6 +329,8 @@ def add_material_layer_filter(filter_type, context):
             setattr(filters[new_filter_index].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", False)
             filter_material_channel_toggle(False, material_channel_name, context)
 
+    matlay_utils.update_total_node_and_link_count()
+
 def move_filter_layer(direction, context):
     validate_filter_selected_index()
     
@@ -599,6 +601,7 @@ class MATLAY_OT_delete_layer_filter(Operator):
 
         matlay_utils.set_valid_material_shading_mode(context)
 
+        matlay_utils.update_total_node_and_link_count()
         return{'FINISHED'}
 
 class MATLAY_OT_move_layer_filter_up(Operator):

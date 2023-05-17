@@ -1090,6 +1090,8 @@ def add_mask(mask_type, use_alpha=False):
 
     context.scene.matlay_mask_stack.auto_update_mask_properties = True
 
+    matlay_utils.update_total_node_and_link_count()
+
 def move_mask(direction, context):
     '''Moves the selected layer mask up or down on the layer stack.'''
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
@@ -1435,6 +1437,7 @@ class MATLAY_OT_delete_layer_mask(Operator):
         # Set a valid material shading mode so users can see their changes.
         matlay_utils.set_valid_material_shading_mode(context)
 
+        matlay_utils.update_total_node_and_link_count()
         return{'FINISHED'}
 
 class MATLAY_OT_move_layer_mask_up(Operator):
@@ -1961,6 +1964,8 @@ def add_mask_filter(filter_type, context):
     relink_mask_nodes(selected_material_layer_index)
     layer_nodes.organize_all_layer_nodes()
 
+    matlay_utils.update_total_node_and_link_count()
+
 def move_mask_filter(direction, context):
     '''Moves the mask filter up or down on the mask filter stack.'''
     validate_selected_mask_filter_index()
@@ -2164,6 +2169,7 @@ class MATLAY_OT_delete_mask_filter(Operator):
         layer_nodes.organize_all_layer_nodes()
 
         matlay_utils.set_valid_material_shading_mode(context)
+        matlay_utils.update_total_node_and_link_count()
         return{'FINISHED'}
     
 class MATLAY_OT_move_layer_mask_filter(Operator):
