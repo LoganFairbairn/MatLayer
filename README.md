@@ -7,33 +7,35 @@ MatLay is a free add-on for Blender that drastically speeds up the material work
 Features:
 - Simple user interface
 ![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/ExampleScreenShot.png?raw=true)
-- Filters for specific material channels.
 
-- Fast material masking with support for multiple masks
+- Material channel filters
+
+- Multi-masking for material layers
 
 - Fast PBR texture set importing
 ![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/promo/ImportTextureSet.gif?raw=true)
-
-- Multiple masks per layer
 
 - One-click batch baking for mesh maps
 ![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/promo/BakingExamples.jpg?raw=true)
 
 - One-click batch exporting for textures
 
+- Decals that bake properly to exported textures
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/promo/DecalShowcase.gif?raw=true)
+
+- Auto corrections for normal map rotations
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/promo/NormalRotationCorrectionShowcase.gif?raw=true)
+
+- Triplanar projection with correct normal projection
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/promo/TriplanarShowcase.gif?raw=true)
+
+- Layers support custom group nodes
+
 - Fast material channel management
 
 - Automatic texture file and setting management
 
-- Decal layers
-
-- Layers support custom group nodes
-
-- Auto corrections for normal map rotations
-
-- Custom triplanar projection with correct normal projection
-
-- Faster workflow for exporting and reloading from an external image editor
+- Basic brush presets
 
 Limitations:
 - No layer folders
