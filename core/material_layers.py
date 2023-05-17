@@ -453,8 +453,8 @@ def update_projection_rotation_x(self, context):
         if mapping_node:
             if layers[selected_layer_index].projection.mode == 'TRIPLANAR':
                 mapping_node.inputs[1].default_value[0] = angle
-            else:
-                mapping_node.inputs[1].default_value = angle
+            if layers[selected_layer_index].projection.mode == 'FLAT':
+                mapping_node.inputs[2].default_value = angle
 
 def update_projection_rotation_y(self, context):
     if not context.scene.matlay_layer_stack.auto_update_layer_properties:
