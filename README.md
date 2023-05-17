@@ -22,6 +22,7 @@ Features:
 Limitations:
 - No layer folders
 - Baking and exporting for textures can be very slow
+- (currently) Performance for complex shaders is slow 
 - (currently) no ID map masking support
 - (currently) no displacement layer stack
 - (currently) no blur filter
@@ -34,6 +35,8 @@ Workflow Tips:
 - It's better for performance to use color, uniform values, or image textures when possible instead of procedural textures like noise, voronoi and musgrave.
 - Almost all user interface elements have a detailed tooltip when you hover your mouse over them.
 - Toggling off unused material channels globally and per material layer will help increase performance.
+- Typing in values, rather than sliding their values is much more performant as sliding values for material properties on complex materials can cause a lot of vram usage.
+- Editing objects in the material editing viewport shading mode rather than in a rendered mode will be better for performance.
 
 Platforms: Windows, Linux (untested)
 Tested with Blender versions: 3.4.1
