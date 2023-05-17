@@ -6,7 +6,7 @@ MatLay is a free add-on for Blender that drastically speeds up the material work
 
 Features:
 - Simple user interface
-![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/UIExample.png?raw=true)
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/promo/UIExample.png?raw=true)
 
 - Material channel filters
 
