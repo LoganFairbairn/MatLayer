@@ -17,7 +17,7 @@ Features:
 - Multiple masks per layer
 
 - One-click batch baking for mesh maps
-![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/promo/BakingExamples.png?raw=true)
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/promo/BakingExamples.jpg?raw=true)
 
 - One-click batch exporting for textures
 
