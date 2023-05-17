@@ -16,6 +16,12 @@ def draw_layer_hidden_icon(layout, item):
     elif item.hidden == False:
         row.prop(item, "hidden", text="", emboss=False, icon='HIDE_OFF')
 
+def draw_decal_icon(layout, item):
+    if item.type == 'DECAL':
+        row = layout.row(align=True)
+        row.ui_units_x = 1
+        row.label(text="", icon='OUTLINER_OB_FONT')
+
 def draw_material_channel_preview(layout, item, selected_material_channel, context):
     '''Draws a preview of what the material will look like for the selected material channel.'''
     row = layout.row(align=True)
@@ -82,5 +88,6 @@ class MATLAY_UL_layer_list(bpy.types.UIList):
                 draw_layer_hidden_icon(layout, item)
                 #draw_material_channel_preview(layout, item, selected_material_channel, context)
                 #draw_layer_mask_preview(layout)
+                draw_decal_icon(layout, item)
                 draw_layer_name(layout, item)
                 draw_layer_blending(layout, item, selected_material_channel, context)
