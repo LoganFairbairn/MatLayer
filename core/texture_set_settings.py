@@ -159,7 +159,7 @@ class GlobalMaterialChannelToggles(PropertyGroup):
     roughness_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the roughness material channel for this layer", update=update_roughness_channel_toggle)
     emission_channel_toggle: BoolProperty(default=False, description="Click to toggle on / off the emission material channel for this layer", update=update_emission_channel_toggle)
     normal_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the normal material channel for this layer", update=update_normal_channel_toggle)
-    height_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the height material channel for this layer", update=update_height_channel_toggle)
+    height_channel_toggle: BoolProperty(default=False, description="Click to toggle on / off the height material channel for this layer", update=update_height_channel_toggle)
 
 class MATLAY_texture_set_settings(PropertyGroup):
     image_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Width", description="Image width in pixels for the new image.", default='TWOK', update=update_image_width)
