@@ -1064,8 +1064,8 @@ class ProjectionSettings(PropertyGroup):
     rotation_x: FloatProperty(name="X Rotation", description="X projection rotation for the selected layer", default=0.0, precision=2, step=0.00001, min=0.0, max=360, update=update_projection_rotation_x)
     rotation_y: FloatProperty(name="Y Rotation", description="Y projection rotation for the selected layer", default=0.0, precision=2, min=0, max=360, update=update_projection_rotation_y)
     rotation_z: FloatProperty(name="Z Rotation", description="Z projection rotation for the selected layer", default=0.0, precision=2, min=0, max=360, update=update_projection_rotation_z)
-    scale_x: FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, precision=2, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_x)
-    scale_y: FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, precision=2, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_y)
+    scale_x: FloatProperty(name="Scale X", description="Projected x scale of the selected layer", default=1.0, precision=2, soft_min=0.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_x)
+    scale_y: FloatProperty(name="Scale Y", description="Projected y scale of the selected layer", default=1.0, precision=2, soft_min=0.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_y)
     scale_z: FloatProperty(name="Scale Z", description="Projected z scale of the selected layer, only available with triplanar projection", default=1.0, precision=2, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_projection_scale_z)
     sync_projection_scale: BoolProperty(name="Sync Projection Scale", description="When enabled Y and Z projection (if the projection mode has a z projection) will be synced with the X projection", default=True,update=update_sync_projection_scale)
 

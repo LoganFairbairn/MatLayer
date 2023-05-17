@@ -356,7 +356,10 @@ def update_mask_projection_offset_x(self, context):
     for material_channel_name in material_channel_list:
         mapping_node = get_mask_node('MASK-MAPPING', material_channel_name, selected_material_layer_index, selected_mask_index, False)
         if mapping_node:
-            mapping_node.inputs[1].default_value[0] = masks[selected_mask_index].projection.offset_x
+            if masks[selected_mask_index].projection.mode == 'FLAT':
+                mapping_node.inputs[1].default_value[0] = masks[selected_mask_index].projection.offset_x
+            elif masks[selected_mask_index].projection.mode == 'TRIPLANAR':
+                mapping_node.inputs[0].default_value[0] = masks[selected_mask_index].projection.offset_x
 
 def update_mask_projection_offset_y(self, context):
     '''Updates the mask projected y offset for the selected mask when the property is changed in the ui.'''
@@ -373,7 +376,10 @@ def update_mask_projection_offset_y(self, context):
     for material_channel_name in material_channel_list:
         mapping_node = get_mask_node('MASK-MAPPING', material_channel_name, selected_material_layer_index, selected_mask_index, False)
         if mapping_node:
-            mapping_node.inputs[1].default_value[1] = masks[selected_mask_index].projection.offset_y
+            if masks[selected_mask_index].projection.mode == 'FLAT':
+                mapping_node.inputs[1].default_value[1] = masks[selected_mask_index].projection.offset_y
+            elif masks[selected_mask_index].projection.mode == 'TRIPLANAR':
+                mapping_node.inputs[0].default_value[1] = masks[selected_mask_index].projection.offset_y
 
 def update_mask_projection_offset_z(self, context):
     '''Updates the mask projected z offset for the selected mask when the property is changed in the ui.'''
@@ -390,7 +396,10 @@ def update_mask_projection_offset_z(self, context):
     for material_channel_name in material_channel_list:
         mapping_node = get_mask_node('MASK-MAPPING', material_channel_name, selected_material_layer_index, selected_mask_index, False)
         if mapping_node:
-            mapping_node.inputs[1].default_value[2] = masks[selected_mask_index].projection.offset_z
+            if masks[selected_mask_index].projection.mode == 'FLAT':
+                mapping_node.inputs[1].default_value[2] = masks[selected_mask_index].projection.offset_z
+            elif masks[selected_mask_index].projection.mode == 'TRIPLANAR':
+                mapping_node.inputs[0].default_value[2] = masks[selected_mask_index].projection.offset_z
 
 def update_mask_projection_rotation_x(self, context):
     '''Updates the masks projection rotation when the mask rotation property is changed in the ui.'''
@@ -412,7 +421,7 @@ def update_mask_projection_rotation_x(self, context):
             if masks[selected_mask_index].projection.mode == 'FLAT':
                 mapping_node.inputs[2].default_value = angle
             elif masks[selected_mask_index].projection.mode == 'TRIPLANAR':
-                mapping_node.inputs[2].default_value[0] = angle
+                mapping_node.inputs[1].default_value[0] = angle
 
 def update_mask_projection_rotation_y(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
@@ -433,7 +442,7 @@ def update_mask_projection_rotation_y(self, context):
             if masks[selected_mask_index].projection.mode == 'FLAT':
                 mapping_node.inputs[2].default_value = angle
             elif masks[selected_mask_index].projection.mode == 'TRIPLANAR':
-                mapping_node.inputs[2].default_value[1] = angle
+                mapping_node.inputs[1].default_value[1] = angle
 
 def update_mask_projection_rotation_z(self, context):
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
@@ -454,7 +463,7 @@ def update_mask_projection_rotation_z(self, context):
             if masks[selected_mask_index].projection.mode == 'FLAT':
                 mapping_node.inputs[2].default_value = angle
             elif masks[selected_mask_index].projection.mode == 'TRIPLANAR':
-                mapping_node.inputs[2].default_value[2] = angle
+                mapping_node.inputs[1].default_value[2] = angle
 
 def update_mask_projection_scale_x(self, context):
     '''Updates the mask projected x scale for the selected mask when the property is changed in the ui.'''
@@ -470,8 +479,12 @@ def update_mask_projection_scale_x(self, context):
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         mapping_node = get_mask_node('MASK-MAPPING', material_channel_name, selected_material_layer_index, selected_mask_index, False)
-        if mapping_node:
-            mapping_node.inputs[3].default_value[0] = masks[selected_mask_index].projection.scale_x
+
+        if masks[selected_mask_index].projection.mode == 'FLAT':
+            mapping_node.inputs[1].default_value[0] = masks[selected_mask_index].projection.scale_x
+        elif masks[selected_mask_index].projection.mode == 'TRIPLANAR':
+            mapping_node.inputs[0].default_value[0] = masks[selected_mask_index].projection.scale_x
+
         if self.sync_projection_scale:
             masks[selected_mask_index].projection.scale_y = masks[selected_mask_index].projection.scale_x
             masks[selected_mask_index].projection.scale_z = masks[selected_mask_index].projection.scale_x
@@ -490,7 +503,10 @@ def update_mask_projection_scale_y(self, context):
     for material_channel_name in material_channel_list:
         mapping_node = get_mask_node('MASK-MAPPING', material_channel_name, selected_material_layer_index, selected_mask_index, False)
         if mapping_node:
-            mapping_node.inputs[3].default_value[1] = masks[selected_mask_index].projection.scale_y
+            if masks[selected_mask_index].projection.mode == 'FLAT':
+                mapping_node.inputs[3].default_value[1] = masks[selected_mask_index].projection.scale_y
+            elif masks[selected_mask_index].projection.mode == 'TRIPLANAR':
+                mapping_node.inputs[2].default_value[1] = masks[selected_mask_index].projection.scale_y
 
 def update_mask_projection_scale_z(self, context):
     '''Updates the mask projected z scale for the selected mask when the property is changed in the ui.'''
@@ -507,7 +523,10 @@ def update_mask_projection_scale_z(self, context):
     for material_channel_name in material_channel_list:
         mapping_node = get_mask_node('MASK-MAPPING', material_channel_name, selected_material_layer_index, selected_mask_index, False)
         if mapping_node:
-            mapping_node.inputs[3].default_value[2] = masks[selected_mask_index].projection.scale_z
+            if masks[selected_mask_index].projection.mode == 'FLAT':
+                mapping_node.inputs[3].default_value[2] = masks[selected_mask_index].projection.scale_z
+            elif masks[selected_mask_index].projection.mode == 'TRIPLANAR':
+                mapping_node.inputs[2].default_value[2] = masks[selected_mask_index].projection.scale_z
 
 def update_mask_projection_match_scale(self, context):
     '''Updates matching of the projected mask scale.'''
@@ -1167,8 +1186,8 @@ class MaskProjectionSettings(PropertyGroup):
     rotation_x: FloatProperty(name="X Rotation", description="X projection rotation for the selected mask", default=0.0, precision=2, step=0.00001, min=0.0, max=360, update=update_mask_projection_rotation_x)
     rotation_y: FloatProperty(name="Y Rotation", description="Y projection rotation for the selected mask", default=0.0, precision=2, min=0, max=360, update=update_mask_projection_rotation_y)
     rotation_z: FloatProperty(name="Z Rotation", description="Z projection rotation for the selected mask", default=0.0, precision=2, min=0, max=360, update=update_mask_projection_rotation_z)
-    scale_x: FloatProperty(name="Scale X", description="Projected x scale of the selected mask", default=1.0, precision=2, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_mask_projection_scale_x)
-    scale_y: FloatProperty(name="Scale Y", description="Projected y scale of the selected mask", default=1.0, precision=2, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_mask_projection_scale_y)
+    scale_x: FloatProperty(name="Scale X", description="Projected x scale of the selected mask", default=1.0, precision=2, soft_min=0.0, soft_max=4.0, subtype='FACTOR', update=update_mask_projection_scale_x)
+    scale_y: FloatProperty(name="Scale Y", description="Projected y scale of the selected mask", default=1.0, precision=2, soft_min=0.0, soft_max=4.0, subtype='FACTOR', update=update_mask_projection_scale_y)
     scale_z: FloatProperty(name="Scale Z", description="Projected z scale of the selected mask, only available with triplanar projection", default=1.0, precision=2, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_mask_projection_scale_z)
     sync_projection_scale: BoolProperty(name="Sync Mask Projection Scale", description="When enabled Y and Z projection (if the projection mode has a z projection) will be synced with the X projection", default=True,update=update_mask_projection_match_scale)
 
