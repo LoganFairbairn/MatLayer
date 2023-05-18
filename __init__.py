@@ -194,12 +194,27 @@ classes = (
     MATLAY_PT_Panel
 )
 
-# TODO: Subscribe to active material index changes.
+
+# Read material nodes when the active material index is updated.
+material_index_owner = 124
+def on_active_material_index_changed(obj):
+    print(obj.name, "material index is", obj.active_material_index)
+    bpy.ops.matlay.read_layer_nodes(auto_called=True)
 
 # Refreshes the layer stack when a different object is selected.
 def obj_selected_callback():
     '''Triggers a layer stack refresh when the selected object changes.'''
     bpy.ops.matlay.read_layer_nodes(auto_called=True)
+
+    bpy.msgbus.clear_by_owner(material_index_owner)
+    active = bpy.context.view_layer.objects.active
+    if active:
+        bpy.msgbus.subscribe_rna(
+            key=active.path_resolve("active_material_index", False),
+            owner=material_index_owner,
+            notify=on_active_material_index_changed,
+            args=(active,)
+        )
 
 @persistent
 def load_handler(dummy):
@@ -208,9 +223,6 @@ def load_handler(dummy):
     bpy.msgbus.subscribe_rna(key=subscribe_to, owner=bpy.types.Scene.matlay_object_selection_updater, args=(), notify=obj_selected_callback)
 
 bpy.app.handlers.load_post.append(load_handler)
-
-# Global variable for icons used as layer previews.
-#preview_collections = {}
 
 def register():
     # Register properties, operators and pannels.
@@ -242,20 +254,9 @@ def register():
     bpy.types.Scene.matlay_baking_settings = PointerProperty(type=MATLAY_baking_settings)
     bpy.types.Scene.matlay_export_settings = PointerProperty(type=MATLAY_exporting_settings)
 
-    # Icons (for layer previews)
-    #bpy.types.Scene.preview_icons = bpy.utils.previews.new()
-    #preview_collections["main"] = bpy.types.Scene.preview_icons
-
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
-    # Clear preview collections.
-    #for bpy.types.Scene.preview_icons in preview_collections.values():
-    #    bpy.utils.previews.remove(bpy.types.Scene.preview_icons)
-    #preview_collections.clear()
-
 if __name__ == "__main__":
     register()
-
-        
