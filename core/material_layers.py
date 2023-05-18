@@ -914,6 +914,7 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
             match selected_layer.projection.mode:
                 case 'FLAT':
                     new_texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexImage')
+                    new_texture_node.image = getattr(selected_layer.material_channel_textures, material_channel_name.lower() + "_channel_texture")
 
                     # For decal layers, correct texture extension.
                     if selected_layer.type == 'DECAL':
