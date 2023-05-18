@@ -355,12 +355,6 @@ class MATLAY_OT_add_decal_layer(Operator):
         # Automatically add a mask for the decal set to use alpha.
         layer_masks.add_mask('DECAL', use_alpha=True)
 
-        # Re-select the decal object so users can adjust it.
-        for obj in bpy.context.selected_objects:
-            obj.select_set(False)
-        decal_object.select_set(True)
-        bpy.context.view_layer.objects.active = decal_object
-
         matlay_utils.update_total_node_and_link_count()
         return {'FINISHED'}
 
