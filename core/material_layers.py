@@ -89,11 +89,12 @@ def update_layer_index(self, context):
                 context.scene.tool_settings.image_paint.canvas = texture_node.image
 
     # If the selected layer is a decal layer, reset ui tabs to be something other than projection as the projection settings are not available for decal layers.
-    if context.scene.matlay_layers[selected_layer_index].type == 'DECAL':
-        if context.scene.matlay_layer_stack.material_property_tab == 'PROJECTION':
-            context.scene.matlay_layer_stack.material_property_tab = 'MATERIAL'
-        if context.scene.matlay_mask_stack.mask_property_tab == 'PROJECTION':
-            context.scene.matlay_mask_stack.mask_property_tab = 'MASK'
+    if validate_material_layer_stack_index(selected_layer_index, context):
+        if context.scene.matlay_layers[selected_layer_index].type == 'DECAL':
+            if context.scene.matlay_layer_stack.material_property_tab == 'PROJECTION':
+                context.scene.matlay_layer_stack.material_property_tab = 'MATERIAL'
+            if context.scene.matlay_mask_stack.mask_property_tab == 'PROJECTION':
+                context.scene.matlay_mask_stack.mask_property_tab = 'MASK'
 
     material_filters.read_material_filter_nodes(context)
     layer_masks.read_mask_nodes(context)
