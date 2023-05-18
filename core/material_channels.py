@@ -135,6 +135,27 @@ def remove_material_channel(context, channel):
         material_nodes = context.active_object.active_material.node_tree.nodes
         material_nodes.remove(material_channel_node)
 
+def set_material_channel_node_active_state(material_channel_name, active):
+    '''Marks the give material channel node as active or inactive.'''
+    # The material channel node is marked as being inactive by setting the node color to red. 
+    # This visually marks the node as being inactive for users, and can be checked in code when the material nodes are read / refreshed to determine if it's active.
+    material_channel_node = get_material_channel_node(bpy.context, material_channel_name)
+    if active:
+        material_channel_node.color = (0.1, 0.1, 0.1)
+        material_channel_node.mute = False
+    else:
+        material_channel_node.color = (1.0, 0.0, 0.0)
+        material_channel_node.mute = True
+
+def get_material_channel_node_active(material_channel_name):
+    '''Returns true or false depending if the node is marked as active in this add-on.'''
+    # The material node can be identified as being inactive if it's color is red, otherwise the material channel node is considered to be active.
+    material_channel_node = get_material_channel_node(bpy.context, material_channel_name)
+    if material_channel_node.mute:
+        return False
+    else:
+        return True
+
 def create_channel_group_nodes(context):
     '''Creates group and secondary nodes (e.g normal map mixing nodes) for all active material channels.'''
     active_material = context.active_object.active_material
@@ -259,6 +280,16 @@ def create_channel_group_nodes(context):
     add_material_channel(context, normal_group_node_name, layer_stack.node_default_width, "NORMAL")
     add_material_channel(context, height_group_node_name, layer_stack.node_default_width, "HEIGHT")
     add_material_channel(context, emission_group_node_name, layer_stack.node_default_width, "EMISSION")
+
+    # Set the material channels active states.
+    for material_channel_name in get_material_channel_list():
+        material_channel_node = get_material_channel_node(context, material_channel_name)
+        material_channel_node.use_custom_color = True
+        texture_set_settings = bpy.context.scene.matlay_texture_set_settings
+        material_channel_active = getattr(texture_set_settings.global_material_channel_toggles, material_channel_name.lower() + "_channel_toggle", None)
+        set_material_channel_node_active_state(material_channel_name, material_channel_active)
+        if not material_channel_active:
+            disconnect_material_channel(context, material_channel_name)
 
     # Organize the newly created group nodes.
     layer_nodes.organize_material_channel_nodes(context)

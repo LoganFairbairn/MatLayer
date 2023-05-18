@@ -1081,19 +1081,17 @@ def read_globally_active_material_channels(context):
     '''Updates globally active / inactive material channels per layer by reading the material node trees.'''
     # Globally active material channels are determined by checking if the material channel group node is connected.
     texture_set_settings = context.scene.matlay_texture_set_settings
-    material_links = context.active_object.active_material.node_tree.links
+    texture_set_settings.auto_update_properties = False
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
-        material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
-        if material_channel_node:
-            material_channel_linked = False
-            for l in material_links:
-                if l.from_node == material_channel_node:
-                    material_channel_linked = True
-                    setattr(texture_set_settings.global_material_channel_toggles, material_channel_name.lower() + "_channel_toggle", True)
-                    break
-            if not material_channel_linked:
-                setattr(texture_set_settings.global_material_channel_toggles, material_channel_name.lower() + "_channel_toggle", False)
+        material_channel_active = material_channels.get_material_channel_node_active(material_channel_name)
+        if material_channel_active:
+            setattr(texture_set_settings.global_material_channel_toggles, material_channel_name.lower() + "_channel_toggle", True)
+            material_channels.set_material_channel_node_active_state(material_channel_name, True)
+        else:
+            setattr(texture_set_settings.global_material_channel_toggles, material_channel_name.lower() + "_channel_toggle", False)
+            material_channels.set_material_channel_node_active_state(material_channel_name, False)
+    texture_set_settings.auto_update_properties = True
 
 def read_hidden_layers(total_number_of_layers, layers, material_channel_list, context):
     '''Updates hidden material channels by reading the material node trees.'''
