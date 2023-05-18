@@ -1182,6 +1182,9 @@ class MATLAY_OT_read_layer_nodes(Operator):
     def execute(self, context):
         # Only read the layer stack for materials made with this add-on. 
         # Materials must follow a strict format to be able to be properly read, making materials not made with this add-on incompatible.
+
+        matlay_utils.update_total_node_and_link_count()
+
         if matlay_materials.verify_material(context) == False:
             bpy.context.scene.matlay_layers.clear()
             if self.auto_called == False:
@@ -1198,9 +1201,7 @@ class MATLAY_OT_read_layer_nodes(Operator):
             layer_masks.relink_mask_filter_nodes()
             layer_nodes.relink_material_nodes(selected_material_layer_index)
             layer_nodes.relink_material_layers()
-
-        matlay_utils.update_total_node_and_link_count()
-
+            
         self.report({'INFO'}, "Refreshed layer stack.")
 
         return {'FINISHED'}

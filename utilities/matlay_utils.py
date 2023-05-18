@@ -6,6 +6,7 @@ from bpy.types import Operator, PropertyGroup
 from bpy.props import IntProperty
 from bpy.utils import resource_path
 from pathlib import Path
+from ..core import matlay_materials
 from ..core import material_channels
 from ..core import layer_nodes
 from ..core import layer_masks
@@ -130,9 +131,11 @@ def get_normal_triplanar_node_tree():
 def update_total_node_and_link_count():
     '''Counts the number of nodes and links created by this add-on to give a quantitative value to the work saved with this plugin.'''
     settings = bpy.context.scene.matlay_settings
-
     settings.total_node_count = 0
     settings.total_node_link_count = 0
+
+    if not matlay_materials.verify_material(bpy.context):
+        return
 
     for material_channel_name in material_channels.get_material_channel_list():
         settings.total_node_count += 1
