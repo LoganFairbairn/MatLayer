@@ -2,6 +2,7 @@
 
 import bpy
 from .import ui_section_tabs
+from ..core import baking
 
 def draw_ambient_occlusion_settings(layout, baking_settings, scale_y):
     row = layout.row()
@@ -59,42 +60,7 @@ def draw_baking_section_ui(self, context):
 
     layout = self.layout
     baking_settings = context.scene.matlay_baking_settings
-
-    # Draw bake button.
-    row = layout.row()
-    row.operator("matlay.bake")
-    row.scale_y = 2.0
-
-    # Draw baking types.
     scale_y = 1.4
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(baking_settings, "bake_ambient_occlusion", text="")
-    row.label(text="Ambient Occlusion")
-    row.operator("matlay.bake_ambient_occlusion", text="", icon='RENDER_STILL')
-    row.operator("matlay.delete_ao_map", icon='TRASH', text="")
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(baking_settings, "bake_curvature", text="")
-    row.label(text="Curvature")
-    row.operator("matlay.bake_curvature", text="", icon='RENDER_STILL')
-    row.operator("matlay.delete_curvature_map", icon='TRASH', text="")
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(baking_settings, "bake_thickness", text="")
-    row.label(text="Thickness")
-    row.operator("matlay.bake_thickness", text="", icon='RENDER_STILL')
-    row.operator("matlay.delete_thickness_map", icon='TRASH', text="")
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(baking_settings, "bake_normals", text="")
-    row.label(text="Normal")
-    row.operator("matlay.bake_normals", text="", icon='RENDER_STILL')
-    row.operator("matlay.delete_normal_map", icon='TRASH', text="")
 
     #----------------------------- BAKE SETTINGS -----------------------------#
 
@@ -124,6 +90,82 @@ def draw_baking_section_ui(self, context):
     row.scale_y = scale_y
     row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
     row.prop(baking_settings, "output_quality", text="")
+
+    #----------------------------- MESH MAPS -----------------------------#
+
+    row = layout.row()
+    row.separator()
+    row = layout.row()
+    row.separator()
+    layout.label(text="MESH MAPS: ")
+
+    # Draw bake button.
+    row = layout.row()
+    row.operator("matlay.bake")
+    row.scale_y = 2.0
+
+    split = layout.split()
+    first_column = split.column()
+    second_column = split.column()
+
+    row = first_column.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "bake_ambient_occlusion", text="")
+    row.label(text="Ambient Occlusion: ")
+    row = first_column.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "bake_curvature", text="")
+    row.label(text="Curvature: ")
+    row = first_column.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "bake_thickness", text="")
+    row.label(text="Thickness: ")
+    row = first_column.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "bake_normals", text="")
+    row.label(text="Normal: ")
+
+    null_meshmap_text = "Not Baked"
+
+    row = second_column.row()
+    ao_meshmap_name = baking.get_meshmap_name('AMBIENT_OCCLUSION')
+    if bpy.data.images.get(ao_meshmap_name):
+        row.label(text=ao_meshmap_name)
+    else:
+        row.label(text=null_meshmap_text)
+    row.operator("matlay.bake_ambient_occlusion", text="", icon='RENDER_STILL')
+    row.operator("matlay.delete_ao_map", text="", icon='TRASH')
+    row.scale_y = scale_y
+
+    row = second_column.row()
+    curvature_meshmap_name = baking.get_meshmap_name('CURVATURE')
+    if bpy.data.images.get(curvature_meshmap_name):
+        row.label(text=curvature_meshmap_name)
+    else:
+        row.label(text=null_meshmap_text)
+    row.operator("matlay.bake_curvature", text="", icon='RENDER_STILL')
+    row.operator("matlay.delete_curvature_map", text="", icon='TRASH')
+    row.scale_y = scale_y
+
+    row = second_column.row()
+    thickness_meshmap_name = baking.get_meshmap_name('THICKNESS')
+    if bpy.data.images.get(thickness_meshmap_name):
+        row.label(text=thickness_meshmap_name)
+    else:
+        row.label(text=null_meshmap_text)
+    row.operator("matlay.bake_thickness", text="", icon='RENDER_STILL')
+    row.operator("matlay.delete_thickness_map", text="", icon='TRASH')
+    row.scale_y = scale_y
+
+    row = second_column.row()
+    normal_meshmap_name = baking.get_meshmap_name('NORMAL')
+    if bpy.data.images.get(normal_meshmap_name):
+        row.label(text=normal_meshmap_name)
+    else:
+        row.label(text=null_meshmap_text)
+    row.operator("matlay.bake_normals", text="", icon='RENDER_STILL')
+    row.operator("matlay.delete_normal_map", text="", icon='TRASH')
+    row.scale_y = scale_y
 
 
     #----------------------------- ADVANCED SETTINGS -----------------------------#

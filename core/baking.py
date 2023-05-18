@@ -22,6 +22,26 @@ QUALITY_SETTINGS = [
     ("HIGH_QUALITY", "High Quality", "A higher than average baking quality. This should be used for when fine, accurate detail is required in mesh map textures. Using this quality will significantly slow down baking speeds.")
     ]
 
+def get_meshmap_image_name(meshmap_type):
+    '''Returns the name appended to the end of mesh map image files.'''
+    match meshmap_type:
+        case 'AMBIENT_OCCLUSION':
+            return 'AO'
+
+        case 'CURVATURE':
+            return'Curvature'
+
+        case 'THICKNESS':
+            return'Thickness'
+
+        case 'NORMAL':
+            return 'Normals'
+
+def get_meshmap_name(meshmap_type):
+    '''Returns the image name for the mesh map of the selected / active object.'''
+    meshmap_image_name = get_meshmap_image_name(meshmap_type)
+    return "{0}_{1}".format(bpy.context.active_object.name, meshmap_image_name)
+
 def update_match_bake_resolution(self, context):
     '''Match the height to the width.'''
     baking_settings = context.scene.matlay_baking_settings
@@ -531,6 +551,19 @@ class MATLAY_OT_bake_normals(Operator):
 
 #----------------------------- DELETING MESH MAP FUNCTIONS -----------------------------#
 
+def delete_meshmap(meshmap_type, self):
+    '''Deletes the meshmap of the provided type for the selected / active object if it exists from the blend files data.'''
+    meshmap_name = get_meshmap_name(meshmap_type)
+    if bpy.context.active_object:
+        meshmap_image = bpy.data.images.get(meshmap_name)
+        if meshmap_image:
+            bpy.data.images.remove(meshmap_image)
+            self.report({'INFO'}, "{0} mesh map was deleted.".format(meshmap_name))
+        else:
+            self.report({'INFO'}, "{0} mesh map doesn't exist.".format(meshmap_name))
+    else:
+        self.report({'INFO'}, "No active object to delete mesh maps for, re-select the object you wish to delete mesh maps for.")
+
 class MATLAY_OT_delete_ao_map(Operator):
     bl_idname = "matlay.delete_ao_map"
     bl_label = "Delete Ambient Occlusion Map"
@@ -542,9 +575,7 @@ class MATLAY_OT_delete_ao_map(Operator):
         return context.active_object
 
     def execute(self, context):
-        baked_ao_image = bpy.data.images[context.active_object.name + "_AO"]
-        if baked_ao_image != None:
-            bpy.data.images.remove(baked_ao_image)
+        delete_meshmap('AMBIENT_OCCLUSION', self)
         return {'FINISHED'}
     
 class MATLAY_OT_delete_curvature_map(Operator):
@@ -558,9 +589,7 @@ class MATLAY_OT_delete_curvature_map(Operator):
         return context.active_object
 
     def execute(self, context):
-        baked_curvature_image = bpy.data.images[context.active_object.name + "_Curvature"]
-        if baked_curvature_image != None:
-            bpy.data.images.remove(baked_curvature_image)
+        delete_meshmap('CURVATURE', self)
         return {'FINISHED'}
     
 class MATLAY_OT_delete_thickness_map(Operator):
@@ -574,9 +603,7 @@ class MATLAY_OT_delete_thickness_map(Operator):
         return context.active_object
 
     def execute(self, context):
-        baked_thickness_image = bpy.data.images[context.active_object.name + "_Thickness"]
-        if baked_thickness_image != None:
-            bpy.data.images.remove(baked_thickness_image)
+        delete_meshmap('THICKNESS', self)
         return {'FINISHED'}
     
 class MATLAY_OT_delete_normal_map(Operator):
@@ -590,7 +617,5 @@ class MATLAY_OT_delete_normal_map(Operator):
         return context.active_object
 
     def execute(self, context):
-        baked_normal_image = bpy.data.images[context.active_object.name + "_Normals"]
-        if baked_normal_image != None:
-            bpy.data.images.remove(baked_normal_image)
+        delete_meshmap('NORMAL', self)
         return {'FINISHED'}
