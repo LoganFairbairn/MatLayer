@@ -1175,8 +1175,7 @@ class MATLAY_OT_read_layer_nodes(Operator):
         # Only read the layer stack for materials made with this add-on. 
         # Materials must follow a strict format to be able to be properly read, making materials not made with this add-on incompatible.
         self.report({'INFO'}, "Refreshed layer stack.")
-        selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-        material_layers.validate_selected_material_layer_index()
+        
         matlay_utils.update_total_node_and_link_count()
 
         if matlay_materials.verify_material(context) == False:
@@ -1187,6 +1186,7 @@ class MATLAY_OT_read_layer_nodes(Operator):
 
         # If read layer nodes is manually called, also relink material layers.
         if not self.auto_called:
+            selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
             material_filters.relink_material_filter_nodes(selected_material_layer_index)
             layer_masks.relink_mask_nodes(selected_material_layer_index)
             layer_masks.relink_mask_filter_nodes()

@@ -235,6 +235,9 @@ def load_handler(dummy):
             notify=on_active_material_index_changed,
             args=()
         )
+
+    # Add callback functions for existing operators.
+    
     
 
 # Run function on loading a new blend file.
