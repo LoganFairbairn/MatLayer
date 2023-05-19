@@ -15,14 +15,14 @@ from ..utilities import matlay_utils
 class MATLAY_exporting_settings(PropertyGroup):
     export_folder: StringProperty(default="", description="Path to folder location where exported texture are saved. If empty, an export folder will be created next to your .blend file and exported textures will be automatically saved there.", name="Export Folder Path")
     export_base_color: BoolProperty(default=True, name="Export Base Color", description="Include the base color in batch exporting")
-    export_subsurface: BoolProperty(default=True, name="Export Subsurface", description="Include the subsurface in batch exporting")
-    export_subsurface_color: BoolProperty(default=True, name="Export Subsurface Color", description="Include the subsurface color in batch exporting")
+    export_subsurface: BoolProperty(default=False, name="Export Subsurface", description="Include the subsurface in batch exporting")
+    export_subsurface_color: BoolProperty(default=False, name="Export Subsurface Color", description="Include the subsurface color in batch exporting")
     export_metallic: BoolProperty(default=True, name="Export Metallic", description="Include the metallic in batch exporting")
-    export_specular: BoolProperty(default=True, name="Export Specular", description="Include the specular in batch exporting")
+    export_specular: BoolProperty(default=False, name="Export Specular", description="Include the specular in batch exporting")
     export_roughness: BoolProperty(default=True, name="Export Roughness", description="Include the roughness in batch exporting")
     export_normals: BoolProperty(default=True, name="Export Normals", description="Include the normals in batch exporting")
-    export_height: BoolProperty(default=True, name="Export Height", description="Include the height in batch exporting")
-    export_emission: BoolProperty(default=True, name="Export Emission", description="Include the emission in batch exporting")
+    export_height: BoolProperty(default=False, name="Export Height", description="Include the height in batch exporting")
+    export_emission: BoolProperty(default=False, name="Export Emission", description="Include the emission in batch exporting")
 
 #----------------------------- EXPORT FUNCTIONS -----------------------------#
 
