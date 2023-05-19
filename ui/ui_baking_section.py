@@ -86,10 +86,11 @@ def draw_baking_section_ui(self, context):
     row.scale_y = scale_y
     row.prop(baking_settings, "high_poly_object", slider=True)
 
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
-    row.prop(baking_settings, "output_quality", text="")
+    if "cycles" in bpy.context.preferences.addons:
+        row = layout.row()
+        row.scale_y = scale_y
+        row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
+        row.prop(baking_settings, "output_quality", text="")
 
     #----------------------------- MESH MAPS -----------------------------#
 
