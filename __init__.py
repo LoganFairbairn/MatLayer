@@ -198,7 +198,6 @@ classes = (
 # Read material nodes when the active material index is updated.
 def on_active_material_index_changed(obj):
     bpy.ops.matlay.read_layer_nodes(auto_called=True)
-    print(obj.name, "material index is", obj.active_material_index)
 
 # Read material nodes for the active material when a different object is selected.
 def on_active_object_changed():
@@ -222,13 +221,13 @@ def load_handler(dummy):
     bpy.types.Scene.matlay_object_selection_updater = object()
     bpy.msgbus.subscribe_rna(key=subscribe_to, owner=bpy.types.Scene.matlay_object_selection_updater, args=(), notify=on_active_object_changed)
 
-    bpy.types.Scene.material_index_owner = object()
-    bpy.msgbus.clear_by_owner(bpy.types.Scene.material_index_owner)
+    material_index_owner = 245
+    bpy.msgbus.clear_by_owner(material_index_owner)
     active = bpy.context.view_layer.objects.active
     if active:
         bpy.msgbus.subscribe_rna(
             key=active.path_resolve("active_material_index", False),
-            owner=bpy.types.Scene.material_index_owner,
+            owner=material_index_owner,
             notify=on_active_material_index_changed,
             args=(active,)
         )
