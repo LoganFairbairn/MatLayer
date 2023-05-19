@@ -222,13 +222,13 @@ def set_default_layer_properties(layer_type):
 
             context.scene.matlay_layer_stack.auto_update_layer_properties = True
 
-def add_layer(layer_type, decal_object=None):
+def add_layer(layer_type, self, decal_object=None, ):
     '''Adds a material layer setup based on the provided layer type.'''
     context = bpy.context
 
     # Validate and prepare the material for the selected object.
     matlay_utils.set_valid_mode()
-    if not matlay_materials.prepare_material(context):
+    if not matlay_materials.prepare_material(context, self):
         return
     material_channels.create_channel_group_nodes(context)
     material_channels.create_empty_group_node(context)
@@ -347,7 +347,7 @@ class MATLAY_OT_add_decal_layer(Operator):
         bpy.context.view_layer.objects.active = previously_selected_object
         
         # Add a new decal layer.
-        add_layer('DECAL', decal_object)
+        add_layer('DECAL', self, decal_object)
 
         # The layer stacks must be updated before adding a mask.
         read_layer_nodes(context)
@@ -365,7 +365,7 @@ class MATLAY_OT_add_material_layer(Operator):
     bl_description = "Adds a layer with a full material"
 
     def execute(self, context):
-        add_layer('MATERIAL')
+        add_layer('MATERIAL', self)
         matlay_utils.update_total_node_and_link_count()
         return {'FINISHED'}
 
@@ -376,7 +376,7 @@ class MATLAY_OT_add_paint_layer(Operator):
     bl_description = "Add a material layer with all material channels turned off, excluding color, and creates a new image texture for the color material channel. Use this operator to add layers you intend to manually paint onto"
 
     def execute(self, context):
-        add_layer('PAINT')
+        add_layer('PAINT', self)
         matlay_utils.update_total_node_and_link_count()
         return {'FINISHED'}
 

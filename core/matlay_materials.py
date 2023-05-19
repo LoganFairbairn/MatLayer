@@ -3,9 +3,8 @@
 import bpy
 from ..utilities import logging
 
-# Returns true if the material on the active object is compatible with this add-on.
 def verify_material(context):
-    '''Verifies the material is a valid material created using this add-on.'''
+    '''Returns true if the material is a valid material created using this add-on.'''
     active_object = context.active_object
     if active_object == None:
         return False
@@ -23,28 +22,37 @@ def verify_material(context):
     else:
         return False
 
-def create_matlay_material(context, active_object):
-    '''Creates and prepares a MatLay specific material.'''
+def create_matlay_material(context):
+    '''Creates a new material in the active (selected) material index / slot for the active object.'''
+    node_spacing = context.scene.matlay_layer_stack.node_spacing
+
+    # Create a new material for the active material slot in the active object.
+    active_object = context.active_object
     new_material = bpy.data.materials.new(name=active_object.name)
-    active_object.data.materials.append(new_material)
-    layers = context.scene.matlay_layers
-    layer_stack = context.scene.matlay_layer_stack
+    new_material.use_nodes = True
+
+    if len(active_object.material_slots) == 0:
+        active_object.data.materials.append(new_material)
+    else:
+        active_object.material_slots[active_object.active_material_index].material = new_material
 
     # Clear all layers and reset the layer index.
+    layers = context.scene.matlay_layers
+    layer_stack = context.scene.matlay_layer_stack
     layers.clear()
     layer_stack.layer_index = -1
-    
-    new_material.use_nodes = True           # The active material MUST use nodes (as of Blender version 2.8).
-    new_material.blend_method = 'CLIP'      # Use alpha clip blend mode to make the material transparent.
 
     # Make a new emission node (used for channel previews).
     material_nodes = new_material.node_tree.nodes
     emission_node = material_nodes.new(type='ShaderNodeEmission')
     emission_node.width = layer_stack.node_default_width
+    emission_node.location = (0.0, emission_node.height + node_spacing)
 
     # Update the principled bsdf node.
     principled_bsdf_node = material_nodes.get('Principled BSDF')
     principled_bsdf_node.width = layer_stack.node_default_width
+    principled_bsdf_node.label = "MatLay Material"
+    principled_bsdf_node.location = (0.0, 0.0)
 
     # Make a new mix normal group node for mixing normal and height material channels.
     normal_mix_node = material_nodes.new('ShaderNodeMix')
@@ -54,47 +62,29 @@ def create_matlay_material(context, active_object):
     normal_mix_node.location = (0.0, -700.0)
     new_material.node_tree.links.new(normal_mix_node.outputs[0], principled_bsdf_node.inputs[22])
 
-    # Set the label of the Principled BSDF node (allows this material to be identified as a material made with this add-on).
-    principled_bsdf_node.label = "MatLay Material"
-
-    # Adjust nodes locations.
-    node_spacing = context.scene.matlay_layer_stack.node_spacing
-    principled_bsdf_node.location = (0.0, 0.0)
+    # Adjust material output node location.
     material_output_node = material_nodes.get('Material Output')
     material_output_node.location = (principled_bsdf_node.width + node_spacing, 0.0)
-    emission_node.location = (0.0, emission_node.height + node_spacing)
 
-def prepare_material(context):
+def prepare_material(context, self):
+    '''Ensures a valid material exists in the active material slot for the active object.'''
+
+    # Verify there in an active object.
     active_object = context.active_object
-    active_material = context.active_object.active_material
+    if not active_object:
+        self.report({'INFO'}, "No active object selected, please select an object.")
+        return False
 
-    # Add a new MatLay material if there is none.
-    if active_object:
-        if active_object.type != 'MESH':
-            logging.popup_message_box("Selected object must be a mesh to create a material.", title="User Error", icon='ERROR')
-            return False
+    # Verify the active object is a mesh.
+    if active_object.type != 'MESH':
+        self.report({'INFO'}, "Selected object must be a mesh to create materials for.")
+        return False
 
-        # There is no active material, make one.
-        if active_material == None:
-            remove_all_material_slots()
-            create_matlay_material(context, active_object)
-            return True
-
-        # There is a material, make sure it's a valid material made with this add-on.
-        else:
-            # If the material is a matlay material, it's good to go!
-            if verify_material(context):
-                return True
-
-            # If the material isn't a matlay material, make a new material.
-            else:
-                remove_all_material_slots()
-                create_matlay_material(context, active_object)
-            return True
-    return False
-
-def remove_all_material_slots():
-    '''Removes all material slots for the selected mesh.'''
-    for x in bpy.context.object.material_slots:
-        bpy.context.object.active_material_index = 0
-        bpy.ops.object.material_slot_remove()
+    # If there is a material in the active material index of the active object, the material is ready for editing.
+    if verify_material(context):
+        return True
+    
+    # If the material in the active material slot of the active object doesn't exist, or isn't made with this add-on, create a new material for that slot.
+    else:
+        create_matlay_material(context)
+        return True
