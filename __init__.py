@@ -197,6 +197,7 @@ classes = (
 
 # Read material nodes when the active material index is updated.
 def on_active_material_index_changed(obj):
+    bpy.context.scene.matlay_layer_stack.layer_index = 0
     bpy.ops.matlay.read_layer_nodes(auto_called=True)
 
 # Read material nodes for the active material when a different object is selected.
