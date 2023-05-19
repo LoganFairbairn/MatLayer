@@ -49,7 +49,9 @@ class MATLAY_PT_Panel(bpy.types.Panel):
                 case "SECTION_LAYERS":
                     ui_layer_section.draw_layers_section_ui(self, context)
                     settings = context.scene.matlay_settings
-                    layout.label(text="Matlay has created {0} active nodes and {1} links between them for this material.".format(settings.total_node_count, settings.total_node_link_count))    
+                    row = layout.row()
+                    row.alignment = 'CENTER'
+                    row.label(text="Active nodes: {0} Nodes links: {1}".format(settings.total_node_count, settings.total_node_link_count))    
 
                 case 'SECTION_EXPORT':
                     ui_export_section.draw_export_section_ui(self, context)
