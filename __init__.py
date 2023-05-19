@@ -196,32 +196,44 @@ classes = (
 
 
 # Read material nodes when the active material index is updated.
-material_index_owner = 124
 def on_active_material_index_changed(obj):
     print(obj.name, "material index is", obj.active_material_index)
     bpy.ops.matlay.read_layer_nodes(auto_called=True)
 
-# Refreshes the layer stack when a different object is selected.
-def obj_selected_callback():
+# Read material nodes for the active material when a different object is selected.
+def on_active_object_changed():
     '''Triggers a layer stack refresh when the selected object changes.'''
     bpy.ops.matlay.read_layer_nodes(auto_called=True)
 
-    bpy.msgbus.clear_by_owner(material_index_owner)
+    bpy.msgbus.clear_by_owner(bpy.types.Scene.material_index_owner)
     active = bpy.context.view_layer.objects.active
     if active:
         bpy.msgbus.subscribe_rna(
             key=active.path_resolve("active_material_index", False),
-            owner=material_index_owner,
+            owner=bpy.types.Scene.material_index_owner,
             notify=on_active_material_index_changed,
             args=(active,)
         )
 
+# Mark load handlers as persistent so they are not freed when loading a new blend file.
 @persistent
 def load_handler(dummy):
     subscribe_to = bpy.types.LayerObjects, "active"
     bpy.types.Scene.matlay_object_selection_updater = object()
-    bpy.msgbus.subscribe_rna(key=subscribe_to, owner=bpy.types.Scene.matlay_object_selection_updater, args=(), notify=obj_selected_callback)
+    bpy.msgbus.subscribe_rna(key=subscribe_to, owner=bpy.types.Scene.matlay_object_selection_updater, args=(), notify=on_active_object_changed)
 
+    bpy.types.Scene.material_index_owner = object()
+    bpy.msgbus.clear_by_owner(bpy.types.Scene.material_index_owner)
+    active = bpy.context.view_layer.objects.active
+    if active:
+        bpy.msgbus.subscribe_rna(
+            key=active.path_resolve("active_material_index", False),
+            owner=bpy.types.Scene.material_index_owner,
+            notify=on_active_material_index_changed,
+            args=(active,)
+        )
+
+# Run function on loading a new blend file.
 bpy.app.handlers.load_post.append(load_handler)
 
 def register():
