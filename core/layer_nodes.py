@@ -14,6 +14,20 @@ NODE_SPACING = 50
 # Constant names for all material nodes. All material nodes must use one of these names.
 LAYER_NODE_NAMES = ('TEXTURE', 'OPACITY', 'COORD', 'MAPPING', 'MIX-LAYER', 'NORMAL-ROTATION-FIX', 'TEXTURE-SAMPLE-1', 'TEXTURE-SAMPLE-2', 'TEXTURE-SAMPLE-3')
 
+def set_node_active(node, active):
+    '''Marks the node as inactive by changing it's color. Marking the nodes inactive using their color is a work-around for a memory leak within Blender caused by compiling shaders that contain muted group nodes.'''
+    if active:
+        node.color = (0.1, 0.1, 0.1)
+    else:
+        node.color = (1.0, 0.0, 0.0)
+
+def get_node_active(node):
+    '''Returns true if the provided node is marked as active according to this add-on. In this add-on nodes are marked as inactive by changing their color to red. This is a work-around for a memory leak within Blender caused by compiling shaders that contain muted group nodes.'''
+    if node.color.r == 1.0 and node.color.g == 0.0 and node.color.b == 0.0:
+        return False
+    else:
+        return True
+
 def organize_material_channel_nodes(context):
     '''Organizes all material channel group nodes.'''
     material_channel_nodes = material_channels.get_all_material_channel_nodes(context)

@@ -139,21 +139,13 @@ def set_material_channel_node_active_state(material_channel_name, active):
     # The material channel node is marked as being inactive by setting the node color to red. 
     # This visually marks the node as being inactive for users, and can be checked in code when the material nodes are read / refreshed to determine if it's active.
     material_channel_node = get_material_channel_node(bpy.context, material_channel_name)
-    if active:
-        material_channel_node.color = (0.1, 0.1, 0.1)
-        material_channel_node.mute = False
-    else:
-        material_channel_node.color = (1.0, 0.0, 0.0)
-        material_channel_node.mute = True
+    layer_nodes.set_node_active(material_channel_node, active)
 
 def get_material_channel_node_active(material_channel_name):
     '''Returns true or false depending if the node is marked as active in this add-on.'''
     # The material node can be identified as being inactive if it's color is red, otherwise the material channel node is considered to be active.
     material_channel_node = get_material_channel_node(bpy.context, material_channel_name)
-    if material_channel_node.mute:
-        return False
-    else:
-        return True
+    return layer_nodes.get_node_active(material_channel_node)
 
 def create_channel_group_nodes(context):
     '''Creates group and secondary nodes (e.g normal map mixing nodes) for all active material channels.'''
@@ -494,8 +486,9 @@ def isolate_material_channel(isolate, material_channel_name, context):
             else:
                 node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[22])
 
-        # Re-connect the normal mix node to the principled bsdf shader.
-        node_links.new(mix_normal_maps_node.outputs[1], principled_bsdf_node.inputs[22])
+        # Re-connect the normal mix node to the principled bsdf shader (only if both normal and height are toggled on).
+        if texture_set_settings.global_material_channel_toggles.height_channel_toggle and texture_set_settings.global_material_channel_toggles.normal_channel_toggle:
+            node_links.new(mix_normal_maps_node.outputs[1], principled_bsdf_node.inputs[22])
 
         # Re-connect the height and normal material channels to the bump and normal map nodes inside the material channels.
         normal_material_channel_node = get_material_channel_node(context, "NORMAL")
