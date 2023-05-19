@@ -28,7 +28,12 @@ def create_matlay_material(context):
 
     # Create a new material for the active material slot in the active object.
     active_object = context.active_object
-    new_material = bpy.data.materials.new(name=active_object.name)
+    object_material_index = 1
+    new_material_name = "{0}_{1}".format(active_object.name, str(object_material_index))
+    while bpy.data.materials.get(new_material_name):
+        object_material_index += 1
+        new_material_name = "{0}_{1}".format(active_object.name, str(object_material_index))
+    new_material = bpy.data.materials.new(name=new_material_name)
     new_material.use_nodes = True
 
     if len(active_object.material_slots) == 0:

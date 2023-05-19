@@ -194,9 +194,10 @@ classes = (
     MATLAY_PT_Panel
 )
 
+material_index_owner = object()
 
 # Read material nodes when the active material index is updated.
-def on_active_material_index_changed(obj):
+def on_active_material_index_changed():
     bpy.context.scene.matlay_layer_stack.layer_index = 0
     bpy.ops.matlay.read_layer_nodes(auto_called=True)
 
@@ -204,7 +205,6 @@ def on_active_material_index_changed(obj):
 def on_active_object_changed():
     '''Triggers a layer stack refresh when the selected object changes.'''
     bpy.ops.matlay.read_layer_nodes(auto_called=True)
-
     bpy.msgbus.clear_by_owner(bpy.types.Scene.material_index_owner)
     active = bpy.context.view_layer.objects.active
     if active:
@@ -212,8 +212,10 @@ def on_active_object_changed():
             key=active.path_resolve("active_material_index", False),
             owner=bpy.types.Scene.material_index_owner,
             notify=on_active_material_index_changed,
-            args=(active,)
+            args=()
         )
+
+
 
 # Mark load handlers as persistent so they are not freed when loading a new blend file.
 @persistent
@@ -222,16 +224,18 @@ def load_handler(dummy):
     bpy.types.Scene.matlay_object_selection_updater = object()
     bpy.msgbus.subscribe_rna(key=subscribe_to, owner=bpy.types.Scene.matlay_object_selection_updater, args=(), notify=on_active_object_changed)
 
-    material_index_owner = 245
+
+    #active_material_index
     bpy.msgbus.clear_by_owner(material_index_owner)
     active = bpy.context.view_layer.objects.active
     if active:
         bpy.msgbus.subscribe_rna(
-            key=active.path_resolve("active_material_index", False),
+            key=active.path_resolve("material_slots", False),
             owner=material_index_owner,
             notify=on_active_material_index_changed,
-            args=(active,)
+            args=()
         )
+    
 
 # Run function on loading a new blend file.
 bpy.app.handlers.load_post.append(load_handler)

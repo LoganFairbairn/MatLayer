@@ -1,6 +1,5 @@
 # This module provides functions to edit material channel nodes made with this add-on.
 
-from cgitb import text
 import bpy
 from bpy.types import Operator
 from ..core import layer_nodes
