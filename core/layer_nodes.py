@@ -250,9 +250,16 @@ def relink_material_nodes(material_layer_index):
             link_nodes(last_filter_node.outputs[0], mix_layer_node.inputs[2])
         else:
             if material_channel_name == 'NORMAL':
-                link_nodes(texture_node.outputs[0], normal_rotation_fix_node.inputs[0])
-                link_nodes(mapping_node.outputs[1], normal_rotation_fix_node.inputs[1])
-                link_nodes(normal_rotation_fix_node.outputs[0], mix_layer_node.inputs[2])
+                # Connect to a normal rotation fix node for flat projection.
+                if bpy.context.scene.matlay_layers[material_layer_index].projection.mode == 'FLAT':
+                    link_nodes(texture_node.outputs[0], normal_rotation_fix_node.inputs[0])
+                    link_nodes(mapping_node.outputs[1], normal_rotation_fix_node.inputs[1])
+                    link_nodes(normal_rotation_fix_node.outputs[0], mix_layer_node.inputs[2])
+
+                # Triplanar normal mapping has normal rotation fixes built into the group node, connect the triplanar directly to the mix layer node.
+                elif bpy.context.scene.matlay_layers[material_layer_index].projection.mode == 'TRIPLANAR':
+                    link_nodes(texture_node.outputs[0], mix_layer_node.inputs[2])
+
             else:
                 link_nodes(texture_node.outputs[0], mix_layer_node.inputs[2])
 

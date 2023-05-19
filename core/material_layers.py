@@ -268,15 +268,22 @@ def update_layer_projection_mode(self, context):
                     if texture_node.node_tree.name == 'MATLAY_TRIPLANAR' or texture_node.node_tree.name == 'MATLAY_TRIPLANAR_NORMALS':
                         material_channel_node.node_tree.nodes.remove(texture_node)
 
+                        # Re-add normal rotation fix node.
+                        normal_rotation_fix_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
+                        normal_rotation_fix_node.node_tree = matlay_utils.get_normal_map_rotation_fix_node_tree()
+                        normal_rotation_fix_node.name = layer_nodes.format_material_node_name('NORMAL-ROTATION-FIX', selected_material_layer_index)
+                        normal_rotation_fix_node.label = normal_rotation_fix_node.name
+
+                        # Remove triplanar texture sample nodes.
                         triplanar_sample_nodes = []
                         triplanar_sample_nodes.append(layer_nodes.get_layer_node('TEXTURE-SAMPLE-1', material_channel_name, selected_material_layer_index, context))
                         triplanar_sample_nodes.append(layer_nodes.get_layer_node('TEXTURE-SAMPLE-2', material_channel_name, selected_material_layer_index, context))
                         triplanar_sample_nodes.append(layer_nodes.get_layer_node('TEXTURE-SAMPLE-3', material_channel_name, selected_material_layer_index, context))
-
                         for node in triplanar_sample_nodes:
                             if node:
                                 material_channel_node.node_tree.nodes.remove(node)
                         
+                        # Replace the triplanar texture node with a regular texture node.
                         material_channel_node_type = getattr(selected_material_layer.channel_node_types, material_channel_name.lower() + "_node_type")
                         if material_channel_node_type == 'TEXTURE':
                             new_texture_node = material_channel_node.node_tree.nodes.new('ShaderNodeTexImage')
@@ -298,6 +305,10 @@ def update_layer_projection_mode(self, context):
                     new_texture_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
                     if material_channel_name == 'NORMAL':
                         triplanar_node_tree = matlay_utils.get_normal_triplanar_node_tree()
+
+                        normal_rotation_fix = layer_nodes.get_layer_node('NORMAL-ROTATION-FIX', material_channel_name, selected_material_layer_index, context)
+                        if normal_rotation_fix:
+                            material_channel_node.node_tree.nodes.remove(normal_rotation_fix)
                     else:
                         triplanar_node_tree = matlay_utils.get_triplanar_node_tree()
                     new_texture_node.node_tree = triplanar_node_tree
