@@ -26,7 +26,10 @@ def set_node_active(node, active):
 
 def get_node_active(node):
     '''Returns true if the provided node is marked as active according to this add-on.'''
-    # Marking the nodes inactive using their color is a work-around for a memory leak within Blender caused by compiling shaders that contain muted group nodes.    
+    # Marking the nodes inactive using their color is a work-around for a memory leak within Blender caused by compiling shaders that contain muted group nodes.
+    if node == None:
+        return False
+    
     if node.color.r == 1.0 and node.color.g == 0.0 and node.color.b == 0.0:
         return False
     else:
