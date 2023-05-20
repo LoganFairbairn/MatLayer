@@ -13,6 +13,7 @@ from ..utilities import matlay_utils
 #----------------------------- EXPORT SETTINGS -----------------------------#
 
 class MATLAY_exporting_settings(PropertyGroup):
+    texture_export_name: StringProperty(default="", name="Texture Export Name", description="Name for exported textures.")
     export_folder: StringProperty(default="", description="Path to folder location where exported texture are saved. If empty, an export folder will be created next to your .blend file and exported textures will be automatically saved there.", name="Export Folder Path")
     export_base_color: BoolProperty(default=True, name="Export Base Color", description="Include the base color in batch exporting")
     export_subsurface: BoolProperty(default=False, name="Export Subsurface", description="Include the subsurface in batch exporting")
@@ -25,6 +26,54 @@ class MATLAY_exporting_settings(PropertyGroup):
     export_emission: BoolProperty(default=False, name="Export Emission", description="Include the emission in batch exporting")
 
 #----------------------------- EXPORT FUNCTIONS -----------------------------#
+
+def set_export_image_name(material_channel_name):
+    '''Defines the exported images name based on user settings.'''
+    #export_image_name =  + "_" + material_channel_name
+    active_object_name = bpy.context.active_object.name
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    match addon_preferences.texture_name_export_format:
+        case 'STANDARD':
+            export_image_name = "{0}_{1}".format(active_object_name, material_channel_name)
+        case 'UE_UNITY':
+            material_channel_abreviation = ""
+            match material_channel_name:
+                case 'COLOR':
+                    material_channel_abreviation = 'C'
+                case 'SUBSURFACE':
+                    material_channel_abreviation = 'SS'
+                case 'SUBSURFACE_COLOR':
+                    material_channel_abreviation = 'SSC'
+                case 'METALLIC':
+                    material_channel_abreviation = 'M'
+                case 'SPECULAR':
+                    material_channel_abreviation = 'S'
+                case 'ROUGHNESS':
+                    material_channel_abreviation = 'R'
+                case 'EMISSION':
+                    material_channel_abreviation = 'E'
+                case 'NORMAL':
+                    material_channel_abreviation = 'N'
+                case 'HEIGHT':
+                    material_channel_abreviation = 'H'
+            export_image_name = "T_{0}_{1}".format(active_object_name, material_channel_abreviation)
+    return export_image_name
+
+def create_export_image(export_image_name):
+    '''Creates an image in Blender's data to bake to and export.'''
+    export_image = bpy.data.images.get(export_image_name)
+    if export_image != None:
+        bpy.data.images.remove(export_image)
+    export_image = bpy.ops.image.new(name=export_image_name, 
+                                     width=texture_set_settings.get_texture_width(), 
+                                     height=texture_set_settings.get_texture_height(), 
+                                     color=(0.0, 0.0, 0.0, 1.0), 
+                                     alpha=False, 
+                                     generated_type='BLANK', 
+                                     float=False, 
+                                     use_stereo_3d=False, 
+                                     tiled=False)
+    return bpy.data.images[export_image_name]
 
 def bake_and_export_material_channel(material_channel_name, context, self):
     '''Bakes the material channel to a texture and saves the output image to a folder.'''
@@ -52,20 +101,8 @@ def bake_and_export_material_channel(material_channel_name, context, self):
         material_channels.isolate_material_channel(True, material_channel_name, context)
 
     # Create a new image in Blender's data and image node.
-    export_image_name = bpy.context.active_object.name + "_" + material_channel_name
-    export_image = bpy.data.images.get(export_image_name)
-    if export_image != None:
-        bpy.data.images.remove(export_image)
-    export_image = bpy.ops.image.new(name=export_image_name, 
-                                     width=texture_set_settings.get_texture_width(), 
-                                     height=texture_set_settings.get_texture_height(), 
-                                     color=(0.0, 0.0, 0.0, 1.0), 
-                                     alpha=False, 
-                                     generated_type='BLANK', 
-                                     float=False, 
-                                     use_stereo_3d=False, 
-                                     tiled=False)
-    export_image = bpy.data.images[export_image_name]
+    export_image_name = set_export_image_name(material_channel_name)
+    export_image = create_export_image(export_image_name)
 
     # Create a folder for the exported texture files.
     matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")

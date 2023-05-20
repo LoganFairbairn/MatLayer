@@ -2,6 +2,7 @@
 
 import bpy
 from .import ui_section_tabs
+from .. import preferences
 
 def draw_export_section_ui(self, context):
     '''Draws user interface for the export section.'''
@@ -71,3 +72,57 @@ def draw_export_section_ui(self, context):
     row.prop(export_settings, "export_height", text="")
     row.label(text="Height")
     row.operator("matlay.export_height", text="", icon='RENDER_STILL')
+
+
+    # Draw additioanl export settings.
+    # A dual column layout is used so the properties vertically align.
+    row = layout.row()
+    row.separator()
+    layout.label(text="EXPORT TEXTURE NAME SETTINGS")
+    addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
+    split = layout.split(factor=0.35)
+    first_column = split.column()
+    first_column.scale_x = 0.1
+    second_column = split.column()
+    
+    row = first_column.row()
+    row.scale_y = scale_y
+    row.label(text="Texture Name Format Mode:")
+    row = second_column.row()
+    row.scale_y = scale_y
+    row.prop(addon_preferences, "texture_name_export_format", text="")
+
+    row = first_column.row()
+    row.scale_y = scale_y
+    row.label(text="Texture Name Format:")
+    row = second_column.row()
+    row.scale_y = scale_y
+    export_format_example = ""
+    match addon_preferences.texture_name_export_format:
+        case 'STANDARD':
+            export_format_example = "Name_MaterialChannelName"
+        case 'UE_UNITY':
+            export_format_example = "T_Name_MaterialChannelAbreviation"
+    row.label(text=export_format_example)
+
+    '''
+    row = first_column.row()
+    row.scale_y = scale_y
+    row.label(text="Prefix Mode:")
+    row = second_column.row()
+    row.scale_y = scale_y
+    row.prop(addon_preferences, "texture_name_export_prefix_mode", text="")
+
+    
+    if addon_preferences.texture_name_export_prefix_mode == 'CUSTOM':
+        row = first_column.row()
+        row.scale_y = scale_y
+        row.label(text="Texture Prefix:")
+        row = second_column.row()
+        row.scale_y = scale_y
+        row.prop(export_settings, "texture_export_name", text="")
+    '''
+
+
+
+
