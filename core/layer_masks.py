@@ -1049,7 +1049,8 @@ def add_default_mask_nodes(mask_type, context):
             # If the selected layer is a decal layer, add a linear mask node setup to avoid the decal showing on both sides of the model.
             if layer_nodes.check_decal_layer(selected_material_layer_index):
                 # Adjust the mask texture node values.
-                mask_node.extension = 'CLIP'
+                if mask_node.bl_static_type == 'TEX_IMAGE':
+                    mask_node.extension = 'CLIP'
 
                 # Adjust mask mapping node offset so the decal appears in the middle of the empty projection.
                 mask_mapping_node.inputs[1].default_value = (0.5, 0.5, 0.0)

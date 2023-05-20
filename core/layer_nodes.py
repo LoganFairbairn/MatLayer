@@ -6,6 +6,7 @@ from ..core import material_filters
 from ..core import layer_masks
 from ..utilities import matlay_utils
 from ..utilities import logging
+from .. import preferences
 
 # Node organization settings.
 NODE_WIDTH = 300
@@ -37,6 +38,10 @@ def get_node_active(node):
 
 def organize_material_channel_nodes(context):
     '''Organizes all material channel group nodes.'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    if not addon_preferences.organize_nodes:
+        return
+    
     material_channel_nodes = material_channels.get_all_material_channel_nodes(context)
     header_position = [0.0, 0.0]
     for node in material_channel_nodes:
@@ -47,6 +52,10 @@ def organize_material_channel_nodes(context):
 
 def organize_all_layer_nodes():
     '''Organizes all nodes (material nodes, filter nodes, and mask nodes) in all material channels.'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    if not addon_preferences.organize_nodes:
+        return
+    
     layers = bpy.context.scene.matlay_layers
 
     for material_channel_name in material_channels.get_material_channel_list():

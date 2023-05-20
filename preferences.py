@@ -32,6 +32,12 @@ class AddonPreferences(AddonPreferences):
         description="Deletes all images not used within a layer or mask when textures are exported. This helps avoid unused images taking up memory, but could delete textures you intend to use in extremely rare cases."
     )
 
+    organize_nodes: BoolProperty(
+        name="Organize Nodes",
+        default=True,
+        description="Organizes nodes created with this add-on. It's useful in some cases to toggle this off to be able to organize shader nodes for add-on development testing."
+    )
+
     layer_texture_folder_path: StringProperty(
         name="Layer Textures Folder",
         default="",
@@ -69,4 +75,5 @@ class AddonPreferences(AddonPreferences):
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "auto_delete_unused_images")
-        layout.prop(self, "save_imported_textures")
+        #layout.prop(self, "save_imported_textures")
+        layout.prop(self, "organize_nodes")
