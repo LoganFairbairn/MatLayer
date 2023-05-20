@@ -206,7 +206,10 @@ def relink_material_layers():
 
 def relink_material_nodes(material_layer_index):
     '''Relinks all material and filter nodes for the specified material layer index.'''
-
+    # Do not relink layers if there are no material layers.
+    if len(bpy.context.scene.matlay_layers) <= 0:
+        return
+    
     for material_channel_name in material_channels.get_material_channel_list():
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
         link_nodes = material_channel_node.node_tree.links.new

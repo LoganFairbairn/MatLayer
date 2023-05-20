@@ -152,6 +152,10 @@ def update_total_node_and_link_count():
         
             # Count all nodes and their nodes links within the material channel group node.
             for node in material_channel_node.node_tree.nodes:
+                # Do not count group input or output nodes in the total node count.
+                if node.name == 'Group Input' or node.name == 'Group Output':
+                    continue
+
                 if layer_nodes.get_node_active(node):
                     settings.total_node_count += 1
                     for output in node.outputs:
