@@ -274,10 +274,6 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
         duplicated_node.name = layer_masks.format_mask_filter_node_name(new_material_layer_index, node_info[2], node_info[3], True)
     duplicated_node.label = duplicated_node.name
 
-    # Copy muted values for nodes.
-    if original_node.mute:
-        duplicated_node.mute = True
-
     # Duplicate values specific to node types.
     match original_node.bl_static_type:
         case 'TEX_IMAGE':

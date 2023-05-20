@@ -181,11 +181,13 @@ def update_mask_hidden(self, context):
         for node in mask_nodes:
             # Unhide mask nodes.
             if self.hidden:
-                node.mute = True
+                layer_nodes.set_node_active(node, False)
 
             # Hide mask nodes.
             else:
-                node.mute = False
+                layer_nodes.set_node_active(node, True)
+
+    relink_mask_nodes(selected_material_layer_index)
 
 def update_use_alpha(self, context):
     '''Reconnects nodes when the use alpha property for a mask is changed.'''
@@ -768,8 +770,20 @@ def relink_mask_nodes(material_layer_index):
                     link_nodes(triplanar_mask_texture_node_3.outputs[0], mask_texture_node.inputs[2])
                     link_nodes(mask_mapping_node.outputs[3], mask_texture_node.inputs[3])
 
-            # Relink to the next mask mixing node if it exists.
-            next_mix_mask_node = get_mask_node('MASK-MIX', material_channel_name, material_layer_index, i + 1)
+            # If the current mask is disabled, skip connecting it.
+            if layer_nodes.get_node_active(mask_texture_node) == False:
+                continue
+
+            # Find the next non disabled mask to connect to.
+            next_mix_mask_node_index = i + 1
+            next_mix_mask_node = get_mask_node('MASK-MIX', material_channel_name, material_layer_index, next_mix_mask_node_index)
+            if next_mix_mask_node:
+                while layer_nodes.get_node_active(next_mix_mask_node) == False:
+                    next_mix_mask_node_index += 1
+                    next_mix_mask_node = get_mask_node('MASK-MIX', material_channel_name, material_layer_index, next_mix_mask_node_index)
+                    if not next_mix_mask_node:
+                        break
+
             if next_mix_mask_node:
                 material_channel_node.node_tree.links.new(mask_mix_node.outputs[0], next_mix_mask_node.inputs[1])
 
@@ -801,12 +815,18 @@ def relink_mask_nodes(material_layer_index):
                 else:
                     link_nodes(last_node.outputs[0], mask_mix_node.inputs[2])
 
-        # Link the last mask mix node to the layer's opacity node to apply the combined masks.
+        # Link the last ACTIVE mask mix node to the layer's opacity node to apply the combined masks.
         total_masks = count_masks(material_layer_index)
-        last_mask_mix_node = get_mask_node('MASK-MIX', material_channel_name, material_layer_index, total_masks - 1)
+        last_active_mask_index = total_masks - 1
+        last_active_mask_mix_node = get_mask_node('MASK-MIX', material_channel_name, material_layer_index, total_masks - 1)
+        while layer_nodes.get_node_active(last_active_mask_mix_node) == False:
+            last_active_mask_index -= 1
+            last_active_mask_mix_node = get_mask_node('MASK-MIX', material_channel_name, material_layer_index, last_active_mask_index)
+            if not last_active_mask_mix_node:
+                break
         opacity_node = layer_nodes.get_layer_node('OPACITY', material_channel_name, material_layer_index, bpy.context)
-        if opacity_node and last_mask_mix_node:
-            material_channel_node.node_tree.links.new(last_mask_mix_node.outputs[0], opacity_node.inputs[0])
+        if opacity_node and last_active_mask_mix_node:
+            material_channel_node.node_tree.links.new(last_active_mask_mix_node.outputs[0], opacity_node.inputs[0])
 
 def count_masks(material_stack_index):
     '''Counts the total number of masks applied to a specified material layer by reading the material node tree.'''
@@ -880,7 +900,7 @@ def read_mask_nodes(context):
         mask_texture_node = get_mask_node('MASK-TEXTURE', 'COLOR', selected_material_index, i)
         mapping_node = get_mask_node('MASK-MAPPING', 'COLOR', selected_material_index, i)
         texture_sample_1 = get_mask_node('TEXTURE-SAMPLE-1', 'COLOR', selected_material_index, i)
-        if mapping_node:
+        if mapping_node and texture_node.bl_static_type == 'TEX_IMAGE':
             if mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
                 mask.projection.mode = texture_node.projection
                 mask.projection.texture_extension = texture_node.extension
@@ -915,10 +935,9 @@ def read_mask_nodes(context):
             mask.projection.sync_projection_scale = False
 
         # Read the mask image.
-        if mask.projection.mode == 'FLAT':
+        if mask.projection.mode == 'FLAT' and texture_node.bl_static_type == 'TEX_IMAGE':
             if texture_node.image:
                 mask.mask_image = texture_node.image
-
         elif mask.projection.mode == 'TRIPLANAR':
             triplanar_texture_node_1 = get_mask_node('TEXTURE-SAMPLE-1', 'COLOR', selected_material_index, i)
             if triplanar_texture_node_1:
@@ -927,7 +946,7 @@ def read_mask_nodes(context):
         # Read hidden (muted) masks and mask alpha mode.
         mask_texture_node = get_mask_node('MASK-TEXTURE', 'COLOR', selected_material_index, i)
         if mask_texture_node:
-            if mask_texture_node.mute:
+            if not layer_nodes.get_node_active(mask_texture_node):
                 mask.hidden = True
 
             if len(mask_texture_node.outputs[0].links) != 0:

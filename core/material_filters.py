@@ -20,15 +20,9 @@ def filter_material_channel_toggle(channel_toggle, material_channel_name, contex
     selected_layer_stack_index = context.scene.matlay_layer_stack.layer_index
     selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
     filter_node = get_material_filter_node(material_channel_name, selected_layer_stack_index, selected_filter_index)
-
-    # Unmute
-    if channel_toggle:
-        filter_node.mute = False
-
-    # Mute
-    else:
-        filter_node.mute = True
-    
+    layer_nodes.set_node_active(filter_node, channel_toggle)
+    relink_material_filter_nodes(selected_layer_stack_index)
+    layer_nodes.relink_material_layers()
     matlay_utils.set_valid_material_shading_mode(context)
 
 def update_filter_color_channel_toggle(self, context):
@@ -95,9 +89,7 @@ def get_all_material_filter_nodes(material_channel_name, material_layer_index, g
     material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
     if material_channel_node:
         for i in range(0, MAX_LAYER_FILTER_COUNT):
-            filter_node_name = format_filter_node_name(material_layer_index, i)
-            if get_edited:
-                filter_node_name += '~'
+            filter_node_name = format_filter_node_name(material_layer_index, i, get_edited)
             node = material_channel_node.node_tree.nodes.get(filter_node_name)
             if node:
                 nodes.append(node)
@@ -195,31 +187,40 @@ def relink_material_filter_nodes(material_layer_index):
         filter_nodes = get_all_material_filter_nodes(material_channel_name, material_layer_index, get_edited=False)
 
         for i in range(0, len(filter_nodes)):
-            filter_node = filter_nodes[i]
+            filter_node = get_material_filter_node(material_channel_name, material_layer_index, i)
+            
+            # Unlink the filter node.
+            node_links = material_channel_node.node_tree.links
+            for l in node_links:
+                if l.from_node.name == filter_node.name:
+                    node_links.remove(l)
 
-            next_filter_node = None
-            if len(filter_nodes) - 1 > i:
+            # If the current material filter is disabled, skip connecting it.
+            if layer_nodes.get_node_active(filter_node) == False:
+                continue
 
-                # Unlink all mask filter nodes.
-                node_links = material_channel_node.node_tree.links
-                for l in node_links:
-                    if l.from_node.name == filter_node.name:
-                        node_links.remove(l)
+            # Link to the next ACTIVE filter node in the layer stack if it exists.
+            next_active_filter_index = i + 1
+            next_active_filter_node = get_material_filter_node(material_channel_name, material_layer_index, next_active_filter_index)
+            if next_active_filter_node:
+                while layer_nodes.get_node_active(next_active_filter_node) == False:
+                    next_active_filter_index += 1
+                    next_active_filter_node = get_material_filter_node(material_channel_name, material_layer_index, next_active_filter_index)
+                    if not next_active_filter_node:
+                        break
 
-                # Link to the next filter node in the layer stack if it exists.
-                next_filter_node = filter_nodes[i + 1]
-                if next_filter_node:
-                    match next_filter_node.bl_static_type:
-                        case 'INVERT':
-                            material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[1])
-                        case 'VALTORGB':
-                            material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[0])
-                        case 'HUE_SAT':
-                            material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[4])
-                        case 'CURVE_RGB':
-                            material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[1])
-                        case 'BRIGHTCONTRAST':
-                            material_channel_node.node_tree.links.new(filter_node.outputs[0], next_filter_node.inputs[0])
+            if next_active_filter_node:
+                match next_active_filter_node.bl_static_type:
+                    case 'INVERT':
+                        material_channel_node.node_tree.links.new(filter_node.outputs[0], next_active_filter_node.inputs[1])
+                    case 'VALTORGB':
+                        material_channel_node.node_tree.links.new(filter_node.outputs[0], next_active_filter_node.inputs[0])
+                    case 'HUE_SAT':
+                        material_channel_node.node_tree.links.new(filter_node.outputs[0], next_active_filter_node.inputs[4])
+                    case 'CURVE_RGB':
+                        material_channel_node.node_tree.links.new(filter_node.outputs[0], next_active_filter_node.inputs[1])
+                    case 'BRIGHTCONTRAST':
+                        material_channel_node.node_tree.links.new(filter_node.outputs[0], next_active_filter_node.inputs[0])
 
 def read_material_filter_nodes(context):
     '''Reads layer nodes to re-construct the filter layer stack.'''
@@ -246,19 +247,17 @@ def read_material_filter_nodes(context):
         filters[x].stack_index = x
 
     # Reset the selected filter.
-    if len(filters) > 0 and previously_selected_filter_index < len(filters) - 1 and previously_selected_filter_index >= 0:
+    if len(filters) > 0 and previously_selected_filter_index <= len(filters) - 1 and previously_selected_filter_index >= 0:
         filter_stack.selected_filter_index = previously_selected_filter_index
     else:
         filter_stack.selected_filter_index = 0
 
-    # Read muted material channels for the selected fitler index.
-    for material_channel_name in material_channels.get_material_channel_list():
-        for i in range(0, len(layer_filter_nodes)):
+    # Read inactive material channels for the selected fitler index.
+    for i in range(0, len(layer_filter_nodes)):
+        for material_channel_name in material_channels.get_material_channel_list():
             filter_node = get_material_filter_node(material_channel_name, selected_layer_index, x)
-            if filter_node.mute:
-                setattr(filters[i].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", False)
-            else:
-                setattr(filters[i].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", True)
+            filter_node_active = layer_nodes.get_node_active(filter_node)
+            setattr(filters[i].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", filter_node_active)
 
     # Allow auto updating for filter properties again. 
     context.scene.matlay_material_filter_stack.update_filter_properties = True

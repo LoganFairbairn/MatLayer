@@ -15,14 +15,18 @@ NODE_SPACING = 50
 LAYER_NODE_NAMES = ('TEXTURE', 'OPACITY', 'COORD', 'MAPPING', 'MIX-LAYER', 'NORMAL-ROTATION-FIX', 'TEXTURE-SAMPLE-1', 'TEXTURE-SAMPLE-2', 'TEXTURE-SAMPLE-3')
 
 def set_node_active(node, active):
-    '''Marks the node as inactive by changing it's color. Marking the nodes inactive using their color is a work-around for a memory leak within Blender caused by compiling shaders that contain muted group nodes.'''
+    '''Marks the node as inactive by changing it's color.'''
+    # Marking the nodes inactive using their color is a work-around for a memory leak within Blender caused by compiling shaders that contain muted group nodes.
     if active:
+        node.use_custom_color = False
         node.color = (0.1, 0.1, 0.1)
     else:
+        node.use_custom_color = True
         node.color = (1.0, 0.0, 0.0)
 
 def get_node_active(node):
-    '''Returns true if the provided node is marked as active according to this add-on. In this add-on nodes are marked as inactive by changing their color to red. This is a work-around for a memory leak within Blender caused by compiling shaders that contain muted group nodes.'''
+    '''Returns true if the provided node is marked as active according to this add-on.'''
+    # Marking the nodes inactive using their color is a work-around for a memory leak within Blender caused by compiling shaders that contain muted group nodes.    
     if node.color.r == 1.0 and node.color.g == 0.0 and node.color.b == 0.0:
         return False
     else:
@@ -127,27 +131,57 @@ def relink_material_layers():
             next_mix_layer_node = get_layer_node("MIX-LAYER", material_channel_name, next_layer_index, bpy.context)
             texture_node = get_layer_node("TEXTURE", material_channel_name, current_layer_index, bpy.context)
 
+            # If the current layer is disabled, skip connecting it.
+            if get_node_active(current_mix_layer_node) == False:
+                continue
+
+            # Find the next non disabled layer.
+            if next_mix_layer_node:
+                while get_node_active(next_mix_layer_node) == False:
+                    next_layer_index += 1
+                    next_mix_layer_node = get_layer_node("MIX-LAYER", material_channel_name, next_layer_index, bpy.context)
+                    if not next_mix_layer_node:
+                        break
+
+            # Find the first active material filter node.
             total_filter_nodes = material_filters.get_filter_nodes_count(i)
-            first_material_filter_node = material_filters.get_material_filter_node(material_channel_name, i, 0)
+            first_active_filter_index = 0 
+            first_active_filter_node = material_filters.get_material_filter_node(material_channel_name, i, first_active_filter_index)
+            while get_node_active(first_active_filter_node) == False:
+                first_active_filter_index += 1
+                first_active_filter_node = material_filters.get_material_filter_node(material_channel_name, i, first_active_filter_index)
+                if not first_active_filter_node:
+                    break
 
-            # ALWAYS connect the texture output to the first material filter based on it's type (if one exists).
-            if first_material_filter_node:
-                match first_material_filter_node.bl_static_type:
+            # ALWAYS connect the texture output to the first material filter based on it's type if one exists and is ACTIVE.
+            if first_active_filter_node:
+                match first_active_filter_node.bl_static_type:
                     case 'INVERT':
-                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[1])
+                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_active_filter_node.inputs[1])
                     case 'VALTORGB':
-                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[0])
+                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_active_filter_node.inputs[0])
                     case 'HUE_SAT':
-                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[4])
+                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_active_filter_node.inputs[4])
                     case 'CURVE_RGB':
-                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[1])
+                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_active_filter_node.inputs[1])
                     case 'BRIGHTCONTRAST':
-                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_material_filter_node.inputs[0])
+                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_active_filter_node.inputs[0])
 
-                # Connect the last filter node to the current mix node.
-                last_material_filter_node = material_filters.get_material_filter_node(material_channel_name, i, total_filter_nodes - 1)
+                # Connect the last ACTIVE filter node to the current mix node.
+                last_active_filter_node_index = total_filter_nodes - 1
+                last_material_filter_node = material_filters.get_material_filter_node(material_channel_name, i, last_active_filter_node_index)
+                while get_node_active(last_material_filter_node) == False:
+                    last_active_filter_node_index -= 1
+                    last_material_filter_node = material_filters.get_material_filter_node(material_channel_name, i, last_active_filter_node_index)
+                    if not first_active_filter_node:
+                        break
+
                 if last_material_filter_node:
                     material_channel_node.node_tree.links.new(last_material_filter_node.outputs[0], current_mix_layer_node.inputs[2])
+
+            # No material active material filter exists, connect the texture node directly to the mix layer node.
+            else:
+                material_channel_node.node_tree.links.new(texture_node.outputs[0], current_mix_layer_node.inputs[2])
 
             # Connect the last layer node to the next material layer if another material layer exists.
             if next_mix_layer_node:
@@ -282,8 +316,9 @@ def mute_layer_material_channel(mute, layer_stack_index, material_channel_name, 
     for node_name in LAYER_NODE_NAMES:
         node = get_layer_node(node_name, material_channel_name, layer_stack_index, context)
         if node:
-            node.mute = mute
-
+            set_node_active(node, not mute)
+            
+    relink_material_layers()
     matlay_utils.set_valid_material_shading_mode(context)
 
 

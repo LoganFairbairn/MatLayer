@@ -233,6 +233,10 @@ def update_hidden(self, context):
             material_channel_active = getattr(self.material_channel_toggles, material_channel_name.lower() + "_channel_toggle")
             if material_channel_active:
                 layer_nodes.mute_layer_material_channel(False, self.layer_stack_array_index, material_channel_name, context)
+    
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    layer_nodes.relink_material_nodes(selected_material_layer_index)
+    layer_nodes.relink_material_layers()
 
 #----------------------------- UPDATE PROJECTION SETTINGS -----------------------------#
 

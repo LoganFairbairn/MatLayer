@@ -134,39 +134,42 @@ def update_total_node_and_link_count():
     settings.total_node_count = 0
     settings.total_node_link_count = 0
 
+    # List of group nodes that have their active nodes and node links already counted.
+    counted_group_nodes = []
+
     if not matlay_materials.verify_material(bpy.context):
         return
 
     for material_channel_name in material_channels.get_material_channel_list():
-        settings.total_node_count += 1
 
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
-        if material_channel_node:
-            material_channel_active = False
-            for output in material_channel_node.outputs:
-                for l in output.links:
-                    if l != 0:
-                        material_channel_active = True
-                        settings.total_node_link_count += 1
+        if not material_channel_node:
+            continue 
 
-            if material_channel_active:
-                for node in material_channel_node.node_tree.nodes:
-                    if node.mute == False:
-                        settings.total_node_count += 1
+        if layer_nodes.get_node_active(material_channel_node):
+            settings.total_node_count += 1
+            settings.total_node_link_count += 1
+        
+            # Count all nodes and their nodes links within the material channel group node.
+            for node in material_channel_node.node_tree.nodes:
+                if layer_nodes.get_node_active(node):
+                    settings.total_node_count += 1
+                    for output in node.outputs:
+                        for l in output.links:
+                            if l != 0:
+                                settings.total_node_link_count += 1
 
-                        for output in node.outputs:
-                            for l in output.links:
-                                if l != 0:
-                                    settings.total_node_link_count += 1
-
-                        if node.bl_static_type == 'GROUP':
+                    # Count subnodes in group nodes, once for each group node.
+                    if node.bl_static_type == 'GROUP':
+                        if node.node_tree not in counted_group_nodes:
+                            counted_group_nodes.append(node.node_tree)
                             for subnode in node.node_tree.nodes:
-                                settings.total_node_count += 1
-
-                                for output in subnode.outputs:
-                                    for l in output.links:
-                                        if l != 0:
-                                            settings.total_node_link_count += 1
+                                if layer_nodes.get_node_active(subnode):
+                                    settings.total_node_count += 1
+                                    for output in subnode.outputs:
+                                        for l in output.links:
+                                            if l != 0:
+                                                settings.total_node_link_count += 1
 
 class MatlaySettings(PropertyGroup):
     total_node_count: IntProperty(name="Total Node Count", description="The total number of nodes automatically created by matlay for this material")
