@@ -259,6 +259,8 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
     # Duplicate the node name and label, but add a tilda at the end of the name to signify the nodes are new and avoid naming conflicts.
     node_info = original_node.name.split('_')
     node_name = node_info[0]
+    mask_filter_name = node_info[1]
+    is_mask_filter_node = False
 
     # Format node names based on their type.
     if node_name in layer_nodes.LAYER_NODE_NAMES:
@@ -270,8 +272,21 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
     elif node_name in layer_masks.MASK_NODE_NAMES:
         duplicated_node.name = layer_masks.format_mask_node_name(node_info[0], new_material_layer_index, node_info[2], True)
 
-    elif node_name == layer_masks.MASK_FILTER_NAME:
-        duplicated_node.name = layer_masks.format_mask_filter_node_name(new_material_layer_index, node_info[2], node_info[3], True)
+    elif mask_filter_name == layer_masks.MASK_FILTER_NAME:
+        duplicated_node.name = layer_masks.format_mask_filter_node_name(new_material_layer_index, node_info[3], node_info[4], True)
+
+        # Create a new mask filter group node for duplicated mask filters if it doesn't already exist.
+        new_mask_filter_node_tree_name = layer_masks.format_mask_filter_node_name(new_material_layer_index, node_info[3], node_info[4], True)
+        mask_filter_node_tree = bpy.data.node_groups.get(new_mask_filter_node_tree_name)
+        if not mask_filter_node_tree:
+            original_mask_filter_node = original_node.node_tree.nodes.get(original_node.name)
+            filter_node_type = original_mask_filter_node.bl_idname
+            new_mask_filter_node_tree = layer_masks.create_mask_filter_group_node(filter_node_type, new_material_layer_index, node_info[3], node_info[4])
+            duplicated_node.node_tree = new_mask_filter_node_tree
+        else:
+            duplicated_node.node_tree = mask_filter_node_tree
+        is_mask_filter_node = True
+
     duplicated_node.label = duplicated_node.name
 
     # Duplicate values specific to node types.
@@ -285,7 +300,7 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
                 duplicated_node.extension = original_node.extension
         
         case 'GROUP':
-            if original_node.node_tree != None:
+            if original_node.node_tree != None and is_mask_filter_node == False:
                 duplicated_node.node_tree = original_node.node_tree
 
         case 'TEX_NOISE':
@@ -667,9 +682,6 @@ class MATLAY_OT_duplicate_layer(Operator):
         
         # Turn auto updating for properties off temporarily.
         context.scene.matlay_layer_stack.auto_update_layer_properties = False
-        context.scene.matlay_material_filter_stack.auto_update_filter_properties = False
-        context.scene.matlay_mask_stack.auto_update_mask_properties = False
-        context.scene.matlay_mask_filter_stack.auto_update_properties = False
 
         # If the original layer was a decal layer, create a new decal object (empty) and copy the transforms of the original.
         new_decal_object = None
@@ -706,6 +718,15 @@ class MATLAY_OT_duplicate_layer(Operator):
         layers[new_material_layer_index].name = "{0} Copy".format(layers[original_material_layer_index].name)
         layers[new_material_layer_index].type = layers[original_material_layer_index].type
 
+        # Clear mask and filter stacks.
+        context.scene.matlay_material_filters.clear()
+        context.scene.matlay_masks.clear()
+        context.scene.matlay_mask_filters.clear()
+
+        context.scene.matlay_material_filter_stack.auto_update_filter_properties = False
+        context.scene.matlay_mask_stack.auto_update_mask_properties = False
+        context.scene.matlay_mask_filter_stack.auto_update_properties = False
+
         # Duplicate slots for material filters, masks and mask filters and their properties (this allow the newly duplicated nodes to reindex properly).
         for i in range(0, original_material_filter_count):
             material_filters.add_material_filter_slot()
@@ -735,11 +756,11 @@ class MATLAY_OT_duplicate_layer(Operator):
                 node.parent = new_frame
 
         # Reindex all nodes.
-        layer_nodes.reindex_material_layer_nodes()
         material_filters.reindex_material_filter_nodes()
+        layer_nodes.reindex_material_layer_nodes()
+        layer_masks.reindex_mask_filters_nodes(filters_duplicated=True)
         layer_masks.reindex_mask_nodes(context)
-        layer_masks.reindex_mask_filters_nodes()
-        
+
         # For decal layers, assign the new decal object to all coord nodes.
         if layers[new_material_layer_index].type == 'DECAL':
             for material_channel_name in material_channels.get_material_channel_list():

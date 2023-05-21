@@ -453,6 +453,38 @@ def reindex_material_layer_nodes():
                 changed_layer_index = i
                 break
 
+
+    #-------------- REINDEX MASK FILTER NODE TREES --------------#
+    # Reindex mask filter node trees for all layers above the newly added layer.
+    if node_added:
+        masks = bpy.context.scene.matlay_masks
+        mask_filters = bpy.context.scene.matlay_mask_filters
+        for c in range(len(layers), changed_layer_index + 1, -1):
+            for i in range(0, len(masks)):
+                for x in range(0, len(mask_filters)):
+                    old_name = layer_masks.format_mask_filter_node_name(c - 2, i, x)
+                    new_name = layer_masks.format_mask_filter_node_name(c - 1, i, x)
+                    layer_masks.rename_mask_filter_node_tree(old_name, new_name)
+            
+        for i in range(0, len(masks)):
+            for x in range(0, len(mask_filters)):
+                old_name = layer_masks.format_mask_filter_node_name(changed_layer_index, i, x, True)
+                new_name = layer_masks.format_mask_filter_node_name(changed_layer_index, i, x)
+                layer_masks.rename_mask_filter_node_tree(old_name, new_name)
+
+    # Reindex all mask filter node trees for all layers below the newly added layer.
+    if node_deleted:
+        for i in range(changed_layer_index, len(layers), 1):
+            index = i + 1
+            mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, index, False)
+            for node in mask_filter_nodes:
+                old_name = layer_masks.format_mask_filter_node_name(index + 1, node_info[3], node_info[4])
+                new_name = layer_masks.format_mask_filter_node_name(index, node_info[3], node_info[4])
+                layer_masks.rename_mask_filter_node_tree(old_name, new_name)
+
+
+
+    #-------------- REINDEX NODES --------------#
     for material_channel_name in material_channels.get_material_channel_list():
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
 
@@ -551,34 +583,6 @@ def reindex_material_layer_nodes():
                     old_name = layer_masks.format_mask_filter_node_name(index, node_info[3], node_info[4])
                     new_name = layer_masks.format_mask_filter_node_name(index - 1, node_info[3], node_info[4])
                     layer_masks.rename_mask_filter_group_node(material_channel_name, old_name, new_name)
-
-    if node_added:
-        masks = bpy.context.scene.matlay_masks
-        mask_filters = bpy.context.scene.matlay_mask_filters
-
-        # Reindex mask filter node trees above the newly added layer.
-        for c in range(len(layers), changed_layer_index + 1, -1):
-            for i in range(0, len(masks)):
-                for x in range(0, len(mask_filters)):
-                    old_name = layer_masks.format_mask_filter_node_name(index - 2, i, x)
-                    new_name = layer_masks.format_mask_filter_node_name(index - 1, i, x)
-                    layer_masks.rename_mask_filter_node_tree(old_name, new_name)
-            
-        # Remove the tilda from all mask filter node trees for all mask nodes.
-        for i in range(0, len(masks)):
-            for x in range(0, len(mask_filters)):
-                old_name = layer_masks.format_mask_filter_node_name(changed_layer_index, i, x)
-                new_name = layer_masks.format_mask_filter_node_name(changed_layer_index, i, x)
-                layer_masks.rename_mask_filter_node_tree(old_name, new_name)
-
-    if node_deleted:
-        for i in range(changed_layer_index, len(layers), 1):
-            index = i + 1
-            mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, index, False)
-            for node in mask_filter_nodes:
-                old_name = layer_masks.format_mask_filter_node_name(index + 1, node_info[3], node_info[4])
-                new_name = layer_masks.format_mask_filter_node_name(index, node_info[3], node_info[4])
-                layer_masks.rename_mask_filter_node_tree(old_name, new_name)
 
 def check_decal_layer(material_layer_index):
     '''Checks if the material layer at the provided material layer index is a decal layer.'''

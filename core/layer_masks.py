@@ -1715,11 +1715,10 @@ def rename_mask_filter_node_tree(old_name, new_name):
     mask_filter_node_group = bpy.data.node_groups.get(old_name)
     if mask_filter_node_group:
         mask_filter_node_group.name = new_name
-
-    mask_filter_node = mask_filter_node_group.nodes.get(old_name)
-    if mask_filter_node:
-        mask_filter_node.name = new_name
-        mask_filter_node.label = new_name
+        mask_filter_node = mask_filter_node_group.nodes.get(old_name)
+        if mask_filter_node:
+            mask_filter_node.name = new_name
+            mask_filter_node.label = new_name
 
 def rename_mask_filter_group_node(material_channel_name, old_name, new_name):
     '''Renames the mask file group node in all material channels.'''
@@ -1769,30 +1768,30 @@ def get_all_mask_filter_nodes_in_layer(material_channel_name, material_layer_ind
             nodes.append(node)
     return nodes
 
-def reindex_mask_filters_nodes():
+def reindex_mask_filters_nodes(filters_duplicated=False):
     '''Reindexes mask filters by renaming nodes based added, edited, or deleted nodes.'''
     selected_material_index = bpy.context.scene.matlay_layer_stack.layer_index
     selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
     mask_filters = bpy.context.scene.matlay_mask_filters
+    masks = bpy.context.scene.matlay_masks
 
     # Update the mask filter indicies.
     number_of_filters = len(mask_filters)
     for i in range(0, number_of_filters):
         mask_filters[i].stack_index = i
 
-    changed_filter_index = -1
+    changed_filter_indicies = []
     filter_added = False
     filter_deleted = False
 
     # Check for a newly added mask filter (signified by a tilda at the end of the node's name).
     material_channel_node = material_channels.get_material_channel_node(bpy.context, 'COLOR')
     for i in range(0, len(mask_filters)):
-        temp_node_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i) + "~"
+        temp_node_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i, True)
         temp_node = material_channel_node.node_tree.nodes.get(temp_node_name)
         if temp_node:
             filter_added = True
-            changed_filter_index = i
-            break
+            changed_filter_indicies.append(i)
 
     # Check for a deleted filter.
     if not filter_added:
@@ -1801,48 +1800,67 @@ def reindex_mask_filters_nodes():
             temp_node = material_channel_node.node_tree.nodes.get(temp_node_name)
             if not temp_node:
                 filter_deleted = True
-                changed_filter_index = i
+                changed_filter_indicies.append(i)
                 break
 
+    #-------------- REINDEX MASK FILTER NODE TREES --------------#
     if filter_added:
         # Reindex the mask filter node trees above the newly added mask filter node tree.
-        for i in range(len(mask_filters), changed_filter_index + 1, -1):
+        for i in range(len(mask_filters), changed_filter_indicies[0] + 1, -1):
             old_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i - 2)
             new_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i - 1)
             rename_mask_filter_node_tree(old_name, new_name)
 
         # Remove the tilda from the newly added mask filter.
-        old_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, changed_filter_index) + "~"
-        new_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, changed_filter_index)
+        old_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, changed_filter_indicies[0], True)
+        new_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, changed_filter_indicies[0])
         rename_mask_filter_node_tree(old_name, new_name)
+
+    if filters_duplicated:
+        # Remove the tilda from all duplicated mask filters for all masks.
+        for i in range(0, len(masks)):
+            for c in range(0, len(mask_filters)):
+                old_name = format_mask_filter_node_name(selected_material_index, i, c, True)
+                new_name = format_mask_filter_node_name(selected_material_index, i, c)
+                rename_mask_filter_node_tree(old_name, new_name)
 
     if filter_deleted:
         # Reduce the index of the mask filter node trees above the deleted mask fitler node tree.
-        for i in range(changed_filter_index + 1, len(mask_filters), 1):
+        for i in range(changed_filter_indicies[0] + 1, len(mask_filters), 1):
             old_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i)
             new_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i - 1)
             rename_mask_filter_node_tree(old_name, new_name)
 
+    #-------------- REINDEX FILTER NODES --------------#
     for material_channel_name in material_channels.get_material_channel_list():
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
 
         # Rename filter nodes above the newly added mask filter on the stack if any exist (in reverse order to avoid naming conflicts).
         if filter_added:
-            for i in range(len(mask_filters), changed_filter_index + 1, -1):
+            for i in range(len(mask_filters), changed_filter_indicies[0] + 1, -1):
                 old_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i - 2)
                 new_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i - 1)
                 rename_mask_filter_group_node(material_channel_name, old_name, new_name)
                 mask_filters[i - 1].stack_index = i - 1
 
             # Remove the tilda from the newly added mask filter.
-            old_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, changed_filter_index) + "~"
-            new_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, changed_filter_index)
+            old_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, changed_filter_indicies[0], True)
+            new_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, changed_filter_indicies[0])
             rename_mask_filter_group_node(material_channel_name, old_name, new_name)
-            mask_filters[changed_filter_index].stack_index = changed_filter_index
+            mask_filters[changed_filter_indicies[0]].stack_index = changed_filter_indicies[0]
+
+        # Remove the tilda from all duplicated mask filters.
+        if filters_duplicated:
+            for i in range(0, len(masks)):
+                for c in range(0, len(mask_filters)):
+                    old_name = format_mask_filter_node_name(selected_material_index, i, c, True)
+                    new_name = format_mask_filter_node_name(selected_material_index, i, c)
+                    rename_mask_filter_group_node(material_channel_name, old_name, new_name)
+                    mask_filters[c].stack_index = c
 
         # Rename mask filter nodes above the deleted mask filter if any exist.
         if filter_deleted and len(mask_filters) > 0:
-            for i in range(changed_filter_index + 1, len(mask_filters), 1):
+            for i in range(changed_filter_indicies[0] + 1, len(mask_filters), 1):
                 old_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i)
                 new_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i - 1)
                 rename_mask_filter_group_node(material_channel_name, old_name, new_name)

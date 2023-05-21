@@ -165,15 +165,16 @@ def update_total_node_and_link_count():
 
                     # Count subnodes in group nodes, once for each group node.
                     if node.bl_static_type == 'GROUP':
-                        if node.node_tree not in counted_group_nodes:
-                            counted_group_nodes.append(node.node_tree)
-                            for subnode in node.node_tree.nodes:
-                                if layer_nodes.get_node_active(subnode):
-                                    settings.total_node_count += 1
-                                    for output in subnode.outputs:
-                                        for l in output.links:
-                                            if l != 0:
-                                                settings.total_node_link_count += 1
+                        if node.node_tree:
+                            if node.node_tree not in counted_group_nodes:
+                                counted_group_nodes.append(node.node_tree)
+                                for subnode in node.node_tree.nodes:
+                                    if layer_nodes.get_node_active(subnode):
+                                        settings.total_node_count += 1
+                                        for output in subnode.outputs:
+                                            for l in output.links:
+                                                if l != 0:
+                                                    settings.total_node_link_count += 1
 
 class MatlaySettings(PropertyGroup):
     total_node_count: IntProperty(name="Total Node Count", description="The total number of nodes automatically created by matlay for this material")
