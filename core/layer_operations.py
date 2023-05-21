@@ -281,8 +281,19 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
         if not mask_filter_node_tree:
             original_mask_filter_node = original_node.node_tree.nodes.get(original_node.name)
             filter_node_type = original_mask_filter_node.bl_idname
-            new_mask_filter_node_tree = layer_masks.create_mask_filter_group_node(filter_node_type, new_material_layer_index, node_info[3], node_info[4])
-            duplicated_node.node_tree = new_mask_filter_node_tree
+            duplicated_node.node_tree = layer_masks.create_mask_filter_group_node(filter_node_type, new_material_layer_index, node_info[3], node_info[4])
+
+            # Duplicate mask node filter values here.
+            new_mask_filter_node = duplicated_node.node_tree.nodes.get(duplicated_node.node_tree.name)
+            match new_mask_filter_node.bl_static_type:
+                case 'INVERT':
+                    new_mask_filter_node.default_value[0] = original_mask_filter_node.default_value[0]
+                case 'VALTORGB':
+                    for i in range(len(new_mask_filter_node.color_ramp.elements), len(original_mask_filter_node.color_ramp.elements)):
+                        new_mask_filter_node.color_ramp.elements.new(0.25)
+                    for i in range(0, len(original_mask_filter_node.color_ramp.elements)):
+                        new_mask_filter_node.color_ramp.elements[i].color = original_mask_filter_node.color_ramp.elements[i].color
+                        new_mask_filter_node.color_ramp.elements[i].position = original_mask_filter_node.color_ramp.elements[i].position
         else:
             duplicated_node.node_tree = mask_filter_node_tree
         is_mask_filter_node = True
