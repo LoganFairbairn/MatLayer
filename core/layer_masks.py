@@ -660,7 +660,7 @@ def reindex_mask_nodes(context):
 
         # Rename mask nodes above the newly added mask on the mask stack if any exist (in reverse order to avoid naming conflicts).
         if mask_added:
-            changed_index = changed_indicies[i]
+            changed_index = changed_indicies[0]
             for i in range(len(masks), changed_index + 1, -1):
                 index = i - 1
                 for name in MASK_NODE_NAMES:
@@ -1856,7 +1856,7 @@ def relink_mask_filter_nodes():
     for material_channel_name in material_channels.get_material_channel_list():
         mask_filter_nodes = get_all_mask_filter_nodes(material_channel_name, selected_material_index, selected_mask_index, False)
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
-        
+
         # Unlink all mask filter nodes, then re-link all mask filter nodes to the next filter if another exists.
         for i in range(0, len(mask_filter_nodes)):
             mask_filter_node = mask_filter_nodes[i]
