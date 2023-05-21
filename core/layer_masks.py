@@ -631,31 +631,36 @@ def reindex_mask_nodes(context):
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
         selected_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
 
-        changed_index = -1
+        changed_indicies = []
         mask_added = False
         mask_deleted = False
+        masks_duplicated = False
 
-        # 1. Check for a newly added mask (signified by a tilda at the end of the node's name).
+        # Check for ALL newly added masks (signified by a tilda at the end of the mask node's name).
         for i in range(0, len(masks)):
             temp_mask_node_name = format_mask_node_name('MASK-TEXTURE', selected_layer_index, i, True)
             temp_mask_node = material_channel_node.node_tree.nodes.get(temp_mask_node_name)
             if temp_mask_node:
                 mask_added = True
-                changed_index = i
-                break
+                changed_indicies.append(i)
 
-        # 2. Check for a deleted mask.
-        if not mask_added:
+        # Check to see if the masks were duplicated from another layer by checking if there are multiple new masks.
+        if len(changed_indicies) > 1:
+            masks_duplicated = True
+
+        # Check for a deleted mask.
+        if not mask_added and not masks_duplicated:
             for i in range(0, len(masks)):
                 temp_mask_node_name = format_mask_node_name('MASK-TEXTURE', selected_layer_index, i)
                 temp_mask_node = material_channel_node.node_tree.nodes.get(temp_mask_node_name)
                 if not temp_mask_node:
                     mask_deleted = True
-                    changed_index = i
+                    changed_indicies.append(i)
                     break
 
-        # 3. Rename mask nodes above the newly added mask on the mask stack if any exist (in reverse order to avoid naming conflicts).
+        # Rename mask nodes above the newly added mask on the mask stack if any exist (in reverse order to avoid naming conflicts).
         if mask_added:
+            changed_index = changed_indicies[i]
             for i in range(len(masks), changed_index + 1, -1):
                 index = i - 1
                 for name in MASK_NODE_NAMES:
@@ -675,8 +680,20 @@ def reindex_mask_nodes(context):
                     new_mask_node.label = new_mask_node.name
                     masks[changed_index].stack_index = changed_index
 
-        # 4. Rename mask nodes above the deleted mask if any exist.
+        # For masks duplicated from a previous layer, remove the tilda from all masks.
+        if masks_duplicated:
+            for i in range(0, len(masks)):
+                for name in MASK_NODE_NAMES:
+                    duplicated_mask_node_name = format_mask_node_name(name, selected_layer_index, i, True)
+                    duplicated_mask_node = material_channel_node.node_tree.nodes.get(duplicated_mask_node_name)
+                    if duplicated_mask_node:
+                        duplicated_mask_node.name = duplicated_mask_node_name.replace('~', '')
+                        duplicated_mask_node.label = duplicated_mask_node.name
+                        masks[i].stack_index = i
+
+        # Rename mask nodes above the deleted mask if any exist.
         if mask_deleted and len(masks) > 0:
+            changed_index = changed_indicies[i]
             for i in range(changed_index + 1, len(masks), 1):
                 for name in MASK_NODE_NAMES:
                     old_name = format_mask_node_name(name, selected_layer_index, i)
@@ -714,7 +731,8 @@ def relink_mask_nodes(material_layer_index):
 
             # If the texture node doesn't exist, don't attempt to relink nodes for this mask.
             if not mask_texture_node:
-                print("Error: Mask texture node doesn't exist when attempting to relink mask nodes.")
+                mask_texture_node_name = format_mask_node_name('MASK-TEXTURE', material_layer_index, i)
+                print("Error: Mask texture node {0} doesn't exist when attempting to relink mask nodes.".format(mask_texture_node_name))
                 break
 
             # Unlink all mask nodes.
@@ -1831,26 +1849,15 @@ def reindex_mask_filters_nodes():
                 mask_filters[i].stack_index = i - 1
 
 def relink_mask_filter_nodes():
-    '''Relinks all mask filters.'''
+    '''Relinks all mask filter nodes with other mask filter nodes.'''
     selected_material_index = bpy.context.scene.matlay_layer_stack.layer_index
     selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
 
     for material_channel_name in material_channels.get_material_channel_list():
         mask_filter_nodes = get_all_mask_filter_nodes(material_channel_name, selected_material_index, selected_mask_index, False)
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
-
-        # 1. Connect the mask texture to either a filter or the mask mix node.
-        mask_texture_node = get_mask_node('MASK-TEXTURE', material_channel_name, selected_material_index, selected_mask_index, False)
-        if mask_texture_node:
-            first_mask_filter_node = get_mask_filter_group_node(material_channel_name, selected_material_index, selected_mask_index, 0)
-            if first_mask_filter_node:
-                material_channel_node.node_tree.links.new(mask_texture_node.outputs[0], first_mask_filter_node.inputs[0])
-            else:
-                mask_mix_node = get_mask_node('MASK-MIX', material_channel_name, selected_mask_index, selected_mask_index, False)
-                if mask_mix_node:
-                    material_channel_node.node_tree.links.new(mask_texture_node.outputs[0], mask_mix_node.inputs[2])
-
-        # 2. Unlink all mask filter nodes, then re-link all mask filter nodes to the next filter if another exists.
+        
+        # Unlink all mask filter nodes, then re-link all mask filter nodes to the next filter if another exists.
         for i in range(0, len(mask_filter_nodes)):
             mask_filter_node = mask_filter_nodes[i]
 

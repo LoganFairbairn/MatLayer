@@ -309,8 +309,9 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
                 duplicated_node.color_ramp.elements[i].color = original_node.color_ramp.elements[i].color
                 duplicated_node.color_ramp.elements[i].position = original_node.color_ramp.elements[i].position
 
-        case 'MIXRGB':
+        case 'MIX_RGB':
             duplicated_node.use_clamp = original_node.use_clamp
+            duplicated_node.blend_type = original_node.blend_type
 
     # Duplicate input values.
     for i in range(0, len(original_node.inputs)):
@@ -663,18 +664,19 @@ class MATLAY_OT_duplicate_layer(Operator):
         material_layers.validate_selected_material_layer_index()
         layers = context.scene.matlay_layers
         original_material_layer_index = context.scene.matlay_layer_stack.layer_index
-
-        # Must be in object mode to add the decal object and select it after the decal layer is created.
-        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
         
-        # Auto updating for layer properties should be off.
+        # Turn auto updating for properties off temporarily.
         context.scene.matlay_layer_stack.auto_update_layer_properties = False
+        context.scene.matlay_material_filter_stack.auto_update_filter_properties = False
+        context.scene.matlay_mask_stack.auto_update_mask_properties = False
+        context.scene.matlay_mask_filter_stack.auto_update_properties = False
 
         # If the original layer was a decal layer, create a new decal object (empty) and copy the transforms of the original.
         new_decal_object = None
         original_coord_node = layer_nodes.get_layer_node('COORD', 'COLOR', original_material_layer_index, context)
         if original_coord_node:
             if original_coord_node.object != None:
+                bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
                 previously_selected_object = bpy.context.active_object
                 for obj in bpy.context.selected_objects:
                     obj.select_set(False)
@@ -714,7 +716,7 @@ class MATLAY_OT_duplicate_layer(Operator):
 
         for i in range(0, original_mask_filter_count):
             layer_masks.add_mask_filter_slot()
-        
+
         # Duplicate all layer nodes.
         for material_channel_name in material_channels.get_material_channel_list():
             material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
@@ -738,6 +740,7 @@ class MATLAY_OT_duplicate_layer(Operator):
         layer_masks.reindex_mask_nodes(context)
         layer_masks.reindex_mask_filters_nodes()
 
+        
         # For decal layers, assign the new decal object to all coord nodes.
         if layers[new_material_layer_index].type == 'DECAL':
             for material_channel_name in material_channels.get_material_channel_list():
@@ -755,10 +758,10 @@ class MATLAY_OT_duplicate_layer(Operator):
             layers[new_material_layer_index].projection.mode = layers[original_material_layer_index].projection.mode
 
         # Relink all nodes.
+        layer_masks.relink_mask_nodes(new_material_layer_index)
+        material_filters.relink_material_filter_nodes(new_material_layer_index)
         layer_nodes.relink_material_nodes(new_material_layer_index)
         layer_nodes.relink_material_layers()
-        material_filters.relink_material_filter_nodes(new_material_layer_index)
-        layer_masks.relink_mask_nodes(new_material_layer_index)
 
         # Organize all nodes.
         layer_nodes.organize_all_layer_nodes()
@@ -773,7 +776,12 @@ class MATLAY_OT_duplicate_layer(Operator):
             new_decal_object.select_set(True)
             bpy.context.view_layer.objects.active = new_decal_object
 
+        # Turn auto updating for properties back on.
         context.scene.matlay_layer_stack.auto_update_layer_properties = True
+        context.scene.matlay_material_filter_stack.auto_update_filter_properties = True
+        context.scene.matlay_mask_stack.auto_update_mask_properties = True
+        context.scene.matlay_mask_filter_stack.auto_update_properties = True
+
         matlay_utils.set_valid_material_shading_mode(context)
         matlay_utils.update_total_node_and_link_count()
         return{'FINISHED'}
