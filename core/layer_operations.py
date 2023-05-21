@@ -699,11 +699,11 @@ class MATLAY_OT_duplicate_layer(Operator):
         for i in range(0, original_mask_count):
             mask_uses_alpha.append(bpy.context.scene.matlay_masks[i].use_alpha)
 
-        # Add a new layer slot and copy the name of the previous layer.
+        # Add a new layer slot and a copy the name of the previous layer.
         original_layer_type = layers[original_material_layer_index].type
         add_layer_slot(original_layer_type)
         new_material_layer_index = context.scene.matlay_layer_stack.layer_index
-        layers[new_material_layer_index].name = layers[original_material_layer_index].name
+        layers[new_material_layer_index].name = "{0} Copy".format(layers[original_material_layer_index].name)
         layers[new_material_layer_index].type = layers[original_material_layer_index].type
 
         # Duplicate slots for material filters, masks and mask filters and their properties (this allow the newly duplicated nodes to reindex properly).
@@ -739,7 +739,6 @@ class MATLAY_OT_duplicate_layer(Operator):
         material_filters.reindex_material_filter_nodes()
         layer_masks.reindex_mask_nodes(context)
         layer_masks.reindex_mask_filters_nodes()
-
         
         # For decal layers, assign the new decal object to all coord nodes.
         if layers[new_material_layer_index].type == 'DECAL':
