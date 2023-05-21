@@ -737,7 +737,7 @@ def relink_mask_nodes(material_layer_index):
                 if mask_texture_node.bl_static_type == 'TEX_IMAGE':
                     link_nodes(mask_mapping_node.outputs[0], mask_texture_node.inputs[0])
 
-                    if masks[selected_mask_index].use_alpha:
+                    if masks[i].use_alpha:
                         link_nodes(mask_texture_node.outputs[1], decal_mask_mix_node.inputs[1])
                     else:
                         link_nodes(mask_texture_node.outputs[0], decal_mask_mix_node.inputs[1])
