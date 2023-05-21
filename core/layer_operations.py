@@ -331,6 +331,8 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
             duplicated_node.use_clamp = original_node.use_clamp
 
         case 'VALTORGB':
+            for i in range(len(duplicated_node.color_ramp.elements), len(original_node.color_ramp.elements)):
+                duplicated_node.color_ramp.elements.new(0.25)
             for i in range(0, len(original_node.color_ramp.elements)):
                 duplicated_node.color_ramp.elements[i].color = original_node.color_ramp.elements[i].color
                 duplicated_node.color_ramp.elements[i].position = original_node.color_ramp.elements[i].position
