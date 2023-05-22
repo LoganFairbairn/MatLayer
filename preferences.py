@@ -2,7 +2,7 @@
 
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty, FloatProperty
 
 ADDON_NAME = __package__
 
@@ -70,6 +70,12 @@ class AddonPreferences(AddonPreferences):
         default='OBJECT_NAME',
         name="Texture Name Export Prefix Mode",
         description="The prefix used in exported textures."
+    )
+
+    ui_y_scale: FloatProperty(
+        name="Interface Y Scale",
+        default=1.4,
+        description="Y scale modifier for the user interface. Can be used to help make interface elements larger so they are easier to click, and to help keep the interface less cluttered."
     )
     
     def draw(self, context):
