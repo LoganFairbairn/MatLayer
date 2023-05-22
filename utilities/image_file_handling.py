@@ -146,8 +146,10 @@ class MATLAY_OT_add_layer_image(Operator):
         # Add the new image to the selected layer.
         selected_layer_index = context.scene.matlay_layer_stack.layer_index
         texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel_name, selected_layer_index, context)
+        new_image = bpy.data.images[image_name]
         if texture_node:
-            texture_node.image = bpy.data.images[image_name]
+            texture_node.image = new_image
+            context.scene.matlay_layers[selected_layer_index].material_channel_textures.color_channel_texture = new_image
 
         # Select the new texture for painting.
         context.scene.tool_settings.image_paint.canvas = texture_node.image

@@ -403,6 +403,8 @@ class MATLAY_OT_add_paint_layer(Operator):
     def execute(self, context):
         add_layer('PAINT', self)
         matlay_utils.update_total_node_and_link_count()
+        layer_masks.add_mask('EMPTY', use_alpha=True)
+        context.scene.matlay_masks[0].mask_image = context.scene.matlay_layers[context.scene.matlay_layer_stack.layer_index].material_channel_textures.color_channel_texture
         return {'FINISHED'}
 
 class MATLAY_OT_add_layer_menu(Operator):
