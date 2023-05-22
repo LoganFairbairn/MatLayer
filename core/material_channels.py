@@ -490,10 +490,17 @@ def isolate_material_channel(isolate, material_channel_name, context):
         if texture_set_settings.global_material_channel_toggles.height_channel_toggle and texture_set_settings.global_material_channel_toggles.normal_channel_toggle:
             node_links.new(mix_normal_maps_node.outputs[1], principled_bsdf_node.inputs[22])
 
-        # Re-connect the height and normal material channels to the bump and normal map nodes inside the material channels.
-        normal_material_channel_node = get_material_channel_node(context, "NORMAL")
+        # Connect the last active normal mix node to the normal map node.
         last_layer_index = layer_nodes.get_total_number_of_layers(context) - 1
-        last_normal_mix_node = layer_nodes.get_layer_node("MIX-LAYER", "NORMAL", last_layer_index, context)
+        last_normal_mix_index = last_layer_index
+        last_normal_mix_node = layer_nodes.get_layer_node("MIX-LAYER", "NORMAL", last_normal_mix_index, context)
+        while layer_nodes.get_node_active(last_normal_mix_node) == False:
+            last_normal_mix_index -= 1
+            last_normal_mix_node = layer_nodes.get_layer_node("MIX-LAYER", "NORMAL", last_normal_mix_index, context)
+            if not last_normal_mix_node:
+                break
+
+        normal_material_channel_node = get_material_channel_node(context, "NORMAL")
         normal_map_node = normal_material_channel_node.node_tree.nodes.get('Normal Map')
         normal_group_output_node = normal_material_channel_node.node_tree.nodes.get('Group Output')
 
@@ -504,8 +511,17 @@ def isolate_material_channel(isolate, material_channel_name, context):
             normal_material_channel_node.node_tree.links.new(last_normal_mix_node.outputs[0], normal_map_node.inputs[1])
             normal_material_channel_node.node_tree.links.new(normal_map_node.outputs[0], normal_group_output_node.inputs[0])
 
+
+        # Connect the last active height mix node to the bump node.
+        last_height_mix_index = last_layer_index
+        last_height_mix_node = layer_nodes.get_layer_node("MIX-LAYER", "HEIGHT", last_height_mix_index, context)
+        while layer_nodes.get_node_active(last_height_mix_node) == False:
+            last_height_mix_index -= 1
+            last_height_mix_node = layer_nodes.get_layer_node("MIX-LAYER", "HEIGHT", last_height_mix_index, context)
+            if not last_height_mix_node:
+                break
+
         height_material_channel_node = get_material_channel_node(context, "HEIGHT")
-        last_height_mix_node = layer_nodes.get_layer_node("MIX-LAYER", "HEIGHT", last_layer_index, context)
         bump_node = height_material_channel_node.node_tree.nodes.get('Bump')
         height_group_output_node = height_material_channel_node.node_tree.nodes.get('Group Output')
         if last_height_mix_node and bump_node:
