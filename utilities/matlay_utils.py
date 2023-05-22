@@ -83,7 +83,7 @@ def delete_unused_layer_images(self, context):
                 deleted_unused_images = True
 
     if deleted_unused_images:
-        self.report({'INFO'}, "Deleted unused images.")
+        self.report({'INFO'}, "Deleted unused images. See terminal for list (on Windows: Window -> Toggle System Console)")
     else:
         self.report({'INFO'}, "No unused images to delete.")
 
