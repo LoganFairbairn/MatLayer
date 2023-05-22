@@ -113,7 +113,7 @@ def reindex_material_filter_nodes():
     selected_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
     filters = bpy.context.scene.matlay_material_filters
 
-    # 1. Update layer stack indicies first.
+    # Update layer stack indicies first.
     number_of_layers = len(filters)
     for i in range(0, number_of_layers):
         filters[i].stack_index = i
@@ -122,32 +122,35 @@ def reindex_material_filter_nodes():
     for material_channel_name in material_channel_names:
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
 
-        changed_filter_index = -1
+        changed_filter_indicies = []
         filter_added = False
         filter_deleted = False
+        filters_duplicated = False
 
-        # 2. Check for a newly added filter (signified by a tilda at the end of the node's name).
+        # Check for a newly added filter (signified by a tilda at the end of the node's name).
         for i in range(0, len(filters)):
             temp_filter_node_name = format_filter_node_name(selected_layer_index, i) + "~"
             temp_filter_node = material_channel_node.node_tree.nodes.get(temp_filter_node_name)
             if temp_filter_node:
                 filter_added = True
-                changed_filter_index = i
-                break
+                changed_filter_indicies.append(i)
 
-        # 3. Check for a deleted filter.
+        if len(changed_filter_indicies) > 1:
+            filters_duplicated = True
+
+        # Check for a deleted filter.
         if not filter_added:
             for i in range(0, len(filters)):
                 temp_filter_node_name = format_filter_node_name(selected_layer_index, i)
                 temp_filter_node = material_channel_node.node_tree.nodes.get(temp_filter_node_name)
                 if not temp_filter_node:
                     filter_deleted = True
-                    changed_filter_index = i
+                    changed_filter_indicies.append(i)
                     break
 
-        # 4. Rename filter nodes above the newly added material filter on the filter stack if any exist (in reverse order to avoid naming conflicts).
+        # Rename filter nodes above the newly added material filter on the filter stack if any exist (in reverse order to avoid naming conflicts).
         if filter_added:
-            for i in range(len(filters), changed_filter_index + 1, -1):
+            for i in range(len(filters), changed_filter_indicies[0] + 1, -1):
                 index = i - 1
                 filter_node_name = filters[index].name + "_" + str(selected_layer_index) + "_" + str(index - 1)
                 filter_node = material_channel_node.node_tree.nodes.get(filter_node_name)
@@ -158,16 +161,24 @@ def reindex_material_filter_nodes():
                     filters[index].stack_index = index
 
             # Remove the tilda from the newly added filter.
-            new_filter_node_name = format_filter_node_name(selected_layer_index, changed_filter_index) + "~"
+            new_filter_node_name = format_filter_node_name(selected_layer_index, changed_filter_indicies[0], True)
             new_filter_node = material_channel_node.node_tree.nodes.get(new_filter_node_name)
             if new_filter_node:
                 new_filter_node.name = new_filter_node_name.replace('~', '')
                 new_filter_node.label = new_filter_node.name
-                filters[changed_filter_index].stack_index = changed_filter_index
+                filters[changed_filter_indicies[0]].stack_index = changed_filter_indicies[0]
 
-        # 5. Rename filter layer nodes above the deleted filter layer if any exist.
+        if filters_duplicated:
+            for i in range(0, len(filters)):
+                new_filter_node = get_material_filter_node(material_channel_name, selected_layer_index, i, True)
+                if new_filter_node:
+                    new_filter_node.name = format_filter_node_name(selected_layer_index, i)
+                    new_filter_node.label = new_filter_node.name
+                    filters[i].stack_index = i
+
+        # Rename filter layer nodes above the deleted filter layer if any exist.
         if filter_deleted and len(filters) > 0:
-            for i in range(changed_filter_index + 1, len(filters), 1):
+            for i in range(changed_filter_indicies[0] + 1, len(filters), 1):
                 old_filter_node_name = format_filter_node_name(selected_layer_index, i)
                 filter_node = material_channel_node.node_tree.nodes.get(old_filter_node_name)
 

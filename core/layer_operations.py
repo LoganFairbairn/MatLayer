@@ -290,7 +290,7 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
                     new_mask_filter_node.default_value[0] = original_mask_filter_node.default_value[0]
                 case 'VALTORGB':
                     for i in range(len(new_mask_filter_node.color_ramp.elements), len(original_mask_filter_node.color_ramp.elements)):
-                        new_mask_filter_node.color_ramp.elements.new(0.25)
+                        new_mask_filter_node.color_ramp.elements.new(0)
                     for i in range(0, len(original_mask_filter_node.color_ramp.elements)):
                         new_mask_filter_node.color_ramp.elements[i].color = original_mask_filter_node.color_ramp.elements[i].color
                         new_mask_filter_node.color_ramp.elements[i].position = original_mask_filter_node.color_ramp.elements[i].position
@@ -332,7 +332,7 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
 
         case 'VALTORGB':
             for i in range(len(duplicated_node.color_ramp.elements), len(original_node.color_ramp.elements)):
-                duplicated_node.color_ramp.elements.new(0.25)
+                duplicated_node.color_ramp.elements.new(0)
             for i in range(0, len(original_node.color_ramp.elements)):
                 duplicated_node.color_ramp.elements[i].color = original_node.color_ramp.elements[i].color
                 duplicated_node.color_ramp.elements[i].position = original_node.color_ramp.elements[i].position
