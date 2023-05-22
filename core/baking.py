@@ -217,33 +217,33 @@ def add_normal_baking_nodes(material, bake_image):
 
 #----------------------------- BAKING FUNCTIONS -----------------------------#
 
-def verify_bake_object():
+def verify_bake_object(self):
     '''Verifies the selected object can be baked to.'''
     active_object = bpy.context.active_object
     
     # Verify there is a selected object.
     if len(bpy.context.selected_objects) <= 0:
-        logging.popup_message_box("No valid selected objects, select and object to bake from.", title="User Error", icon='ERROR')
+        self.report({'ERROR'}, "No valid selected objects. Select an object before baking / exporting.")
         return False
 
     # Verify the active object exists.
     if active_object == None:
-        logging.popup_message_box("No valid active object, select an object before baking.", title="User Error", icon='ERROR')
+        self.report({'ERROR'}, "No valid active object. Select an object before baking / exporting.")
         return False
 
     # Make sure the active object is a Mesh.
     if active_object.type != 'MESH':
-        logging.popup_message_box("Selected object must be a mesh for baking / exporting.", title="User Error", icon='ERROR')
+        self.report({'ERROR'}, "Selected object must be a mesh for baking / exporting.")
         return False
 
     # Make sure the active object has a UV map.
     if active_object.data.uv_layers.active == None:
-        logging.popup_message_box("Selected object has no active UV layer.", title="User Error", icon='ERROR')
+        self.report({'ERROR'}, "Selected object has no active UV layer / map. Add a UV layer / map to your object and unwrap it.")
         return False
     
     # Check to see if the (low poly) selected active object is hidden.
     if active_object.hide_get():
-        logging.popup_message_box("Selected object is hidden.", title="User Error", icon='ERROR')
+        self.report({'ERROR'}, "Selected object is hidden. Unhide the selected object.")
         return False
     return True
 
@@ -355,7 +355,7 @@ def create_temp_bake_material(bake_type):
 
 def bake_mesh_map(bake_type, self):
     # Verify that there is a valid object to bake mesh maps for.
-    if verify_bake_object() == False:
+    if verify_bake_object(self) == False:
         return
 
     # The (low poly) selected active object should be unhiden, selectable and visible.

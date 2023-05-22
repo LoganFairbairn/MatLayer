@@ -83,12 +83,12 @@ def bake_and_export_material_channel(material_channel_name, context, self):
         return
     
     # Verify the object is valid to bake to and there is an applied material made by this add-on applied to the selected object.
-    if matlay_materials.verify_material(context) == False or baking.verify_bake_object() == False:
+    if matlay_materials.verify_material(context) == False or baking.verify_bake_object(self) == False:
         return
     
     # Ensure there is a material on the active object.
     if bpy.context.active_object.active_material == None:
-        logging.popup_message_box("Selected object doesn't have an active material.", title="User Error", icon='ERROR')
+        self.report({'INFO'}, "Selected object doesn't have an active material.")
         return
     
     # Force save all textures (unsaved texture will not bake to textures properly).
@@ -135,7 +135,7 @@ def bake_and_export_material_channel(material_channel_name, context, self):
         if export_image.is_dirty:
             export_image.save()
         else:
-            logging.popup_message_box("Exported image pixel data wasn't updated during baking.", "MatLay baking error", 'ERROR')
+            self.report({'INFO'}, "Exported image pixel data wasn't updated during baking.".format(export_path))
 
     # Delete the image node.
     material_nodes.remove(image_node)
