@@ -100,9 +100,9 @@ def draw_export_section_ui(self, context):
     export_format_example = ""
     match addon_preferences.texture_name_export_format:
         case 'STANDARD':
-            export_format_example = "Name_MaterialChannelName"
+            export_format_example = "ObjectName_MaterialChannelName"
         case 'UE_UNITY':
-            export_format_example = "T_Name_MaterialChannelAbreviation"
+            export_format_example = "T_ObjectName_MaterialChannelAbreviation"
     row.label(text=export_format_example)
 
     '''
