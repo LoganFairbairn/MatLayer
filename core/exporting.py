@@ -105,11 +105,7 @@ def bake_and_export_material_channel(material_channel_name, context, self):
     export_image = create_export_image(export_image_name)
 
     # Create a folder for the exported texture files.
-    matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
-    if os.path.exists(matlay_image_path) == False:
-        os.mkdir(matlay_image_path)
-
-    export_path = os.path.join(matlay_image_path, "Textures")
+    export_path = os.path.join(bpy.path.abspath("//"), "Textures")
     if os.path.exists(export_path) == False:
         os.mkdir(export_path)
 
