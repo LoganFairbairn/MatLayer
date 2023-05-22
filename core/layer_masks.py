@@ -895,7 +895,7 @@ def read_mask_nodes(context):
 
         # Read the mask node type and image into the ui.
         if texture_node:
-            match mask.node_type:
+            match texture_node.bl_static_type:
                 case 'TEX_IMAGE':
                     mask.node_type = 'TEXTURE'
                             
