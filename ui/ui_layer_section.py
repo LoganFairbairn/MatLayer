@@ -540,18 +540,15 @@ def draw_mask_node_properties(column):
     selected_material_channel = bpy.context.scene.matlay_layer_stack.selected_material_channel
     masks = bpy.context.scene.matlay_masks
 
-    subrow = column.row(align=True)
-    subrow.scale_y = 1.4
-    subrow.label(text="Mask Node Type")
-    subrow.prop(masks[selected_mask_index], "node_type", text="")
+    column.label(text="MASK PROPERTIES")
 
     # Draw node properties based on mask node type.
     mask_node = layer_masks.get_mask_node('MASK-TEXTURE', selected_material_channel, selected_layer_index, selected_mask_index)
     if mask_node:
         subrow = column.row(align=True)
         subrow.scale_y = 1.4
-        match masks[selected_mask_index].node_type:
-            case 'TEXTURE':
+        match mask_node.bl_static_type:
+            case 'TEX_IMAGE':
                 selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
                 masks = bpy.context.scene.matlay_masks
 
@@ -567,12 +564,12 @@ def draw_mask_node_properties(column):
                 subrow.prop(masks[selected_mask_index], 'use_alpha', icon='IMAGE_ALPHA', icon_only=True, toggle=True)
                 subrow.operator("matlay.delete_mask_image", icon="TRASH", text="")
 
-            case 'GROUP_NODE':
+            case 'GROUP':
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
                 subrow.template_ID(mask_node, "node_tree") 
 
-            case "NOISE":
+            case "TEX_NOISE":
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node, "noise_dimensions", text="", slider=True)
@@ -589,7 +586,7 @@ def draw_mask_node_properties(column):
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node.inputs[5], "default_value", text="Distortion", slider=True)
 
-            case "VORONOI":
+            case "TEX_VORONOI":
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node, "voronoi_dimensions", text="", slider=True)
@@ -606,7 +603,7 @@ def draw_mask_node_properties(column):
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node.inputs[3], "default_value", text="Randomness", slider=True)
 
-            case "MUSGRAVE":
+            case "TEX_MUSGRAVE":
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
                 subrow.prop(mask_node, "musgrave_dimensions", text="", slider=True)
@@ -674,12 +671,14 @@ def draw_mask_properties(column):
     
     mask_stack = bpy.context.scene.matlay_mask_stack
     selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
-    selected_material_layer = bpy.context.scene.matlay_layers[bpy.context.scene.matlay_layer_stack.layer_index]
+    selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
+    selected_material_layer = bpy.context.scene.matlay_layers[selected_material_layer_index]
 
     subrow = column.row(align=True)
     subrow.scale_y = 1.4
     subrow.prop_enum(mask_stack, "mask_property_tab", 'MASK', text='Mask')
-    if masks[selected_mask_index].node_type == 'TEXTURE' and selected_material_layer.type != 'DECAL':
+    mask_node = layer_masks.get_mask_node('MASK-TEXTURE', 'COLOR', selected_material_layer_index, selected_mask_index)
+    if mask_node.bl_static_type == 'TEX_IMAGE' and selected_material_layer.type != 'DECAL':
         subrow.prop_enum(mask_stack, "mask_property_tab", 'PROJECTION', text='Projection')
     subrow.prop_enum(mask_stack, "mask_property_tab", 'FILTERS', text='Mask Filters')
 
