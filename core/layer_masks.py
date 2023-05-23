@@ -514,7 +514,7 @@ def get_mask_nodes_in_material_layer(material_stack_index, material_channel_name
     return nodes
 
 def reindex_mask_nodes(change_made, changed_mask_index=0):
-    '''Updates mask node indicies based on the change provided. Valid arguments include: 'ADD-MOVE', 'DELETED', 'DUPLICATED' '''
+    '''Reindexes all nodes for the mask at the given mask index based on the indicated change. Valid arguments include: 'ADDED', 'MOVED', 'DELETED', 'DUPLICATED'''
 
     # Only reindex mask nodes if masks exist.
     masks = bpy.context.scene.matlay_masks
@@ -526,10 +526,14 @@ def reindex_mask_nodes(change_made, changed_mask_index=0):
     for i in range(0, number_of_layers):
         masks[i].stack_index = i
 
+    # Added / moved nodes will be reindexed in using the same method.
+    if change_made == 'MOVED':
+        change_made = 'ADDED'
+
     selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
 
     match change_made:
-        case 'ADD-MOVE':
+        case 'ADDED':
             # Reindex mask nodes above the newly added mask (in reverse order to avoid naming conflicts) and then reindex the newly added mask.
             for material_channel_name in material_channels.get_material_channel_list():
                 material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)

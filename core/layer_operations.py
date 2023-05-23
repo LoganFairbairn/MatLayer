@@ -69,6 +69,8 @@ def add_layer_slot(layer_type):
                 id_exists = False
                 layers[selected_layer_index].id = new_id
 
+    return context.scene.matlay_layer_stack.layer_index
+
 def add_default_layer_nodes(layer_type, decal_object):
     '''Adds default nodes based on the provided layer type.'''
     context = bpy.context
@@ -234,13 +236,13 @@ def add_layer(layer_type, self, decal_object=None, ):
     material_channels.create_empty_group_node(context)
 
     # Add a new layer slot and default nodes.
-    add_layer_slot(layer_type)
+    new_material_layer_index = add_layer_slot(layer_type)
     add_default_layer_nodes(layer_type, decal_object)
     
     # Re-index, organize and relink nodes.
-    layer_nodes.reindex_material_layer_nodes()
+    layer_nodes.reindex_material_layer_nodes('ADDED', new_material_layer_index)
     layer_nodes.organize_all_layer_nodes()
-    layer_nodes.relink_material_nodes(context.scene.matlay_layer_stack.layer_index)
+    layer_nodes.relink_material_nodes(new_material_layer_index)
     layer_nodes.relink_material_layers()
 
     # Set default layer properties.
@@ -597,7 +599,7 @@ class MATLAY_OT_move_material_layer(Operator):
         context.scene.matlay_layer_stack.layer_index = index_to_move_to
 
         # 6. Update the layer stack (organize, re-link).
-        layer_nodes.reindex_material_layer_nodes()
+        layer_nodes.reindex_material_layer_nodes('MOVED', selected_material_layer_index)
         layer_nodes.organize_all_layer_nodes()
         layer_nodes.relink_material_layers()
 
@@ -668,7 +670,7 @@ class MATLAY_OT_delete_layer(Operator):
         context.scene.matlay_layer_stack.layer_index = max(min(selected_material_layer_index - 1, len(layers) - 1), 0)
 
         # Update the layer nodes.
-        layer_nodes.reindex_material_layer_nodes()
+        layer_nodes.reindex_material_layer_nodes('DELETED', selected_material_layer_index)
         layer_nodes.organize_all_layer_nodes()
         layer_nodes.relink_material_layers()
 
@@ -772,7 +774,7 @@ class MATLAY_OT_duplicate_layer(Operator):
 
         # Reindex all nodes.
         material_filters.reindex_material_filter_nodes()
-        layer_nodes.reindex_material_layer_nodes()
+        layer_nodes.reindex_material_layer_nodes('DUPLICATED', new_material_layer_index)
         layer_masks.reindex_mask_filters_nodes(filters_duplicated=True)
         layer_masks.reindex_mask_nodes('DUPLICATED', new_material_layer_index)
 
