@@ -444,7 +444,7 @@ def reindex_material_layer_nodes():
             changed_layer_index = i
             break
 
-    # Check for a deleted layer (if there isn't a newly added layer).
+    # Check for a deleted layer.
     if not node_added:
         for i in range(0, len(layers)):
             frame = get_layer_frame(material_channel_name, i, bpy.context)
@@ -455,6 +455,7 @@ def reindex_material_layer_nodes():
 
 
     #-------------- REINDEX MASK FILTER NODE TREES --------------#
+
     # Reindex mask filter node trees for all layers above the newly added layer.
     if node_added:
         masks = bpy.context.scene.matlay_masks
@@ -472,14 +473,15 @@ def reindex_material_layer_nodes():
                 new_name = layer_masks.format_mask_filter_node_name(changed_layer_index, i, x)
                 layer_masks.rename_mask_filter_node_tree(old_name, new_name)
 
-    # Reindex all mask filter node trees for all layers below the newly added layer.
+    # Reindex all mask filter node trees for all layers above the deleted layer.
     if node_deleted:
         for i in range(changed_layer_index, len(layers), 1):
             index = i + 1
             mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, index, False)
             for node in mask_filter_nodes:
-                old_name = layer_masks.format_mask_filter_node_name(index + 1, node_info[3], node_info[4])
-                new_name = layer_masks.format_mask_filter_node_name(index, node_info[3], node_info[4])
+                node_info = node.name.split('_')
+                old_name = layer_masks.format_mask_filter_node_name(i + 1, node_info[3], node_info[4])
+                new_name = layer_masks.format_mask_filter_node_name(i, node_info[3], node_info[4])
                 layer_masks.rename_mask_filter_node_tree(old_name, new_name)
 
 

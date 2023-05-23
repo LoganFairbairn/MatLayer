@@ -558,6 +558,13 @@ def reindex_mask_nodes(context):
                     changed_indicies.append(i)
                     break
 
+        #-------------- REINDEX MASK FILTER NODE TREES --------------#
+
+        # TODO: Reindex mask filter nodes.
+
+
+
+        #-------------- REINDEX MASK NODES --------------#
         # Rename mask nodes above the newly added mask on the mask stack if any exist (in reverse order to avoid naming conflicts).
         if mask_added:
             changed_index = changed_indicies[0]
@@ -1679,7 +1686,7 @@ def get_all_mask_filter_nodes_in_layer(material_channel_name, material_layer_ind
     return nodes
 
 def reindex_mask_filters_nodes(filters_duplicated=False):
-    '''Reindexes mask filters by renaming nodes based added, edited, or deleted nodes.'''
+    '''Reindexes mask filters by renaming nodes marked as edited with a tilda (for newly added or edited mask filters), or missing nodes (for deleted mask filters).'''
     selected_material_index = bpy.context.scene.matlay_layer_stack.layer_index
     selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
     mask_filters = bpy.context.scene.matlay_mask_filters
