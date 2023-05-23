@@ -105,7 +105,7 @@ def get_filter_nodes_count(material_layer_index):
     return number_of_filter_nodes
 
 def reindex_material_filter_nodes(change_made, changed_material_filter_index=0):
-    '''Reindexes material filter nodes based off the provided change and index. Valid arguments include: 'ADDED', 'MOVED', 'DELETED', 'DUPLICATED'''
+    '''Reindexes material filter nodes based off the provided change and index. Valid arguments include: 'ADDED', 'DELETED' '''
     
     # Do not reindex material filter nodes if there are no layers.
     number_of_material_layers = len(bpy.context.scene.matlay_layers)
@@ -121,10 +121,6 @@ def reindex_material_filter_nodes(change_made, changed_material_filter_index=0):
     number_of_layers = len(filters)
     for i in range(0, number_of_layers):
         filters[i].stack_index = i
-
-    # Added / moved nodes will be reindexed in using the same method.
-    if change_made == 'MOVED':
-        change_made = 'ADDED'
 
     selected_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
 
@@ -160,16 +156,6 @@ def reindex_material_filter_nodes(change_made, changed_material_filter_index=0):
                     filter_node.name = format_filter_node_name(selected_layer_index, i - 1)
                     filter_node.label = filter_node.name
                     filters[i].stack_index = i - 1
-    
-        case 'DUPLICATED':
-            for material_channel_name in material_channels.get_material_channel_list():
-                material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
-                for i in range(0, len(filters)):
-                    new_filter_node = get_material_filter_node(material_channel_name, selected_layer_index, i, True)
-                    if new_filter_node:
-                        new_filter_node.name = format_filter_node_name(selected_layer_index, i)
-                        new_filter_node.label = new_filter_node.name
-                        filters[i].stack_index = i
 
 def relink_material_filter_nodes(material_layer_index):
     '''Relinks material filter nodes with other material filter nodes.'''

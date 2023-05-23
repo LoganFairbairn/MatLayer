@@ -224,16 +224,15 @@ def set_default_layer_properties(layer_type):
 
             context.scene.matlay_layer_stack.auto_update_layer_properties = True
 
-def add_layer(layer_type, self, decal_object=None, ):
+def add_layer(layer_type, self, decal_object=None):
     '''Adds a material layer setup based on the provided layer type.'''
-    context = bpy.context
 
     # Validate and prepare the material for the selected object.
     matlay_utils.set_valid_mode()
-    if not matlay_materials.prepare_material(context, self):
+    if not matlay_materials.prepare_material(bpy.context, self):
         return
-    material_channels.create_channel_group_nodes(context)
-    material_channels.create_empty_group_node(context)
+    material_channels.create_channel_group_nodes(bpy.context)
+    material_channels.create_empty_group_node(bpy.context)
 
     # Add a new layer slot and default nodes.
     new_material_layer_index = add_layer_slot(layer_type)
@@ -246,12 +245,20 @@ def add_layer(layer_type, self, decal_object=None, ):
     layer_nodes.relink_material_layers()
 
     # Set default layer properties.
-    set_default_layer_properties(layer_type)    
+    set_default_layer_properties(layer_type)
+
+    # Clear and reset indexes for material, mask and mask filters (no new material layers should have these initially).
+    bpy.context.scene.matlay_material_filters.clear()
+    bpy.context.scene.matlay_material_filter_stack.selected_filter_index = -1
+    bpy.context.scene.matlay_masks.clear()
+    bpy.context.scene.matlay_mask_stack.selected_mask_index = -1
+    bpy.context.scene.matlay_mask_filters.clear()
+    bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_index = -1
 
     # Set a valid material shading mode and reset ui tabs.
-    matlay_utils.set_valid_material_shading_mode(context)
-    context.scene.matlay_layer_stack.layer_property_tab = 'MATERIAL'
-    context.scene.matlay_layer_stack.material_property_tab = 'MATERIAL'
+    matlay_utils.set_valid_material_shading_mode(bpy.context)
+    bpy.context.scene.matlay_layer_stack.layer_property_tab = 'MATERIAL'
+    bpy.context.scene.matlay_layer_stack.material_property_tab = 'MATERIAL'
 
 def duplicate_node(material_channel_node, original_node, new_material_layer_index):
     '''Duplicates the provided node.'''
@@ -289,7 +296,7 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
             new_mask_filter_node = duplicated_node.node_tree.nodes.get(duplicated_node.node_tree.name)
             match new_mask_filter_node.bl_static_type:
                 case 'INVERT':
-                    new_mask_filter_node.default_value[0] = original_mask_filter_node.default_value[0]
+                    new_mask_filter_node.inputs[0].default_value = original_mask_filter_node.inputs[0].default_value
                 case 'VALTORGB':
                     for i in range(len(new_mask_filter_node.color_ramp.elements), len(original_mask_filter_node.color_ramp.elements)):
                         new_mask_filter_node.color_ramp.elements.new(0)
@@ -598,8 +605,8 @@ class MATLAY_OT_move_material_layer(Operator):
         layers.move(selected_material_layer_index, index_to_move_to)
         context.scene.matlay_layer_stack.layer_index = index_to_move_to
 
-        # 6. Update the layer stack (organize, re-link).
-        layer_nodes.reindex_material_layer_nodes('MOVED', selected_material_layer_index)
+        # Update the layer stack (organize, re-link).
+        layer_nodes.update_material_layer_indicies()
         layer_nodes.organize_all_layer_nodes()
         layer_nodes.relink_material_layers()
 
@@ -735,7 +742,7 @@ class MATLAY_OT_duplicate_layer(Operator):
         layers[new_material_layer_index].name = "{0} Copy".format(layers[original_material_layer_index].name)
         layers[new_material_layer_index].type = layers[original_material_layer_index].type
 
-        # Clear mask and filter stacks.
+        # Clear material, mask and mask filters.
         context.scene.matlay_material_filters.clear()
         context.scene.matlay_masks.clear()
         context.scene.matlay_mask_filters.clear()
@@ -772,11 +779,8 @@ class MATLAY_OT_duplicate_layer(Operator):
             for node in new_nodes:
                 node.parent = new_frame
 
-        # Reindex all nodes.
-        material_filters.reindex_material_filter_nodes('DUPLICATED')
-        layer_nodes.reindex_material_layer_nodes('DUPLICATED')
-        layer_masks.reindex_mask_filters_nodes('DUPLICATED')
-        layer_masks.reindex_mask_nodes('DUPLICATED')
+        # Reindex all material layer nodes in the duplicated layer.
+        layer_nodes.reindex_material_layer_nodes('DUPLICATED', new_material_layer_index)
 
         # For decal layers, assign the new decal object to all coord nodes.
         if layers[new_material_layer_index].type == 'DECAL':

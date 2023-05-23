@@ -513,8 +513,15 @@ def get_mask_nodes_in_material_layer(material_stack_index, material_channel_name
                     nodes.append(mask_node)
     return nodes
 
+def update_mask_stack_indicies():
+    '''Updates the index indication the mask slots position in the array stored in all masks.'''
+    masks = bpy.context.scene.matlay_masks
+    number_of_layers = len(masks)
+    for i in range(0, number_of_layers):
+        masks[i].stack_index = i
+
 def reindex_mask_nodes(change_made, changed_mask_index=0):
-    '''Reindexes all nodes for the mask at the given mask index based on the indicated change. Valid arguments include: 'ADDED', 'MOVED', 'DELETED', 'DUPLICATED'''
+    '''Reindexes all nodes for the mask at the given mask index based on the indicated change. Valid arguments include: 'ADDED', 'DELETED' '''
 
     # Only reindex mask nodes if masks exist.
     masks = bpy.context.scene.matlay_masks
@@ -522,18 +529,20 @@ def reindex_mask_nodes(change_made, changed_mask_index=0):
         return
 
     # Update mask stack indicies.
-    number_of_layers = len(masks)
-    for i in range(0, number_of_layers):
-        masks[i].stack_index = i
-
-    # Added / moved nodes will be reindexed in using the same method.
-    if change_made == 'MOVED':
-        change_made = 'ADDED'
+    update_mask_stack_indicies()
 
     selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
 
     match change_made:
         case 'ADDED':
+            # Reindex all mask filter node trees associated with masks above the added mask.
+            for i in range(len(masks), changed_mask_index + 1, -1):
+                mask_filter_nodes = get_all_mask_filter_nodes('COLOR', selected_material_layer_index, i - 2)
+                for x in range(0, len(mask_filter_nodes)):
+                    old_name = format_mask_filter_node_name(selected_material_layer_index, i - 2, x)
+                    new_name = format_mask_filter_node_name(selected_material_layer_index, i - 1, x)
+                    rename_mask_filter_node_tree(old_name, new_name)
+
             # Reindex mask nodes above the newly added mask (in reverse order to avoid naming conflicts) and then reindex the newly added mask.
             for material_channel_name in material_channels.get_material_channel_list():
                 material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
@@ -545,6 +554,12 @@ def reindex_mask_nodes(change_made, changed_mask_index=0):
                             mask_node.label = mask_node.name
                             masks[changed_mask_index].stack_index = changed_mask_index
 
+                    mask_filter_nodes = get_all_mask_filter_nodes(material_channel_name, selected_material_layer_index, i - 2)
+                    for x in range(0, len(mask_filter_nodes)):
+                        old_name = format_mask_filter_node_name(selected_material_layer_index, i - 2, x)
+                        new_name = format_mask_filter_node_name(selected_material_layer_index, i - 1, x)
+                        rename_mask_filter_group_node(material_channel_name, old_name, new_name)
+
                 for name in MASK_NODE_NAMES:
                     new_mask_node = get_mask_node(name, material_channel_name, selected_material_layer_index, changed_mask_index, True)
                     if new_mask_node:
@@ -552,19 +567,20 @@ def reindex_mask_nodes(change_made, changed_mask_index=0):
                         new_mask_node.label = new_mask_node.name
                         masks[changed_mask_index].stack_index = changed_mask_index
 
-            # Reindex all mask filter node trees associated with masks above the added mask.
-            for i in range(len(masks), changed_mask_index + 1, -1):
-                mask_filters = get_all_mask_filter_nodes('COLOR', selected_material_layer_index, i)
-                for x in range(0, len(mask_filters)):
-                    old_name = format_mask_filter_node_name(selected_material_layer_index, i - 2, x)
-                    new_name = format_mask_filter_node_name(selected_material_layer_index, i - 1, x)
+        case 'DELETED':
+            # Reindex all mask filter node trees associated with masks above the deleted mask.
+            for i in range(changed_mask_index + 1, len(masks)):
+                mask_filter_nodes = get_all_mask_filter_nodes('COLOR', selected_material_layer_index, i)
+                for node in mask_filter_nodes:
+                    node_info = node.name.split('_')
+                    old_name = format_mask_filter_node_name(selected_material_layer_index, i, node_info[4])
+                    new_name = format_mask_filter_node_name(selected_material_layer_index, i - 1, node_info[4])
                     rename_mask_filter_node_tree(old_name, new_name)
 
-        case 'DELETED':
             # Reindex mask nodes and mask filter node trees for all masks above the deleted layer.
             for material_channel_name in material_channels.get_material_channel_list():
                 material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
-                for i in range(changed_mask_index + 1, len(masks), 1):
+                for i in range(changed_mask_index + 1, len(masks)):
                     for name in MASK_NODE_NAMES:
                         old_name = format_mask_node_name(name, selected_material_layer_index, i)
                         mask_node = material_channel_node.node_tree.nodes.get(old_name)
@@ -573,25 +589,13 @@ def reindex_mask_nodes(change_made, changed_mask_index=0):
                             mask_node.label = mask_node.name
                             masks[i].stack_index = i - 1
 
-            # Reindex all mask filter node trees associated with masks above the deleted mask.
-            for i in range(changed_mask_index, len(masks)):
-                mask_filter_nodes = get_all_mask_filter_nodes_in_layer(material_channel_name, selected_material_layer_index)
-                for node in mask_filter_nodes:
-                    node_info = node.name.split('_')
-                    old_name = format_mask_filter_node_name(selected_material_layer_index, i + 1, node_info[4])
-                    new_name = format_mask_filter_node_name(selected_material_layer_index, i, node_info[4])
-                    rename_mask_filter_node_tree(old_name, new_name)
+                    mask_filter_nodes = get_all_mask_filter_nodes(material_channel_name, selected_material_layer_index, i)
+                    for x in range(0, len(mask_filter_nodes)):
+                        old_name = format_mask_filter_node_name(selected_material_layer_index, i, x)
+                        new_name = format_mask_filter_node_name(selected_material_layer_index, i - 1, x)
+                        rename_mask_filter_group_node(material_channel_name, old_name, new_name)
 
-        case 'DUPLICATED':
-            # Reindex all mask nodes and mask filter node trees for all masks above the duplicated layer and then reindex the duplicated mask.
-            for i in range(0, len(masks)):
-                for name in MASK_NODE_NAMES:
-                    duplicated_mask_node_name = format_mask_node_name(name, selected_material_layer_index, i, True)
-                    duplicated_mask_node = material_channel_node.node_tree.nodes.get(duplicated_mask_node_name)
-                    if duplicated_mask_node:
-                        duplicated_mask_node.name = duplicated_mask_node_name.replace('~', '')
-                        duplicated_mask_node.label = duplicated_mask_node.name
-                        masks[i].stack_index = i
+
 
 def relink_mask_nodes(material_layer_index):
     '''Re-links layer mask nodes.'''
@@ -734,11 +738,11 @@ def relink_mask_nodes(material_layer_index):
         if opacity_node and last_active_mask_mix_node:
             material_channel_node.node_tree.links.new(last_active_mask_mix_node.outputs[0], opacity_node.inputs[0])
 
-def count_masks(material_stack_index):
+def count_masks(material_layer_index):
     '''Counts the total number of masks applied to a specified material layer by reading the material node tree.'''
     count = 0
     for i in range(0, MAX_LAYER_MASKS):
-        if get_mask_node('MASK-TEXTURE', 'COLOR', material_stack_index, i):
+        if get_mask_node('MASK-TEXTURE', 'COLOR', material_layer_index, i):
             count += 1
         else:
             break
@@ -1004,22 +1008,25 @@ def add_default_mask_nodes(mask_type, context):
 
 def add_mask(mask_type, use_alpha=False):
     '''Adds a mask of the specified type to the selected material layer.'''
+
+    # Temporarily turn off auto updating for mask properties so mask property callback functions do not interupt this function.
     bpy.context.scene.matlay_mask_stack.auto_update_mask_properties = False
     masks = bpy.context.scene.matlay_masks
-    selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
-    selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
 
-    # Stop users from adding too many masks.
+    # For performance / best practice purposes stop users from adding too many masks.
     if len(masks) >= MAX_LAYER_MASKS:
         logging.popup_message_box("You can't have more than {0} masks on a single layer. This is a safeguard to stop users from adding an unnecessary amount of masks, which will impact performance.".format(MAX_LAYER_MASKS), 'User Error', 'ERROR')
         return
 
+    # Add a new mask slot and apply the use alpha setting.
     new_mask_slot_index = add_mask_slot(bpy.context)
     if use_alpha:
         bpy.context.scene.matlay_masks[new_mask_slot_index].use_alpha = True
+
+    # Add, reindex, relink and organize nodes.
     add_default_mask_nodes(mask_type, bpy.context)
-    reindex_mask_nodes('ADD-MOVE', new_mask_slot_index)
-    relink_mask_nodes(new_mask_slot_index)
+    reindex_mask_nodes('ADDED', new_mask_slot_index)
+    relink_mask_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
     layer_nodes.organize_all_layer_nodes()
     read_mask_filter_nodes(bpy.context)
 
@@ -1034,6 +1041,7 @@ def add_mask(mask_type, use_alpha=False):
     # Select the mask section so users can quickly edit the new mask.
     bpy.context.scene.matlay_mask_stack.mask_property_tab = 'MASK'
 
+    # Turn auto updating for mask properties back on.
     bpy.context.scene.matlay_mask_stack.auto_update_mask_properties = True
 
     matlay_utils.update_total_node_and_link_count()
@@ -1059,7 +1067,29 @@ def move_mask(direction, context):
     else:
         moving_to_index = max(min(selected_mask_index - 1, len(masks) - 1), 0)
 
-    # 1. Add a tilda to the end of all the mask nodes to signify they are being edited (and to avoid naming conflicts).
+    #-------------- REINDEX MASK FILTER NODE TREES --------------#
+
+    total_mask_filter_node_trees = count_mask_filter_node_trees(selected_material_layer_index, selected_mask_index)
+    for i in range(0, total_mask_filter_node_trees):
+        old_name = format_mask_filter_node_name(selected_material_layer_index, selected_mask_index, i)
+        new_name = format_mask_filter_node_name(selected_material_layer_index, selected_mask_index, i, True)
+        rename_mask_filter_node_tree(old_name, new_name)
+
+    total_mask_filter_node_trees = count_mask_filter_node_trees(selected_material_layer_index, moving_to_index)
+    for i in range(0, total_mask_filter_node_trees):
+        old_name = format_mask_filter_node_name(selected_material_layer_index, moving_to_index, i)
+        new_name = format_mask_filter_node_name(selected_material_layer_index, selected_mask_index, i)
+        rename_mask_filter_node_tree(old_name, new_name)
+
+    total_mask_filter_node_trees = count_mask_filter_node_trees(selected_material_layer_index, selected_mask_index, True)
+    for i in range(0, total_mask_filter_node_trees):
+        old_name = format_mask_filter_node_name(selected_material_layer_index, selected_mask_index, i, True)
+        new_name = format_mask_filter_node_name(selected_material_layer_index, moving_to_index, i)
+        rename_mask_filter_node_tree(old_name, new_name)
+
+    #-------------- REINDEX MASK AND MASK FILTER NODES --------------#
+
+    # Add a tilda to the end of all the mask nodes to signify they are being edited (and to avoid naming conflicts).
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         nodes = get_mask_nodes(material_channel_name, selected_material_layer_index, selected_mask_index)
@@ -1067,7 +1097,13 @@ def move_mask(direction, context):
             node.name = node.name + "~"
             node.label = node.name
 
-    # 2. Update the mask node names for the layer below or above the selected index.
+        mask_filters = get_all_mask_filter_nodes(material_channel_name, selected_material_layer_index, selected_mask_index)
+        for i in range(0, len(mask_filters)):
+            old_name = format_mask_filter_node_name(selected_material_layer_index, selected_mask_index, i)
+            new_name = format_mask_filter_node_name(selected_material_layer_index, selected_mask_index, i, True)
+            rename_mask_filter_group_node(material_channel_name, old_name, new_name)
+
+    # Update the mask node names for the layer below or above the selected index.
     for material_channel_name in material_channel_list:
         nodes = get_mask_nodes(material_channel_name, selected_material_layer_index, moving_to_index)
         for node in nodes:
@@ -1075,7 +1111,13 @@ def move_mask(direction, context):
             node.name = node_info[0] + "_" + str(selected_material_layer_index) + "_" + str(selected_mask_index)
             node.label = node.name
 
-    # 3. Remove the tilda from the end of the mask node names that were edited and re-index them.
+        mask_filters = get_all_mask_filter_nodes(material_channel_name, selected_material_layer_index, moving_to_index)
+        for i in range(0, len(mask_filters)):
+            old_name = format_mask_filter_node_name(selected_material_layer_index, moving_to_index, i)
+            new_name = format_mask_filter_node_name(selected_material_layer_index, selected_mask_index, i)
+            rename_mask_filter_group_node(material_channel_name, old_name, new_name)
+
+    # Remove the tilda from the end of the mask node names that were edited and re-index them.
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
         nodes = get_mask_nodes(material_channel_name, selected_material_layer_index, selected_mask_index, True)
@@ -1084,7 +1126,13 @@ def move_mask(direction, context):
             node.name = node_info[0] + "_" + str(selected_material_layer_index) + "_" + str(moving_to_index)
             node.label = node.name
 
-    # 4. Move the selected mask on the ui stack.
+        mask_filters = get_all_mask_filter_nodes(material_channel_name, selected_material_layer_index, selected_mask_index, True)
+        for i in range(0, len(mask_filters)):
+            old_name = format_mask_filter_node_name(selected_material_layer_index, selected_mask_index, i, True)
+            new_name = format_mask_filter_node_name(selected_material_layer_index, moving_to_index, i)
+            rename_mask_filter_group_node(material_channel_name, old_name, new_name)
+
+    # Move the selected mask on the ui stack.
     if direction == 'UP':
         index_to_move_to = max(min(selected_mask_index + 1, len(masks) - 1), 0)
     else:
@@ -1092,8 +1140,8 @@ def move_mask(direction, context):
     masks.move(selected_mask_index, index_to_move_to)
     context.scene.matlay_mask_stack.selected_mask_index = index_to_move_to
 
-    # 6. Re-link and organize mask nodes.
-    reindex_mask_nodes('ADD-MOVE', selected_mask_index)
+    # Re-link and organize mask nodes.
+    update_mask_stack_indicies()
     relink_mask_nodes(selected_material_layer_index)
     layer_nodes.organize_all_layer_nodes()
 
@@ -1622,7 +1670,7 @@ def rename_mask_filter_node_tree(old_name, new_name):
             mask_filter_node.label = new_name
 
 def rename_mask_filter_group_node(material_channel_name, old_name, new_name):
-    '''Renames the mask file group node in all material channels.'''
+    '''Renames the group node holding the mask filter.'''
     material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
     if material_channel_node:
         mask_filter_group_node = material_channel_node.node_tree.nodes.get(old_name)
@@ -1639,7 +1687,7 @@ def get_mask_filter_group_node(material_channel_name, material_layer_index, mask
     return None
 
 def get_mask_filter_node(material_channel_name, material_layer_index, mask_index, mask_filter_index, get_edited=False):
-    '''Returns the mask filter node inside the group node.'''
+    '''Returns the mask filter node INSIDE the group node.'''
     material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
     if material_channel_node:
         node_name = format_mask_filter_node_name(material_layer_index, mask_index, mask_filter_index, get_edited)
@@ -1669,12 +1717,21 @@ def get_all_mask_filter_nodes_in_layer(material_channel_name, material_layer_ind
             nodes.append(node)
     return nodes
 
+def count_mask_filter_node_trees(material_layer_index, mask_index, get_edited=False):
+    '''Counts the total number of mask filters for the mask at the given index.'''
+    total_mask_filter_node_trees = 0
+    for i in range(0, MAX_MASK_FILTERS):
+        mask_filter_name = format_mask_filter_node_name(material_layer_index, mask_index, i, get_edited)
+        mask_filter_node_tree = bpy.data.node_groups.get(mask_filter_name)
+        if mask_filter_node_tree:
+            total_mask_filter_node_trees += 1
+    return total_mask_filter_node_trees
+
 def reindex_mask_filters_nodes(change_made, changed_mask_filter_index=0):
-    '''Reindexes mask filter nodes based off the provided change and index. Valid arguments include: 'ADDED', 'MOVED', 'DELETED', 'DUPLICATED'''
+    '''Reindexes mask filter nodes based off the provided change and index. Valid arguments include: 'ADDED', 'DELETED' '''
     selected_material_index = bpy.context.scene.matlay_layer_stack.layer_index
     selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
     mask_filters = bpy.context.scene.matlay_mask_filters
-    masks = bpy.context.scene.matlay_masks
 
     # Do not reindex mask filter nodes if there are no mask filters.
     if len(mask_filters) <= 0:
@@ -1684,10 +1741,6 @@ def reindex_mask_filters_nodes(change_made, changed_mask_filter_index=0):
     number_of_filters = len(mask_filters)
     for i in range(0, number_of_filters):
         mask_filters[i].stack_index = i
-
-    # Added / moved nodes will be reindexed in using the same method.
-    if change_made == 'MOVED':
-        change_made = 'ADDED'
 
     match change_made:
         case 'ADDED':
@@ -1716,33 +1769,20 @@ def reindex_mask_filters_nodes(change_made, changed_mask_filter_index=0):
             rename_mask_filter_node_tree(old_name, new_name)
 
         case 'DELETED':
-            if len(mask_filters) > 0:
-                for i in range(changed_mask_filter_index + 1, len(mask_filters), 1):
-                    old_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i)
-                    new_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i - 1)
-                    rename_mask_filter_group_node(material_channel_name, old_name, new_name)
-                    mask_filters[i].stack_index = i - 1
+            # Reindex all mask filter nodes above the changed mask filter.
+            for material_channel_name in material_channels.get_material_channel_list():
+                if len(mask_filters) > 0:
+                    for i in range(changed_mask_filter_index + 1, len(mask_filters), 1):
+                        old_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i)
+                        new_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i - 1)
+                        rename_mask_filter_group_node(material_channel_name, old_name, new_name)
+                        mask_filters[i].stack_index = i - 1
 
-            # Reduce the index of the mask filter node trees above the deleted mask fitler node tree.
+            # Reindex mask filter node trees for all masks above the changed mask filter.
             for i in range(changed_mask_filter_index + 1, len(mask_filters), 1):
                 old_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i)
                 new_name = format_mask_filter_node_name(selected_material_index, selected_mask_index, i - 1)
                 rename_mask_filter_node_tree(old_name, new_name)
-                
-        case 'DUPLICATED':
-            for i in range(0, len(masks)):
-                for c in range(0, len(mask_filters)):
-                    old_name = format_mask_filter_node_name(selected_material_index, i, c, True)
-                    new_name = format_mask_filter_node_name(selected_material_index, i, c)
-                    rename_mask_filter_group_node(material_channel_name, old_name, new_name)
-                    mask_filters[c].stack_index = c
-
-            # Remove the tilda from all duplicated mask filters for all masks.
-            for i in range(0, len(masks)):
-                for c in range(0, len(mask_filters)):
-                    old_name = format_mask_filter_node_name(selected_material_index, i, c, True)
-                    new_name = format_mask_filter_node_name(selected_material_index, i, c)
-                    rename_mask_filter_node_tree(old_name, new_name)
 
 def relink_mask_filter_nodes():
     '''Relinks all mask filter nodes with other mask filter nodes.'''
