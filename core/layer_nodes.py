@@ -459,6 +459,8 @@ def reindex_material_layer_nodes():
     # Reindex mask filter node trees for all layers above the newly added layer.
     if node_added:
         masks = bpy.context.scene.matlay_masks
+
+        # ERROR HERE MASKS / MASK FILTER LENGTH IS WRONG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         mask_filters = bpy.context.scene.matlay_mask_filters
         for c in range(len(layers), changed_layer_index + 1, -1):
             for i in range(0, len(masks)):
@@ -475,7 +477,7 @@ def reindex_material_layer_nodes():
 
     # Reindex all mask filter node trees for all layers above the deleted layer.
     if node_deleted:
-        for i in range(changed_layer_index, len(layers), 1):
+        for i in range(changed_layer_index, len(layers)):
             index = i + 1
             mask_filter_nodes = layer_masks.get_all_mask_filter_nodes_in_layer(material_channel_name, index, False)
             for node in mask_filter_nodes:

@@ -774,7 +774,7 @@ class MATLAY_OT_duplicate_layer(Operator):
         material_filters.reindex_material_filter_nodes()
         layer_nodes.reindex_material_layer_nodes()
         layer_masks.reindex_mask_filters_nodes(filters_duplicated=True)
-        layer_masks.reindex_mask_nodes(context)
+        layer_masks.reindex_mask_nodes('DUPLICATED', new_material_layer_index)
 
         # For decal layers, assign the new decal object to all coord nodes.
         if layers[new_material_layer_index].type == 'DECAL':
