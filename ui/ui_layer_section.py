@@ -450,6 +450,7 @@ def draw_material_filters(column, context, layout):
     # Draw filter stack.
     layer_filter_stack = context.scene.matlay_material_filter_stack
     row = column.row(align=True)
+    row.scale_y = 2.0
     row.template_list("MATLAY_UL_layer_filter_stack", "Layers", context.scene, "matlay_material_filters", layer_filter_stack, "selected_filter_index", sort_reverse=True)
 
     # Only draw filter settings if filters exist on the selected layer.
@@ -643,6 +644,7 @@ def draw_mask_filters(column):
 
     mask_filter_stack = bpy.context.scene.matlay_mask_filter_stack
     subrow = column.row(align=True)
+    subrow.scale_y = 2.0
     subrow.template_list("MATLAY_UL_mask_filter_stack", "Masks", bpy.context.scene, "matlay_mask_filters", mask_filter_stack, "selected_mask_filter_index", sort_reverse=True)
 
     # Draw node settings based on the node type.
