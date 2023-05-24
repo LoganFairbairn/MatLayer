@@ -298,7 +298,6 @@ def draw_texture_node_settings(column, texture_node, texture_node_type, layer, m
             subrow = column.row(align=True)
             subrow.scale_y = SCALE_Y
             subrow.prop(layer.material_channel_textures, material_channel_name.lower() + "_channel_texture", text="")
-            #subrow.prop(texture_node, "image", text="")
 
             # Draw buttons to add / import / delete image textures quickly.
             add_layer_image_operator = subrow.operator("matlay.add_layer_image", icon="ADD", text="")
@@ -317,6 +316,10 @@ def draw_texture_node_settings(column, texture_node, texture_node_type, layer, m
             subrow = column.row(align=True)
             subrow.scale_y = SCALE_Y
             subrow.template_ID(texture_node, "node_tree")
+            for i in range(0, len(texture_node.inputs)):
+                subrow = column.row()
+                subrow.scale_y = SCALE_Y
+                subrow.prop(texture_node.inputs[i], "default_value", slider=True, text=texture_node.inputs[i].name)
 
         case "NOISE":
             subrow = column.row(align=True)
@@ -568,7 +571,11 @@ def draw_mask_node_properties(column):
             case 'GROUP':
                 subrow = column.row(align=True)
                 subrow.scale_y = SCALE_Y
-                subrow.template_ID(mask_node, "node_tree") 
+                subrow.template_ID(mask_node, "node_tree")
+                for i in range(0, len(mask_node.inputs)):
+                    subrow = column.row()
+                    subrow.scale_y = SCALE_Y
+                    subrow.prop(mask_node.inputs[i], "default_value", slider=True, text=mask_node.inputs[i].name)
 
             case "TEX_NOISE":
                 subrow = column.row(align=True)
