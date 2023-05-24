@@ -1,6 +1,6 @@
 # MatLay
 
-# IMPORTANT: Current version available is a development build, expect bugs.
+Download the latest version from the releases - https://github.com/LoganFairbairn/matlay/releases
 
 MatLay is a free add-on for Blender that drastically speeds up the material workflow by replacing the material node workflow in Blender with a layer stack workflow, in addition to offering automation for common mesh map baking, and file handling.
 
@@ -42,7 +42,7 @@ Limitations:
 - Baking and exporting for textures can be very slow
 - Displacement is not supported
 - (currently) no ID map masking support
-- (currently) no blur filter
+- (currently) no built in blur filter
 
 Workflow Tips:
 - When using this add-on, you are intended to use ONLY the add-on ui, and NOT manually edit the material nodes.
