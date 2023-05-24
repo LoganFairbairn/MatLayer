@@ -1141,7 +1141,7 @@ def read_hidden_layers(total_number_of_layers, layers, material_channel_list, co
             layer_hidden = True
             texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, i, context)
             if texture_node:
-                if texture_node.mute == False:
+                if layer_nodes.get_node_active(texture_node):
                     layer_hidden = False
                     break
         layers[i].hidden = layer_hidden
