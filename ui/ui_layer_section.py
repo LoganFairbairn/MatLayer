@@ -569,13 +569,19 @@ def draw_mask_node_properties(column):
                 subrow.operator("matlay.delete_mask_image", icon="TRASH", text="")
 
             case 'GROUP':
-                subrow = column.row(align=True)
-                subrow.scale_y = SCALE_Y
-                subrow.template_ID(mask_node, "node_tree")
-                for i in range(0, len(mask_node.inputs)):
-                    subrow = column.row()
+                if mask_node.node_tree.name == 'MATLAY_TRIPLANAR':
+                    subrow = column.row(align=True)
                     subrow.scale_y = SCALE_Y
-                    subrow.prop(mask_node.inputs[i], "default_value", slider=True, text=mask_node.inputs[i].name)
+                    subrow.prop(masks[selected_mask_index], 'mask_image', text="")
+                
+                else:
+                    subrow = column.row(align=True)
+                    subrow.scale_y = SCALE_Y
+                    subrow.template_ID(mask_node, "node_tree")
+                    for i in range(0, len(mask_node.inputs)):
+                        subrow = column.row()
+                        subrow.scale_y = SCALE_Y
+                        subrow.prop(mask_node.inputs[i], "default_value", slider=True, text=mask_node.inputs[i].name)
 
             case "TEX_NOISE":
                 subrow = column.row(align=True)

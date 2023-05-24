@@ -129,7 +129,7 @@ def update_mask_projection_mode(self, context):
                 # If the previous projection mode was triplanar, convert triplanar group nodes to texture nodes and remove triplanar texture samples.
                 mask_texture_node = get_mask_node('MASK-TEXTURE', material_channel_name, selected_material_layer_index, selected_mask_index)
                 if mask_texture_node.bl_static_type == 'GROUP':
-                    if mask_texture_node.node_tree.name == 'MATLAY_TRIPLANAR' or mask_texture_node.node_tree.name == 'MATLAY_TRIPLANAR_NORMALS':
+                    if mask_texture_node.node_tree.name == 'MATLAY_TRIPLANAR':
                         material_channel_node.node_tree.nodes.remove(mask_texture_node)
 
                         triplanar_mask_texture_sample_nodes = get_triplanar_mask_texture_sample_nodes(material_channel_name, selected_material_layer_index, selected_mask_index)
@@ -137,11 +137,10 @@ def update_mask_projection_mode(self, context):
                             if node:
                                 material_channel_node.node_tree.nodes.remove(node)
 
-                        if selected_mask.node_type == 'TEXTURE':
-                            new_mask_texture_node = material_channel_node.node_tree.nodes.new('ShaderNodeTexImage')
-                            new_mask_texture_node.name = format_mask_node_name('MASK-TEXTURE', selected_material_layer_index, selected_mask_index)
-                            new_mask_texture_node.label = new_mask_texture_node.name
-                            new_mask_texture_node.image = selected_mask.mask_image
+                        new_mask_texture_node = material_channel_node.node_tree.nodes.new('ShaderNodeTexImage')
+                        new_mask_texture_node.name = format_mask_node_name('MASK-TEXTURE', selected_material_layer_index, selected_mask_index)
+                        new_mask_texture_node.label = new_mask_texture_node.name
+                        new_mask_texture_node.image = selected_mask.mask_image
 
             case 'TRIPLANAR':
                 # Convert all IMAGE TEXTURE nodes to triplanar group nodes.
@@ -168,8 +167,7 @@ def update_mask_projection_mode(self, context):
                         triplanar_sample_nodes[i].interpolation = self.texture_interpolation
                         triplanar_sample_nodes[i].name = format_mask_node_name('TEXTURE-SAMPLE-' + str(i + 1), selected_material_layer_index, selected_mask_index)
                         triplanar_sample_nodes[i].label = triplanar_sample_nodes[i].name
-
-                    
+                        
                     material_channel_node.node_tree.nodes.remove(old_mask_texture_node)
                     new_mask_texture_node.name = format_mask_node_name('MASK-TEXTURE', selected_material_layer_index, selected_mask_index)
                     new_mask_texture_node.label = new_mask_texture_node.name
@@ -595,8 +593,6 @@ def reindex_mask_nodes(change_made, changed_mask_index=0):
                         new_name = format_mask_filter_node_name(selected_material_layer_index, i - 1, x)
                         rename_mask_filter_group_node(material_channel_name, old_name, new_name)
 
-
-
 def relink_mask_nodes(material_layer_index):
     '''Re-links layer mask nodes.'''
     material_layers = bpy.context.scene.matlay_layers
@@ -810,15 +806,16 @@ def read_mask_nodes(context):
         mask_texture_node = get_mask_node('MASK-TEXTURE', 'COLOR', selected_material_index, i)
         mapping_node = get_mask_node('MASK-MAPPING', 'COLOR', selected_material_index, i)
         texture_sample_1 = get_mask_node('TEXTURE-SAMPLE-1', 'COLOR', selected_material_index, i)
-        if mapping_node and texture_node.bl_static_type == 'TEX_IMAGE':
-            if mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
+        if mapping_node:
+            if mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE' and texture_node.bl_static_type == 'TEX_IMAGE':
                 mask.projection.mode = texture_node.projection
                 mask.projection.texture_extension = texture_node.extension
                 mask.projection.texture_interpolation = texture_node.interpolation
             elif mapping_node.node_tree.name == 'MATLAY_TRIPLANAR_MAPPING':
                 mask.projection.mode = 'TRIPLANAR'
-                mask.projection.texture_extension = texture_sample_1.extension
-                mask.projection.texture_interpolation = texture_sample_1.interpolation
+                if texture_sample_1:
+                    mask.projection.texture_extension = texture_sample_1.extension
+                    mask.projection.texture_interpolation = texture_sample_1.interpolation
 
         # Read mask offset, rotation and scale values (based on layer projection mode).
         if mask.projection.mode == 'TRIPLANAR':
@@ -1215,7 +1212,10 @@ class MATLAY_UL_mask_stack(bpy.types.UIList):
                     case 'TEX_IMAGE':
                         mask_label = "Image Texture Mask"
                     case 'GROUP':
-                        mask_label = "Group Node Mask"
+                        if mask_node.node_tree.name == 'MATLAY_TRIPLANAR':
+                            mask_label = "Image Texture Mask"
+                        else:
+                            mask_label = "Group Node Mask"
                     case 'TEX_NOISE':
                         mask_label = "Noise Mask"
                     case 'TEX_MUSGRAVE':

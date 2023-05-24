@@ -272,11 +272,12 @@ def update_layer_projection_mode(self, context):
                     if texture_node.node_tree.name == 'MATLAY_TRIPLANAR' or texture_node.node_tree.name == 'MATLAY_TRIPLANAR_NORMALS':
                         material_channel_node.node_tree.nodes.remove(texture_node)
 
-                        # Re-add normal rotation fix node.
-                        normal_rotation_fix_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
-                        normal_rotation_fix_node.node_tree = matlay_utils.get_normal_map_rotation_fix_node_tree()
-                        normal_rotation_fix_node.name = layer_nodes.format_material_node_name('NORMAL-ROTATION-FIX', selected_material_layer_index)
-                        normal_rotation_fix_node.label = normal_rotation_fix_node.name
+                        # Re-add normal rotation fix node to the normal material channel.
+                        if material_channel_name == 'NORMAL':
+                            normal_rotation_fix_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
+                            normal_rotation_fix_node.node_tree = matlay_utils.get_normal_map_rotation_fix_node_tree()
+                            normal_rotation_fix_node.name = layer_nodes.format_material_node_name('NORMAL-ROTATION-FIX', selected_material_layer_index)
+                            normal_rotation_fix_node.label = normal_rotation_fix_node.name
 
                         # Remove triplanar texture sample nodes.
                         triplanar_sample_nodes = []
@@ -295,8 +296,6 @@ def update_layer_projection_mode(self, context):
                             new_texture_node.label = new_texture_node.name
                             image_texture = getattr(selected_material_layer.material_channel_textures, material_channel_name.lower() + "_channel_texture")
                             new_texture_node.image = image_texture
-
-
 
             case 'TRIPLANAR':
                 # Convert all IMAGE TEXTURE nodes to triplanar group nodes.
@@ -337,12 +336,12 @@ def update_layer_projection_mode(self, context):
                     new_texture_node.name = layer_nodes.format_material_node_name('TEXTURE', selected_material_layer_index)
                     new_texture_node.label = new_texture_node.name
                     
-                # Convert all mapping nodes to triplanar coord nodes.
+                # Convert all mapping nodes to triplanar mapping nodes.
                 mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, selected_material_layer_index, context)
                 if not mapping_node:
                     print("Error: Mapping node does not exist when trying to convert to triplanar coord nodes.")
                     return
-                
+
                 triplanar_coord_node_tree = matlay_utils.get_triplanar_mapping_tree()
                 new_mapping_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
                 new_mapping_node.node_tree = triplanar_coord_node_tree
