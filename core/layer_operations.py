@@ -1153,12 +1153,7 @@ def read_active_layer_material_channels(material_channel_list, total_number_of_l
     for i in range(total_number_of_layers):
         for material_channel_name in material_channel_list:
             texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, i, context)
-            
-            if texture_node.mute:
-                material_channel_active = False
-            else:
-                material_channel_active = True
-
+            material_channel_active = layer_nodes.get_node_active(texture_node)
             setattr(layers[i].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", material_channel_active)
 
 def read_layer_nodes(context):
