@@ -148,14 +148,16 @@ def reindex_material_filter_nodes(change_made, changed_material_filter_index=0):
                     filters[changed_material_filter_index].stack_index = changed_material_filter_index
 
         case 'DELETED':
-            for i in range(changed_material_filter_index + 1, len(filters), 1):
-                old_filter_node_name = format_filter_node_name(selected_layer_index, i)
-                filter_node = material_channel_node.node_tree.nodes.get(old_filter_node_name)
+            for material_channel_name in material_channels.get_material_channel_list():
+                material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
+                for i in range(changed_material_filter_index + 1, len(filters), 1):
+                    old_filter_node_name = format_filter_node_name(selected_layer_index, i)
+                    filter_node = material_channel_node.node_tree.nodes.get(old_filter_node_name)
 
-                if filter_node:
-                    filter_node.name = format_filter_node_name(selected_layer_index, i - 1)
-                    filter_node.label = filter_node.name
-                    filters[i].stack_index = i - 1
+                    if filter_node:
+                        filter_node.name = format_filter_node_name(selected_layer_index, i - 1)
+                        filter_node.label = filter_node.name
+                        filters[i].stack_index = i - 1
 
 def relink_material_filter_nodes(material_layer_index):
     '''Relinks material filter nodes with other material filter nodes.'''
