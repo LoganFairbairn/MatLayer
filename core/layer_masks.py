@@ -678,6 +678,13 @@ def relink_mask_nodes(material_layer_index):
                     link_nodes(mask_coord_node.outputs[2], mask_mapping_node.inputs[0])
                     if mask_texture_node.bl_static_type == 'TEX_IMAGE':
                         link_nodes(mask_mapping_node.outputs[0], mask_texture_node.inputs[0])
+
+                    # Connect the flat mapping node to custom group node inputs that follow a standard naming convention.
+                    elif mask_texture_node.bl_static_type == 'GROUP':
+                        for c in range(0, len(mask_texture_node.inputs)):
+                            if mask_texture_node.inputs[c].name == 'Mapping':
+                                link_nodes(mask_mapping_node.outputs[0], mask_texture_node.inputs[i])
+                                break
                 
                 # Link masks for triplanar projection.
                 elif mask_projection_mode == 'TRIPLANAR':
@@ -692,6 +699,25 @@ def relink_mask_nodes(material_layer_index):
                     link_nodes(triplanar_mask_texture_node_2.outputs[0], mask_texture_node.inputs[1])
                     link_nodes(triplanar_mask_texture_node_3.outputs[0], mask_texture_node.inputs[2])
                     link_nodes(mask_mapping_node.outputs[3], mask_texture_node.inputs[3])
+
+                    # Connect the triplanar mapping node to custom group node inputs that follow a standard naming convention.
+                    if mask_texture_node.bl_static_type == 'GROUP':
+                        for c in range(0, len(mask_texture_node.inputs)):
+                            match mask_texture_node.inputs[c].name:
+                                case 'X':
+                                    link_nodes(mask_mapping_node.outputs[0], mask_texture_node.inputs[i])
+
+                                case 'Y':
+                                    link_nodes(mask_mapping_node.outputs[1], mask_texture_node.inputs[i])
+
+                                case 'Z':
+                                    link_nodes(mask_mapping_node.outputs[2], mask_texture_node.inputs[i])
+
+                                case 'AxisMask':
+                                    link_nodes(mask_mapping_node.outputs[3], mask_texture_node.inputs[i])
+
+                                case 'Rotation':
+                                    link_nodes(mask_mapping_node.outputs[4], mask_texture_node.inputs[i])
 
             # If the current mask is disabled, skip connecting it.
             if layer_nodes.get_node_active(mask_texture_node) == False:
@@ -725,7 +751,7 @@ def relink_mask_nodes(material_layer_index):
                         link_nodes(mask_texture_node.outputs[0], first_filter_node.inputs[0])
                 last_node = last_mask_filter_node
             else:
-                # If the layer is a decal layer, and there are no mask filters the last node is always the decal mask mix node.
+                # If the layer is a decal layer, and there are no mask filters the last node is always connect the decal to the mask mix node.
                 if layer_type == 'DECAL':
                     last_node = get_mask_node('DECAL-MASK-MIX', material_channel_name, material_layer_index, i)
                 else:

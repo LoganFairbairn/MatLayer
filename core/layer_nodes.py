@@ -226,9 +226,10 @@ def relink_material_nodes(material_layer_index):
         # Unlink all material nodes.
         material_layer_nodes = get_all_material_layer_nodes(material_channel_name, material_layer_index, bpy.context)
         for node in material_layer_nodes:
-            for link in node.outputs[0].links:
-                if link != 0:
-                    material_channel_node.node_tree.links.remove(link)
+            for output in node.outputs:
+                for l in output.links:
+                    if l != 0:
+                        material_channel_node.node_tree.links.remove(l)
 
         # Get material nodes.
         texture_node = get_layer_node('TEXTURE', material_channel_name, material_layer_index, bpy.context)
@@ -248,6 +249,13 @@ def relink_material_nodes(material_layer_index):
                 case 'FLAT':
                     link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
 
+                    # Connect flat mapping to a custom group node inputs with the name 'Mapping' if one exists.
+                    if texture_node.bl_static_type == 'GROUP':
+                        for i in range(0, len(texture_node.inputs)):
+                            if texture_node.inputs[i].name == 'Mapping':
+                                link_nodes(mapping_node.outputs[0], texture_node.inputs[i])
+                                break              
+
                 case 'TRIPLANAR':
                     # Link triplanar texture samples for material channels that use an image texture.
                     if texture_node.bl_static_type == 'GROUP':
@@ -265,6 +273,25 @@ def relink_material_nodes(material_layer_index):
                             link_nodes(mapping_node.outputs[3], texture_node.inputs[3])
                             if material_channel_name == 'NORMAL':
                                 link_nodes(mapping_node.outputs[4], texture_node.inputs[4])
+
+                        # Connect triplanar mapping to custom group node inputs for any input that matches an output naming in the triplanar mapping node.
+                        else:
+                            for i in range(0, len(texture_node.inputs)):
+                                match texture_node.inputs[i].name:
+                                    case 'X':
+                                        link_nodes(mapping_node.outputs[0], texture_node.inputs[i])
+
+                                    case 'Y':
+                                        link_nodes(mapping_node.outputs[1], texture_node.inputs[i])
+
+                                    case 'Z':
+                                        link_nodes(mapping_node.outputs[2], texture_node.inputs[i])
+
+                                    case 'AxisMask':
+                                        link_nodes(mapping_node.outputs[3], texture_node.inputs[i])
+
+                                    case 'Rotation':
+                                        link_nodes(mapping_node.outputs[4], texture_node.inputs[i])
 
                 case 'SPHERE':
                     link_nodes(coord_node.outputs[2], mapping_node.inputs[0])

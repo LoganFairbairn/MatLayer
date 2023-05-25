@@ -963,7 +963,7 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
             empty_node_tree = bpy.data.node_groups['MATLAY_EMPTY']
             new_texture_node.node_tree = empty_node_tree
             context.scene.matlay_layer_stack.auto_update_layer_properties = False
-            selected_layer.setattr(selected_layer.material_channel_node_trees, material_channel_name.lower() + "_channel_node_tree", empty_node_tree)
+            setattr(selected_layer.material_channel_node_trees, material_channel_name.lower() + "_channel_node_tree", empty_node_tree)
             context.scene.matlay_layer_stack.auto_update_layer_properties = True
 
         case "NOISE":
@@ -1048,8 +1048,9 @@ def update_custom_node_tree():
         texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_material_layer_index, bpy.context)
         if texture_node:
             if texture_node.bl_static_type == 'GROUP':
-                selected_layer = bpy.context.scene.matlay_layers[bpy.context.scene.matlay_layer_stack.layer_index]
-                texture_node.node_tree = getattr(selected_layer.material_channel_node_trees, material_channel_name.lower() + "_channel_node_tree")
+                if texture_node.node_tree.name != 'MATLAY_TRIPLANAR' and texture_node.node_tree.name != 'MATLAY_TRIPLANAR_NORMALS':
+                    selected_layer = bpy.context.scene.matlay_layers[bpy.context.scene.matlay_layer_stack.layer_index]
+                    texture_node.node_tree = getattr(selected_layer.material_channel_node_trees, material_channel_name.lower() + "_channel_node_tree")
 
 def update_color_node_tree(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
@@ -1089,8 +1090,9 @@ def update_specular_node_tree(self, context):
 def update_roughness_node_tree(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
         return
-    layer_nodes.relink_material_layers()
     update_custom_node_tree()
+    layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
+    layer_nodes.relink_material_layers()
 
 def update_emission_node_tree(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
