@@ -267,7 +267,7 @@ def add_material_filter_slot():
 
     return bpy.context.scene.matlay_material_filter_stack.selected_filter_index
 
-def add_material_layer_filter(filter_type, context):
+def add_material_filter(filter_type, context):
     '''Creates a new material layer filter slot and node.'''
     validate_filter_selected_index()
 
@@ -299,7 +299,7 @@ def add_material_layer_filter(filter_type, context):
     # Re-organize and re-link material layer nodes so mix nodes will automatically connect with filter nodes.
     reindex_material_filter_nodes('ADDED', new_material_filter_slot_index)
     layer_nodes.organize_all_layer_nodes()
-    layer_nodes.relink_material_nodes(new_material_filter_slot_index)
+    layer_nodes.relink_material_nodes(selected_material_layer_index)
     layer_nodes.relink_material_layers()
 
     # Toggle the material filter off for all material channels excluding color, because users will generally want the material filter to only apply for one material channel anyways. This makes it slightly faster for users to toggle on the material channel they want the material filter to apply to.
@@ -367,6 +367,7 @@ def move_filter_layer(direction, context):
     reindex_material_filter_nodes('MOVED', selected_filter_index)
     layer_nodes.organize_all_layer_nodes()
     layer_nodes.relink_material_nodes(selected_material_layer_index)
+    layer_nodes.relink_material_layers()
 
     filter_stack.auto_update_filter_properties = True
 
@@ -432,7 +433,7 @@ class MATLAY_OT_add_layer_filter_invert(Operator):
 
     def execute(self, context):
         matlay_utils.set_valid_mode()
-        add_material_layer_filter('ShaderNodeInvert', context)
+        add_material_filter('ShaderNodeInvert', context)
         matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
@@ -449,7 +450,7 @@ class MATLAY_OT_add_layer_filter_val_to_rgb(Operator):
 
     def execute(self, context):
         matlay_utils.set_valid_mode()
-        add_material_layer_filter('ShaderNodeValToRGB', context)
+        add_material_filter('ShaderNodeValToRGB', context)
         matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
@@ -466,7 +467,7 @@ class MATLAY_OT_add_layer_filter_hsv(Operator):
 
     def execute(self, context):
         matlay_utils.set_valid_mode()
-        add_material_layer_filter('ShaderNodeHueSaturation', context)
+        add_material_filter('ShaderNodeHueSaturation', context)
         matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
@@ -483,7 +484,7 @@ class MATLAY_OT_add_layer_filter_rgb_curves(Operator):
 
     def execute(self, context):
         matlay_utils.set_valid_mode()
-        add_material_layer_filter('ShaderNodeRGBCurve', context)
+        add_material_filter('ShaderNodeRGBCurve', context)
         matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
@@ -500,7 +501,7 @@ class MATLAY_OT_add_layer_filter_bright_contrast(Operator):
 
     def execute(self, context):
         matlay_utils.set_valid_mode()
-        add_material_layer_filter('ShaderNodeBrightContrast', context)
+        add_material_filter('ShaderNodeBrightContrast', context)
         matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 

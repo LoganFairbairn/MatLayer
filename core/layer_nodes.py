@@ -291,7 +291,8 @@ def relink_material_nodes(material_layer_index):
         filters = bpy.context.scene.matlay_material_filters
         last_filter_node = material_filters.get_material_filter_node(material_channel_name, material_layer_index, len(filters) - 1)
         if last_filter_node:
-            if material_channel_name == 'NORMAL':
+            # For flat / uv projection in the normal channel, connect to a normal rotation fix node.
+            if material_channel_name == 'NORMAL' and mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
                 node_to_filter_node = normal_rotation_fix_node
                 link_nodes(mapping_node.outputs[1], normal_rotation_fix_node.inputs[1])
                 link_nodes(texture_node.outputs[0], node_to_filter_node.inputs[0])
