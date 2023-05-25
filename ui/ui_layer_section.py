@@ -709,8 +709,14 @@ def draw_mask_properties(column):
     subrow.prop_enum(mask_stack, "mask_property_tab", 'MASK', text='Mask')
     mask_node = layer_masks.get_mask_node('MASK-TEXTURE', 'COLOR', selected_material_layer_index, selected_mask_index)
     if mask_node:
-        if mask_node.bl_static_type == 'TEX_IMAGE' and selected_material_layer.type != 'DECAL':
-            subrow.prop_enum(mask_stack, "mask_property_tab", 'PROJECTION', text='Projection')
+        if selected_material_layer.type != 'DECAL':
+            match mask_node.bl_static_type:
+                case 'TEX_IMAGE':
+                    subrow.prop_enum(mask_stack, "mask_property_tab", 'PROJECTION', text='Projection')
+                case 'GROUP':
+                    if mask_node.node_tree.name == 'MATLAY_TRIPLANAR':
+                        subrow.prop_enum(mask_stack, "mask_property_tab", 'PROJECTION', text='Projection')
+
     subrow.prop_enum(mask_stack, "mask_property_tab", 'FILTERS', text='Mask Filters')
 
     match mask_stack.mask_property_tab:
