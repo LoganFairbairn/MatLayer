@@ -69,7 +69,6 @@ def draw_material_selector(column, context):
     '''Draws a material selector and layer stack refresh button.'''
     active_object = context.active_object
     if active_object:
-
         split = column.split(factor=0.90, align=True)
         first_column = split.column(align=True)
         second_column = split.column(align=True)
