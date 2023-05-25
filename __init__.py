@@ -61,7 +61,7 @@ from .ui.ui_layer_stack import *
 bl_info = {
     "name": "MatLay",
     "author": "Logan Fairbairn (Ryver)",
-    "version": (1, 00),
+    "version": (1, 0),
     "blender": (3, 4, 1),
     "location": "View3D > Sidebar > MatLay",
     "description": "Replaces node based texturing workflow with a layer stack workflow.",
@@ -110,6 +110,7 @@ classes = (
     MaterialChannelTextures,
     MaterialChannelColors,
     MaterialChannelUniformValues,
+    MaterialChannelGroupNodes,
     MATLAY_OT_open_material_layer_settings,
     MATLAY_layer_stack,
     MATLAY_layers,
