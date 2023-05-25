@@ -68,8 +68,24 @@ def get_material_channel_active(context, material_channel_name):
 def draw_material_selector(column, context):
     '''Draws a material selector and layer stack refresh button.'''
     active_object = context.active_object
-    row = column.row(align=True)
     if active_object:
+
+        split = column.split(factor=0.90, align=True)
+        first_column = split.column(align=True)
+        second_column = split.column(align=True)
+        second_column.scale_x = 0.1
+
+        first_column.template_list("MATERIAL_UL_matslots", "Layers", context.active_object, "material_slots", context.active_object, "active_material_index")
+        second_column.operator("object.material_slot_add", text="", icon='ADD')
+        second_column.operator("object.material_slot_remove", text="-")
+        operator = second_column.operator("object.material_slot_move", text="", icon='TRIA_UP')
+        operator.direction = 'UP'
+        operator = second_column.operator("object.material_slot_move", text="", icon='TRIA_DOWN')
+        operator.direction = 'DOWN'
+        second_column.operator("object.material_slot_assign", text="", icon='MATERIAL_DATA')
+        second_column.operator("object.material_slot_select", text="", icon='SELECT_SET')
+
+        row = column.row(align=True)
         row.template_ID(active_object, "active_material", new="matlay.add_layer", live_icon=True)
         row.operator("matlay.read_layer_nodes", text="", icon='FILE_REFRESH')
     row.scale_y = 1.5
