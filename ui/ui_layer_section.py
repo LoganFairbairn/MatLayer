@@ -330,11 +330,13 @@ def draw_texture_node_settings(column, texture_node, texture_node_type, layer, m
         case "GROUP_NODE":
             subrow = column.row(align=True)
             subrow.scale_y = SCALE_Y
-            subrow.template_ID(texture_node, "node_tree")
+            subrow.template_ID(layer.material_channel_node_trees, material_channel_name.lower() + "_channel_node_tree")
             for i in range(0, len(texture_node.inputs)):
-                subrow = column.row()
-                subrow.scale_y = SCALE_Y
-                subrow.prop(texture_node.inputs[i], "default_value", slider=True, text=texture_node.inputs[i].name)
+                # Do not show mapping node inputs.
+                if texture_node.inputs[i].name != 'Mapping':
+                    subrow = column.row()
+                    subrow.scale_y = SCALE_Y
+                    subrow.prop(texture_node.inputs[i], "default_value", slider=True, text=texture_node.inputs[i].name)
 
         case "NOISE":
             subrow = column.row(align=True)
@@ -592,11 +594,12 @@ def draw_mask_node_properties(column):
                 else:
                     subrow = column.row(align=True)
                     subrow.scale_y = SCALE_Y
-                    subrow.template_ID(mask_node, "node_tree")
+                    subrow.template_ID(masks[selected_mask_index], "custom_mask_node_tree")
                     for i in range(0, len(mask_node.inputs)):
-                        subrow = column.row()
-                        subrow.scale_y = SCALE_Y
-                        subrow.prop(mask_node.inputs[i], "default_value", slider=True, text=mask_node.inputs[i].name)
+                        if mask_node.inputs[i].name != 'Mapping':
+                            subrow = column.row()
+                            subrow.scale_y = SCALE_Y
+                            subrow.prop(mask_node.inputs[i], "default_value", slider=True, text=mask_node.inputs[i].name)
 
             case "TEX_NOISE":
                 subrow = column.row(align=True)

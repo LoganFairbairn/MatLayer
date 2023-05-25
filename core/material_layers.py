@@ -1,7 +1,7 @@
 # This file contains layer properties and functions for updating layer properties.
 
 import bpy
-from bpy.types import Operator, PropertyGroup
+from bpy.types import Operator, PropertyGroup, ShaderNodeTree
 from bpy.props import BoolProperty, FloatProperty, FloatVectorProperty, PointerProperty, EnumProperty, StringProperty, IntProperty
 from ..core import layer_nodes
 from ..core import material_channels
@@ -960,7 +960,11 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
             empty_group_node = bpy.data.node_groups['MATLAY_EMPTY']
             if not empty_group_node:
                 material_channels.create_empty_group_node(context)
-            new_texture_node.node_tree = bpy.data.node_groups['MATLAY_EMPTY']
+            empty_node_tree = bpy.data.node_groups['MATLAY_EMPTY']
+            new_texture_node.node_tree = empty_node_tree
+            context.scene.matlay_layer_stack.auto_update_layer_properties = False
+            selected_layer.setattr(selected_layer.material_channel_node_trees, material_channel_name.lower() + "_channel_node_tree", empty_node_tree)
+            context.scene.matlay_layer_stack.auto_update_layer_properties = True
 
         case "NOISE":
             new_texture_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeTexNoise')
@@ -1033,6 +1037,81 @@ def update_emission_channel_node_type(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties:
         replace_texture_node(self.emission_node_type, "EMISSION", self, context)
 
+
+#----------------------------- UPDATE CUSTOM GROUP NODES -----------------------------#
+
+def update_custom_node_tree():
+    '''Links a custom node group to the mapping node if inputs in the custom group match standard texture input names for mapping values.'''
+    for material_channel_name in material_channels.get_material_channel_list():
+        # Place the new node tree into the custom group nodes in all material channels.
+        selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
+        texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_material_layer_index, bpy.context)
+        if texture_node:
+            if texture_node.bl_static_type == 'GROUP':
+                selected_layer = bpy.context.scene.matlay_layers[bpy.context.scene.matlay_layer_stack.layer_index]
+                texture_node.node_tree = getattr(selected_layer.material_channel_node_trees, material_channel_name.lower() + "_channel_node_tree")
+
+def update_color_node_tree(self, context):
+    if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
+        return
+    update_custom_node_tree()
+    layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
+    layer_nodes.relink_material_layers()
+
+def update_subsurface_node_tree(self, context):
+    if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
+        return
+    update_custom_node_tree()
+    layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
+    layer_nodes.relink_material_layers()
+
+def update_subsurface_color_node_tree(self, context):
+    if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
+        return
+    update_custom_node_tree()
+    layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
+    layer_nodes.relink_material_layers()
+
+def update_metallic_node_tree(self, context):
+    if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
+        return
+    update_custom_node_tree()
+    layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
+    layer_nodes.relink_material_layers()
+
+def update_specular_node_tree(self, context):
+    if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
+        return
+    update_custom_node_tree()
+    layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
+    layer_nodes.relink_material_layers()
+
+def update_roughness_node_tree(self, context):
+    if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
+        return
+    layer_nodes.relink_material_layers()
+    update_custom_node_tree()
+
+def update_emission_node_tree(self, context):
+    if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
+        return
+    update_custom_node_tree()
+    layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
+    layer_nodes.relink_material_layers()
+
+def update_normal_node_tree(self, context):
+    if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
+        return
+    update_custom_node_tree()
+    layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
+    layer_nodes.relink_material_layers()
+
+def update_height_node_tree(self, context):
+    if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
+        return
+    update_custom_node_tree()
+    layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
+    layer_nodes.relink_material_layers()
 
 #----------------------------- LAYER PROPERTIES -----------------------------#
 
@@ -1127,6 +1206,17 @@ class MaterialChannelUniformValues(PropertyGroup):
     uniform_normal_value: FloatProperty(name="Uniform Normal Value", description="Uniform normal value for this layer", default=0.0, min=0, max=1, update=update_uniform_normal_value)
     uniform_height_value: FloatProperty(name="Uniform Height Value", description="Uniform height value for this layer", default=0.0, min=0, max=1, update=update_uniform_height_value)
 
+class MaterialChannelGroupNodes(PropertyGroup):
+    color_channel_node_tree: PointerProperty(type=ShaderNodeTree, name="Color Material Channel Node Tree", update=update_color_node_tree)
+    subsurface_channel_node_tree: PointerProperty(type=ShaderNodeTree, name="Subsurface Material Channel Node Tree", update=update_subsurface_node_tree)
+    subsurface_color_channel_node_tree: PointerProperty(type=ShaderNodeTree, name="Subsurface Color Material Channel Node Tree", update=update_subsurface_color_node_tree)
+    metallic_channel_node_tree: PointerProperty(type=ShaderNodeTree, name="Subsurface Material Channel Node Tree", update=update_metallic_node_tree)
+    specular_channel_node_tree: PointerProperty(type=ShaderNodeTree, name="Subsurface Material Channel Node Tree", update=update_specular_node_tree)
+    roughness_channel_node_tree: PointerProperty(type=ShaderNodeTree, name="Subsurface Material Channel Node Tree", update=update_roughness_node_tree)
+    emission_channel_node_tree: PointerProperty(type=ShaderNodeTree, name="Subsurface Material Channel Node Tree", update=update_emission_node_tree)
+    normal_channel_node_tree: PointerProperty(type=ShaderNodeTree, name="Subsurface Material Channel Node Tree", update=update_normal_node_tree)
+    height_channel_node_tree: PointerProperty(type=ShaderNodeTree, name="Subsurface Material Channel Node Tree", update=update_height_node_tree)
+
 class MATLAY_layers(PropertyGroup):
     layer_stack_array_index: IntProperty(name="Layer Stack Array Index", description="The array index of this layer within the layer stack, stored to make it easy to access the array index of a specific layer", default=-9)
     id: IntProperty(name="ID", description="Unique numeric ID for the selected layer", default=0)
@@ -1141,3 +1231,4 @@ class MATLAY_layers(PropertyGroup):
     color_channel_values: PointerProperty(type=MaterialChannelColors, name="Color Channel Values")
     uniform_channel_values: PointerProperty(type=MaterialChannelUniformValues, name="Uniform Channel Values")
     material_channel_textures: PointerProperty(type=MaterialChannelTextures, name="Material Channel Textures")
+    material_channel_node_trees: PointerProperty(type=MaterialChannelGroupNodes, name="Material Channel Node Trees")

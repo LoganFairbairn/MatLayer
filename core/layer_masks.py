@@ -2,7 +2,7 @@
 
 # Imports from Blender.
 import bpy
-from bpy.types import Operator, PropertyGroup, UIList
+from bpy.types import Operator, PropertyGroup, UIList, ShaderNodeTree
 from bpy.props import BoolProperty, IntProperty, FloatProperty, StringProperty, EnumProperty, PointerProperty
 
 # Imports from this add-on.
@@ -96,6 +96,23 @@ def update_use_alpha(self, context):
     
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
     relink_mask_nodes(selected_material_layer_index)
+
+def update_custom_mask_node_tree(self, context):
+    if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
+        return
+    
+    for material_channel_name in material_channels.get_material_channel_list():
+        # Place the new node tree into the custom group nodes in all material channels.
+        selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
+        selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
+        masks = bpy.context.scene.matlay_masks
+        mask_node = get_mask_node('MASK-TEXTURE', material_channel_name, selected_material_layer_index, selected_mask_index)
+        if mask_node:
+            if mask_node.bl_static_type == 'GROUP':
+                mask_node.node_tree = masks[selected_mask_index].custom_mask_node_tree
+
+    relink_mask_nodes(selected_material_layer_index)
+    layer_nodes.relink_material_layers()
 
 #----------------------------- UPDATE MASK PROJECTION -----------------------------#
 
@@ -776,31 +793,14 @@ def read_mask_nodes(context):
     else:
         mask_stack.selected_mask_index = 0
 
-    
     for i in range(0, total_number_of_masks):
         mask = masks[i]
         texture_node = get_mask_node('MASK-TEXTURE', 'COLOR', selected_material_index, i)
 
-        # Read the mask node type and image into the ui.
+        # Read the mask node tree and image into the ui.
         if texture_node:
-            match texture_node.bl_static_type:
-                case 'TEX_IMAGE':
-                    mask.node_type = 'TEXTURE'
-                            
-                case 'GROUP':
-                    if texture_node.node_tree.name == 'MATLAY_TRIPLANAR':
-                        mask.node_type = 'TEXTURE'
-                    else:
-                        mask.node_type = 'GROUP_NODE'
-                
-                case 'TEX_NOISE':
-                    mask.node_type = 'NOISE'
-
-                case 'TEX_VORONOI':
-                    mask.node_type = 'VORONOI'
-
-                case 'TEX_MUSGRAVE':
-                    mask.node_type = 'MUSGRAVE'
+            if texture_node.bl_static_type == 'GROUP':
+                mask.custom_mask_node_tree = texture_node.node_tree
 
         # Read mapping projection.
         mask_texture_node = get_mask_node('MASK-TEXTURE', 'COLOR', selected_material_index, i)
@@ -912,20 +912,17 @@ def add_default_mask_nodes(mask_type, context):
                     empty_group_node = bpy.data.node_groups['MATLAY_EMPTY']
                     if not empty_group_node:
                         material_channels.create_empty_group_node(context)
-                    mask_node.node_tree = bpy.data.node_groups['MATLAY_EMPTY']
-                    context.scene.matlay_masks[selected_mask_index].node_type = 'GROUP_NODE'
+                    node_tree = bpy.data.node_groups['MATLAY_EMPTY']
+                    mask_node.node_tree = node_tree
+                    context.scene.matlay_masks[selected_mask_index].custom_mask_node_tree = node_tree
                 case 'NOISE':
                     mask_node = material_channel_node.node_tree.nodes.new('ShaderNodeTexNoise')
-                    context.scene.matlay_masks[selected_mask_index].node_type = 'NOISE'
                 case 'VORONOI':
                     mask_node = material_channel_node.node_tree.nodes.new('ShaderNodeTexVoronoi')
-                    context.scene.matlay_masks[selected_mask_index].node_type = 'VORONOI'
                 case 'MUSGRAVE':
                     mask_node = material_channel_node.node_tree.nodes.new('ShaderNodeTexMusgrave')
-                    context.scene.matlay_masks[selected_mask_index].node_type = 'MUSGRAVE'
                 case _:
                     mask_node = material_channel_node.node_tree.nodes.new('ShaderNodeTexImage')
-                    context.scene.matlay_masks[selected_mask_index].node_type = 'TEXTURE'
 
             mask_node.name = format_mask_node_name("MASK-TEXTURE", selected_material_layer_index, selected_mask_index, True)
             mask_node.label = mask_node.name
@@ -1185,6 +1182,7 @@ class MATLAY_masks(PropertyGroup):
     hidden: BoolProperty(name="Hidden", default=False, description="Hides / unhides (mutes) the layer mask", update=update_mask_hidden)
     use_alpha: BoolProperty(name="Use Alpha", default=False, description="If true, the image alpha output will be used as the mask instead of the color output", update=update_use_alpha)
     mask_image: PointerProperty(type=bpy.types.Image, name="Mask Image", description="The image texture used for the selected mask", update=update_mask_image)
+    custom_mask_node_tree: PointerProperty(type=ShaderNodeTree, name="Mask Custom Node Tree", update=update_custom_mask_node_tree)
 
 class MATLAY_UL_mask_stack(bpy.types.UIList):
     '''Draws the mask stack for the selected layer.'''

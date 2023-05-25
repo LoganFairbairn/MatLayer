@@ -1042,12 +1042,12 @@ def read_texture_node_values(material_channel_list, total_number_of_layers, laye
                     case 'GROUP':
                         if texture_node.node_tree.name == 'MATLAY_TRIPLANAR' or texture_node.node_tree.name == 'MATLAY_TRIPLANAR_NORMALS':
                             setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'TEXTURE')
-
                             texture_sample_node = layer_nodes.get_layer_node('TEXTURE-SAMPLE-1', material_channel_name, i, context)
                             if texture_sample_node:
                                 setattr(layers[i].material_channel_textures, material_channel_name.lower() + "_channel_texture", texture_sample_node.image)
                         else:
                             setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'GROUP_NODE')
+                            setattr(layers[i].material_channel_node_trees, material_channel_name.lower() + "_channel_node_tree", texture_node.node_tree)
 
                     case 'TEX_IMAGE':
                         setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'TEXTURE')
