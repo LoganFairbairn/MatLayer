@@ -236,7 +236,7 @@ def update_hidden(self, context):
     
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
     layer_nodes.relink_material_nodes(selected_material_layer_index)
-    layer_nodes.relink_material_layers()
+    layer_nodes.relink_mix_layer_nodes()
 
 #----------------------------- UPDATE PROJECTION SETTINGS -----------------------------#
 
@@ -359,7 +359,7 @@ def update_layer_projection_mode(self, context):
     # Relink material channel nodes.
     layer_nodes.organize_all_layer_nodes()
     layer_nodes.relink_material_nodes(selected_material_layer_index)
-    layer_nodes.relink_material_layers()
+    layer_nodes.relink_mix_layer_nodes()
 
 def update_projection_interpolation(self, context):
     '''Updates the image texture interpolation mode when it's changed.'''
@@ -991,15 +991,11 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
     new_texture_node.label = new_texture_node.name
     self.texture_node_name = new_texture_node.name
 
-    # Link the new texture node to the mix layer node.
-    mix_layer_node = layer_nodes.get_layer_node("MIX-LAYER", material_channel_name, selected_material_layer_index, context)
-    link(new_texture_node.outputs[0], mix_layer_node.inputs[2])
-
     # Update the layer nodes because they were changed.
     layer_nodes.organize_all_layer_nodes()
     layer_nodes.relink_material_nodes(selected_material_layer_index)
     layer_masks.relink_mask_nodes(selected_material_layer_index)
-    layer_nodes.relink_material_layers()
+    layer_nodes.relink_mix_layer_nodes()
     
 def update_color_channel_node_type(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties:
@@ -1057,63 +1053,63 @@ def update_color_node_tree(self, context):
         return
     update_custom_node_tree()
     layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
-    layer_nodes.relink_material_layers()
+    layer_nodes.relink_mix_layer_nodes()
 
 def update_subsurface_node_tree(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
         return
     update_custom_node_tree()
     layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
-    layer_nodes.relink_material_layers()
+    layer_nodes.relink_mix_layer_nodes()
 
 def update_subsurface_color_node_tree(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
         return
     update_custom_node_tree()
     layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
-    layer_nodes.relink_material_layers()
+    layer_nodes.relink_mix_layer_nodes()
 
 def update_metallic_node_tree(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
         return
     update_custom_node_tree()
     layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
-    layer_nodes.relink_material_layers()
+    layer_nodes.relink_mix_layer_nodes()
 
 def update_specular_node_tree(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
         return
     update_custom_node_tree()
     layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
-    layer_nodes.relink_material_layers()
+    layer_nodes.relink_mix_layer_nodes()
 
 def update_roughness_node_tree(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
         return
     update_custom_node_tree()
     layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
-    layer_nodes.relink_material_layers()
+    layer_nodes.relink_mix_layer_nodes()
 
 def update_emission_node_tree(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
         return
     update_custom_node_tree()
     layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
-    layer_nodes.relink_material_layers()
+    layer_nodes.relink_mix_layer_nodes()
 
 def update_normal_node_tree(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
         return
     update_custom_node_tree()
     layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
-    layer_nodes.relink_material_layers()
+    layer_nodes.relink_mix_layer_nodes()
 
 def update_height_node_tree(self, context):
     if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
         return
     update_custom_node_tree()
     layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
-    layer_nodes.relink_material_layers()
+    layer_nodes.relink_mix_layer_nodes()
 
 #----------------------------- LAYER PROPERTIES -----------------------------#
 

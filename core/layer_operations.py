@@ -242,7 +242,7 @@ def add_layer(layer_type, self, decal_object=None):
     layer_nodes.reindex_material_layer_nodes('ADDED', new_material_layer_index)
     layer_nodes.organize_all_layer_nodes()
     layer_nodes.relink_material_nodes(new_material_layer_index)
-    layer_nodes.relink_material_layers()
+    layer_nodes.relink_mix_layer_nodes()
 
     # Set default layer properties.
     set_default_layer_properties(layer_type)
@@ -608,7 +608,7 @@ class MATLAY_OT_move_material_layer(Operator):
         # Update the layer stack (organize, re-link).
         layer_nodes.update_material_layer_indicies()
         layer_nodes.organize_all_layer_nodes()
-        layer_nodes.relink_material_layers()
+        layer_nodes.relink_mix_layer_nodes()
 
         # Set a valid shading mode so users can see their change.
         matlay_utils.set_valid_material_shading_mode(context)
@@ -679,7 +679,7 @@ class MATLAY_OT_delete_layer(Operator):
         # Update the layer nodes.
         layer_nodes.reindex_material_layer_nodes('DELETED', selected_material_layer_index)
         layer_nodes.organize_all_layer_nodes()
-        layer_nodes.relink_material_layers()
+        layer_nodes.relink_mix_layer_nodes()
 
         # Set a valid material shading mode and reset ui tabs.
         matlay_utils.set_valid_material_shading_mode(context)
@@ -802,7 +802,7 @@ class MATLAY_OT_duplicate_layer(Operator):
         layer_masks.relink_mask_nodes(new_material_layer_index)
         material_filters.relink_material_filter_nodes(new_material_layer_index)
         layer_nodes.relink_material_nodes(new_material_layer_index)
-        layer_nodes.relink_material_layers()
+        layer_nodes.relink_mix_layer_nodes()
 
         # Organize all nodes.
         layer_nodes.organize_all_layer_nodes()
@@ -1227,9 +1227,7 @@ class MATLAY_OT_read_layer_nodes(Operator):
         # If read layer nodes is manually called, also relink material layers.
         if not self.auto_called:
             selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-            material_filters.relink_material_filter_nodes(selected_material_layer_index)
             layer_masks.relink_mask_nodes(selected_material_layer_index)
-            layer_masks.relink_mask_filter_nodes()
             layer_nodes.relink_material_nodes(selected_material_layer_index)
-            layer_nodes.relink_material_layers()
+            layer_nodes.relink_mix_layer_nodes()
         return {'FINISHED'}

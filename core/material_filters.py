@@ -21,8 +21,8 @@ def filter_material_channel_toggle(channel_toggle, material_channel_name, contex
     selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
     filter_node = get_material_filter_node(material_channel_name, selected_layer_stack_index, selected_filter_index)
     layer_nodes.set_node_active(filter_node, channel_toggle)
-    relink_material_filter_nodes(selected_layer_stack_index)
-    layer_nodes.relink_material_layers()
+    layer_nodes.relink_material_nodes(selected_layer_stack_index)
+    layer_nodes.relink_mix_layer_nodes()
     matlay_utils.set_valid_material_shading_mode(context)
 
 def update_filter_color_channel_toggle(self, context):
@@ -302,7 +302,7 @@ def add_material_filter(filter_type, context):
     reindex_material_filter_nodes('ADDED', new_material_filter_slot_index)
     layer_nodes.organize_all_layer_nodes()
     layer_nodes.relink_material_nodes(selected_material_layer_index)
-    layer_nodes.relink_material_layers()
+    layer_nodes.relink_mix_layer_nodes()
 
     # Toggle the material filter off for all material channels excluding color, because users will generally want the material filter to only apply for one material channel anyways. This makes it slightly faster for users to toggle on the material channel they want the material filter to apply to.
     for material_channel_name in material_channel_list:
@@ -369,7 +369,7 @@ def move_filter_layer(direction, context):
     reindex_material_filter_nodes('MOVED', selected_filter_index)
     layer_nodes.organize_all_layer_nodes()
     layer_nodes.relink_material_nodes(selected_material_layer_index)
-    layer_nodes.relink_material_layers()
+    layer_nodes.relink_mix_layer_nodes()
 
     filter_stack.auto_update_filter_properties = True
 
@@ -579,7 +579,7 @@ class MATLAY_OT_delete_layer_filter(Operator):
         # Re-link and re-organize layers.
         layer_nodes.organize_all_layer_nodes()
         layer_nodes.relink_material_nodes(selected_material_layer_index)
-        layer_nodes.relink_material_layers()
+        layer_nodes.relink_mix_layer_nodes()
         
         matlay_utils.set_valid_material_shading_mode(context)
         matlay_utils.update_total_node_and_link_count()

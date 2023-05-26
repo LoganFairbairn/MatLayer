@@ -110,15 +110,14 @@ def organize_all_layer_nodes():
             # Add space between layers.
             header_position[0] -= NODE_SPACING
 
-def relink_material_layers():
-    '''Re-links the last node in every material layer to the next layer if one exists.'''
+def relink_mix_layer_nodes():
+    '''Relinks all mix layer nodes.'''
     layers = bpy.context.scene.matlay_layers
-
     for material_channel_name in material_channels.get_material_channel_list():
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
 
         for i in range(len(layers)):
-            # Disconnect all mix layer nodes.
+            # Disconnect all mix layer node outputs.
             mix_layer_node = get_layer_node("MIX-LAYER", material_channel_name, i, bpy.context)
             if mix_layer_node:
                 output = mix_layer_node.outputs[0]
@@ -126,22 +125,12 @@ def relink_material_layers():
                     if l != 0:
                         material_channel_node.node_tree.links.remove(l)
 
-            # Disconnect all filter nodes.
-            total_filter_nodes = material_filters.get_filter_nodes_count(i)
-            for x in range(total_filter_nodes - 1):
-                last_material_filter_node = material_filters.get_material_filter_node(material_channel_name, x, total_filter_nodes - 1)
-                if last_material_filter_node:
-                    for l in last_material_filter_node.outputs[0].links:
-                        if l != 0:
-                            material_channel_node.node_tree.links.remove(l)
-
         # Connect mix layer nodes for every layer.
         for i in range(0, len(layers)):
             current_layer_index = i
             next_layer_index = i + 1
             current_mix_layer_node = get_layer_node("MIX-LAYER", material_channel_name, current_layer_index, bpy.context)
             next_mix_layer_node = get_layer_node("MIX-LAYER", material_channel_name, next_layer_index, bpy.context)
-            texture_node = get_layer_node("TEXTURE", material_channel_name, current_layer_index, bpy.context)
 
             # If the current layer is disabled, skip connecting it.
             if get_node_active(current_mix_layer_node) == False:
@@ -155,50 +144,10 @@ def relink_material_layers():
                     if not next_mix_layer_node:
                         break
 
-            # Find the first active material filter node.
-            total_filter_nodes = material_filters.get_filter_nodes_count(i)
-            first_active_filter_index = 0 
-            first_active_filter_node = material_filters.get_material_filter_node(material_channel_name, i, first_active_filter_index)
-            while get_node_active(first_active_filter_node) == False:
-                first_active_filter_index += 1
-                first_active_filter_node = material_filters.get_material_filter_node(material_channel_name, i, first_active_filter_index)
-                if not first_active_filter_node:
-                    break
-
-            # ALWAYS connect the texture output to the first material filter based on it's type if one exists and is ACTIVE.
-            if first_active_filter_node:
-                match first_active_filter_node.bl_static_type:
-                    case 'INVERT':
-                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_active_filter_node.inputs[1])
-                    case 'VALTORGB':
-                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_active_filter_node.inputs[0])
-                    case 'HUE_SAT':
-                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_active_filter_node.inputs[4])
-                    case 'CURVE_RGB':
-                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_active_filter_node.inputs[1])
-                    case 'BRIGHTCONTRAST':
-                        material_channel_node.node_tree.links.new(texture_node.outputs[0], first_active_filter_node.inputs[0])
-
-                # Connect the last ACTIVE filter node to the current mix node.
-                last_active_filter_node_index = total_filter_nodes - 1
-                last_material_filter_node = material_filters.get_material_filter_node(material_channel_name, i, last_active_filter_node_index)
-                while get_node_active(last_material_filter_node) == False:
-                    last_active_filter_node_index -= 1
-                    last_material_filter_node = material_filters.get_material_filter_node(material_channel_name, i, last_active_filter_node_index)
-                    if not first_active_filter_node:
-                        break
-
-                if last_material_filter_node:
-                    material_channel_node.node_tree.links.new(last_material_filter_node.outputs[0], current_mix_layer_node.inputs[2])
-
-            # No material active material filter exists, connect the texture node directly to the mix layer node.
-            else:
-                material_channel_node.node_tree.links.new(texture_node.outputs[0], current_mix_layer_node.inputs[2])
-
-            # Connect the last layer node to the next material layer if another material layer exists.
+            # Connect the last mix layer node to the next material layer if another material layer exists.
             if next_mix_layer_node:
                 material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], next_mix_layer_node.inputs[1])
-
+            
             # If no more material layers exist past this one, link the current mix layer node to the group nodes output / bump / normal node.
             else:
                 if material_channel_name == "HEIGHT":
@@ -213,12 +162,76 @@ def relink_material_layers():
                     group_output_node = material_channel_node.node_tree.nodes.get("Group Output")
                     material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], group_output_node.inputs[0])
 
+def link_last_layer_node(material_layer_index, material_channel_name, link_nodes):
+    '''Identifies and links the last layer node in the given material layer to the mix layer output.'''
+
+    texture_node = get_layer_node('TEXTURE', material_channel_name, material_layer_index, bpy.context)
+    mapping_node = get_layer_node('MAPPING', material_channel_name, material_layer_index, bpy.context)
+    mix_layer_node = get_layer_node('MIX-LAYER', material_channel_name, material_layer_index, bpy.context)
+    
+    # Find the last active filter node.
+    filters = bpy.context.scene.matlay_material_filters
+    last_active_filter_index = len(filters) - 1
+    last_filter_node = material_filters.get_material_filter_node(material_channel_name, material_layer_index, last_active_filter_index)
+    while get_node_active(last_filter_node) == False:
+        last_active_filter_index -= 1
+        last_filter_node = material_filters.get_material_filter_node(material_channel_name, material_layer_index, last_active_filter_index)
+        if not last_filter_node:
+            break
+
+    # Connect to active filter nodes if they exist.
+    if last_filter_node:
+        # Identify the node that should be connected to the filter node.
+        if material_channel_name == 'NORMAL' and mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
+            normal_rotation_fix_node = get_layer_node('NORMAL-ROTATION-FIX', material_channel_name, material_layer_index, bpy.context)
+            node_to_filter_node = normal_rotation_fix_node
+            link_nodes(mapping_node.outputs[1], normal_rotation_fix_node.inputs[1])
+            link_nodes(texture_node.outputs[0], node_to_filter_node.inputs[0])
+        else:
+            node_to_filter_node = texture_node
+
+        first_filter_node = material_filters.get_material_filter_node(material_channel_name, material_layer_index, 0)
+        match first_filter_node.bl_static_type:
+            case 'INVERT':
+                link_nodes(node_to_filter_node.outputs[0], first_filter_node.inputs[1])
+            case 'VALTORGB':
+                link_nodes(node_to_filter_node.outputs[0], first_filter_node.inputs[0])
+            case 'HUE_SAT':
+                link_nodes(node_to_filter_node.outputs[0], first_filter_node.inputs[4])
+                link_nodes(node_to_filter_node.outputs[0], mix_layer_node.inputs[2])
+            case 'CURVE_RGB':
+                link_nodes(node_to_filter_node.outputs[0], first_filter_node.inputs[1])
+            case 'BRIGHTCONTRAST':
+                link_nodes(node_to_filter_node.outputs[0], first_filter_node.inputs[0])
+        
+        link_nodes(last_filter_node.outputs[0], mix_layer_node.inputs[2])
+    
+    # If no filters exist, connect the texture node (or the normal rotation fix node) to the mix layer node.
+    else:
+        if material_channel_name == 'NORMAL':
+            # Connect to a normal rotation fix node for flat projection.
+            if bpy.context.scene.matlay_layers[material_layer_index].projection.mode == 'FLAT':
+                normal_rotation_fix_node = get_layer_node('NORMAL-ROTATION-FIX', material_channel_name, material_layer_index, bpy.context)
+                link_nodes(texture_node.outputs[0], normal_rotation_fix_node.inputs[0])
+                link_nodes(mapping_node.outputs[1], normal_rotation_fix_node.inputs[1])
+                link_nodes(normal_rotation_fix_node.outputs[0], mix_layer_node.inputs[2])
+
+            # Triplanar normal mapping has normal rotation fixes built into the group node, connect the triplanar directly to the mix layer node.
+            elif bpy.context.scene.matlay_layers[material_layer_index].projection.mode == 'TRIPLANAR':
+                link_nodes(texture_node.outputs[0], mix_layer_node.inputs[2])
+
+        else:
+            link_nodes(texture_node.outputs[0], mix_layer_node.inputs[2])
+
 def relink_material_nodes(material_layer_index):
     '''Relinks all material and filter nodes for the specified material layer index.'''
     # Do not relink layers if there are no material layers.
     if len(bpy.context.scene.matlay_layers) <= 0:
         return
     
+    # Relink material filter nodes with other material filter nodes.
+    material_filters.relink_material_filter_nodes(material_layer_index)
+
     for material_channel_name in material_channels.get_material_channel_list():
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
         link_nodes = material_channel_node.node_tree.links.new
@@ -237,8 +250,7 @@ def relink_material_nodes(material_layer_index):
         mapping_node = get_layer_node('MAPPING', material_channel_name, material_layer_index, bpy.context)
         opacity_node = get_layer_node('OPACITY', material_channel_name, material_layer_index, bpy.context)
         mix_layer_node = get_layer_node('MIX-LAYER', material_channel_name, material_layer_index, bpy.context)
-        normal_rotation_fix_node = get_layer_node('NORMAL-ROTATION-FIX', material_channel_name, material_layer_index, bpy.context)
-
+        
         # If the selected layer is a decal layer, use object coordinates.
         if check_decal_layer(material_layer_index):
             link_nodes(coord_node.outputs[3], mapping_node.inputs[0])
@@ -304,55 +316,10 @@ def relink_material_nodes(material_layer_index):
         if texture_node.bl_static_type == 'TEX_IMAGE':
             link_nodes(mapping_node.outputs[0], texture_node.inputs[0])
 
-        # Apply layer opacity by connecting the opacity node to the material layer.
+        # Apply layer opacity by connecting the opacity node to the mix layer node.
         link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
 
-        # Fix normal map rotation by linking to normal map rotation fix node.
-        if texture_node.bl_static_type == 'TEX_IMAGE' and material_channel_name == 'NORMAL':
-            link_nodes(texture_node.outputs[0], normal_rotation_fix_node.inputs[0])        
-
-        # Relink material filter nodes with other material filter nodes.
-        material_filters.relink_material_filter_nodes(material_layer_index)
-
-        # Link the last node in the material layer to the mix layer node.
-        filters = bpy.context.scene.matlay_material_filters
-        last_filter_node = material_filters.get_material_filter_node(material_channel_name, material_layer_index, len(filters) - 1)
-        if last_filter_node:
-            # For flat / uv projection in the normal channel, connect to a normal rotation fix node.
-            if material_channel_name == 'NORMAL' and mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
-                node_to_filter_node = normal_rotation_fix_node
-                link_nodes(mapping_node.outputs[1], normal_rotation_fix_node.inputs[1])
-                link_nodes(texture_node.outputs[0], node_to_filter_node.inputs[0])
-            else:
-                node_to_filter_node = texture_node
-
-            first_filter_node = material_filters.get_material_filter_node(material_channel_name, material_layer_index, 0)
-            match first_filter_node.bl_static_type:
-                case 'INVERT':
-                    material_channel_node.node_tree.links.new(node_to_filter_node.outputs[0], first_filter_node.inputs[1])
-                case 'VALTORGB':
-                    material_channel_node.node_tree.links.new(node_to_filter_node.outputs[0], first_filter_node.inputs[0])
-                case 'HUE_SAT':
-                    material_channel_node.node_tree.links.new(node_to_filter_node.outputs[0], first_filter_node.inputs[4])
-                case 'CURVE_RGB':
-                    material_channel_node.node_tree.links.new(node_to_filter_node.outputs[0], first_filter_node.inputs[1])
-                case 'BRIGHTCONTRAST':
-                    material_channel_node.node_tree.links.new(node_to_filter_node.outputs[0], first_filter_node.inputs[0])
-            link_nodes(last_filter_node.outputs[0], mix_layer_node.inputs[2])
-        else:
-            if material_channel_name == 'NORMAL':
-                # Connect to a normal rotation fix node for flat projection.
-                if bpy.context.scene.matlay_layers[material_layer_index].projection.mode == 'FLAT':
-                    link_nodes(texture_node.outputs[0], normal_rotation_fix_node.inputs[0])
-                    link_nodes(mapping_node.outputs[1], normal_rotation_fix_node.inputs[1])
-                    link_nodes(normal_rotation_fix_node.outputs[0], mix_layer_node.inputs[2])
-
-                # Triplanar normal mapping has normal rotation fixes built into the group node, connect the triplanar directly to the mix layer node.
-                elif bpy.context.scene.matlay_layers[material_layer_index].projection.mode == 'TRIPLANAR':
-                    link_nodes(texture_node.outputs[0], mix_layer_node.inputs[2])
-
-            else:
-                link_nodes(texture_node.outputs[0], mix_layer_node.inputs[2])
+        link_last_layer_node(material_layer_index, material_channel_name, link_nodes)
 
 def mute_layer_material_channel(mute, layer_stack_index, material_channel_name, context):
     '''Mutes (hides) or unhides all layer nodes for the specified material channel.'''
@@ -361,9 +328,8 @@ def mute_layer_material_channel(mute, layer_stack_index, material_channel_name, 
         if node:
             set_node_active(node, not mute)
             
-    relink_material_layers()
+    relink_mix_layer_nodes()
     matlay_utils.set_valid_material_shading_mode(context)
-
 
 
 #----------------------------- MATERIAL LAYER NODE FUNCTIONS -----------------------------#

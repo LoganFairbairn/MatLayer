@@ -112,7 +112,7 @@ def update_custom_mask_node_tree(self, context):
                 mask_node.node_tree = masks[selected_mask_index].custom_mask_node_tree
 
     relink_mask_nodes(selected_material_layer_index)
-    layer_nodes.relink_material_layers()
+    layer_nodes.relink_mix_layer_nodes()
 
 #----------------------------- UPDATE MASK PROJECTION -----------------------------#
 
