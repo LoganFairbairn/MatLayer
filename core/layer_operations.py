@@ -234,6 +234,9 @@ def add_layer(layer_type, self, decal_object=None):
     material_channels.create_channel_group_nodes(bpy.context)
     material_channels.create_empty_group_node(bpy.context)
 
+    # Append standard mapping node trees.
+    matlay_utils.append_mapping_node_trees()
+
     # Add a new layer slot and default nodes.
     new_material_layer_index = add_layer_slot(layer_type)
     add_default_layer_nodes(layer_type, decal_object)
