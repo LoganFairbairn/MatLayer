@@ -51,15 +51,19 @@ Limitations:
 -----
 
 Workflow Tips:
-- When using this add-on, you are intended to use ONLY the add-on ui, and NOT manually edit the material nodes.
-- This add-on currently supports 1 material per object, using multiple material slots on an object will likely result in errors. It will very likely support multiple material slots on one object in the future.
-- Generally it's best to isolate your object you wish to apply materials to in it's own blend file, this can also help with file management in many cases.
-- You can have as many material layers as you'd like, however it's better to minimize the amount of layers you use for optimization purposes. Most object's materials can be created with 3 - 15 material layers.
+- When using this add-on, you are intended to use ONLY the add-on ui, and NOT manually edit the material nodes. If you need custom nodes, you should add custom group nodes into material channel or masks through the interface.
+
+- It's best to isolate your object into it's own blend file for material editing, for best performance and file management cases.
+
+- Minimize the amount of layers you use when possible, most object's materials can be created with 3 - 10 material layers.
+
+- When possible and required, use multiple materials in multiple material slots.
+
 - It's better for performance to use color, uniform values, or image textures when possible instead of procedural textures like noise, voronoi and musgrave. This will in most cases also result in better materials.
-- Almost all user interface elements have a detailed tooltip when you hover your mouse over them.
-- Toggling off unused material channels globally and per material layer will help increase performance.
-- Typing in values, rather than sliding their values is much more performant as sliding values for material properties on complex materials can cause a lot of vram usage.
-- Editing objects in the material editing viewport shading mode rather than in a rendered mode will be better for performance.
+
+- Most user interface elements have a detailed tooltip when you hover your mouse over them.
+
+- Toggling off unused material channels globally and per material layer when they are not needed will help decrease shader compilation times.
 
 -----
 
