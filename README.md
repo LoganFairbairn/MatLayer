@@ -65,6 +65,8 @@ Workflow Tips:
 
 - Toggling off unused material channels globally and per material layer when they are not needed will help decrease shader compilation times.
 
+- For slower computers, you can temporarily stop automatic shader compilation by switching the viewport mode to solid, make material edits and then switch back to material or shader mode to view your changes.
+
 -----
 
 Platforms: Windows, Linux (untested)
