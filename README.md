@@ -46,7 +46,6 @@ Limitations:
 - Baking and exporting for textures can be very slow
 - Displacement is not supported
 - (currently) no ID map masking support
-- (currently) no built in blur filter
 
 -----
 
