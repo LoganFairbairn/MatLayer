@@ -143,8 +143,8 @@ def append_default_node_trees():
     get_triplanar_mapping_tree()
     get_normal_triplanar_node_tree()
     get_normal_map_rotation_fix_node_tree()
-    get_flat_blur_node_tree()
     get_triplanar_blur_node_tree()
+    get_flat_blur_node_tree()
 
 def update_total_node_and_link_count():
     '''Counts the number of nodes and links created by this add-on to give a quantitative value to the work saved with this plugin.'''
