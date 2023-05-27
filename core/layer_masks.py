@@ -20,7 +20,7 @@ import random
 from bpy_extras.io_utils import ImportHelper
 
 # Constant mask node names.
-MASK_NODE_NAMES = ('MASK-TEXTURE', 'MASK-COORD', 'MASK-MAPPING', 'DECAL-MAPPING', 'DECAL-MASK', 'DECAL-MASK-MIX', 'DECAL-MASK-ADJUSTMENT', 'MASK-MIX', 'TEXTURE-SAMPLE-1', 'TEXTURE-SAMPLE-2', 'TEXTURE-SAMPLE-3')
+MASK_NODE_NAMES = ('MASK-TEXTURE', 'MASK-COORD', 'MASK-MAPPING', 'MASK-BLUR', 'DECAL-MAPPING', 'DECAL-MASK', 'DECAL-MASK-MIX', 'DECAL-MASK-ADJUSTMENT', 'MASK-MIX', 'TEXTURE-SAMPLE-1', 'TEXTURE-SAMPLE-2', 'TEXTURE-SAMPLE-3')
 
 # The maximum number of masks a single layer can use. Realistically users should never need more masks on a single layer than this.
 MAX_LAYER_MASKS = 5
@@ -159,6 +159,11 @@ def update_mask_projection_mode(self, context):
                         new_mask_texture_node.label = new_mask_texture_node.name
                         new_mask_texture_node.image = selected_mask.mask_image
 
+                # Convert existing blur nodes from triplanar to flat.
+                mask_blur_node = get_mask_node('MASK-BLUR', material_channel_name, selected_material_layer_index, selected_mask_index)
+                if mask_blur_node:
+                    mask_blur_node.node_tree = matlay_utils.get_flat_blur_node_tree()
+
             case 'TRIPLANAR':
                 # Convert all IMAGE TEXTURE nodes to triplanar group nodes.
                 old_mask_texture_node = get_mask_node('MASK-TEXTURE', material_channel_name, selected_material_layer_index, selected_mask_index)
@@ -202,6 +207,11 @@ def update_mask_projection_mode(self, context):
                 material_channel_node.node_tree.nodes.remove(mapping_node)
                 new_mapping_node.name = format_mask_node_name('MASK-MAPPING', selected_material_layer_index, selected_mask_index)
                 new_mapping_node.label = new_mapping_node.name
+
+                # Convert existing blur nodes from flat to triplanar.
+                mask_blur_node = get_mask_node('MASK-BLUR', material_channel_name, selected_material_layer_index, selected_mask_index)
+                if mask_blur_node:
+                    mask_blur_node.node_tree = matlay_utils.get_triplanar_blur_node_tree()
 
     # Organize and then relink mask nodes.
     layer_nodes.organize_all_layer_nodes()
@@ -458,6 +468,65 @@ def update_mask_projection_match_scale(self, context):
         masks[selected_mask_index].projection.scale_y = masks[selected_mask_index].projection.scale_x
         masks[selected_mask_index].projection.scale_z = masks[selected_mask_index].projection.scale_x
 
+
+#----------------------------- UPDATE MASK BLUR PROPERTIES -----------------------------#
+
+def update_mask_blur_toggle(self, context):
+    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+        return
+
+    # Add / remove the blur node for the mask.
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    selected_mask = context.scene.matlay_masks[selected_mask_index]
+
+    for material_channel_name in material_channels.get_material_channel_list():
+        blur_mask_node = get_mask_node('MASK-BLUR', material_channel_name, selected_material_layer_index, selected_mask_index)
+
+        # Create blur node, but was applied.
+        if selected_mask.blur:
+            if not blur_mask_node:
+                material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
+                new_blur_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
+                new_blur_node.name = format_mask_node_name('MASK-BLUR', selected_material_layer_index, selected_mask_index)
+                new_blur_node.label = new_blur_node.name
+
+                # Assign a node tree based on material layer projection mode.
+                mask_mapping_node = get_mask_node('MASK-MAPPING', material_channel_name, selected_material_layer_index, selected_mask_index)
+                if mask_mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
+                    new_blur_node.node_tree = matlay_utils.get_flat_blur_node_tree()
+                    new_blur_node.inputs[1].default_value = selected_mask.blur_amount
+                elif mask_mapping_node.node_tree.name == 'MATLAY_TRIPLANAR_MAPPING':
+                    new_blur_node.node_tree = matlay_utils.get_triplanar_blur_node_tree()
+                    new_blur_node.inputs[3].default_value = selected_mask.blur_amount
+
+        # Remove the blur node, blue was toggled off.
+        else:
+            if blur_mask_node:
+                material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
+                material_channel_node.node_tree.nodes.remove(blur_mask_node)
+                
+    relink_mask_nodes(selected_material_layer_index)
+    layer_nodes.organize_all_layer_nodes()
+
+def update_mask_blur_amount(self, context):
+    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+        return
+
+    # Update blur node values.
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    selected_mask = context.scene.matlay_masks[selected_mask_index]
+
+    for material_channel_name in material_channels.get_material_channel_list():
+        mask_blur_node = get_mask_node('MASK-BLUR', material_channel_name, selected_material_layer_index, selected_mask_index)
+        mask_mapping_node = get_mask_node('MASK-MAPPING', material_channel_name, selected_material_layer_index, selected_mask_index)
+        if mask_mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
+            mask_blur_node.inputs[1].default_value = selected_mask.blur_amount
+        elif mask_mapping_node.node_tree.name == 'MATLAY_TRIPLANAR_MAPPING':
+            mask_blur_node.inputs[3].default_value = selected_mask.blur_amount
+
 #----------------------------- CORE MASK FUNCTIONS -----------------------------#
 
 def validate_mask_selected_index():
@@ -482,7 +551,7 @@ def format_mask_node_name(mask_node_name, material_layer_index, mask_index, get_
         return  "{0}_{1}_{2}".format(mask_node_name, str(material_layer_index), str(mask_index))
 
 def get_mask_node(mask_node_name, material_channel_name, material_layer_index, mask_index, get_edited=False):
-    '''Returns a layer mask node based on the given name and mask stack index. Valid options include: 'MASK-TEXTURE', 'MASK-COORD', 'MASK-MAPPING', 'DECAL-MAPPING', 'DECAL-MASK', 'DECAL-MASK-MIX', 'DECAL-MASK-ADJUSTMENT', 'MASK-MIX', 'TEXTURE-SAMPLE-1', 'TEXTURE-SAMPLE-2', 'TEXTURE-SAMPLE-3' '''
+    '''Returns a layer mask node based on the given name and mask stack index. Valid options include: 'MASK-TEXTURE', 'MASK-COORD', 'MASK-MAPPING', 'MASK-BLUR', 'DECAL-MAPPING', 'DECAL-MASK', 'DECAL-MASK-MIX', 'DECAL-MASK-ADJUSTMENT', 'MASK-MIX', 'TEXTURE-SAMPLE-1', 'TEXTURE-SAMPLE-2', 'TEXTURE-SAMPLE-3' '''
     if mask_node_name in MASK_NODE_NAMES:
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
         if material_channel_node:
@@ -672,52 +741,72 @@ def relink_mask_nodes(material_layer_index):
 
             else:
                 mask_projection_mode = masks[selected_mask_index].projection.mode
+                match mask_projection_mode:
+                    case 'FLAT':
+                        # Link masks for flat projection.
+                        link_nodes(mask_coord_node.outputs[2], mask_mapping_node.inputs[0])
+                        if mask_texture_node.bl_static_type == 'TEX_IMAGE':
+                            mask_blur_node = get_mask_node('MASK-BLUR', material_channel_name, material_layer_index, selected_mask_index)
+                            if mask_blur_node:
+                                link_nodes(mask_mapping_node.outputs[0], mask_blur_node.inputs[0])
+                                link_nodes(mask_blur_node.outputs[0], mask_texture_node.inputs[0])
+                            else:
+                                link_nodes(mask_mapping_node.outputs[0], mask_texture_node.inputs[0])
 
-                # Link masks for flat projection.
-                if mask_projection_mode == 'FLAT':
-                    link_nodes(mask_coord_node.outputs[2], mask_mapping_node.inputs[0])
-                    if mask_texture_node.bl_static_type == 'TEX_IMAGE':
-                        link_nodes(mask_mapping_node.outputs[0], mask_texture_node.inputs[0])
-
-                    # Connect the flat mapping node to custom group node inputs that follow a standard naming convention.
-                    elif mask_texture_node.bl_static_type == 'GROUP':
-                        for c in range(0, len(mask_texture_node.inputs)):
-                            if mask_texture_node.inputs[c].name == 'Mapping':
-                                link_nodes(mask_mapping_node.outputs[0], mask_texture_node.inputs[i])
-                                break
-                
-                # Link masks for triplanar projection.
-                elif mask_projection_mode == 'TRIPLANAR':
-                    triplanar_mask_texture_node_1 = get_mask_node('TEXTURE-SAMPLE-1', material_channel_name, material_layer_index, selected_mask_index)
-                    triplanar_mask_texture_node_2 = get_mask_node('TEXTURE-SAMPLE-2', material_channel_name, material_layer_index, selected_mask_index)
-                    triplanar_mask_texture_node_3 = get_mask_node('TEXTURE-SAMPLE-3', material_channel_name, material_layer_index, selected_mask_index)
-
-                    link_nodes(mask_mapping_node.outputs[0], triplanar_mask_texture_node_1.inputs[0])
-                    link_nodes(mask_mapping_node.outputs[1], triplanar_mask_texture_node_2.inputs[0])
-                    link_nodes(mask_mapping_node.outputs[2], triplanar_mask_texture_node_3.inputs[0])
-                    link_nodes(triplanar_mask_texture_node_1.outputs[0], mask_texture_node.inputs[0])
-                    link_nodes(triplanar_mask_texture_node_2.outputs[0], mask_texture_node.inputs[1])
-                    link_nodes(triplanar_mask_texture_node_3.outputs[0], mask_texture_node.inputs[2])
-                    link_nodes(mask_mapping_node.outputs[3], mask_texture_node.inputs[3])
-
-                    # Connect the triplanar mapping node to custom group node inputs that follow a standard naming convention.
-                    if mask_texture_node.bl_static_type == 'GROUP':
-                        for c in range(0, len(mask_texture_node.inputs)):
-                            match mask_texture_node.inputs[c].name:
-                                case 'X':
+                        # Connect the flat mapping node to custom group node inputs that follow a standard naming convention.
+                        elif mask_texture_node.bl_static_type == 'GROUP':
+                            for c in range(0, len(mask_texture_node.inputs)):
+                                if mask_texture_node.inputs[c].name == 'Mapping':
                                     link_nodes(mask_mapping_node.outputs[0], mask_texture_node.inputs[i])
+                                    break
+                
+                    # Link masks for triplanar projection.
+                    case 'TRIPLANAR':
+                        triplanar_mask_texture_node_1 = get_mask_node('TEXTURE-SAMPLE-1', material_channel_name, material_layer_index, selected_mask_index)
+                        triplanar_mask_texture_node_2 = get_mask_node('TEXTURE-SAMPLE-2', material_channel_name, material_layer_index, selected_mask_index)
+                        triplanar_mask_texture_node_3 = get_mask_node('TEXTURE-SAMPLE-3', material_channel_name, material_layer_index, selected_mask_index)
 
-                                case 'Y':
-                                    link_nodes(mask_mapping_node.outputs[1], mask_texture_node.inputs[i])
 
-                                case 'Z':
-                                    link_nodes(mask_mapping_node.outputs[2], mask_texture_node.inputs[i])
+                        blur_mask_node = get_mask_node('MASK-BLUR', material_channel_name, material_layer_index, selected_mask_index)
+                        if blur_mask_node and layer_nodes.get_node_active(blur_mask_node):
+                            link_nodes(mask_mapping_node.outputs[0], blur_mask_node.inputs[0])
+                            link_nodes(mask_mapping_node.outputs[1], blur_mask_node.inputs[1])
+                            link_nodes(mask_mapping_node.outputs[2], blur_mask_node.inputs[2])
+                            link_nodes(blur_mask_node.outputs[0], triplanar_mask_texture_node_1.inputs[0])
+                            link_nodes(blur_mask_node.outputs[1], triplanar_mask_texture_node_2.inputs[0])
+                            link_nodes(blur_mask_node.outputs[2], triplanar_mask_texture_node_3.inputs[0])
+                            link_nodes(triplanar_mask_texture_node_1.outputs[0], mask_texture_node.inputs[0])
+                            link_nodes(triplanar_mask_texture_node_2.outputs[0], mask_texture_node.inputs[1])
+                            link_nodes(triplanar_mask_texture_node_3.outputs[0], mask_texture_node.inputs[2])
+                            link_nodes(mask_mapping_node.outputs[3], mask_texture_node.inputs[3])
 
-                                case 'AxisMask':
-                                    link_nodes(mask_mapping_node.outputs[3], mask_texture_node.inputs[i])
+                        else:
+                            link_nodes(mask_mapping_node.outputs[0], triplanar_mask_texture_node_1.inputs[0])
+                            link_nodes(mask_mapping_node.outputs[1], triplanar_mask_texture_node_2.inputs[0])
+                            link_nodes(mask_mapping_node.outputs[2], triplanar_mask_texture_node_3.inputs[0])
+                            link_nodes(triplanar_mask_texture_node_1.outputs[0], mask_texture_node.inputs[0])
+                            link_nodes(triplanar_mask_texture_node_2.outputs[0], mask_texture_node.inputs[1])
+                            link_nodes(triplanar_mask_texture_node_3.outputs[0], mask_texture_node.inputs[2])
+                            link_nodes(mask_mapping_node.outputs[3], mask_texture_node.inputs[3])
 
-                                case 'Rotation':
-                                    link_nodes(mask_mapping_node.outputs[4], mask_texture_node.inputs[i])
+                        # Connect the triplanar mapping node to custom group node inputs that follow a standard naming convention.
+                        if mask_texture_node.bl_static_type == 'GROUP':
+                            for c in range(0, len(mask_texture_node.inputs)):
+                                match mask_texture_node.inputs[c].name:
+                                    case 'X':
+                                        link_nodes(mask_mapping_node.outputs[0], mask_texture_node.inputs[i])
+
+                                    case 'Y':
+                                        link_nodes(mask_mapping_node.outputs[1], mask_texture_node.inputs[i])
+
+                                    case 'Z':
+                                        link_nodes(mask_mapping_node.outputs[2], mask_texture_node.inputs[i])
+
+                                    case 'AxisMask':
+                                        link_nodes(mask_mapping_node.outputs[3], mask_texture_node.inputs[i])
+
+                                    case 'Rotation':
+                                        link_nodes(mask_mapping_node.outputs[4], mask_texture_node.inputs[i])
 
             # If the current mask is disabled, skip connecting it.
             if layer_nodes.get_node_active(mask_texture_node) == False:
@@ -886,6 +975,21 @@ def read_mask_nodes(context):
                 mask.use_alpha = False
             else:
                 mask.use_alpha = True
+
+        # Read mask blur toggle (if a blur node doesn't exist, blur toggle is off).
+        mask_blur_node = get_mask_node('MASK-BLUR', 'COLOR', selected_material_index, i)
+        if mask_blur_node:
+            mask.blur = True
+        else:
+            mask.blur = False
+
+        # Read mask blur amount.
+        if mask_blur_node:
+            mask_mapping_node = get_mask_node('MASK-MAPPING', 'COLOR', selected_material_index, i)
+            if mask_mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
+                mask.blur_amount = mask_blur_node.inputs[1].default_value
+            elif mask_mapping_node.node_tree.name == 'MATLAY_TRIPLANAR_MAPPING':
+                mask.blur_amount = mask_blur_node.inputs[3].default_value
 
     # Re-enable auto-updating for mask properties.
     mask_stack.auto_update_mask_properties = True
@@ -1209,6 +1313,8 @@ class MATLAY_masks(PropertyGroup):
     use_alpha: BoolProperty(name="Use Alpha", default=False, description="If true, the image alpha output will be used as the mask instead of the color output", update=update_use_alpha)
     mask_image: PointerProperty(type=bpy.types.Image, name="Mask Image", description="The image texture used for the selected mask", update=update_mask_image)
     custom_mask_node_tree: PointerProperty(type=ShaderNodeTree, name="Mask Custom Node Tree", update=update_custom_mask_node_tree)
+    blur: BoolProperty(name="Blur", default=False, update=update_mask_blur_toggle)
+    blur_amount: FloatProperty(name="Blur Amount", default=0.05, min=0.0, soft_max=1.0, update=update_mask_blur_amount)
 
 class MATLAY_UL_mask_stack(bpy.types.UIList):
     '''Draws the mask stack for the selected layer.'''

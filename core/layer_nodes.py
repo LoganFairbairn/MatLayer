@@ -13,7 +13,7 @@ NODE_WIDTH = 300
 NODE_SPACING = 50
 
 # Constant names for all material nodes. All material nodes must use one of these names.
-LAYER_NODE_NAMES = ('TEXTURE', 'OPACITY', 'COORD', 'MAPPING', 'MIX-LAYER', 'NORMAL-ROTATION-FIX', 'TEXTURE-SAMPLE-1', 'TEXTURE-SAMPLE-2', 'TEXTURE-SAMPLE-3')
+LAYER_NODE_NAMES = ('TEXTURE', 'OPACITY', 'COORD', 'MAPPING', 'BLUR', 'MIX-LAYER', 'NORMAL-ROTATION-FIX', 'TEXTURE-SAMPLE-1', 'TEXTURE-SAMPLE-2', 'TEXTURE-SAMPLE-3')
 
 def set_node_active(node, active):
     '''Marks the node as inactive by changing it's color.'''
@@ -269,22 +269,38 @@ def relink_material_nodes(material_layer_index):
                                 break              
 
                 case 'TRIPLANAR':
-                    # Link triplanar texture samples for material channels that use an image texture.
                     if texture_node.bl_static_type == 'GROUP':
+
+                        # Link triplanar texture samples for material channels that use an image texture.
                         if texture_node.node_tree.name == 'MATLAY_TRIPLANAR' or texture_node.node_tree.name == 'MATLAY_TRIPLANAR_NORMALS':
                             texture_sample_1 = get_layer_node('TEXTURE-SAMPLE-1', material_channel_name, material_layer_index, bpy.context)
                             texture_sample_2 = get_layer_node('TEXTURE-SAMPLE-2', material_channel_name, material_layer_index, bpy.context)
                             texture_sample_3 = get_layer_node('TEXTURE-SAMPLE-3', material_channel_name, material_layer_index, bpy.context)
 
-                            link_nodes(mapping_node.outputs[0], texture_sample_1.inputs[0])
-                            link_nodes(mapping_node.outputs[1], texture_sample_2.inputs[0])
-                            link_nodes(mapping_node.outputs[2], texture_sample_3.inputs[0])
-                            link_nodes(texture_sample_1.outputs[0], texture_node.inputs[0])
-                            link_nodes(texture_sample_2.outputs[0], texture_node.inputs[1])
-                            link_nodes(texture_sample_3.outputs[0], texture_node.inputs[2])
-                            link_nodes(mapping_node.outputs[3], texture_node.inputs[3])
-                            if material_channel_name == 'NORMAL':
-                                link_nodes(mapping_node.outputs[4], texture_node.inputs[4])
+                            blur_node = get_layer_node('BLUR', material_channel_name, material_layer_index, bpy.context)
+                            if blur_node and get_node_active(blur_node):
+                                link_nodes(mapping_node.outputs[0], blur_node.inputs[0])
+                                link_nodes(mapping_node.outputs[1], blur_node.inputs[1])
+                                link_nodes(mapping_node.outputs[2], blur_node.inputs[2])
+                                link_nodes(blur_node.outputs[0], texture_sample_1.inputs[0])
+                                link_nodes(blur_node.outputs[1], texture_sample_2.inputs[0])
+                                link_nodes(blur_node.outputs[2], texture_sample_3.inputs[0])
+                                link_nodes(texture_sample_1.outputs[0], texture_node.inputs[0])
+                                link_nodes(texture_sample_2.outputs[0], texture_node.inputs[1])
+                                link_nodes(texture_sample_3.outputs[0], texture_node.inputs[2])
+                                link_nodes(mapping_node.outputs[3], texture_node.inputs[3])
+                                if material_channel_name == 'NORMAL':
+                                    link_nodes(mapping_node.outputs[4], texture_node.inputs[4])
+                            else:
+                                link_nodes(mapping_node.outputs[0], texture_sample_1.inputs[0])
+                                link_nodes(mapping_node.outputs[1], texture_sample_2.inputs[0])
+                                link_nodes(mapping_node.outputs[2], texture_sample_3.inputs[0])
+                                link_nodes(texture_sample_1.outputs[0], texture_node.inputs[0])
+                                link_nodes(texture_sample_2.outputs[0], texture_node.inputs[1])
+                                link_nodes(texture_sample_3.outputs[0], texture_node.inputs[2])
+                                link_nodes(mapping_node.outputs[3], texture_node.inputs[3])
+                                if material_channel_name == 'NORMAL':
+                                    link_nodes(mapping_node.outputs[4], texture_node.inputs[4])
 
                         # Connect triplanar mapping to custom group node inputs for any input that matches an output naming in the triplanar mapping node.
                         else:
@@ -311,10 +327,14 @@ def relink_material_nodes(material_layer_index):
                 case 'TUBE':
                     link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
 
-
-        # Plug the mapping node into image textures when using flat / uv projection.
+        # Plug the mapping node into blur nodes (if they exist) or image textures when using flat / uv projection.
         if texture_node.bl_static_type == 'TEX_IMAGE':
-            link_nodes(mapping_node.outputs[0], texture_node.inputs[0])
+            blur_node = get_layer_node('BLUR', material_channel_name, material_layer_index, bpy.context)
+            if blur_node and get_node_active(blur_node):
+                link_nodes(mapping_node.outputs[0], blur_node.inputs[0])
+                link_nodes(blur_node.outputs[0], texture_node.inputs[0])
+            else:
+                link_nodes(mapping_node.outputs[0], texture_node.inputs[0])
 
         # Apply layer opacity by connecting the opacity node to the mix layer node.
         link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
@@ -347,7 +367,7 @@ def format_material_node_name(node_name, material_layer_index, get_edited=False)
     return node_name
 
 def get_layer_node(node_name, material_channel_name, layer_index, context, get_edited=False):
-    '''Gets a specific layer node using a given name. Valid options include "TEXTURE", "OPACITY", "COORD", "MAPPING", "MIX-LAYER", "NORMAL-ROTATION-FIX", "MATLAY-TRIPLANAR", "MATLAY-TRIPLANAR-NORMALS", "TEXTURE-SAMPLE-1", "TEXTURE-SAMPLE-2", "TEXTURE-SAMPLE-3" '''
+    '''Gets a specific layer node using a given name. Valid options include 'TEXTURE', 'OPACITY', 'COORD', 'MAPPING', 'BLUR', 'MIX-LAYER', 'NORMAL-ROTATION-FIX', 'TEXTURE-SAMPLE-1', 'TEXTURE-SAMPLE-2', 'TEXTURE-SAMPLE-3' '''
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     if material_channel_node:
         if node_name in LAYER_NODE_NAMES:

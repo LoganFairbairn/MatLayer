@@ -235,7 +235,7 @@ def add_layer(layer_type, self, decal_object=None):
     material_channels.create_empty_group_node(bpy.context)
 
     # Append standard mapping node trees.
-    matlay_utils.append_mapping_node_trees()
+    matlay_utils.append_default_node_trees()
 
     # Add a new layer slot and default nodes.
     new_material_layer_index = add_layer_slot(layer_type)
@@ -1159,6 +1159,32 @@ def read_active_layer_material_channels(material_channel_list, total_number_of_l
             material_channel_active = layer_nodes.get_node_active(texture_node)
             setattr(layers[i].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", material_channel_active)
 
+def read_blur_nodes(context):
+    '''Reads blur node values.'''
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_layer = context.scene.matlay_layers[selected_material_layer_index]
+
+    # Read blur toggle (if a blur node doesn't exist, blur toggle is off).
+    blur_node = layer_nodes.get_layer_node('BLUR', 'COLOR', selected_material_layer_index, context)
+    if not blur_node:
+        selected_layer.blur = False
+    else:
+        selected_layer.blur = True
+
+    # Read blur amount values.
+    for material_channel_name in material_channels.get_material_channel_list():
+        blur_node = layer_nodes.get_layer_node('BLUR', material_channel_name, selected_material_layer_index, context)
+        mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, selected_material_layer_index, context)
+        if blur_node:
+            if mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
+                selected_layer.blur_amount = blur_node.inputs[1].default_value
+            elif mapping_node.node_tree.name == 'MATLAY_TRIPLANAR_MAPPING':
+                selected_layer.blur_amount = blur_node.inputs[3].default_value
+
+            # Read blur toggles for material channels.
+            blur_node_active = layer_nodes.get_node_active(blur_node)
+            setattr(selected_layer.blurred_material_channels, material_channel_name.lower() + "_channel_blur", blur_node_active)
+
 def read_layer_nodes(context):
     '''Reads the material node tree to define the layer stack user interface properties.'''
 
@@ -1200,6 +1226,7 @@ def read_layer_nodes(context):
     read_globally_active_material_channels(context)
     read_hidden_layers(total_number_of_layers, material_layers, material_channel_list, context)
     read_active_layer_material_channels(material_channel_list, total_number_of_layers, material_layers, context)
+    read_blur_nodes(context)
     material_filters.read_material_filter_nodes(context)
     layer_masks.read_mask_nodes(context)
     layer_masks.read_mask_filter_nodes(context)

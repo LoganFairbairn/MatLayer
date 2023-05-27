@@ -154,7 +154,7 @@ class MATLAY_layer_stack(PropertyGroup):
                ('PROJECTION', "PROJECTION", "Projection settings for the selected material layer."),
                ('FILTERS', "FILTERS", "Layer filters and their properties for the selected material layer.")],
         name="Material Property Tabs",
-        description="Tabs for material layer properties.",
+        description="Tabs for material layer properties",
         default='MATERIAL',
         options={'HIDDEN'},       
     )
@@ -297,6 +297,11 @@ def update_layer_projection_mode(self, context):
                             image_texture = getattr(selected_material_layer.material_channel_textures, material_channel_name.lower() + "_channel_texture")
                             new_texture_node.image = image_texture
 
+                # Convert existing blur nodes from flat to triplanar.
+                blur_node = layer_nodes.get_layer_node('BLUR', material_channel_name, selected_material_layer_index, context)
+                if blur_node:
+                    blur_node.node_tree = matlay_utils.get_flat_blur_node_tree()
+
             case 'TRIPLANAR':
                 # Convert all IMAGE TEXTURE nodes to triplanar group nodes.
                 texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_material_layer_index, context)
@@ -349,6 +354,11 @@ def update_layer_projection_mode(self, context):
                 material_channel_node.node_tree.nodes.remove(mapping_node)
                 new_mapping_node.name = layer_nodes.format_material_node_name('MAPPING', selected_material_layer_index)
                 new_mapping_node.label = new_mapping_node.name
+
+                # Convert existing blur nodes from flat to triplanar.
+                blur_node = layer_nodes.get_layer_node('BLUR', material_channel_name, selected_material_layer_index, context)
+                if blur_node:
+                    blur_node.node_tree = matlay_utils.get_triplanar_blur_node_tree()
 
             case 'SPHERE':
                 print("Placeholder")
@@ -725,7 +735,7 @@ def update_emission_channel_color(self, context):
 
 
 #----------------------------- UPDATE UNIFORM LAYER VALUES -----------------------------#
-# To have correct min / max values for sliders when the user is using uniform value nodes in the user interface
+# To have correct min / max values for sliders when the user is using uniform value nodes in the user interface.
 # When these values which are displayed in the ui are updated, they automatically update their respective value nodes in the node tree through these functions.
 
 def update_uniform_color_value(self, context):
@@ -1111,6 +1121,103 @@ def update_height_node_tree(self, context):
     layer_nodes.relink_material_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
     layer_nodes.relink_mix_layer_nodes()
 
+#----------------------------- UPDATE MATERIAL CHANNEL BLUR PROPERTIES -----------------------------#
+
+def update_blur_toggle(self, context):
+    # Add / remove the blur node for the layer.
+    if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
+        return
+    
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_layer = context.scene.matlay_layers[selected_material_layer_index]
+
+    for material_channel_name in material_channels.get_material_channel_list():
+        blur_node = layer_nodes.get_layer_node('BLUR', material_channel_name, selected_material_layer_index, context)
+
+        # Create blur nodes, blur was applied.
+        if selected_layer.blur:
+            if not blur_node:
+                material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
+                new_blur_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
+                new_blur_node.name = layer_nodes.format_material_node_name('BLUR', selected_material_layer_index)
+                new_blur_node.label = new_blur_node.name
+
+                # Assign a node tree based on material layer projection mode.
+                mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, selected_material_layer_index, context)
+                if mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
+                    new_blur_node.node_tree = matlay_utils.get_flat_blur_node_tree()
+                    new_blur_node.inputs[1].default_value = selected_layer.blur_amount
+                elif mapping_node.node_tree.name == 'MATLAY_TRIPLANAR_MAPPING':
+                    new_blur_node.node_tree = matlay_utils.get_triplanar_blur_node_tree()
+                    new_blur_node.inputs[3].default_value = selected_layer.blur_amount
+
+        # Remove the blur nodes, blur was toggled off.
+        else:
+            if blur_node:
+                material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
+                material_channel_node.node_tree.nodes.remove(blur_node)
+
+    layer_nodes.relink_material_nodes(context.scene.matlay_layer_stack.layer_index)
+    layer_nodes.relink_mix_layer_nodes()
+    layer_nodes.organize_all_layer_nodes()
+
+def update_blur_amount(self, context):
+    '''Updates blur node values when the blur node value is updated in the user interface.'''
+    if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
+        return
+    
+    # Update blur node values.
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_layer = context.scene.matlay_layers[selected_material_layer_index]
+
+    for material_channel_name in material_channels.get_material_channel_list():
+        blur_node = layer_nodes.get_layer_node('BLUR', material_channel_name, selected_material_layer_index, context)
+        mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, selected_material_layer_index, context)
+        if mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
+            blur_node.inputs[1].default_value = selected_layer.blur_amount
+        elif mapping_node.node_tree.name == 'MATLAY_TRIPLANAR_MAPPING':
+            blur_node.inputs[3].default_value = selected_layer.blur_amount
+
+def update_channel_blur(material_channel_name, context):
+    if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
+        return
+    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_layer = context.scene.matlay_layers[selected_material_layer_index]
+    blur_node = layer_nodes.get_layer_node('BLUR', material_channel_name, selected_material_layer_index, context)
+    if blur_node:
+        channel_toggle = getattr(selected_layer.blurred_material_channels, material_channel_name.lower() + "_channel_blur")
+        layer_nodes.set_node_active(blur_node, channel_toggle)
+
+    layer_nodes.relink_material_nodes(context.scene.matlay_layer_stack.layer_index)
+    layer_nodes.relink_mix_layer_nodes()
+
+def update_color_channel_blur(self, context):
+    update_channel_blur('COLOR', context)
+
+def update_subsurface_channel_blur(self, context):
+    update_channel_blur('SUBSURFACE', context)
+
+def update_subsurface_color_channel_blur(self, context):
+    update_channel_blur('SUBSURFACE_COLOR', context)
+
+def update_metallic_channel_blur(self, context):
+    update_channel_blur('METALLIC', context)
+
+def update_specular_channel_blur(self, context):
+    update_channel_blur('SPECULAR', context)
+
+def update_roughness_channel_blur(self, context):
+    update_channel_blur('ROUGHNESS', context)
+
+def update_emission_channel_blur(self, context):
+    update_channel_blur('EMISSION', context)
+
+def update_normal_channel_blur(self, context):
+    update_channel_blur('NORMAL', context)
+
+def update_height_channel_blur(self, context):
+    update_channel_blur('HEIGHT', context)
+
 #----------------------------- LAYER PROPERTIES -----------------------------#
 
 class MATLAY_OT_open_material_layer_settings(Operator):
@@ -1215,6 +1322,17 @@ class MaterialChannelGroupNodes(PropertyGroup):
     normal_channel_node_tree: PointerProperty(type=ShaderNodeTree, name="Subsurface Material Channel Node Tree", update=update_normal_node_tree)
     height_channel_node_tree: PointerProperty(type=ShaderNodeTree, name="Subsurface Material Channel Node Tree", update=update_height_node_tree)
 
+class MaterialChannelBlurring(PropertyGroup):
+    color_channel_blur: BoolProperty(default=True, update=update_color_channel_blur)
+    subsurface_channel_blur: BoolProperty(default=True, update=update_subsurface_channel_blur)
+    subsurface_color_channel_blur: BoolProperty(default=True, update=update_subsurface_color_channel_blur)
+    metallic_channel_blur: BoolProperty(default=True, update=update_metallic_channel_blur)
+    specular_channel_blur: BoolProperty(default=True, update=update_specular_channel_blur)
+    roughness_channel_blur: BoolProperty(default=True, update=update_roughness_channel_blur)
+    emission_channel_blur: BoolProperty(default=True, update=update_emission_channel_blur)
+    normal_channel_blur: BoolProperty(default=True, update=update_normal_channel_blur)
+    height_channel_blur: BoolProperty(default=True, update=update_height_channel_blur)
+
 class MATLAY_layers(PropertyGroup):
     layer_stack_array_index: IntProperty(name="Layer Stack Array Index", description="The array index of this layer within the layer stack, stored to make it easy to access the array index of a specific layer", default=-9)
     id: IntProperty(name="ID", description="Unique numeric ID for the selected layer", default=0)
@@ -1230,3 +1348,6 @@ class MATLAY_layers(PropertyGroup):
     uniform_channel_values: PointerProperty(type=MaterialChannelUniformValues, name="Uniform Channel Values")
     material_channel_textures: PointerProperty(type=MaterialChannelTextures, name="Material Channel Textures")
     material_channel_node_trees: PointerProperty(type=MaterialChannelGroupNodes, name="Material Channel Node Trees")
+    blur: BoolProperty(name="Blur", default=False, update=update_blur_toggle)
+    blur_amount: FloatProperty(name="Blur Amount", default=0.05, min=0.0, soft_max=1.0, update=update_blur_amount)
+    blurred_material_channels: PointerProperty(type=MaterialChannelBlurring, name="Blurred Material Channels")

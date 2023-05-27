@@ -128,13 +128,23 @@ def get_normal_triplanar_node_tree():
     '''Returns a custom triplanar projection node tree specifically for correct normal map projections. The node tree will be appended if it doesn't exist in the current blend file.'''
     return append_custom_node_tree("MATLAY_TRIPLANAR_NORMALS", True)
 
-def append_mapping_node_trees():
+def get_flat_blur_node_tree():
+    '''Returns a group node that can be used to blur flat / uv projected textures.'''
+    return append_custom_node_tree("MATLAY_FLAT_BLUR", True)
+
+def get_triplanar_blur_node_tree():
+    '''Returns a group node that can be used to blur triplanar projected textures.'''
+    return append_custom_node_tree("MATLAY_TRIPLANAR_BLUR", True)
+
+def append_default_node_trees():
     '''Appends important node trees used in this add-on.'''
     # Appending node trees in a defined order helps avoid duplicate node trees.
     get_triplanar_node_tree()
     get_triplanar_mapping_tree()
     get_normal_triplanar_node_tree()
     get_normal_map_rotation_fix_node_tree()
+    get_flat_blur_node_tree()
+    get_triplanar_blur_node_tree()
 
 def update_total_node_and_link_count():
     '''Counts the number of nodes and links created by this add-on to give a quantitative value to the work saved with this plugin.'''

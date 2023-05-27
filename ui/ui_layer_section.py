@@ -458,7 +458,48 @@ def draw_filter_material_channel_toggles(column, context):
                 number_of_drawn_channel_toggles = 0
 
 def draw_material_filters(column, context, layout):
-    '''Draws a layer stack of filters applied to the selected material layer and their settings.'''
+    '''Draws a layer stack of filters applied to the selected material layer and their settings.'''    
+    selected_layer = context.scene.matlay_layers[context.scene.matlay_layer_stack.layer_index]
+
+    # Draw blurring settings.
+    split = column.split(factor=0.35)
+    first_column = split.column()
+    second_column = split.column()
+    row = first_column.row()
+    row.scale_y = 1.4
+    row.label(text="Apply Blur: ")
+    row.prop(selected_layer, "blur", text="")
+    
+    row = second_column.row()
+    row.scale_y = 1.4
+    if not selected_layer.blur:
+        row.enabled = False
+    row.prop(selected_layer, "blur_amount", slider=True)
+
+    # Blur toggles for material channels.
+    row = column.row()
+    row.scale_y = 1.4
+    number_of_active_material_channels = tss.get_active_material_channel_count()
+    texture_set_settings = context.scene.matlay_texture_set_settings
+    number_of_drawn_channel_toggles = 0
+    for material_channel_name in material_channels.get_material_channel_list():
+        attribute_name = material_channel_name.lower() + "_channel_toggle"
+        if getattr(texture_set_settings.global_material_channel_toggles, attribute_name):
+            material_channel_name_abbreviation = material_channels.get_material_channel_abbreviation(material_channel_name)
+            row.prop(selected_layer.blurred_material_channels, material_channel_name.lower() + "_channel_blur", text=material_channel_name_abbreviation, toggle=1)
+
+            # Add an additional row in the user interface for material channel toggles if there are a lot of active material channels.
+            number_of_drawn_channel_toggles += 1
+            if number_of_drawn_channel_toggles >= number_of_active_material_channels / 2 and number_of_active_material_channels >= 6:
+                row= column.row()
+                row.scale_y = 1.4
+                number_of_drawn_channel_toggles = 0
+
+
+    row = column.row()
+    row.separator()
+    row = column.row(align=True)
+    row.label(text="RGB FILTERS")
     row = column.row(align=True)
     row.scale_y = 2
     row.scale_x = 10
@@ -663,6 +704,32 @@ def draw_mask_node_properties(column):
 
 def draw_mask_filters(column):
     '''Draws the mask filter stack with operators for material layer masks.'''
+    selected_material_index = bpy.context.scene.matlay_layer_stack.layer_index
+    selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
+    selected_mask_filter_index = bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_index
+    selected_mask = bpy.context.scene.matlay_masks[selected_mask_index]
+
+    # Draw blurring settings.
+    row = column.row()
+    row.separator()
+    split = column.split(factor=0.35)
+    first_column = split.column()
+    second_column = split.column()
+    row = first_column.row()
+    row.scale_y = 1.4
+    row.label(text="Apply Blur: ")
+    row.prop(selected_mask, "blur", text="")
+    
+    row = second_column.row()
+    row.scale_y = 1.4
+    if not selected_mask.blur:
+        row.enabled = False
+    row.prop(selected_mask, "blur_amount", slider=True)
+
+    row = column.row()
+    row.separator()
+    row = column.row(align=True)
+    row.label(text="VALUE FILTERS")
     subrow = column.row(align=True)
     subrow.scale_y = 2
     subrow.scale_x = 10
@@ -679,9 +746,6 @@ def draw_mask_filters(column):
     subrow.template_list("MATLAY_UL_mask_filter_stack", "Masks", bpy.context.scene, "matlay_mask_filters", mask_filter_stack, "selected_mask_filter_index", sort_reverse=True)
 
     # Draw node settings based on the node type.
-    selected_material_index = bpy.context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
-    selected_mask_filter_index = bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_index
     mask_filter_node = layer_masks.get_mask_filter_node('COLOR', selected_material_index, selected_mask_index, selected_mask_filter_index)
     if mask_filter_node:
         match mask_filter_node.bl_static_type:
