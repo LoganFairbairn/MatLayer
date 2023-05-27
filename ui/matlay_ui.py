@@ -29,7 +29,7 @@ class MATLAY_panel_properties(bpy.types.PropertyGroup):
     )
 
 class MATLAY_PT_Panel(bpy.types.Panel):
-    bl_label = "MatLay " + "1.0.2"
+    bl_label = "MatLay " + "1.0.3"
     bl_idname = "MATLAY_PT_main_panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
