@@ -547,7 +547,7 @@ class MATLAY_OT_move_material_layer(Operator):
             # Rename / re-index filter nodes.
             filter_nodes = material_filters.get_all_material_filter_nodes(material_channel_name, moving_to_layer_index, False)
             for filter_node in filter_nodes:
-                node_info = filter_nodes.name.split('_')
+                node_info = filter_node.name.split('_')
                 filter_node.name = node_info[0] + "_" + str(selected_material_layer_index) + "_" + node_info[2]
                 filter_node.label = filter_node.name
 
