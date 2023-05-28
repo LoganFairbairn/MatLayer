@@ -247,7 +247,7 @@ def read_material_filter_nodes(context):
     # Read inactive material channels for the selected fitler index.
     for i in range(0, len(layer_filter_nodes)):
         for material_channel_name in material_channels.get_material_channel_list():
-            filter_node = get_material_filter_node(material_channel_name, selected_layer_index, x)
+            filter_node = get_material_filter_node(material_channel_name, selected_layer_index, i)
             filter_node_active = layer_nodes.get_node_active(filter_node)
             setattr(filters[i].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", filter_node_active)
 
