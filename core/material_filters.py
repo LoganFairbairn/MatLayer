@@ -209,6 +209,8 @@ def relink_material_filter_nodes(material_layer_index):
                         material_channel_node.node_tree.links.new(filter_node.outputs[0], next_active_filter_node.inputs[1])
                     case 'BRIGHTCONTRAST':
                         material_channel_node.node_tree.links.new(filter_node.outputs[0], next_active_filter_node.inputs[0])
+                    case 'GROUP':
+                        material_channel_node.node_tree.links.new(filter_node.outputs[0], next_active_filter_node.inputs[0])
 
     logging.log("Relinked material filter nodes.")
 
@@ -278,6 +280,10 @@ def add_material_filter_slot():
 
     return bpy.context.scene.matlay_material_filter_stack.selected_filter_index
 
+def get_normal_intensity_filter_node_tree():
+    '''Returns the normal intensity filter node tree, appends it from the blend asset if it doesn't exist.'''
+    return matlay_utils.append_custom_node_tree('MATLAY_ADJUST_NORMAL_INTENSITY', True)
+
 def add_material_filter(filter_type, context):
     '''Creates a new material layer filter slot and node.'''
     validate_filter_selected_index()
@@ -299,7 +305,11 @@ def add_material_filter(filter_type, context):
     for material_channel_name in material_channel_list:
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
         if material_channel_node:
-                filter_node = material_channel_node.node_tree.nodes.new(filter_type)
+                if filter_type == 'NormalIntensity':
+                    filter_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
+                    filter_node.node_tree = get_normal_intensity_filter_node_tree()
+                else:
+                    filter_node = material_channel_node.node_tree.nodes.new(filter_type)
                 filter_node.name = format_filter_node_name(selected_material_layer_index, new_filter_index) + "~"
                 filter_node.label = filter_node.name
 
@@ -313,11 +323,18 @@ def add_material_filter(filter_type, context):
     layer_nodes.relink_material_nodes(selected_material_layer_index)
     layer_nodes.relink_mix_layer_nodes()
 
-    # Toggle the material filter off for all material channels excluding color, because users will generally want the material filter to only apply for one material channel anyways. This makes it slightly faster for users to toggle on the material channel they want the material filter to apply to.
-    for material_channel_name in material_channel_list:
-        if material_channel_name != 'COLOR':
-            setattr(filters[new_filter_index].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", False)
-            filter_material_channel_toggle(False, material_channel_name, context)
+    # Toggle the material filter off for all material channels excluding color (normal for normal intensity filter), because users will generally want the material filter to only apply for one material channel anyways. 
+    # This makes it slightly faster for users to toggle on the material channel they want the material filter to apply to.
+    if filter_type == 'NormalIntensity':
+        for material_channel_name in material_channel_list:
+            if material_channel_name != 'NORMAL':
+                setattr(filters[new_filter_index].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", False)
+                filter_material_channel_toggle(False, material_channel_name, context)
+    else:
+        for material_channel_name in material_channel_list:
+            if material_channel_name != 'COLOR':
+                setattr(filters[new_filter_index].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", False)
+                filter_material_channel_toggle(False, material_channel_name, context)
 
     matlay_utils.update_total_node_and_link_count()
 
@@ -429,11 +446,12 @@ class MATLAY_UL_layer_filter_stack(UIList):
                         filter_name = "Curve RGB"
                     case 'BRIGHTCONTRAST':
                         filter_name = "Brightness & Contrast"
+                    case 'GROUP':
+                        filter_name = "Normal Intensity"
                 row.label(text=str(item.stack_index + 1) + ". " + filter_name)
 
 # TODO: These should be "material" filters instead of layer filters for accuracy.
 class MATLAY_OT_add_layer_filter_invert(Operator):
-    '''Adds an invert filter to the selected layer.'''
     bl_idname = "matlay.add_layer_filter_invert"
     bl_label = "Add Invert"
     bl_description = "Adds an invert filter to the selected layer"
@@ -451,7 +469,6 @@ class MATLAY_OT_add_layer_filter_invert(Operator):
         return{'FINISHED'}
 
 class MATLAY_OT_add_layer_filter_val_to_rgb(Operator):
-    '''Adds level adjustment to the selected layer.'''
     bl_idname = "matlay.add_layer_filter_val_to_rgb"
     bl_label = "Add Value to RGB"
     bl_description = "Adds a level adjustment (color ramp) to the selected layer"
@@ -468,7 +485,6 @@ class MATLAY_OT_add_layer_filter_val_to_rgb(Operator):
         return{'FINISHED'}
 
 class MATLAY_OT_add_layer_filter_hsv(Operator):
-    '''Adds a hue, saturation, value adjustment to the selected layer.'''
     bl_idname = "matlay.add_layer_filter_hsv"
     bl_label = "Add HSV"
     bl_description = "Adds a hue, saturation, value adjustment to the selected layer"
@@ -485,7 +501,6 @@ class MATLAY_OT_add_layer_filter_hsv(Operator):
         return{'FINISHED'}
 
 class MATLAY_OT_add_layer_filter_rgb_curves(Operator):
-    '''Adds a RGB curves adjustment to the selected layer.'''
     bl_idname = "matlay.add_layer_filter_rgb_curves"
     bl_label = "Add RGB Curves"
     bl_description = "Adds a RGB curves adjustment to the selected layer"
@@ -502,7 +517,6 @@ class MATLAY_OT_add_layer_filter_rgb_curves(Operator):
         return{'FINISHED'}
 
 class MATLAY_OT_add_layer_filter_bright_contrast(Operator):
-    '''Adds a brightness and contrast filter to the selected layer.'''
     bl_idname = "matlay.add_layer_filter_bright_contrast"
     bl_label = "Add Brightness / Contrast"
     bl_description = "Adds a brightness and contrast filter to the selected layer"
@@ -515,6 +529,22 @@ class MATLAY_OT_add_layer_filter_bright_contrast(Operator):
     def execute(self, context):
         matlay_utils.set_valid_mode()
         add_material_filter('ShaderNodeBrightContrast', context)
+        matlay_utils.set_valid_material_shading_mode(context)
+        return{'FINISHED'}
+
+class MATLAY_OT_add_material_filter_normal_intensity(Operator):
+    bl_idname = "matlay.add_material_filter_normal_intensity"
+    bl_label = "Add Normal Intensity"
+    bl_description = "Adds a filter to the material that adjusts normal intensity"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @ classmethod
+    def poll(cls, context):
+        return bpy.context.scene.matlay_layers
+
+    def execute(self, context):
+        matlay_utils.set_valid_mode()
+        add_material_filter('NormalIntensity', context)
         matlay_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
@@ -547,6 +577,7 @@ class MATLAY_OT_add_layer_filter_menu(Operator):
         col.operator("matlay.add_layer_filter_hsv", text="HSV")
         col.operator("matlay.add_layer_filter_rgb_curves", text="RGB Curves")
         col.operator("matlay.add_layer_filter_bright_contrast", text="Brightness / Contrast")
+        col.operator("matlay.add_material_filter_normal_intensity", text="Normal Intensity")
 
 class MATLAY_OT_delete_layer_filter(Operator):
     '''Deletes the selected layer filter.'''

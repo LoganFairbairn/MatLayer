@@ -209,6 +209,8 @@ def link_last_layer_node(material_layer_index, material_channel_name, link_nodes
                 link_nodes(node_to_filter_node.outputs[0], first_filter_node.inputs[1])
             case 'BRIGHTCONTRAST':
                 link_nodes(node_to_filter_node.outputs[0], first_filter_node.inputs[0])
+            case 'GROUP':
+                link_nodes(node_to_filter_node.outputs[0], first_filter_node.inputs[0])
         
         link_nodes(last_filter_node.outputs[0], mix_layer_node.inputs[2])
     

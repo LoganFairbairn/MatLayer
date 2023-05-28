@@ -583,6 +583,11 @@ def draw_material_filters(column, context, layout):
                 row.scale_y = 1.4
                 row.prop(filter_node.inputs[2], "default_value", text="Contrast")
 
+            case 'GROUP':
+                row = column.row()
+                row.scale_y = 1.4
+                row.prop(filter_node.inputs[1], "default_value", text="Intensity", slider=True)
+
 #----------------- DRAW MASK EDITING UI ----------------------#
 
 def draw_mask_stack(column):
