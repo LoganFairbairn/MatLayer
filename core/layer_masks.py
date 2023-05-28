@@ -408,7 +408,7 @@ def update_mask_projection_scale_x(self, context):
         mapping_node = get_mask_node('MASK-MAPPING', material_channel_name, selected_material_layer_index, selected_mask_index, False)
 
         if masks[selected_mask_index].projection.mode == 'FLAT':
-            mapping_node.inputs[1].default_value[0] = masks[selected_mask_index].projection.scale_x
+            mapping_node.inputs[3].default_value[0] = masks[selected_mask_index].projection.scale_x
         elif masks[selected_mask_index].projection.mode == 'TRIPLANAR':
             mapping_node.inputs[0].default_value[0] = masks[selected_mask_index].projection.scale_x
 
@@ -740,10 +740,9 @@ def relink_mask_nodes(material_layer_index):
                 link_nodes(decal_adjustment_node.outputs[0], decal_mask_mix_node.inputs[0])
 
             else:
-                mask_projection_mode = masks[selected_mask_index].projection.mode
-                match mask_projection_mode:
-                    case 'FLAT':
-                        # Link masks for flat projection.
+                match mask_mapping_node.node_tree.name:
+                    # Link masks for flat / UV projection.
+                    case 'MATLAY_OFFSET_ROTATION_SCALE':
                         link_nodes(mask_coord_node.outputs[2], mask_mapping_node.inputs[0])
                         if mask_texture_node.bl_static_type == 'TEX_IMAGE':
                             mask_blur_node = get_mask_node('MASK-BLUR', material_channel_name, material_layer_index, selected_mask_index)
@@ -761,7 +760,7 @@ def relink_mask_nodes(material_layer_index):
                                     break
                 
                     # Link masks for triplanar projection.
-                    case 'TRIPLANAR':
+                    case 'MATLAY_TRIPLANAR_MAPPING':
                         triplanar_mask_texture_node_1 = get_mask_node('TEXTURE-SAMPLE-1', material_channel_name, material_layer_index, selected_mask_index)
                         triplanar_mask_texture_node_2 = get_mask_node('TEXTURE-SAMPLE-2', material_channel_name, material_layer_index, selected_mask_index)
                         triplanar_mask_texture_node_3 = get_mask_node('TEXTURE-SAMPLE-3', material_channel_name, material_layer_index, selected_mask_index)

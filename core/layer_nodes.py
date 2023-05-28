@@ -256,9 +256,9 @@ def relink_material_nodes(material_layer_index):
             link_nodes(coord_node.outputs[3], mapping_node.inputs[0])
 
         else:
-            # Connect to the coord node based on layer projection mode.
-            match bpy.context.scene.matlay_layers[material_layer_index].projection.mode:
-                case 'FLAT':
+            # Connect to the coord node based on layer projection mode (check the mapping node tree for projection mode).
+            match mapping_node.node_tree.name:
+                case 'MATLAY_OFFSET_ROTATION_SCALE':
                     link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
 
                     # Connect flat mapping to a custom group node inputs with the name 'Mapping' if one exists.
@@ -266,9 +266,9 @@ def relink_material_nodes(material_layer_index):
                         for i in range(0, len(texture_node.inputs)):
                             if texture_node.inputs[i].name == 'Mapping':
                                 link_nodes(mapping_node.outputs[0], texture_node.inputs[i])
-                                break              
+                                break
 
-                case 'TRIPLANAR':
+                case 'MATLAY_TRIPLANAR_MAPPING':
                     if texture_node.bl_static_type == 'GROUP':
 
                         # Link triplanar texture samples for material channels that use an image texture.

@@ -7,6 +7,7 @@ from ..core import layer_nodes
 from ..core import material_channels
 from ..core import layer_masks
 from ..core import material_filters
+from ..core import layer_operations
 from ..utilities.logging import popup_message_box
 from ..utilities import matlay_utils
 import math
@@ -75,14 +76,13 @@ def update_selected_material_channel(self, context):
         material_channels.isolate_material_channel(True, selected_material_channel, context)
 
 def update_layer_index(self, context):
-    '''Updates stuff when the selected layer is changed.'''
-    # Select an the texture image for the selected material channel in the selected layer.
+    '''Updates user interface property values and selections when the selected layer is changed.'''
     selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
 
+    # Select an the texture image for the selected material channel in the selected layer.
     bpy.context.scene.tool_settings.image_paint.mode = 'IMAGE'
     texture_node = layer_nodes.get_layer_node("TEXTURE", selected_material_channel, selected_layer_index, context)
-
     if texture_node:
         if texture_node.bl_idname == "ShaderNodeTexImage":
             if texture_node.image:
@@ -97,8 +97,8 @@ def update_layer_index(self, context):
                 context.scene.matlay_mask_stack.mask_property_tab = 'MASK'
 
     material_filters.read_material_filter_nodes(context)
-    layer_masks.read_mask_nodes(context)
     layer_masks.read_mask_filter_nodes(context)
+    layer_masks.read_mask_nodes(context)
 
 def update_fix_normal_rotations(self, context):
     '''Relinks nodes when the fix normal map rotation value is updated.'''
@@ -530,11 +530,15 @@ def update_projection_scale_x(self, context):
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
         if mapping_node:
-            mapping_node.inputs[2].default_value[0] = layers[selected_layer_index].projection.scale_x
+            if mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
+                mapping_node.inputs[3].default_value[0] = layers[selected_layer_index].projection.scale_x
 
-        if self.sync_projection_scale:
-            layers[selected_layer_index].projection.scale_y = layers[selected_layer_index].projection.scale_x
-            layers[selected_layer_index].projection.scale_z = layers[selected_layer_index].projection.scale_x
+            elif mapping_node.node_tree.name == 'MATLAY_TRIPLANAR_MAPPING':
+                mapping_node.inputs[2].default_value[0] = layers[selected_layer_index].projection.scale_x
+
+            if self.sync_projection_scale:
+                layers[selected_layer_index].projection.scale_y = layers[selected_layer_index].projection.scale_x
+                layers[selected_layer_index].projection.scale_z = layers[selected_layer_index].projection.scale_x
 
 def update_projection_scale_y(self, context):
     if not context.scene.matlay_layer_stack.auto_update_layer_properties:
@@ -550,7 +554,11 @@ def update_projection_scale_y(self, context):
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
         
         if mapping_node:
-            mapping_node.inputs[2].default_value[1] = layers[selected_layer_index].projection.scale_y
+            if mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
+                mapping_node.inputs[3].default_value[1] = layers[selected_layer_index].projection.scale_y
+
+            elif mapping_node.node_tree.name == 'MATLAY_TRIPLANAR_MAPPING':
+                mapping_node.inputs[2].default_value[1] = layers[selected_layer_index].projection.scale_y
 
 def update_projection_scale_z(self, context):
     '''Updates the layer projections x scale for all mapping nodes in the selected layer.'''
@@ -567,7 +575,11 @@ def update_projection_scale_z(self, context):
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
         if mapping_node:
-            mapping_node.inputs[2].default_value[2] = layers[selected_layer_index].projection.scale_z
+            if mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
+                mapping_node.inputs[3].default_value[2] = layers[selected_layer_index].projection.scale_z
+
+            elif mapping_node.node_tree.name == 'MATLAY_TRIPLANAR_MAPPING':
+                mapping_node.inputs[2].default_value[2] = layers[selected_layer_index].projection.scale_z
 
 def update_sync_projection_scale(self, context):
     '''Updates matching of the projected layer scales.'''
