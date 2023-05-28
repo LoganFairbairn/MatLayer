@@ -69,4 +69,3 @@ Workflow Tips:
 -----
 
 Platforms: Windows, Linux (untested)
-Tested with Blender versions: 3.4.1
