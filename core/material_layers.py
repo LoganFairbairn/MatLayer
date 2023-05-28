@@ -76,6 +76,9 @@ def update_selected_material_channel(self, context):
 
 def update_layer_index(self, context):
     '''Updates user interface property values and selections when the selected layer is changed.'''
+    if not context.scene.matlay_layer_stack.auto_update_layer_properties:
+        return
+
     selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
     selected_layer_index = context.scene.matlay_layer_stack.layer_index
 

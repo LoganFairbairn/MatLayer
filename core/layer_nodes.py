@@ -347,7 +347,7 @@ def relink_material_nodes(material_layer_index):
 
         link_last_layer_node(material_layer_index, material_channel_name, link_nodes)
 
-        logging.log("Relinked material nodes.")
+    logging.log("Relinked material nodes.")
 
 def mute_layer_material_channel(mute, layer_stack_index, material_channel_name, context):
     '''Mutes (hides) or unhides all layer nodes for the specified material channel.'''

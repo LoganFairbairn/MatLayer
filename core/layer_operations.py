@@ -1230,8 +1230,7 @@ def read_layer_nodes(context):
     material_filters.read_material_filter_nodes(context)
     layer_masks.read_mask_nodes(context)
     layer_masks.read_mask_filter_nodes(context)
-    layer_nodes.organize_all_layer_nodes()
-
+    logging.log("Read material nodes.")
     context.scene.matlay_layer_stack.auto_update_layer_properties = True
 
 class MATLAY_OT_read_layer_nodes(Operator):
@@ -1260,6 +1259,5 @@ class MATLAY_OT_read_layer_nodes(Operator):
             layer_masks.relink_mask_nodes(selected_material_layer_index)
             layer_nodes.relink_material_nodes(selected_material_layer_index)
             layer_nodes.relink_mix_layer_nodes()
-
-        logging.log("Read layer nodes.")
+            layer_nodes.organize_all_layer_nodes()
         return {'FINISHED'}
