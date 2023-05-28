@@ -98,7 +98,7 @@ def update_use_alpha(self, context):
     relink_mask_nodes(selected_material_layer_index)
 
 def update_custom_mask_node_tree(self, context):
-    if context.scene.matlay_layer_stack.auto_update_layer_properties == False:
+    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
         return
     
     for material_channel_name in material_channels.get_material_channel_list():

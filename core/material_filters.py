@@ -16,6 +16,9 @@ MAX_LAYER_FILTER_COUNT = 5
 #----------------------------- FILTER PROPERTY AUTO UPDATING FUNCTIONS -----------------------------#
 
 def filter_material_channel_toggle(channel_toggle, material_channel_name, context):
+    if context.scene.matlay_material_filter_stack.auto_update_filter_properties == False:
+        return
+    
     # Mute / unmute filter nodes for the selected layer and filter.
     selected_layer_stack_index = context.scene.matlay_layer_stack.layer_index
     selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
@@ -238,7 +241,7 @@ def read_material_filter_nodes(context):
         filter_stack.selected_filter_index = previously_selected_filter_index
     else:
         filter_stack.selected_filter_index = 0
-
+        
     # Read inactive material channels for the selected fitler index.
     for i in range(0, len(layer_filter_nodes)):
         for material_channel_name in material_channels.get_material_channel_list():
@@ -246,8 +249,8 @@ def read_material_filter_nodes(context):
             filter_node_active = layer_nodes.get_node_active(filter_node)
             setattr(filters[i].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", filter_node_active)
 
-    # Allow auto updating for filter properties again. 
-    context.scene.matlay_material_filter_stack.update_filter_properties = True
+    # Allow auto updating for filter properties again.
+    context.scene.matlay_material_filter_stack.auto_update_filter_properties = True
 
     logging.log("Read material filter nodes.")
 
