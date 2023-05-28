@@ -234,6 +234,12 @@ def load_handler(dummy):
             args=()
         )
 
+    # Read active material settings when the blender file loads.
+    active_object = bpy.context.active_object
+    if active_object:
+        if active_object.active_material:
+            bpy.ops.matlay.read_layer_nodes(auto_called=True)
+
 # Run function on loading a new blend file.
 bpy.app.handlers.load_post.append(load_handler)
 
