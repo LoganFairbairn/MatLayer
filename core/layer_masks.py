@@ -765,10 +765,9 @@ def relink_mask_nodes(material_layer_index):
                 
                     # Link masks for triplanar projection.
                     case 'MATLAY_TRIPLANAR_MAPPING':
-                        triplanar_mask_texture_node_1 = get_mask_node('TEXTURE-SAMPLE-1', material_channel_name, material_layer_index, selected_mask_index)
-                        triplanar_mask_texture_node_2 = get_mask_node('TEXTURE-SAMPLE-2', material_channel_name, material_layer_index, selected_mask_index)
-                        triplanar_mask_texture_node_3 = get_mask_node('TEXTURE-SAMPLE-3', material_channel_name, material_layer_index, selected_mask_index)
-
+                        triplanar_mask_texture_node_1 = get_mask_node('TEXTURE-SAMPLE-1', material_channel_name, material_layer_index, i)
+                        triplanar_mask_texture_node_2 = get_mask_node('TEXTURE-SAMPLE-2', material_channel_name, material_layer_index, i)
+                        triplanar_mask_texture_node_3 = get_mask_node('TEXTURE-SAMPLE-3', material_channel_name, material_layer_index, i)
 
                         blur_mask_node = get_mask_node('MASK-BLUR', material_channel_name, material_layer_index, selected_mask_index)
                         if blur_mask_node and layer_nodes.get_node_active(blur_mask_node):
@@ -793,6 +792,7 @@ def relink_mask_nodes(material_layer_index):
                             link_nodes(mask_mapping_node.outputs[3], mask_texture_node.inputs[3])
 
                         # Connect the triplanar mapping node to custom group node inputs that follow a standard naming convention.
+                        '''
                         if mask_texture_node.bl_static_type == 'GROUP':
                             for c in range(0, len(mask_texture_node.inputs)):
                                 match mask_texture_node.inputs[c].name:
@@ -810,6 +810,7 @@ def relink_mask_nodes(material_layer_index):
 
                                     case 'Rotation':
                                         link_nodes(mask_mapping_node.outputs[4], mask_texture_node.inputs[i])
+                        '''
 
             # If the current mask is disabled, skip connecting it.
             if layer_nodes.get_node_active(mask_texture_node) == False:
