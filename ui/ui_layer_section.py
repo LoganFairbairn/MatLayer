@@ -479,6 +479,8 @@ def draw_material_filters(column, context, layout):
     # Blur toggles for material channels.
     row = column.row()
     row.scale_y = 1.4
+    if not selected_layer.blur:
+        row.enabled = False
     number_of_active_material_channels = tss.get_active_material_channel_count()
     texture_set_settings = context.scene.matlay_texture_set_settings
     number_of_drawn_channel_toggles = 0
@@ -493,6 +495,8 @@ def draw_material_filters(column, context, layout):
             if number_of_drawn_channel_toggles >= number_of_active_material_channels / 2 and number_of_active_material_channels >= 6:
                 row= column.row()
                 row.scale_y = 1.4
+                if not selected_layer.blur:
+                    row.enabled = False
                 number_of_drawn_channel_toggles = 0
 
 
