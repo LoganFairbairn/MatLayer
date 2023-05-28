@@ -159,6 +159,8 @@ def reindex_material_filter_nodes(change_made, changed_material_filter_index=0):
                         filter_node.label = filter_node.name
                         filters[i].stack_index = i - 1
 
+    logging.log("Reindexed material filter nodes.")
+
 def relink_material_filter_nodes(material_layer_index):
     '''Relinks material filter nodes with other material filter nodes.'''
     number_of_material_layers = len(bpy.context.scene.matlay_layers)
@@ -205,6 +207,8 @@ def relink_material_filter_nodes(material_layer_index):
                     case 'BRIGHTCONTRAST':
                         material_channel_node.node_tree.links.new(filter_node.outputs[0], next_active_filter_node.inputs[0])
 
+    logging.log("Relinked material filter nodes.")
+
 def read_material_filter_nodes(context):
     '''Reads layer nodes to re-construct the filter layer stack.'''
     filters = context.scene.matlay_material_filters
@@ -244,6 +248,8 @@ def read_material_filter_nodes(context):
 
     # Allow auto updating for filter properties again. 
     context.scene.matlay_material_filter_stack.update_filter_properties = True
+
+    logging.log("Read material filter nodes.")
 
 def add_material_filter_slot():
     '''Adds a new material filter slot.'''
@@ -311,6 +317,8 @@ def add_material_filter(filter_type, context):
             filter_material_channel_toggle(False, material_channel_name, context)
 
     matlay_utils.update_total_node_and_link_count()
+
+    logging.log("Added a new material filter.")
 
 def move_filter_layer(direction, context):
     validate_filter_selected_index()
@@ -583,6 +591,8 @@ class MATLAY_OT_delete_layer_filter(Operator):
         
         matlay_utils.set_valid_material_shading_mode(context)
         matlay_utils.update_total_node_and_link_count()
+
+        logging.log("Deleted a material filter.")
         return{'FINISHED'}
 
 class MATLAY_OT_move_layer_filter_up(Operator):
@@ -600,6 +610,7 @@ class MATLAY_OT_move_layer_filter_up(Operator):
         matlay_utils.set_valid_mode()
         move_filter_layer("UP", context)
         matlay_utils.set_valid_material_shading_mode(context)
+        logging.log("Moved a material filter up on the material filter stack.")
         return{'FINISHED'}
 
 class MATLAY_OT_move_layer_filter_down(Operator):
@@ -617,4 +628,5 @@ class MATLAY_OT_move_layer_filter_down(Operator):
         matlay_utils.set_valid_mode()
         move_filter_layer("DOWN", context)
         matlay_utils.set_valid_material_shading_mode(context)
+        logging.log("Moved a material filter down on the material filter stack.")
         return{'FINISHED'}

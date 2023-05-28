@@ -2,12 +2,12 @@
 
 import bpy
 from bpy.types import Operator
-
-LOG_FUNCTIONS = True
+from .. import preferences
 
 def log(log_message):
     '''Prints the given message to Blender's console window. This function helps log functions called by this add-on for debugging purposes.'''
-    if LOG_FUNCTIONS:
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    if addon_preferences.logging:
         print("Matlay: {0}".format(log_message))
 
 def popup_message_box(message = "", title = "Message Box", icon = 'INFO'):

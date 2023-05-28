@@ -50,6 +50,8 @@ def organize_material_channel_nodes(context):
             node.location = (-node.width + -NODE_SPACING, header_position[1])
             header_position[1] -= (node.height + (NODE_SPACING * 0.5))
 
+    logging.log("Organized all material channel nodes.")
+
 def organize_all_layer_nodes():
     '''Organizes all nodes (material nodes, filter nodes, and mask nodes) in all material channels.'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
@@ -110,6 +112,8 @@ def organize_all_layer_nodes():
             # Add space between layers.
             header_position[0] -= NODE_SPACING
 
+    logging.log("Organized all layer nodes.")
+
 def relink_mix_layer_nodes():
     '''Relinks all mix layer nodes.'''
     layers = bpy.context.scene.matlay_layers
@@ -161,6 +165,8 @@ def relink_mix_layer_nodes():
                 else:
                     group_output_node = material_channel_node.node_tree.nodes.get("Group Output")
                     material_channel_node.node_tree.links.new(current_mix_layer_node.outputs[0], group_output_node.inputs[0])
+
+    logging.log("Relinked mix layer nodes.")
 
 def link_last_layer_node(material_layer_index, material_channel_name, link_nodes):
     '''Identifies and links the last layer node in the given material layer to the mix layer output.'''
@@ -340,6 +346,8 @@ def relink_material_nodes(material_layer_index):
         link_nodes(opacity_node.outputs[0], mix_layer_node.inputs[0])
 
         link_last_layer_node(material_layer_index, material_channel_name, link_nodes)
+
+        logging.log("Relinked material layer nodes.")
 
 def mute_layer_material_channel(mute, layer_stack_index, material_channel_name, context):
     '''Mutes (hides) or unhides all layer nodes for the specified material channel.'''
@@ -639,6 +647,8 @@ def reindex_material_layer_nodes(change_made, changed_material_layer_index=0):
                     old_name = layer_masks.format_mask_filter_node_name(changed_material_layer_index, i, x, True)
                     new_name = layer_masks.format_mask_filter_node_name(changed_material_layer_index, i, x)
                     layer_masks.rename_mask_filter_node_tree(old_name, new_name)
+
+    logging.log("Reindexed material layer nodes.")
 
 def check_decal_layer(material_layer_index):
     '''Checks if the material layer at the provided material layer index is a decal layer.'''

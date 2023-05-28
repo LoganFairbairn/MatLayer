@@ -1260,4 +1260,6 @@ class MATLAY_OT_read_layer_nodes(Operator):
             layer_masks.relink_mask_nodes(selected_material_layer_index)
             layer_nodes.relink_material_nodes(selected_material_layer_index)
             layer_nodes.relink_mix_layer_nodes()
+
+        logging.log("Read layer nodes.")
         return {'FINISHED'}

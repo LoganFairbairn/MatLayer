@@ -217,6 +217,8 @@ def update_mask_projection_mode(self, context):
     layer_nodes.organize_all_layer_nodes()
     relink_mask_nodes(selected_material_layer_index)
 
+    logging.log("Updated mask projection mode.")
+
 def update_mask_projection_interpolation(self, context):
     '''Updates the image texture interpolation mode when it's changed.'''
     if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
@@ -679,6 +681,8 @@ def reindex_mask_nodes(change_made, changed_mask_index=0):
                         new_name = format_mask_filter_node_name(selected_material_layer_index, i - 1, x)
                         rename_mask_filter_group_node(material_channel_name, old_name, new_name)
 
+    logging.log("Reindexed mask nodes.")
+
 def relink_mask_nodes(material_layer_index):
     '''Re-links layer mask nodes.'''
     material_layers = bpy.context.scene.matlay_layers
@@ -865,6 +869,8 @@ def relink_mask_nodes(material_layer_index):
         if opacity_node and last_active_mask_mix_node:
             material_channel_node.node_tree.links.new(last_active_mask_mix_node.outputs[0], opacity_node.inputs[0])
 
+    logging.log('Relinked mask nodes.')
+
 def count_masks(material_layer_index):
     '''Counts the total number of masks applied to a specified material layer by reading the material node tree.'''
     count = 0
@@ -992,6 +998,8 @@ def read_mask_nodes(context):
 
     # Re-enable auto-updating for mask properties.
     mask_stack.auto_update_mask_properties = True
+
+    logging.log("Read mask nodes.")
 
 def add_mask_slot(context):
     '''Adds a new mask slot and selects it. Returns the index of the newly added mask.'''
@@ -1169,6 +1177,8 @@ def add_mask(mask_type, use_alpha=False):
 
     matlay_utils.update_total_node_and_link_count()
 
+    logging.log("Added a new mask.")
+
 def move_mask(direction, context):
     '''Moves the selected layer mask up or down on the layer stack.'''
     selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
@@ -1269,6 +1279,8 @@ def move_mask(direction, context):
     layer_nodes.organize_all_layer_nodes()
 
     mask_stack.auto_update_mask_properties = True
+
+    logging.log("Moved mask.")
 
 #----------------------------- MASK PROPERTIES & OPERATORS -----------------------------#
 
@@ -1573,6 +1585,8 @@ class MATLAY_OT_delete_layer_mask(Operator):
         matlay_utils.set_valid_material_shading_mode(context)
 
         matlay_utils.update_total_node_and_link_count()
+
+        logging.log("Deleted a mask.")
         return{'FINISHED'}
 
 class MATLAY_OT_move_layer_mask_up(Operator):
@@ -1702,6 +1716,7 @@ class MATLAY_OT_delete_mask_image(Operator):
 
         matlay_utils.set_valid_material_shading_mode(context)
 
+        logging.log("Deleted mask image.")
         return {'FINISHED'}
 
 class MATLAY_OT_import_mask_image(Operator, ImportHelper):
@@ -1757,6 +1772,7 @@ class MATLAY_OT_import_mask_image(Operator, ImportHelper):
 
         matlay_utils.set_valid_material_shading_mode(context)
 
+        logging.log("Imported mask image.")
         return {'FINISHED'}
 
 #----------------------------- MASK FILTERS -----------------------------#
@@ -1938,6 +1954,8 @@ def relink_mask_filter_nodes():
                 if next_filter_node:
                     material_channel_node.node_tree.links.new(mask_filter_node.outputs[0], next_filter_node.inputs[0])
 
+    logging.log("Relinked mask filter nodes.")
+
 def read_mask_filter_nodes(context):
     '''Reads the material node tree to rebuild the mask filter stack in the ui.'''
     mask_filters = context.scene.matlay_mask_filters
@@ -1969,6 +1987,8 @@ def read_mask_filter_nodes(context):
 
     # Allow auto updating for properties again.
     context.scene.matlay_mask_filter_stack.auto_update_properties = True
+
+    logging.log("Read mask filter nodes.")
 
 def add_mask_filter_slot():
     '''Adds a new layer stack slot for a mask filter.'''
@@ -2077,6 +2097,8 @@ def add_mask_filter(filter_type, context):
 
     matlay_utils.update_total_node_and_link_count()
 
+    logging.log("Added a new mask filter.")
+
 def move_mask_filter(direction, context):
     '''Moves the mask filter up or down on the mask filter stack.'''
     validate_selected_mask_filter_index()
@@ -2149,6 +2171,8 @@ def move_mask_filter(direction, context):
     layer_nodes.organize_all_layer_nodes()
 
     mask_filter_stack.auto_update_properties = True
+
+    logging.log("Moved a mask filter.")
 
 class MATLAY_mask_filter_stack(PropertyGroup):
     '''Properties for the mask stack.'''
@@ -2282,6 +2306,7 @@ class MATLAY_OT_delete_mask_filter(Operator):
 
         matlay_utils.set_valid_material_shading_mode(context)
         matlay_utils.update_total_node_and_link_count()
+        logging.log("Deleted a mask filter.")
         return{'FINISHED'}
     
 class MATLAY_OT_move_layer_mask_filter(Operator):

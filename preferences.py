@@ -32,6 +32,12 @@ class AddonPreferences(AddonPreferences):
         description="Deletes all images not used within a layer or mask when textures are exported. This helps avoid unused images taking up memory, but could delete textures you intend to use in extremely rare cases."
     )
 
+    logging: BoolProperty(
+        name="Logging",
+        default=True,
+        description="Prints all major functions this add-on runs in Blenders terminal. This is useful for debugging purposes, specifically checking which functions are being called and verifying the function call order is correct."
+    )
+
     organize_nodes: BoolProperty(
         name="Organize Nodes",
         default=True,
@@ -83,3 +89,4 @@ class AddonPreferences(AddonPreferences):
         layout.prop(self, "auto_delete_unused_images")
         #layout.prop(self, "save_imported_textures")
         layout.prop(self, "organize_nodes")
+        layout.prop(self, "logging")

@@ -7,8 +7,7 @@ from ..core import layer_nodes
 from ..core import material_channels
 from ..core import layer_masks
 from ..core import material_filters
-from ..core import layer_operations
-from ..utilities.logging import popup_message_box
+from ..utilities import logging
 from ..utilities import matlay_utils
 import math
 
@@ -99,6 +98,7 @@ def update_layer_index(self, context):
     material_filters.read_material_filter_nodes(context)
     layer_masks.read_mask_filter_nodes(context)
     layer_masks.read_mask_nodes(context)
+    logging.log("Updated material layer index.")
 
 def update_fix_normal_rotations(self, context):
     '''Relinks nodes when the fix normal map rotation value is updated.'''
@@ -178,13 +178,13 @@ def update_layer_name(self, context):
 
     # Layer names have a maximum character count, users should never need to go over this character count for layer names.
     if len(self.name) > 25:
-        popup_message_box("Layer name can't contain more than 25 characters.", "User Error", 'ERROR')
+        logging.popup_message_box("Layer name can't contain more than 25 characters.", "User Error", 'ERROR')
         self.name = self.name[:25-len(self.name)]
 
     # Layer names can't contain underscores since they are used as delimiters to parse information from layer frames correctly.
     # If the layer name contains an underscore, throw the user an error message notifying them they can't use underscores in layer names.
     if '_' in self.name:
-        popup_message_box("Layer names can't contain underscores.", "Error", 'ERROR')
+        logging.popup_message_box("Layer names can't contain underscores.", "Error", 'ERROR')
         self.name = self.name.replace('_', "")
 
     else:
