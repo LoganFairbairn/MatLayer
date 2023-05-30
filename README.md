@@ -57,7 +57,7 @@ Limitations:
 
 -----
 
-Workflow Tips:
+Tips:
 - When using this add-on, you are intended to use ONLY the add-on ui, and NOT manually edit the material nodes. If you need custom nodes, you should add custom group nodes into material channel or masks through the interface.
 
 - It's best to isolate your object into it's own blend file for material editing, for best performance and file management cases.
