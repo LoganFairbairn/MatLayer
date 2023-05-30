@@ -45,6 +45,8 @@ Features:
 
 - Automatic texture file and setting management
 
+- Blurring for materials and masks
+
 - Basic brush presets
 
 Limitations:
