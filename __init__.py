@@ -63,7 +63,7 @@ bl_info = {
     "author": "Logan Fairbairn (Ryver)",
     "version": (1, 0, 4),
     "blender": (3, 5, 0),
-    "location": "View3D > Sidebar > MatLay",
+    "location": "View3D > Sidebar > MatLayer",
     "description": "Replaces node based texturing workflow with a layer stack workflow through a custom user interface.",
     "warning": "",
     "doc_url": "",

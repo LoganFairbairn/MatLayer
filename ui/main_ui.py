@@ -63,7 +63,7 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
                     ui_settings_section.draw_ui_settings_section(self, context)
 
         else:
-            layout.label(text="Save your .blend file to use MatLay.")
+            layout.label(text="Save your .blend file to use MatLayer.")
             layout.label(text="The .blend path is used to find correct paths for image folders,")
             layout.label(text="where textures, baked mesh maps, or exported textures created ")
             layout.label(text="using this add-on are saved.")
