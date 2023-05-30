@@ -4,10 +4,7 @@ Download the latest version from the releases - https://github.com/LoganFairbair
 
 ...or use the green code button to download the development version which may have new features and fixes, but can be less stable.
 
-Here's a tutorial to help you get started:
-
-[![Alt text](http://i3.ytimg.com/vi/o-fT5MXs5ds/hqdefault.jpg)](https://www.youtube.com/watch?v=o-fT5MXs5ds)
-
+Here's a tutorial to help you get started - https://www.youtube.com/watch?v=o-fT5MXs5ds 
 -----
 
 MatLay is a free add-on for Blender that drastically speeds up the material workflow by replacing the material node workflow in Blender with a layer stack workflow, in addition to offering automation for common mesh map baking, and file handling.
