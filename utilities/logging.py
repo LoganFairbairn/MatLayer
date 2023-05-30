@@ -8,7 +8,7 @@ def log(log_message):
     '''Prints the given message to Blender's console window. This function helps log functions called by this add-on for debugging purposes.'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     if addon_preferences.logging:
-        print("Matlay: {0}".format(log_message))
+        print("Matlayer: {0}".format(log_message))
 
 def popup_message_box(message = "", title = "Message Box", icon = 'INFO'):
     def draw_popup_box(self, context):

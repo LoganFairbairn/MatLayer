@@ -4,7 +4,7 @@ import bpy
 from ..core import material_channels
 from ..core import material_filters
 from ..core import layer_masks
-from ..utilities import matlay_utils
+from ..utilities import matlayer_utils
 from ..utilities import logging
 from .. import preferences
 
@@ -58,7 +58,7 @@ def organize_all_layer_nodes():
     if not addon_preferences.organize_nodes:
         return
     
-    layers = bpy.context.scene.matlay_layers
+    layers = bpy.context.scene.matlayer_layers
 
     for material_channel_name in material_channels.get_material_channel_list():
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
@@ -116,7 +116,7 @@ def organize_all_layer_nodes():
 
 def relink_mix_layer_nodes():
     '''Relinks all mix layer nodes.'''
-    layers = bpy.context.scene.matlay_layers
+    layers = bpy.context.scene.matlayer_layers
     for material_channel_name in material_channels.get_material_channel_list():
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
 
@@ -176,7 +176,7 @@ def link_last_layer_node(material_layer_index, material_channel_name, link_nodes
     mix_layer_node = get_layer_node('MIX-LAYER', material_channel_name, material_layer_index, bpy.context)
     
     # Find the last active filter node.
-    filters = bpy.context.scene.matlay_material_filters
+    filters = bpy.context.scene.matlayer_material_filters
     last_active_filter_index = len(filters) - 1
     last_filter_node = material_filters.get_material_filter_node(material_channel_name, material_layer_index, last_active_filter_index)
     while get_node_active(last_filter_node) == False:
@@ -188,7 +188,7 @@ def link_last_layer_node(material_layer_index, material_channel_name, link_nodes
     # Connect to active filter nodes if they exist.
     if last_filter_node:
         # Identify the node that should be connected to the filter node.
-        if material_channel_name == 'NORMAL' and mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
+        if material_channel_name == 'NORMAL' and mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE':
             normal_rotation_fix_node = get_layer_node('NORMAL-ROTATION-FIX', material_channel_name, material_layer_index, bpy.context)
             node_to_filter_node = normal_rotation_fix_node
             link_nodes(mapping_node.outputs[1], normal_rotation_fix_node.inputs[1])
@@ -218,14 +218,14 @@ def link_last_layer_node(material_layer_index, material_channel_name, link_nodes
     else:
         if material_channel_name == 'NORMAL':
             # Connect to a normal rotation fix node for flat projection.
-            if bpy.context.scene.matlay_layers[material_layer_index].projection.mode == 'FLAT':
+            if bpy.context.scene.matlayer_layers[material_layer_index].projection.mode == 'FLAT':
                 normal_rotation_fix_node = get_layer_node('NORMAL-ROTATION-FIX', material_channel_name, material_layer_index, bpy.context)
                 link_nodes(texture_node.outputs[0], normal_rotation_fix_node.inputs[0])
                 link_nodes(mapping_node.outputs[1], normal_rotation_fix_node.inputs[1])
                 link_nodes(normal_rotation_fix_node.outputs[0], mix_layer_node.inputs[2])
 
             # Triplanar normal mapping has normal rotation fixes built into the group node, connect the triplanar directly to the mix layer node.
-            elif bpy.context.scene.matlay_layers[material_layer_index].projection.mode == 'TRIPLANAR':
+            elif bpy.context.scene.matlayer_layers[material_layer_index].projection.mode == 'TRIPLANAR':
                 link_nodes(texture_node.outputs[0], mix_layer_node.inputs[2])
 
         else:
@@ -234,7 +234,7 @@ def link_last_layer_node(material_layer_index, material_channel_name, link_nodes
 def relink_material_nodes(material_layer_index):
     '''Relinks all material and filter nodes for the specified material layer index.'''
     # Do not relink layers if there are no material layers.
-    if len(bpy.context.scene.matlay_layers) <= 0:
+    if len(bpy.context.scene.matlayer_layers) <= 0:
         return
     
     # Relink material filter nodes with other material filter nodes.
@@ -266,7 +266,7 @@ def relink_material_nodes(material_layer_index):
         else:
             # Connect to the coord node based on layer projection mode (check the mapping node tree for projection mode).
             match mapping_node.node_tree.name:
-                case 'MATLAY_OFFSET_ROTATION_SCALE':
+                case 'MATLAYER_OFFSET_ROTATION_SCALE':
                     link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
 
                     # Connect flat mapping to a custom group node inputs with the name 'Mapping' if one exists.
@@ -276,11 +276,11 @@ def relink_material_nodes(material_layer_index):
                                 link_nodes(mapping_node.outputs[0], texture_node.inputs[i])
                                 break
 
-                case 'MATLAY_TRIPLANAR_MAPPING':
+                case 'MATLAYER_TRIPLANAR_MAPPING':
                     if texture_node.bl_static_type == 'GROUP':
 
                         # Link triplanar texture samples for material channels that use an image texture.
-                        if texture_node.node_tree.name == 'MATLAY_TRIPLANAR' or texture_node.node_tree.name == 'MATLAY_TRIPLANAR_NORMALS':
+                        if texture_node.node_tree.name == 'MATLAYER_TRIPLANAR' or texture_node.node_tree.name == 'MATLAYER_TRIPLANAR_NORMALS':
                             texture_sample_1 = get_layer_node('TEXTURE-SAMPLE-1', material_channel_name, material_layer_index, bpy.context)
                             texture_sample_2 = get_layer_node('TEXTURE-SAMPLE-2', material_channel_name, material_layer_index, bpy.context)
                             texture_sample_3 = get_layer_node('TEXTURE-SAMPLE-3', material_channel_name, material_layer_index, bpy.context)
@@ -359,7 +359,7 @@ def mute_layer_material_channel(mute, layer_stack_index, material_channel_name, 
             set_node_active(node, not mute)
             
     relink_mix_layer_nodes()
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
 
 
 #----------------------------- MATERIAL LAYER NODE FUNCTIONS -----------------------------#
@@ -446,7 +446,7 @@ def get_total_number_of_layers(context):
 
 def update_material_layer_indicies():
     '''Updates the array slot index stored in material layers (for convenience).'''
-    layers = bpy.context.scene.matlay_layers
+    layers = bpy.context.scene.matlayer_layers
     number_of_layers = len(layers)
     for i in range(0, number_of_layers):
         layers[i].layer_stack_array_index = i
@@ -455,7 +455,7 @@ def reindex_material_layer_nodes(change_made, changed_material_layer_index=0):
     '''Reindexes all nodes in the material layer at the provided index for the indicated change. Valid arguments include: 'ADDED', 'DELETED', 'DUPLICATED'''
 
     # Update the material layer array index stored in the material layers (for convenience) first.
-    layers = bpy.context.scene.matlay_layers
+    layers = bpy.context.scene.matlayer_layers
     update_material_layer_indicies()
 
     match change_made:
@@ -668,7 +668,7 @@ def check_decal_layer(material_layer_index):
 
 def get_layer_frame_name(layer_stack_index, get_edited=False):
     '''Returns a formatted layer frame name which follows the naming convention for layer frames created with this add-on.'''
-    layers = bpy.context.scene.matlay_layers
+    layers = bpy.context.scene.matlayer_layers
     frame_name = "{0}_{1}_{2}".format(layers[layer_stack_index].name, str(layers[layer_stack_index].id), str(layer_stack_index))
     if get_edited:
         frame_name += '~'
@@ -678,7 +678,7 @@ def get_layer_frame(material_channel_name, layer_stack_index, context, get_edite
     '''Returns the frame node for the given layer. This function requires the layer id to be stored in the layer stack.'''
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
     if material_channel_node:
-        layers = context.scene.matlay_layers
+        layers = context.scene.matlayer_layers
 
         # Return a frame being edited if requested.
         if get_edited:

@@ -1,4 +1,4 @@
-# This file handles the matlay user interface.
+# This file handles the matlayer user interface.
 
 import os
 import bpy
@@ -43,13 +43,13 @@ def draw_material_channel_preview(layout, item, selected_material_channel, conte
     row.template_icon(icon_value=layer_preview_icon.icon_id,scale=1)
     '''
 
-    row.operator("matlay.open_material_layer_settings", icon='RENDERLAYERS', text="", emboss=False)
+    row.operator("matlayer.open_material_layer_settings", icon='RENDERLAYERS', text="", emboss=False)
 
 def draw_layer_mask_preview(layout):
     '''Draws a preview of the mask for each layer (if one is used) within the layer stack.'''
     row = layout.row(align=True)
     row.ui_units_x = 0.8
-    row.operator("matlay.open_mask_settings", icon='MOD_MASK', text="", emboss=False)
+    row.operator("matlayer.open_mask_settings", icon='MOD_MASK', text="", emboss=False)
 
 def draw_layer_name(layout, item):
     row = layout.row(align=True)
@@ -74,7 +74,7 @@ def draw_layer_blending(layout, item, selected_material_channel, context):
     if mix_layer_node:
         col.prop(mix_layer_node, "blend_type", text="")
 
-class MATLAY_UL_layer_list(bpy.types.UIList):
+class MATLAYER_UL_layer_list(bpy.types.UIList):
     '''Draws the layer stack.'''
 
     def draw_item(self, context, layout, data, item, icon, active_data, index):
@@ -82,7 +82,7 @@ class MATLAY_UL_layer_list(bpy.types.UIList):
         self.use_filter_reverse = True
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
+            selected_material_channel = context.scene.matlayer_layer_stack.selected_material_channel
 
             if context.active_object.active_material:
                 draw_layer_hidden_icon(layout, item)

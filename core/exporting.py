@@ -6,13 +6,13 @@ from . import material_channels
 from ..core import baking
 from . import texture_set_settings
 from ..utilities import logging
-from . import matlay_materials
+from . import matlayer_materials
 from .. import preferences
-from ..utilities import matlay_utils
+from ..utilities import matlayer_utils
 
 #----------------------------- EXPORT SETTINGS -----------------------------#
 
-class MATLAY_exporting_settings(PropertyGroup):
+class MATLAYER_exporting_settings(PropertyGroup):
     texture_export_name: StringProperty(default="", name="Texture Export Name", description="Name for exported textures.")
     export_folder: StringProperty(default="", description="Path to folder location where exported texture are saved. If empty, an export folder will be created next to your .blend file and exported textures will be automatically saved there.", name="Export Folder Path")
     export_base_color: BoolProperty(default=True, name="Export Base Color", description="Include the base color in batch exporting")
@@ -83,7 +83,7 @@ def bake_and_export_material_channel(material_channel_name, context, self):
         return
     
     # Verify the object is valid to bake to and there is an applied material made by this add-on applied to the selected object.
-    if matlay_materials.verify_material(context) == False or baking.verify_bake_object(self) == False:
+    if matlayer_materials.verify_material(context) == False or baking.verify_bake_object(self) == False:
         return
     
     # Ensure there is a material on the active object.
@@ -149,8 +149,8 @@ def bake_and_export_material_channel(material_channel_name, context, self):
 
     self.report({'INFO'}, "Finished exporting textures. You can find any exported textures in {0}".format(export_path))
     
-class MATLAY_OT_export(Operator):
-    bl_idname = "matlay.export"
+class MATLAYER_OT_export(Operator):
+    bl_idname = "matlayer.export"
     bl_label = "Batch Export"
     bl_description = "Bakes all checked and active material channels to textures in succession and saves all baked images to a texture folder. Note that this function (especially on slower computers, or when using a CPU for rendering) can take a few minutes"
 
@@ -159,148 +159,148 @@ class MATLAY_OT_export(Operator):
         return context.active_object
     
     def execute(self, context):
-        if bpy.context.scene.matlay_export_settings.export_base_color and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.color_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_base_color and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.color_channel_toggle:
             bake_and_export_material_channel('COLOR', context, self)
-        if bpy.context.scene.matlay_export_settings.export_subsurface and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.subsurface_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_subsurface and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.subsurface_channel_toggle:
             bake_and_export_material_channel('SUBSURFACE', context, self)
-        if bpy.context.scene.matlay_export_settings.export_subsurface_color and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.subsurface_color_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_subsurface_color and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.subsurface_color_channel_toggle:
             bake_and_export_material_channel('SUBSURFACE_COLOR', context, self)
-        if bpy.context.scene.matlay_export_settings.export_metallic and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.metallic_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_metallic and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.metallic_channel_toggle:
             bake_and_export_material_channel('METALLIC', context, self)
-        if bpy.context.scene.matlay_export_settings.export_specular and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.specular_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_specular and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.specular_channel_toggle:
             bake_and_export_material_channel('SPECULAR', context, self)
-        if bpy.context.scene.matlay_export_settings.export_roughness and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.roughness_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_roughness and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.roughness_channel_toggle:
             bake_and_export_material_channel('ROUGHNESS', context, self)
-        if bpy.context.scene.matlay_export_settings.export_normals and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.normal_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_normals and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.normal_channel_toggle:
             bake_and_export_material_channel('NORMAL', context, self)
-        if bpy.context.scene.matlay_export_settings.export_height and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.height_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_height and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.height_channel_toggle:
             bake_and_export_material_channel('HEIGHT', context, self)
-        if bpy.context.scene.matlay_export_settings.export_emission and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.emission_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_emission and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.emission_channel_toggle:
             bake_and_export_material_channel('EMISSION', context, self)
         return {'FINISHED'}
 
-class MATLAY_OT_export_base_color(Operator):
-    bl_idname = "matlay.export_base_color"
+class MATLAYER_OT_export_base_color(Operator):
+    bl_idname = "matlayer.export_base_color"
     bl_label = "Export Base Color"
     bl_description = "Bakes the MatLay base color channel and saves the result to the export folder"
 
     @ classmethod
     def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.color_channel_toggle
+        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.color_channel_toggle
     
     def execute(self, context):
-        if bpy.context.scene.matlay_export_settings.export_base_color and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.color_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_base_color and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.color_channel_toggle:
             bake_and_export_material_channel('COLOR', context, self)
         return {'FINISHED'}
 
-class MATLAY_OT_export_subsurface(Operator):
-    bl_idname = "matlay.export_subsurface"
+class MATLAYER_OT_export_subsurface(Operator):
+    bl_idname = "matlayer.export_subsurface"
     bl_label = "Export Subsurface"
     bl_description = "Bakes the MatLay subsurface and saves the result to the export folder"
 
     @ classmethod
     def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.subsurface_channel_toggle
+        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.subsurface_channel_toggle
     
     def execute(self, context):
-        if bpy.context.scene.matlay_export_settings.export_subsurface and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.subsurface_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_subsurface and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.subsurface_channel_toggle:
             bake_and_export_material_channel('SUBSURFACE', context, self)
         return {'FINISHED'}
 
-class MATLAY_OT_export_subsurface_color(Operator):
-    bl_idname = "matlay.export_subsurface_color"
+class MATLAYER_OT_export_subsurface_color(Operator):
+    bl_idname = "matlayer.export_subsurface_color"
     bl_label = "Export Subsurface COLOR"
     bl_description = "Bakes the MatLay subsurface color and saves the result to the export folder"
 
     @ classmethod
     def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.subsurface_color_channel_toggle
+        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.subsurface_color_channel_toggle
     
     def execute(self, context):
-        if bpy.context.scene.matlay_export_settings.export_subsurface_color and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.subsurface_color_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_subsurface_color and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.subsurface_color_channel_toggle:
             bake_and_export_material_channel('SUBSURFACE_COLOR', context, self)
         return {'FINISHED'}
 
-class MATLAY_OT_export_metallic(Operator):
-    bl_idname = "matlay.export_metallic"
+class MATLAYER_OT_export_metallic(Operator):
+    bl_idname = "matlayer.export_metallic"
     bl_label = "Export Metallic Channel"
     bl_description = "Bakes the MatLay metallic channel and saves the result to the export folder"
 
     @ classmethod
     def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.metallic_channel_toggle
+        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.metallic_channel_toggle
     
     def execute(self, context):
-        if bpy.context.scene.matlay_export_settings.export_metallic and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.metallic_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_metallic and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.metallic_channel_toggle:
             bake_and_export_material_channel('METALLIC', context, self)
         return {'FINISHED'}
 
-class MATLAY_OT_export_specular(Operator):
-    bl_idname = "matlay.export_specular"
+class MATLAYER_OT_export_specular(Operator):
+    bl_idname = "matlayer.export_specular"
     bl_label = "Export Specular"
     bl_description = "Bakes the MatLay specular and saves the result to the export folder"
 
     @ classmethod
     def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.specular_channel_toggle
+        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.specular_channel_toggle
     
     def execute(self, context):
-        if bpy.context.scene.matlay_export_settings.export_specular and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.specular_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_specular and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.specular_channel_toggle:
             bake_and_export_material_channel('SPECULAR', context, self)
         return {'FINISHED'}
 
-class MATLAY_OT_export_roughness(Operator):
-    bl_idname = "matlay.export_roughness"
+class MATLAYER_OT_export_roughness(Operator):
+    bl_idname = "matlayer.export_roughness"
     bl_label = "Export Roughness"
     bl_description = "Bakes the MatLay roughness channel and saves the result to the export folder"
 
     @ classmethod
     def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.roughness_channel_toggle
+        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.roughness_channel_toggle
     
     def execute(self, context):
-        if bpy.context.scene.matlay_export_settings.export_roughness and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.roughness_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_roughness and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.roughness_channel_toggle:
             bake_and_export_material_channel('ROUGHNESS', context, self)
         return {'FINISHED'}
 
-class MATLAY_OT_export_normals(Operator):
-    bl_idname = "matlay.export_normals"
+class MATLAYER_OT_export_normals(Operator):
+    bl_idname = "matlayer.export_normals"
     bl_label = "Export Normals"
     bl_description = "Bakes the MatLay normal channel and saves the result to the export folder. The height material channel will also be converted and baked into the normal map"
 
     @ classmethod
     def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.normal_channel_toggle
+        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.normal_channel_toggle
     
     def execute(self, context):
-        if bpy.context.scene.matlay_export_settings.export_normals and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.normal_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_normals and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.normal_channel_toggle:
             bake_and_export_material_channel('NORMAL', context, self)
         return {'FINISHED'}
 
-class MATLAY_OT_export_height(Operator):
-    bl_idname = "matlay.export_height"
+class MATLAYER_OT_export_height(Operator):
+    bl_idname = "matlayer.export_height"
     bl_label = "Export Height"
     bl_description = "Bakes the MatLay height channel and saves the result to the export folder"
 
     @ classmethod
     def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.height_channel_toggle
+        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.height_channel_toggle
     
     def execute(self, context):
-        if bpy.context.scene.matlay_export_settings.export_height and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.height_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_height and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.height_channel_toggle:
             bake_and_export_material_channel('HEIGHT', context, self)
         return {'FINISHED'}
 
-class MATLAY_OT_export_emission(Operator):
-    bl_idname = "matlay.export_emission"
+class MATLAYER_OT_export_emission(Operator):
+    bl_idname = "matlayer.export_emission"
     bl_label = "Export Emission"
     bl_description = "Bakes the MatLay emission channel and saves the result to the export folder"
 
     @ classmethod
     def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.emission_channel_toggle
+        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.emission_channel_toggle
     
     def execute(self, context):
-        if bpy.context.scene.matlay_export_settings.export_emission and bpy.context.scene.matlay_texture_set_settings.global_material_channel_toggles.emission_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_emission and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.emission_channel_toggle:
             bake_and_export_material_channel('EMISSION', context, self)
         return {'FINISHED'}

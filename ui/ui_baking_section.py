@@ -59,7 +59,7 @@ def draw_baking_section_ui(self, context):
     ui_section_tabs.draw_section_tabs(self, context)
 
     layout = self.layout
-    baking_settings = context.scene.matlay_baking_settings
+    baking_settings = context.scene.matlayer_baking_settings
     scale_y = 1.4
 
     #----------------------------- BAKE SETTINGS -----------------------------#
@@ -102,7 +102,7 @@ def draw_baking_section_ui(self, context):
 
     # Draw bake button.
     row = layout.row()
-    row.operator("matlay.bake")
+    row.operator("matlayer.bake")
     row.scale_y = 2.0
 
     split = layout.split()
@@ -134,8 +134,8 @@ def draw_baking_section_ui(self, context):
         row.label(text=ao_meshmap_name)
     else:
         row.label(text=null_meshmap_text)
-    row.operator("matlay.bake_ambient_occlusion", text="", icon='RENDER_STILL')
-    row.operator("matlay.delete_ao_map", text="", icon='TRASH')
+    row.operator("matlayer.bake_ambient_occlusion", text="", icon='RENDER_STILL')
+    row.operator("matlayer.delete_ao_map", text="", icon='TRASH')
     row.scale_y = scale_y
 
     row = second_column.row()
@@ -144,8 +144,8 @@ def draw_baking_section_ui(self, context):
         row.label(text=curvature_meshmap_name)
     else:
         row.label(text=null_meshmap_text)
-    row.operator("matlay.bake_curvature", text="", icon='RENDER_STILL')
-    row.operator("matlay.delete_curvature_map", text="", icon='TRASH')
+    row.operator("matlayer.bake_curvature", text="", icon='RENDER_STILL')
+    row.operator("matlayer.delete_curvature_map", text="", icon='TRASH')
     row.scale_y = scale_y
 
     row = second_column.row()
@@ -154,8 +154,8 @@ def draw_baking_section_ui(self, context):
         row.label(text=thickness_meshmap_name)
     else:
         row.label(text=null_meshmap_text)
-    row.operator("matlay.bake_thickness", text="", icon='RENDER_STILL')
-    row.operator("matlay.delete_thickness_map", text="", icon='TRASH')
+    row.operator("matlayer.bake_thickness", text="", icon='RENDER_STILL')
+    row.operator("matlayer.delete_thickness_map", text="", icon='TRASH')
     row.scale_y = scale_y
 
     row = second_column.row()
@@ -164,8 +164,8 @@ def draw_baking_section_ui(self, context):
         row.label(text=normal_meshmap_name)
     else:
         row.label(text=null_meshmap_text)
-    row.operator("matlay.bake_normals", text="", icon='RENDER_STILL')
-    row.operator("matlay.delete_normal_map", text="", icon='TRASH')
+    row.operator("matlayer.bake_normals", text="", icon='RENDER_STILL')
+    row.operator("matlayer.delete_normal_map", text="", icon='TRASH')
     row.scale_y = scale_y
 
 

@@ -3,23 +3,23 @@ from bpy_extras.io_utils import ImportHelper
 from bpy.types import Operator
 from bpy.props import BoolProperty, StringProperty
 from . import material_channels
-from . import matlay_materials
+from . import matlayer_materials
 from ..core import material_layers
 from ..core import layer_nodes
 from ..core import material_filters
 from ..core import layer_masks
 from ..core import texture_set_settings
 from ..utilities import logging
-from ..utilities import matlay_utils
+from ..utilities import matlayer_utils
 import random
 import os
 
 def add_layer_slot(layer_type):
     '''Creates a layer slot.'''
     context = bpy.context
-    layers = context.scene.matlay_layers
-    layer_stack = context.scene.matlay_layer_stack
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    layers = context.scene.matlayer_layers
+    layer_stack = context.scene.matlayer_layer_stack
+    selected_layer_index = context.scene.matlayer_layer_stack.layer_index
 
     # Add a new layer slot.
     layers.add()
@@ -69,12 +69,12 @@ def add_layer_slot(layer_type):
                 id_exists = False
                 layers[selected_layer_index].id = new_id
 
-    return context.scene.matlay_layer_stack.layer_index
+    return context.scene.matlayer_layer_stack.layer_index
 
 def add_default_layer_nodes(layer_type, decal_object):
     '''Adds default nodes based on the provided layer type.'''
     context = bpy.context
-    new_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
+    new_layer_index = bpy.context.scene.matlayer_layer_stack.layer_index
 
     for material_channel_name in material_channels.get_material_channel_list():
         material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
@@ -85,7 +85,7 @@ def add_default_layer_nodes(layer_type, decal_object):
 
         # Add nodes to fix normal map rotation.
         if material_channel_name == 'NORMAL':
-            normal_rotation_fix_node_tree = matlay_utils.get_normal_map_rotation_fix_node_tree()
+            normal_rotation_fix_node_tree = matlayer_utils.get_normal_map_rotation_fix_node_tree()
             normal_rotation_fix_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
             normal_rotation_fix_node.name = layer_nodes.format_material_node_name("NORMAL-ROTATION-FIX", new_layer_index, True)
             normal_rotation_fix_node.label = normal_rotation_fix_node.name
@@ -115,7 +115,7 @@ def add_default_layer_nodes(layer_type, decal_object):
             coord_node.object = decal_object
         new_nodes.append(coord_node)
 
-        custom_uv_mapping = matlay_utils.get_uv_mapping_node_tree()
+        custom_uv_mapping = matlayer_utils.get_uv_mapping_node_tree()
         mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
         mapping_node.name = layer_nodes.format_material_node_name("MAPPING", new_layer_index, True)
         mapping_node.label = mapping_node.name
@@ -180,7 +180,7 @@ def add_default_layer_nodes(layer_type, decal_object):
 def set_default_layer_properties(layer_type):
     '''Sets default layer properties based on the provided layer type.'''
     context = bpy.context
-    new_layer = context.scene.matlay_layers[context.scene.matlay_layer_stack.layer_index]
+    new_layer = context.scene.matlayer_layers[context.scene.matlayer_layer_stack.layer_index]
 
     match layer_type:
         case 'FILL':
@@ -189,15 +189,15 @@ def set_default_layer_properties(layer_type):
         case 'PAINT':
             new_layer.type = 'FILL'
 
-            context.scene.matlay_layer_stack.auto_update_layer_properties = False
-            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE", context)
-            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SUBSURFACE_COLOR", context)
-            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "METALLIC", context)
-            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "SPECULAR", context)
-            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "ROUGHNESS", context)
-            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "EMISSION", context)
-            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "NORMAL", context)
-            layer_nodes.mute_layer_material_channel(True, context.scene.matlay_layer_stack.layer_index, "HEIGHT", context)
+            context.scene.matlayer_layer_stack.auto_update_layer_properties = False
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlayer_layer_stack.layer_index, "SUBSURFACE", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlayer_layer_stack.layer_index, "SUBSURFACE_COLOR", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlayer_layer_stack.layer_index, "METALLIC", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlayer_layer_stack.layer_index, "SPECULAR", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlayer_layer_stack.layer_index, "ROUGHNESS", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlayer_layer_stack.layer_index, "EMISSION", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlayer_layer_stack.layer_index, "NORMAL", context)
+            layer_nodes.mute_layer_material_channel(True, context.scene.matlayer_layer_stack.layer_index, "HEIGHT", context)
 
             new_layer.material_channel_toggles.subsurface_channel_toggle = False
             new_layer.material_channel_toggles.subsurface_color_channel_toggle = False
@@ -210,32 +210,32 @@ def set_default_layer_properties(layer_type):
 
             new_layer.channel_node_types.color_node_type = 'TEXTURE'
 
-            context.scene.matlay_layer_stack.auto_update_layer_properties = True
+            context.scene.matlayer_layer_stack.auto_update_layer_properties = True
 
             # Add a new layer image for the paint layer.
-            bpy.ops.matlay.add_layer_image(material_channel_name='COLOR')
+            bpy.ops.matlayer.add_layer_image(material_channel_name='COLOR')
 
         case 'DECAL':
             new_layer.type = layer_type
 
-            context.scene.matlay_layer_stack.auto_update_layer_properties = False
+            context.scene.matlayer_layer_stack.auto_update_layer_properties = False
 
             new_layer.channel_node_types.color_node_type = 'TEXTURE'
 
-            context.scene.matlay_layer_stack.auto_update_layer_properties = True
+            context.scene.matlayer_layer_stack.auto_update_layer_properties = True
 
 def add_layer(layer_type, self, decal_object=None):
     '''Adds a material layer setup based on the provided layer type.'''
 
     # Validate and prepare the material for the selected object.
-    matlay_utils.set_valid_mode()
-    if not matlay_materials.prepare_material(bpy.context, self):
+    matlayer_utils.set_valid_mode()
+    if not matlayer_materials.prepare_material(bpy.context, self):
         return
     material_channels.create_channel_group_nodes(bpy.context)
     material_channels.create_empty_group_node(bpy.context)
 
     # Append standard mapping node trees.
-    matlay_utils.append_default_node_trees()
+    matlayer_utils.append_default_node_trees()
 
     # Add a new layer slot and default nodes.
     new_material_layer_index = add_layer_slot(layer_type)
@@ -251,17 +251,17 @@ def add_layer(layer_type, self, decal_object=None):
     set_default_layer_properties(layer_type)
 
     # Clear and reset indexes for material, mask and mask filters (no new material layers should have these initially).
-    bpy.context.scene.matlay_material_filters.clear()
-    bpy.context.scene.matlay_material_filter_stack.selected_filter_index = -1
-    bpy.context.scene.matlay_masks.clear()
-    bpy.context.scene.matlay_mask_stack.selected_mask_index = -1
-    bpy.context.scene.matlay_mask_filters.clear()
-    bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_index = -1
+    bpy.context.scene.matlayer_material_filters.clear()
+    bpy.context.scene.matlayer_material_filter_stack.selected_filter_index = -1
+    bpy.context.scene.matlayer_masks.clear()
+    bpy.context.scene.matlayer_mask_stack.selected_mask_index = -1
+    bpy.context.scene.matlayer_mask_filters.clear()
+    bpy.context.scene.matlayer_mask_filter_stack.selected_mask_filter_index = -1
 
     # Set a valid material shading mode and reset ui tabs.
-    matlay_utils.set_valid_material_shading_mode(bpy.context)
-    bpy.context.scene.matlay_layer_stack.layer_property_tab = 'MATERIAL'
-    bpy.context.scene.matlay_layer_stack.material_property_tab = 'MATERIAL'
+    matlayer_utils.set_valid_material_shading_mode(bpy.context)
+    bpy.context.scene.matlayer_layer_stack.layer_property_tab = 'MATERIAL'
+    bpy.context.scene.matlayer_layer_stack.material_property_tab = 'MATERIAL'
 
 def duplicate_node(material_channel_node, original_node, new_material_layer_index):
     '''Duplicates the provided node.'''
@@ -363,8 +363,8 @@ def duplicate_node(material_channel_node, original_node, new_material_layer_inde
 
     return duplicated_node
 
-class MATLAY_OT_add_decal_layer(Operator):
-    bl_idname = "matlay.add_decal_layer"
+class MATLAYER_OT_add_decal_layer(Operator):
+    bl_idname = "matlayer.add_decal_layer"
     bl_label = "Add Decal Layer"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Opens a window from which you can choose an image to use as a decal (similar to a sticker) and adds it to the scene"
@@ -392,36 +392,36 @@ class MATLAY_OT_add_decal_layer(Operator):
         # Automatically add a mask for the decal set to use alpha.
         layer_masks.add_mask('DECAL', use_alpha=True)
 
-        matlay_utils.update_total_node_and_link_count()
+        matlayer_utils.update_total_node_and_link_count()
         return {'FINISHED'}
 
-class MATLAY_OT_add_material_layer(Operator):
-    bl_idname = "matlay.add_material_layer"
+class MATLAYER_OT_add_material_layer(Operator):
+    bl_idname = "matlayer.add_material_layer"
     bl_label = "Add Material Layer"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Adds a layer with a full material"
 
     def execute(self, context):
         add_layer('MATERIAL', self)
-        matlay_utils.update_total_node_and_link_count()
+        matlayer_utils.update_total_node_and_link_count()
         return {'FINISHED'}
 
-class MATLAY_OT_add_paint_layer(Operator):
-    bl_idname = "matlay.add_paint_layer"
+class MATLAYER_OT_add_paint_layer(Operator):
+    bl_idname = "matlayer.add_paint_layer"
     bl_label = "Add Paint Layer"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Add a material layer with all material channels turned off, excluding color, and creates a new image texture for the color material channel. Use this operator to add layers you intend to manually paint onto"
 
     def execute(self, context):
         add_layer('PAINT', self)
-        matlay_utils.update_total_node_and_link_count()
+        matlayer_utils.update_total_node_and_link_count()
         layer_masks.add_mask('EMPTY', use_alpha=True)
-        context.scene.matlay_masks[0].mask_image = context.scene.matlay_layers[context.scene.matlay_layer_stack.layer_index].material_channel_textures.color_channel_texture
+        context.scene.matlayer_masks[0].mask_image = context.scene.matlayer_layers[context.scene.matlayer_layer_stack.layer_index].material_channel_textures.color_channel_texture
         return {'FINISHED'}
 
-class MATLAY_OT_add_layer_menu(Operator):
+class MATLAYER_OT_add_layer_menu(Operator):
     bl_label = ""
-    bl_idname = "matlay.add_layer_menu"
+    bl_idname = "matlayer.add_layer_menu"
     bl_description = "Opens a menu of options to add a layer in different methods"
 
     # Runs when the add layer button in the popup is clicked.
@@ -438,12 +438,12 @@ class MATLAY_OT_add_layer_menu(Operator):
         split = layout.split()
         col = split.column(align=True)
         col.scale_y = 1.4
-        col.operator("matlay.add_material_layer", text="Add Fill", icon='MATERIAL_DATA')
-        col.operator("matlay.add_paint_layer", text="Add Paint", icon='BRUSHES_ALL')
-        col.operator("matlay.add_decal_layer", text="Add Decal", icon='OUTLINER_OB_FONT')
+        col.operator("matlayer.add_material_layer", text="Add Fill", icon='MATERIAL_DATA')
+        col.operator("matlayer.add_paint_layer", text="Add Paint", icon='BRUSHES_ALL')
+        col.operator("matlayer.add_decal_layer", text="Add Decal", icon='OUTLINER_OB_FONT')
 
-class MATLAY_OT_move_material_layer(Operator):
-    bl_idname = "matlay.move_material_layer"
+class MATLAYER_OT_move_material_layer(Operator):
+    bl_idname = "matlayer.move_material_layer"
     bl_label = "Move Layer"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Moves the currently selected layer"
@@ -454,7 +454,7 @@ class MATLAY_OT_move_material_layer(Operator):
     # Poll tests if the operator can be called or not.
     @ classmethod
     def poll(cls, context):
-        return context.scene.matlay_layers
+        return context.scene.matlayer_layers
 
     def execute(self, context):
         material_layers.validate_selected_material_layer_index()
@@ -464,10 +464,10 @@ class MATLAY_OT_move_material_layer(Operator):
             print("Error: Direction given to move material layer is invalid.")
             return{'FINISHED'}
 
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
 
-        layers = context.scene.matlay_layers
-        selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+        layers = context.scene.matlayer_layers
+        selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
         material_channel_list = material_channels.get_material_channel_list()
 
         # Don't move the layer if the user is trying to move the layer out of range.
@@ -606,7 +606,7 @@ class MATLAY_OT_move_material_layer(Operator):
         else:
             index_to_move_to = max(min(selected_material_layer_index - 1, len(layers) - 1), 0)
         layers.move(selected_material_layer_index, index_to_move_to)
-        context.scene.matlay_layer_stack.layer_index = index_to_move_to
+        context.scene.matlayer_layer_stack.layer_index = index_to_move_to
 
         # Update the layer stack (organize, re-link).
         layer_nodes.update_material_layer_indicies()
@@ -614,27 +614,27 @@ class MATLAY_OT_move_material_layer(Operator):
         layer_nodes.relink_mix_layer_nodes()
 
         # Set a valid shading mode so users can see their change.
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
 
         return{'FINISHED'}
 
-class MATLAY_OT_delete_layer(Operator):
-    bl_idname = "matlay.delete_layer"
+class MATLAYER_OT_delete_layer(Operator):
+    bl_idname = "matlayer.delete_layer"
     bl_label = "Delete Layer"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Deletes the currently selected layer"
 
     @ classmethod
     def poll(cls, context):
-        return context.scene.matlay_layers
+        return context.scene.matlayer_layers
 
     def execute(self, context):
         material_layers.validate_selected_material_layer_index()
 
-        layers = context.scene.matlay_layers
-        selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+        layers = context.scene.matlayer_layers
+        selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
 
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
 
         # Remove the decal object if one exists.
         coord_node = layer_nodes.get_layer_node('COORD', 'COLOR', selected_material_layer_index, context)
@@ -650,8 +650,8 @@ class MATLAY_OT_delete_layer(Operator):
                     bpy.context.view_layer.objects.active = previously_selected_object
 
         # Remove all group nodes for all mask filters on all masks the layer being deleted.
-        masks = bpy.context.scene.matlay_masks
-        mask_filters = bpy.context.scene.matlay_mask_filters
+        masks = bpy.context.scene.matlayer_masks
+        mask_filters = bpy.context.scene.matlayer_mask_filters
         for i in range(0, len(masks)):
             for x in range(0, len(mask_filters)):
                 mask_filter_name = layer_masks.format_mask_filter_node_name(selected_material_layer_index, i, x)
@@ -677,7 +677,7 @@ class MATLAY_OT_delete_layer(Operator):
         layers.remove(selected_material_layer_index)
 
         # Reset the layer stack index while keeping it within range of existing indicies in the layer stack.
-        context.scene.matlay_layer_stack.layer_index = max(min(selected_material_layer_index - 1, len(layers) - 1), 0)
+        context.scene.matlayer_layer_stack.layer_index = max(min(selected_material_layer_index - 1, len(layers) - 1), 0)
 
         # Update the layer nodes.
         layer_nodes.reindex_material_layer_nodes('DELETED', selected_material_layer_index)
@@ -685,30 +685,30 @@ class MATLAY_OT_delete_layer(Operator):
         layer_nodes.relink_mix_layer_nodes()
 
         # Set a valid material shading mode and reset ui tabs.
-        matlay_utils.set_valid_material_shading_mode(context)
-        context.scene.matlay_layer_stack.layer_property_tab = 'MATERIAL'
-        context.scene.matlay_layer_stack.material_property_tab = 'MATERIAL'
+        matlayer_utils.set_valid_material_shading_mode(context)
+        context.scene.matlayer_layer_stack.layer_property_tab = 'MATERIAL'
+        context.scene.matlayer_layer_stack.material_property_tab = 'MATERIAL'
         
-        matlay_utils.update_total_node_and_link_count()
+        matlayer_utils.update_total_node_and_link_count()
         return {'FINISHED'}
 
-class MATLAY_OT_duplicate_layer(Operator):
-    bl_idname = "matlay.duplicate_layer"
+class MATLAYER_OT_duplicate_layer(Operator):
+    bl_idname = "matlayer.duplicate_layer"
     bl_label = "Duplicate Layer"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Duplicates the selected layer"
 
     @ classmethod
     def poll(cls, context):
-        return context.scene.matlay_layers
+        return context.scene.matlayer_layers
 
     def execute(self, context):
         material_layers.validate_selected_material_layer_index()
-        layers = context.scene.matlay_layers
-        original_material_layer_index = context.scene.matlay_layer_stack.layer_index
+        layers = context.scene.matlayer_layers
+        original_material_layer_index = context.scene.matlayer_layer_stack.layer_index
         
         # Turn auto updating for properties off temporarily.
-        context.scene.matlay_layer_stack.auto_update_layer_properties = False
+        context.scene.matlayer_layer_stack.auto_update_layer_properties = False
 
         # If the original layer was a decal layer, create a new decal object (empty) and copy the transforms of the original.
         new_decal_object = None
@@ -729,30 +729,30 @@ class MATLAY_OT_duplicate_layer(Operator):
                 bpy.context.view_layer.objects.active = previously_selected_object
 
         # Count layer slot counts on the original layer.
-        original_material_filter_count = len(bpy.context.scene.matlay_material_filters)
-        original_mask_count = len(bpy.context.scene.matlay_masks)
-        original_mask_filter_count = len(bpy.context.scene.matlay_mask_filters)
+        original_material_filter_count = len(bpy.context.scene.matlayer_material_filters)
+        original_mask_count = len(bpy.context.scene.matlayer_masks)
+        original_mask_filter_count = len(bpy.context.scene.matlayer_mask_filters)
 
         # Store mask properties to transfer to new masks.
         mask_uses_alpha = []
         for i in range(0, original_mask_count):
-            mask_uses_alpha.append(bpy.context.scene.matlay_masks[i].use_alpha)
+            mask_uses_alpha.append(bpy.context.scene.matlayer_masks[i].use_alpha)
 
         # Add a new layer slot and a copy the name of the previous layer.
         original_layer_type = layers[original_material_layer_index].type
         add_layer_slot(original_layer_type)
-        new_material_layer_index = context.scene.matlay_layer_stack.layer_index
+        new_material_layer_index = context.scene.matlayer_layer_stack.layer_index
         layers[new_material_layer_index].name = "{0} Copy".format(layers[original_material_layer_index].name)
         layers[new_material_layer_index].type = layers[original_material_layer_index].type
 
         # Clear material, mask and mask filters.
-        context.scene.matlay_material_filters.clear()
-        context.scene.matlay_masks.clear()
-        context.scene.matlay_mask_filters.clear()
+        context.scene.matlayer_material_filters.clear()
+        context.scene.matlayer_masks.clear()
+        context.scene.matlayer_mask_filters.clear()
 
-        context.scene.matlay_material_filter_stack.auto_update_filter_properties = False
-        context.scene.matlay_mask_stack.auto_update_mask_properties = False
-        context.scene.matlay_mask_filter_stack.auto_update_properties = False
+        context.scene.matlayer_material_filter_stack.auto_update_filter_properties = False
+        context.scene.matlayer_mask_stack.auto_update_mask_properties = False
+        context.scene.matlayer_mask_filter_stack.auto_update_properties = False
 
         # Duplicate slots for material filters, masks and mask filters and their properties (this allow the newly duplicated nodes to reindex properly).
         for i in range(0, original_material_filter_count):
@@ -760,7 +760,7 @@ class MATLAY_OT_duplicate_layer(Operator):
 
         for i in range(0, original_mask_count):
             layer_masks.add_mask_slot(context)
-            bpy.context.scene.matlay_masks[i].use_alpha = mask_uses_alpha[i]
+            bpy.context.scene.matlayer_masks[i].use_alpha = mask_uses_alpha[i]
 
         for i in range(0, original_mask_filter_count):
             layer_masks.add_mask_filter_slot()
@@ -821,23 +821,23 @@ class MATLAY_OT_duplicate_layer(Operator):
             bpy.context.view_layer.objects.active = new_decal_object
 
         # Turn auto updating for properties back on.
-        context.scene.matlay_layer_stack.auto_update_layer_properties = True
-        context.scene.matlay_material_filter_stack.auto_update_filter_properties = True
-        context.scene.matlay_mask_stack.auto_update_mask_properties = True
-        context.scene.matlay_mask_filter_stack.auto_update_properties = True
+        context.scene.matlayer_layer_stack.auto_update_layer_properties = True
+        context.scene.matlayer_material_filter_stack.auto_update_filter_properties = True
+        context.scene.matlayer_mask_stack.auto_update_mask_properties = True
+        context.scene.matlayer_mask_filter_stack.auto_update_properties = True
 
-        matlay_utils.set_valid_material_shading_mode(context)
-        matlay_utils.update_total_node_and_link_count()
+        matlayer_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.update_total_node_and_link_count()
         return{'FINISHED'}
 
-class MATLAY_OT_edit_uvs_externally(Operator):
-    bl_idname = "matlay.edit_uvs_externally"
+class MATLAYER_OT_edit_uvs_externally(Operator):
+    bl_idname = "matlayer.edit_uvs_externally"
     bl_label = "Edit UVs Externally"
     bl_description = "Exports the selected object's UV layout to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor)"
 
     def execute(self, context):
         material_layers.validate_selected_material_layer_index()
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
 
         original_mode = bpy.context.object.mode
         active_object = bpy.context.active_object
@@ -860,11 +860,11 @@ class MATLAY_OT_edit_uvs_externally(Operator):
         bpy.ops.uv.select_all(action='SELECT')
 
         # Save UV layout to folder.
-        matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
-        if os.path.exists(matlay_image_path) == False:
-            os.mkdir(matlay_image_path)
+        matlayer_image_path = os.path.join(bpy.path.abspath("//"), "Matlayer")
+        if os.path.exists(matlayer_image_path) == False:
+            os.mkdir(matlayer_image_path)
 
-        uv_layout_path = os.path.join(matlay_image_path, "UVLayouts")
+        uv_layout_path = os.path.join(matlayer_image_path, "UVLayouts")
         if os.path.exists(uv_layout_path) == False:
             os.mkdir(uv_layout_path)
     
@@ -887,8 +887,8 @@ class MATLAY_OT_edit_uvs_externally(Operator):
         
         return{'FINISHED'}
 
-class MATLAY_OT_edit_image_externally(Operator):
-    bl_idname = "matlay.edit_image_externally"
+class MATLAYER_OT_edit_image_externally(Operator):
+    bl_idname = "matlayer.edit_image_externally"
     bl_label = "Edit Image Externally"
     bl_description = "Exports the selected image to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor)"
 
@@ -897,7 +897,7 @@ class MATLAY_OT_edit_image_externally(Operator):
 
     @ classmethod
     def poll(cls, context):
-        return context.scene.matlay_layers
+        return context.scene.matlayer_layers
 
     def execute(self, context):
         material_layers.validate_selected_material_layer_index()
@@ -907,16 +907,16 @@ class MATLAY_OT_edit_image_externally(Operator):
             self.report({'ERROR'}, "Programming error, invalid type provided to edit image externally operator.")
             return {'FINISHED'}
     
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
 
         # Get the texture node to export the image from based on the provided type.
         if self.image_type == 'LAYER':
-            selected_layer_index = context.scene.matlay_layer_stack.layer_index
+            selected_layer_index = context.scene.matlayer_layer_stack.layer_index
             texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel_name, selected_layer_index, context)
 
         else:
-            selected_layer_index = context.scene.matlay_layer_stack.layer_index
-            selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+            selected_layer_index = context.scene.matlayer_layer_stack.layer_index
+            selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
             texture_node = layer_masks.get_mask_node('MASK-TEXTURE', 'COLOR', selected_layer_index, selected_mask_index, False)
 
         # Select the image texture for exporting.
@@ -941,12 +941,12 @@ class MATLAY_OT_edit_image_externally(Operator):
             else:
                 self.report({'ERROR'}, "Export image is packed, unpack and save the image to a folder to export to an external image editor.")
             bpy.ops.image.external_edit(filepath=export_image.filepath)
-            matlay_utils.set_valid_material_shading_mode(context)
+            matlayer_utils.set_valid_material_shading_mode(context)
         
         return {'FINISHED'}
 
-class MATLAY_OT_reload_image(Operator):
-    bl_idname = "matlay.reload_image"
+class MATLAYER_OT_reload_image(Operator):
+    bl_idname = "matlayer.reload_image"
     bl_label = "Reload Image"
     bl_description = "Reloads the selected image from the disk"
 
@@ -955,15 +955,15 @@ class MATLAY_OT_reload_image(Operator):
 
     @ classmethod
     def poll(cls, context):
-        return context.scene.matlay_layers
+        return context.scene.matlayer_layers
 
     def execute(self, context):
         material_layers.validate_selected_material_layer_index()
 
         # Set the active image to the one that needs to be reloaded, relative to the position of the reload button in the user interface.
-        selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+        selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
         if self.reload_mask:
-            selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+            selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
             texture_node = layer_masks.get_mask_node('MASK-TEXTURE', 'COLOR', selected_material_layer_index, selected_mask_index)
         else:
             texture_node = layer_nodes.get_layer_node('TEXTURE', self.material_channel_name, selected_material_layer_index, context)
@@ -1043,7 +1043,7 @@ def read_texture_node_values(material_channel_list, total_number_of_layers, laye
                         setattr(layers[i].color_channel_values, material_channel_name.lower() + "_channel_color", (color[0], color[1], color[2]))
 
                     case 'GROUP':
-                        if texture_node.node_tree.name == 'MATLAY_TRIPLANAR' or texture_node.node_tree.name == 'MATLAY_TRIPLANAR_NORMALS':
+                        if texture_node.node_tree.name == 'MATLAYER_TRIPLANAR' or texture_node.node_tree.name == 'MATLAYER_TRIPLANAR_NORMALS':
                             setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'TEXTURE')
                             texture_sample_node = layer_nodes.get_layer_node('TEXTURE-SAMPLE-1', material_channel_name, i, context)
                             if texture_sample_node:
@@ -1078,7 +1078,7 @@ def read_layer_projection_values(material_layers, context):
             texture_sample_1 = layer_nodes.get_layer_node('TEXTURE-SAMPLE-1', material_channel_name, i, context)
             material_layer = material_layers[i]
             if mapping_node:
-                if mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
+                if mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE':
                     if texture_node.bl_static_type == 'TEX_IMAGE':
                         material_layer.projection.mode = texture_node.projection
                         material_layer.projection.texture_extension = texture_node.extension
@@ -1086,7 +1086,7 @@ def read_layer_projection_values(material_layers, context):
                     else:
                         material_layer.projection.mode = 'FLAT'
 
-                elif mapping_node.node_tree.name == 'MATLAY_TRIPLANAR_MAPPING':
+                elif mapping_node.node_tree.name == 'MATLAYER_TRIPLANAR_MAPPING':
                     material_layer.projection.mode = 'TRIPLANAR'
                     if texture_node.bl_static_type == 'TEX_IMAGE':
                         material_layer.projection.texture_extension = texture_sample_1.extension
@@ -1122,7 +1122,7 @@ def read_layer_projection_values(material_layers, context):
 def read_globally_active_material_channels(context):
     '''Updates globally active / inactive material channels per layer by reading the material node trees.'''
     # Globally active material channels are determined by checking if the material channel group node is connected.
-    texture_set_settings = context.scene.matlay_texture_set_settings
+    texture_set_settings = context.scene.matlayer_texture_set_settings
     texture_set_settings.auto_update_properties = False
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
@@ -1161,8 +1161,8 @@ def read_active_layer_material_channels(material_channel_list, total_number_of_l
 
 def read_blur_nodes(context):
     '''Reads blur node values.'''
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_layer = context.scene.matlay_layers[selected_material_layer_index]
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_layer = context.scene.matlayer_layers[selected_material_layer_index]
 
     # Read blur toggle (if a blur node doesn't exist, blur toggle is off).
     blur_node = layer_nodes.get_layer_node('BLUR', 'COLOR', selected_material_layer_index, context)
@@ -1176,9 +1176,9 @@ def read_blur_nodes(context):
         blur_node = layer_nodes.get_layer_node('BLUR', material_channel_name, selected_material_layer_index, context)
         mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, selected_material_layer_index, context)
         if blur_node:
-            if mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
+            if mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE':
                 selected_layer.blur_amount = blur_node.inputs[1].default_value
-            elif mapping_node.node_tree.name == 'MATLAY_TRIPLANAR_MAPPING':
+            elif mapping_node.node_tree.name == 'MATLAYER_TRIPLANAR_MAPPING':
                 selected_layer.blur_amount = blur_node.inputs[3].default_value
 
             # Read blur toggles for material channels.
@@ -1198,24 +1198,24 @@ def read_layer_nodes(context):
     
     # Turn auto updating for layer properties off.
     # This is to avoid node types from automatically being replaced when the node type is updated as doing so can cause errors when reading values (likely due to blender parameter update functions not being thread safe).
-    context.scene.matlay_layer_stack.auto_update_layer_properties = False
+    context.scene.matlayer_layer_stack.auto_update_layer_properties = False
 
     # Remember the selected layer index before clearing the layer stack.
-    original_selected_layer_index = context.scene.matlay_layer_stack.layer_index
+    original_selected_layer_index = context.scene.matlayer_layer_stack.layer_index
 
     # Clear the material stack.
-    material_layers = context.scene.matlay_layers
+    material_layers = context.scene.matlayer_layers
     material_layers.clear()
 
     total_number_of_layers = layer_nodes.get_total_number_of_layers(context)
     material_channel_list = material_channels.get_material_channel_list()
-    selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
+    selected_material_channel = context.scene.matlayer_layer_stack.selected_material_channel
 
     # After reading the layer stack, the number of layers may be different, reset the selected layer index if required.
     if total_number_of_layers >= original_selected_layer_index:
-        context.scene.matlay_layer_stack.layer_index = original_selected_layer_index
+        context.scene.matlayer_layer_stack.layer_index = original_selected_layer_index
     else:
-        context.scene.matlay_layer_stack.layer_index = 0
+        context.scene.matlayer_layer_stack.layer_index = 0
 
     # Read material layer stuff.
     read_layer_name_and_id(material_layers, context)
@@ -1231,10 +1231,10 @@ def read_layer_nodes(context):
     layer_masks.read_mask_nodes(context)
     layer_masks.read_mask_filter_nodes(context)
     logging.log("Read material nodes.")
-    context.scene.matlay_layer_stack.auto_update_layer_properties = True
+    context.scene.matlayer_layer_stack.auto_update_layer_properties = True
 
-class MATLAY_OT_read_layer_nodes(Operator):
-    bl_idname = "matlay.read_layer_nodes"
+class MATLAYER_OT_read_layer_nodes(Operator):
+    bl_idname = "matlayer.read_layer_nodes"
     bl_label = "Read Layer Nodes"
     bl_description = "Updates the user interface to match the active material's node tree. This is generally called automatically when required, but you can use this operator to manually update the user interface based on the active material's node tree"
 
@@ -1245,17 +1245,17 @@ class MATLAY_OT_read_layer_nodes(Operator):
         # Materials must follow a strict format to be able to be properly read, making materials not made with this add-on incompatible.
         self.report({'INFO'}, "Refreshed layer stack.")
         
-        matlay_utils.update_total_node_and_link_count()
+        matlayer_utils.update_total_node_and_link_count()
 
-        if matlay_materials.verify_material(context) == False:
-            bpy.context.scene.matlay_layers.clear()
+        if matlayer_materials.verify_material(context) == False:
+            bpy.context.scene.matlayer_layers.clear()
             return {'FINISHED'}
         
         read_layer_nodes(context)
 
         # If read layer nodes is manually called, also relink material layers.
         if not self.auto_called:
-            selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+            selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
             layer_masks.relink_mask_nodes(selected_material_layer_index)
             layer_nodes.relink_material_nodes(selected_material_layer_index)
             layer_nodes.relink_mix_layer_nodes()

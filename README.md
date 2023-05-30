@@ -1,6 +1,6 @@
-# MatLay
+# MatLayer
 
-Download the latest version from the releases - https://github.com/LoganFairbairn/matlay/releases
+Download the latest version from the releases - https://github.com/LoganFairbairn/matlayer/releases
 
 ...or use the green code button to download the development version which may have new features and fixes, but can be less stable.
 
@@ -8,7 +8,7 @@ Here's a tutorial to help you get started - https://www.youtube.com/watch?v=o-fT
 
 -----
 
-MatLay is a free add-on for Blender that drastically speeds up the material workflow by replacing the material node workflow in Blender with a layer stack workflow, in addition to offering automation for common mesh map baking, and file handling.
+MatLayer is a free add-on for Blender that drastically speeds up the material workflow by replacing the material node workflow in Blender with a layer stack workflow, in addition to offering automation for common mesh map baking, and file handling.
 
 If you like this add-on please star it on github to let me know!
 
@@ -16,28 +16,28 @@ If you like this add-on please star it on github to let me know!
 
 Features:
 - Simple user interface
-![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/promo/UIExample.png?raw=true)
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/UIExample.png?raw=true)
 
 - Material channel filters
 
 - Multi-masking for material layers
 
 - Fast PBR texture set importing
-![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/promo/ImportTextureSetShowcase.gif?raw=true)
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/ImportTextureSetShowcase.gif?raw=true)
 
 - One-click batch baking for mesh maps
-![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/promo/BakingExamples.jpg?raw=true)
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/BakingExamples.jpg?raw=true)
 
 - One-click batch exporting for textures
 
 - Decals that bake properly to exported textures
-![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/promo/DecalShowcase.gif?raw=true)
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/DecalShowcase.gif?raw=true)
 
 - Auto corrections for normal map rotations
-![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/promo/NormalRotationCorrectionShowcase.gif?raw=true)
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/NormalRotationCorrectionShowcase.gif?raw=true)
 
 - Triplanar projection with correct normal projection
-![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlay/main/promo/TriplanarShowcase.gif?raw=true)
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/TriplanarShowcase.gif?raw=true)
 
 - Layers support custom group nodes
 

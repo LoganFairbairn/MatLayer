@@ -63,7 +63,7 @@ def get_all_material_channel_nodes(context):
 
 def get_active_material_channel_nodes(context):
     '''Returns a list of all active material channel nodes.'''
-    texture_set_settings = context.scene.matlay_texture_set_settings
+    texture_set_settings = context.scene.matlayer_texture_set_settings
 
     active_material_channel_nodes = []
     if texture_set_settings.color_channel_toggle == True:
@@ -150,7 +150,7 @@ def get_material_channel_node_active(material_channel_name):
 def create_channel_group_nodes(context):
     '''Creates group and secondary nodes (e.g normal map mixing nodes) for all active material channels.'''
     active_material = context.active_object.active_material
-    layer_stack = context.scene.matlay_layer_stack
+    layer_stack = context.scene.matlayer_layer_stack
 
     # Create color group node.
     color_group_node_name = active_material.name + "_COLOR"
@@ -276,7 +276,7 @@ def create_channel_group_nodes(context):
     for material_channel_name in get_material_channel_list():
         material_channel_node = get_material_channel_node(context, material_channel_name)
         material_channel_node.use_custom_color = True
-        texture_set_settings = bpy.context.scene.matlay_texture_set_settings
+        texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
         material_channel_active = getattr(texture_set_settings.global_material_channel_toggles, material_channel_name.lower() + "_channel_toggle", None)
         set_material_channel_node_active_state(material_channel_name, material_channel_active)
         if not material_channel_active:
@@ -287,11 +287,11 @@ def create_channel_group_nodes(context):
 
 def create_empty_group_node(context):
     '''Creates an empty group node as a placeholder for custom group nodes.'''
-    empty_group_node_name = "MATLAY_EMPTY"
+    empty_group_node_name = "MATLAYER_EMPTY"
     if bpy.data.node_groups.get(empty_group_node_name) == None:
         new_node_group = bpy.data.node_groups.new(empty_group_node_name, 'ShaderNodeTree')
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
-        group_output_node.width = context.scene.matlay_layer_stack.node_default_width
+        group_output_node.width = context.scene.matlayer_layer_stack.node_default_width
         new_node_group.outputs.new('NodeSocketColor', 'Color')
         group_output_node.inputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
 
@@ -300,8 +300,8 @@ def connect_material_channel(context, material_channel_name):
     material_nodes = context.active_object.active_material.node_tree.nodes
     material_channel_node = get_material_channel_node(context, material_channel_name)
     principled_bsdf_node = material_nodes.get('Principled BSDF')
-    mix_normal_maps_node = material_nodes.get('MATLAY_NORMALMIX')
-    texture_set_settings = bpy.context.scene.matlay_texture_set_settings
+    mix_normal_maps_node = material_nodes.get('MATLAYER_NORMALMIX')
+    texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
 
     if material_channel_node:
         active_material = context.active_object.active_material
@@ -364,7 +364,7 @@ def disconnect_material_channel(context, material_channel_name):
 
     # If one of the height or normal material channels were disconnected, and one of them is still active, connect it directly to the principled bsdf shader.
     principled_bsdf_node = context.active_object.active_material.node_tree.nodes.get('Principled BSDF')
-    texture_set_settings = bpy.context.scene.matlay_texture_set_settings
+    texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
 
     if material_channel_name == 'NORMAL':
         if texture_set_settings.global_material_channel_toggles.height_channel_toggle:
@@ -385,7 +385,7 @@ def validate_material_channel_name(material_channel_name):
 
 def isolate_material_channel(isolate, material_channel_name, context):
     '''Isolates the given material channel (used in material channel previews and baking specific material channels).'''
-    texture_set_settings = context.scene.matlay_texture_set_settings
+    texture_set_settings = context.scene.matlayer_texture_set_settings
     material_nodes = context.active_object.active_material.node_tree.nodes
     node_links = context.active_object.active_material.node_tree.links
     material_output_node = material_nodes.get('Material Output')
@@ -428,7 +428,7 @@ def isolate_material_channel(isolate, material_channel_name, context):
 
     else:
         principled_bsdf_node = material_nodes.get('Principled BSDF')
-        mix_normal_maps_node = material_nodes.get('MATLAY_NORMALMIX')
+        mix_normal_maps_node = material_nodes.get('MATLAYER_NORMALMIX')
 
         # Disconnects all nodes in the active material.
         for l in node_links:
@@ -531,19 +531,19 @@ def isolate_material_channel(isolate, material_channel_name, context):
             height_material_channel_node.node_tree.links.new(last_height_mix_node.outputs[0], bump_node.inputs[2])
             height_material_channel_node.node_tree.links.new(bump_node.outputs[0], height_group_output_node.inputs[0])
 
-class MATLAY_OT_toggle_material_channel_preview(Operator):
-    bl_idname = "matlay.toggle_material_channel_preview"
+class MATLAYER_OT_toggle_material_channel_preview(Operator):
+    bl_idname = "matlayer.toggle_material_channel_preview"
     bl_label = "Toggle Channel Preview"
     bl_description = "Toggles a preview which displays only the information stored in the currently selected material channel"
 
     def execute(self, context):
-        material_preview = context.scene.matlay_layer_stack.material_channel_preview
-        selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
+        material_preview = context.scene.matlayer_layer_stack.material_channel_preview
+        selected_material_channel = context.scene.matlayer_layer_stack.selected_material_channel
         if material_preview == True:
             isolate_material_channel(False, selected_material_channel, context)
-            context.scene.matlay_layer_stack.material_channel_preview = False
+            context.scene.matlayer_layer_stack.material_channel_preview = False
         else:
             isolate_material_channel(True, selected_material_channel, context)
-            context.scene.matlay_layer_stack.material_channel_preview = True
+            context.scene.matlayer_layer_stack.material_channel_preview = True
             
         return {'FINISHED'}

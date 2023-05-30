@@ -14,19 +14,19 @@ TEXTURE_SET_RESOLUTIONS = [
     ]
 
 def update_match_image_resolution(self, context):
-    if context.scene.matlay_texture_set_settings.auto_update_properties == False:
+    if context.scene.matlayer_texture_set_settings.auto_update_properties == False:
         return
     
-    texture_set_settings = context.scene.matlay_texture_set_settings
+    texture_set_settings = context.scene.matlayer_texture_set_settings
 
     if texture_set_settings.match_image_resolution:
         texture_set_settings.image_height = texture_set_settings.image_width
 
 def update_image_width(self, context):
-    if context.scene.matlay_texture_set_settings.auto_update_properties == False:
+    if context.scene.matlayer_texture_set_settings.auto_update_properties == False:
         return
 
-    texture_set_settings = context.scene.matlay_texture_set_settings
+    texture_set_settings = context.scene.matlayer_texture_set_settings
 
     if texture_set_settings.match_image_resolution:
         if texture_set_settings.image_height != texture_set_settings.image_width:
@@ -35,10 +35,10 @@ def update_image_width(self, context):
 #----------------------------- UPDATE GLOBAL MATERIAL CHANNEL TOGGLES (mute / unmute material channels for ALL layers) -----------------------------#
 
 def update_color_channel_toggle(self, context):
-    if context.scene.matlay_texture_set_settings.auto_update_properties == False:
+    if context.scene.matlayer_texture_set_settings.auto_update_properties == False:
         return
 
-    export_settings = context.scene.matlay_export_settings
+    export_settings = context.scene.matlayer_export_settings
     if self.color_channel_toggle == True:
         material_channels.set_material_channel_node_active_state('COLOR', True)
         material_channels.connect_material_channel(context, 'COLOR')
@@ -49,10 +49,10 @@ def update_color_channel_toggle(self, context):
         export_settings.export_base_color = False
 
 def update_subsurface_channel_toggle(self, context):
-    if context.scene.matlay_texture_set_settings.auto_update_properties == False:
+    if context.scene.matlayer_texture_set_settings.auto_update_properties == False:
         return
 
-    export_settings = context.scene.matlay_export_settings
+    export_settings = context.scene.matlayer_export_settings
     if self.subsurface_channel_toggle == True:
         material_channels.set_material_channel_node_active_state('SUBSURFACE', True)
         material_channels.connect_material_channel(context, "SUBSURFACE")
@@ -63,10 +63,10 @@ def update_subsurface_channel_toggle(self, context):
         export_settings.export_subsurface = False
 
 def update_subsurface_color_channel_toggle(self, context):
-    if context.scene.matlay_texture_set_settings.auto_update_properties == False:
+    if context.scene.matlayer_texture_set_settings.auto_update_properties == False:
         return
     
-    export_settings = context.scene.matlay_export_settings
+    export_settings = context.scene.matlayer_export_settings
     if self.subsurface_color_channel_toggle == True:
         material_channels.set_material_channel_node_active_state('SUBSURFACE_COLOR', True)
         material_channels.connect_material_channel(context, "SUBSURFACE_COLOR")
@@ -77,10 +77,10 @@ def update_subsurface_color_channel_toggle(self, context):
         export_settings.export_subsurface_color = False
 
 def update_metallic_channel_toggle(self, context):
-    if context.scene.matlay_texture_set_settings.auto_update_properties == False:
+    if context.scene.matlayer_texture_set_settings.auto_update_properties == False:
         return
     
-    export_settings = context.scene.matlay_export_settings
+    export_settings = context.scene.matlayer_export_settings
     if self.metallic_channel_toggle == True:
         material_channels.set_material_channel_node_active_state('METALLIC', True)
         material_channels.connect_material_channel(context, "METALLIC")
@@ -91,10 +91,10 @@ def update_metallic_channel_toggle(self, context):
         export_settings.export_metallic = False
 
 def update_specular_channel_toggle(self, context):
-    if context.scene.matlay_texture_set_settings.auto_update_properties == False:
+    if context.scene.matlayer_texture_set_settings.auto_update_properties == False:
         return
 
-    export_settings = context.scene.matlay_export_settings
+    export_settings = context.scene.matlayer_export_settings
     if self.specular_channel_toggle == True:
         material_channels.set_material_channel_node_active_state('SPECULAR', True)
         material_channels.connect_material_channel(context, "SPECULAR")
@@ -105,10 +105,10 @@ def update_specular_channel_toggle(self, context):
         export_settings.export_specular = False
 
 def update_roughness_channel_toggle(self, context):
-    if context.scene.matlay_texture_set_settings.auto_update_properties == False:
+    if context.scene.matlayer_texture_set_settings.auto_update_properties == False:
         return
 
-    export_settings = context.scene.matlay_export_settings
+    export_settings = context.scene.matlayer_export_settings
     if self.roughness_channel_toggle == True:
         material_channels.set_material_channel_node_active_state('ROUGHNESS', True)
         material_channels.connect_material_channel(context, "ROUGHNESS")
@@ -119,10 +119,10 @@ def update_roughness_channel_toggle(self, context):
         export_settings.export_roughness = False
 
 def update_normal_channel_toggle(self, context):
-    if context.scene.matlay_texture_set_settings.auto_update_properties == False:
+    if context.scene.matlayer_texture_set_settings.auto_update_properties == False:
         return
 
-    export_settings = context.scene.matlay_export_settings
+    export_settings = context.scene.matlayer_export_settings
     if self.normal_channel_toggle == True:
         material_channels.set_material_channel_node_active_state('NORMAL', True)
         material_channels.connect_material_channel(context, "NORMAL")
@@ -133,10 +133,10 @@ def update_normal_channel_toggle(self, context):
         export_settings.export_normals = False
 
 def update_height_channel_toggle(self, context):
-    if context.scene.matlay_texture_set_settings.auto_update_properties == False:
+    if context.scene.matlayer_texture_set_settings.auto_update_properties == False:
         return
 
-    export_settings = context.scene.matlay_export_settings
+    export_settings = context.scene.matlayer_export_settings
     if self.height_channel_toggle == True:
         material_channels.set_material_channel_node_active_state('HEIGHT', True)
         material_channels.connect_material_channel(context, "HEIGHT")
@@ -147,10 +147,10 @@ def update_height_channel_toggle(self, context):
         export_settings.export_height = False
 
 def update_emission_channel_toggle(self, context):
-    if context.scene.matlay_texture_set_settings.auto_update_properties == False:
+    if context.scene.matlayer_texture_set_settings.auto_update_properties == False:
         return
 
-    export_settings = context.scene.matlay_export_settings
+    export_settings = context.scene.matlayer_export_settings
     if self.emission_channel_toggle == True:
         material_channels.set_material_channel_node_active_state('EMISSION', True)
         material_channels.connect_material_channel(context, 'EMISSION')
@@ -162,7 +162,7 @@ def update_emission_channel_toggle(self, context):
 
 def get_texture_width():
     '''Returns a numeric value based on the enum for texture width.'''
-    match bpy.context.scene.matlay_texture_set_settings.image_width:
+    match bpy.context.scene.matlayer_texture_set_settings.image_width:
         case 'FIVE_TWELVE':
             return 512
         case 'ONEK':
@@ -177,7 +177,7 @@ def get_texture_width():
 
 def get_texture_height():
     '''Returns a numeric value based on the enum for texture height.'''
-    match bpy.context.scene.matlay_texture_set_settings.image_height:
+    match bpy.context.scene.matlayer_texture_set_settings.image_height:
         case 'FIVE_TWELVE':
             return 512
         case 'ONEK':
@@ -192,7 +192,7 @@ def get_texture_height():
 
 def get_active_material_channel_count():
     '''Returns the number of active material channels.'''
-    texture_set_settings = bpy.context.scene.matlay_texture_set_settings
+    texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
     number_of_active_material_channels = 0
     for material_channel_name in material_channels.get_material_channel_list():
         attribute_name = material_channel_name.lower() + "_channel_toggle"
@@ -212,7 +212,7 @@ class GlobalMaterialChannelToggles(PropertyGroup):
     normal_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the normal material channel for this layer", update=update_normal_channel_toggle)
     height_channel_toggle: BoolProperty(default=False, description="Click to toggle on / off the height material channel for this layer", update=update_height_channel_toggle)
 
-class MATLAY_texture_set_settings(PropertyGroup):
+class MATLAYER_texture_set_settings(PropertyGroup):
     image_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Width", description="Image width in pixels for the new image.", default='TWOK', update=update_image_width)
     image_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Height", description="Image height in pixels for the new image.", default='TWOK')
     layer_folder: StringProperty(default="", description="Path to folder location where layer images are saved", name="Image Layer Folder Path")

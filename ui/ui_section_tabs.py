@@ -1,7 +1,7 @@
 def draw_section_tabs(self, context):
     '''Draws tabs for swapping to different sections in this add-on.'''
     layout = self.layout
-    panel_properties = context.scene.matlay_panel_properties
+    panel_properties = context.scene.matlayer_panel_properties
 
     # Draw add-on section buttons.
     row = layout.row(align=True)

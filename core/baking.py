@@ -44,18 +44,18 @@ def get_meshmap_name(meshmap_type):
 
 def update_match_bake_resolution(self, context):
     '''Match the height to the width.'''
-    baking_settings = context.scene.matlay_baking_settings
+    baking_settings = context.scene.matlayer_baking_settings
     if baking_settings.match_bake_resolution:
         baking_settings.output_height = baking_settings.output_width
 
 def update_bake_width(self, context):
     '''Match the height to the width of the bake output'''
-    baking_settings = context.scene.matlay_baking_settings
+    baking_settings = context.scene.matlayer_baking_settings
     if baking_settings.match_bake_resolution:
         if baking_settings.output_height != baking_settings.output_width:
             baking_settings.output_height = baking_settings.output_width
 
-class MATLAY_baking_settings(bpy.types.PropertyGroup):
+class MATLAYER_baking_settings(bpy.types.PropertyGroup):
     bake_type: EnumProperty(items=SELECTED_BAKE_TYPE, name="Bake Types", description="Bake type currently selected", default='AMBIENT_OCCLUSION')
     output_quality: EnumProperty(items=QUALITY_SETTINGS, name="Output Quality", description="Output quality of the baked mesh maps", default='RECOMMENDED_QUALITY')
     output_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS,name="Output Height",description="Image size for the baked texure map result(s)", default='TWOK', update=update_bake_width)
@@ -92,7 +92,7 @@ def add_ambient_occlusion_baking_nodes(material, bake_image):
     color_ramp_node = nodes.new(type='ShaderNodeValToRGB')
 
     # Set node values.
-    baking_settings = bpy.context.scene.matlay_baking_settings
+    baking_settings = bpy.context.scene.matlayer_baking_settings
     image_node.image = bake_image
     ao_node.samples = baking_settings.ambient_occlusion_samples
     ao_node.only_local = baking_settings.ambient_occlusion_local
@@ -138,7 +138,7 @@ def add_curvature_baking_nodes(material, bake_image):
     pointiness_mix_node = nodes.new(type='ShaderNodeMixRGB')
 
     # Set node values.
-    baking_settings = bpy.context.scene.matlay_baking_settings
+    baking_settings = bpy.context.scene.matlayer_baking_settings
 
     image_node.image = bake_image
 
@@ -195,7 +195,7 @@ def add_thickness_baking_nodes(material, bake_image):
     invert_node = nodes.new(type='ShaderNodeInvert')
 
     # Set node values.
-    baking_settings = bpy.context.scene.matlay_baking_settings
+    baking_settings = bpy.context.scene.matlayer_baking_settings
     image_node.image = bake_image
     ao_node.samples = baking_settings.thickness_samples
     ao_node.only_local = True
@@ -251,7 +251,7 @@ def create_bake_image(bake_type):
     '''Creates a new bake image in Blender's data and define it's save location'''
 
     # Define the baking size based on settings.
-    baking_settings = bpy.context.scene.matlay_baking_settings
+    baking_settings = bpy.context.scene.matlayer_baking_settings
     match baking_settings.output_width:
         case 'FIVE_TWELVE':
             output_width = 512
@@ -304,11 +304,11 @@ def create_bake_image(bake_type):
                               tiled=False)
 
     # Save the new image to a folder for baked images.
-    matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
-    if os.path.exists(matlay_image_path) == False:
-        os.mkdir(matlay_image_path)
+    matlayer_image_path = os.path.join(bpy.path.abspath("//"), "Matlayer")
+    if os.path.exists(matlayer_image_path) == False:
+        os.mkdir(matlayer_image_path)
 
-    bake_path = os.path.join(matlay_image_path, "MeshMaps")
+    bake_path = os.path.join(matlayer_image_path, "MeshMaps")
     if os.path.exists(bake_path) == False:
         os.mkdir(bake_path)
 
@@ -365,7 +365,7 @@ def bake_mesh_map(bake_type, self):
     active_object.hide_select = False
 
     # The high poly mesh must be unhidden, selectable and visible.
-    high_poly_object = bpy.context.scene.matlay_baking_settings.high_poly_object
+    high_poly_object = bpy.context.scene.matlayer_baking_settings.high_poly_object
     if high_poly_object:
         high_poly_object.hide_set(False)
         high_poly_object.hide_render = False
@@ -400,7 +400,7 @@ def bake_mesh_map(bake_type, self):
             add_normal_baking_nodes(temp_bake_material, bake_image)
 
     # Apply bake settings and bake the material to a texture.
-    baking_settings = bpy.context.scene.matlay_baking_settings
+    baking_settings = bpy.context.scene.matlayer_baking_settings
     match baking_settings.output_quality:
         case 'LOW_QUALITY':
             bpy.data.scenes["Scene"].cycles.samples = 1
@@ -439,7 +439,7 @@ def bake_mesh_map(bake_type, self):
     bpy.context.scene.render.engine = original_render_engine
 
     # High the high poly object, there's no need for it to be visible anymore.
-    high_poly_object = bpy.context.scene.matlay_baking_settings.high_poly_object
+    high_poly_object = bpy.context.scene.matlayer_baking_settings.high_poly_object
     if high_poly_object:
         high_poly_object.hide_set(True)
 
@@ -464,13 +464,13 @@ def bake_mesh_map(bake_type, self):
     bpy.context.scene.render.engine = 'BLENDER_EEVEE'
 
     # Display a finished message.
-    matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
-    bake_path = os.path.join(matlay_image_path, "MeshMaps")
+    matlayer_image_path = os.path.join(bpy.path.abspath("//"), "Matlayer")
+    bake_path = os.path.join(matlayer_image_path, "MeshMaps")
     self.report({'INFO'}, "Baking mesh maps complete. You can find all bake mesh maps here: {0}".format(bake_path))
 
-class MATLAY_OT_bake(Operator):
+class MATLAYER_OT_bake(Operator):
     '''Bakes all checked mesh texture maps in succession. Note that this function (especially on slower computers, or when using a CPU for rendering) can take a few minutes.'''
-    bl_idname = "matlay.bake"
+    bl_idname = "matlayer.bake"
     bl_label = "Batch Bake"
     bl_description = "Bakes all checked mesh texture maps in succession. Note that this function can take a few minutes, especially on slower computers, or when using CPU for rendering"
 
@@ -480,7 +480,7 @@ class MATLAY_OT_bake(Operator):
         return context.active_object
 
     def execute(self, context):
-        baking_settings = context.scene.matlay_baking_settings
+        baking_settings = context.scene.matlayer_baking_settings
 
         if baking_settings.bake_ambient_occlusion:
             bake_mesh_map('AMBIENT_OCCLUSION', self)
@@ -496,9 +496,9 @@ class MATLAY_OT_bake(Operator):
 
         return {'FINISHED'}
 
-class MATLAY_OT_bake_ambient_occlusion(Operator):
+class MATLAYER_OT_bake_ambient_occlusion(Operator):
     '''Bakes ambient occlusion from the selected object to a texture. If a high poly object is defined the ambient occlusion will be baked from the high poly mesh to the low poly mesh UVs'''
-    bl_idname = "matlay.bake_ambient_occlusion"
+    bl_idname = "matlayer.bake_ambient_occlusion"
     bl_label = "Bake Ambient Occlusion"
 
     @ classmethod
@@ -509,9 +509,9 @@ class MATLAY_OT_bake_ambient_occlusion(Operator):
         bake_mesh_map('AMBIENT_OCCLUSION', self)
         return {'FINISHED'}
 
-class MATLAY_OT_bake_curvature(Operator):
+class MATLAYER_OT_bake_curvature(Operator):
     '''Bakes curvature from the selected object to a texture. If a high poly object is defined the curvature will be baked from the high poly mesh to the low poly mesh UVs'''
-    bl_idname = "matlay.bake_curvature"
+    bl_idname = "matlayer.bake_curvature"
     bl_label = "Bake Curvature"
 
     @ classmethod
@@ -522,9 +522,9 @@ class MATLAY_OT_bake_curvature(Operator):
         bake_mesh_map('CURVATURE', self)
         return {'FINISHED'}
 
-class MATLAY_OT_bake_thickness(Operator):
+class MATLAYER_OT_bake_thickness(Operator):
     '''Bakes thickness from the selected object to a texture. If a high poly object is defined the thickness will be baked from the high poly mesh to the low poly mesh UVs'''
-    bl_idname = "matlay.bake_thickness"
+    bl_idname = "matlayer.bake_thickness"
     bl_label = "Bake Thickness"
 
     @ classmethod
@@ -535,9 +535,9 @@ class MATLAY_OT_bake_thickness(Operator):
         bake_mesh_map('THICKNESS', self)
         return {'FINISHED'}
     
-class MATLAY_OT_bake_normals(Operator):
+class MATLAYER_OT_bake_normals(Operator):
     '''Bakes a normals from the selected object to a texture. If a high poly object is defined the normals will be baked from the high poly mesh to the low poly mesh UVs'''
-    bl_idname = "matlay.bake_normals"
+    bl_idname = "matlayer.bake_normals"
     bl_label = "Bake Normals"
 
     @ classmethod
@@ -564,8 +564,8 @@ def delete_meshmap(meshmap_type, self):
     else:
         self.report({'INFO'}, "No active object to delete mesh maps for, re-select the object you wish to delete mesh maps for.")
 
-class MATLAY_OT_delete_ao_map(Operator):
-    bl_idname = "matlay.delete_ao_map"
+class MATLAYER_OT_delete_ao_map(Operator):
+    bl_idname = "matlayer.delete_ao_map"
     bl_label = "Delete Ambient Occlusion Map"
     bl_description = "Deletes the baked ambient occlusion map for the active object if one exists"
 
@@ -578,8 +578,8 @@ class MATLAY_OT_delete_ao_map(Operator):
         delete_meshmap('AMBIENT_OCCLUSION', self)
         return {'FINISHED'}
     
-class MATLAY_OT_delete_curvature_map(Operator):
-    bl_idname = "matlay.delete_curvature_map"
+class MATLAYER_OT_delete_curvature_map(Operator):
+    bl_idname = "matlayer.delete_curvature_map"
     bl_label = "Delete Curvature Map"
     bl_description = "Deletes the baked curvature map for the active object if one exists"
 
@@ -592,8 +592,8 @@ class MATLAY_OT_delete_curvature_map(Operator):
         delete_meshmap('CURVATURE', self)
         return {'FINISHED'}
     
-class MATLAY_OT_delete_thickness_map(Operator):
-    bl_idname = "matlay.delete_thickness_map"
+class MATLAYER_OT_delete_thickness_map(Operator):
+    bl_idname = "matlayer.delete_thickness_map"
     bl_label = "Delete Thickness Map"
     bl_description = "Deletes the baked thickness map for the active object if one exists"
 
@@ -606,8 +606,8 @@ class MATLAY_OT_delete_thickness_map(Operator):
         delete_meshmap('THICKNESS', self)
         return {'FINISHED'}
     
-class MATLAY_OT_delete_normal_map(Operator):
-    bl_idname = "matlay.delete_normal_map"
+class MATLAYER_OT_delete_normal_map(Operator):
+    bl_idname = "matlayer.delete_normal_map"
     bl_label = "Delete Normal Map"
     bl_description = "Deletes the baked normal map for the active object if one exists"
 

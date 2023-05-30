@@ -4,7 +4,7 @@ from bpy.props import BoolProperty, IntProperty, StringProperty, PointerProperty
 from . import material_channels
 from . import layer_nodes
 from ..utilities import logging
-from ..utilities import matlay_utils
+from ..utilities import matlayer_utils
 
 
 # All MATERIAL filter nodes will use this name.
@@ -16,17 +16,17 @@ MAX_LAYER_FILTER_COUNT = 5
 #----------------------------- FILTER PROPERTY AUTO UPDATING FUNCTIONS -----------------------------#
 
 def filter_material_channel_toggle(channel_toggle, material_channel_name, context):
-    if context.scene.matlay_material_filter_stack.auto_update_filter_properties == False:
+    if context.scene.matlayer_material_filter_stack.auto_update_filter_properties == False:
         return
     
     # Mute / unmute filter nodes for the selected layer and filter.
-    selected_layer_stack_index = context.scene.matlay_layer_stack.layer_index
-    selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
+    selected_layer_stack_index = context.scene.matlayer_layer_stack.layer_index
+    selected_filter_index = context.scene.matlayer_material_filter_stack.selected_filter_index
     filter_node = get_material_filter_node(material_channel_name, selected_layer_stack_index, selected_filter_index)
     layer_nodes.set_node_active(filter_node, channel_toggle)
     layer_nodes.relink_material_nodes(selected_layer_stack_index)
     layer_nodes.relink_mix_layer_nodes()
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
 
 def update_filter_color_channel_toggle(self, context):
     filter_material_channel_toggle(self.color_channel_toggle, 'COLOR', context)
@@ -60,15 +60,15 @@ def update_filter_height_channel_toggle(self, context):
 def validate_filter_selected_index():
     '''Validates that the selected material filter index is within a valid range. This should be used as a safety check to avoid running operators that require a valid index.'''
 
-    material_filters = bpy.context.scene.matlay_material_filters
-    selected_material_filter_index = bpy.context.scene.matlay_material_filter_stack.selected_filter_index
+    material_filters = bpy.context.scene.matlayer_material_filters
+    selected_material_filter_index = bpy.context.scene.matlayer_material_filter_stack.selected_filter_index
 
     if selected_material_filter_index > (len(material_filters) - 1) or selected_material_filter_index < 0:
         if len(material_filters) > 0:
-            bpy.context.scene.matlay_material_filter_stack.selected_filter_index = 0
+            bpy.context.scene.matlayer_material_filter_stack.selected_filter_index = 0
             return True
         else:
-            bpy.context.scene.matlay_material_filter_stack.selected_filter_index = -1
+            bpy.context.scene.matlayer_material_filter_stack.selected_filter_index = -1
             return False
     return True
 
@@ -111,12 +111,12 @@ def reindex_material_filter_nodes(change_made, changed_material_filter_index=0):
     '''Reindexes material filter nodes based off the provided change and index. Valid arguments include: 'ADDED', 'DELETED' '''
     
     # Do not reindex material filter nodes if there are no layers.
-    number_of_material_layers = len(bpy.context.scene.matlay_layers)
+    number_of_material_layers = len(bpy.context.scene.matlayer_layers)
     if number_of_material_layers <= 0:
         return
 
     # Do no reindex material filter nodes if there are no material filters.
-    filters = bpy.context.scene.matlay_material_filters
+    filters = bpy.context.scene.matlayer_material_filters
     if len(filters) <= 0:
         return
 
@@ -125,7 +125,7 @@ def reindex_material_filter_nodes(change_made, changed_material_filter_index=0):
     for i in range(0, number_of_layers):
         filters[i].stack_index = i
 
-    selected_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.layer_index
 
     match change_made:
         case 'ADDED':
@@ -166,7 +166,7 @@ def reindex_material_filter_nodes(change_made, changed_material_filter_index=0):
 
 def relink_material_filter_nodes(material_layer_index):
     '''Relinks material filter nodes with other material filter nodes.'''
-    number_of_material_layers = len(bpy.context.scene.matlay_layers)
+    number_of_material_layers = len(bpy.context.scene.matlayer_layers)
     if number_of_material_layers <= 0:
         return
     
@@ -216,13 +216,13 @@ def relink_material_filter_nodes(material_layer_index):
 
 def read_material_filter_nodes(context):
     '''Reads layer nodes to re-construct the filter layer stack.'''
-    filters = context.scene.matlay_material_filters
-    filter_stack = context.scene.matlay_material_filter_stack
-    selected_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
+    filters = context.scene.matlayer_material_filters
+    filter_stack = context.scene.matlayer_material_filter_stack
+    selected_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_material_channel = context.scene.matlayer_layer_stack.selected_material_channel
 
     # When reading from the material node tree, we don't want material filter properties to auto-update as doing so will cause errors.
-    context.scene.matlay_material_filter_stack.auto_update_filter_properties = False
+    context.scene.matlayer_material_filter_stack.auto_update_filter_properties = False
 
     # Cache the selected filter index, we'll reset the selected filter index to the closest index after refreshing.
     previously_selected_filter_index = filter_stack.selected_filter_index
@@ -252,15 +252,15 @@ def read_material_filter_nodes(context):
             setattr(filters[i].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", filter_node_active)
 
     # Allow auto updating for filter properties again.
-    context.scene.matlay_material_filter_stack.auto_update_filter_properties = True
+    context.scene.matlayer_material_filter_stack.auto_update_filter_properties = True
 
     logging.log("Read material filter nodes.")
 
 def add_material_filter_slot():
     '''Adds a new material filter slot.'''
-    filters = bpy.context.scene.matlay_material_filters
-    filter_stack = bpy.context.scene.matlay_material_filter_stack
-    selected_layer_filter_index = bpy.context.scene.matlay_material_filter_stack.selected_filter_index
+    filters = bpy.context.scene.matlayer_material_filters
+    filter_stack = bpy.context.scene.matlayer_material_filter_stack
+    selected_layer_filter_index = bpy.context.scene.matlayer_material_filter_stack.selected_filter_index
 
     filters.add()
 
@@ -278,18 +278,18 @@ def add_material_filter_slot():
         filter_stack.selected_filter_index = move_to_index
         selected_layer_filter_index = max(0, min(selected_layer_filter_index + 1, len(filters) - 1))
 
-    return bpy.context.scene.matlay_material_filter_stack.selected_filter_index
+    return bpy.context.scene.matlayer_material_filter_stack.selected_filter_index
 
 def get_normal_intensity_filter_node_tree():
     '''Returns the normal intensity filter node tree, appends it from the blend asset if it doesn't exist.'''
-    return matlay_utils.append_custom_node_tree('MATLAY_ADJUST_NORMAL_INTENSITY', True)
+    return matlayer_utils.append_custom_node_tree('MATLAYER_ADJUST_NORMAL_INTENSITY', True)
 
 def add_material_filter(filter_type, context):
     '''Creates a new material layer filter slot and node.'''
     validate_filter_selected_index()
 
-    filters = context.scene.matlay_material_filters
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    filters = context.scene.matlayer_material_filters
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
 
     # Stop users from adding too many material filters.
     if len(filters) >= MAX_LAYER_FILTER_COUNT:
@@ -298,7 +298,7 @@ def add_material_filter(filter_type, context):
     
     # Add a new layer filter slot, name and select it.
     new_material_filter_slot_index = add_material_filter_slot()
-    new_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
+    new_filter_index = context.scene.matlayer_material_filter_stack.selected_filter_index
 
     # Add a new material filter node to all material channels and parent it to the layers frame.
     material_channel_list = material_channels.get_material_channel_list()
@@ -336,17 +336,17 @@ def add_material_filter(filter_type, context):
                 setattr(filters[new_filter_index].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", False)
                 filter_material_channel_toggle(False, material_channel_name, context)
 
-    matlay_utils.update_total_node_and_link_count()
+    matlayer_utils.update_total_node_and_link_count()
 
     logging.log("Added a new material filter.")
 
 def move_filter_layer(direction, context):
     validate_filter_selected_index()
     
-    filters = context.scene.matlay_material_filters
-    filter_stack = context.scene.matlay_material_filter_stack
-    selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    filters = context.scene.matlayer_material_filters
+    filter_stack = context.scene.matlayer_material_filter_stack
+    selected_filter_index = context.scene.matlayer_material_filter_stack.selected_filter_index
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
     material_channel_list = material_channels.get_material_channel_list()
 
     filter_stack.auto_update_filter_properties = False
@@ -391,7 +391,7 @@ def move_filter_layer(direction, context):
     else:
         index_to_move_to = max(min(selected_filter_index - 1, len(filters) - 1), 0)
     filters.move(selected_filter_index, index_to_move_to)
-    context.scene.matlay_material_filter_stack.selected_filter_index = index_to_move_to
+    context.scene.matlayer_material_filter_stack.selected_filter_index = index_to_move_to
 
     # Re-link and organize filter nodes.
     reindex_material_filter_nodes('MOVED', selected_filter_index)
@@ -415,16 +415,16 @@ class FiltersMaterialChannelToggles(PropertyGroup):
     normal_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the normal material channel", update=updated_filter_normal_channel_toggle)
     height_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the effect of the selected material filter for the height material channel", update=update_filter_height_channel_toggle)
 
-class MATLAY_material_filters(PropertyGroup):
+class MATLAYER_material_filters(PropertyGroup):
     stack_index: IntProperty(name="Stack Index", description = "The (array) stack index for this filter used to define the order in which filters should be applied to the material", default=-999)
     material_channel_toggles: PointerProperty(type=FiltersMaterialChannelToggles, name="Material Channel Toggles")
 
-class MATLAY_material_filter_stack(PropertyGroup):
+class MATLAYER_material_filter_stack(PropertyGroup):
     '''Properties for layer filters.'''
     selected_filter_index: IntProperty(default=-1)
     auto_update_filter_properties: BoolProperty(name="Update Filter Properties", description="When true, changing filter properties will trigger automatic updates.", default=True)
 
-class MATLAY_UL_layer_filter_stack(UIList):
+class MATLAYER_UL_layer_filter_stack(UIList):
     '''Draws the material filter stack.'''
     def draw_item(self, context, layout, data, item, icon, active_data, index):
         self.use_filter_show = False
@@ -432,7 +432,7 @@ class MATLAY_UL_layer_filter_stack(UIList):
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             row = layout.row()
-            filter_node = get_material_filter_node('COLOR', bpy.context.scene.matlay_layer_stack.layer_index, item.stack_index, False)
+            filter_node = get_material_filter_node('COLOR', bpy.context.scene.matlayer_layer_stack.layer_index, item.stack_index, False)
             if filter_node:
                 filter_name = ""
                 match filter_node.bl_static_type:
@@ -451,8 +451,8 @@ class MATLAY_UL_layer_filter_stack(UIList):
                 row.label(text=str(item.stack_index + 1) + ". " + filter_name)
 
 # TODO: These should be "material" filters instead of layer filters for accuracy.
-class MATLAY_OT_add_layer_filter_invert(Operator):
-    bl_idname = "matlay.add_layer_filter_invert"
+class MATLAYER_OT_add_layer_filter_invert(Operator):
+    bl_idname = "matlayer.add_layer_filter_invert"
     bl_label = "Add Invert"
     bl_description = "Adds an invert filter to the selected layer"
     bl_options = {'REGISTER', 'UNDO'}
@@ -460,103 +460,103 @@ class MATLAY_OT_add_layer_filter_invert(Operator):
     # Disable the button when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         add_material_filter('ShaderNodeInvert', context)
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
-class MATLAY_OT_add_layer_filter_val_to_rgb(Operator):
-    bl_idname = "matlay.add_layer_filter_val_to_rgb"
+class MATLAYER_OT_add_layer_filter_val_to_rgb(Operator):
+    bl_idname = "matlayer.add_layer_filter_val_to_rgb"
     bl_label = "Add Value to RGB"
     bl_description = "Adds a level adjustment (color ramp) to the selected layer"
     bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         add_material_filter('ShaderNodeValToRGB', context)
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
-class MATLAY_OT_add_layer_filter_hsv(Operator):
-    bl_idname = "matlay.add_layer_filter_hsv"
+class MATLAYER_OT_add_layer_filter_hsv(Operator):
+    bl_idname = "matlayer.add_layer_filter_hsv"
     bl_label = "Add HSV"
     bl_description = "Adds a hue, saturation, value adjustment to the selected layer"
     bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         add_material_filter('ShaderNodeHueSaturation', context)
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
-class MATLAY_OT_add_layer_filter_rgb_curves(Operator):
-    bl_idname = "matlay.add_layer_filter_rgb_curves"
+class MATLAYER_OT_add_layer_filter_rgb_curves(Operator):
+    bl_idname = "matlayer.add_layer_filter_rgb_curves"
     bl_label = "Add RGB Curves"
     bl_description = "Adds a RGB curves adjustment to the selected layer"
     bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         add_material_filter('ShaderNodeRGBCurve', context)
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
-class MATLAY_OT_add_layer_filter_bright_contrast(Operator):
-    bl_idname = "matlay.add_layer_filter_bright_contrast"
+class MATLAYER_OT_add_layer_filter_bright_contrast(Operator):
+    bl_idname = "matlayer.add_layer_filter_bright_contrast"
     bl_label = "Add Brightness / Contrast"
     bl_description = "Adds a brightness and contrast filter to the selected layer"
     bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         add_material_filter('ShaderNodeBrightContrast', context)
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
-class MATLAY_OT_add_material_filter_normal_intensity(Operator):
-    bl_idname = "matlay.add_material_filter_normal_intensity"
+class MATLAYER_OT_add_material_filter_normal_intensity(Operator):
+    bl_idname = "matlayer.add_material_filter_normal_intensity"
     bl_label = "Add Normal Intensity"
     bl_description = "Adds a filter to the material that adjusts normal intensity"
     bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         add_material_filter('NormalIntensity', context)
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
-class MATLAY_OT_add_layer_filter_menu(Operator):
+class MATLAYER_OT_add_layer_filter_menu(Operator):
     '''Opens a menu of layer filters that can be added to the selected layer.'''
     bl_label = "Layer Filter Menu"
-    bl_idname = "matlay.add_layer_filter_menu"
+    bl_idname = "matlayer.add_layer_filter_menu"
     bl_description = "Opens a menu of layer filters that can be added to the selected layer"
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
@@ -572,32 +572,32 @@ class MATLAY_OT_add_layer_filter_menu(Operator):
         split = layout.split()
         col = split.column(align=True)
         col.scale_y = 1.4
-        col.operator("matlay.add_layer_filter_invert", text="Invert")
-        col.operator("matlay.add_layer_filter_val_to_rgb", text="Value to RGB")
-        col.operator("matlay.add_layer_filter_hsv", text="HSV")
-        col.operator("matlay.add_layer_filter_rgb_curves", text="RGB Curves")
-        col.operator("matlay.add_layer_filter_bright_contrast", text="Brightness / Contrast")
-        col.operator("matlay.add_material_filter_normal_intensity", text="Normal Intensity")
+        col.operator("matlayer.add_layer_filter_invert", text="Invert")
+        col.operator("matlayer.add_layer_filter_val_to_rgb", text="Value to RGB")
+        col.operator("matlayer.add_layer_filter_hsv", text="HSV")
+        col.operator("matlayer.add_layer_filter_rgb_curves", text="RGB Curves")
+        col.operator("matlayer.add_layer_filter_bright_contrast", text="Brightness / Contrast")
+        col.operator("matlayer.add_material_filter_normal_intensity", text="Normal Intensity")
 
-class MATLAY_OT_delete_layer_filter(Operator):
+class MATLAYER_OT_delete_layer_filter(Operator):
     '''Deletes the selected layer filter.'''
-    bl_idname = "matlay.delete_layer_filter"
+    bl_idname = "matlayer.delete_layer_filter"
     bl_label = "Delete Layer Filter"
     bl_description = "Deletes the selected layer filter"
     bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
         validate_filter_selected_index()
 
-        filters = context.scene.matlay_material_filters
-        selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-        selected_filter_index = context.scene.matlay_material_filter_stack.selected_filter_index
+        filters = context.scene.matlayer_material_filters
+        selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+        selected_filter_index = context.scene.matlayer_material_filter_stack.selected_filter_index
 
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
 
         # Delete the material filter nodes.
         material_channel_list = material_channels.get_material_channel_list()
@@ -616,51 +616,51 @@ class MATLAY_OT_delete_layer_filter(Operator):
         filters.remove(selected_filter_index)
         
         # Reset the selected filter index.
-        context.scene.matlay_material_filter_stack.selected_filter_index = max(min(selected_filter_index - 1, len(filters) - 1), 0)
+        context.scene.matlayer_material_filter_stack.selected_filter_index = max(min(selected_filter_index - 1, len(filters) - 1), 0)
 
         # Re-link and re-organize layers.
         layer_nodes.organize_all_layer_nodes()
         layer_nodes.relink_material_nodes(selected_material_layer_index)
         layer_nodes.relink_mix_layer_nodes()
         
-        matlay_utils.set_valid_material_shading_mode(context)
-        matlay_utils.update_total_node_and_link_count()
+        matlayer_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.update_total_node_and_link_count()
 
         logging.log("Deleted a material filter.")
         return{'FINISHED'}
 
-class MATLAY_OT_move_layer_filter_up(Operator):
+class MATLAYER_OT_move_layer_filter_up(Operator):
     '''Moves the filter up on the filter layer stack.'''
-    bl_idname = "matlay.move_filter_up"
+    bl_idname = "matlayer.move_filter_up"
     bl_label = "Move Filter Up"
     bl_description = "Moves the selected layer filter up on the layer stack"
     bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         move_filter_layer("UP", context)
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         logging.log("Moved a material filter up on the material filter stack.")
         return{'FINISHED'}
 
-class MATLAY_OT_move_layer_filter_down(Operator):
+class MATLAYER_OT_move_layer_filter_down(Operator):
     '''Moves the filter up on the filter layer stack.'''
-    bl_idname = "matlay.move_filter_down"
+    bl_idname = "matlayer.move_filter_down"
     bl_label = "Move Filter Down"
     bl_description = "Moves the selected layer filter down on the layer stack"
     bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         move_filter_layer("DOWN", context)
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         logging.log("Moved a material filter down on the material filter stack.")
         return{'FINISHED'}

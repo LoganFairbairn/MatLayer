@@ -11,67 +11,67 @@ def draw_export_section_ui(self, context):
     ui_section_tabs.draw_section_tabs(self, context)
 
     # Draw export settings.
-    export_settings = context.scene.matlay_export_settings
+    export_settings = context.scene.matlayer_export_settings
     
     scale_y = 1.4
 
     row = layout.row()
-    row.operator("matlay.export")
+    row.operator("matlayer.export")
     row.scale_y = 2.0
 
     row = layout.row()
     row.scale_y = scale_y
     row.prop(export_settings, "export_base_color", text="")
     row.label(text="Base Color")
-    row.operator("matlay.export_base_color", text="", icon='RENDER_STILL')
+    row.operator("matlayer.export_base_color", text="", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
     row.prop(export_settings, "export_subsurface", text="")
     row.label(text="Subsurface")
-    row.operator("matlay.export_subsurface", text="", icon='RENDER_STILL')
+    row.operator("matlayer.export_subsurface", text="", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
     row.prop(export_settings, "export_subsurface_color", text="")
     row.label(text="Subsurface Color")
-    row.operator("matlay.export_subsurface_color", text="", icon='RENDER_STILL')
+    row.operator("matlayer.export_subsurface_color", text="", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
     row.prop(export_settings, "export_metallic", text="")
     row.label(text="Metallic")
-    row.operator("matlay.export_metallic", text="", icon='RENDER_STILL')
+    row.operator("matlayer.export_metallic", text="", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
     row.prop(export_settings, "export_specular", text="")
     row.label(text="Specular")
-    row.operator("matlay.export_specular", text="", icon='RENDER_STILL')
+    row.operator("matlayer.export_specular", text="", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
     row.prop(export_settings, "export_roughness", text="")
     row.label(text="Roughness")
-    row.operator("matlay.export_roughness", text="", icon='RENDER_STILL')
+    row.operator("matlayer.export_roughness", text="", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
     row.prop(export_settings, "export_emission", text="")
     row.label(text="Emission")
-    row.operator("matlay.export_emission", text="", icon='RENDER_STILL')
+    row.operator("matlayer.export_emission", text="", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
     row.prop(export_settings, "export_normals", text="")
     row.label(text="Normals")
-    row.operator("matlay.export_normals", text="", icon='RENDER_STILL')
+    row.operator("matlayer.export_normals", text="", icon='RENDER_STILL')
 
     row = layout.row()
     row.scale_y = scale_y
     row.prop(export_settings, "export_height", text="")
     row.label(text="Height")
-    row.operator("matlay.export_height", text="", icon='RENDER_STILL')
+    row.operator("matlayer.export_height", text="", icon='RENDER_STILL')
 
 
     # Draw additioanl export settings.

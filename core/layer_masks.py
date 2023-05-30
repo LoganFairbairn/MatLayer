@@ -10,7 +10,7 @@ from .material_layers import PROJECTION_MODES, TEXTURE_EXTENSION_MODES, TEXTURE_
 from . import layer_nodes
 from . import material_channels
 from . import texture_set_settings
-from ..utilities import matlay_utils
+from ..utilities import matlayer_utils
 from ..utilities import logging
 import math
 
@@ -32,12 +32,12 @@ MAX_MASK_FILTERS = 3
 
 def update_mask_stack_index(self, context):
     '''Performs actions when the mask stack index is changed.'''
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
     # If the mask is an image type, select the image mask so users can edited it.
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
     mask_texture_node = get_mask_node('MASK-TEXTURE', 'COLOR', selected_material_layer_index, selected_mask_index, False)
     if mask_texture_node:
         if mask_texture_node.bl_static_type == 'TEX_IMAGE':
@@ -48,17 +48,17 @@ def update_mask_stack_index(self, context):
 
 def update_mask_image(self, context):
     '''Updates the mask image in all material channels when the mask image is manually changed.'''
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
 
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
 
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
     for material_channel_name in material_channels.get_material_channel_list():
         mask_texture_node = get_mask_node('MASK-TEXTURE', material_channel_name, selected_material_layer_index, selected_mask_index)
         if mask_texture_node:
-            mask_projection_mode = context.scene.matlay_masks[selected_mask_index].projection.mode
+            mask_projection_mode = context.scene.matlayer_masks[selected_mask_index].projection.mode
             if mask_projection_mode == 'FLAT':
                 mask_texture_node.image = self.mask_image
             
@@ -69,12 +69,12 @@ def update_mask_image(self, context):
 
 def update_mask_hidden(self, context):
     '''Hides / unhides masks when the hide icon on the mask layer stack is clicked by a user.'''
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
 
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
     
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
 
     for material_channel_name in material_channels.get_material_channel_list():
         mask_nodes = get_mask_nodes(material_channel_name, selected_material_layer_index, self.stack_index)
@@ -91,21 +91,21 @@ def update_mask_hidden(self, context):
 
 def update_use_alpha(self, context):
     '''Reconnects nodes when the use alpha property for a mask is changed.'''
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
     relink_mask_nodes(selected_material_layer_index)
 
 def update_custom_mask_node_tree(self, context):
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
     for material_channel_name in material_channels.get_material_channel_list():
         # Place the new node tree into the custom group nodes in all material channels.
-        selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
-        selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
-        masks = bpy.context.scene.matlay_masks
+        selected_material_layer_index = bpy.context.scene.matlayer_layer_stack.layer_index
+        selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_mask_index
+        masks = bpy.context.scene.matlayer_masks
         mask_node = get_mask_node('MASK-TEXTURE', material_channel_name, selected_material_layer_index, selected_mask_index)
         if mask_node:
             if mask_node.bl_static_type == 'GROUP':
@@ -118,14 +118,14 @@ def update_custom_mask_node_tree(self, context):
 
 def update_mask_projection_mode(self, context):
     '''Changes the layer projection by reconnecting nodes.'''
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
     
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    masks = context.scene.matlay_masks
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    masks = context.scene.matlayer_masks
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
     selected_mask = masks[selected_mask_index]
 
     material_channel_list = material_channels.get_material_channel_list()
@@ -139,14 +139,14 @@ def update_mask_projection_mode(self, context):
                 material_channel_node.node_tree.nodes.remove(mapping_node)
 
                 new_mapping_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
-                new_mapping_node.node_tree = matlay_utils.get_uv_mapping_node_tree()
+                new_mapping_node.node_tree = matlayer_utils.get_uv_mapping_node_tree()
                 new_mapping_node.name = format_mask_node_name('MASK-MAPPING', selected_material_layer_index, selected_mask_index)
                 new_mapping_node.label = new_mapping_node.name
 
                 # If the previous projection mode was triplanar, convert triplanar group nodes to texture nodes and remove triplanar texture samples.
                 mask_texture_node = get_mask_node('MASK-TEXTURE', material_channel_name, selected_material_layer_index, selected_mask_index)
                 if mask_texture_node.bl_static_type == 'GROUP':
-                    if mask_texture_node.node_tree.name == 'MATLAY_TRIPLANAR':
+                    if mask_texture_node.node_tree.name == 'MATLAYER_TRIPLANAR':
                         material_channel_node.node_tree.nodes.remove(mask_texture_node)
 
                         triplanar_mask_texture_sample_nodes = get_triplanar_mask_texture_sample_nodes(material_channel_name, selected_material_layer_index, selected_mask_index)
@@ -162,7 +162,7 @@ def update_mask_projection_mode(self, context):
                 # Convert existing blur nodes from triplanar to flat.
                 mask_blur_node = get_mask_node('MASK-BLUR', material_channel_name, selected_material_layer_index, selected_mask_index)
                 if mask_blur_node:
-                    mask_blur_node.node_tree = matlay_utils.get_flat_blur_node_tree()
+                    mask_blur_node.node_tree = matlayer_utils.get_flat_blur_node_tree()
 
             case 'TRIPLANAR':
                 # Convert all IMAGE TEXTURE nodes to triplanar group nodes.
@@ -173,7 +173,7 @@ def update_mask_projection_mode(self, context):
                 
                 if old_mask_texture_node.bl_static_type == 'TEX_IMAGE':
                     new_mask_texture_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
-                    new_mask_texture_node.node_tree = matlay_utils.get_triplanar_node_tree()
+                    new_mask_texture_node.node_tree = matlayer_utils.get_triplanar_node_tree()
 
                     # Create new image texture nodes for masks to sample from for triplanar projection.
                     triplanar_sample_nodes = []
@@ -200,7 +200,7 @@ def update_mask_projection_mode(self, context):
                     print("Error: Mapping node does not exist when trying to convert to triplanar mapping node.")
                     return
                 
-                triplanar_mapping_node_tree = matlay_utils.get_triplanar_mapping_tree()
+                triplanar_mapping_node_tree = matlayer_utils.get_triplanar_mapping_tree()
                 new_mapping_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
                 new_mapping_node.node_tree = triplanar_mapping_node_tree
                 new_mapping_node.inputs[3].default_value = self.blending
@@ -211,7 +211,7 @@ def update_mask_projection_mode(self, context):
                 # Convert existing blur nodes from flat to triplanar.
                 mask_blur_node = get_mask_node('MASK-BLUR', material_channel_name, selected_material_layer_index, selected_mask_index)
                 if mask_blur_node:
-                    mask_blur_node.node_tree = matlay_utils.get_triplanar_blur_node_tree()
+                    mask_blur_node.node_tree = matlayer_utils.get_triplanar_blur_node_tree()
 
     # Organize and then relink mask nodes.
     layer_nodes.organize_all_layer_nodes()
@@ -221,14 +221,14 @@ def update_mask_projection_mode(self, context):
 
 def update_mask_projection_interpolation(self, context):
     '''Updates the image texture interpolation mode when it's changed.'''
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
     
-    masks = context.scene.matlay_masks
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    masks = context.scene.matlayer_masks
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
 
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
@@ -238,14 +238,14 @@ def update_mask_projection_interpolation(self, context):
 
 def update_mask_projection_extension(self, context):
     '''Updates the image texture extension projection mode when it's changed.'''
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
     
-    masks = context.scene.matlay_masks
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    masks = context.scene.matlayer_masks
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
 
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
@@ -255,14 +255,14 @@ def update_mask_projection_extension(self, context):
 
 def update_mask_projection_blending(self, context):
     '''Updates the projection blend node values when the cube projection blend value is changed.'''
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
 
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
 
-    masks = context.scene.matlay_masks
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    masks = context.scene.matlayer_masks
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
 
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
@@ -272,14 +272,14 @@ def update_mask_projection_blending(self, context):
 
 def update_mask_projection_offset_x(self, context):
     '''Updates the mask projected x offset for the selected mask when the property is changed in the ui.'''
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
 
-    masks = context.scene.matlay_masks
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    masks = context.scene.matlayer_masks
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
 
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
@@ -292,14 +292,14 @@ def update_mask_projection_offset_x(self, context):
 
 def update_mask_projection_offset_y(self, context):
     '''Updates the mask projected y offset for the selected mask when the property is changed in the ui.'''
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
 
-    masks = context.scene.matlay_masks
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    masks = context.scene.matlayer_masks
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
 
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
@@ -312,14 +312,14 @@ def update_mask_projection_offset_y(self, context):
 
 def update_mask_projection_offset_z(self, context):
     '''Updates the mask projected z offset for the selected mask when the property is changed in the ui.'''
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
 
-    masks = context.scene.matlay_masks
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    masks = context.scene.matlayer_masks
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
 
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
@@ -332,14 +332,14 @@ def update_mask_projection_offset_z(self, context):
 
 def update_mask_projection_rotation_x(self, context):
     '''Updates the masks projection rotation when the mask rotation property is changed in the ui.'''
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
 
-    masks = context.scene.matlay_masks
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    masks = context.scene.matlayer_masks
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
 
     angle = math.radians(masks[selected_mask_index].projection.rotation_x)
 
@@ -353,14 +353,14 @@ def update_mask_projection_rotation_x(self, context):
                 mapping_node.inputs[1].default_value[0] = angle
 
 def update_mask_projection_rotation_y(self, context):
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
             return
     
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
 
-    masks = context.scene.matlay_masks
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    masks = context.scene.matlayer_masks
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
 
     angle = math.radians(masks[selected_mask_index].projection.rotation_y)
 
@@ -374,14 +374,14 @@ def update_mask_projection_rotation_y(self, context):
                 mapping_node.inputs[1].default_value[1] = angle
 
 def update_mask_projection_rotation_z(self, context):
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
             return
     
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
 
-    masks = context.scene.matlay_masks
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    masks = context.scene.matlayer_masks
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
 
     angle = math.radians(masks[selected_mask_index].projection.rotation_z)
 
@@ -396,14 +396,14 @@ def update_mask_projection_rotation_z(self, context):
 
 def update_mask_projection_scale_x(self, context):
     '''Updates the mask projected x scale for the selected mask when the property is changed in the ui.'''
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
 
-    masks = context.scene.matlay_masks
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    masks = context.scene.matlayer_masks
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
 
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
@@ -419,14 +419,14 @@ def update_mask_projection_scale_x(self, context):
             masks[selected_mask_index].projection.scale_z = masks[selected_mask_index].projection.scale_x
 
 def update_mask_projection_scale_y(self, context):
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
 
-    masks = context.scene.matlay_masks
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    masks = context.scene.matlayer_masks
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
 
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
@@ -439,14 +439,14 @@ def update_mask_projection_scale_y(self, context):
 
 def update_mask_projection_scale_z(self, context):
     '''Updates the mask projected z scale for the selected mask when the property is changed in the ui.'''
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
 
-    masks = context.scene.matlay_masks
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    masks = context.scene.matlayer_masks
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
 
     material_channel_list = material_channels.get_material_channel_list()
     for material_channel_name in material_channel_list:
@@ -459,14 +459,14 @@ def update_mask_projection_scale_z(self, context):
 
 def update_mask_projection_match_scale(self, context):
     '''Updates matching of the projected mask scale.'''
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlay_utils.set_valid_material_shading_mode(context)
+    matlayer_utils.set_valid_material_shading_mode(context)
 
     if self.sync_mask_projection_scale:
-        masks = context.scene.matlay_masks
-        selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+        masks = context.scene.matlayer_masks
+        selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
         masks[selected_mask_index].projection.scale_y = masks[selected_mask_index].projection.scale_x
         masks[selected_mask_index].projection.scale_z = masks[selected_mask_index].projection.scale_x
 
@@ -474,13 +474,13 @@ def update_mask_projection_match_scale(self, context):
 #----------------------------- UPDATE MASK BLUR PROPERTIES -----------------------------#
 
 def update_mask_blur_toggle(self, context):
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
 
     # Add / remove the blur node for the mask.
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
-    selected_mask = context.scene.matlay_masks[selected_mask_index]
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
+    selected_mask = context.scene.matlayer_masks[selected_mask_index]
 
     for material_channel_name in material_channels.get_material_channel_list():
         blur_mask_node = get_mask_node('MASK-BLUR', material_channel_name, selected_material_layer_index, selected_mask_index)
@@ -495,11 +495,11 @@ def update_mask_blur_toggle(self, context):
 
                 # Assign a node tree based on material layer projection mode.
                 mask_mapping_node = get_mask_node('MASK-MAPPING', material_channel_name, selected_material_layer_index, selected_mask_index)
-                if mask_mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
-                    new_blur_node.node_tree = matlay_utils.get_flat_blur_node_tree()
+                if mask_mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE':
+                    new_blur_node.node_tree = matlayer_utils.get_flat_blur_node_tree()
                     new_blur_node.inputs[1].default_value = selected_mask.blur_amount
-                elif mask_mapping_node.node_tree.name == 'MATLAY_TRIPLANAR_MAPPING':
-                    new_blur_node.node_tree = matlay_utils.get_triplanar_blur_node_tree()
+                elif mask_mapping_node.node_tree.name == 'MATLAYER_TRIPLANAR_MAPPING':
+                    new_blur_node.node_tree = matlayer_utils.get_triplanar_blur_node_tree()
                     new_blur_node.inputs[3].default_value = selected_mask.blur_amount
 
         # Remove the blur node, blue was toggled off.
@@ -512,36 +512,36 @@ def update_mask_blur_toggle(self, context):
     layer_nodes.organize_all_layer_nodes()
 
 def update_mask_blur_amount(self, context):
-    if context.scene.matlay_mask_stack.auto_update_mask_properties == False:
+    if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
 
     # Update blur node values.
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
-    selected_mask = context.scene.matlay_masks[selected_mask_index]
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
+    selected_mask = context.scene.matlayer_masks[selected_mask_index]
 
     for material_channel_name in material_channels.get_material_channel_list():
         mask_blur_node = get_mask_node('MASK-BLUR', material_channel_name, selected_material_layer_index, selected_mask_index)
         mask_mapping_node = get_mask_node('MASK-MAPPING', material_channel_name, selected_material_layer_index, selected_mask_index)
-        if mask_mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
+        if mask_mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE':
             mask_blur_node.inputs[1].default_value = selected_mask.blur_amount
-        elif mask_mapping_node.node_tree.name == 'MATLAY_TRIPLANAR_MAPPING':
+        elif mask_mapping_node.node_tree.name == 'MATLAYER_TRIPLANAR_MAPPING':
             mask_blur_node.inputs[3].default_value = selected_mask.blur_amount
 
 #----------------------------- CORE MASK FUNCTIONS -----------------------------#
 
 def validate_mask_selected_index():
     '''Validates that the selected mask index is within a valid range. This should be used as a safety check to avoid running operators that require a valid mask index.'''
-    masks = bpy.context.scene.matlay_masks
-    selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
+    masks = bpy.context.scene.matlayer_masks
+    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_mask_index
 
     if selected_mask_index > (len(masks) - 1) or selected_mask_index < 0:
         if len(masks) > 0:
-            bpy.context.scene.matlay_mask_stack.selected_mask_index = 0
+            bpy.context.scene.matlayer_mask_stack.selected_mask_index = 0
             return True
         else:
-            bpy.context.scene.matlay_mask_stack.selected_mask_index = -1
+            bpy.context.scene.matlayer_mask_stack.selected_mask_index = -1
             return False
     return True
 
@@ -601,7 +601,7 @@ def get_mask_nodes_in_material_layer(material_stack_index, material_channel_name
 
 def update_mask_stack_indicies():
     '''Updates the index indication the mask slots position in the array stored in all masks.'''
-    masks = bpy.context.scene.matlay_masks
+    masks = bpy.context.scene.matlayer_masks
     number_of_layers = len(masks)
     for i in range(0, number_of_layers):
         masks[i].stack_index = i
@@ -610,14 +610,14 @@ def reindex_mask_nodes(change_made, changed_mask_index=0):
     '''Reindexes all nodes for the mask at the given mask index based on the indicated change. Valid arguments include: 'ADDED', 'DELETED' '''
 
     # Only reindex mask nodes if masks exist.
-    masks = bpy.context.scene.matlay_masks
+    masks = bpy.context.scene.matlayer_masks
     if len(masks) <= 0:
         return
 
     # Update mask stack indicies.
     update_mask_stack_indicies()
 
-    selected_material_layer_index = bpy.context.scene.matlay_layer_stack.layer_index
+    selected_material_layer_index = bpy.context.scene.matlayer_layer_stack.layer_index
 
     match change_made:
         case 'ADDED':
@@ -685,9 +685,9 @@ def reindex_mask_nodes(change_made, changed_mask_index=0):
 
 def relink_mask_nodes(material_layer_index):
     '''Re-links layer mask nodes.'''
-    material_layers = bpy.context.scene.matlay_layers
-    masks = bpy.context.scene.matlay_masks
-    selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
+    material_layers = bpy.context.scene.matlayer_layers
+    masks = bpy.context.scene.matlayer_masks
+    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_mask_index
 
     # Only re-link if there are masks on the layer.
     if len(masks) <= 0:
@@ -746,7 +746,7 @@ def relink_mask_nodes(material_layer_index):
             else:
                 match mask_mapping_node.node_tree.name:
                     # Link masks for flat / UV projection.
-                    case 'MATLAY_OFFSET_ROTATION_SCALE':
+                    case 'MATLAYER_OFFSET_ROTATION_SCALE':
                         link_nodes(mask_coord_node.outputs[2], mask_mapping_node.inputs[0])
                         if mask_texture_node.bl_static_type == 'TEX_IMAGE':
                             mask_blur_node = get_mask_node('MASK-BLUR', material_channel_name, material_layer_index, selected_mask_index)
@@ -764,7 +764,7 @@ def relink_mask_nodes(material_layer_index):
                                     break
                 
                     # Link masks for triplanar projection.
-                    case 'MATLAY_TRIPLANAR_MAPPING':
+                    case 'MATLAYER_TRIPLANAR_MAPPING':
                         triplanar_mask_texture_node_1 = get_mask_node('TEXTURE-SAMPLE-1', material_channel_name, material_layer_index, i)
                         triplanar_mask_texture_node_2 = get_mask_node('TEXTURE-SAMPLE-2', material_channel_name, material_layer_index, i)
                         triplanar_mask_texture_node_3 = get_mask_node('TEXTURE-SAMPLE-3', material_channel_name, material_layer_index, i)
@@ -886,9 +886,9 @@ def read_mask_nodes(context):
     '''Reads the material node tree into the mask stack.'''
     validate_mask_selected_index()
     
-    masks = context.scene.matlay_masks
-    mask_stack = context.scene.matlay_mask_stack
-    selected_material_index = context.scene.matlay_layer_stack.layer_index
+    masks = context.scene.matlayer_masks
+    mask_stack = context.scene.matlayer_mask_stack
+    selected_material_index = context.scene.matlayer_layer_stack.layer_index
 
     # Only clear the mask stack if no masks exist on the selected material layer.
     masks.clear()
@@ -928,11 +928,11 @@ def read_mask_nodes(context):
         mapping_node = get_mask_node('MASK-MAPPING', 'COLOR', selected_material_index, i)
         texture_sample_1 = get_mask_node('TEXTURE-SAMPLE-1', 'COLOR', selected_material_index, i)
         if mapping_node:
-            if mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE' and texture_node.bl_static_type == 'TEX_IMAGE':
+            if mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE' and texture_node.bl_static_type == 'TEX_IMAGE':
                 mask.projection.mode = texture_node.projection
                 mask.projection.texture_extension = texture_node.extension
                 mask.projection.texture_interpolation = texture_node.interpolation
-            elif mapping_node.node_tree.name == 'MATLAY_TRIPLANAR_MAPPING':
+            elif mapping_node.node_tree.name == 'MATLAYER_TRIPLANAR_MAPPING':
                 mask.projection.mode = 'TRIPLANAR'
                 if texture_sample_1:
                     mask.projection.texture_extension = texture_sample_1.extension
@@ -992,9 +992,9 @@ def read_mask_nodes(context):
         # Read mask blur amount.
         if mask_blur_node:
             mask_mapping_node = get_mask_node('MASK-MAPPING', 'COLOR', selected_material_index, i)
-            if mask_mapping_node.node_tree.name == 'MATLAY_OFFSET_ROTATION_SCALE':
+            if mask_mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE':
                 mask.blur_amount = mask_blur_node.inputs[1].default_value
-            elif mask_mapping_node.node_tree.name == 'MATLAY_TRIPLANAR_MAPPING':
+            elif mask_mapping_node.node_tree.name == 'MATLAYER_TRIPLANAR_MAPPING':
                 mask.blur_amount = mask_blur_node.inputs[3].default_value
 
     # Re-enable auto-updating for mask properties.
@@ -1004,8 +1004,8 @@ def read_mask_nodes(context):
 
 def add_mask_slot(context):
     '''Adds a new mask slot and selects it. Returns the index of the newly added mask.'''
-    masks = context.scene.matlay_masks
-    mask_stack = context.scene.matlay_mask_stack
+    masks = context.scene.matlayer_masks
+    mask_stack = context.scene.matlayer_mask_stack
     selected_layer_mask_index = mask_stack.selected_mask_index
     masks.add()
     masks[len(masks) - 1].name = "MASK"
@@ -1027,9 +1027,9 @@ def add_mask_slot(context):
 
 def add_default_mask_nodes(mask_type, context):
     '''Adds default mask nodes to all material channels.'''
-    material_layers = context.scene.matlay_layers
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    material_layers = context.scene.matlayer_layers
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
 
     # If the selected layer is a decal layer, get the decal object to place into the mask coord node.
     coord_node = layer_nodes.get_layer_node('COORD', 'COLOR', selected_material_layer_index, context)
@@ -1047,12 +1047,12 @@ def add_default_mask_nodes(mask_type, context):
             match mask_type:
                 case 'GROUP_NODE':
                     mask_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
-                    empty_group_node = bpy.data.node_groups['MATLAY_EMPTY']
+                    empty_group_node = bpy.data.node_groups['MATLAYER_EMPTY']
                     if not empty_group_node:
                         material_channels.create_empty_group_node(context)
-                    node_tree = bpy.data.node_groups['MATLAY_EMPTY']
+                    node_tree = bpy.data.node_groups['MATLAYER_EMPTY']
                     mask_node.node_tree = node_tree
-                    context.scene.matlay_masks[selected_mask_index].custom_mask_node_tree = node_tree
+                    context.scene.matlayer_masks[selected_mask_index].custom_mask_node_tree = node_tree
                 case 'NOISE':
                     mask_node = material_channel_node.node_tree.nodes.new('ShaderNodeTexNoise')
                 case 'VORONOI':
@@ -1075,7 +1075,7 @@ def add_default_mask_nodes(mask_type, context):
             new_nodes.append(mask_coord_node)
 
             mask_mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
-            mask_mapping_node.node_tree = matlay_utils.get_uv_mapping_node_tree()
+            mask_mapping_node.node_tree = matlayer_utils.get_uv_mapping_node_tree()
             mask_mapping_node.name = format_mask_node_name("MASK-MAPPING", selected_material_layer_index, selected_mask_index, True)
             mask_mapping_node.label = mask_mapping_node.name
             new_nodes.append(mask_mapping_node)
@@ -1142,8 +1142,8 @@ def add_mask(mask_type, use_alpha=False):
     '''Adds a mask of the specified type to the selected material layer.'''
 
     # Temporarily turn off auto updating for mask properties so mask property callback functions do not interupt this function.
-    bpy.context.scene.matlay_mask_stack.auto_update_mask_properties = False
-    masks = bpy.context.scene.matlay_masks
+    bpy.context.scene.matlayer_mask_stack.auto_update_mask_properties = False
+    masks = bpy.context.scene.matlayer_masks
 
     # For performance / best practice purposes stop users from adding too many masks.
     if len(masks) >= MAX_LAYER_MASKS:
@@ -1153,39 +1153,39 @@ def add_mask(mask_type, use_alpha=False):
     # Add a new mask slot and apply the use alpha setting.
     new_mask_slot_index = add_mask_slot(bpy.context)
     if use_alpha:
-        bpy.context.scene.matlay_masks[new_mask_slot_index].use_alpha = True
+        bpy.context.scene.matlayer_masks[new_mask_slot_index].use_alpha = True
 
     # Add, reindex, relink and organize nodes.
     add_default_mask_nodes(mask_type, bpy.context)
     reindex_mask_nodes('ADDED', new_mask_slot_index)
-    relink_mask_nodes(bpy.context.scene.matlay_layer_stack.layer_index)
+    relink_mask_nodes(bpy.context.scene.matlayer_layer_stack.layer_index)
     layer_nodes.organize_all_layer_nodes()
     read_mask_filter_nodes(bpy.context)
 
     # Create a black or white mask image for the new mask.
     match mask_type:
         case 'BLACK_MASK':
-            bpy.ops.matlay.add_mask_image(image_fill='BLACK')
+            bpy.ops.matlayer.add_mask_image(image_fill='BLACK')
 
         case 'WHITE_MASK':
-            bpy.ops.matlay.add_mask_image(image_fill='WHITE')
+            bpy.ops.matlayer.add_mask_image(image_fill='WHITE')
 
     # Select the mask section so users can quickly edit the new mask.
-    bpy.context.scene.matlay_mask_stack.mask_property_tab = 'MASK'
+    bpy.context.scene.matlayer_mask_stack.mask_property_tab = 'MASK'
 
     # Turn auto updating for mask properties back on.
-    bpy.context.scene.matlay_mask_stack.auto_update_mask_properties = True
+    bpy.context.scene.matlayer_mask_stack.auto_update_mask_properties = True
 
-    matlay_utils.update_total_node_and_link_count()
+    matlayer_utils.update_total_node_and_link_count()
 
     logging.log("Added a new mask.")
 
 def move_mask(direction, context):
     '''Moves the selected layer mask up or down on the layer stack.'''
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
-    masks = context.scene.matlay_masks
-    mask_stack = context.scene.matlay_mask_stack
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
+    masks = context.scene.matlayer_masks
+    mask_stack = context.scene.matlayer_mask_stack
 
     mask_stack.auto_update_mask_properties = False
     
@@ -1272,7 +1272,7 @@ def move_mask(direction, context):
     else:
         index_to_move_to = max(min(selected_mask_index - 1, len(masks) - 1), 0)
     masks.move(selected_mask_index, index_to_move_to)
-    context.scene.matlay_mask_stack.selected_mask_index = index_to_move_to
+    context.scene.matlayer_mask_stack.selected_mask_index = index_to_move_to
 
     # Re-link and organize mask nodes.
     update_mask_stack_indicies()
@@ -1302,7 +1302,7 @@ class MaskProjectionSettings(PropertyGroup):
     scale_z: FloatProperty(name="Scale Z", description="Projected z scale of the selected mask, only available with triplanar projection", default=1.0, precision=2, soft_min=-4.0, soft_max=4.0, subtype='FACTOR', update=update_mask_projection_scale_z)
     sync_projection_scale: BoolProperty(name="Sync Mask Projection Scale", description="When enabled Y and Z projection (if the projection mode has a z projection) will be synced with the X projection", default=True,update=update_mask_projection_match_scale)
 
-class MATLAY_mask_stack(PropertyGroup):
+class MATLAYER_mask_stack(PropertyGroup):
     '''Properties for the mask stack.'''
     selected_mask_index: IntProperty(default=-1, update=update_mask_stack_index)
     mask_property_tab: EnumProperty(
@@ -1316,7 +1316,7 @@ class MATLAY_mask_stack(PropertyGroup):
     )
     auto_update_mask_properties: BoolProperty(name="Auto Update Mask Properties", description="When true, changing mask properties will trigger automatic updates.", default=True)
 
-class MATLAY_masks(PropertyGroup):
+class MATLAYER_masks(PropertyGroup):
     '''Properties for layer masks.'''
     stack_index: IntProperty(name="Stack Array Index", description="The array index of this mask within the mask stack, stored here to make it easy to access the array index of a specific layer", default=-9)
     name: StringProperty(name="Mask Name", default="Mask Naming Error")
@@ -1328,7 +1328,7 @@ class MATLAY_masks(PropertyGroup):
     blur: BoolProperty(name="Blur", default=False, update=update_mask_blur_toggle)
     blur_amount: FloatProperty(name="Blur Amount", default=0.05, min=0.0, soft_max=1.0, update=update_mask_blur_amount)
 
-class MATLAY_UL_mask_stack(bpy.types.UIList):
+class MATLAYER_UL_mask_stack(bpy.types.UIList):
     '''Draws the mask stack for the selected layer.'''
     def draw_item(self, context, layout, data, item, icon, active_data, index):
         self.use_filter_show = False
@@ -1344,8 +1344,8 @@ class MATLAY_UL_mask_stack(bpy.types.UIList):
                 row.prop(item, "hidden", text="", emboss=False, icon='HIDE_OFF')
 
             # Draw the mask name + layer index.
-            selected_material_channel = context.scene.matlay_layer_stack.selected_material_channel
-            selected_material_index = context.scene.matlay_layer_stack.layer_index
+            selected_material_channel = context.scene.matlayer_layer_stack.selected_material_channel
+            selected_material_index = context.scene.matlayer_layer_stack.layer_index
             mask_node = get_mask_node("MASK-TEXTURE", selected_material_channel, selected_material_index, item.stack_index)
             if mask_node:
                 row = layout.row(align=True)
@@ -1354,7 +1354,7 @@ class MATLAY_UL_mask_stack(bpy.types.UIList):
                     case 'TEX_IMAGE':
                         mask_label = "Image Texture Mask"
                     case 'GROUP':
-                        if mask_node.node_tree.name == 'MATLAY_TRIPLANAR':
+                        if mask_node.node_tree.name == 'MATLAYER_TRIPLANAR':
                             mask_label = "Image Texture Mask"
                         else:
                             mask_label = "Group Node Mask"
@@ -1380,8 +1380,8 @@ class MATLAY_UL_mask_stack(bpy.types.UIList):
                 col.prop(mix_mask_node.inputs[0], "default_value", text="", emboss=True, slider=True)
                 col.prop(mix_mask_node, "blend_type", text="")
 
-class MATLAY_OT_add_black_layer_mask(Operator):
-    bl_idname = "matlay.add_black_layer_mask"
+class MATLAYER_OT_add_black_layer_mask(Operator):
+    bl_idname = "matlayer.add_black_layer_mask"
     bl_label = "Add Black Mask"
     bl_description = "Creates a new completely black texture and adds it to a new mask. Use this for when only a portion of the object is planned to be masked"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1389,16 +1389,16 @@ class MATLAY_OT_add_black_layer_mask(Operator):
     # Disable the button when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         add_mask('BLACK_MASK')
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
-class MATLAY_OT_add_white_layer_mask(Operator):
-    bl_idname = "matlay.add_white_layer_mask"
+class MATLAYER_OT_add_white_layer_mask(Operator):
+    bl_idname = "matlayer.add_white_layer_mask"
     bl_label = "Add White Mask"
     bl_description = "Adds a mask to the selected layer"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1406,16 +1406,16 @@ class MATLAY_OT_add_white_layer_mask(Operator):
     # Disable the button when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         add_mask('WHITE_MASK')
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
     
-class MATLAY_OT_add_empty_layer_mask(Operator):
-    bl_idname = "matlay.add_empty_layer_mask"
+class MATLAYER_OT_add_empty_layer_mask(Operator):
+    bl_idname = "matlayer.add_empty_layer_mask"
     bl_label = "Add Empty Mask"
     bl_description = "Adds a layer mask to the selected layer with no texture assigned to it's texture slot"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1423,16 +1423,16 @@ class MATLAY_OT_add_empty_layer_mask(Operator):
     # Disable the button when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         add_mask('EMPTY')
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
-class MATLAY_OT_add_group_node_layer_mask(Operator):
-    bl_idname = "matlay.add_group_node_layer_mask"
+class MATLAYER_OT_add_group_node_layer_mask(Operator):
+    bl_idname = "matlayer.add_group_node_layer_mask"
     bl_label = "Add Group Node Mask"
     bl_description = "Adds a layer mask with an empty group node to the selected material layer."
     bl_options = {'REGISTER', 'UNDO'}
@@ -1440,16 +1440,16 @@ class MATLAY_OT_add_group_node_layer_mask(Operator):
     # Disable the button when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         add_mask('GROUP_NODE')
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
-class MATLAY_OT_add_noise_layer_mask(Operator):
-    bl_idname = "matlay.add_noise_layer_mask"
+class MATLAYER_OT_add_noise_layer_mask(Operator):
+    bl_idname = "matlayer.add_noise_layer_mask"
     bl_label = "Add Noise Node Mask"
     bl_description = "Adds a layer mask with an procedural noise node to the selected material layer"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1457,16 +1457,16 @@ class MATLAY_OT_add_noise_layer_mask(Operator):
     # Disable the button when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         add_mask('NOISE')
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
-class MATLAY_OT_add_voronoi_layer_mask(Operator):
-    bl_idname = "matlay.add_voronoi_layer_mask"
+class MATLAYER_OT_add_voronoi_layer_mask(Operator):
+    bl_idname = "matlayer.add_voronoi_layer_mask"
     bl_label = "Add Voronoi Node Mask"
     bl_description = "Adds a layer mask with a procedural voronoi node to the selected material layer"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1474,16 +1474,16 @@ class MATLAY_OT_add_voronoi_layer_mask(Operator):
     # Disable the button when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         add_mask('VORONOI')
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
-class MATLAY_OT_add_musgrave_layer_mask(Operator):
-    bl_idname = "matlay.add_musgrave_layer_mask"
+class MATLAYER_OT_add_musgrave_layer_mask(Operator):
+    bl_idname = "matlayer.add_musgrave_layer_mask"
     bl_label = "Add Musgrave Node Mask"
     bl_description = "Adds a layer mask with a procedural musgrave node to the selected material layer"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1491,22 +1491,22 @@ class MATLAY_OT_add_musgrave_layer_mask(Operator):
     # Disable the button when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         add_mask('MUSGRAVE')
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
-class MATLAY_OT_open_layer_mask_menu(Operator):
-    bl_idname = "matlay.open_layer_mask_menu"
+class MATLAYER_OT_open_layer_mask_menu(Operator):
+    bl_idname = "matlayer.open_layer_mask_menu"
     bl_label = "Open Layer Mask Menu"
     bl_description = "Opens a menu of masks that can be added to the selected material layer"
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
@@ -1522,16 +1522,16 @@ class MATLAY_OT_open_layer_mask_menu(Operator):
         split = layout.split()
         col = split.column(align=True)
         col.scale_y = 1.4
-        col.operator("matlay.add_black_layer_mask", text="Add Black Mask")
-        col.operator("matlay.add_white_layer_mask", text="Add White Mask")
-        col.operator("matlay.add_empty_layer_mask", text="Add Empty Mask")
-        col.operator("matlay.add_group_node_layer_mask", text="Add Group Node Mask")
-        col.operator("matlay.add_noise_layer_mask", text="Add Noise Mask")
-        col.operator("matlay.add_voronoi_layer_mask", text="Add Voronoi Mask")
-        col.operator("matlay.add_musgrave_layer_mask", text="Add Musgrave Mask")
+        col.operator("matlayer.add_black_layer_mask", text="Add Black Mask")
+        col.operator("matlayer.add_white_layer_mask", text="Add White Mask")
+        col.operator("matlayer.add_empty_layer_mask", text="Add Empty Mask")
+        col.operator("matlayer.add_group_node_layer_mask", text="Add Group Node Mask")
+        col.operator("matlayer.add_noise_layer_mask", text="Add Noise Mask")
+        col.operator("matlayer.add_voronoi_layer_mask", text="Add Voronoi Mask")
+        col.operator("matlayer.add_musgrave_layer_mask", text="Add Musgrave Mask")
 
-class MATLAY_OT_delete_layer_mask(Operator):
-    bl_idname = "matlay.delete_layer_mask"
+class MATLAYER_OT_delete_layer_mask(Operator):
+    bl_idname = "matlayer.delete_layer_mask"
     bl_label = "Delete Layer Mask"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Deletes the mask for the selected layer if one exists"
@@ -1539,15 +1539,15 @@ class MATLAY_OT_delete_layer_mask(Operator):
     # Disable the button when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-        selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
-        selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-        masks = context.scene.matlay_masks
+        selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+        selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
+        selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+        masks = context.scene.matlayer_masks
 
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
 
         # Delete all mask nodes from all material channels.
         for material_channel_name in material_channels.get_material_channel_list():
@@ -1561,8 +1561,8 @@ class MATLAY_OT_delete_layer_mask(Operator):
                 material_channel_node.node_tree.nodes.remove(mask_filter_node)
 
         # Delete all the mask filter group nodes associated with this layer.
-        masks = bpy.context.scene.matlay_masks
-        mask_filters = bpy.context.scene.matlay_mask_filters
+        masks = bpy.context.scene.matlayer_masks
+        mask_filters = bpy.context.scene.matlayer_mask_filters
         for x in range(0, len(mask_filters)):
             mask_filter_name = format_mask_filter_node_name(selected_material_layer_index, selected_mask_index, x)
             mask_filter_node_tree = bpy.data.node_groups.get(mask_filter_name)
@@ -1577,45 +1577,45 @@ class MATLAY_OT_delete_layer_mask(Operator):
         masks.remove(selected_mask_index)
 
         # Reset the selected mask index.
-        context.scene.matlay_mask_stack.selected_mask_index = max(min(selected_mask_index - 1, len(masks) - 1), 0)
+        context.scene.matlayer_mask_stack.selected_mask_index = max(min(selected_mask_index - 1, len(masks) - 1), 0)
 
         # Organize all nodes.
         layer_nodes.organize_all_layer_nodes()
 
         # Set a valid material shading mode so users can see their changes.
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
 
-        matlay_utils.update_total_node_and_link_count()
+        matlayer_utils.update_total_node_and_link_count()
 
         logging.log("Deleted a mask.")
         return{'FINISHED'}
 
-class MATLAY_OT_move_layer_mask_up(Operator):
-    bl_idname = "matlay.move_layer_mask_up"
+class MATLAYER_OT_move_layer_mask_up(Operator):
+    bl_idname = "matlayer.move_layer_mask_up"
     bl_label = "Move Layer Mask Up"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Moves the selected layer up on the layer stack"
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         move_mask('UP', context)
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
-class MATLAY_OT_move_layer_mask_down(Operator):
-    bl_idname = "matlay.move_layer_mask_down"
+class MATLAYER_OT_move_layer_mask_down(Operator):
+    bl_idname = "matlayer.move_layer_mask_down"
     bl_label = "Move Layer Mask Down"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Moves the selected layer down on the layer stack"
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         move_mask('DOWN', context)
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
-class MATLAY_OT_add_mask_image(Operator):
-    bl_idname = "matlay.add_mask_image"
+class MATLAYER_OT_add_mask_image(Operator):
+    bl_idname = "matlayer.add_mask_image"
     bl_label = "Add Mask Image"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Creates a new image in Blender's data and inserts it into the selected mask"
@@ -1624,7 +1624,7 @@ class MATLAY_OT_add_mask_image(Operator):
     image_fill: StringProperty(default='BLACK')
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         
         active_object = bpy.context.active_object
         if not active_object:
@@ -1665,11 +1665,11 @@ class MATLAY_OT_add_mask_image(Operator):
         
         
         # Save to a folder. This allows users to use the edit externally function (to edit within a 2D image editor of their choice) later if desired.
-        matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
-        if os.path.exists(matlay_image_path) == False:
-            os.mkdir(matlay_image_path)
+        matlayer_image_path = os.path.join(bpy.path.abspath("//"), "Matlayer")
+        if os.path.exists(matlayer_image_path) == False:
+            os.mkdir(matlayer_image_path)
 
-        mask_image_path = os.path.join(matlay_image_path, "Masks")
+        mask_image_path = os.path.join(matlayer_image_path, "Masks")
         if os.path.exists(mask_image_path) == False:
             os.mkdir(mask_image_path)
 
@@ -1682,9 +1682,9 @@ class MATLAY_OT_add_mask_image(Operator):
             image.save()
 
         # 3. Add the new image to the selected mask (for all material channels).
-        selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-        selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
-        masks = context.scene.matlay_masks
+        selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+        selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
+        masks = context.scene.matlayer_masks
 
         for material_channel_name in material_channels.get_material_channel_list():
             mask_texture_node = get_mask_node('MASK-TEXTURE',  material_channel_name, selected_material_layer_index, selected_mask_index)
@@ -1695,34 +1695,34 @@ class MATLAY_OT_add_mask_image(Operator):
                 # Select the new mask texture so it can be edited.
                 context.scene.tool_settings.image_paint.canvas = mask_texture_node.image
 
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
 
         return {'FINISHED'}
 
-class MATLAY_OT_delete_mask_image(Operator):
-    bl_idname = "matlay.delete_mask_image"
+class MATLAYER_OT_delete_mask_image(Operator):
+    bl_idname = "matlayer.delete_mask_image"
     bl_label = "Delete Mask Image"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Deletes the mask image from Blender's data"
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
 
-        selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-        selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+        selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+        selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
         mask_texture_node  = get_mask_node('MASK-TEXTURE', 'COLOR', selected_material_layer_index, selected_mask_index)
         if mask_texture_node:
             if mask_texture_node.image != None:
                 bpy.data.images.remove(mask_texture_node.image)
 
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
 
         logging.log("Deleted mask image.")
         return {'FINISHED'}
 
-class MATLAY_OT_import_mask_image(Operator, ImportHelper):
+class MATLAYER_OT_import_mask_image(Operator, ImportHelper):
     '''Opens a new window from which a user can import an image that will be inserted into the selected mask texture slot.'''
-    bl_idname = "matlay.import_mask_image"
+    bl_idname = "matlayer.import_mask_image"
     bl_label = "Import Mask Image"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Opens a new window from which a user can import an image that will be inserted into the selected mask texture slot"
@@ -1733,7 +1733,7 @@ class MATLAY_OT_import_mask_image(Operator, ImportHelper):
     )
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
 
         # Open a window to allow the user to import an image into blender.
         head_tail = os.path.split(self.filepath)
@@ -1745,8 +1745,8 @@ class MATLAY_OT_import_mask_image(Operator, ImportHelper):
             return
         
         # Add the imported mask image to the masks image data.
-        selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
-        context.scene.matlay_masks[selected_mask_index].mask_image = imported_image
+        selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
+        context.scene.matlayer_masks[selected_mask_index].mask_image = imported_image
 
         # Set the mask colorspace to non-color data.
         imported_image.colorspace_settings.name = 'Non-Color'
@@ -1755,11 +1755,11 @@ class MATLAY_OT_import_mask_image(Operator, ImportHelper):
         '''
         addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
         if addon_preferences.save_imported_textures:
-            matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
-            if os.path.exists(matlay_image_path) == False:
-                os.mkdir(matlay_image_path)
+            matlayer_image_path = os.path.join(bpy.path.abspath("//"), "Matlayer")
+            if os.path.exists(matlayer_image_path) == False:
+                os.mkdir(matlayer_image_path)
 
-            layer_image_path = os.path.join(matlay_image_path, "Layers")
+            layer_image_path = os.path.join(matlayer_image_path, "Layers")
             if os.path.exists(layer_image_path) == False:
                 os.mkdir(layer_image_path)
 
@@ -1771,7 +1771,7 @@ class MATLAY_OT_import_mask_image(Operator, ImportHelper):
                 image.save()
         '''
 
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
 
         logging.log("Imported mask image.")
         return {'FINISHED'}
@@ -1783,15 +1783,15 @@ MASK_FILTER_NAME = "MaskFilter"
 
 def validate_selected_mask_filter_index():
     '''Validates that the selected mask filter index is within a valid range. This should be used as a safety check to avoid running operators that require a valid index.'''
-    mask_filters = bpy.context.scene.matlay_mask_filters
-    selected_mask_filter_index = bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_index
+    mask_filters = bpy.context.scene.matlayer_mask_filters
+    selected_mask_filter_index = bpy.context.scene.matlayer_mask_filter_stack.selected_mask_filter_index
     
     if selected_mask_filter_index > (len(mask_filters) - 1) and selected_mask_filter_index < 0:
         if len(mask_filters) > 0:
-            bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_index = 0
+            bpy.context.scene.matlayer_mask_filter_stack.selected_mask_filter_index = 0
             return True
         else:
-            bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_index = -1
+            bpy.context.scene.matlayer_mask_filter_stack.selected_mask_filter_index = -1
             return False
     return True
 
@@ -1875,9 +1875,9 @@ def count_mask_filter_node_trees(material_layer_index, mask_index, get_edited=Fa
 
 def reindex_mask_filters_nodes(change_made, changed_mask_filter_index=0):
     '''Reindexes mask filter nodes based off the provided change and index. Valid arguments include: 'ADDED', 'DELETED' '''
-    selected_material_index = bpy.context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
-    mask_filters = bpy.context.scene.matlay_mask_filters
+    selected_material_index = bpy.context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_mask_index
+    mask_filters = bpy.context.scene.matlayer_mask_filters
 
     # Do not reindex mask filter nodes if there are no mask filters.
     if len(mask_filters) <= 0:
@@ -1932,8 +1932,8 @@ def reindex_mask_filters_nodes(change_made, changed_mask_filter_index=0):
 
 def relink_mask_filter_nodes():
     '''Relinks all mask filter nodes with other mask filter nodes.'''
-    selected_material_index = bpy.context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = bpy.context.scene.matlay_mask_stack.selected_mask_index
+    selected_material_index = bpy.context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_mask_index
 
     for material_channel_name in material_channels.get_material_channel_list():
         mask_filter_nodes = get_all_mask_filter_nodes(material_channel_name, selected_material_index, selected_mask_index, False)
@@ -1959,14 +1959,14 @@ def relink_mask_filter_nodes():
 
 def read_mask_filter_nodes(context):
     '''Reads the material node tree to rebuild the mask filter stack in the ui.'''
-    mask_filters = context.scene.matlay_mask_filters
-    mask_filter_stack = context.scene.matlay_mask_filter_stack
-    selected_material_index = context.scene.matlay_layer_stack.layer_index
+    mask_filters = context.scene.matlayer_mask_filters
+    mask_filter_stack = context.scene.matlayer_mask_filter_stack
+    selected_material_index = context.scene.matlayer_layer_stack.layer_index
     selected_material_channel = 'COLOR'
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
 
     # When reading from the material node tree, we don't want properties to auto-update as doing so can cause errors.
-    context.scene.matlay_mask_filter_stack.auto_update_properties = False
+    context.scene.matlayer_mask_filter_stack.auto_update_properties = False
 
     # Cache the selected filter index, we'll reset the selected filter index to the closest index after refreshing.
     previously_selected_filter_index = mask_filter_stack.selected_mask_filter_index
@@ -1987,14 +1987,14 @@ def read_mask_filter_nodes(context):
         mask_filter_stack.selected_mask_filter_index = 0
 
     # Allow auto updating for properties again.
-    context.scene.matlay_mask_filter_stack.auto_update_properties = True
+    context.scene.matlayer_mask_filter_stack.auto_update_properties = True
 
     logging.log("Read mask filter nodes.")
 
 def add_mask_filter_slot():
     '''Adds a new layer stack slot for a mask filter.'''
-    mask_filters = bpy.context.scene.matlay_mask_filters
-    mask_filter_stack = bpy.context.scene.matlay_mask_filter_stack
+    mask_filters = bpy.context.scene.matlayer_mask_filters
+    mask_filter_stack = bpy.context.scene.matlayer_mask_filter_stack
 
     mask_filters.add()
 
@@ -2010,7 +2010,7 @@ def add_mask_filter_slot():
         mask_filters.move(move_index, move_to_index)
         mask_filter_stack.selected_mask_filter_index = max(0, min(mask_filter_stack.selected_mask_filter_index + 1, len(mask_filters) - 1))
 
-    return bpy.context.scene.matlay_mask_filter_stack.selected_mask_filter_index
+    return bpy.context.scene.matlayer_mask_filter_stack.selected_mask_filter_index
 
 def create_mask_filter_group_node(filter_type, material_layer_index, mask_index, mask_filter_index):
     '''Creates a group node for a mask filter if one doesn't exist.'''
@@ -2061,9 +2061,9 @@ def add_mask_filter(filter_type, context):
     '''Adds a new filter to the selected layer mask. Valid mask filter types include: 'ShaderNodeInvert', 'ShaderNodeValToRGB' '''
     validate_selected_mask_filter_index()
 
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
-    mask_filters = context.scene.matlay_mask_filters
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
+    mask_filters = context.scene.matlayer_mask_filters
 
     # Stop users from adding too many mask filters.
     if len(mask_filters) >= MAX_MASK_FILTERS:
@@ -2096,7 +2096,7 @@ def add_mask_filter(filter_type, context):
     relink_mask_nodes(selected_material_layer_index)
     layer_nodes.organize_all_layer_nodes()
 
-    matlay_utils.update_total_node_and_link_count()
+    matlayer_utils.update_total_node_and_link_count()
 
     logging.log("Added a new mask filter.")
 
@@ -2104,11 +2104,11 @@ def move_mask_filter(direction, context):
     '''Moves the mask filter up or down on the mask filter stack.'''
     validate_selected_mask_filter_index()
 
-    selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-    selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
-    selected_mask_filter_index = context.scene.matlay_mask_filter_stack.selected_mask_filter_index
-    mask_filters = context.scene.matlay_mask_filters
-    mask_filter_stack = context.scene.matlay_mask_filter_stack
+    selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
+    selected_mask_filter_index = context.scene.matlayer_mask_filter_stack.selected_mask_filter_index
+    mask_filters = context.scene.matlayer_mask_filters
+    mask_filter_stack = context.scene.matlayer_mask_filter_stack
 
     mask_filter_stack.auto_update_properties = False
 
@@ -2164,7 +2164,7 @@ def move_mask_filter(direction, context):
     else:
         index_to_move_to = max(min(selected_mask_filter_index - 1, len(mask_filters) - 1), 0)
     mask_filters.move(selected_mask_filter_index, index_to_move_to)
-    context.scene.matlay_mask_filter_stack.selected_mask_filter_index = index_to_move_to
+    context.scene.matlayer_mask_filter_stack.selected_mask_filter_index = index_to_move_to
 
     # Re-link and organize mask filter nodes.
     reindex_mask_filters_nodes('MOVED', selected_mask_filter_index)
@@ -2175,23 +2175,23 @@ def move_mask_filter(direction, context):
 
     logging.log("Moved a mask filter.")
 
-class MATLAY_mask_filter_stack(PropertyGroup):
+class MATLAYER_mask_filter_stack(PropertyGroup):
     '''Properties for the mask stack.'''
     selected_mask_filter_index: IntProperty(default=-1)
     auto_update_properties: BoolProperty(default=True, description="If auto update properties is on, when select mask filter property changes will trigger automatic updates.")
 
-class MATLAY_mask_filters(PropertyGroup):
+class MATLAYER_mask_filters(PropertyGroup):
     stack_index: IntProperty(name="Stack Index", description = "The (array) stack index for this filter used to define the order in which filters should be applied to the material", default=-999)
 
-class MATLAY_UL_mask_filter_stack(UIList):
+class MATLAYER_UL_mask_filter_stack(UIList):
     '''Draws the mask stack for the selected layer.'''
     def draw_item(self, context, layout, data, item, icon, active_data, index):
         self.use_filter_show = False
         self.use_filter_reverse = True
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             # Draw the filter name based on the filters node type.
-            selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-            selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
+            selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+            selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
             mask_filter_node = get_mask_filter_node('COLOR', selected_material_layer_index, selected_mask_index, item.stack_index, False)
             filter_node_name = ""
             if mask_filter_node:
@@ -2202,41 +2202,41 @@ class MATLAY_UL_mask_filter_stack(UIList):
                         filter_node_name = "Value to RGB (levels)"
             layout.label(text="{0}. {1}".format(item.stack_index + 1, filter_node_name))
 
-class MATLAY_OT_add_mask_filter_invert(Operator):
+class MATLAYER_OT_add_mask_filter_invert(Operator):
     '''Adds an invert adjustment to the masks applied to the selected layer'''
-    bl_idname = "matlay.add_mask_filter_invert"
+    bl_idname = "matlayer.add_mask_filter_invert"
     bl_label = "Add Invert Mask Filter"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Adds an invert adjustment to the masks applied to the selected layer"
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         add_mask_filter('ShaderNodeInvert', context)
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
-class MATLAY_OT_add_mask_filter_val_to_rgb(Operator):
+class MATLAYER_OT_add_mask_filter_val_to_rgb(Operator):
     '''Adds a level adjustment to the masks applied to the selected layer'''
-    bl_idname = "matlay.add_mask_filter_val_to_rgb"
+    bl_idname = "matlayer.add_mask_filter_val_to_rgb"
     bl_label = "Add Val to RGB Mask Filter"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Adds a level adjustment to the masks applied to the selected layer"
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         add_mask_filter('ShaderNodeValToRGB', context)
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
-class MATLAY_OT_add_layer_mask_filter_menu(Operator):
+class MATLAYER_OT_add_layer_mask_filter_menu(Operator):
     '''Opens a menu of filters that can be added to the selected mask.'''
     bl_label = ""
-    bl_idname = "matlay.add_layer_mask_filter_menu"
+    bl_idname = "matlayer.add_layer_mask_filter_menu"
     bl_description = "Opens a menu of layer filters that can be added to the selected mask stack"
 
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
@@ -2252,11 +2252,11 @@ class MATLAY_OT_add_layer_mask_filter_menu(Operator):
         split = layout.split()
         col = split.column(align=True)
         col.scale_y = 1.4
-        col.operator("matlay.add_mask_filter_invert")
-        col.operator("matlay.add_mask_filter_val_to_rgb", text="Value to RGB (levels)")
+        col.operator("matlayer.add_mask_filter_invert")
+        col.operator("matlayer.add_mask_filter_val_to_rgb", text="Value to RGB (levels)")
 
-class MATLAY_OT_delete_mask_filter(Operator):
-    bl_idname = "matlay.delete_mask_filter"
+class MATLAYER_OT_delete_mask_filter(Operator):
+    bl_idname = "matlayer.delete_mask_filter"
     bl_label = "Delete Mask Filter"
     bl_description = "Deletes the mask filter"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2264,17 +2264,17 @@ class MATLAY_OT_delete_mask_filter(Operator):
     # Disable the button when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return bpy.context.scene.matlay_layers
+        return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
         validate_selected_mask_filter_index()
 
-        selected_material_layer_index = context.scene.matlay_layer_stack.layer_index
-        selected_mask_index = context.scene.matlay_mask_stack.selected_mask_index
-        mask_filters = context.scene.matlay_mask_filters
-        selected_mask_filter_index = context.scene.matlay_mask_filter_stack.selected_mask_filter_index
+        selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
+        selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
+        mask_filters = context.scene.matlayer_mask_filters
+        selected_mask_filter_index = context.scene.matlayer_mask_filter_stack.selected_mask_filter_index
 
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
 
         # Delete the mask filter GROUP nodes in all material channels.
         mask_filter_name = format_mask_filter_node_name(selected_material_layer_index, selected_mask_index, selected_mask_filter_index)
@@ -2297,7 +2297,7 @@ class MATLAY_OT_delete_mask_filter(Operator):
         mask_filters.remove(selected_mask_filter_index)
 
         # Reset the selected mask filter index.
-        context.scene.matlay_mask_filter_stack.selected_mask_filter_index = max(min(selected_mask_filter_index - 1, len(mask_filters) - 1), 0)
+        context.scene.matlayer_mask_filter_stack.selected_mask_filter_index = max(min(selected_mask_filter_index - 1, len(mask_filters) - 1), 0)
 
         # Relink mask nodes.
         relink_mask_nodes(selected_material_layer_index)
@@ -2305,14 +2305,14 @@ class MATLAY_OT_delete_mask_filter(Operator):
         # Re-organize nodes.
         layer_nodes.organize_all_layer_nodes()
 
-        matlay_utils.set_valid_material_shading_mode(context)
-        matlay_utils.update_total_node_and_link_count()
+        matlayer_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.update_total_node_and_link_count()
         logging.log("Deleted a mask filter.")
         return{'FINISHED'}
     
-class MATLAY_OT_move_layer_mask_filter(Operator):
+class MATLAYER_OT_move_layer_mask_filter(Operator):
     '''Moves the selected layer mask filter on the layer stack'''
-    bl_idname = "matlay.move_layer_mask_filter"
+    bl_idname = "matlayer.move_layer_mask_filter"
     bl_label = "Move Mask Filter"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Moves the selected layer mask filter on the layer stack"
@@ -2320,10 +2320,10 @@ class MATLAY_OT_move_layer_mask_filter(Operator):
     direction: StringProperty(default="True")
 
     def execute(self, context):
-        matlay_utils.set_valid_mode()
+        matlayer_utils.set_valid_mode()
         if self.direction == 'UP':
             move_mask_filter('UP', context)
         else:
             move_mask_filter('DOWN', context)
-        matlay_utils.set_valid_material_shading_mode(context)
+        matlayer_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
