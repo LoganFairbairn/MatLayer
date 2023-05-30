@@ -20,7 +20,7 @@ import random
 from bpy_extras.io_utils import ImportHelper
 
 # Constant mask node names.
-MASK_NODE_NAMES = ('MASK-TEXTURE', 'MASK-COORD', 'MASK-MAPPING', 'MASK-BLUR', 'DECAL-MAPPING', 'DECAL-MASK', 'DECAL-MASK-MIX', 'DECAL-MASK-ADJUSTMENT', 'MASK-MIX', 'TEXTURE-SAMPLE-1', 'TEXTURE-SAMPLE-2', 'TEXTURE-SAMPLE-3')
+MASK_NODE_NAMES = ('MASK-TEXTURE', 'MASK-COORD', 'MASK-MAPPING', 'MASK-BLUR', 'DECAL-MAPPING', 'DECAL-MASK', 'DECAL-MASK-MIX', 'DECAL-MASK-ADJUSTMENT', 'MASK-MIX', 'MASK-TEXTURE-SAMPLE-1', 'MASK-TEXTURE-SAMPLE-2', 'MASK-TEXTURE-SAMPLE-3')
 
 # The maximum number of masks a single layer can use. Realistically users should never need more masks on a single layer than this.
 MAX_LAYER_MASKS = 5
@@ -187,7 +187,7 @@ def update_mask_projection_mode(self, context):
                         triplanar_sample_nodes[i].projection = 'FLAT'
                         triplanar_sample_nodes[i].extension = self.texture_extension
                         triplanar_sample_nodes[i].interpolation = self.texture_interpolation
-                        triplanar_sample_nodes[i].name = format_mask_node_name('TEXTURE-SAMPLE-' + str(i + 1), selected_material_layer_index, selected_mask_index)
+                        triplanar_sample_nodes[i].name = format_mask_node_name('MASK-TEXTURE-SAMPLE-' + str(i + 1), selected_material_layer_index, selected_mask_index)
                         triplanar_sample_nodes[i].label = triplanar_sample_nodes[i].name
                         
                     material_channel_node.node_tree.nodes.remove(old_mask_texture_node)
@@ -553,7 +553,7 @@ def format_mask_node_name(mask_node_name, material_layer_index, mask_index, get_
         return  "{0}_{1}_{2}".format(mask_node_name, str(material_layer_index), str(mask_index))
 
 def get_mask_node(mask_node_name, material_channel_name, material_layer_index, mask_index, get_edited=False):
-    '''Returns a layer mask node based on the given name and mask stack index. Valid options include: 'MASK-TEXTURE', 'MASK-COORD', 'MASK-MAPPING', 'MASK-BLUR', 'DECAL-MAPPING', 'DECAL-MASK', 'DECAL-MASK-MIX', 'DECAL-MASK-ADJUSTMENT', 'MASK-MIX', 'TEXTURE-SAMPLE-1', 'TEXTURE-SAMPLE-2', 'TEXTURE-SAMPLE-3' '''
+    '''Returns a layer mask node based on the given name and mask stack index. Valid options include: 'MASK-TEXTURE', 'MASK-COORD', 'MASK-MAPPING', 'MASK-BLUR', 'DECAL-MAPPING', 'DECAL-MASK', 'DECAL-MASK-MIX', 'DECAL-MASK-ADJUSTMENT', 'MASK-MIX', 'MASK-TEXTURE-SAMPLE-1', 'MASK-TEXTURE-SAMPLE-2', 'MASK-TEXTURE-SAMPLE-3' '''
     if mask_node_name in MASK_NODE_NAMES:
         material_channel_node = material_channels.get_material_channel_node(bpy.context, material_channel_name)
         if material_channel_node:
@@ -765,9 +765,9 @@ def relink_mask_nodes(material_layer_index):
                 
                     # Link masks for triplanar projection.
                     case 'MATLAYER_TRIPLANAR_MAPPING':
-                        triplanar_mask_texture_node_1 = get_mask_node('TEXTURE-SAMPLE-1', material_channel_name, material_layer_index, i)
-                        triplanar_mask_texture_node_2 = get_mask_node('TEXTURE-SAMPLE-2', material_channel_name, material_layer_index, i)
-                        triplanar_mask_texture_node_3 = get_mask_node('TEXTURE-SAMPLE-3', material_channel_name, material_layer_index, i)
+                        triplanar_mask_texture_node_1 = get_mask_node('MASK-TEXTURE-SAMPLE-1', material_channel_name, material_layer_index, i)
+                        triplanar_mask_texture_node_2 = get_mask_node('MASK-TEXTURE-SAMPLE-2', material_channel_name, material_layer_index, i)
+                        triplanar_mask_texture_node_3 = get_mask_node('MASK-TEXTURE-SAMPLE-3', material_channel_name, material_layer_index, i)
 
                         blur_mask_node = get_mask_node('MASK-BLUR', material_channel_name, material_layer_index, selected_mask_index)
                         if blur_mask_node and layer_nodes.get_node_active(blur_mask_node):
@@ -792,25 +792,24 @@ def relink_mask_nodes(material_layer_index):
                             link_nodes(mask_mapping_node.outputs[3], mask_texture_node.inputs[3])
 
                         # Connect the triplanar mapping node to custom group node inputs that follow a standard naming convention.
-                        '''
                         if mask_texture_node.bl_static_type == 'GROUP':
-                            for c in range(0, len(mask_texture_node.inputs)):
-                                match mask_texture_node.inputs[c].name:
-                                    case 'X':
-                                        link_nodes(mask_mapping_node.outputs[0], mask_texture_node.inputs[i])
+                            if mask_texture_node.node_tree.name != 'MATLAYER_TRIPLANAR' and mask_texture_node.node_tree.name != 'MATLAYER_TRIPLANAR_NORMALS':
+                                for c in range(0, len(mask_texture_node.inputs)):
+                                    match mask_texture_node.inputs[c].name:
+                                        case 'X':
+                                            link_nodes(mask_mapping_node.outputs[0], mask_texture_node.inputs[i])
 
-                                    case 'Y':
-                                        link_nodes(mask_mapping_node.outputs[1], mask_texture_node.inputs[i])
+                                        case 'Y':
+                                            link_nodes(mask_mapping_node.outputs[1], mask_texture_node.inputs[i])
 
-                                    case 'Z':
-                                        link_nodes(mask_mapping_node.outputs[2], mask_texture_node.inputs[i])
+                                        case 'Z':
+                                            link_nodes(mask_mapping_node.outputs[2], mask_texture_node.inputs[i])
 
-                                    case 'AxisMask':
-                                        link_nodes(mask_mapping_node.outputs[3], mask_texture_node.inputs[i])
+                                        case 'AxisMask':
+                                            link_nodes(mask_mapping_node.outputs[3], mask_texture_node.inputs[i])
 
-                                    case 'Rotation':
-                                        link_nodes(mask_mapping_node.outputs[4], mask_texture_node.inputs[i])
-                        '''
+                                        case 'Rotation':
+                                            link_nodes(mask_mapping_node.outputs[4], mask_texture_node.inputs[i])
 
             # If the current mask is disabled, skip connecting it.
             if layer_nodes.get_node_active(mask_texture_node) == False:
@@ -926,7 +925,7 @@ def read_mask_nodes(context):
         # Read mapping projection.
         mask_texture_node = get_mask_node('MASK-TEXTURE', 'COLOR', selected_material_index, i)
         mapping_node = get_mask_node('MASK-MAPPING', 'COLOR', selected_material_index, i)
-        texture_sample_1 = get_mask_node('TEXTURE-SAMPLE-1', 'COLOR', selected_material_index, i)
+        texture_sample_1 = get_mask_node('MASK-TEXTURE-SAMPLE-1', 'COLOR', selected_material_index, i)
         if mapping_node:
             if mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE' and texture_node.bl_static_type == 'TEX_IMAGE':
                 mask.projection.mode = texture_node.projection
@@ -967,7 +966,7 @@ def read_mask_nodes(context):
             if texture_node.image:
                 mask.mask_image = texture_node.image
         elif mask.projection.mode == 'TRIPLANAR':
-            triplanar_texture_node_1 = get_mask_node('TEXTURE-SAMPLE-1', 'COLOR', selected_material_index, i)
+            triplanar_texture_node_1 = get_mask_node('MASK-TEXTURE-SAMPLE-1', 'COLOR', selected_material_index, i)
             if triplanar_texture_node_1:
                 mask.mask_image = triplanar_texture_node_1.image
 
