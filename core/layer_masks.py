@@ -731,7 +731,14 @@ def relink_mask_nodes(material_layer_index):
 
                 link_nodes(mask_coord_node.outputs[3], mask_mapping_node.inputs[0])
                 if mask_texture_node.bl_static_type == 'TEX_IMAGE':
-                    link_nodes(mask_mapping_node.outputs[0], mask_texture_node.inputs[0])
+                    
+                    # Connect to blur node if it exists.
+                    blur_mask_node = get_mask_node('MASK-BLUR', material_channel_name, material_layer_index, selected_mask_index)
+                    if blur_mask_node and layer_nodes.get_node_active(blur_mask_node):
+                        link_nodes(mask_mapping_node.outputs[0], blur_mask_node.inputs[0])
+                        link_nodes(blur_mask_node.outputs[0], mask_texture_node.inputs[0])
+                    else:
+                        link_nodes(mask_mapping_node.outputs[0], mask_texture_node.inputs[0])
 
                     if masks[i].use_alpha:
                         link_nodes(mask_texture_node.outputs[1], decal_mask_mix_node.inputs[1])
