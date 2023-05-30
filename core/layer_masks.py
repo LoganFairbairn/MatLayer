@@ -412,7 +412,7 @@ def update_mask_projection_scale_x(self, context):
         if masks[selected_mask_index].projection.mode == 'FLAT':
             mapping_node.inputs[3].default_value[0] = masks[selected_mask_index].projection.scale_x
         elif masks[selected_mask_index].projection.mode == 'TRIPLANAR':
-            mapping_node.inputs[0].default_value[0] = masks[selected_mask_index].projection.scale_x
+            mapping_node.inputs[2].default_value[0] = masks[selected_mask_index].projection.scale_x
 
         if self.sync_projection_scale:
             masks[selected_mask_index].projection.scale_y = masks[selected_mask_index].projection.scale_x
