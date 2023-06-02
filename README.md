@@ -12,7 +12,7 @@ MatLayer is a free add-on for Blender that drastically speeds up the material wo
 
 If you like this add-on please star it on github to let me know!
 
-If you're interested in seeing new upcoming features and bug fixes, check out the projects board https://github.com/users/LoganFairbairn/projects/1
+I plan on continuously releasing updates and bug fixes for this add-on at my own speed. If you're interested in seeing new upcoming features and bug fixes, check out the projects board https://github.com/users/LoganFairbairn/projects/1
 
 -----
 
