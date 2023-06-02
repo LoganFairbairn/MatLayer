@@ -79,3 +79,7 @@ Tips:
 -----
 
 Platforms: Windows, Linux (untested)
+
+-----
+
+Thanks to Mok for helping translate.
