@@ -290,7 +290,6 @@ class MATLAYER_OT_append_basic_brushes(Operator):
         return {'FINISHED'}
 
 class MATLAYER_OT_delete_unused_external_images(Operator):
-    """Deletes unused saved layer and mask images from folders."""
     bl_idname = "matlayer.delete_unused_external_images"
     bl_label = "Delete Unused External Images"
     bl_description = "Deletes unused saved layer and mask images from folders. This is a quick method for clearing out unused textures created with this add-on"
