@@ -282,7 +282,7 @@ def add_material_filter_slot():
 
 def get_normal_intensity_filter_node_tree():
     '''Returns the normal intensity filter node tree, appends it from the blend asset if it doesn't exist.'''
-    return internal_utils.append_custom_node_tree('MATLAYER_ADJUST_NORMAL_INTENSITY', True)
+    return internal_utils.append_custom_node_tree('ML_ADJUST_NORMAL_INTENSITY', True)
 
 def add_material_filter(filter_type, context):
     '''Creates a new material layer filter slot and node.'''

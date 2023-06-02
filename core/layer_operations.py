@@ -1043,7 +1043,7 @@ def read_texture_node_values(material_channel_list, total_number_of_layers, laye
                         setattr(layers[i].color_channel_values, material_channel_name.lower() + "_channel_color", (color[0], color[1], color[2]))
 
                     case 'GROUP':
-                        if texture_node.node_tree.name == 'MATLAYER_TRIPLANAR' or texture_node.node_tree.name == 'MATLAYER_TRIPLANAR_NORMALS':
+                        if texture_node.node_tree.name == 'ML_TRIPLANAR' or texture_node.node_tree.name == 'ML_TRIPLANAR_NORMALS':
                             setattr(layers[i].channel_node_types, material_channel_name.lower() + "_node_type", 'TEXTURE')
                             texture_sample_node = layer_nodes.get_layer_node('TEXTURE-SAMPLE-1', material_channel_name, i, context)
                             if texture_sample_node:
@@ -1078,7 +1078,7 @@ def read_layer_projection_values(material_layers, context):
             texture_sample_1 = layer_nodes.get_layer_node('TEXTURE-SAMPLE-1', material_channel_name, i, context)
             material_layer = material_layers[i]
             if mapping_node:
-                if mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE':
+                if mapping_node.node_tree.name == 'ML_OFFSET_ROTATION_SCALE':
                     if texture_node.bl_static_type == 'TEX_IMAGE':
                         material_layer.projection.mode = texture_node.projection
                         material_layer.projection.texture_extension = texture_node.extension
@@ -1086,7 +1086,7 @@ def read_layer_projection_values(material_layers, context):
                     else:
                         material_layer.projection.mode = 'FLAT'
 
-                elif mapping_node.node_tree.name == 'MATLAYER_TRIPLANAR_MAPPING':
+                elif mapping_node.node_tree.name == 'ML_TRIPLANAR_MAPPING':
                     material_layer.projection.mode = 'TRIPLANAR'
                     if texture_node.bl_static_type == 'TEX_IMAGE':
                         material_layer.projection.texture_extension = texture_sample_1.extension
@@ -1176,9 +1176,9 @@ def read_blur_nodes(context):
         blur_node = layer_nodes.get_layer_node('BLUR', material_channel_name, selected_material_layer_index, context)
         mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, selected_material_layer_index, context)
         if blur_node:
-            if mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE':
+            if mapping_node.node_tree.name == 'ML_OFFSET_ROTATION_SCALE':
                 selected_layer.blur_amount = blur_node.inputs[1].default_value
-            elif mapping_node.node_tree.name == 'MATLAYER_TRIPLANAR_MAPPING':
+            elif mapping_node.node_tree.name == 'ML_TRIPLANAR_MAPPING':
                 selected_layer.blur_amount = blur_node.inputs[3].default_value
 
             # Read blur toggles for material channels.

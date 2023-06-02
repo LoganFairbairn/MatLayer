@@ -636,7 +636,7 @@ def draw_mask_node_properties(column):
                 subrow.operator("matlayer.delete_mask_image", icon="TRASH", text="")
 
             case 'GROUP':
-                if mask_node.node_tree.name == 'MATLAYER_TRIPLANAR':
+                if mask_node.node_tree.name == 'ML_TRIPLANAR':
                     subrow = column.row(align=True)
                     subrow.scale_y = SCALE_Y
                     subrow.prop(masks[selected_mask_index], 'mask_image', text="")
@@ -790,7 +790,7 @@ def draw_mask_properties(column):
                 case 'TEX_IMAGE':
                     subrow.prop_enum(mask_stack, "mask_property_tab", 'PROJECTION', text='Projection')
                 case 'GROUP':
-                    if mask_node.node_tree.name == 'MATLAYER_TRIPLANAR':
+                    if mask_node.node_tree.name == 'ML_TRIPLANAR':
                         subrow.prop_enum(mask_stack, "mask_property_tab", 'PROJECTION', text='Projection')
 
     subrow.prop_enum(mask_stack, "mask_property_tab", 'FILTERS', text='Mask Filters')

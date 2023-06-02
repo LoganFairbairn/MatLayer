@@ -272,7 +272,7 @@ def update_layer_projection_mode(self, context):
                 # If the previous projection mode was triplanar, convert triplanar group nodes to texture nodes and remove triplanar texture samples.
                 texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_material_layer_index, context)
                 if texture_node.bl_static_type == 'GROUP':
-                    if texture_node.node_tree.name == 'MATLAYER_TRIPLANAR' or texture_node.node_tree.name == 'MATLAYER_TRIPLANAR_NORMALS':
+                    if texture_node.node_tree.name == 'ML_TRIPLANAR' or texture_node.node_tree.name == 'ML_TRIPLANAR_NORMALS':
                         material_channel_node.node_tree.nodes.remove(texture_node)
 
                         # Re-add normal rotation fix node to the normal material channel.
@@ -533,10 +533,10 @@ def update_projection_scale_x(self, context):
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
         if mapping_node:
-            if mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE':
+            if mapping_node.node_tree.name == 'ML_OFFSET_ROTATION_SCALE':
                 mapping_node.inputs[3].default_value[0] = layers[selected_layer_index].projection.scale_x
 
-            elif mapping_node.node_tree.name == 'MATLAYER_TRIPLANAR_MAPPING':
+            elif mapping_node.node_tree.name == 'ML_TRIPLANAR_MAPPING':
                 mapping_node.inputs[2].default_value[0] = layers[selected_layer_index].projection.scale_x
 
             if self.sync_projection_scale:
@@ -557,10 +557,10 @@ def update_projection_scale_y(self, context):
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
         
         if mapping_node:
-            if mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE':
+            if mapping_node.node_tree.name == 'ML_OFFSET_ROTATION_SCALE':
                 mapping_node.inputs[3].default_value[1] = layers[selected_layer_index].projection.scale_y
 
-            elif mapping_node.node_tree.name == 'MATLAYER_TRIPLANAR_MAPPING':
+            elif mapping_node.node_tree.name == 'ML_TRIPLANAR_MAPPING':
                 mapping_node.inputs[2].default_value[1] = layers[selected_layer_index].projection.scale_y
 
 def update_projection_scale_z(self, context):
@@ -578,10 +578,10 @@ def update_projection_scale_z(self, context):
         mapping_node = layer_nodes.get_layer_node("MAPPING", material_channel_name, selected_layer_index, context)
 
         if mapping_node:
-            if mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE':
+            if mapping_node.node_tree.name == 'ML_OFFSET_ROTATION_SCALE':
                 mapping_node.inputs[3].default_value[2] = layers[selected_layer_index].projection.scale_z
 
-            elif mapping_node.node_tree.name == 'MATLAYER_TRIPLANAR_MAPPING':
+            elif mapping_node.node_tree.name == 'ML_TRIPLANAR_MAPPING':
                 mapping_node.inputs[2].default_value[2] = layers[selected_layer_index].projection.scale_z
 
 def update_sync_projection_scale(self, context):
@@ -1069,7 +1069,7 @@ def update_custom_node_tree():
         texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_material_layer_index, bpy.context)
         if texture_node:
             if texture_node.bl_static_type == 'GROUP':
-                if texture_node.node_tree.name != 'MATLAYER_TRIPLANAR' and texture_node.node_tree.name != 'MATLAYER_TRIPLANAR_NORMALS':
+                if texture_node.node_tree.name != 'ML_TRIPLANAR' and texture_node.node_tree.name != 'ML_TRIPLANAR_NORMALS':
                     selected_layer = bpy.context.scene.matlayer_layers[bpy.context.scene.matlayer_layer_stack.layer_index]
                     texture_node.node_tree = getattr(selected_layer.material_channel_node_trees, material_channel_name.lower() + "_channel_node_tree")
 
@@ -1159,10 +1159,10 @@ def update_blur_toggle(self, context):
 
                 # Assign a node tree based on material layer projection mode.
                 mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, selected_material_layer_index, context)
-                if mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE':
+                if mapping_node.node_tree.name == 'ML_OFFSET_ROTATION_SCALE':
                     new_blur_node.node_tree = internal_utils.get_flat_blur_node_tree()
                     new_blur_node.inputs[1].default_value = selected_layer.blur_amount
-                elif mapping_node.node_tree.name == 'MATLAYER_TRIPLANAR_MAPPING':
+                elif mapping_node.node_tree.name == 'ML_TRIPLANAR_MAPPING':
                     new_blur_node.node_tree = internal_utils.get_triplanar_blur_node_tree()
                     new_blur_node.inputs[3].default_value = selected_layer.blur_amount
 
@@ -1188,9 +1188,9 @@ def update_blur_amount(self, context):
     for material_channel_name in material_channels.get_material_channel_list():
         blur_node = layer_nodes.get_layer_node('BLUR', material_channel_name, selected_material_layer_index, context)
         mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, selected_material_layer_index, context)
-        if mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE':
+        if mapping_node.node_tree.name == 'ML_OFFSET_ROTATION_SCALE':
             blur_node.inputs[1].default_value = selected_layer.blur_amount
-        elif mapping_node.node_tree.name == 'MATLAYER_TRIPLANAR_MAPPING':
+        elif mapping_node.node_tree.name == 'ML_TRIPLANAR_MAPPING':
             blur_node.inputs[3].default_value = selected_layer.blur_amount
 
 def update_channel_blur(material_channel_name, context):

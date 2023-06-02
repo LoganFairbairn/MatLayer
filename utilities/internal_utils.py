@@ -110,31 +110,31 @@ def append_custom_node_tree(node_tree_name, never_auto_delete):
 
 def get_uv_mapping_node_tree():
     '''Returns a custom mapping node group for UV / flat projection. The node tree will be appended if it doesn't exist in the current blend file.'''
-    return append_custom_node_tree("MATLAYER_OFFSET_ROTATION_SCALE", True)
+    return append_custom_node_tree("ML_OFFSET_ROTATION_SCALE", True)
 
 def get_normal_map_rotation_fix_node_tree():
     '''Returns a custom node tree designed to fix normal map rotations. The node tree will be appended if it doesn't exist in the current blend file.'''
-    return append_custom_node_tree("MATLAYER_FIX_NORMAL_ROTATION", True)
+    return append_custom_node_tree("ML_FIX_NORMAL_ROTATION", True)
 
 def get_triplanar_mapping_tree():
     '''Returns a custom node tree designed specifically for triplanar projection. The node tree will be appended if it doesn't exist in the current blend file.'''
-    return append_custom_node_tree("MATLAYER_TRIPLANAR_MAPPING", True)
+    return append_custom_node_tree("ML_TRIPLANAR_MAPPING", True)
 
 def get_triplanar_node_tree():
     '''Returns a custom triplanar projection node tree. The node tree will be appended if it doesn't exist in the current blend file.'''
-    return append_custom_node_tree("MATLAYER_TRIPLANAR", True)
+    return append_custom_node_tree("ML_TRIPLANAR", True)
 
 def get_normal_triplanar_node_tree():
     '''Returns a custom triplanar projection node tree specifically for correct normal map projections. The node tree will be appended if it doesn't exist in the current blend file.'''
-    return append_custom_node_tree("MATLAYER_TRIPLANAR_NORMALS", True)
+    return append_custom_node_tree("ML_TRIPLANAR_NORMALS", True)
 
 def get_flat_blur_node_tree():
     '''Returns a group node that can be used to blur flat / uv projected textures.'''
-    return append_custom_node_tree("MATLAYER_FLAT_BLUR", True)
+    return append_custom_node_tree("ML_FLAT_BLUR", True)
 
 def get_triplanar_blur_node_tree():
     '''Returns a group node that can be used to blur triplanar projected textures.'''
-    return append_custom_node_tree("MATLAYER_TRIPLANAR_BLUR", True)
+    return append_custom_node_tree("ML_TRIPLANAR_BLUR", True)
 
 def append_default_node_trees():
     '''Appends important node trees used in this add-on.'''
@@ -263,9 +263,11 @@ class MATLAYER_OT_append_basic_brushes(Operator):
     bl_description = "Appends basic brush presets to the current blend file"
 
     def execute(self, context):
+        brush_prefix = "ML_"
+
         # Delete any Matlayer brushes if they exist before re-importing them.
         for brush in bpy.data.brushes:
-            if brush.name.startswith("Matlayer_"):
+            if brush.name.startswith(brush_prefix):
                 bpy.data.brushes.remove(brush)
 
         USER = Path(resource_path('USER'))
@@ -273,12 +275,12 @@ class MATLAYER_OT_append_basic_brushes(Operator):
         source_path =  str(USER / "scripts/addons" / ADDON_NAME / "blend" / BLEND_FILE)
 
         with bpy.data.libraries.load(source_path) as (data_from, data_to):
-            data_to.brushes = [name for name in data_from.brushes if name.startswith("Matlayer_")]
+            data_to.brushes = [name for name in data_from.brushes if name.startswith(brush_prefix)]
             
         # For all loaded brushes, assign a brush icon image.
         brush_preview_images_path = str(USER / "scripts/addons" / ADDON_NAME / "brush_icons")
         for brush in bpy.data.brushes:
-            if brush.name.startswith("Matlayer_"):
+            if brush.name.startswith(brush_prefix):
                 brush.use_custom_icon = True
                 brush_icon_name = brush.name.split('_')[1]
                 brush.icon_filepath = os.path.join(brush_preview_images_path, brush_icon_name + ".png")

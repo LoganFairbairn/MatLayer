@@ -188,7 +188,7 @@ def link_last_layer_node(material_layer_index, material_channel_name, link_nodes
     # Connect to active filter nodes if they exist.
     if last_filter_node:
         # Identify the node that should be connected to the filter node.
-        if material_channel_name == 'NORMAL' and mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE':
+        if material_channel_name == 'NORMAL' and mapping_node.node_tree.name == 'ML_OFFSET_ROTATION_SCALE':
             normal_rotation_fix_node = get_layer_node('NORMAL-ROTATION-FIX', material_channel_name, material_layer_index, bpy.context)
             node_to_filter_node = normal_rotation_fix_node
             link_nodes(mapping_node.outputs[1], normal_rotation_fix_node.inputs[1])
@@ -266,7 +266,7 @@ def relink_material_nodes(material_layer_index):
         else:
             # Connect to the coord node based on layer projection mode (check the mapping node tree for projection mode).
             match mapping_node.node_tree.name:
-                case 'MATLAYER_OFFSET_ROTATION_SCALE':
+                case 'ML_OFFSET_ROTATION_SCALE':
                     link_nodes(coord_node.outputs[2], mapping_node.inputs[0])
 
                     # Connect flat mapping to a custom group node inputs with the name 'Mapping' if one exists.
@@ -276,11 +276,11 @@ def relink_material_nodes(material_layer_index):
                                 link_nodes(mapping_node.outputs[0], texture_node.inputs[i])
                                 break
 
-                case 'MATLAYER_TRIPLANAR_MAPPING':
+                case 'ML_TRIPLANAR_MAPPING':
                     if texture_node.bl_static_type == 'GROUP':
 
                         # Link triplanar texture samples for material channels that use an image texture.
-                        if texture_node.node_tree.name == 'MATLAYER_TRIPLANAR' or texture_node.node_tree.name == 'MATLAYER_TRIPLANAR_NORMALS':
+                        if texture_node.node_tree.name == 'ML_TRIPLANAR' or texture_node.node_tree.name == 'ML_TRIPLANAR_NORMALS':
                             texture_sample_1 = get_layer_node('TEXTURE-SAMPLE-1', material_channel_name, material_layer_index, bpy.context)
                             texture_sample_2 = get_layer_node('TEXTURE-SAMPLE-2', material_channel_name, material_layer_index, bpy.context)
                             texture_sample_3 = get_layer_node('TEXTURE-SAMPLE-3', material_channel_name, material_layer_index, bpy.context)
