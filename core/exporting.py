@@ -177,23 +177,23 @@ class MATLAYER_OT_export(Operator):
         if matlayer_materials.verify_material(context) == False:
             return {'FINISHED'}
     
-        if bpy.context.scene.matlayer_export_settings.export_base_color and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.color_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_base_color:
             bake_and_export_material_channel('COLOR', context, self)
-        if bpy.context.scene.matlayer_export_settings.export_subsurface and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.subsurface_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_subsurface:
             bake_and_export_material_channel('SUBSURFACE', context, self)
-        if bpy.context.scene.matlayer_export_settings.export_subsurface_color and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.subsurface_color_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_subsurface_color:
             bake_and_export_material_channel('SUBSURFACE_COLOR', context, self)
-        if bpy.context.scene.matlayer_export_settings.export_metallic and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.metallic_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_metallic:
             bake_and_export_material_channel('METALLIC', context, self)
-        if bpy.context.scene.matlayer_export_settings.export_specular and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.specular_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_specular:
             bake_and_export_material_channel('SPECULAR', context, self)
-        if bpy.context.scene.matlayer_export_settings.export_roughness and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.roughness_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_roughness:
             bake_and_export_material_channel('ROUGHNESS', context, self)
-        if bpy.context.scene.matlayer_export_settings.export_normals and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.normal_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_normals:
             bake_and_export_material_channel('NORMAL', context, self)
-        if bpy.context.scene.matlayer_export_settings.export_height and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.height_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_height:
             bake_and_export_material_channel('HEIGHT', context, self)
-        if bpy.context.scene.matlayer_export_settings.export_emission and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.emission_channel_toggle:
+        if bpy.context.scene.matlayer_export_settings.export_emission:
             bake_and_export_material_channel('EMISSION', context, self)
         return {'FINISHED'}
 
