@@ -296,7 +296,7 @@ def draw_layer_material_channel_toggles(column, context):
 
 def draw_texture_node_settings(column, texture_node, texture_node_type, layer, material_channel_name, context):
     '''Draws the texture node setting based on the given texture node type.'''
-    principled_bsdf_node = context.active_object.active_material.node_tree.nodes.get('Principled BSDF')
+    principled_bsdf_node = context.active_object.active_material.node_tree.nodes.get('MatLayer BSDF')
 
     match texture_node_type:
         case "VALUE":

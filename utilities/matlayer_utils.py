@@ -194,6 +194,13 @@ def update_total_node_and_link_count():
                                                 if l != 0:
                                                     settings.total_node_link_count += 1
 
+def get_node_by_bl_static_type(nodes, bl_static_type):
+    '''Finds and returns a node by it's bl_static_type.'''
+    # When using a different language, default nodes must be accessed using their type because their default name translates.
+    for node in nodes:
+        if node.bl_static_type == bl_static_type:
+            return node
+
 class MatlayerSettings(PropertyGroup):
     total_node_count: IntProperty(name="Total Node Count", description="The total number of nodes automatically created by matlayer for this material")
     total_node_link_count: IntProperty(name="Total Node Link Count", description="The total number of node links automatically by matlayer for this material")

@@ -159,6 +159,8 @@ def create_channel_group_nodes(context):
 
         # Create output nodes & sockets.
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
+        group_output_node.name = "Group Output"
+        group_output_node.label = "Group Output"
         group_output_node.width = layer_stack.node_default_width
         new_node_group.outputs.new('NodeSocketColor', 'Color')
         new_node_group.outputs.new('NodeSocketFloat', 'Alpha')
@@ -174,6 +176,8 @@ def create_channel_group_nodes(context):
 
         # Create output nodes and sockets.
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
+        group_output_node.name = "Group Output"
+        group_output_node.label = "Group Output"
         group_output_node.width = layer_stack.node_default_width
         new_node_group.outputs.new('NodeSocketColor', 'Subsurface')
 
@@ -187,6 +191,8 @@ def create_channel_group_nodes(context):
 
         # Create output nodes and sockets.
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
+        group_output_node.name = "Group Output"
+        group_output_node.label = "Group Output"
         group_output_node.width = layer_stack.node_default_width
         new_node_group.outputs.new('NodeSocketColor', 'SubsurfaceColor')
 
@@ -197,6 +203,8 @@ def create_channel_group_nodes(context):
 
         # Create output nodes and sockets.
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
+        group_output_node.name = "Group Output"
+        group_output_node.label = "Group Output"
         group_output_node.width = layer_stack.node_default_width
         new_node_group.outputs.new('NodeSocketFloat', 'Metallic')
 
@@ -205,6 +213,8 @@ def create_channel_group_nodes(context):
     if bpy.data.node_groups.get(specular_group_node_name) == None:
         new_node_group = bpy.data.node_groups.new(specular_group_node_name, 'ShaderNodeTree')
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
+        group_output_node.name = "Group Output"
+        group_output_node.label = "Group Output"
         group_output_node.width = layer_stack.node_default_width
         new_node_group.outputs.new('NodeSocketFloat', 'Specular')
 
@@ -215,6 +225,8 @@ def create_channel_group_nodes(context):
         
         # Create output nodes.
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
+        group_output_node.name = "Group Output"
+        group_output_node.label = "Group Output"
         group_output_node.width = layer_stack.node_default_width
         new_node_group.outputs.new('NodeSocketFloat', 'Roughness')
 
@@ -228,12 +240,18 @@ def create_channel_group_nodes(context):
 
         # Create output nodes and sockets.
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
+        group_output_node.name = "Group Output"
+        group_output_node.label = "Group Output"
+        group_output_node.name = "Group Output"
+        group_output_node.label = "Group Output"
         group_output_node.width = layer_stack.node_default_width
         new_node_group.outputs.new('NodeSocketVector', 'Normal')
         group_output_node.inputs[0].default_value = (0.0, 0.0, 1.0)
 
         # Create normal map node and connect it to the output.
         normal_map_node = new_node_group.nodes.new('ShaderNodeNormalMap')
+        normal_map_node.name = "Normal Map"
+        normal_map_node.label = "Normal Map"
         new_node_group.links.new(normal_map_node.outputs[0], group_output_node.inputs[0])
 
     # Create emission group node.
@@ -243,6 +261,9 @@ def create_channel_group_nodes(context):
 
         # Create output nodes and sockets.
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
+        group_output_node.name = "Group Output"
+        group_output_node.label = "Group Output"
+
         group_output_node.width = layer_stack.node_default_width
         new_node_group.outputs.new('NodeSocketColor', 'Emission')
 
@@ -253,12 +274,16 @@ def create_channel_group_nodes(context):
 
         # Create output nodes and sockets.
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
+        group_output_node.name = "Group Output"
+        group_output_node.label = "Group Output"
         group_output_node.width = layer_stack.node_default_width
         new_node_group.outputs.new('NodeSocketVector', 'Height')
         group_output_node.inputs[0].default_value = (0.0, 0.0, 1.0)
 
         # Create bump node and connect it to the output.
         bump_node = new_node_group.nodes.new('ShaderNodeBump')
+        bump_node.name = "Bump"
+        bump_node.label = "Bump"
         new_node_group.links.new(bump_node.outputs[0], group_output_node.inputs[0])
     
     # Add the group node to the active material (if there isn't one already) and link it.
@@ -291,6 +316,8 @@ def create_empty_group_node(context):
     if bpy.data.node_groups.get(empty_group_node_name) == None:
         new_node_group = bpy.data.node_groups.new(empty_group_node_name, 'ShaderNodeTree')
         group_output_node = new_node_group.nodes.new('NodeGroupOutput')
+        group_output_node.name = "Group Output"
+        group_output_node.label = "Group Output"
         group_output_node.width = context.scene.matlayer_layer_stack.node_default_width
         new_node_group.outputs.new('NodeSocketColor', 'Color')
         group_output_node.inputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
@@ -299,7 +326,7 @@ def connect_material_channel(context, material_channel_name):
     '''Connects the specified material channel group node to the main principled BSDF shader or a secondary node.'''
     material_nodes = context.active_object.active_material.node_tree.nodes
     material_channel_node = get_material_channel_node(context, material_channel_name)
-    principled_bsdf_node = material_nodes.get('Principled BSDF')
+    principled_bsdf_node = material_nodes.get('MatLayer BSDF')
     mix_normal_maps_node = material_nodes.get('MATLAYER_NORMALMIX')
     texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
 
@@ -353,7 +380,7 @@ def connect_material_channel(context, material_channel_name):
             node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[19])
 
 def disconnect_material_channel(context, material_channel_name):
-    '''Disconnects the specified material channel group node from the main principled BSDF shader.'''
+    '''Disconnects the specified material channel group node from the main Principled BSDF shader.'''
     node_links = context.active_object.active_material.node_tree.links
     material_channel_node = get_material_channel_node(context, material_channel_name)
 
@@ -362,8 +389,8 @@ def disconnect_material_channel(context, material_channel_name):
             if l.from_node.name == material_channel_node.name:
                 node_links.remove(l)
 
-    # If one of the height or normal material channels were disconnected, and one of them is still active, connect it directly to the principled bsdf shader.
-    principled_bsdf_node = context.active_object.active_material.node_tree.nodes.get('Principled BSDF')
+    # If one of the height or normal material channels were disconnected, and one of them is still active, connect it directly to the Principled BSDF shader.
+    principled_bsdf_node = context.active_object.active_material.node_tree.nodes.get('MatLayer BSDF')
     texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
 
     if material_channel_name == 'NORMAL':
@@ -427,14 +454,14 @@ def isolate_material_channel(isolate, material_channel_name, context):
         
 
     else:
-        principled_bsdf_node = material_nodes.get('Principled BSDF')
+        principled_bsdf_node = material_nodes.get('MatLayer BSDF')
         mix_normal_maps_node = material_nodes.get('MATLAYER_NORMALMIX')
 
         # Disconnects all nodes in the active material.
         for l in node_links:
             node_links.remove(l)
 
-        # Connect principled BSDF to material output.
+        # Connect Principled BSDF to material output.
         node_links.new(principled_bsdf_node.outputs[0], material_output_node.inputs[0])
 
         # Connect all active material channels.
@@ -469,7 +496,7 @@ def isolate_material_channel(isolate, material_channel_name, context):
         if texture_set_settings.global_material_channel_toggles.normal_channel_toggle:
             material_channel_node = get_material_channel_node(context, "NORMAL")
 
-            # If the height material channel isn't active, connect the normal channel directly to the principled bsdf.
+            # If the height material channel isn't active, connect the normal channel directly to the Principled BSDF.
             if texture_set_settings.global_material_channel_toggles.height_channel_toggle:
                 node_links.new(material_channel_node.outputs[0], mix_normal_maps_node.inputs[4])
             else:
@@ -478,7 +505,7 @@ def isolate_material_channel(isolate, material_channel_name, context):
         if texture_set_settings.global_material_channel_toggles.height_channel_toggle:
             material_channel_node = get_material_channel_node(context, "HEIGHT")
 
-            # If the normal material channel isn't active, connect the height channel directly to the pricipled bsdf.
+            # If the normal material channel isn't active, connect the height channel directly to the Principled BSDF.
             if texture_set_settings.global_material_channel_toggles.normal_channel_toggle:
                 mix_normal_maps_node.get('A')
                 node_links.new(material_channel_node.outputs[0], mix_normal_maps_node.inputs[5])
@@ -486,7 +513,7 @@ def isolate_material_channel(isolate, material_channel_name, context):
             else:
                 node_links.new(material_channel_node.outputs[0], principled_bsdf_node.inputs[22])
 
-        # Re-connect the normal mix node to the principled bsdf shader (only if both normal and height are toggled on).
+        # Re-connect the normal mix node to the Principled BSDF shader (only if both normal and height are toggled on).
         if texture_set_settings.global_material_channel_toggles.height_channel_toggle and texture_set_settings.global_material_channel_toggles.normal_channel_toggle:
             node_links.new(mix_normal_maps_node.outputs[1], principled_bsdf_node.inputs[22])
 

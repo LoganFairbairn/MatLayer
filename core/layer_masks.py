@@ -2035,8 +2035,12 @@ def create_mask_filter_group_node(filter_type, material_layer_index, mask_index,
             mask_filter_group_node.outputs.new('NodeSocketColor', 'Color')
 
             group_input_node = mask_filter_group_node.nodes.new('NodeGroupInput')
+            group_input_node.name = "Group Input"
+            group_input_node.label = "Group Input"
 
             group_output_node = mask_filter_group_node.nodes.new('NodeGroupOutput')
+            group_output_node.name = "Group Output"
+            group_output_node.label = "Group Output"
 
             filter_node = mask_filter_group_node.nodes.new(filter_type)
             filter_node.name = mask_filter_name
@@ -2051,7 +2055,12 @@ def create_mask_filter_group_node(filter_type, material_layer_index, mask_index,
             mask_filter_group_node.outputs.new('NodeSocketColor', 'Color')
 
             group_input_node = mask_filter_group_node.nodes.new('NodeGroupInput')
+            group_input_node.name = "Group Input"
+            group_input_node.label = "Group Input"
+
             group_output_node = mask_filter_group_node.nodes.new('NodeGroupOutput')
+            group_output_node.name = "Group Output"
+            group_output_node.label = "Group Output"
 
             filter_node = mask_filter_group_node.nodes.new(filter_type)
             filter_node.name = mask_filter_name

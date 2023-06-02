@@ -2,6 +2,7 @@
 
 import bpy
 from ..utilities import logging
+from ..utilities import matlayer_utils
 
 def verify_material(context):
     '''Returns true if the material is a valid material created using this add-on.'''
@@ -13,9 +14,9 @@ def verify_material(context):
     if active_material == None:
         return False
 
-    principled_bsdf = active_material.node_tree.nodes.get('Principled BSDF')
+    principled_bsdf = active_material.node_tree.nodes.get('MatLayer BSDF')
     if principled_bsdf != None:
-        if principled_bsdf.label == "MatLay Material":
+        if principled_bsdf.label == "MatLayer BSDF":
             return True
         else:
             return False
@@ -50,13 +51,16 @@ def create_matlayer_material(context):
     # Make a new emission node (used for channel previews).
     material_nodes = new_material.node_tree.nodes
     emission_node = material_nodes.new(type='ShaderNodeEmission')
+    emission_node.name = "Emission"
+    emission_node.label = "Emission"
     emission_node.width = layer_stack.node_default_width
     emission_node.location = (0.0, emission_node.height + node_spacing)
 
-    # Update the principled bsdf node.
-    principled_bsdf_node = material_nodes.get('Principled BSDF')
+    # Update the Principled bsdf node.
+    principled_bsdf_node = matlayer_utils.get_node_by_bl_static_type(material_nodes, 'BSDF_PRINCIPLED')
     principled_bsdf_node.width = layer_stack.node_default_width
-    principled_bsdf_node.label = "MatLay Material"
+    principled_bsdf_node.name = "MatLayer BSDF"
+    principled_bsdf_node.label = "MatLayer BSDF"
     principled_bsdf_node.location = (0.0, 0.0)
 
     # Make a new mix normal group node for mixing normal and height material channels.
@@ -68,7 +72,9 @@ def create_matlayer_material(context):
     new_material.node_tree.links.new(normal_mix_node.outputs[0], principled_bsdf_node.inputs[22])
 
     # Adjust material output node location.
-    material_output_node = material_nodes.get('Material Output')
+    material_output_node = matlayer_utils.get_node_by_bl_static_type(material_nodes, 'OUTPUT_MATERIAL')
+    material_output_node.name = "Material Output"
+    material_output_node.label = "Material Output"
     material_output_node.location = (principled_bsdf_node.width + node_spacing, 0.0)
 
 def prepare_material(context, self):

@@ -347,7 +347,7 @@ def create_temp_bake_material(bake_type):
 
     # Remove the Principled BSDF node from the material, it's not used in node setups for baking.
     nodes = bake_material.node_tree.nodes
-    bsdf_node = nodes.get("Principled BSDF")
+    bsdf_node = nodes.get("MatLayer BSDF")
     if bsdf_node != None:
         nodes.remove(bsdf_node)
 
