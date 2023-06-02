@@ -10,7 +10,7 @@ from ..core import material_filters
 from ..core import layer_masks
 from ..core import texture_set_settings
 from ..utilities import logging
-from ..utilities import matlayer_utils
+from ..utilities import internal_utils
 import random
 import os
 
@@ -85,7 +85,7 @@ def add_default_layer_nodes(layer_type, decal_object):
 
         # Add nodes to fix normal map rotation.
         if material_channel_name == 'NORMAL':
-            normal_rotation_fix_node_tree = matlayer_utils.get_normal_map_rotation_fix_node_tree()
+            normal_rotation_fix_node_tree = internal_utils.get_normal_map_rotation_fix_node_tree()
             normal_rotation_fix_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
             normal_rotation_fix_node.name = layer_nodes.format_material_node_name("NORMAL-ROTATION-FIX", new_layer_index, True)
             normal_rotation_fix_node.label = normal_rotation_fix_node.name
@@ -115,7 +115,7 @@ def add_default_layer_nodes(layer_type, decal_object):
             coord_node.object = decal_object
         new_nodes.append(coord_node)
 
-        custom_uv_mapping = matlayer_utils.get_uv_mapping_node_tree()
+        custom_uv_mapping = internal_utils.get_uv_mapping_node_tree()
         mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
         mapping_node.name = layer_nodes.format_material_node_name("MAPPING", new_layer_index, True)
         mapping_node.label = mapping_node.name
@@ -228,14 +228,14 @@ def add_layer(layer_type, self, decal_object=None):
     '''Adds a material layer setup based on the provided layer type.'''
 
     # Validate and prepare the material for the selected object.
-    matlayer_utils.set_valid_mode()
+    internal_utils.set_valid_mode()
     if not matlayer_materials.prepare_material(bpy.context, self):
         return
     material_channels.create_channel_group_nodes(bpy.context)
     material_channels.create_empty_group_node(bpy.context)
 
     # Append standard mapping node trees.
-    matlayer_utils.append_default_node_trees()
+    internal_utils.append_default_node_trees()
 
     # Add a new layer slot and default nodes.
     new_material_layer_index = add_layer_slot(layer_type)
@@ -259,7 +259,7 @@ def add_layer(layer_type, self, decal_object=None):
     bpy.context.scene.matlayer_mask_filter_stack.selected_mask_filter_index = -1
 
     # Set a valid material shading mode and reset ui tabs.
-    matlayer_utils.set_valid_material_shading_mode(bpy.context)
+    internal_utils.set_valid_material_shading_mode(bpy.context)
     bpy.context.scene.matlayer_layer_stack.layer_property_tab = 'MATERIAL'
     bpy.context.scene.matlayer_layer_stack.material_property_tab = 'MATERIAL'
 
@@ -392,7 +392,7 @@ class MATLAYER_OT_add_decal_layer(Operator):
         # Automatically add a mask for the decal set to use alpha.
         layer_masks.add_mask('DECAL', use_alpha=True)
 
-        matlayer_utils.update_total_node_and_link_count()
+        internal_utils.update_total_node_and_link_count()
         return {'FINISHED'}
 
 class MATLAYER_OT_add_material_layer(Operator):
@@ -403,7 +403,7 @@ class MATLAYER_OT_add_material_layer(Operator):
 
     def execute(self, context):
         add_layer('MATERIAL', self)
-        matlayer_utils.update_total_node_and_link_count()
+        internal_utils.update_total_node_and_link_count()
         return {'FINISHED'}
 
 class MATLAYER_OT_add_paint_layer(Operator):
@@ -414,7 +414,7 @@ class MATLAYER_OT_add_paint_layer(Operator):
 
     def execute(self, context):
         add_layer('PAINT', self)
-        matlayer_utils.update_total_node_and_link_count()
+        internal_utils.update_total_node_and_link_count()
         layer_masks.add_mask('EMPTY', use_alpha=True)
         context.scene.matlayer_masks[0].mask_image = context.scene.matlayer_layers[context.scene.matlayer_layer_stack.layer_index].material_channel_textures.color_channel_texture
         return {'FINISHED'}
@@ -464,7 +464,7 @@ class MATLAYER_OT_move_material_layer(Operator):
             print("Error: Direction given to move material layer is invalid.")
             return{'FINISHED'}
 
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
 
         layers = context.scene.matlayer_layers
         selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -614,7 +614,7 @@ class MATLAYER_OT_move_material_layer(Operator):
         layer_nodes.relink_mix_layer_nodes()
 
         # Set a valid shading mode so users can see their change.
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
 
         return{'FINISHED'}
 
@@ -634,7 +634,7 @@ class MATLAYER_OT_delete_layer(Operator):
         layers = context.scene.matlayer_layers
         selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
 
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
 
         # Remove the decal object if one exists.
         coord_node = layer_nodes.get_layer_node('COORD', 'COLOR', selected_material_layer_index, context)
@@ -685,11 +685,11 @@ class MATLAYER_OT_delete_layer(Operator):
         layer_nodes.relink_mix_layer_nodes()
 
         # Set a valid material shading mode and reset ui tabs.
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         context.scene.matlayer_layer_stack.layer_property_tab = 'MATERIAL'
         context.scene.matlayer_layer_stack.material_property_tab = 'MATERIAL'
         
-        matlayer_utils.update_total_node_and_link_count()
+        internal_utils.update_total_node_and_link_count()
         return {'FINISHED'}
 
 class MATLAYER_OT_duplicate_layer(Operator):
@@ -826,8 +826,8 @@ class MATLAYER_OT_duplicate_layer(Operator):
         context.scene.matlayer_mask_stack.auto_update_mask_properties = True
         context.scene.matlayer_mask_filter_stack.auto_update_properties = True
 
-        matlayer_utils.set_valid_material_shading_mode(context)
-        matlayer_utils.update_total_node_and_link_count()
+        internal_utils.set_valid_material_shading_mode(context)
+        internal_utils.update_total_node_and_link_count()
         return{'FINISHED'}
 
 class MATLAYER_OT_edit_uvs_externally(Operator):
@@ -837,7 +837,7 @@ class MATLAYER_OT_edit_uvs_externally(Operator):
 
     def execute(self, context):
         material_layers.validate_selected_material_layer_index()
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
 
         original_mode = bpy.context.object.mode
         active_object = bpy.context.active_object
@@ -907,7 +907,7 @@ class MATLAYER_OT_edit_image_externally(Operator):
             self.report({'ERROR'}, "Programming error, invalid type provided to edit image externally operator.")
             return {'FINISHED'}
     
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
 
         # Get the texture node to export the image from based on the provided type.
         if self.image_type == 'LAYER':
@@ -941,7 +941,7 @@ class MATLAYER_OT_edit_image_externally(Operator):
             else:
                 self.report({'ERROR'}, "Export image is packed, unpack and save the image to a folder to export to an external image editor.")
             bpy.ops.image.external_edit(filepath=export_image.filepath)
-            matlayer_utils.set_valid_material_shading_mode(context)
+            internal_utils.set_valid_material_shading_mode(context)
         
         return {'FINISHED'}
 
@@ -1245,7 +1245,7 @@ class MATLAYER_OT_read_layer_nodes(Operator):
         # Materials must follow a strict format to be able to be properly read, making materials not made with this add-on incompatible.
         self.report({'INFO'}, "Refreshed layer stack.")
         
-        matlayer_utils.update_total_node_and_link_count()
+        internal_utils.update_total_node_and_link_count()
 
         if matlayer_materials.verify_material(context) == False:
             bpy.context.scene.matlayer_layers.clear()

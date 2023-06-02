@@ -8,7 +8,7 @@ from . import texture_set_settings
 from ..utilities import logging
 from . import matlayer_materials
 from .. import preferences
-from ..utilities import matlayer_utils
+from ..utilities import internal_utils
 
 #----------------------------- EXPORT SETTINGS -----------------------------#
 

@@ -2,7 +2,7 @@
 
 import bpy
 from ..utilities import logging
-from ..utilities import matlayer_utils
+from ..utilities import internal_utils
 
 def verify_material(context):
     '''Returns true if the material is a valid material created using this add-on.'''
@@ -57,7 +57,7 @@ def create_matlayer_material(context):
     emission_node.location = (0.0, emission_node.height + node_spacing)
 
     # Update the Principled bsdf node.
-    principled_bsdf_node = matlayer_utils.get_node_by_bl_static_type(material_nodes, 'BSDF_PRINCIPLED')
+    principled_bsdf_node = internal_utils.get_node_by_bl_static_type(material_nodes, 'BSDF_PRINCIPLED')
     principled_bsdf_node.width = layer_stack.node_default_width
     principled_bsdf_node.name = "MatLayer BSDF"
     principled_bsdf_node.label = "MatLayer BSDF"
@@ -72,7 +72,7 @@ def create_matlayer_material(context):
     new_material.node_tree.links.new(normal_mix_node.outputs[0], principled_bsdf_node.inputs[22])
 
     # Adjust material output node location.
-    material_output_node = matlayer_utils.get_node_by_bl_static_type(material_nodes, 'OUTPUT_MATERIAL')
+    material_output_node = internal_utils.get_node_by_bl_static_type(material_nodes, 'OUTPUT_MATERIAL')
     material_output_node.name = "Material Output"
     material_output_node.label = "Material Output"
     material_output_node.location = (principled_bsdf_node.width + node_spacing, 0.0)

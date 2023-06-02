@@ -7,7 +7,7 @@ from . import ui_export_section
 from . import ui_texture_set_section
 from . import ui_utils_section
 from . import ui_settings_section
-from .. import matlayer_utils
+from .. import internal_utils
 
 def check_blend_saved():
     if bpy.path.abspath("//") == "":

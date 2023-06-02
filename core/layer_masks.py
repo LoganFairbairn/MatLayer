@@ -10,7 +10,7 @@ from .material_layers import PROJECTION_MODES, TEXTURE_EXTENSION_MODES, TEXTURE_
 from . import layer_nodes
 from . import material_channels
 from . import texture_set_settings
-from ..utilities import matlayer_utils
+from ..utilities import internal_utils
 from ..utilities import logging
 import math
 
@@ -51,7 +51,7 @@ def update_mask_image(self, context):
     if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
 
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
     selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
@@ -72,7 +72,7 @@ def update_mask_hidden(self, context):
     if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
 
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     
     selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
 
@@ -121,7 +121,7 @@ def update_mask_projection_mode(self, context):
     if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     
     selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
     masks = context.scene.matlayer_masks
@@ -139,7 +139,7 @@ def update_mask_projection_mode(self, context):
                 material_channel_node.node_tree.nodes.remove(mapping_node)
 
                 new_mapping_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
-                new_mapping_node.node_tree = matlayer_utils.get_uv_mapping_node_tree()
+                new_mapping_node.node_tree = internal_utils.get_uv_mapping_node_tree()
                 new_mapping_node.name = format_mask_node_name('MASK-MAPPING', selected_material_layer_index, selected_mask_index)
                 new_mapping_node.label = new_mapping_node.name
 
@@ -162,7 +162,7 @@ def update_mask_projection_mode(self, context):
                 # Convert existing blur nodes from triplanar to flat.
                 mask_blur_node = get_mask_node('MASK-BLUR', material_channel_name, selected_material_layer_index, selected_mask_index)
                 if mask_blur_node:
-                    mask_blur_node.node_tree = matlayer_utils.get_flat_blur_node_tree()
+                    mask_blur_node.node_tree = internal_utils.get_flat_blur_node_tree()
 
             case 'TRIPLANAR':
                 # Convert all IMAGE TEXTURE nodes to triplanar group nodes.
@@ -173,7 +173,7 @@ def update_mask_projection_mode(self, context):
                 
                 if old_mask_texture_node.bl_static_type == 'TEX_IMAGE':
                     new_mask_texture_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
-                    new_mask_texture_node.node_tree = matlayer_utils.get_triplanar_node_tree()
+                    new_mask_texture_node.node_tree = internal_utils.get_triplanar_node_tree()
 
                     # Create new image texture nodes for masks to sample from for triplanar projection.
                     triplanar_sample_nodes = []
@@ -200,7 +200,7 @@ def update_mask_projection_mode(self, context):
                     print("Error: Mapping node does not exist when trying to convert to triplanar mapping node.")
                     return
                 
-                triplanar_mapping_node_tree = matlayer_utils.get_triplanar_mapping_tree()
+                triplanar_mapping_node_tree = internal_utils.get_triplanar_mapping_tree()
                 new_mapping_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
                 new_mapping_node.node_tree = triplanar_mapping_node_tree
                 new_mapping_node.inputs[3].default_value = self.blending
@@ -211,7 +211,7 @@ def update_mask_projection_mode(self, context):
                 # Convert existing blur nodes from flat to triplanar.
                 mask_blur_node = get_mask_node('MASK-BLUR', material_channel_name, selected_material_layer_index, selected_mask_index)
                 if mask_blur_node:
-                    mask_blur_node.node_tree = matlayer_utils.get_triplanar_blur_node_tree()
+                    mask_blur_node.node_tree = internal_utils.get_triplanar_blur_node_tree()
 
     # Organize and then relink mask nodes.
     layer_nodes.organize_all_layer_nodes()
@@ -224,7 +224,7 @@ def update_mask_projection_interpolation(self, context):
     if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     
     masks = context.scene.matlayer_masks
     selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -241,7 +241,7 @@ def update_mask_projection_extension(self, context):
     if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     
     masks = context.scene.matlayer_masks
     selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -258,7 +258,7 @@ def update_mask_projection_blending(self, context):
     if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
 
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     masks = context.scene.matlayer_masks
     selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -275,7 +275,7 @@ def update_mask_projection_offset_x(self, context):
     if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     masks = context.scene.matlayer_masks
     selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -295,7 +295,7 @@ def update_mask_projection_offset_y(self, context):
     if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     masks = context.scene.matlayer_masks
     selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -315,7 +315,7 @@ def update_mask_projection_offset_z(self, context):
     if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     masks = context.scene.matlayer_masks
     selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -335,7 +335,7 @@ def update_mask_projection_rotation_x(self, context):
     if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     masks = context.scene.matlayer_masks
     selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -356,7 +356,7 @@ def update_mask_projection_rotation_y(self, context):
     if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
             return
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     masks = context.scene.matlayer_masks
     selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -377,7 +377,7 @@ def update_mask_projection_rotation_z(self, context):
     if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
             return
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     masks = context.scene.matlayer_masks
     selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -399,7 +399,7 @@ def update_mask_projection_scale_x(self, context):
     if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     masks = context.scene.matlayer_masks
     selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -422,7 +422,7 @@ def update_mask_projection_scale_y(self, context):
     if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     masks = context.scene.matlayer_masks
     selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -442,7 +442,7 @@ def update_mask_projection_scale_z(self, context):
     if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     masks = context.scene.matlayer_masks
     selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -462,7 +462,7 @@ def update_mask_projection_match_scale(self, context):
     if context.scene.matlayer_mask_stack.auto_update_mask_properties == False:
         return
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     if self.sync_mask_projection_scale:
         masks = context.scene.matlayer_masks
@@ -496,10 +496,10 @@ def update_mask_blur_toggle(self, context):
                 # Assign a node tree based on material layer projection mode.
                 mask_mapping_node = get_mask_node('MASK-MAPPING', material_channel_name, selected_material_layer_index, selected_mask_index)
                 if mask_mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE':
-                    new_blur_node.node_tree = matlayer_utils.get_flat_blur_node_tree()
+                    new_blur_node.node_tree = internal_utils.get_flat_blur_node_tree()
                     new_blur_node.inputs[1].default_value = selected_mask.blur_amount
                 elif mask_mapping_node.node_tree.name == 'MATLAYER_TRIPLANAR_MAPPING':
-                    new_blur_node.node_tree = matlayer_utils.get_triplanar_blur_node_tree()
+                    new_blur_node.node_tree = internal_utils.get_triplanar_blur_node_tree()
                     new_blur_node.inputs[3].default_value = selected_mask.blur_amount
 
         # Remove the blur node, blue was toggled off.
@@ -1081,7 +1081,7 @@ def add_default_mask_nodes(mask_type, context):
             new_nodes.append(mask_coord_node)
 
             mask_mapping_node = material_channel_node.node_tree.nodes.new(type='ShaderNodeGroup')
-            mask_mapping_node.node_tree = matlayer_utils.get_uv_mapping_node_tree()
+            mask_mapping_node.node_tree = internal_utils.get_uv_mapping_node_tree()
             mask_mapping_node.name = format_mask_node_name("MASK-MAPPING", selected_material_layer_index, selected_mask_index, True)
             mask_mapping_node.label = mask_mapping_node.name
             new_nodes.append(mask_mapping_node)
@@ -1182,7 +1182,7 @@ def add_mask(mask_type, use_alpha=False):
     # Turn auto updating for mask properties back on.
     bpy.context.scene.matlayer_mask_stack.auto_update_mask_properties = True
 
-    matlayer_utils.update_total_node_and_link_count()
+    internal_utils.update_total_node_and_link_count()
 
     logging.log("Added a new mask.")
 
@@ -1398,9 +1398,9 @@ class MATLAYER_OT_add_black_layer_mask(Operator):
         return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         add_mask('BLACK_MASK')
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAYER_OT_add_white_layer_mask(Operator):
@@ -1415,9 +1415,9 @@ class MATLAYER_OT_add_white_layer_mask(Operator):
         return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         add_mask('WHITE_MASK')
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
     
 class MATLAYER_OT_add_empty_layer_mask(Operator):
@@ -1432,9 +1432,9 @@ class MATLAYER_OT_add_empty_layer_mask(Operator):
         return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         add_mask('EMPTY')
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAYER_OT_add_group_node_layer_mask(Operator):
@@ -1449,9 +1449,9 @@ class MATLAYER_OT_add_group_node_layer_mask(Operator):
         return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         add_mask('GROUP_NODE')
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAYER_OT_add_noise_layer_mask(Operator):
@@ -1466,9 +1466,9 @@ class MATLAYER_OT_add_noise_layer_mask(Operator):
         return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         add_mask('NOISE')
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAYER_OT_add_voronoi_layer_mask(Operator):
@@ -1483,9 +1483,9 @@ class MATLAYER_OT_add_voronoi_layer_mask(Operator):
         return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         add_mask('VORONOI')
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAYER_OT_add_musgrave_layer_mask(Operator):
@@ -1500,9 +1500,9 @@ class MATLAYER_OT_add_musgrave_layer_mask(Operator):
         return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         add_mask('MUSGRAVE')
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAYER_OT_open_layer_mask_menu(Operator):
@@ -1553,7 +1553,7 @@ class MATLAYER_OT_delete_layer_mask(Operator):
         selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
         masks = context.scene.matlayer_masks
 
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
 
         # Delete all mask nodes from all material channels.
         for material_channel_name in material_channels.get_material_channel_list():
@@ -1589,9 +1589,9 @@ class MATLAYER_OT_delete_layer_mask(Operator):
         layer_nodes.organize_all_layer_nodes()
 
         # Set a valid material shading mode so users can see their changes.
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
 
-        matlayer_utils.update_total_node_and_link_count()
+        internal_utils.update_total_node_and_link_count()
 
         logging.log("Deleted a mask.")
         return{'FINISHED'}
@@ -1603,9 +1603,9 @@ class MATLAYER_OT_move_layer_mask_up(Operator):
     bl_description = "Moves the selected layer up on the layer stack"
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         move_mask('UP', context)
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
 class MATLAYER_OT_move_layer_mask_down(Operator):
@@ -1615,9 +1615,9 @@ class MATLAYER_OT_move_layer_mask_down(Operator):
     bl_description = "Moves the selected layer down on the layer stack"
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         move_mask('DOWN', context)
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
 class MATLAYER_OT_add_mask_image(Operator):
@@ -1630,7 +1630,7 @@ class MATLAYER_OT_add_mask_image(Operator):
     image_fill: StringProperty(default='BLACK')
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         
         active_object = bpy.context.active_object
         if not active_object:
@@ -1701,7 +1701,7 @@ class MATLAYER_OT_add_mask_image(Operator):
                 # Select the new mask texture so it can be edited.
                 context.scene.tool_settings.image_paint.canvas = mask_texture_node.image
 
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
 
         return {'FINISHED'}
 
@@ -1712,7 +1712,7 @@ class MATLAYER_OT_delete_mask_image(Operator):
     bl_description = "Deletes the mask image from Blender's data"
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
 
         selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
         selected_mask_index = context.scene.matlayer_mask_stack.selected_mask_index
@@ -1721,7 +1721,7 @@ class MATLAYER_OT_delete_mask_image(Operator):
             if mask_texture_node.image != None:
                 bpy.data.images.remove(mask_texture_node.image)
 
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
 
         logging.log("Deleted mask image.")
         return {'FINISHED'}
@@ -1739,7 +1739,7 @@ class MATLAYER_OT_import_mask_image(Operator, ImportHelper):
     )
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
 
         # Open a window to allow the user to import an image into blender.
         head_tail = os.path.split(self.filepath)
@@ -1777,7 +1777,7 @@ class MATLAYER_OT_import_mask_image(Operator, ImportHelper):
                 image.save()
         '''
 
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
 
         logging.log("Imported mask image.")
         return {'FINISHED'}
@@ -2111,7 +2111,7 @@ def add_mask_filter(filter_type, context):
     relink_mask_nodes(selected_material_layer_index)
     layer_nodes.organize_all_layer_nodes()
 
-    matlayer_utils.update_total_node_and_link_count()
+    internal_utils.update_total_node_and_link_count()
 
     logging.log("Added a new mask filter.")
 
@@ -2225,9 +2225,9 @@ class MATLAYER_OT_add_mask_filter_invert(Operator):
     bl_description = "Adds an invert adjustment to the masks applied to the selected layer"
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         add_mask_filter('ShaderNodeInvert', context)
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
 class MATLAYER_OT_add_mask_filter_val_to_rgb(Operator):
@@ -2238,9 +2238,9 @@ class MATLAYER_OT_add_mask_filter_val_to_rgb(Operator):
     bl_description = "Adds a level adjustment to the masks applied to the selected layer"
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         add_mask_filter('ShaderNodeValToRGB', context)
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}
 
 class MATLAYER_OT_add_layer_mask_filter_menu(Operator):
@@ -2289,7 +2289,7 @@ class MATLAYER_OT_delete_mask_filter(Operator):
         mask_filters = context.scene.matlayer_mask_filters
         selected_mask_filter_index = context.scene.matlayer_mask_filter_stack.selected_mask_filter_index
 
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
 
         # Delete the mask filter GROUP nodes in all material channels.
         mask_filter_name = format_mask_filter_node_name(selected_material_layer_index, selected_mask_index, selected_mask_filter_index)
@@ -2320,8 +2320,8 @@ class MATLAYER_OT_delete_mask_filter(Operator):
         # Re-organize nodes.
         layer_nodes.organize_all_layer_nodes()
 
-        matlayer_utils.set_valid_material_shading_mode(context)
-        matlayer_utils.update_total_node_and_link_count()
+        internal_utils.set_valid_material_shading_mode(context)
+        internal_utils.update_total_node_and_link_count()
         logging.log("Deleted a mask filter.")
         return{'FINISHED'}
     
@@ -2335,10 +2335,10 @@ class MATLAYER_OT_move_layer_mask_filter(Operator):
     direction: StringProperty(default="True")
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         if self.direction == 'UP':
             move_mask_filter('UP', context)
         else:
             move_mask_filter('DOWN', context)
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return {'FINISHED'}

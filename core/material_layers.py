@@ -8,7 +8,7 @@ from ..core import material_channels
 from ..core import layer_masks
 from ..core import material_filters
 from ..utilities import logging
-from ..utilities import matlayer_utils
+from ..utilities import internal_utils
 import math
 
 # List of node types that can be used in the texture slot.
@@ -211,7 +211,7 @@ def update_layer_opacity(self, context):
     if not context.scene.matlayer_layer_stack.auto_update_layer_properties:
         return
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     
     selected_material_channel = context.scene.matlayer_layer_stack.selected_material_channel
     opacity_node = layer_nodes.get_layer_node("OPACITY", selected_material_channel, self.layer_stack_array_index, context)
@@ -248,7 +248,7 @@ def update_layer_projection_mode(self, context):
     if not context.scene.matlayer_layer_stack.auto_update_layer_properties:
         return
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     
     layers = context.scene.matlayer_layers
     selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -265,7 +265,7 @@ def update_layer_projection_mode(self, context):
                 material_channel_node.node_tree.nodes.remove(mapping_node)
 
                 new_mapping_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
-                new_mapping_node.node_tree = matlayer_utils.get_uv_mapping_node_tree()
+                new_mapping_node.node_tree = internal_utils.get_uv_mapping_node_tree()
                 new_mapping_node.name = layer_nodes.format_material_node_name('MAPPING', selected_material_layer_index)
                 new_mapping_node.label = new_mapping_node.name
 
@@ -278,7 +278,7 @@ def update_layer_projection_mode(self, context):
                         # Re-add normal rotation fix node to the normal material channel.
                         if material_channel_name == 'NORMAL':
                             normal_rotation_fix_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
-                            normal_rotation_fix_node.node_tree = matlayer_utils.get_normal_map_rotation_fix_node_tree()
+                            normal_rotation_fix_node.node_tree = internal_utils.get_normal_map_rotation_fix_node_tree()
                             normal_rotation_fix_node.name = layer_nodes.format_material_node_name('NORMAL-ROTATION-FIX', selected_material_layer_index)
                             normal_rotation_fix_node.label = normal_rotation_fix_node.name
 
@@ -303,7 +303,7 @@ def update_layer_projection_mode(self, context):
                 # Convert existing blur nodes from flat to triplanar.
                 blur_node = layer_nodes.get_layer_node('BLUR', material_channel_name, selected_material_layer_index, context)
                 if blur_node:
-                    blur_node.node_tree = matlayer_utils.get_flat_blur_node_tree()
+                    blur_node.node_tree = internal_utils.get_flat_blur_node_tree()
 
             case 'TRIPLANAR':
                 # Convert all IMAGE TEXTURE nodes to triplanar group nodes.
@@ -315,13 +315,13 @@ def update_layer_projection_mode(self, context):
                 if texture_node.bl_static_type == 'TEX_IMAGE':
                     new_texture_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
                     if material_channel_name == 'NORMAL':
-                        triplanar_node_tree = matlayer_utils.get_normal_triplanar_node_tree()
+                        triplanar_node_tree = internal_utils.get_normal_triplanar_node_tree()
 
                         normal_rotation_fix = layer_nodes.get_layer_node('NORMAL-ROTATION-FIX', material_channel_name, selected_material_layer_index, context)
                         if normal_rotation_fix:
                             material_channel_node.node_tree.nodes.remove(normal_rotation_fix)
                     else:
-                        triplanar_node_tree = matlayer_utils.get_triplanar_node_tree()
+                        triplanar_node_tree = internal_utils.get_triplanar_node_tree()
                     new_texture_node.node_tree = triplanar_node_tree
                     
 
@@ -350,7 +350,7 @@ def update_layer_projection_mode(self, context):
                     print("Error: Mapping node does not exist when trying to convert to triplanar coord nodes.")
                     return
 
-                triplanar_coord_node_tree = matlayer_utils.get_triplanar_mapping_tree()
+                triplanar_coord_node_tree = internal_utils.get_triplanar_mapping_tree()
                 new_mapping_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
                 new_mapping_node.node_tree = triplanar_coord_node_tree
                 new_mapping_node.inputs[3].default_value = self.blending
@@ -361,7 +361,7 @@ def update_layer_projection_mode(self, context):
                 # Convert existing blur nodes from flat to triplanar.
                 blur_node = layer_nodes.get_layer_node('BLUR', material_channel_name, selected_material_layer_index, context)
                 if blur_node:
-                    blur_node.node_tree = matlayer_utils.get_triplanar_blur_node_tree()
+                    blur_node.node_tree = internal_utils.get_triplanar_blur_node_tree()
 
             case 'SPHERE':
                 print("Placeholder")
@@ -379,7 +379,7 @@ def update_projection_interpolation(self, context):
     if not context.scene.matlayer_layer_stack.auto_update_layer_properties:
         return 
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     layers = context.scene.matlayer_layers
     selected_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -394,7 +394,7 @@ def update_projection_extension(self, context):
     if not context.scene.matlayer_layer_stack.auto_update_layer_properties:
         return 
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     layers = context.scene.matlayer_layers
     selected_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -409,7 +409,7 @@ def update_blending(self, context):
     if not context.scene.matlayer_layer_stack.auto_update_layer_properties:
         return
 
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     layers = context.scene.matlayer_layers
     selected_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -421,7 +421,7 @@ def update_projection_offset_x(self, context):
     if not context.scene.matlayer_layer_stack.auto_update_layer_properties:
         return 
 
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     layers = context.scene.matlayer_layers
     selected_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -436,7 +436,7 @@ def update_projection_offset_y(self, context):
     if not context.scene.matlayer_layer_stack.auto_update_layer_properties:
         return 
 
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     layers = context.scene.matlayer_layers
     selected_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -452,7 +452,7 @@ def update_projection_offset_z(self, context):
     if not context.scene.matlayer_layer_stack.auto_update_layer_properties:
         return 
 
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     layers = context.scene.matlayer_layers
     selected_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -468,7 +468,7 @@ def update_projection_rotation_x(self, context):
     if not context.scene.matlayer_layer_stack.auto_update_layer_properties:
         return 
 
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     layers = context.scene.matlayer_layers
     selected_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -488,7 +488,7 @@ def update_projection_rotation_y(self, context):
     if not context.scene.matlayer_layer_stack.auto_update_layer_properties:
         return 
 
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     layers = context.scene.matlayer_layers
     selected_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -505,7 +505,7 @@ def update_projection_rotation_z(self, context):
     if not context.scene.matlayer_layer_stack.auto_update_layer_properties:
         return 
 
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     layers = context.scene.matlayer_layers
     selected_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -523,7 +523,7 @@ def update_projection_scale_x(self, context):
     if not context.scene.matlayer_layer_stack.auto_update_layer_properties:
         return 
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     layers = context.scene.matlayer_layers
     selected_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -547,7 +547,7 @@ def update_projection_scale_y(self, context):
     if not context.scene.matlayer_layer_stack.auto_update_layer_properties:
         return
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     layers = context.scene.matlayer_layers
     selected_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -568,7 +568,7 @@ def update_projection_scale_z(self, context):
     if not context.scene.matlayer_layer_stack.auto_update_layer_properties:
         return 
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     layers = context.scene.matlayer_layers
     selected_layer_index = context.scene.matlayer_layer_stack.layer_index
@@ -589,7 +589,7 @@ def update_sync_projection_scale(self, context):
     if not context.scene.matlayer_layer_stack.auto_update_layer_properties:
         return
     
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     
     if self.sync_projection_scale:
         layers = context.scene.matlayer_layers
@@ -678,14 +678,14 @@ def update_emission_channel_toggle(self, context):
 
 def update_color_channel_color(self, context):
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_index, context)
         if node and node.type == 'RGB':
             node.outputs[0].default_value = (self.color_channel_color.r, self.color_channel_color.g, self.color_channel_color.b, 1)
 
 def update_subsurface_channel_color(self, context):
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "SUBSURFACE", selected_layer_index, context)
@@ -693,7 +693,7 @@ def update_subsurface_channel_color(self, context):
             node.outputs[0].default_value = (self.subsurface_channel_color.r, self.subsurface_channel_color.g, self.subsurface_channel_color.b, 1)
 
 def update_subsurface_color_channel_color(self, context):
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "SUBSURFACE_COLOR", selected_layer_index, context)
@@ -701,7 +701,7 @@ def update_subsurface_color_channel_color(self, context):
             node.outputs[0].default_value = (self.subsurface_color_channel_color.r, self.subsurface_color_channel_color.g, self.subsurface_color_channel_color.b, 1)
 
 def update_metallic_channel_color(self, context):
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "METALLIC", selected_layer_index, context)
@@ -709,7 +709,7 @@ def update_metallic_channel_color(self, context):
             node.outputs[0].default_value = (self.metallic_channel_color.r, self.metallic_channel_color.g, self.metallic_channel_color.b, 1)
 
 def update_specular_channel_color(self, context):
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "SPECULAR", selected_layer_index, context)
@@ -717,7 +717,7 @@ def update_specular_channel_color(self, context):
             node.outputs[0].default_value = (self.specular_channel_color.r, self.specular_channel_color.g, self.specular_channel_color.b, 1)
 
 def update_roughness_channel_color(self, context):
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "ROUGHNESS", selected_layer_index, context)
@@ -725,7 +725,7 @@ def update_roughness_channel_color(self, context):
             node.outputs[0].default_value = (self.roughness_channel_color.r, self.roughness_channel_color.g, self.roughness_channel_color.b, 1)
 
 def update_normal_channel_color(self, context):
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "NORMAL", selected_layer_index, context)
@@ -733,7 +733,7 @@ def update_normal_channel_color(self, context):
             node.outputs[0].default_value = (self.normal_channel_color.r, self.normal_channel_color.g, self.normal_channel_color.b, 1)
 
 def update_height_channel_color(self, context):
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "HEIGHT", selected_layer_index, context)
@@ -741,7 +741,7 @@ def update_height_channel_color(self, context):
             node.outputs[0].default_value = (self.height_channel_color.r, self.height_channel_color.g, self.height_channel_color.b, 1)
 
 def update_emission_channel_color(self, context):
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "EMISSION", selected_layer_index, context)
@@ -754,7 +754,7 @@ def update_emission_channel_color(self, context):
 # When these values which are displayed in the ui are updated, they automatically update their respective value nodes in the node tree through these functions.
 
 def update_uniform_color_value(self, context):
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "COLOR", selected_layer_index, context)
@@ -763,7 +763,7 @@ def update_uniform_color_value(self, context):
             self.color_channel_color = (self.uniform_color_value, self.uniform_color_value, self.uniform_color_value)
 
 def update_uniform_subsurface_value(self, context):
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "SUBSURFACE", selected_layer_index, context)
@@ -772,7 +772,7 @@ def update_uniform_subsurface_value(self, context):
             self.subsurface_channel_color = (self.uniform_subsurface_value,self.uniform_subsurface_value,self.uniform_subsurface_value)
 
 def update_uniform_subsurface_color_value(self, context):
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "SUBSURFACE_COLOR", selected_layer_index, context)
@@ -781,7 +781,7 @@ def update_uniform_subsurface_color_value(self, context):
             self.subsurface_color_channel_color = (self.uniform_subsurface_color_value,self.uniform_subsurface_color_value,self.uniform_subsurface_color_value)
 
 def update_uniform_metallic_value(self, context):
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "METALLIC", selected_layer_index, context)
@@ -790,7 +790,7 @@ def update_uniform_metallic_value(self, context):
             self.metallic_channel_color = (self.uniform_metallic_value,self.uniform_metallic_value,self.uniform_metallic_value)
 
 def update_uniform_specular_value(self, context):
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "SPECULAR", selected_layer_index, context)
@@ -799,7 +799,7 @@ def update_uniform_specular_value(self, context):
             self.specular_channel_color = (self.uniform_specular_value,self.uniform_specular_value,self.uniform_specular_value)
 
 def update_uniform_roughness_value(self, context):
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "ROUGHNESS", selected_layer_index, context)
@@ -808,7 +808,7 @@ def update_uniform_roughness_value(self, context):
             self.roughness_channel_color = (self.uniform_roughness_value, self.uniform_roughness_value, self.uniform_roughness_value)
 
 def update_uniform_normal_value(self, context):
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "NORMAL", selected_layer_index, context)
@@ -817,7 +817,7 @@ def update_uniform_normal_value(self, context):
             self.normal_channel_color = (self.uniform_normal_value,self.uniform_normal_value,self.uniform_normal_value)
 
 def update_uniform_height_value(self, context):
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "HEIGHT", selected_layer_index, context)
@@ -826,7 +826,7 @@ def update_uniform_height_value(self, context):
             self.height_channel_color = (self.uniform_height_value, self.uniform_height_value, self.uniform_height_value)
 
 def update_uniform_emission_value(self, context):
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties:
         selected_layer_index = context.scene.matlayer_layer_stack.layer_index
         node = layer_nodes.get_layer_node("TEXTURE", "EMISSION", selected_layer_index, context)
@@ -839,7 +839,7 @@ def update_uniform_emission_value(self, context):
 
 def update_material_channel_texture(material_channel_name, self, context):
     '''Updates image texture node values with '''
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
     if context.scene.matlayer_layer_stack.auto_update_layer_properties == False:
         return
     
@@ -896,7 +896,7 @@ def update_height_material_channel_texture(self, context):
 def replace_texture_node(texture_node_type, material_channel_name, self, context):
     '''Replaced the texture node with a new texture node based on the given node type.'''
 
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
     selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
     material_channel_node = material_channels.get_material_channel_node(context, material_channel_name)
@@ -962,9 +962,9 @@ def replace_texture_node(texture_node_type, material_channel_name, self, context
                 case 'TRIPLANAR':
                     new_texture_node = material_channel_node.node_tree.nodes.new('ShaderNodeGroup')
                     if material_channel_name == 'NORMAL':
-                        triplanar_node_tree = matlayer_utils.get_normal_triplanar_node_tree()
+                        triplanar_node_tree = internal_utils.get_normal_triplanar_node_tree()
                     else:
-                        triplanar_node_tree = matlayer_utils.get_triplanar_node_tree()
+                        triplanar_node_tree = internal_utils.get_triplanar_node_tree()
                     new_texture_node.node_tree = triplanar_node_tree
 
                     triplanar_sample_nodes = []
@@ -1160,10 +1160,10 @@ def update_blur_toggle(self, context):
                 # Assign a node tree based on material layer projection mode.
                 mapping_node = layer_nodes.get_layer_node('MAPPING', material_channel_name, selected_material_layer_index, context)
                 if mapping_node.node_tree.name == 'MATLAYER_OFFSET_ROTATION_SCALE':
-                    new_blur_node.node_tree = matlayer_utils.get_flat_blur_node_tree()
+                    new_blur_node.node_tree = internal_utils.get_flat_blur_node_tree()
                     new_blur_node.inputs[1].default_value = selected_layer.blur_amount
                 elif mapping_node.node_tree.name == 'MATLAYER_TRIPLANAR_MAPPING':
-                    new_blur_node.node_tree = matlayer_utils.get_triplanar_blur_node_tree()
+                    new_blur_node.node_tree = internal_utils.get_triplanar_blur_node_tree()
                     new_blur_node.inputs[3].default_value = selected_layer.blur_amount
 
         # Remove the blur nodes, blur was toggled off.

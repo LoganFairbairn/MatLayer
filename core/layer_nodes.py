@@ -4,7 +4,7 @@ import bpy
 from ..core import material_channels
 from ..core import material_filters
 from ..core import layer_masks
-from ..utilities import matlayer_utils
+from ..utilities import internal_utils
 from ..utilities import logging
 from .. import preferences
 
@@ -359,7 +359,7 @@ def mute_layer_material_channel(mute, layer_stack_index, material_channel_name, 
             set_node_active(node, not mute)
             
     relink_mix_layer_nodes()
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
 
 #----------------------------- MATERIAL LAYER NODE FUNCTIONS -----------------------------#

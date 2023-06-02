@@ -6,7 +6,7 @@ from bpy.types import Operator
 from bpy.props import BoolProperty, FloatProperty, IntProperty, StringProperty, PointerProperty, EnumProperty
 from .texture_set_settings import TEXTURE_SET_RESOLUTIONS
 from ..utilities import logging
-from ..utilities import matlayer_utils
+from ..utilities import internal_utils
 
 #----------------------------- BAKING SETTINGS -----------------------------#
 
@@ -347,7 +347,7 @@ def create_temp_bake_material(bake_type):
     bake_material.use_nodes = True
 
     # Rename the material output node so it's name is consistent even for users using different languages.
-    material_output_node = matlayer_utils.get_node_by_bl_static_type(bake_material.node_tree.nodes, 'OUTPUT_MATERIAL')
+    material_output_node = internal_utils.get_node_by_bl_static_type(bake_material.node_tree.nodes, 'OUTPUT_MATERIAL')
     material_output_node.name = "Material Output"
     material_output_node.label = material_output_node.name
 

@@ -4,7 +4,7 @@ from bpy.props import BoolProperty, IntProperty, StringProperty, PointerProperty
 from . import material_channels
 from . import layer_nodes
 from ..utilities import logging
-from ..utilities import matlayer_utils
+from ..utilities import internal_utils
 
 
 # All MATERIAL filter nodes will use this name.
@@ -26,7 +26,7 @@ def filter_material_channel_toggle(channel_toggle, material_channel_name, contex
     layer_nodes.set_node_active(filter_node, channel_toggle)
     layer_nodes.relink_material_nodes(selected_layer_stack_index)
     layer_nodes.relink_mix_layer_nodes()
-    matlayer_utils.set_valid_material_shading_mode(context)
+    internal_utils.set_valid_material_shading_mode(context)
 
 def update_filter_color_channel_toggle(self, context):
     filter_material_channel_toggle(self.color_channel_toggle, 'COLOR', context)
@@ -282,7 +282,7 @@ def add_material_filter_slot():
 
 def get_normal_intensity_filter_node_tree():
     '''Returns the normal intensity filter node tree, appends it from the blend asset if it doesn't exist.'''
-    return matlayer_utils.append_custom_node_tree('MATLAYER_ADJUST_NORMAL_INTENSITY', True)
+    return internal_utils.append_custom_node_tree('MATLAYER_ADJUST_NORMAL_INTENSITY', True)
 
 def add_material_filter(filter_type, context):
     '''Creates a new material layer filter slot and node.'''
@@ -336,7 +336,7 @@ def add_material_filter(filter_type, context):
                 setattr(filters[new_filter_index].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", False)
                 filter_material_channel_toggle(False, material_channel_name, context)
 
-    matlayer_utils.update_total_node_and_link_count()
+    internal_utils.update_total_node_and_link_count()
 
     logging.log("Added a new material filter.")
 
@@ -463,9 +463,9 @@ class MATLAYER_OT_add_layer_filter_invert(Operator):
         return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         add_material_filter('ShaderNodeInvert', context)
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAYER_OT_add_layer_filter_val_to_rgb(Operator):
@@ -479,9 +479,9 @@ class MATLAYER_OT_add_layer_filter_val_to_rgb(Operator):
         return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         add_material_filter('ShaderNodeValToRGB', context)
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAYER_OT_add_layer_filter_hsv(Operator):
@@ -495,9 +495,9 @@ class MATLAYER_OT_add_layer_filter_hsv(Operator):
         return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         add_material_filter('ShaderNodeHueSaturation', context)
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAYER_OT_add_layer_filter_rgb_curves(Operator):
@@ -511,9 +511,9 @@ class MATLAYER_OT_add_layer_filter_rgb_curves(Operator):
         return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         add_material_filter('ShaderNodeRGBCurve', context)
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAYER_OT_add_layer_filter_bright_contrast(Operator):
@@ -527,9 +527,9 @@ class MATLAYER_OT_add_layer_filter_bright_contrast(Operator):
         return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         add_material_filter('ShaderNodeBrightContrast', context)
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAYER_OT_add_material_filter_normal_intensity(Operator):
@@ -543,9 +543,9 @@ class MATLAYER_OT_add_material_filter_normal_intensity(Operator):
         return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         add_material_filter('NormalIntensity', context)
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         return{'FINISHED'}
 
 class MATLAYER_OT_add_layer_filter_menu(Operator):
@@ -597,7 +597,7 @@ class MATLAYER_OT_delete_layer_filter(Operator):
         selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
         selected_filter_index = context.scene.matlayer_material_filter_stack.selected_filter_index
 
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
 
         # Delete the material filter nodes.
         material_channel_list = material_channels.get_material_channel_list()
@@ -623,8 +623,8 @@ class MATLAYER_OT_delete_layer_filter(Operator):
         layer_nodes.relink_material_nodes(selected_material_layer_index)
         layer_nodes.relink_mix_layer_nodes()
         
-        matlayer_utils.set_valid_material_shading_mode(context)
-        matlayer_utils.update_total_node_and_link_count()
+        internal_utils.set_valid_material_shading_mode(context)
+        internal_utils.update_total_node_and_link_count()
 
         logging.log("Deleted a material filter.")
         return{'FINISHED'}
@@ -641,9 +641,9 @@ class MATLAYER_OT_move_layer_filter_up(Operator):
         return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         move_filter_layer("UP", context)
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         logging.log("Moved a material filter up on the material filter stack.")
         return{'FINISHED'}
 
@@ -659,8 +659,8 @@ class MATLAYER_OT_move_layer_filter_down(Operator):
         return bpy.context.scene.matlayer_layers
 
     def execute(self, context):
-        matlayer_utils.set_valid_mode()
+        internal_utils.set_valid_mode()
         move_filter_layer("DOWN", context)
-        matlayer_utils.set_valid_material_shading_mode(context)
+        internal_utils.set_valid_material_shading_mode(context)
         logging.log("Moved a material filter down on the material filter stack.")
         return{'FINISHED'}
