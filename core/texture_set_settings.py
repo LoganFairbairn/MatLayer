@@ -4,6 +4,7 @@ import bpy
 from bpy.types import PropertyGroup
 from bpy.props import BoolProperty, StringProperty, PointerProperty, FloatVectorProperty, EnumProperty
 from ..core import material_channels
+from ..utilities import logging
 
 # Available texture resolutions for texture sets.
 TEXTURE_SET_RESOLUTIONS = [
@@ -18,7 +19,6 @@ def update_match_image_resolution(self, context):
         return
     
     texture_set_settings = context.scene.matlayer_texture_set_settings
-
     if texture_set_settings.match_image_resolution:
         texture_set_settings.image_height = texture_set_settings.image_width
 
@@ -27,7 +27,6 @@ def update_image_width(self, context):
         return
 
     texture_set_settings = context.scene.matlayer_texture_set_settings
-
     if texture_set_settings.match_image_resolution:
         if texture_set_settings.image_height != texture_set_settings.image_width:
             texture_set_settings.image_height = texture_set_settings.image_width
@@ -172,7 +171,8 @@ def get_texture_width():
         case 'FOURK':
             return 4096
         case _:
-            # Error here, return 10 to make it apparent.
+            # Error if this is hit, return 10 to make it apparent.
+            logging.log("Error - texture width enum invalid.")
             return 10
 
 def get_texture_height():
@@ -187,7 +187,8 @@ def get_texture_height():
         case 'FOURK':
             return 4096
         case _:
-            # Error here, return 10 to make it apparent.
+            # Error if this is hit, return 10 to make it apparent.
+            logging.log("Error - texture height enum invalid.")
             return 10
 
 def get_active_material_channel_count():
