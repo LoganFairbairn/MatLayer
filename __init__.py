@@ -54,7 +54,7 @@ from .utilities.image_file_handling import MATLAYER_OT_add_layer_image, MATLAYER
 from .utilities.internal_utils import MatlayerSettings, MATLAYER_OT_set_decal_layer_snapping, MATLAYER_OT_append_workspace, MATLAYER_OT_append_basic_brushes, MATLAYER_OT_delete_unused_external_images
 
 # Import user interface modules.
-from .ui.main_ui import *
+from .ui.ui_main import *
 from .ui.popup_add_mask import *
 from .ui.ui_layer_stack import *
 
