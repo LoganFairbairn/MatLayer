@@ -51,7 +51,7 @@ def get_random_image_id():
     '''Generates a random image id number.'''
     return str(random.randrange(10000,99999))
 
-def set_image_colorspace(image, material_channel_name):
+def set_image_colorspace_by_material_channel(image, material_channel_name):
     '''Correctly sets an image's colorspace based on the provided material channel.'''
     match material_channel_name:
         case 'COLOR':
@@ -206,7 +206,7 @@ class MATLAYER_OT_import_texture(Operator, ImportHelper):
         context.scene.matlayer_layer_stack.auto_update_layer_properties = True
 
         # For specific material channels, imported textures automatically have their color space corrected.
-        set_image_colorspace(image, self.material_channel_name)
+        set_image_colorspace_by_material_channel(image, self.material_channel_name)
 
         # Print information about using DirectX normal maps for users if it's detected they are using one.
         if check_for_directx(image_name) and self.material_channel_name == 'NORMAL':
@@ -332,7 +332,7 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                         setattr(selected_material_layer.material_channel_textures, material_channel_name.lower() + "_channel_texture", imported_image)
 
                 # Update the imported images colorspace based on it's specified material channel.
-                set_image_colorspace(imported_image, material_channel_name)
+                set_image_colorspace_by_material_channel(imported_image, material_channel_name)
 
                 # Print information about using DirectX normal maps for users if it's detected they are using one.
                 if check_for_directx(file.name):
