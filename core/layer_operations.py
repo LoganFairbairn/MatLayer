@@ -238,8 +238,10 @@ def add_layer(layer_type, self, decal_object=None):
     internal_utils.append_default_node_trees()
 
     # Add a new layer slot and default nodes.
+    bpy.context.scene.matlayer_layer_stack.auto_update_layer_properties = False
     new_material_layer_index = add_layer_slot(layer_type)
     add_default_layer_nodes(layer_type, decal_object)
+    bpy.context.scene.matlayer_layer_stack.auto_update_layer_properties = True
     
     # Re-index, organize and relink nodes.
     layer_nodes.reindex_material_layer_nodes('ADDED', new_material_layer_index)
@@ -251,12 +253,16 @@ def add_layer(layer_type, self, decal_object=None):
     set_default_layer_properties(layer_type)
 
     # Clear and reset indexes for material, mask and mask filters (no new material layers should have these initially).
+    bpy.context.scene.matlayer_mask_stack.auto_update_mask_properties = False
+    bpy.context.scene.matlayer_material_filter_stack.auto_update_filter_properties = False
     bpy.context.scene.matlayer_material_filters.clear()
     bpy.context.scene.matlayer_material_filter_stack.selected_filter_index = -1
     bpy.context.scene.matlayer_masks.clear()
     bpy.context.scene.matlayer_mask_stack.selected_mask_index = -1
     bpy.context.scene.matlayer_mask_filters.clear()
     bpy.context.scene.matlayer_mask_filter_stack.selected_mask_filter_index = -1
+    bpy.context.scene.matlayer_mask_stack.auto_update_mask_properties = True
+    bpy.context.scene.matlayer_material_filter_stack.auto_update_filter_properties = True
 
     # Set a valid material shading mode and reset ui tabs.
     internal_utils.set_valid_material_shading_mode(bpy.context)
