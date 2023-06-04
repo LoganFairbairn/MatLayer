@@ -51,7 +51,10 @@ from .core.exporting import MATLAYER_exporting_settings, MATLAYER_OT_export, MAT
 from .utilities.image_file_handling import MATLAYER_OT_add_layer_image, MATLAYER_OT_delete_layer_image, MATLAYER_OT_import_texture, MATLAYER_OT_import_texture_set
 
 # Import settings.
-from .utilities.internal_utils import MatlayerSettings, MATLAYER_OT_set_decal_layer_snapping, MATLAYER_OT_append_workspace, MATLAYER_OT_append_basic_brushes, MATLAYER_OT_delete_unused_external_images
+from .utilities.internal_utils import MATLAYER_OT_set_decal_layer_snapping, MATLAYER_OT_append_workspace, MATLAYER_OT_append_basic_brushes, MATLAYER_OT_delete_unused_external_images
+
+# Import logging.
+from .utilities.logging import MatlayerSettings
 
 # Import user interface modules.
 from .ui.ui_main import *
@@ -184,12 +187,14 @@ classes = (
     GlobalMaterialChannelToggles,
     MATLAYER_texture_set_settings,
 
-    # Utilities
-    MatlayerSettings,
+    # Utility Operators
     MATLAYER_OT_set_decal_layer_snapping,
     MATLAYER_OT_append_workspace,
     MATLAYER_OT_append_basic_brushes,
     MATLAYER_OT_delete_unused_external_images,
+
+    # Logging
+    MatlayerSettings,
 
     # Main Panel
     MATLAYER_panel_properties,
