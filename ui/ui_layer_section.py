@@ -21,7 +21,7 @@ def draw_layers_section_ui(self, context):
     if context.active_object:
         
         # Create a 2 column layout (to give lots of space for add-on ui).
-        split = layout.split()
+        split = layout.split(factor=0.55)
 
         # Layer properties (first column).
         column1 = split.column()
@@ -127,7 +127,6 @@ def draw_projection_settings(projection_settings, column):
     # A dual column layout is used so the properties vertically align.
     split = column.split(factor=0.25)
     first_column = split.column()
-    first_column.scale_x = 0.1
     second_column = split.column()
 
     # Texture projection mode for the layer.
@@ -160,32 +159,34 @@ def draw_projection_settings(projection_settings, column):
             row = first_column.row()
             row.scale_y = SCALE_Y
             row.label(text="Offset:")
-            row = second_column.row()
+            row = second_column.row(align=True)
             row.scale_y = SCALE_Y
-            row.prop(projection_settings, "offset_x", text="X", slider=True)
-            row.prop(projection_settings, "offset_y", text="Y", slider=True)
+            col = row.split()
+            col.prop(projection_settings, "offset_x", text="X", slider=True)
+            col = row.split()
+            col.prop(projection_settings, "offset_y", text="Y", slider=True)
 
             # Rotation
             row = first_column.row()
             row.scale_y = SCALE_Y
             row.label(text="Rotation:")
-            row = second_column.row()
+            row = second_column.row(align=True)
             row.scale_y = SCALE_Y
-            row.prop(projection_settings, "rotation_x", text="X", slider=True)
+            row.prop(projection_settings, "rotation_x", text="", slider=True)
 
             # Scale
             row = first_column.row()
             row.scale_y = SCALE_Y
             row.label(text="Scale:")
-            row = second_column.row()
+            if projection_settings.sync_projection_scale:
+                row.prop(projection_settings, "sync_projection_scale", icon="LINKED", icon_only=True)
+            else:
+                row.prop(projection_settings, "sync_projection_scale", icon="UNLINKED", icon_only=True)
+
+            row = second_column.row(align=True)
             row.scale_y = SCALE_Y
             col = row.split()
             col.prop(projection_settings, "scale_x", text="X", slider=True)
-            col = row.split()
-            if projection_settings.sync_projection_scale:
-                col.prop(projection_settings, "sync_projection_scale", icon="LOCKED", icon_only=True)
-            else:
-                col.prop(projection_settings, "sync_projection_scale", icon="UNLOCKED", icon_only=True)
             col = row.split()
             if projection_settings.sync_projection_scale:
                 col.enabled = False
@@ -196,30 +197,45 @@ def draw_projection_settings(projection_settings, column):
             row = first_column.row()
             row.scale_y = SCALE_Y
             row.label(text="Offset:")
-            row = second_column.row()
+
+            row = second_column.row(align=True)
             row.scale_y = SCALE_Y
-            row.prop(projection_settings, "offset_x", text="X", slider=True)
-            row.prop(projection_settings, "offset_y", text="Y", slider=True)
-            row.prop(projection_settings, "offset_z", text="Z", slider=True)
+            col = row.split()
+            col.prop(projection_settings, "offset_x", text="X", slider=True)
+            col = row.split()
+            col.prop(projection_settings, "offset_y", text="Y", slider=True)
+            col = row.split()
+            col.prop(projection_settings, "offset_z", text="Z", slider=True)
+            col = row.split()
 
             # Rotation
             row = first_column.row()
             row.scale_y = SCALE_Y
             row.label(text="Rotation:")
-            row = second_column.row()
+
+            row = second_column.row(align=True)
             row.scale_y = SCALE_Y
-            row.prop(projection_settings, "rotation_x", text="X", slider=True)
-            row.prop(projection_settings, "rotation_y", text="Y", slider=True)
-            row.prop(projection_settings, "rotation_z", text="Z", slider=True)
+            col = row.split()
+            col.prop(projection_settings, "rotation_x", text="X", slider=True)
+            col = row.split()
+            col.prop(projection_settings, "rotation_y", text="Y", slider=True)
+            col = row.split()
+            col.prop(projection_settings, "rotation_z", text="Z", slider=True)
+            col = row.split()
 
             # Scale
             row = first_column.row()
             row.scale_y = SCALE_Y
             row.label(text="Scale:")
-            row = second_column.row()
+            if projection_settings.sync_projection_scale:
+                row.prop(projection_settings, "sync_projection_scale", icon="LINKED", icon_only=True, toggle=True)
+            else:
+                row.prop(projection_settings, "sync_projection_scale", icon="UNLINKED", icon_only=True, toggle=True)
+
+            row = second_column.row(align=True)
             row.scale_y = SCALE_Y
             col = row.split()
-            col.prop(projection_settings, "scale_x", text="Scale X", slider=True)
+            col.prop(projection_settings, "scale_x", text="X", slider=True)
             col = row.split()
             if projection_settings.sync_projection_scale:
                 col.enabled = False
@@ -229,16 +245,13 @@ def draw_projection_settings(projection_settings, column):
                 col.enabled = False
             col.prop(projection_settings, "scale_z", text="Z", slider=True)
             col = row.split()
-            if projection_settings.sync_projection_scale:
-                col.prop(projection_settings, "sync_projection_scale", icon="LOCKED", icon_only=True)
-            else:
-                col.prop(projection_settings, "sync_projection_scale", icon="UNLOCKED", icon_only=True)
+
 
             # Triplanar Projection Blending
             row = first_column.row()
             row.scale_y = SCALE_Y
             row.label(text="Blending:")
-            row = second_column.row()
+            row = second_column.row(align=True)
             row.scale_y = SCALE_Y
             row.prop(projection_settings, "blending", text="")
 
@@ -847,4 +860,3 @@ def draw_layer_properties(column, context, layout):
         case 'MASK':
             draw_mask_stack(column)
             draw_mask_properties(column)
-
