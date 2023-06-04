@@ -392,7 +392,7 @@ class MATLAYER_OT_add_decal_layer(Operator):
         # Automatically add a mask for the decal set to use alpha.
         layer_masks.add_mask('DECAL', use_alpha=True)
 
-        internal_utils.update_total_node_and_link_count()
+        logging.update_total_node_and_link_count()
         return {'FINISHED'}
 
 class MATLAYER_OT_add_material_layer(Operator):
@@ -403,7 +403,7 @@ class MATLAYER_OT_add_material_layer(Operator):
 
     def execute(self, context):
         add_layer('MATERIAL', self)
-        internal_utils.update_total_node_and_link_count()
+        logging.update_total_node_and_link_count()
         return {'FINISHED'}
 
 class MATLAYER_OT_add_paint_layer(Operator):
@@ -414,7 +414,7 @@ class MATLAYER_OT_add_paint_layer(Operator):
 
     def execute(self, context):
         add_layer('PAINT', self)
-        internal_utils.update_total_node_and_link_count()
+        logging.update_total_node_and_link_count()
         layer_masks.add_mask('EMPTY', use_alpha=True)
         context.scene.matlayer_masks[0].mask_image = context.scene.matlayer_layers[context.scene.matlayer_layer_stack.layer_index].material_channel_textures.color_channel_texture
         return {'FINISHED'}
@@ -689,7 +689,7 @@ class MATLAYER_OT_delete_layer(Operator):
         context.scene.matlayer_layer_stack.layer_property_tab = 'MATERIAL'
         context.scene.matlayer_layer_stack.material_property_tab = 'MATERIAL'
         
-        internal_utils.update_total_node_and_link_count()
+        logging.update_total_node_and_link_count()
         return {'FINISHED'}
 
 class MATLAYER_OT_duplicate_layer(Operator):
@@ -827,7 +827,7 @@ class MATLAYER_OT_duplicate_layer(Operator):
         context.scene.matlayer_mask_filter_stack.auto_update_properties = True
 
         internal_utils.set_valid_material_shading_mode(context)
-        internal_utils.update_total_node_and_link_count()
+        logging.update_total_node_and_link_count()
         return{'FINISHED'}
 
 class MATLAYER_OT_edit_uvs_externally(Operator):
@@ -1245,7 +1245,7 @@ class MATLAYER_OT_read_layer_nodes(Operator):
         # Materials must follow a strict format to be able to be properly read, making materials not made with this add-on incompatible.
         self.report({'INFO'}, "Refreshed layer stack.")
         
-        internal_utils.update_total_node_and_link_count()
+        logging.update_total_node_and_link_count()
 
         if matlayer_materials.verify_material(context) == False:
             bpy.context.scene.matlayer_layers.clear()

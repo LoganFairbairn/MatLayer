@@ -336,7 +336,7 @@ def add_material_filter(filter_type, context):
                 setattr(filters[new_filter_index].material_channel_toggles, material_channel_name.lower() + "_channel_toggle", False)
                 filter_material_channel_toggle(False, material_channel_name, context)
 
-    internal_utils.update_total_node_and_link_count()
+    logging.update_total_node_and_link_count()
 
     logging.log("Added a new material filter.")
 
@@ -624,7 +624,7 @@ class MATLAYER_OT_delete_layer_filter(Operator):
         layer_nodes.relink_mix_layer_nodes()
         
         internal_utils.set_valid_material_shading_mode(context)
-        internal_utils.update_total_node_and_link_count()
+        logging.update_total_node_and_link_count()
 
         logging.log("Deleted a material filter.")
         return{'FINISHED'}

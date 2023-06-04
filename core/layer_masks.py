@@ -1182,7 +1182,7 @@ def add_mask(mask_type, use_alpha=False):
     # Turn auto updating for mask properties back on.
     bpy.context.scene.matlayer_mask_stack.auto_update_mask_properties = True
 
-    internal_utils.update_total_node_and_link_count()
+    logging.update_total_node_and_link_count()
 
     logging.log("Added a new mask.")
 
@@ -1619,7 +1619,7 @@ class MATLAYER_OT_delete_layer_mask(Operator):
         # Set a valid material shading mode so users can see their changes.
         internal_utils.set_valid_material_shading_mode(context)
 
-        internal_utils.update_total_node_and_link_count()
+        logging.update_total_node_and_link_count()
 
         logging.log("Deleted a mask.")
         return{'FINISHED'}
@@ -2139,7 +2139,7 @@ def add_mask_filter(filter_type, context):
     relink_mask_nodes(selected_material_layer_index)
     layer_nodes.organize_all_layer_nodes()
 
-    internal_utils.update_total_node_and_link_count()
+    logging.update_total_node_and_link_count()
 
     logging.log("Added a new mask filter.")
 
@@ -2349,7 +2349,7 @@ class MATLAYER_OT_delete_mask_filter(Operator):
         layer_nodes.organize_all_layer_nodes()
 
         internal_utils.set_valid_material_shading_mode(context)
-        internal_utils.update_total_node_and_link_count()
+        logging.update_total_node_and_link_count()
         logging.log("Deleted a mask filter.")
         return{'FINISHED'}
     
