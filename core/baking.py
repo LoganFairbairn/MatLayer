@@ -8,7 +8,7 @@ from .texture_set_settings import TEXTURE_SET_RESOLUTIONS
 from ..utilities import logging
 from ..utilities import internal_utils
 
-#----------------------------- BAKING SETTINGS -----------------------------#
+#----------------------------- BAKING SETTINGS & MISC FUNCTIONS -----------------------------#
 
 SELECTED_BAKE_TYPE = [
     ("AMBIENT_OCCLUSION", "Ambient Occlusion", ""), 
@@ -17,11 +17,17 @@ SELECTED_BAKE_TYPE = [
     ("NORMAL", "Normals", "")
     ]
 
+BAKE_TYPES = ("AMBIENT_OCCLUSION", "CURVATURE", "THICKNESS", "NORMAL")
+
 QUALITY_SETTINGS = [
     ("LOW_QUALITY", "Low Quality (for testing)", "Extremly low quality baking, generally used only for testing baking functionality or previewing a really rough version of baked textures. Using this quality will significantly reduce time it takes to bake mesh maps."), 
     ("RECOMMENDED_QUALITY", "Recommended Quality", "The suggested quality for baking texture maps."),
     ("HIGH_QUALITY", "High Quality", "A higher than average baking quality. This should be used for when fine, accurate detail is required in mesh map textures. Using this quality will significantly slow down baking speeds.")
     ]
+
+def format_meshmap_name(meshmap_name, meshmap_type):
+    '''Correctly formats the mesh map name.'''
+    return "{0}_{1}".format(meshmap_name, get_meshmap_image_name(meshmap_type))
 
 def get_meshmap_image_name(meshmap_type):
     '''Returns the name appended to the end of mesh map image files.'''
@@ -40,8 +46,7 @@ def get_meshmap_image_name(meshmap_type):
 
 def get_meshmap_name(meshmap_type):
     '''Returns the image name for the mesh map of the selected / active object.'''
-    meshmap_image_name = get_meshmap_image_name(meshmap_type)
-    return "{0}_{1}".format(bpy.context.active_object.name, meshmap_image_name)
+    return format_meshmap_name(bpy.context.active_object.name, meshmap_type)
 
 def update_match_bake_resolution(self, context):
     '''Match the height to the width.'''
@@ -55,6 +60,14 @@ def update_bake_width(self, context):
     if baking_settings.match_bake_resolution:
         if baking_settings.output_height != baking_settings.output_width:
             baking_settings.output_height = baking_settings.output_width
+
+def update_meshmap_names(previous_name):
+    '''Updates the meshmap names using old names to the name of the active object (called after an object name change).'''
+    for meshmap_type in BAKE_TYPES:
+        meshmap_name = format_meshmap_name(previous_name, meshmap_type)
+        meshmap_image = bpy.data.images.get(meshmap_name)
+        if meshmap_image:
+            meshmap_image.name = format_meshmap_name(bpy.context.active_object.name, meshmap_type)
 
 class MATLAYER_baking_settings(bpy.types.PropertyGroup):
     bake_type: EnumProperty(items=SELECTED_BAKE_TYPE, name="Bake Types", description="Bake type currently selected", default='AMBIENT_OCCLUSION')

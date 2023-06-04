@@ -9,6 +9,21 @@ from ..utilities import logging
 # Material channels are listed in the order of relative sockets in the Principled BSDF node so they will organize properly.
 MATERIAL_CHANNEL_NAMES = ("COLOR", "SUBSURFACE", "SUBSURFACE_COLOR", "METALLIC", "SPECULAR", "ROUGHNESS", "EMISSION", "NORMAL", "HEIGHT")
 
+def update_material_channel_node_names(previous_material_name):
+    '''Updates the names of material channel group nodes (used to update the material channel group nodes after the material name is manually changed).'''
+    for material_channel_name in get_material_channel_list():
+        old_name = "{0}_{1}".format(previous_material_name, material_channel_name)
+        new_name = "{0}_{1}".format(bpy.context.active_object.active_material.name, material_channel_name)
+
+        node_tree = bpy.data.node_groups.get(old_name)
+        if node_tree:
+            node_tree.name = new_name
+
+        material_channel_node = bpy.context.active_object.active_material.node_tree.nodes.get(old_name)
+        if material_channel_node:
+            material_channel_node.name = new_name
+            material_channel_node.label = material_channel_node.name
+
 def get_material_channel_abbreviation(material_channel_name):
     '''Returns an abbreviation for the material channel name. This can be used to compact the material channel's name when displayed in the user interface.'''
     match material_channel_name:
