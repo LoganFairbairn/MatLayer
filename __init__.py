@@ -33,7 +33,7 @@ from .core.material_layers import *
 from .core.material_channels import MATLAYER_OT_toggle_material_channel_preview
 
 # Import layer masking modules.
-from .core.layer_masks import MaskProjectionSettings, MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_mask_stack, MATLAYER_OT_add_black_layer_mask, MATLAYER_OT_add_white_layer_mask, MATLAYER_OT_add_empty_layer_mask, MATLAYER_OT_add_group_node_layer_mask, MATLAYER_OT_add_noise_layer_mask, MATLAYER_OT_add_voronoi_layer_mask, MATLAYER_OT_add_musgrave_layer_mask, MATLAYER_OT_open_layer_mask_menu, MATLAYER_OT_delete_layer_mask,MATLAYER_OT_move_layer_mask_up, MATLAYER_OT_move_layer_mask_down, MATLAYER_OT_add_mask_image, MATLAYER_OT_delete_mask_image, MATLAYER_OT_import_mask_image, MATLAYER_mask_filter_stack, MATLAYER_mask_filters, MATLAYER_UL_mask_filter_stack, MATLAYER_OT_add_mask_filter_invert, MATLAYER_OT_add_mask_filter_val_to_rgb, MATLAYER_OT_add_layer_mask_filter_menu, MATLAYER_OT_delete_mask_filter, MATLAYER_OT_move_layer_mask_filter
+from .core.layer_masks import MaskProjectionSettings, MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_mask_stack, MATLAYER_OT_add_mask_menu, MATLAYER_OT_add_black_layer_mask, MATLAYER_OT_add_white_layer_mask, MATLAYER_OT_add_empty_layer_mask, MATLAYER_OT_add_group_node_layer_mask, MATLAYER_OT_add_noise_layer_mask, MATLAYER_OT_add_voronoi_layer_mask, MATLAYER_OT_add_musgrave_layer_mask, MATLAYER_OT_open_layer_mask_menu, MATLAYER_OT_delete_layer_mask,MATLAYER_OT_move_layer_mask_up, MATLAYER_OT_move_layer_mask_down, MATLAYER_OT_add_mask_image, MATLAYER_OT_delete_mask_image, MATLAYER_OT_import_mask_image, MATLAYER_mask_filter_stack, MATLAYER_mask_filters, MATLAYER_UL_mask_filter_stack, MATLAYER_OT_add_mask_filter_invert, MATLAYER_OT_add_mask_filter_val_to_rgb, MATLAYER_OT_add_layer_mask_filter_menu, MATLAYER_OT_delete_mask_filter, MATLAYER_OT_move_layer_mask_filter
 
 # Import layer operations.
 from .core.layer_operations import *
@@ -55,7 +55,6 @@ from .utilities.internal_utils import MatlayerSettings, MATLAYER_OT_set_decal_la
 
 # Import user interface modules.
 from .ui.ui_main import *
-from .ui.popup_add_mask import *
 from .ui.ui_layer_stack import *
 
 bl_info = {
