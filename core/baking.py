@@ -44,6 +44,9 @@ def get_meshmap_image_name(meshmap_type):
 
         case 'NORMAL':
             return 'Normals'
+        
+        case 'BEVEL_NORMAL':
+            return 'BevelNormals'
 
 def get_meshmap_name(meshmap_type):
     '''Returns the image name for the mesh map of the selected / active object.'''
@@ -92,6 +95,7 @@ class MATLAYER_baking_settings(bpy.types.PropertyGroup):
     bake_normals: BoolProperty(name="Bake Normal", description="Toggle for baking normal maps for baking as part of the batch baking operator", default=True)
     cage_extrusion: FloatProperty(name="Cage Extrusion", description="Infaltes the active object by the specified amount for baking. This helps matching to points nearer to the outside of the selected object meshes", default=0.111, min=0.0, max=1.0)
     high_poly_object: PointerProperty(type=bpy.types.Object, name="High Poly Object", description="The high poly object (must be a mesh) from which mesh detail will be baked to texture maps. The high poly mesh should generally be overlapped by your low poly mesh before starting baking. You do not need to provide a high poly mesh for baking texture maps")
+    bake_bevel_normals: BoolProperty(name="Bake Bevel Normal", description="Toggle for baking a bevel normal map for baking as part of the batch baking operator", default=True)
 
 
 #----------------------------- BAKING NODE SETUPS -----------------------------#
@@ -230,6 +234,26 @@ def add_normal_baking_nodes(material, bake_image):
     # Set node values.
     image_node.image = bake_image
 
+def add_bevel_normal_baking_nodes(material, bake_image):
+    nodes = material.node_tree.nodes
+
+    # Add nodes.
+    material_output_node = nodes.get("Material Output")
+    principled_bsdf_node = nodes.get("MatLayer BSDF")
+    image_node = nodes.new(type='ShaderNodeTexImage')
+    bevel_node = nodes.new(type='ShaderNodeBevel')
+
+    # Set node values.
+    image_node.image = bake_image
+    bevel_node.samples = 16
+    bevel_node.inputs[0].default_value = 0.025
+
+    # Link Nodes
+    links = material.node_tree.links
+    links.new(bevel_node.outputs[0], principled_bsdf_node.inputs[22])
+    links.new(principled_bsdf_node.outputs[0], material_output_node.inputs[0])
+
+
 #----------------------------- BAKING FUNCTIONS -----------------------------#
 
 def verify_bake_object(self):
@@ -304,6 +328,9 @@ def create_bake_image(bake_type):
         case 'NORMALS':
             bake_image_name += "_Normals"
 
+        case 'BEVEL_NORMALS':
+            bake_image_name += "_BevelNormals"
+
     # Create a new image in Blender's data, delete existing bake image if it exists.
     image = bpy.data.images.get(bake_image_name)
     if image != None:
@@ -331,13 +358,9 @@ def create_bake_image(bake_type):
     bake_image.filepath = bake_path + "/" + bake_image_name + ".png"
     bake_image.file_format = 'PNG'
 
-    if bake_type == 'NORMALS':
-        bake_image.colorspace_settings.name = 'Non-Color'
-
-    else:
-        bake_image.colorspace_settings.name = 'sRGB'
+    # Assign a correct colorspace to textures.
+    bake_image.colorspace_settings.name = 'Non-Color'
     
-
     return bake_image
 
 def create_temp_bake_material(bake_type):
@@ -352,6 +375,8 @@ def create_temp_bake_material(bake_type):
             temp_material_name = "MatLay_Thickness"
         case 'NORMAL':
             temp_material_name = "MatLay_Normal"
+        case 'BEVEL_NORMALS':
+            temp_material_name = "MatLay_BevelNormals"
 
     bake_material = bpy.data.materials.get(temp_material_name)
     if bake_material != None:
@@ -366,10 +391,9 @@ def create_temp_bake_material(bake_type):
     material_output_node.label = material_output_node.name
 
     # Remove the Principled BSDF node from the material, it's not used in node setups for baking.
-    nodes = bake_material.node_tree.nodes
-    bsdf_node = nodes.get("MatLayer BSDF")
-    if bsdf_node != None:
-        nodes.remove(bsdf_node)
+    principled_bsdf_node = internal_utils.get_node_by_bl_static_type(bake_material.node_tree.nodes, 'BSDF_PRINCIPLED')
+    principled_bsdf_node.name = "MatLayer BSDF"
+    principled_bsdf_node.label = principled_bsdf_node.name
 
     return bake_material
 
@@ -419,6 +443,9 @@ def bake_mesh_map(bake_type, self):
         case 'NORMALS':
             add_normal_baking_nodes(temp_bake_material, bake_image)
 
+        case 'BEVEL_NORMALS':
+            add_bevel_normal_baking_nodes(temp_bake_material, bake_image)
+
     # Apply bake settings and bake the material to a texture.
     baking_settings = bpy.context.scene.matlayer_baking_settings
     match baking_settings.output_quality:
@@ -449,6 +476,10 @@ def bake_mesh_map(bake_type, self):
                 bpy.context.scene.render.bake.use_selected_to_active = True
             else:
                 bpy.context.scene.render.bake.use_selected_to_active = False
+            bpy.ops.object.bake(type='NORMAL')
+
+        case 'BEVEL_NORMALS':
+            bpy.context.scene.render.bake.use_selected_to_active = False
             bpy.ops.object.bake(type='NORMAL')
 
         case _:
@@ -513,11 +544,15 @@ class MATLAYER_OT_bake(Operator):
         if baking_settings.bake_normals:
             bake_mesh_map('NORMALS', self)
 
+        if baking_settings.bake_bevel_normals:
+            bake_mesh_map('BEVEL_NORMALS', self)
+
         return {'FINISHED'}
 
 class MATLAYER_OT_bake_ambient_occlusion(Operator):
     bl_idname = "matlayer.bake_ambient_occlusion"
     bl_label = "Bake Ambient Occlusion"
+    bl_description = "Bakes an ambient occlusion map for the selected object where darker areas define crevaces in the object's geometry"
 
     @ classmethod
     def poll(cls, context):
@@ -530,6 +565,7 @@ class MATLAYER_OT_bake_ambient_occlusion(Operator):
 class MATLAYER_OT_bake_curvature(Operator):
     bl_idname = "matlayer.bake_curvature"
     bl_label = "Bake Curvature"
+    bl_description = "Bakes a curvature map for the selected object where whiter areas define where the objects geometry curves more"
 
     @ classmethod
     def poll(cls, context):
@@ -542,6 +578,7 @@ class MATLAYER_OT_bake_curvature(Operator):
 class MATLAYER_OT_bake_thickness(Operator):
     bl_idname = "matlayer.bake_thickness"
     bl_label = "Bake Thickness"
+    bl_description = "Bakes a thickness map for the selected object where white areas define thicker parts of the object"
 
     @ classmethod
     def poll(cls, context):
@@ -554,6 +591,7 @@ class MATLAYER_OT_bake_thickness(Operator):
 class MATLAYER_OT_bake_normals(Operator):
     bl_idname = "matlayer.bake_normals"
     bl_label = "Bake Normals"
+    bl_description = "Bakes a normal map for the selected object. When a high poly object is indicated in the add-on user interface the high poly detail will be baked to the low poly object UV map"
 
     @ classmethod
     def poll(cls, context):
@@ -561,6 +599,19 @@ class MATLAYER_OT_bake_normals(Operator):
 
     def execute(self, context):
         bake_mesh_map('NORMALS', self)
+        return {'FINISHED'}
+
+class MATLAYER_OT_bake_bevel_normals(Operator):
+    bl_idname = "matlayer.bake_bevel_normals"
+    bl_label = "Bake Bevel Normals"
+    bl_description = "Bakes a normal map for the selected object that provides an artifical bevel for sharper edges of the geometry"
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        bake_mesh_map('BEVEL_NORMALS', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_open_bake_folder(Operator):
@@ -651,4 +702,18 @@ class MATLAYER_OT_delete_normal_map(Operator):
 
     def execute(self, context):
         delete_meshmap('NORMAL', self)
+        return {'FINISHED'}
+    
+class MATLAYER_OT_delete_bevel_normal_map(Operator):
+    bl_idname = "matlayer.delete_bevel_normal_map"
+    bl_label = "Delete Bevel Normal Map"
+    bl_description = "Deletes the baked bevel normal map for the active object if one exists"
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        delete_meshmap('BEVEL_NORMAL', self)
         return {'FINISHED'}

@@ -73,7 +73,6 @@ def draw_baking_section_ui(self, context):
     col = row.split()
     if baking_settings.match_bake_resolution:
         col.prop(baking_settings, "match_bake_resolution", text="", icon="LOCKED")
-
     else:
         col.prop(baking_settings, "match_bake_resolution", text="", icon="UNLOCKED")
 
@@ -125,7 +124,11 @@ def draw_baking_section_ui(self, context):
     row = first_column.row()
     row.scale_y = scale_y
     row.prop(baking_settings, "bake_normals", text="")
-    row.label(text="Normal: ")
+    row.label(text="Normals: ")
+    row = first_column.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "bake_bevel_normals", text="")
+    row.label(text="Bevel Normals (experimental): ")
 
     null_meshmap_text = "Not Baked"
 
@@ -167,6 +170,16 @@ def draw_baking_section_ui(self, context):
         row.label(text=null_meshmap_text)
     row.operator("matlayer.bake_normals", text="", icon='RENDER_STILL')
     row.operator("matlayer.delete_normal_map", text="", icon='TRASH')
+    row.scale_y = scale_y
+
+    row = second_column.row()
+    bevel_normal_meshmap_name = baking.get_meshmap_name('BEVEL_NORMAL')
+    if bpy.data.images.get(bevel_normal_meshmap_name):
+        row.label(text=bevel_normal_meshmap_name)
+    else:
+        row.label(text=null_meshmap_text)
+    row.operator("matlayer.bake_bevel_normals", text="", icon='RENDER_STILL')
+    row.operator("matlayer.delete_bevel_normal_map", text="", icon='TRASH')
     row.scale_y = scale_y
 
     #----------------------------- ADVANCED SETTINGS -----------------------------#

@@ -58,6 +58,10 @@ def get_normal_triplanar_node_tree():
     '''Returns a custom triplanar projection node tree specifically for correct normal map projections. The node tree will be appended if it doesn't exist in the current blend file.'''
     return append_custom_node_tree("ML_TRIPLANAR_NORMALS", True)
 
+def get_world_to_tangent_normal_node_tree():
+    '''Returns a converter node for world to tangent space normal maps. The node tree will be appended if it doesn't exist in the current blend file.'''
+    return append_custom_node_tree("ML_WORLD_TO_TANGENT_SPACE", True)
+
 def get_flat_blur_node_tree():
     '''Returns a group node that can be used to blur flat / uv projected textures.'''
     return append_custom_node_tree("ML_FLAT_BLUR", True)
