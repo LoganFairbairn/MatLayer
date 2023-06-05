@@ -8,6 +8,7 @@ from .texture_set_settings import TEXTURE_SET_RESOLUTIONS
 from ..utilities import logging
 from ..utilities import internal_utils
 
+
 #----------------------------- BAKING SETTINGS & MISC FUNCTIONS -----------------------------#
 
 SELECTED_BAKE_TYPE = [
@@ -488,7 +489,6 @@ def bake_mesh_map(bake_type, self):
     self.report({'INFO'}, "Baking mesh maps complete. You can find all bake mesh maps here: {0}".format(bake_path))
 
 class MATLAYER_OT_bake(Operator):
-    '''Bakes all checked mesh texture maps in succession. Note that this function (especially on slower computers, or when using a CPU for rendering) can take a few minutes.'''
     bl_idname = "matlayer.bake"
     bl_label = "Batch Bake"
     bl_description = "Bakes all checked mesh texture maps in succession. Note that this function can take a few minutes, especially on slower computers, or when using CPU for rendering"
@@ -516,7 +516,6 @@ class MATLAYER_OT_bake(Operator):
         return {'FINISHED'}
 
 class MATLAYER_OT_bake_ambient_occlusion(Operator):
-    '''Bakes ambient occlusion from the selected object to a texture. If a high poly object is defined the ambient occlusion will be baked from the high poly mesh to the low poly mesh UVs'''
     bl_idname = "matlayer.bake_ambient_occlusion"
     bl_label = "Bake Ambient Occlusion"
 
@@ -529,7 +528,6 @@ class MATLAYER_OT_bake_ambient_occlusion(Operator):
         return {'FINISHED'}
 
 class MATLAYER_OT_bake_curvature(Operator):
-    '''Bakes curvature from the selected object to a texture. If a high poly object is defined the curvature will be baked from the high poly mesh to the low poly mesh UVs'''
     bl_idname = "matlayer.bake_curvature"
     bl_label = "Bake Curvature"
 
@@ -542,7 +540,6 @@ class MATLAYER_OT_bake_curvature(Operator):
         return {'FINISHED'}
 
 class MATLAYER_OT_bake_thickness(Operator):
-    '''Bakes thickness from the selected object to a texture. If a high poly object is defined the thickness will be baked from the high poly mesh to the low poly mesh UVs'''
     bl_idname = "matlayer.bake_thickness"
     bl_label = "Bake Thickness"
 
@@ -555,7 +552,6 @@ class MATLAYER_OT_bake_thickness(Operator):
         return {'FINISHED'}
     
 class MATLAYER_OT_bake_normals(Operator):
-    '''Bakes a normals from the selected object to a texture. If a high poly object is defined the normals will be baked from the high poly mesh to the low poly mesh UVs'''
     bl_idname = "matlayer.bake_normals"
     bl_label = "Bake Normals"
 
@@ -567,6 +563,24 @@ class MATLAYER_OT_bake_normals(Operator):
         bake_mesh_map('NORMALS', self)
         return {'FINISHED'}
 
+class MATLAYER_OT_open_bake_folder(Operator):
+    bl_idname = "matlayer.open_bake_folder"
+    bl_label = "Open Bake Folder"
+    bl_description = "Opens the bake folder in your systems file explorer"
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        matlayer_image_path = os.path.join(bpy.path.abspath("//"), "Matlayer")
+        bake_path = os.path.join(matlayer_image_path, "MeshMaps")
+        if os.path.exists(bake_path):
+            os.startfile(bake_path)
+        else:
+            self.report({'ERROR'}, "Bake folder doesn't exist, bake mesh maps and the bake folder will be automatically created for you.")
+        return {'FINISHED'}
 
 #----------------------------- DELETING MESH MAP FUNCTIONS -----------------------------#
 

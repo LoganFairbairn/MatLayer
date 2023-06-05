@@ -15,9 +15,10 @@ def draw_export_section_ui(self, context):
     
     scale_y = 1.4
 
-    row = layout.row()
-    row.operator("matlayer.export")
+    row = layout.row(align=True)
     row.scale_y = 2.0
+    row.operator("matlayer.export")
+    row.operator("matlayer.open_export_folder", text="", icon='FILE_FOLDER')
 
     row = layout.row()
     row.scale_y = scale_y

@@ -101,9 +101,10 @@ def draw_baking_section_ui(self, context):
     layout.label(text="MESH MAPS: ")
 
     # Draw bake button.
-    row = layout.row()
-    row.operator("matlayer.bake")
+    row = layout.row(align=True)
     row.scale_y = 2.0
+    row.operator("matlayer.bake")
+    row.operator("matlayer.open_bake_folder", text="", icon='FILE_FOLDER')
 
     split = layout.split()
     first_column = split.column()
@@ -167,7 +168,6 @@ def draw_baking_section_ui(self, context):
     row.operator("matlayer.bake_normals", text="", icon='RENDER_STILL')
     row.operator("matlayer.delete_normal_map", text="", icon='TRASH')
     row.scale_y = scale_y
-
 
     #----------------------------- ADVANCED SETTINGS -----------------------------#
 

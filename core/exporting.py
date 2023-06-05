@@ -313,3 +313,21 @@ class MATLAYER_OT_export_emission(Operator):
     def execute(self, context):
         bake_and_export_material_channel('EMISSION', context, self)
         return {'FINISHED'}
+    
+class MATLAYER_OT_open_export_folder(Operator):
+    bl_idname = "matlayer.open_export_folder"
+    bl_label = "Open Export Folder"
+    bl_description = "Opens the folder containing exported textures in your systems file explorer"
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        export_path = os.path.join(bpy.path.abspath("//"), "Textures")
+        if os.path.exists(export_path):
+            os.startfile(export_path)
+        else:
+            self.report({'ERROR'}, "Export folder doesn't exist. Export textures folder will be automatically created for you.")
+        return {'FINISHED'}
