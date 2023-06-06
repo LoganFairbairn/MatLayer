@@ -391,13 +391,7 @@ class MATLAYER_OT_add_decal_layer(Operator):
         
         # Add a new decal layer.
         add_layer('DECAL', self, decal_object)
-
-        # The layer stacks must be updated before adding a mask.
-        read_layer_nodes(context)
-
-        # Automatically add a mask for the decal set to use alpha.
-        layer_masks.add_mask('DECAL', use_alpha=True)
-
+        
         logging.update_total_node_and_link_count()
         return {'FINISHED'}
 
