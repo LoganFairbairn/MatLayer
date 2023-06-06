@@ -132,7 +132,7 @@ def draw_baking_section_ui(self, context):
 
     null_meshmap_text = "Not Baked"
 
-    row = second_column.row()
+    row = second_column.row(align=True)
     ao_meshmap_name = baking.get_meshmap_name('AMBIENT_OCCLUSION')
     if bpy.data.images.get(ao_meshmap_name):
         row.label(text=ao_meshmap_name)
@@ -142,7 +142,7 @@ def draw_baking_section_ui(self, context):
     row.operator("matlayer.delete_ao_map", text="", icon='TRASH')
     row.scale_y = scale_y
 
-    row = second_column.row()
+    row = second_column.row(align=True)
     curvature_meshmap_name = baking.get_meshmap_name('CURVATURE')
     if bpy.data.images.get(curvature_meshmap_name):
         row.label(text=curvature_meshmap_name)
@@ -152,7 +152,7 @@ def draw_baking_section_ui(self, context):
     row.operator("matlayer.delete_curvature_map", text="", icon='TRASH')
     row.scale_y = scale_y
 
-    row = second_column.row()
+    row = second_column.row(align=True)
     thickness_meshmap_name = baking.get_meshmap_name('THICKNESS')
     if bpy.data.images.get(thickness_meshmap_name):
         row.label(text=thickness_meshmap_name)
@@ -162,7 +162,7 @@ def draw_baking_section_ui(self, context):
     row.operator("matlayer.delete_thickness_map", text="", icon='TRASH')
     row.scale_y = scale_y
 
-    row = second_column.row()
+    row = second_column.row(align=True)
     normal_meshmap_name = baking.get_meshmap_name('NORMAL')
     if bpy.data.images.get(normal_meshmap_name):
         row.label(text=normal_meshmap_name)
@@ -172,7 +172,7 @@ def draw_baking_section_ui(self, context):
     row.operator("matlayer.delete_normal_map", text="", icon='TRASH')
     row.scale_y = scale_y
 
-    row = second_column.row()
+    row = second_column.row(align=True)
     bevel_normal_meshmap_name = baking.get_meshmap_name('BEVEL_NORMAL')
     if bpy.data.images.get(bevel_normal_meshmap_name):
         row.label(text=bevel_normal_meshmap_name)
