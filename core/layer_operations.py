@@ -1249,7 +1249,7 @@ class MATLAYER_OT_read_layer_nodes(Operator):
     def execute(self, context):
         # Only read the layer stack for materials made with this add-on. 
         # Materials must follow a strict format to be able to be properly read, making materials not made with this add-on incompatible.
-        self.report({'INFO'}, "Refreshed layer stack.")
+        logging.log_status("Refreshed layer stack.", self, 'INFO')
         
         logging.update_total_node_and_link_count()
 
