@@ -1,16 +1,17 @@
 import os
+import numpy
 import bpy
-from bpy.types import Operator, PropertyGroup
-from bpy.props import BoolProperty, StringProperty
-from . import material_channels
+from bpy.types import Operator, PropertyGroup, Image
+from bpy.props import BoolProperty, StringProperty, EnumProperty
+from ..core import material_channels
 from ..core import baking
-from . import texture_set_settings
-from ..utilities import logging
-from . import matlayer_materials
+from ..core import texture_set_settings
+from ..core import matlayer_materials
 from .. import preferences
-from ..utilities import internal_utils
 
 #----------------------------- EXPORT SETTINGS -----------------------------#
+
+
 
 class MATLAYER_exporting_settings(PropertyGroup):
     texture_export_name: StringProperty(default="", name="Texture Export Name", description="Name for exported textures.")
@@ -27,15 +28,23 @@ class MATLAYER_exporting_settings(PropertyGroup):
 
 #----------------------------- EXPORT FUNCTIONS -----------------------------#
 
-def set_export_image_name(material_channel_name):
-    '''Defines the exported images name based on user settings.'''
-    #export_image_name =  + "_" + material_channel_name
-    active_object_name = bpy.context.active_object.name
+def format_export_image_name(material_channel_name):
+    '''Properly formats the name for an export image based on the selected texture export template and the provided material channel.'''
+    image_name = ""
+    active_object = bpy.context.active_object
+    if not active_object:
+        return image_name
+    
+    active_material = active_object.active_material
+    if not active_material:
+        return image_name
+
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-    match addon_preferences.texture_name_export_format:
-        case 'STANDARD':
-            export_image_name = "{0}_{1}".format(active_object_name, material_channel_name)
-        case 'UE_UNITY':
+    match addon_preferences.texture_export_template:
+        case 'PBR_METALLIC_ROUGHNESS':
+            image_name = "{0}_{1}".format(active_material.name, material_channel_name)
+
+        case _:
             material_channel_abreviation = ""
             match material_channel_name:
                 case 'COLOR':
@@ -56,9 +65,80 @@ def set_export_image_name(material_channel_name):
                     material_channel_abreviation = 'N'
                 case 'HEIGHT':
                     material_channel_abreviation = 'H'
-            export_image_name = "T_{0}_{1}".format(active_object_name, material_channel_abreviation)
-    return export_image_name
+                case 'ORM':
+                    material_channel_abreviation = 'ORM'
+            image_name = "T_{0}_{1}".format(active_material.name, material_channel_abreviation)
+    return image_name
 
+def channel_pack(r_image, g_image, b_image, a_image):
+    '''Channel packs the provided images into RGBA channels of a single image. Accepts None.'''
+
+    # Store input images into an array so they can be cycled through easily.
+    packing_images = [r_image, g_image, b_image, a_image]
+
+    # Cycle through RGBA channels.
+    output_pixels = None
+    for i in range(0, 4):
+        image = packing_images[i]
+        if image:
+
+            # Initialize full size empty arrays to avoid using dynamic arrays (caused by appending) which is much much slower.
+            if output_pixels is None:
+                w, h = image.size
+                source_pixels = numpy.empty(w * h * 4, dtype=numpy.float32)
+                output_pixels = numpy.ones(w * h * 4, dtype=numpy.float32)
+
+            # Break if provided images are not the same size.
+            assert image.size[:] == (w, h), "Images must be the same size."
+
+            # Copy the source image R pixels to the output image pixels for each channel.
+            image.pixels.foreach_get(source_pixels)
+            output_pixels[i::4] = source_pixels[0::4]
+            
+        else:
+            # If an alpha image is not provided, alpha is 1.0.
+            if i == 3:
+                output_pixels[i::4] = 1.0
+
+            # If an image other than alpha is not provided, channel is 0.0.
+            else:
+                output_pixels[i::4] = 0.0
+        
+    # If an alpha image is provided create an image with alpha.
+    has_alpha = False
+    if a_image:
+        has_alpha = True
+
+    # Create image using the packed pixels.
+    packed_image = bpy.data.images.new("Packed Image", w, h, alpha=has_alpha, float_buffer=True, is_data=True)
+    packed_image.pixels.foreach_set(output_pixels)
+    packed_image.pack()
+
+    return packed_image
+
+def channel_pack_exported_images():
+    '''Channel packs exported images for the selected object based on the selected texture export preset.'''
+
+    roughness_tex_name = format_export_image_name('ROUGHNESS')
+    metallic_tex_name = format_export_image_name('METTALIC')
+    ao_tex_name = baking.get_meshmap_image_name('AMBIENT_OCCLUSION')
+
+    roughness_tex = bpy.data.images.get(roughness_tex_name + ".png")
+    metallic_tex = bpy.data.images.get(metallic_tex_name + ".png")
+    ao_tex = bpy.data.images.get(ao_tex_name + ".png")
+
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    match addon_preferences.texture_export_template:
+        case 'UNITY_METALLIC':
+            packed_image = channel_pack(roughness_tex, metallic_tex, None, ao_tex)
+            packed_image.name = format_export_image_name('ORM')
+        case 'UNITY_SPECULAR':
+            packed_image = channel_pack(roughness_tex, metallic_tex, None, ao_tex)
+            packed_image.name = format_export_image_name('ORM')
+        case 'UNREAL_ENGINE':
+            packed_image = channel_pack(ao_tex, roughness_tex, metallic_tex, None)
+            packed_image.name = format_export_image_name('ORM')
+    
 def create_export_image(export_image_name):
     '''Creates an image in Blender's data to bake to and export.'''
     export_image = bpy.data.images.get(export_image_name)
@@ -111,7 +191,7 @@ def bake_and_export_material_channel(material_channel_name, context, self):
         material_channels.isolate_material_channel(True, material_channel_name, context)
 
     # Create a new image in Blender's data and image node.
-    export_image_name = set_export_image_name(material_channel_name)
+    export_image_name = format_export_image_name(material_channel_name)
     export_image = create_export_image(export_image_name)
 
     # Create a folder for the exported texture files.
@@ -158,7 +238,20 @@ def bake_and_export_material_channel(material_channel_name, context, self):
         material_channels.isolate_material_channel(False, material_channel_name, context)
 
     self.report({'INFO'}, "Finished exporting textures. You can find any exported textures in {0}".format(export_path))
+
+class MATLAYER_OT_channel_pack(Operator):
+    bl_idname = "matlayer.channel_pack"
+    bl_label = "Channel Pack"
+    bl_description = "Channel packs textures based on the selected texture export template (experimental)"
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
     
+    def execute(self, context):
+        channel_pack_exported_images()
+        return {'FINISHED'}
+
 class MATLAYER_OT_export(Operator):
     bl_idname = "matlayer.export"
     bl_label = "Batch Export"
@@ -195,123 +288,8 @@ class MATLAYER_OT_export(Operator):
             bake_and_export_material_channel('HEIGHT', context, self)
         if bpy.context.scene.matlayer_export_settings.export_emission:
             bake_and_export_material_channel('EMISSION', context, self)
-        return {'FINISHED'}
 
-class MATLAYER_OT_export_base_color(Operator):
-    bl_idname = "matlayer.export_base_color"
-    bl_label = "Export Base Color"
-    bl_description = "Bakes the MatLay base color channel and saves the result to the export folder"
-
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.color_channel_toggle
-    
-    def execute(self, context):
-        bake_and_export_material_channel('COLOR', context, self)
-        return {'FINISHED'}
-
-class MATLAYER_OT_export_subsurface(Operator):
-    bl_idname = "matlayer.export_subsurface"
-    bl_label = "Export Subsurface"
-    bl_description = "Bakes the MatLay subsurface and saves the result to the export folder"
-
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.subsurface_channel_toggle
-    
-    def execute(self, context):
-        bake_and_export_material_channel('SUBSURFACE', context, self)
-        return {'FINISHED'}
-
-class MATLAYER_OT_export_subsurface_color(Operator):
-    bl_idname = "matlayer.export_subsurface_color"
-    bl_label = "Export Subsurface COLOR"
-    bl_description = "Bakes the MatLay subsurface color and saves the result to the export folder"
-
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.subsurface_color_channel_toggle
-    
-    def execute(self, context):
-        bake_and_export_material_channel('SUBSURFACE_COLOR', context, self)
-        return {'FINISHED'}
-
-class MATLAYER_OT_export_metallic(Operator):
-    bl_idname = "matlayer.export_metallic"
-    bl_label = "Export Metallic Channel"
-    bl_description = "Bakes the MatLay metallic channel and saves the result to the export folder"
-
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.metallic_channel_toggle
-    
-    def execute(self, context):
-        bake_and_export_material_channel('METALLIC', context, self)
-        return {'FINISHED'}
-
-class MATLAYER_OT_export_specular(Operator):
-    bl_idname = "matlayer.export_specular"
-    bl_label = "Export Specular"
-    bl_description = "Bakes the MatLay specular and saves the result to the export folder"
-
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.specular_channel_toggle
-    
-    def execute(self, context):
-        bake_and_export_material_channel('SPECULAR', context, self)
-        return {'FINISHED'}
-
-class MATLAYER_OT_export_roughness(Operator):
-    bl_idname = "matlayer.export_roughness"
-    bl_label = "Export Roughness"
-    bl_description = "Bakes the MatLay roughness channel and saves the result to the export folder"
-
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.roughness_channel_toggle
-    
-    def execute(self, context):
-        bake_and_export_material_channel('ROUGHNESS', context, self)
-        return {'FINISHED'}
-
-class MATLAYER_OT_export_normals(Operator):
-    bl_idname = "matlayer.export_normals"
-    bl_label = "Export Normals"
-    bl_description = "Bakes the MatLay normal channel and saves the result to the export folder. The height material channel will also be converted and baked into the normal map"
-
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.normal_channel_toggle
-    
-    def execute(self, context):
-        bake_and_export_material_channel('NORMAL', context, self)
-        return {'FINISHED'}
-
-class MATLAYER_OT_export_height(Operator):
-    bl_idname = "matlayer.export_height"
-    bl_label = "Export Height"
-    bl_description = "Bakes the MatLay height channel and saves the result to the export folder"
-
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.height_channel_toggle
-    
-    def execute(self, context):
-        bake_and_export_material_channel('HEIGHT', context, self)
-        return {'FINISHED'}
-
-class MATLAYER_OT_export_emission(Operator):
-    bl_idname = "matlayer.export_emission"
-    bl_label = "Export Emission"
-    bl_description = "Bakes the MatLay emission channel and saves the result to the export folder"
-
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object and bpy.context.scene.matlayer_texture_set_settings.global_material_channel_toggles.emission_channel_toggle
-    
-    def execute(self, context):
-        bake_and_export_material_channel('EMISSION', context, self)
+        channel_pack_exported_images()
         return {'FINISHED'}
     
 class MATLAYER_OT_open_export_folder(Operator):

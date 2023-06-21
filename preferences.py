@@ -6,16 +6,12 @@ from bpy.props import StringProperty, BoolProperty, EnumProperty, FloatProperty
 
 ADDON_NAME = __package__
 
-TEXTURE_NAME_EXPORT_FORMAT = [
-    #("CUSTOM", "Custom", "Export textures with a custom name"),
-    ("STANDARD", "Standard", "Export textures with a commonly used naming format"),
-    ("UE_UNITY", "Unreal Engine / Unity", "Export textures with the standard Unreal Engine / Unity naming format"),
+TEXTURE_EXPORT_TEMPLATES = [
+    ("PBR_METALLIC_ROUGHNESS", "PBR Metallic Roughness", "Exports all textures for a standard PBR metallic / roughness setup. Does not channel pack textures (not recommended)"),
+    ("UNITY_METALLIC", "Unity (Metallic)", "Channel packs and exports textures for a standard Unity shader with a metallic setup. [ R = Metallic, G = Ambient Occlusion, B = None, Alpha = Glossiness ]"),
+    ("UNITY_SPECULAR", "Unity (Specular)", "Channel packs and exports textures for a standard Unity shader with a specular setup. [ R = Metallic, G = Ambient Occlusion, B = None, Alpha = Glossiness ]"),
+    ("UNREAL_ENGINE", "Unreal Engine", "Channel packs textures in a common method for materials used in Unreal Engine [ R = Occlusion, G = Roughness, B = Metallic ]")
     ]
-
-TEXTURE_NAME_PREFIX_MODE = [
-    ("CUSTOM", "Custom", "Export textures with a custom prefix."),
-    ("OBJECT_NAME", "Object Name", "Use the active (selected) object's name as the prefer for texture names.")
-]
 
 class AddonPreferences(AddonPreferences):
     bl_idname = ADDON_NAME
@@ -65,24 +61,13 @@ class AddonPreferences(AddonPreferences):
         subtype='FILE_PATH',
     )
 
-    texture_name_export_format: EnumProperty(
-        items=TEXTURE_NAME_EXPORT_FORMAT, 
-        name="Texture Name Export Format",
-        description="The naming format used to export textures."
-    )
-
-    texture_name_export_prefix_mode: EnumProperty(
-        items=TEXTURE_NAME_PREFIX_MODE,
-        default='OBJECT_NAME',
-        name="Texture Name Export Prefix Mode",
-        description="The prefix used in exported textures."
-    )
-
     ui_y_scale: FloatProperty(
         name="Interface Y Scale",
         default=1.4,
         description="Y scale modifier for the user interface. Can be used to help make interface elements larger so they are easier to click, and to help keep the interface less cluttered."
     )
+
+    texture_export_template: EnumProperty(items=TEXTURE_EXPORT_TEMPLATES, name="Texture Export Template", description="", default='UNREAL_ENGINE')
     
     def draw(self, context):
         layout = self.layout

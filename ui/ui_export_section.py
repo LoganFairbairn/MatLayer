@@ -1,7 +1,8 @@
 # This files handles drawing the exporting section's user interface.
 
 import bpy
-from .import ui_section_tabs
+from ..ui import ui_section_tabs
+from ..core import exporting
 from .. import preferences
 
 def draw_export_section_ui(self, context):
@@ -9,121 +10,119 @@ def draw_export_section_ui(self, context):
     layout = self.layout
 
     ui_section_tabs.draw_section_tabs(self, context)
-
-    # Draw export settings.
     export_settings = context.scene.matlayer_export_settings
-    
-    scale_y = 1.4
+    SCALE_Y = 1.4
 
-    row = layout.row(align=True)
-    row.scale_y = 2.0
-    row.operator("matlayer.export")
-    row.operator("matlayer.open_export_folder", text="", icon='FILE_FOLDER')
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(export_settings, "export_base_color", text="")
-    row.label(text="Base Color")
-    row.operator("matlayer.export_base_color", text="", icon='RENDER_STILL')
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(export_settings, "export_subsurface", text="")
-    row.label(text="Subsurface")
-    row.operator("matlayer.export_subsurface", text="", icon='RENDER_STILL')
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(export_settings, "export_subsurface_color", text="")
-    row.label(text="Subsurface Color")
-    row.operator("matlayer.export_subsurface_color", text="", icon='RENDER_STILL')
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(export_settings, "export_metallic", text="")
-    row.label(text="Metallic")
-    row.operator("matlayer.export_metallic", text="", icon='RENDER_STILL')
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(export_settings, "export_specular", text="")
-    row.label(text="Specular")
-    row.operator("matlayer.export_specular", text="", icon='RENDER_STILL')
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(export_settings, "export_roughness", text="")
-    row.label(text="Roughness")
-    row.operator("matlayer.export_roughness", text="", icon='RENDER_STILL')
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(export_settings, "export_emission", text="")
-    row.label(text="Emission")
-    row.operator("matlayer.export_emission", text="", icon='RENDER_STILL')
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(export_settings, "export_normals", text="")
-    row.label(text="Normals")
-    row.operator("matlayer.export_normals", text="", icon='RENDER_STILL')
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(export_settings, "export_height", text="")
-    row.label(text="Height")
-    row.operator("matlayer.export_height", text="", icon='RENDER_STILL')
-
-
-    # Draw additioanl export settings.
+    # Draw export texture tempaltes.
     # A dual column layout is used so the properties vertically align.
     row = layout.row()
     row.separator()
-    layout.label(text="EXPORT TEXTURE NAME SETTINGS")
     addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
-    split = layout.split(factor=0.35)
+    split = layout.split(factor=0.2)
     first_column = split.column()
     first_column.scale_x = 0.1
     second_column = split.column()
     
     row = first_column.row()
-    row.scale_y = scale_y
-    row.label(text="Texture Name Format Mode:")
+    row.scale_y = SCALE_Y
+    row.label(text="Export Template:")
     row = second_column.row()
-    row.scale_y = scale_y
-    row.prop(addon_preferences, "texture_name_export_format", text="")
+    row.scale_y = SCALE_Y
+    row.prop(addon_preferences, "texture_export_template", text="")
+
+    # Draw export button.
+    row = layout.row(align=True)
+    row.scale_y = 2.0
+    row.operator("matlayer.export")
+    row.operator("matlayer.open_export_folder", text="", icon='FILE_FOLDER')
+
+    # Draw toggles for exporting material channels and a preview of their name.
+    split = layout.split(factor=0.5)
+    first_column = split.column()
+    second_column = split.column()
 
     row = first_column.row()
-    row.scale_y = scale_y
-    row.label(text="Texture Name Format:")
+    row.label(text="Output Textures")
     row = second_column.row()
-    row.scale_y = scale_y
-    export_format_example = ""
-    match addon_preferences.texture_name_export_format:
-        case 'STANDARD':
-            export_format_example = "ObjectName_MaterialChannelName"
-        case 'UE_UNITY':
-            export_format_example = "T_ObjectName_MaterialChannelAbreviation"
-    row.label(text=export_format_example)
+    row.label(text="Export Image Name Preview")
 
-    '''
     row = first_column.row()
-    row.scale_y = scale_y
-    row.label(text="Prefix Mode:")
+    row.scale_y = SCALE_Y
+    row.prop(export_settings, "export_base_color", text="")
+    row.label(text="Base Color")
     row = second_column.row()
-    row.scale_y = scale_y
-    row.prop(addon_preferences, "texture_name_export_prefix_mode", text="")
+    row.scale_y = SCALE_Y
+    export_image_name = exporting.format_export_image_name('COLOR')
+    row.label(text=export_image_name)
 
-    
-    if addon_preferences.texture_name_export_prefix_mode == 'CUSTOM':
-        row = first_column.row()
-        row.scale_y = scale_y
-        row.label(text="Texture Prefix:")
-        row = second_column.row()
-        row.scale_y = scale_y
-        row.prop(export_settings, "texture_export_name", text="")
-    '''
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(export_settings, "export_subsurface", text="")
+    row.label(text="Subsurface")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    export_image_name = exporting.format_export_image_name('SUBSURFACE')
+    row.label(text=export_image_name)
 
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(export_settings, "export_subsurface_color", text="")
+    row.label(text="Subsurface Color")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    export_image_name = exporting.format_export_image_name('SUBSURFACE_COLOR')
+    row.label(text=export_image_name)
 
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(export_settings, "export_metallic", text="")
+    row.label(text="Metallic")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    export_image_name = exporting.format_export_image_name('METALLIC')
+    row.label(text=export_image_name)
 
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(export_settings, "export_specular", text="")
+    row.label(text="Specular")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    export_image_name = exporting.format_export_image_name('SPECULAR')
+    row.label(text=export_image_name)
 
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(export_settings, "export_roughness", text="")
+    row.label(text="Roughness")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    export_image_name = exporting.format_export_image_name('ROUGHNESS')
+    row.label(text=export_image_name)
+
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(export_settings, "export_emission", text="")
+    row.label(text="Emission")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    export_image_name = exporting.format_export_image_name('EMISSION')
+    row.label(text=export_image_name)
+
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(export_settings, "export_normals", text="")
+    row.label(text="Normals")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    export_image_name = exporting.format_export_image_name('NORMAL')
+    row.label(text=export_image_name)
+
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(export_settings, "export_height", text="")
+    row.label(text="Height")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    export_image_name = exporting.format_export_image_name('HEIGHT')
+    row.label(text=export_image_name)

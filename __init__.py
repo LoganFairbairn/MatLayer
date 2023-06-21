@@ -45,7 +45,7 @@ from .core.material_filters import FiltersMaterialChannelToggles, MATLAYER_mater
 from .core.baking import MATLAYER_baking_settings, MATLAYER_OT_bake, MATLAYER_OT_bake_ambient_occlusion, MATLAYER_OT_bake_curvature, MATLAYER_OT_bake_thickness, MATLAYER_OT_bake_normals, MATLAYER_OT_bake_bevel_normals, MATLAYER_OT_open_bake_folder, MATLAYER_OT_delete_ao_map, MATLAYER_OT_delete_curvature_map, MATLAYER_OT_delete_thickness_map, MATLAYER_OT_delete_normal_map, MATLAYER_OT_delete_bevel_normal_map, update_meshmap_names
 
 # Import exporting modules.
-from .core.exporting import MATLAYER_exporting_settings, MATLAYER_OT_export, MATLAYER_OT_export_base_color, MATLAYER_OT_export_subsurface, MATLAYER_OT_export_subsurface_color, MATLAYER_OT_export_metallic, MATLAYER_OT_export_specular, MATLAYER_OT_export_roughness, MATLAYER_OT_export_normals, MATLAYER_OT_export_height, MATLAYER_OT_export_emission, MATLAYER_OT_open_export_folder
+from .core.exporting import MATLAYER_exporting_settings, MATLAYER_OT_export, MATLAYER_OT_open_export_folder, MATLAYER_OT_channel_pack
 
 # Import tool / utility modules.
 from .utilities.image_file_handling import MATLAYER_OT_add_layer_image, MATLAYER_OT_delete_layer_image, MATLAYER_OT_import_texture, MATLAYER_OT_import_texture_set
@@ -95,16 +95,8 @@ classes = (
     # Exporting
     MATLAYER_exporting_settings,
     MATLAYER_OT_export,
-    MATLAYER_OT_export_base_color,
-    MATLAYER_OT_export_subsurface,
-    MATLAYER_OT_export_subsurface_color,
-    MATLAYER_OT_export_metallic,
-    MATLAYER_OT_export_specular,
-    MATLAYER_OT_export_roughness,
-    MATLAYER_OT_export_normals,
-    MATLAYER_OT_export_height,
-    MATLAYER_OT_export_emission,
     MATLAYER_OT_open_export_folder,
+    MATLAYER_OT_channel_pack,
 
     # Material Channels
     MATLAYER_OT_toggle_material_channel_preview,
