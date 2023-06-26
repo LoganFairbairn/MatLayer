@@ -7,7 +7,7 @@ from bpy.props import StringProperty, BoolProperty, EnumProperty, FloatProperty
 ADDON_NAME = __package__
 
 TEXTURE_EXPORT_TEMPLATES = [
-    ("PBR_METALLIC_ROUGHNESS", "PBR Metallic Roughness", "Exports all textures for a standard PBR metallic / roughness setup. Does not channel pack textures (not recommended)"),
+    ("PBR_METALLIC_ROUGHNESS", "PBR Metallic Roughness", "Exports all textures for a standard PBR metallic / roughness setup. Does not channel pack textures"),
     ("UNITY_METALLIC", "Unity (Metallic)", "Channel packs and exports textures for a standard Unity shader with a metallic setup. [ R = Metallic, G = Ambient Occlusion, B = None, Alpha = Glossiness ]"),
     ("UNITY_SPECULAR", "Unity (Specular)", "Channel packs and exports textures for a standard Unity shader with a specular setup. [ R = Metallic, G = Ambient Occlusion, B = None, Alpha = Glossiness ]"),
     ("UNREAL_ENGINE", "Unreal Engine", "Channel packs textures in a common method for materials used in Unreal Engine [ R = Occlusion, G = Roughness, B = Metallic ]")
