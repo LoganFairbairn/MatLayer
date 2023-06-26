@@ -220,4 +220,4 @@ class MATLAYER_texture_set_settings(PropertyGroup):
     match_image_resolution: BoolProperty(name="Match Image Resolution", description="When toggled on, the image width and height will be matched", default=True, update=update_match_image_resolution)
     thirty_two_bit: BoolProperty(name="32 Bit Color", description="When toggled on, images created using this add-on will be created with 32 bit color depth. 32-bit images will take up more memory, but will have significantly less color banding in gradients. On monitors (generally older or cheap ones) that don't support this color depth there will be no visual difference", default=True)
     global_material_channel_toggles: PointerProperty(type=GlobalMaterialChannelToggles, description="Toggles for each material channel that toggle them on / off for all layers.")
-    auto_update_properties: BoolProperty(name="Auto Update Properties", description="If true, changing texture set settings will trigger automatic updates.")
+    auto_update_properties: BoolProperty(name="Auto Update Properties", default=True, description="If true, changing texture set settings will trigger automatic updates.")
