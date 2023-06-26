@@ -138,7 +138,6 @@ def draw_baking_section_ui(self, context):
         row.label(text=ao_meshmap_name)
     else:
         row.label(text=null_meshmap_text)
-    row.operator("matlayer.bake_ambient_occlusion", text="", icon='RENDER_STILL')
     row.operator("matlayer.delete_ao_map", text="", icon='TRASH')
     row.scale_y = scale_y
 
@@ -148,7 +147,6 @@ def draw_baking_section_ui(self, context):
         row.label(text=curvature_meshmap_name)
     else:
         row.label(text=null_meshmap_text)
-    row.operator("matlayer.bake_curvature", text="", icon='RENDER_STILL')
     row.operator("matlayer.delete_curvature_map", text="", icon='TRASH')
     row.scale_y = scale_y
 
@@ -158,7 +156,6 @@ def draw_baking_section_ui(self, context):
         row.label(text=thickness_meshmap_name)
     else:
         row.label(text=null_meshmap_text)
-    row.operator("matlayer.bake_thickness", text="", icon='RENDER_STILL')
     row.operator("matlayer.delete_thickness_map", text="", icon='TRASH')
     row.scale_y = scale_y
 
@@ -168,7 +165,6 @@ def draw_baking_section_ui(self, context):
         row.label(text=normal_meshmap_name)
     else:
         row.label(text=null_meshmap_text)
-    row.operator("matlayer.bake_normals", text="", icon='RENDER_STILL')
     row.operator("matlayer.delete_normal_map", text="", icon='TRASH')
     row.scale_y = scale_y
 
@@ -178,7 +174,6 @@ def draw_baking_section_ui(self, context):
         row.label(text=bevel_normal_meshmap_name)
     else:
         row.label(text=null_meshmap_text)
-    row.operator("matlayer.bake_bevel_normals", text="", icon='RENDER_STILL')
     row.operator("matlayer.delete_bevel_normal_map", text="", icon='TRASH')
     row.scale_y = scale_y
 
