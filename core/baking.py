@@ -95,7 +95,7 @@ class MATLAYER_baking_settings(bpy.types.PropertyGroup):
     bake_normals: BoolProperty(name="Bake Normal", description="Toggle for baking normal maps for baking as part of the batch baking operator", default=True)
     cage_extrusion: FloatProperty(name="Cage Extrusion", description="Infaltes the active object by the specified amount for baking. This helps matching to points nearer to the outside of the selected object meshes", default=0.111, min=0.0, max=1.0)
     high_poly_object: PointerProperty(type=bpy.types.Object, name="High Poly Object", description="The high poly object (must be a mesh) from which mesh detail will be baked to texture maps. The high poly mesh should generally be overlapped by your low poly mesh before starting baking. You do not need to provide a high poly mesh for baking texture maps")
-    bake_bevel_normals: BoolProperty(name="Bake Bevel Normal", description="Toggle for baking a bevel normal map for baking as part of the batch baking operator", default=True)
+    bake_bevel_normals: BoolProperty(name="Bake Bevel Normal", description="Toggle for baking a bevel normal map for baking as part of the batch baking operator", default=False)
 
 
 #----------------------------- BAKING NODE SETUPS -----------------------------#
