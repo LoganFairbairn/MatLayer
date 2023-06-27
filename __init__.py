@@ -63,7 +63,7 @@ from .ui.ui_layer_stack import *
 bl_info = {
     "name": "MatLayer",
     "author": "Logan Fairbairn (Ryver)",
-    "version": (1, 0, 5),
+    "version": (1, 0, 6),
     "blender": (3, 5, 0),
     "location": "View3D > Sidebar > MatLayer",
     "description": "Replaces node based texturing workflow with a layer stack workflow through a custom user interface.",
