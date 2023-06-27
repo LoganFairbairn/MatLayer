@@ -2,7 +2,7 @@ import os
 import numpy
 import bpy
 from bpy.types import Operator, PropertyGroup, Image
-from bpy.props import BoolProperty, StringProperty, EnumProperty
+from bpy.props import BoolProperty, StringProperty, EnumProperty, PointerProperty
 from ..core import material_channels
 from ..core import baking
 from ..core import texture_set_settings
@@ -11,10 +11,8 @@ from .. import preferences
 
 #----------------------------- EXPORT SETTINGS -----------------------------#
 
-
-
 class MATLAYER_exporting_settings(PropertyGroup):
-    texture_export_name: StringProperty(default="", name="Texture Export Name", description="Name for exported textures.")
+    texture_name_export_format: StringProperty(default="[MaterialName]_[MaterialChannel]", name="Texture Name Export Format", description="Name format used for exported textures. Key words include MaterialName, MaterialChannel, MaterialChannelAbbreviation, ActiveObjectName")
     export_folder: StringProperty(default="", description="Path to folder location where exported texture are saved. If empty, an export folder will be created next to your .blend file and exported textures will be automatically saved there.", name="Export Folder Path")
     export_base_color: BoolProperty(default=True, name="Export Base Color", description="Include the base color in batch exporting")
     export_subsurface: BoolProperty(default=False, name="Export Subsurface", description="Include the subsurface in batch exporting")
@@ -25,6 +23,7 @@ class MATLAYER_exporting_settings(PropertyGroup):
     export_normals: BoolProperty(default=True, name="Export Normals", description="Include the normals in batch exporting")
     export_height: BoolProperty(default=False, name="Export Height", description="Include the height in batch exporting")
     export_emission: BoolProperty(default=False, name="Export Emission", description="Include the emission in batch exporting")
+    export_ambient_occlusion: BoolProperty(default=False, name="Export Ambient Occlusion", description="Exports the ambient occlusion mesh map")
 
 #----------------------------- EXPORT FUNCTIONS -----------------------------#
 

@@ -30,6 +30,20 @@ def draw_export_section_ui(self, context):
     row.scale_y = SCALE_Y
     row.prop(addon_preferences, "texture_export_template", text="")
 
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.label(text="Name Format:")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(addon_preferences, "texture_export_name_format", text="")
+
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.label(text="Padding:")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(addon_preferences, "padding")
+
     # Draw export button.
     row = layout.row(align=True)
     row.scale_y = 2.0
