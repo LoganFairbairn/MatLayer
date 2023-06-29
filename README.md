@@ -55,6 +55,7 @@ Limitations:
 - No layer folders
 - Displacement is not supported
 - (currently) no ID map masking support
+- (currently) no UDIM support
 
 -----
 
