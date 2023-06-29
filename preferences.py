@@ -27,6 +27,10 @@ EXPORT_CHANNELS = [
     ("NORMAL", "Normal", "Normal"),
     ("HEIGHT", "Height", "Height"),
     ("AMBIENT_OCCLUSION", "Ambient Occlusion", "Ambient Occlusion"),
+    ("CURVATURE", "Curvature", "Curvature"),
+    ("THICKNESS", "Thickness", "Thickness"),
+    ("BASE_NORMALS", "Base Normals", "Base Normals"),
+    ("OPACITY", "Opacity", "Opacity"),
     ("NONE", "None", "None")
 ]
 

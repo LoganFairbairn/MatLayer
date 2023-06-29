@@ -74,7 +74,6 @@ def draw_export_section_ui(self, context):
         col_2 = split.column(align=True)
         split = col_2.split(factor=0.9)
         col_1 = split.column(align=True)
-        
 
         row = col_1.row(align=True)
         row.prop(channel, "r_input_texture", text="")
@@ -95,11 +94,12 @@ def draw_export_section_ui(self, context):
         row.prop(channel, "a_pack_output_color_channel", text="")
 
         col = split.column()
-        col.operator("matlayer.remove_export_texture", icon='X', text="")
+        op = col.operator("matlayer.remove_export_texture", icon='X', text="")
+        op.export_texture_index = i
 
     layout.separator()
     row = layout.row()
-    row.label(text="Additional Settings: ")
+    row.label(text="Additional Settings")
 
     split = layout.split(factor=0.3)
     first_column = split.column()
