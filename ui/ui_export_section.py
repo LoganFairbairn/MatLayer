@@ -68,7 +68,7 @@ def draw_export_section_ui(self, context):
         col_1 = split.column(align=True)
         col_1.alignment = 'RIGHT'
         col_1.label(text="In Texture")
-        col_1.label(text="In  RGBA")
+        col_1.label(text="In RGBA")
         col_1.label(text="Out RGBA")
 
         col_2 = split.column(align=True)

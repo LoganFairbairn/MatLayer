@@ -49,7 +49,7 @@ TEXTURE_EXPORT_FORMAT = [
 ]
 
 class MATLAYER_texture_export_settings(PropertyGroup):
-    name_format: StringProperty(default="T_/MaterialName_C")
+    name_format: StringProperty(name="Name Format", default="T_/MaterialName_C", description="Name format for the texture. You can add trigger words that will be automatically replaced upon export to name formats including: '/MaterialName', '/MeshName' ")
 
     r_input_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name="Input R")
     r_pack_input_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='R', name="R")
@@ -126,15 +126,15 @@ class AddonPreferences(AddonPreferences):
 
     #----------------------------- EXPORTING PROPERTIES -----------------------------#
 
-    export_template_name: StringProperty(default="Unreal Engine 4 (Metallic, Packed)")
+    export_template_name: StringProperty(name="Export Template Name", default="Unreal Engine 4 (Metallic, Packed)")
 
     padding: IntProperty(name="Padding", default=16)
 
     export_channels: CollectionProperty(type=MATLAYER_texture_export_settings)
 
-    delete_unpacked_images: BoolProperty(default=True, description="Deletes unpacked image textures after packing")
+    delete_unpacked_images: BoolProperty(name="Delete Unpacked Images", default=True, description="Deletes unpacked image textures after packing")
 
-    normal_map_mode: EnumProperty(items=NORMAL_MAP_MODE, default='OPEN_GL')
+    normal_map_mode: EnumProperty(name="Normal Map Node", items=NORMAL_MAP_MODE, default='OPEN_GL')
 
     #----------------------------- MISC -----------------------------#
     
