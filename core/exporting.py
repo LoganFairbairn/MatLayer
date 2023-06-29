@@ -300,6 +300,192 @@ class MATLAYER_OT_export(Operator):
         channel_pack_exported_images()
         return {'FINISHED'}
 
+def set_export_template(export_template_name):
+        addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+        export_channels = addon_preferences.export_channels
+        export_channels.clear()
+        addon_preferences.export_template_name = export_template_name
+
+        match export_template_name:
+            case 'PBR Metallic Roughness':
+                new_channel = export_channels.add()
+                new_channel.name_format = "/MaterialName_Color"
+                new_channel.r_input_texture = 'COLOR'
+                new_channel.r_pack_input_color_channel = 'R'
+                new_channel.r_pack_output_color_channel = 'R'
+                new_channel.g_input_texture = 'COLOR'
+                new_channel.g_pack_input_color_channel = 'R'
+                new_channel.g_pack_output_color_channel = 'G'
+                new_channel.b_input_texture = 'COLOR'
+                new_channel.b_pack_input_color_channel = 'R'
+                new_channel.b_pack_output_color_channel = 'B'
+                new_channel.a_input_texture = 'NONE'
+                new_channel.a_pack_input_color_channel = 'R'
+                new_channel.a_pack_output_color_channel = 'A'
+
+                new_channel = export_channels.add()
+                new_channel.name_format = "/MaterialName_Metallic"
+                new_channel.r_input_texture = 'METALLIC'
+                new_channel.r_pack_input_color_channel = 'R'
+                new_channel.r_pack_output_color_channel = 'R'
+                new_channel.g_input_texture = 'METALLIC'
+                new_channel.g_pack_input_color_channel = 'R'
+                new_channel.g_pack_output_color_channel = 'G'
+                new_channel.b_input_texture = 'METALLIC'
+                new_channel.b_pack_input_color_channel = 'R'
+                new_channel.b_pack_output_color_channel = 'B'
+                new_channel.a_input_texture = 'METALLIC'
+                new_channel.a_pack_input_color_channel = 'R'
+                new_channel.a_pack_output_color_channel = 'A'
+
+
+                new_channel = export_channels.add()
+                new_channel.name_format = "/MaterialName_Roughness"
+                new_channel.r_input_texture = 'ROUGHNESS'
+                new_channel.r_pack_input_color_channel = 'R'
+                new_channel.r_pack_output_color_channel = 'R'
+                new_channel.g_input_texture = 'ROUGHNESS'
+                new_channel.g_pack_input_color_channel = 'R'
+                new_channel.g_pack_output_color_channel = 'G'
+                new_channel.b_input_texture = 'ROUGHNESS'
+                new_channel.b_pack_input_color_channel = 'R'
+                new_channel.b_pack_output_color_channel = 'B'
+                new_channel.a_input_texture = 'ROUGHNESS'
+                new_channel.a_pack_input_color_channel = 'R'
+                new_channel.a_pack_output_color_channel = 'A'
+
+                new_channel = export_channels.add()
+                new_channel.name_format = "/MaterialName_Normal"
+                new_channel.r_input_texture = 'NORMAL'
+                new_channel.r_pack_input_color_channel = 'R'
+                new_channel.r_pack_output_color_channel = 'R'
+                new_channel.g_input_texture = 'NORMAL'
+                new_channel.g_pack_input_color_channel = 'R'
+                new_channel.g_pack_output_color_channel = 'G'
+                new_channel.b_input_texture = 'NORMAL'
+                new_channel.b_pack_input_color_channel = 'R'
+                new_channel.b_pack_output_color_channel = 'B'
+                new_channel.a_input_texture = 'NORMAL'
+                new_channel.a_pack_input_color_channel = 'R'
+                new_channel.a_pack_output_color_channel = 'A'
+
+                new_channel = export_channels.add()
+                new_channel.name_format = "/MaterialName_Emission"
+                new_channel.r_input_texture = 'EMISSION'
+                new_channel.r_pack_input_color_channel = 'R'
+                new_channel.r_pack_output_color_channel = 'R'
+                new_channel.g_input_texture = 'EMISSION'
+                new_channel.g_pack_input_color_channel = 'R'
+                new_channel.g_pack_output_color_channel = 'G'
+                new_channel.b_input_texture = 'EMISSION'
+                new_channel.b_pack_input_color_channel = 'R'
+                new_channel.b_pack_output_color_channel = 'B'
+                new_channel.a_input_texture = 'EMISSION'
+                new_channel.a_pack_input_color_channel = 'R'
+                new_channel.a_pack_output_color_channel = 'A'
+
+            case 'PBR Specular Glossiness':
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.name_format = "/MaterialName_Color"
+                new_channel.r_pack_channel = 'COLOR'
+                new_channel.g_pack_channel = 'COLOR'
+                new_channel.b_pack_channel = 'COLOR'
+                new_channel.a_pack_channel = 'NONE'
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.name_format = "/MaterialName_Metallic"
+                new_channel.r_pack_channel = 'METALLIC'
+                new_channel.g_pack_channel = 'METALLIC'
+                new_channel.b_pack_channel = 'METALLIC'
+                new_channel.a_pack_channel = 'NONE'
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.name_format = "/MaterialName_Roughness"
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.name_format = "/MaterialName_Normal"
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.name_format = "/MaterialName_Emission"
+
+            case 'Unity Metallic':
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.name_format = "T_/MaterialName_C"
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.export_texture_name = 'METALLIC'
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.export_texture_name = 'ROUGHNESS'
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.export_texture_name = 'AMBIENT_OCCLUSION'
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.export_texture_name = 'NORMAL'
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.export_texture_name = 'EMISSION'
+
+            case 'Unity Specular':
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.name_format = "T_/MaterialName_C"
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.name_format = "T_/MaterialName_S"
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.name_format = "T_/MaterialName_AO"
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.name_format = "T_/MaterialName_N"
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.name_format = "T_/MaterialName_E"
+
+            case 'Unreal Engine 4':
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.name_format = "T_/MaterialName_C"
+                new_channel.r_input_texture = 'COLOR'
+                new_channel.g_input_texture = 'COLOR'
+                new_channel.b_input_texture = 'COLOR'
+                new_channel.a_input_texture = 'COLOR'
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.name_format = "T_/MaterialName_M"
+                new_channel.r_input_texture = 'METALLIC'
+                new_channel.g_input_texture = 'METALLIC'
+                new_channel.b_input_texture = 'METALLIC'
+                new_channel.a_input_texture = 'METALLIC'
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.name_format = "T_/MaterialName_R"
+                new_channel.r_input_texture = 'ROUGHNESS'
+                new_channel.g_input_texture = 'ROUGHNESS'
+                new_channel.b_input_texture = 'ROUGHNESS'
+                new_channel.a_input_texture = 'ROUGHNESS'
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.name_format = "T_/MaterialName_AO"
+                new_channel.r_input_texture = 'AMBIENT_OCCLUSION'
+                new_channel.g_input_texture = 'AMBIENT_OCCLUSION'
+                new_channel.b_input_texture = 'AMBIENT_OCCLUSION'
+                new_channel.a_input_texture = 'AMBIENT_OCCLUSION'
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.name_format = "T_/MaterialName_N"
+                new_channel.r_input_texture = 'NORMAL'
+                new_channel.g_input_texture = 'NORMAL'
+                new_channel.b_input_texture = 'NORMAL'
+                new_channel.a_input_texture = 'NORMAL'
+                export_channels.add()
+                new_channel = export_channels[len(export_channels) - 1]
+                new_channel.name_format = "T_/MaterialName_E"
+
 class MATLAYER_OT_set_export_template(Operator):
     bl_idname = "matlayer.set_export_template"
     bl_label = "Set Export Template"
@@ -308,6 +494,7 @@ class MATLAYER_OT_set_export_template(Operator):
     export_template_name: StringProperty(default="Error")
     
     def execute(self, context):
+        set_export_template(self.export_template_name)
         return {'FINISHED'}
 
 class MATLAYER_OT_save_export_template(Operator):
@@ -341,17 +528,6 @@ class MATLAYER_OT_remove_export_texture(Operator):
         addon_preferences.export_channels.remove(self.export_texture_index)
         return {'FINISHED'}
 
-class MATLAYER_OT_reset_export_template_defaults(Operator):
-    bl_idname = "matlayer.reset_export_template_defaults"
-    bl_label = "Remove Export Texture"
-    bl_description = "Resets the default settings for a developer defined export templates"
-
-    export_template_name: StringProperty(default="Error")
-    
-    def execute(self, context):
-        # TODO: Reset the default settings for the defined export template.
-        return {'FINISHED'}
-
 class ExportTemplateMenu(Menu):
     bl_idname = "MATLAYER_MT_export_template_menu"
     bl_label = "Export Template Menu"
@@ -360,26 +536,27 @@ class ExportTemplateMenu(Menu):
     def draw(self, context):
         layout = self.layout
 
-        # TODO: Draw all export templates that exist.
-        template_name = 'PBR Metallic / Roughness'
+        template_name = 'PBR Metallic Roughness'
         op = layout.operator("matlayer.set_export_template", text=template_name)
         op.export_template_name = template_name
 
-        template_name = 'PBR Specular / Glossiness'
+        template_name = 'PBR Specular Glossiness'
         op = layout.operator("matlayer.set_export_template", text=template_name)
         op.export_template_name = template_name
 
-        template_name = 'Unity Standard Metallic'
+        template_name = 'Unity Metallic'
         op = layout.operator("matlayer.set_export_template", text=template_name)
         op.export_template_name = template_name
 
-        template_name = 'Unity Standard Specular'
+        template_name = 'Unity Specular'
         op = layout.operator("matlayer.set_export_template", text=template_name)
         op.export_template_name = template_name
 
         template_name = 'Unreal Engine 4'
         op = layout.operator("matlayer.set_export_template", text=template_name)
         op.export_template_name = template_name
+
+        # TODO: Draw custom export templates.
 
 class MATLAYER_OT_open_export_folder(Operator):
     bl_idname = "matlayer.open_export_folder"

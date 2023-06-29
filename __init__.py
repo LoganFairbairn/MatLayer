@@ -45,7 +45,7 @@ from .core.material_filters import FiltersMaterialChannelToggles, MATLAYER_mater
 from .core.baking import MATLAYER_baking_settings, MATLAYER_OT_bake, MATLAYER_OT_open_bake_folder, MATLAYER_OT_delete_ao_map, MATLAYER_OT_delete_curvature_map, MATLAYER_OT_delete_thickness_map, MATLAYER_OT_delete_normal_map, MATLAYER_OT_delete_bevel_normal_map, update_meshmap_names
 
 # Import exporting modules.
-from .core.exporting import MATLAYER_exporting_settings, MATLAYER_OT_export, MATLAYER_OT_open_export_folder, MATLAYER_OT_channel_pack, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, MATLAYER_OT_reset_export_template_defaults, ExportTemplateMenu
+from .core.exporting import MATLAYER_exporting_settings, MATLAYER_OT_export, MATLAYER_OT_open_export_folder, MATLAYER_OT_channel_pack, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, ExportTemplateMenu, set_export_template
 
 # Import tool / utility modules.
 from .utilities.image_file_handling import MATLAYER_OT_add_layer_image, MATLAYER_OT_delete_layer_image, MATLAYER_OT_import_texture, MATLAYER_OT_import_texture_set
@@ -97,7 +97,6 @@ classes = (
     MATLAYER_OT_save_export_template,
     MATLAYER_OT_add_export_texture,
     MATLAYER_OT_remove_export_texture,
-    MATLAYER_OT_reset_export_template_defaults,
     ExportTemplateMenu,
 
     # Material Channels
@@ -314,8 +313,10 @@ def register():
     bpy.types.Scene.matlayer_baking_settings = PointerProperty(type=MATLAYER_baking_settings)
     bpy.types.Scene.matlayer_export_settings = PointerProperty(type=MATLAYER_exporting_settings)
 
-    # Load the export template settings.
-    preferences.set_export_template()
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    export_channels = addon_preferences.export_channels
+    if len(export_channels) <= 0:
+        set_export_template('Unreal Engine 4')
 
 def unregister():
     for cls in classes:
