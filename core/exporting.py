@@ -618,28 +618,28 @@ def set_export_template(export_template_name):
                 addon_preferences.normal_map_mode = 'OPEN_GL'
 
                 new_channel = export_channels.add()
-                new_channel.name_format = "T_/MaterialName_C"
+                new_channel.name_format = "T_/MaterialName_AmbientOcclusion"
                 new_channel.r_input_texture = 'AMBIENT_OCCLUSION'
                 new_channel.g_input_texture = 'AMBIENT_OCCLUSION'
                 new_channel.b_input_texture = 'AMBIENT_OCCLUSION'
                 new_channel.a_input_texture = 'NONE'
 
                 new_channel = export_channels.add()
-                new_channel.name_format = "T_/MaterialName_C"
+                new_channel.name_format = "T_/MaterialName_Curvature"
                 new_channel.r_input_texture = 'CURVATURE'
                 new_channel.g_input_texture = 'CURVATURE'
                 new_channel.b_input_texture = 'CURVATURE'
                 new_channel.a_input_texture = 'NONE'
 
                 new_channel = export_channels.add()
-                new_channel.name_format = "T_/MaterialName_C"
+                new_channel.name_format = "T_/MaterialName_Thickness"
                 new_channel.r_input_texture = 'THICKNESS'
                 new_channel.g_input_texture = 'THICKNESS'
                 new_channel.b_input_texture = 'THICKNESS'
                 new_channel.a_input_texture = 'NONE'
 
                 new_channel = export_channels.add()
-                new_channel.name_format = "T_/MaterialName_C"
+                new_channel.name_format = "T_/MaterialName_BaseNormals"
                 new_channel.r_input_texture = 'BASE_NORMALS'
                 new_channel.g_input_texture = 'BASE_NORMALS'
                 new_channel.b_input_texture = 'BASE_NORMALS'
