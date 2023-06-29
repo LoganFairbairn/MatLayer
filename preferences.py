@@ -1,29 +1,187 @@
 # This module contains user preference settings for this add-on.
 
 import bpy
-from bpy.types import AddonPreferences
-from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty, FloatProperty
+from bpy.types import AddonPreferences, PropertyGroup
+from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty, FloatProperty, PointerProperty, CollectionProperty
 
 ADDON_NAME = __package__
 
+BIT_DEPTH = [
+    ("EIGHT", "8-bit", "8-bit depth is the standard color bit depth for games"),
+    ("THIRTY_TWO", "32-bit", "32-bit uses more memory in RGB channels, but will result in less color banding (not visible on old monitors)")
+]
+
+EXPORT_CHANNELS = [
+    ("COLOR", "Color", ""),
+    ("SUBSURFACE", "Subsurface", ""),
+    ("SUBSURFACE_COLOR", "Subsurface", ""),
+    ("METALLIC", "Metallic", ""),
+    ("SPECILAR", "Specular", ""),
+    ("ROUGHNESS", "Roughness", ""),
+    ("EMISSION", "Emission", ""),
+    ("NORMAL", "Normal", ""),
+    ("HEIGHT", "Height", ""),
+    ("AMBIENT_OCCLUSION", "Ambient Occlusion", ""),
+    ("NONE", "None", "")
+]
+
+PACKING_COLOR_CHANNELS = [
+    ("R", "R", "Red Channel"),
+    ("G", "G", "Green Channel"),
+    ("B", "B", "Blue Channel"),
+    ("A", "A", "Alpha Channel")
+]
+
+TEXTURE_EXPORT_FORMAT = [
+    ("PNG", "png", "Exports the selected material channel in png texture format"),
+    ("JPG", "jpg", "Exports the selected material channel in jpg texture format"),
+    ("TARGA", "tga", "Exports the selected material channel in targa texture format"),
+    ("EXR", "exr", "Exports the selected material channel in open exr texture format")
+]
+
 TEXTURE_EXPORT_TEMPLATES = [
     ("PBR_METALLIC_ROUGHNESS", "PBR Metallic Roughness", "Exports all textures for a standard PBR metallic / roughness setup. Does not channel pack textures"),
-    ("UNITY_METALLIC", "Unity (Metallic)", "Channel packs and exports textures for a standard Unity shader with a metallic setup. [ R = Metallic, G = Ambient Occlusion, B = None, Alpha = Glossiness ]"),
-    ("UNITY_SPECULAR", "Unity (Specular)", "Channel packs and exports textures for a standard Unity shader with a specular setup. [ R = Metallic, G = Ambient Occlusion, B = None, Alpha = Glossiness ]"),
-    ("UNREAL_ENGINE", "Unreal Engine", "Channel packs textures in a common method for materials used in Unreal Engine [ R = Occlusion, G = Roughness, B = Metallic ]")
-    ]
+    ("PBR_SPECULAR_GLOSSINESS", "PBR Specular Glossiness", "Exports all textures for a standard PBR specular / glossiness setup. Does not channel pack textures"),
+    ("UNITY_METALLIC", "Unity Standard Metallic", "Channel packs and exports textures for a standard Unity shader with a metallic setup. [ R = Metallic, G = Ambient Occlusion, B = None, Alpha = Glossiness ]"),
+    ("UNITY_SPECULAR", "Unity Standard Specular", "Channel packs and exports textures for a standard Unity shader with a specular setup. [ R = Metallic, G = Ambient Occlusion, B = None, Alpha = Glossiness ]"),
+    ("UNREAL_ENGINE_4", "Unreal Engine 4 (Metallic, Packed)", "Channel packs textures in a common method for materials used in Unreal Engine [ R = Occlusion, G = Roughness, B = Metallic ]")
+]
 
+def set_export_template():
+    addon_preferences = bpy.context.preferences.addons[ADDON_NAME].preferences
+    export_channels = addon_preferences.export_channels
+    export_channels.clear()
+
+    # Add channels and adjust settings for export based on the selected texture export template.
+    match addon_preferences.texture_export_template:
+        case 'PBR_METALLIC_ROUGHNESS':
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.name_format = "/MaterialName_Color"
+            new_channel.r_pack_channel = 'COLOR'
+            new_channel.g_pack_channel = 'COLOR'
+            new_channel.b_pack_channel = 'COLOR'
+            new_channel.a_pack_channel = 'NONE'
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.name_format = "/MaterialName_Metallic"
+            new_channel.r_pack_channel = 'METALLIC'
+            new_channel.g_pack_channel = 'METALLIC'
+            new_channel.b_pack_channel = 'METALLIC'
+            new_channel.a_pack_channel = 'NONE'
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.name_format = "/MaterialName_Roughness"
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.name_format = "/MaterialName_Normal"
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.name_format = "/MaterialName_Emission"
+
+        case 'UNITY_METALLIC':
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.name_format = "T_/MaterialName_C"
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.export_texture_name = 'METALLIC'
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.export_texture_name = 'ROUGHNESS'
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.export_texture_name = 'AMBIENT_OCCLUSION'
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.export_texture_name = 'NORMAL'
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.export_texture_name = 'EMISSION'
+
+        case 'UNITY_SPECULAR':
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.name_format = "T_/MaterialName_C"
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.name_format = "T_/MaterialName_S"
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.name_format = "T_/MaterialName_AO"
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.name_format = "T_/MaterialName_N"
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.name_format = "T_/MaterialName_E"
+
+        case 'UNREAL_ENGINE_4':
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.name_format = "T_/MaterialName_C"
+            new_channel.r_input_texture = 'COLOR'
+            new_channel.g_input_texture = 'COLOR'
+            new_channel.b_input_texture = 'COLOR'
+            new_channel.a_input_texture = 'COLOR'
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.name_format = "T_/MaterialName_M"
+            new_channel.r_input_texture = 'METALLIC'
+            new_channel.g_input_texture = 'METALLIC'
+            new_channel.b_input_texture = 'METALLIC'
+            new_channel.a_input_texture = 'METALLIC'
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.name_format = "T_/MaterialName_R"
+            new_channel.r_input_texture = 'ROUGHNESS'
+            new_channel.g_input_texture = 'ROUGHNESS'
+            new_channel.b_input_texture = 'ROUGHNESS'
+            new_channel.a_input_texture = 'ROUGHNESS'
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.name_format = "T_/MaterialName_AO"
+            new_channel.r_input_texture = 'AMBIENT_OCCLUSION'
+            new_channel.g_input_texture = 'AMBIENT_OCCLUSION'
+            new_channel.b_input_texture = 'AMBIENT_OCCLUSION'
+            new_channel.a_input_texture = 'AMBIENT_OCCLUSION'
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.name_format = "T_/MaterialName_N"
+            new_channel.r_input_texture = 'NORMAL'
+            new_channel.g_input_texture = 'NORMAL'
+            new_channel.b_input_texture = 'NORMAL'
+            new_channel.a_input_texture = 'NORMAL'
+            export_channels.add()
+            new_channel = export_channels[len(export_channels) - 1]
+            new_channel.name_format = "T_/MaterialName_E"
 
 def update_export_template(self, context):
     '''Updates properties when the export template is changed.'''
-    addon_preferences = context.preferences.addons[ADDON_NAME].preferences
-    match addon_preferences.texture_export_template:
-        case 'PBR_METALLIC_ROUGHNESS':
-            addon_preferences.texture_export_name_format = "%MaterialName_%MaterialChannel"
+    set_export_template()
 
-        case _:
-            addon_preferences.texture_export_name_format = "T_%MaterialName_%MaterialChannelAbreviation"
+class MATLAYER_texture_export_settings(PropertyGroup):
+    toggle: BoolProperty(default=True, description="If off, the related texture will not be exported.")
+    name_format: StringProperty(default="T_/MaterialName_C")
 
+    r_input_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name="Input R")
+    r_pack_input_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='R', name="R")
+    r_pack_output_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='R', name="R")
+
+    g_input_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name="Input G")
+    g_pack_input_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='R', name="G")
+    g_pack_output_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='G', name="G")
+
+    b_input_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name="Input B")
+    b_pack_input_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='R', name="B")
+    b_pack_output_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='B', name="B")
+
+    a_input_texture: EnumProperty(items=EXPORT_CHANNELS, default='NONE', name="Input A")
+    a_pack_input_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='R', name="A")
+    a_pack_output_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='A', name="A")
+
+    image_format: EnumProperty(items=TEXTURE_EXPORT_FORMAT, default='PNG')
+    bit_depth: EnumProperty(items=BIT_DEPTH, default='EIGHT')
 
 class AddonPreferences(AddonPreferences):
     bl_idname = ADDON_NAME
@@ -81,12 +239,15 @@ class AddonPreferences(AddonPreferences):
 
     #----------------------------- EXPORTING PROPERTIES -----------------------------#
 
-    texture_export_template: EnumProperty(items=TEXTURE_EXPORT_TEMPLATES, name="Texture Export Template", description="", default='UNREAL_ENGINE', update=update_export_template)
+    texture_export_template: EnumProperty(items=TEXTURE_EXPORT_TEMPLATES, name="Texture Export Template", description="", default='UNREAL_ENGINE_4', update=update_export_template)
 
-    texture_export_name_format: StringProperty(name="Texture Export Name Format", default="T_%MaterialName_%MaterialChannelAbreviation", description="The format used to export textures. Key words include MaterialName, ObjectName, MaterialChannel, MaterialChannelAbreviation")
+    export_template_name: StringProperty(default="Unreal Engine 4 (Metallic, Packed)")
 
     padding: IntProperty(name="Padding", default=16)
 
+    export_channels: CollectionProperty(type=MATLAYER_texture_export_settings)
+
+    delete_unpacked_images: BoolProperty(default=True, description="Deletes unpacked image textures after packing")
 
     #----------------------------- MISC -----------------------------#
     

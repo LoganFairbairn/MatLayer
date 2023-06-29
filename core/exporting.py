@@ -1,8 +1,8 @@
 import os
 import numpy
 import bpy
-from bpy.types import Operator, PropertyGroup, Image
-from bpy.props import BoolProperty, StringProperty, EnumProperty, PointerProperty
+from bpy.types import Operator, PropertyGroup, Menu
+from bpy.props import BoolProperty, StringProperty, IntProperty
 from ..core import material_channels
 from ..core import baking
 from ..core import texture_set_settings
@@ -12,7 +12,6 @@ from .. import preferences
 #----------------------------- EXPORT SETTINGS -----------------------------#
 
 class MATLAYER_exporting_settings(PropertyGroup):
-    texture_name_export_format: StringProperty(default="[MaterialName]_[MaterialChannel]", name="Texture Name Export Format", description="Name format used for exported textures. Key words include MaterialName, MaterialChannel, MaterialChannelAbbreviation, ActiveObjectName")
     export_folder: StringProperty(default="", description="Path to folder location where exported texture are saved. If empty, an export folder will be created next to your .blend file and exported textures will be automatically saved there.", name="Export Folder Path")
     export_base_color: BoolProperty(default=True, name="Export Base Color", description="Include the base color in batch exporting")
     export_subsurface: BoolProperty(default=False, name="Export Subsurface", description="Include the subsurface in batch exporting")
@@ -27,6 +26,32 @@ class MATLAYER_exporting_settings(PropertyGroup):
 
 #----------------------------- EXPORT FUNCTIONS -----------------------------#
 
+
+
+def get_material_channel_abbreviation(material_channel_name):
+    '''Returns an abbreviation for the material channel name.'''
+    match material_channel_name:
+        case 'COLOR':
+            return 'C'
+        case 'SUBSURFACE':
+            return 'SS'
+        case 'SUBSURFACE_COLOR':
+            return 'SSC'
+        case 'METALLIC':
+            return 'M'
+        case 'SPECULAR':
+            return 'S'
+        case 'ROUGHNESS':
+            return 'R'
+        case 'EMISSION':
+            return 'E'
+        case 'NORMAL':
+            return 'N'
+        case 'HEIGHT':
+            return 'H'
+        case 'ORM':
+            return 'ORM'
+
 def format_export_image_name(material_channel_name):
     '''Properly formats the name for an export image based on the selected texture export template and the provided material channel.'''
     image_name = ""
@@ -38,34 +63,16 @@ def format_export_image_name(material_channel_name):
     if not active_material:
         return image_name
 
+    # TODO: Return an export name for the image based on the name format defined.
+
+
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     match addon_preferences.texture_export_template:
         case 'PBR_METALLIC_ROUGHNESS':
             image_name = "{0}_{1}".format(active_material.name, material_channel_name)
 
         case _:
-            material_channel_abreviation = ""
-            match material_channel_name:
-                case 'COLOR':
-                    material_channel_abreviation = 'C'
-                case 'SUBSURFACE':
-                    material_channel_abreviation = 'SS'
-                case 'SUBSURFACE_COLOR':
-                    material_channel_abreviation = 'SSC'
-                case 'METALLIC':
-                    material_channel_abreviation = 'M'
-                case 'SPECULAR':
-                    material_channel_abreviation = 'S'
-                case 'ROUGHNESS':
-                    material_channel_abreviation = 'R'
-                case 'EMISSION':
-                    material_channel_abreviation = 'E'
-                case 'NORMAL':
-                    material_channel_abreviation = 'N'
-                case 'HEIGHT':
-                    material_channel_abreviation = 'H'
-                case 'ORM':
-                    material_channel_abreviation = 'ORM'
+            material_channel_abreviation = get_material_channel_abbreviation(material_channel_name)
             image_name = "T_{0}_{1}".format(active_material.name, material_channel_abreviation)
     return image_name
 
@@ -115,7 +122,7 @@ def channel_pack(r_image, g_image, b_image, a_image):
 
     return packed_image
 
-def channel_pack_exported_images():
+def channel_pack_exported_images(delete_unpacked=True):
     '''Channel packs exported images for the selected object based on the selected texture export preset.'''
 
     roughness_tex_name = format_export_image_name('ROUGHNESS')
@@ -137,6 +144,8 @@ def channel_pack_exported_images():
         case 'UNREAL_ENGINE':
             packed_image = channel_pack(ao_tex, roughness_tex, metallic_tex, None)
             packed_image.name = format_export_image_name('ORM')
+
+    # TODO: Delete saved unpacked images after packing.
     
 def create_export_image(export_image_name):
     '''Creates an image in Blender's data to bake to and export.'''
@@ -290,7 +299,88 @@ class MATLAYER_OT_export(Operator):
 
         channel_pack_exported_images()
         return {'FINISHED'}
+
+class MATLAYER_OT_set_export_template(Operator):
+    bl_idname = "matlayer.set_export_template"
+    bl_label = "Set Export Template"
+    bl_description = "Sets an export template"
+
+    export_template_name: StringProperty(default="Error")
     
+    def execute(self, context):
+        return {'FINISHED'}
+
+class MATLAYER_OT_save_export_template(Operator):
+    bl_idname = "matlayer.save_export_template"
+    bl_label = "Save Export Template"
+    bl_description = "Saves the current export template. If a template with the same name already exists, it will be overwritten"
+    
+    def execute(self, context):
+        # TODO: Save the template if it exists.
+        return {'FINISHED'}
+
+class MATLAYER_OT_add_export_texture(Operator):
+    bl_idname = "matlayer.add_export_texture"
+    bl_label = "Add Export Texture"
+    bl_description = "Adds an additional texture to the export texture list"
+    
+    def execute(self, context):
+        addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
+        addon_preferences.export_channels.add()
+        return {'FINISHED'}
+
+class MATLAYER_OT_remove_export_texture(Operator):
+    bl_idname = "matlayer.remove_export_texture"
+    bl_label = "Remove Export Texture"
+    bl_description = "Removes the related texture from the export texture list"
+
+    export_texture_index: IntProperty(default=0)
+    
+    def execute(self, context):
+        addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
+        addon_preferences.export_channels.remove(self.export_texture_index)
+        return {'FINISHED'}
+
+class MATLAYER_OT_reset_export_template_defaults(Operator):
+    bl_idname = "matlayer.reset_export_template_defaults"
+    bl_label = "Remove Export Texture"
+    bl_description = "Resets the default settings for a developer defined export templates"
+
+    export_template_name: StringProperty(default="Error")
+    
+    def execute(self, context):
+        # TODO: Reset the default settings for the defined export template.
+        return {'FINISHED'}
+
+class ExportTemplateMenu(Menu):
+    bl_idname = "MATLAYER_MT_export_template_menu"
+    bl_label = "Export Template Menu"
+    bl_description = "Contains options to set a specific export template"
+
+    def draw(self, context):
+        layout = self.layout
+
+        # TODO: Draw all export templates that exist.
+        template_name = 'PBR Metallic / Roughness'
+        op = layout.operator("matlayer.set_export_template", text=template_name)
+        op.export_template_name = template_name
+
+        template_name = 'PBR Specular / Glossiness'
+        op = layout.operator("matlayer.set_export_template", text=template_name)
+        op.export_template_name = template_name
+
+        template_name = 'Unity Standard Metallic'
+        op = layout.operator("matlayer.set_export_template", text=template_name)
+        op.export_template_name = template_name
+
+        template_name = 'Unity Standard Specular'
+        op = layout.operator("matlayer.set_export_template", text=template_name)
+        op.export_template_name = template_name
+
+        template_name = 'Unreal Engine 4'
+        op = layout.operator("matlayer.set_export_template", text=template_name)
+        op.export_template_name = template_name
+
 class MATLAYER_OT_open_export_folder(Operator):
     bl_idname = "matlayer.open_export_folder"
     bl_label = "Open Export Folder"
