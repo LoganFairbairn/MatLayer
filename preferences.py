@@ -11,18 +11,23 @@ BIT_DEPTH = [
     ("THIRTY_TWO", "32-bit", "32-bit uses more memory in RGB channels, but will result in less color banding (not visible on old monitors)")
 ]
 
+NORMAL_MAP_MODE = [
+    ("OPEN_GL", "OpenGL", "Normal maps will be exported in Open GL format (same as they are in Blender)"),
+    ("DIRECTX", "DirectX", "Exported normal maps will have their green channel automatically inverted so they export in Direct X format")
+]
+
 EXPORT_CHANNELS = [
-    ("COLOR", "Color", ""),
-    ("SUBSURFACE", "Subsurface", ""),
-    ("SUBSURFACE_COLOR", "Subsurface", ""),
-    ("METALLIC", "Metallic", ""),
-    ("SPECILAR", "Specular", ""),
-    ("ROUGHNESS", "Roughness", ""),
-    ("EMISSION", "Emission", ""),
-    ("NORMAL", "Normal", ""),
-    ("HEIGHT", "Height", ""),
-    ("AMBIENT_OCCLUSION", "Ambient Occlusion", ""),
-    ("NONE", "None", "")
+    ("COLOR", "Color", "Color"),
+    ("SUBSURFACE", "Subsurface", "Subsurface"),
+    ("SUBSURFACE_COLOR", "Subsurface Color", "Subsurface Color"),
+    ("METALLIC", "Metallic", "Metallic"),
+    ("SPECULAR", "Specular", "Specular"),
+    ("ROUGHNESS", "Roughness", "Roughness"),
+    ("EMISSION", "Emission", "Emission"),
+    ("NORMAL", "Normal", "Normal"),
+    ("HEIGHT", "Height", "Height"),
+    ("AMBIENT_OCCLUSION", "Ambient Occlusion", "Ambient Occlusion"),
+    ("NONE", "None", "None")
 ]
 
 PACKING_COLOR_CHANNELS = [
@@ -47,15 +52,15 @@ class MATLAYER_texture_export_settings(PropertyGroup):
     r_pack_output_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='R', name="R")
 
     g_input_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name="Input G")
-    g_pack_input_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='R', name="G")
+    g_pack_input_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='G', name="G")
     g_pack_output_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='G', name="G")
 
     b_input_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name="Input B")
-    b_pack_input_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='R', name="B")
+    b_pack_input_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='B', name="B")
     b_pack_output_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='B', name="B")
 
     a_input_texture: EnumProperty(items=EXPORT_CHANNELS, default='NONE', name="Input A")
-    a_pack_input_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='R', name="A")
+    a_pack_input_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='A', name="A")
     a_pack_output_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='A', name="A")
 
     image_format: EnumProperty(items=TEXTURE_EXPORT_FORMAT, default='PNG')
@@ -124,6 +129,8 @@ class AddonPreferences(AddonPreferences):
     export_channels: CollectionProperty(type=MATLAYER_texture_export_settings)
 
     delete_unpacked_images: BoolProperty(default=True, description="Deletes unpacked image textures after packing")
+
+    normal_map_mode: EnumProperty(items=NORMAL_MAP_MODE, default='OPEN_GL')
 
     #----------------------------- MISC -----------------------------#
     

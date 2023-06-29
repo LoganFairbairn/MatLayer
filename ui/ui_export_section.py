@@ -97,9 +97,6 @@ def draw_export_section_ui(self, context):
         col = split.column()
         col.operator("matlayer.remove_export_texture", icon='X', text="")
 
-        
-
-
     layout.separator()
     row = layout.row()
     row.label(text="Additional Settings: ")
@@ -108,6 +105,14 @@ def draw_export_section_ui(self, context):
     first_column = split.column()
     first_column.scale_x = 0.1
     second_column = split.column()
+
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.label(text="Normal Map Mode: ")
+    row = second_column.row(align=True)
+    row.scale_y = SCALE_Y
+    row.prop_enum(addon_preferences, "normal_map_mode", 'OPEN_GL')
+    row.prop_enum(addon_preferences, "normal_map_mode", 'DIRECTX')
 
     row = first_column.row()
     row.scale_y = SCALE_Y
