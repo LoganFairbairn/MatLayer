@@ -12,6 +12,10 @@ def draw_ui_settings_section(self, context):
     row.scale_y = scale_y
     row.prop(bpy.context.scene.render, 'engine')
 
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(bpy.context.scene.view_settings, "view_transform")
+
     if bpy.context.scene.render.engine == 'BLENDER_EEVEE':
         row = layout.row()
         row.scale_y = 1.2
