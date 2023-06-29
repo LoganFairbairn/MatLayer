@@ -59,6 +59,14 @@ class MATLAYER_OT_append_workspace(Operator):
         bpy.ops.view3d.view_selected(use_all_regions=True)
         '''
 
+        # Set up a material asset browser for the user.
+        preferences = bpy.context.preferences
+        if not preferences.filepaths.asset_libraries.get("MatLayer Default Assets"):
+            bpy.ops.preferences.asset_library_add()
+            new_library = bpy.context.preferences.filepaths.asset_libraries[-1]
+            new_library.name = "MatLayer Default Assets"
+            new_library.path = str(USER / "scripts/addons" / ADDON / "blend")
+
         self.report({'INFO'}, "Appended workspace (check the workspaces / user interface layouts at the top of your screen).")
 
         return {'FINISHED'}

@@ -26,8 +26,6 @@ class MATLAYER_exporting_settings(PropertyGroup):
 
 #----------------------------- EXPORT FUNCTIONS -----------------------------#
 
-
-
 def get_material_channel_abbreviation(material_channel_name):
     '''Returns an abbreviation for the material channel name.'''
     match material_channel_name:
