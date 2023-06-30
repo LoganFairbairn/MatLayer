@@ -240,8 +240,6 @@ def on_active_object_changed():
                     bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_index_owner,notify=on_active_material_name_changed, args=())
 
 
-
-
 # Mark load handlers as persistent so they are not freed when loading a new blend file.
 @persistent
 def load_handler(dummy):
@@ -274,11 +272,6 @@ def load_handler(dummy):
 
                 # Read active material settings when the blender file loads.
                 bpy.ops.matlayer.read_layer_nodes(auto_called=True)
-
-
-
-
-
 
 # Run startup functions when a new blend file is loaded.
 bpy.app.handlers.load_post.append(load_handler)
