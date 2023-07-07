@@ -755,19 +755,6 @@ def channel_pack_textures():
 #----------------------------- EXPORT OPERATORS -----------------------------#
 
 
-class MATLAYER_OT_channel_pack(Operator):
-    bl_idname = "matlayer.channel_pack"
-    bl_label = "Channel Pack"
-    bl_description = "Channel packs textures based on the selected texture export template (experimental)"
-
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-    
-    def execute(self, context):
-        channel_pack_exported_images()
-        return {'FINISHED'}
-
 class MATLAYER_OT_export(Operator):
     bl_idname = "matlayer.export"
     bl_label = "Batch Export"
