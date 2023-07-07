@@ -130,7 +130,7 @@ class AddonPreferences(AddonPreferences):
 
     padding: IntProperty(name="Padding", default=16)
 
-    export_channels: CollectionProperty(type=MATLAYER_texture_export_settings)
+    export_textures: CollectionProperty(type=MATLAYER_texture_export_settings)
 
     delete_unpacked_images: BoolProperty(name="Delete Unpacked Images", default=True, description="Deletes unpacked image textures after packing")
 

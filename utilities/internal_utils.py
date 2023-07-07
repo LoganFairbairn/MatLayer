@@ -86,3 +86,23 @@ def get_node_by_bl_static_type(nodes, bl_static_type):
     for node in nodes:
         if node.bl_static_type == bl_static_type:
             return node
+
+def create_image(image_name, image_width, image_height, alpha_channel=False, thirty_two_bit=False, data=False):
+    '''Deletes existing images with the same name if it exists, then creates a new image in Blender's data with the provided settings.'''
+
+    # Delete an image that shares the same name if one exists.
+    new_image = bpy.data.images.get(image_name)
+    if new_image:
+        bpy.data.images.remove(new_image)
+
+    # Create a new image.
+    new_image = bpy.data.images.new(name=image_name,
+                                    width=image_width,
+                                    height=image_height,
+                                    alpha=alpha_channel,
+                                    float_buffer=thirty_two_bit,
+                                    stereo3d=False,
+                                    is_data=data,
+                                    tiled=False)
+    
+    return new_image

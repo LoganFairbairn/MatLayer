@@ -55,7 +55,7 @@ def draw_export_section_ui(self, context):
     row.label(text="Channel Packing")
 
     # Draw settings for textures that will be exported.
-    for i, channel in enumerate(addon_preferences.export_channels):
+    for i, channel in enumerate(addon_preferences.export_textures):
 
         # Draw texture settings.
         col = first_column.column(align=True)

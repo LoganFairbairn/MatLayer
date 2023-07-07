@@ -307,8 +307,8 @@ def register():
     bpy.types.Scene.matlayer_export_settings = PointerProperty(type=MATLAYER_exporting_settings)
 
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-    export_channels = addon_preferences.export_channels
-    if len(export_channels) <= 0:
+    export_textures = addon_preferences.export_textures
+    if len(export_textures) <= 0:
         set_export_template('Unreal Engine 4')
 
 def unregister():
