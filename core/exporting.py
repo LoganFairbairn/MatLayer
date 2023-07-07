@@ -88,28 +88,28 @@ def set_export_template(export_template_name):
                 new_channel.input_textures.r_texture = 'SPECULAR'
                 new_channel.input_textures.g_texture = 'SPECULAR'
                 new_channel.input_textures.b_texture = 'SPECULAR'
-                new_channel.input_textures.a_texture = 'SPECULAR'
+                new_channel.input_textures.a_texture = 'NONE'
 
                 new_channel = export_textures.add()
                 new_channel.name_format = "/MaterialName_Glossiness"
                 new_channel.input_textures.r_texture = 'ROUGHNESS'
                 new_channel.input_textures.g_texture = 'ROUGHNESS'
                 new_channel.input_textures.b_texture = 'ROUGHNESS'
-                new_channel.input_textures.a_texture = 'ROUGHNESS'
+                new_channel.input_textures.a_texture = 'NONE'
 
                 new_channel = export_textures.add()
                 new_channel.name_format = "/MaterialName_Normal"
                 new_channel.input_textures.r_texture = 'NORMAL'
                 new_channel.input_textures.g_texture = 'NORMAL'
                 new_channel.input_textures.b_texture = 'NORMAL'
-                new_channel.input_textures.a_texture = 'NORMAL'
+                new_channel.input_textures.a_texture = 'NONE'
 
                 new_channel = export_textures.add()
                 new_channel.name_format = "/MaterialName_Emission"
                 new_channel.input_textures.r_texture = 'EMISSION'
                 new_channel.input_textures.g_texture = 'EMISSION'
                 new_channel.input_textures.b_texture = 'EMISSION'
-                new_channel.input_textures.a_texture = 'EMISSION'
+                new_channel.input_textures.a_texture = 'NONE'
 
             case 'Unity URP Metallic':
                 addon_preferences.normal_map_mode = 'OPEN_GL'
@@ -191,6 +191,7 @@ def set_export_template(export_template_name):
                 new_channel.input_textures.g_texture = 'AMBIENT_OCCLUSION'
                 new_channel.input_textures.b_texture = 'NONE'
                 new_channel.input_textures.a_texture = 'ROUGHNESS'
+                new_channel.input_rgba_channels.a_color_channel = 'R'
 
                 new_channel = export_textures.add()
                 new_channel.name_format = "T_/MaterialName_N"
@@ -229,6 +230,7 @@ def set_export_template(export_template_name):
                 new_channel.input_textures.g_texture = 'AMBIENT_OCCLUSION'
                 new_channel.input_textures.b_texture = 'NONE'
                 new_channel.input_textures.a_texture = 'ROUGHNESS'
+                new_channel.input_rgba_channels.a_color_channel = 'R'
 
                 new_channel = export_textures.add()
                 new_channel.name_format = "T_/MaterialName_N"
@@ -298,6 +300,7 @@ def set_export_template(export_template_name):
                 new_channel.input_textures.g_texture = 'COLOR'
                 new_channel.input_textures.b_texture = 'COLOR'
                 new_channel.input_textures.a_texture = 'SUBSURFACE'
+                new_channel.input_rgba_channels.a_color_channel = 'R'
 
                 new_channel = export_textures.add()
                 new_channel.name_format = "T_/MaterialName_ORM"
@@ -343,6 +346,7 @@ def set_export_template(export_template_name):
                 new_channel.input_textures.g_texture = 'NORMAL'
                 new_channel.input_textures.b_texture = 'NORMAL'
                 new_channel.input_textures.a_texture = 'AMBIENT_OCCLUSION'
+                new_channel.input_rgba_channels.a_color_channel = 'R'
 
             case 'Mesh Maps':
                 addon_preferences.normal_map_mode = 'OPEN_GL'
