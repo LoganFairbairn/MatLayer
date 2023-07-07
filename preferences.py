@@ -48,25 +48,23 @@ TEXTURE_EXPORT_FORMAT = [
     ("EXR", "exr", "Exports the selected material channel in open exr texture format")
 ]
 
+class MATLAYER_pack_textures(PropertyGroup):
+    r_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name='R Texture')
+    g_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name='G Texture')
+    b_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name='B Texture')
+    a_texture: EnumProperty(items=EXPORT_CHANNELS, default='NONE', name='A Texture')
+
+class MATLAYER_RGBA_pack_channels(PropertyGroup):
+    r_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='R', name="R")
+    g_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='G', name="G")
+    b_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='B', name="B")
+    a_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='A', name="A")
+
 class MATLAYER_texture_export_settings(PropertyGroup):
     name_format: StringProperty(name="Name Format", default="T_/MaterialName_C", description="Name format for the texture. You can add trigger words that will be automatically replaced upon export to name formats including: '/MaterialName', '/MeshName' ")
-
-    r_input_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name="Input R")
-    r_pack_input_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='R', name="R")
-    r_pack_output_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='R', name="R")
-
-    g_input_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name="Input G")
-    g_pack_input_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='G', name="G")
-    g_pack_output_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='G', name="G")
-
-    b_input_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name="Input B")
-    b_pack_input_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='B', name="B")
-    b_pack_output_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='B', name="B")
-
-    a_input_texture: EnumProperty(items=EXPORT_CHANNELS, default='NONE', name="Input A")
-    a_pack_input_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='A', name="A")
-    a_pack_output_color_channel: EnumProperty(items=PACKING_COLOR_CHANNELS, default='A', name="A")
-
+    input_textures: PointerProperty(type=MATLAYER_pack_textures, name="Input Textures")
+    input_rgba_channels: PointerProperty(type=MATLAYER_RGBA_pack_channels, name="Input Pack Channels")
+    output_rgba_channels: PointerProperty(type=MATLAYER_RGBA_pack_channels, name="Output Pack Channels")
     image_format: EnumProperty(items=TEXTURE_EXPORT_FORMAT, default='PNG')
     bit_depth: EnumProperty(items=BIT_DEPTH, default='EIGHT')
 

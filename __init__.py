@@ -21,7 +21,7 @@ from bpy.props import PointerProperty, CollectionProperty
 from bpy.app.handlers import persistent
 
 # Import add-on preference settings.
-from .preferences import MATLAYER_texture_export_settings, AddonPreferences
+from .preferences import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MATLAYER_texture_export_settings, AddonPreferences
 
 # Import texture set modules.
 from .core.texture_set_settings import MATLAYER_texture_set_settings, GlobalMaterialChannelToggles
@@ -75,6 +75,8 @@ bl_info = {
 # List of classes to be registered.
 classes = (
     # Preferences
+    MATLAYER_pack_textures, 
+    MATLAYER_RGBA_pack_channels,
     MATLAYER_texture_export_settings,
     AddonPreferences,
 

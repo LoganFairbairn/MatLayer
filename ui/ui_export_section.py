@@ -55,13 +55,13 @@ def draw_export_section_ui(self, context):
     row.label(text="Channel Packing")
 
     # Draw settings for textures that will be exported.
-    for i, channel in enumerate(addon_preferences.export_textures):
+    for i, texture in enumerate(addon_preferences.export_textures):
 
         # Draw texture settings.
         col = first_column.column(align=True)
-        col.prop(channel, "name_format", text="")
-        col.prop(channel, "image_format", text="", emboss=True)
-        col.prop(channel, "bit_depth", text="", emboss=True)
+        col.prop(texture, "name_format", text="")
+        col.prop(texture, "image_format", text="", emboss=True)
+        col.prop(texture, "bit_depth", text="", emboss=True)
 
         # Draw channel packing settings.
         split = second_column.split(factor=0.2)
@@ -76,22 +76,16 @@ def draw_export_section_ui(self, context):
         col_1 = split.column(align=True)
 
         row = col_1.row(align=True)
-        row.prop(channel, "r_input_texture", text="")
-        row.prop(channel, "g_input_texture", text="")
-        row.prop(channel, "b_input_texture", text="")
-        row.prop(channel, "a_input_texture", text="")
+        for key in texture.input_textures.__annotations__.keys():
+            row.prop(texture.input_textures, key, text="")
 
         row = col_1.row(align=True)
-        row.prop(channel, "r_pack_input_color_channel", text="")
-        row.prop(channel, "g_pack_input_color_channel", text="")
-        row.prop(channel, "b_pack_input_color_channel", text="")
-        row.prop(channel, "a_pack_input_color_channel", text="")
+        for key in texture.input_rgba_channels.__annotations__.keys():
+            row.prop(texture.input_rgba_channels, key, text="")
 
         row = col_1.row(align=True)
-        row.prop(channel, "r_pack_output_color_channel", text="")
-        row.prop(channel, "g_pack_output_color_channel", text="")
-        row.prop(channel, "b_pack_output_color_channel", text="")
-        row.prop(channel, "a_pack_output_color_channel", text="")
+        for key in texture.output_rgba_channels.__annotations__.keys():
+            row.prop(texture.output_rgba_channels, key, text="")
 
         col = split.column()
         op = col.operator("matlayer.remove_export_texture", icon='X', text="")
