@@ -514,20 +514,25 @@ def format_export_image_name(texture_name_format):
     
     return image_name
 
-def channel_pack(input_textures, input_packing, output_packing, image_name_format, color_bit_depth):
+def channel_pack(input_textures, input_packing, output_packing, image_name_format, color_bit_depth, file_format):
     '''Channel packs the provided images into RGBA channels of a single image. Accepts None.'''
 
-    # Cycle through and pack RGBA channels.
+    # Create an array of output pixels using the first valid input texture.
+    # Initialize full size empty arrays to avoid using dynamic arrays (caused by appending) which is much much slower.
     output_pixels = None
+    source_pixels = None
     for channel_index in range(0, 4):
         image = input_textures[channel_index]
         if image:
+            w, h = image.size
+            source_pixels = numpy.empty(w * h * 4, dtype=numpy.float32)
+            output_pixels = numpy.ones(w * h * 4, dtype=numpy.float32)
 
-            # Initialize full size empty arrays to avoid using dynamic arrays (caused by appending) which is much much slower.
-            if output_pixels is None:
-                w, h = image.size
-                source_pixels = numpy.empty(w * h * 4, dtype=numpy.float32)
-                output_pixels = numpy.ones(w * h * 4, dtype=numpy.float32)
+
+    # Cycle through and pack RGBA channels.
+    for channel_index in range(0, 4):
+        image = input_textures[channel_index]
+        if image:
 
             # Break if provided images are not the same size.
             assert image.size[:] == (w, h), "Images must be the same size."
@@ -559,6 +564,11 @@ def channel_pack(input_textures, input_packing, output_packing, image_name_forma
         case 'THIRTY_TWO':
             use_thirty_two_bit = True
 
+    # Create a folder to save / export packed images to.
+    export_path = os.path.join(bpy.path.abspath("//"), "Textures")
+    if os.path.exists(export_path) == False:
+        os.mkdir(export_path)
+
     # Create image using the packed pixels.
     image_name = format_export_image_name(image_name_format)
     packed_image = internal_utils.create_image(image_name,
@@ -567,8 +577,10 @@ def channel_pack(input_textures, input_packing, output_packing, image_name_forma
                                             alpha_channel=has_alpha,
                                             thirty_two_bit=use_thirty_two_bit,
                                             data=True)
+    packed_image.file_format = file_format
+    packed_image.filepath = "{0}/{1}.{2}".format(export_path, image_name, file_format.lower())
     packed_image.pixels.foreach_set(output_pixels)
-    packed_image.pack()
+    packed_image.save()
 
     return packed_image
 
@@ -608,13 +620,12 @@ def delete_unpacked_images():
 def channel_pack_textures():
     '''Creates channel packed textures using pre-baked textures.'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-    packed_images = []
 
     # Cycle through all defined export textures and channel pack them.
     for export_texture in addon_preferences.export_textures:
 
         # Get the baked images that will be used in channel packing based on the defined input texture.
-        baked_images = []
+        input_images = []
         for key in export_texture.input_textures.__annotations__.keys():
             texture_channel = getattr(export_texture.input_textures, key)
 
@@ -622,32 +633,32 @@ def channel_pack_textures():
                 case 'AMBIENT_OCCLUSION':
                     meshmap_name = baking.get_meshmap_name('AMBIENT_OCCLUSION')
                     image = bpy.data.images.get(meshmap_name)
-                    baked_images.append(image)
+                    input_images.append(image)
 
                 case 'CURVATURE':
                     meshmap_name = baking.get_meshmap_name('CURVATURE')
                     image = bpy.data.images.get(meshmap_name)
-                    baked_images.append(image)
+                    input_images.append(image)
 
                 case 'THICKNESS':
                     meshmap_name = baking.get_meshmap_name('THICKNESS')
                     image = bpy.data.images.get(meshmap_name)
-                    baked_images.append(image)
+                    input_images.append(image)
 
                 case 'BASE_NORMALS':
                     meshmap_name = baking.get_meshmap_name('NORMAL')
                     image = bpy.data.images.get(meshmap_name)
-                    baked_images.append(image)
+                    input_images.append(image)
 
                 case 'OPACITY':
-                    baked_images.append(None)       # Not implemented, append None for now.
+                    input_images.append(None)       # Not implemented, append None for now.
 
                 case 'NONE':
-                    baked_images.append(None)
+                    input_images.append(None)
 
                 case 'ROUGHNESS':
                     image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
-                    baked_images.append(image)
+                    input_images.append(image)
 
                     # Convert (invert) roughness to a smoothness map based on settings.
                     if addon_preferences.roughness_mode == 'SMOOTHNESS':
@@ -655,7 +666,7 @@ def channel_pack_textures():
 
                 case 'NORMAL':
                     image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
-                    baked_images.append(image)
+                    input_images.append(image)
 
                     # Invert normal map G values if exporting for DirectX based on settings.
                     if addon_preferences.normal_map_mode == 'DIRECTX':
@@ -664,10 +675,10 @@ def channel_pack_textures():
                 case _:
                     # Get required baked images for packing using their temp name.
                     image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
-                    baked_images.append(image)
+                    input_images.append(image)
 
         # Don't attempt to pack an image if there are no baked images.
-        if all(image is None for image in baked_images):
+        if all(image is None for image in input_images):
             continue
 
         input_packing_channels = []
@@ -681,27 +692,65 @@ def channel_pack_textures():
             output_packing_channels.append(color_channel_index)
 
         # Channel pack baked material channels / textures.
-        packed_image = channel_pack(
-            input_textures=baked_images,
+        channel_pack(
+            input_textures=input_images,
             input_packing=input_packing_channels,
             output_packing=output_packing_channels,
             image_name_format=export_texture.name_format,
-            color_bit_depth=export_texture.bit_depth
+            color_bit_depth=export_texture.bit_depth,
+            file_format=export_texture.image_format
         )
 
-        packed_images.append(packed_image)
+    # Delete temporary baked input textures, they are no longer needed because they are packed into new textures now.
+    for key in export_texture.input_textures.__annotations__.keys():
+        texture_channel = getattr(export_texture.input_textures, key)
+        match texture_channel:
+            case 'AMBIENT_OCCLUSION':
+                meshmap_name = baking.get_meshmap_name('AMBIENT_OCCLUSION')
+                image = bpy.data.images.get(meshmap_name)
+                input_images.append(image)
 
-    #delete_unpacked_images()
+            case 'CURVATURE':
+                meshmap_name = baking.get_meshmap_name('CURVATURE')
+                image = bpy.data.images.get(meshmap_name)
+                input_images.append(image)
 
-    # TODO: Save channel packed images to a folder.
-    '''
-    # Create a folder for the exported texture files if one doesn't exist.
-    export_path = os.path.join(bpy.path.abspath("//"), "Textures")
-    if os.path.exists(export_path) == False:
-        os.mkdir(export_path)
-    new_export_image.filepath = export_path + "/" + export_image_name + ".png"
-    '''
+            case 'THICKNESS':
+                meshmap_name = baking.get_meshmap_name('THICKNESS')
+                image = bpy.data.images.get(meshmap_name)
+                input_images.append(image)
 
+            case 'BASE_NORMALS':
+                meshmap_name = baking.get_meshmap_name('NORMAL')
+                image = bpy.data.images.get(meshmap_name)
+                input_images.append(image)
+
+            case 'OPACITY':
+                input_images.append(None)       # Not implemented, append None for now.
+
+            case 'NONE':
+                input_images.append(None)
+
+            case 'ROUGHNESS':
+                image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
+                input_images.append(image)
+
+                # Convert (invert) roughness to a smoothness map based on settings.
+                if addon_preferences.roughness_mode == 'SMOOTHNESS':
+                    invert_image(image, True, True, True, False)
+
+            case 'NORMAL':
+                image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
+                input_images.append(image)
+
+                # Invert normal map G values if exporting for DirectX based on settings.
+                if addon_preferences.normal_map_mode == 'DIRECTX':
+                    invert_image(image, False, True, False, False)
+
+            case _:
+                # Get required baked images for packing using their temp name.
+                image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
+                input_images.append(image)
 
 #----------------------------- EXPORT OPERATORS -----------------------------#
 
