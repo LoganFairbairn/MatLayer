@@ -11,7 +11,9 @@ from ..utilities import internal_utils
 from ..utilities import logging
 from .. import preferences
 
+
 #----------------------------- EXPORT SETTINGS -----------------------------#
+
 
 class MATLAYER_exporting_settings(PropertyGroup):
     export_folder: StringProperty(default="", description="Path to folder location where exported texture are saved. If empty, an export folder will be created next to your .blend file and exported textures will be automatically saved there.", name="Export Folder Path")
@@ -26,7 +28,9 @@ class MATLAYER_exporting_settings(PropertyGroup):
     export_emission: BoolProperty(default=False, name="Export Emission", description="Include the emission in batch exporting")
     export_ambient_occlusion: BoolProperty(default=False, name="Export Ambient Occlusion", description="Exports the ambient occlusion mesh map")
 
+
 #----------------------------- EXPORT FUNCTIONS -----------------------------#
+
 
 def set_export_template(export_template_name):
         addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
@@ -501,14 +505,13 @@ def bake_export_textures(self, context):
 
 def format_export_image_name(texture_name_format):
     '''Properly formats the name for an export image based on the selected texture export template and the provided material channel.'''
-    image_name = ""
-
     material_name = bpy.context.active_object.material_slots[0].name        # TODO: Takes the first material name, but in the future, taking the name of the material being baked will be ideal.
     mesh_name = bpy.context.active_object.name
 
     # Replace key words in the texture name format.
-    image_name = texture_name_format.replace('/MaterialName', material_name)
-    image_name = texture_name_format.replace('/MeshName', mesh_name)
+    image_name = texture_name_format.replace("/MaterialName", material_name)
+    image_name = image_name.replace("/MeshName", mesh_name)
+    
     return image_name
 
 def channel_pack(input_textures, input_packing, output_packing, image_name_format, color_bit_depth):
@@ -700,8 +703,8 @@ def channel_pack_textures():
     '''
 
 
-
 #----------------------------- EXPORT OPERATORS -----------------------------#
+
 
 class MATLAYER_OT_channel_pack(Operator):
     bl_idname = "matlayer.channel_pack"
