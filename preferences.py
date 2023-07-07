@@ -16,6 +16,11 @@ NORMAL_MAP_MODE = [
     ("DIRECTX", "DirectX", "Exported normal maps will have their green channel automatically inverted so they export in Direct X format")
 ]
 
+ROUGHNESS_MODE = [
+    ("ROUGHNESS", "Roughness", "Roughness will be exported as is."),
+    ("SMOOTHNESS", "Smoothness", "Roughness textures will be converted (inverted) to smoothness textures before exporting / packing. This supports some software which uses smoothness maps (e.g. Unity).")
+]
+
 EXPORT_CHANNELS = [
     ("COLOR", "Color", "Color"),
     ("SUBSURFACE", "Subsurface", "Subsurface"),
@@ -132,7 +137,8 @@ class AddonPreferences(AddonPreferences):
 
     delete_unpacked_images: BoolProperty(name="Delete Unpacked Images", default=True, description="Deletes unpacked image textures after packing")
 
-    normal_map_mode: EnumProperty(name="Normal Map Node", items=NORMAL_MAP_MODE, default='OPEN_GL')
+    roughness_mode: EnumProperty(name="Roughness Mode", items=ROUGHNESS_MODE, default='ROUGHNESS')
+    normal_map_mode: EnumProperty(name="Normal Map Mode", items=NORMAL_MAP_MODE, default='OPEN_GL')
 
     #----------------------------- MISC -----------------------------#
     

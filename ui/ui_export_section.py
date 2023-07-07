@@ -110,6 +110,14 @@ def draw_export_section_ui(self, context):
 
     row = first_column.row()
     row.scale_y = SCALE_Y
+    row.label(text="Roughness Mode: ")
+    row = second_column.row(align=True)
+    row.scale_y = SCALE_Y
+    row.prop_enum(addon_preferences, "roughness_mode", 'ROUGHNESS')
+    row.prop_enum(addon_preferences, "roughness_mode", 'SMOOTHNESS')
+
+    row = first_column.row()
+    row.scale_y = SCALE_Y
     row.label(text="Padding: ")
     row = second_column.row()
     row.scale_y = SCALE_Y

@@ -36,6 +36,7 @@ def set_export_template(export_template_name):
 
         match export_template_name:
             case 'PBR Metallic Roughness':
+                addon_preferences.roughness_mode = 'ROUGHNESS'
                 addon_preferences.normal_map_mode = 'OPEN_GL'
 
                 new_channel = export_textures.add()
@@ -74,6 +75,7 @@ def set_export_template(export_template_name):
                 new_channel.input_textures.a_texture = 'NONE'
 
             case 'PBR Specular Glossiness':
+                addon_preferences.roughness_mode = 'ROUGHNESS'
                 addon_preferences.normal_map_mode = 'OPEN_GL'
 
                 new_channel = export_textures.add()
@@ -113,6 +115,7 @@ def set_export_template(export_template_name):
 
             case 'Unity URP Metallic':
                 addon_preferences.normal_map_mode = 'OPEN_GL'
+                addon_preferences.roughness_mode = 'SMOOTHNESS'
 
                 new_channel = export_textures.add()
                 new_channel.name_format = "T_/MaterialName_C"
@@ -122,7 +125,7 @@ def set_export_template(export_template_name):
                 new_channel.input_textures.a_texture = 'NONE'
 
                 new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_MG"
+                new_channel.name_format = "T_/MaterialName_MS"
                 new_channel.input_textures.r_texture = 'METALLIC'
                 new_channel.input_textures.g_texture = 'METALLIC'
                 new_channel.input_textures.b_texture = 'METALLIC'
@@ -145,6 +148,7 @@ def set_export_template(export_template_name):
 
             case 'Unity URP Specular':
                 addon_preferences.normal_map_mode = 'OPEN_GL'
+                addon_preferences.roughness_mode = 'SMOOTHNESS'
 
                 new_channel = export_textures.add()
                 new_channel.name_format = "T_/MaterialName_C"
@@ -177,6 +181,7 @@ def set_export_template(export_template_name):
 
             case 'Unity HDRP Metallic':
                 addon_preferences.normal_map_mode = 'OPEN_GL'
+                addon_preferences.roughness_mode = 'SMOOTHNESS'
 
                 new_channel = export_textures.add()
                 new_channel.name_format = "T_/MaterialName_C"
@@ -209,6 +214,7 @@ def set_export_template(export_template_name):
 
             case 'Unity HDRP Specular':
                 addon_preferences.normal_map_mode = 'OPEN_GL'
+                addon_preferences.roughness_mode = 'SMOOTHNESS'
 
                 new_channel = export_textures.add()
                 new_channel.name_format = "T_/MaterialName_C"
@@ -247,6 +253,7 @@ def set_export_template(export_template_name):
                 new_channel.input_textures.a_texture = 'NONE'
 
             case 'Unreal Engine 4':
+                addon_preferences.roughness_mode = 'ROUGHNESS'
                 addon_preferences.normal_map_mode = 'DIRECTX'
 
                 new_channel = export_textures.add()
@@ -292,6 +299,7 @@ def set_export_template(export_template_name):
                 new_channel.input_textures.a_texture = 'NONE'
 
             case 'Unreal Engine 4 Subsurface (Packed)':
+                addon_preferences.roughness_mode = 'ROUGHNESS'
                 addon_preferences.normal_map_mode = 'DIRECTX'
 
                 new_channel = export_textures.add()
@@ -324,6 +332,7 @@ def set_export_template(export_template_name):
                 new_channel.input_textures.a_texture = 'NONE'
 
             case 'CryEngine':
+                addon_preferences.roughness_mode = 'ROUGHNESS'
                 addon_preferences.normal_map_mode = 'DIRECTX'
 
                 new_channel = export_textures.add()
@@ -575,6 +584,20 @@ def enumerate_color_channel(color_channel):
         case 'A':
             return 3
 
+def invert_image(image, invert_r = False, invert_g = False, invert_b = False, invert_a = False):
+    '''Inverts specified color channels of the provided image.'''
+    pixels = numpy.empty(len(image.pixels), dtype=numpy.float32)
+    image.pixels.foreach_get(pixels)
+    if invert_r: 
+        pixels[0::4] = 1 - pixels[0::4]
+    if invert_g: 
+        pixels[1::4] = 1 - pixels[1::4]
+    if invert_b: 
+        pixels[2::4] = 1 - pixels[2::4]
+    if invert_a: 
+        pixels[3::4] = 1 - pixels[3::4]
+    image.pixels.foreach_set(pixels)
+
 def delete_unpacked_images():
     '''Deletes all textures that were packed into images.'''
     print("Placeholder...")
@@ -597,25 +620,44 @@ def channel_pack_textures():
                     meshmap_name = baking.get_meshmap_name('AMBIENT_OCCLUSION')
                     image = bpy.data.images.get(meshmap_name)
                     baked_images.append(image)
+
                 case 'CURVATURE':
                     meshmap_name = baking.get_meshmap_name('CURVATURE')
                     image = bpy.data.images.get(meshmap_name)
                     baked_images.append(image)
+
                 case 'THICKNESS':
                     meshmap_name = baking.get_meshmap_name('THICKNESS')
                     image = bpy.data.images.get(meshmap_name)
                     baked_images.append(image)
+
                 case 'BASE_NORMALS':
                     meshmap_name = baking.get_meshmap_name('NORMAL')
                     image = bpy.data.images.get(meshmap_name)
                     baked_images.append(image)
+
                 case 'OPACITY':
-                    # Not implemented, append None for now.
-                    baked_images.append(None)
-                    continue
+                    baked_images.append(None)       # Not implemented, append None for now.
+
                 case 'NONE':
                     baked_images.append(None)
-                    continue
+
+                case 'ROUGHNESS':
+                    image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
+                    baked_images.append(image)
+
+                    # Convert (invert) roughness to a smoothness map based on settings.
+                    if addon_preferences.roughness_mode == 'SMOOTHNESS':
+                        invert_image(image, True, True, True, False)
+
+                case 'NORMAL':
+                    image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
+                    baked_images.append(image)
+
+                    # Invert normal map G values if exporting for DirectX based on settings.
+                    if addon_preferences.normal_map_mode == 'DIRECTX':
+                        invert_image(image, False, True, False, False)
+
                 case _:
                     # Get required baked images for packing using their temp name.
                     image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
