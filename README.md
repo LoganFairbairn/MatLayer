@@ -32,6 +32,10 @@ Features:
 
 - One-click batch exporting for textures
 
+- Texture export templates for popular software and formats
+
+- Custom channel packing
+
 - Decals that bake properly to exported textures
 ![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/DecalShowcase.gif?raw=true)
 
@@ -79,6 +83,12 @@ Tips:
 -----
 
 Platforms: Windows, Linux (untested)
+
+-----
+
+References:
+- https://bgolus.medium.com/normal-mapping-for-a-triplanar-shader-10bf39dca05a
+- https://blog.selfshadow.com/publications/blending-in-detail/
 
 -----
 
