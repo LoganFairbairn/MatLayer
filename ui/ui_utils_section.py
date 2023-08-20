@@ -13,11 +13,3 @@ def draw_ui_utils_section(self, context):
     row = layout.row()
     row.scale_y = scale_y
     row.operator("matlayer.append_basic_brushes", icon='BRUSH_DATA')
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.operator("matlayer.delete_unused_external_images", icon='TRASH')
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.operator("matlayer.edit_uvs_externally", icon='UV_ISLANDSEL')

@@ -5,8 +5,6 @@ import bpy
 from bpy.types import Operator
 from bpy.props import BoolProperty, FloatProperty, IntProperty, StringProperty, PointerProperty, EnumProperty
 from .texture_set_settings import TEXTURE_SET_RESOLUTIONS
-from ..utilities import logging
-from ..utilities import internal_utils
 
 
 #----------------------------- BAKING SETTINGS & MISC FUNCTIONS -----------------------------#
@@ -499,7 +497,7 @@ def bake_mesh_map(bake_type, self):
         if bake_image.is_dirty:
             bake_image.save()
         else:
-            logging.popup_message_box("Baked image pixel data wasn't updated during baking.", "MatLay baking error.", 'ERROR')
+            internal_utils.popup_message_box("Baked image pixel data wasn't updated during baking.", "MatLay baking error.", 'ERROR')
 
     # Re-apply the materials that were originally on the object and 
     if len(original_materials) <= 0:
@@ -543,9 +541,6 @@ class MATLAYER_OT_bake(Operator):
 
         if baking_settings.bake_normals:
             bake_mesh_map('NORMALS', self)
-
-        if baking_settings.bake_bevel_normals:
-            bake_mesh_map('BEVEL_NORMALS', self)
 
         return {'FINISHED'}
 
@@ -637,18 +632,4 @@ class MATLAYER_OT_delete_normal_map(Operator):
 
     def execute(self, context):
         delete_meshmap('NORMAL', self)
-        return {'FINISHED'}
-    
-class MATLAYER_OT_delete_bevel_normal_map(Operator):
-    bl_idname = "matlayer.delete_bevel_normal_map"
-    bl_label = "Delete Bevel Normal Map"
-    bl_description = "Deletes the baked bevel normal map for the active object if one exists"
-
-    # Disable when there is no active object.
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def execute(self, context):
-        delete_meshmap('BEVEL_NORMAL', self)
         return {'FINISHED'}

@@ -7,7 +7,6 @@ from . import ui_export_section
 from . import ui_texture_set_section
 from . import ui_utils_section
 from . import ui_settings_section
-from .. import internal_utils
 
 def check_blend_saved():
     if bpy.path.abspath("//") == "":
@@ -29,7 +28,7 @@ class MATLAYER_panel_properties(bpy.types.PropertyGroup):
     )
 
 class MATLAYER_PT_Panel(bpy.types.Panel):
-    bl_label = "MatLayer 1.0.6"
+    bl_label = "MatLayer 2.0.0"
     bl_idname = "MATLAYER_PT_main_panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -47,11 +46,7 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
                     ui_baking_section.draw_baking_section_ui(self, context)
                 
                 case "SECTION_LAYERS":
-                    ui_layer_section.draw_layers_section_ui(self, context)
-                    settings = context.scene.matlayer_settings
-                    row = layout.row()
-                    row.alignment = 'CENTER'
-                    row.label(text="Active nodes: {0} Nodes links: {1}".format(settings.total_node_count, settings.total_node_link_count))    
+                    ui_layer_section.draw_layers_section_ui(self, context) 
 
                 case 'SECTION_EXPORT':
                     ui_export_section.draw_export_section_ui(self, context)

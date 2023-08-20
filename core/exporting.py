@@ -3,12 +3,9 @@ import numpy
 import bpy
 from bpy.types import Operator, PropertyGroup, Menu
 from bpy.props import BoolProperty, StringProperty, IntProperty
-from ..core import material_channels
 from ..core import baking
 from ..core import texture_set_settings
 from ..core import matlayer_materials
-from ..utilities import internal_utils
-from ..utilities import logging
 from .. import preferences
 
 
@@ -394,11 +391,6 @@ def set_export_template(export_template_name):
 
 def bake_material_channel(material_channel_name, export_image_name, thirty_two_bit, self, context):
     '''Bakes the defined material channel to an image texture (stores it in Blender's data). Returns true if baking was successful.'''
-
-    # Validate the material channel name.
-    if not material_channels.validate_material_channel_name(material_channel_name):
-        logging.log("Material channel name provided to bake_material_channel is invalid, no texture will be baked.")
-        return
 
     # Verify the selected object can be baked from.
     if baking.verify_bake_object(self) == False:

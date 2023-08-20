@@ -6,8 +6,6 @@ from bpy_extras.io_utils import ImportHelper        # For importing images.
 import random
 import os                                           # For saving layer images.
 import re                                           # For splitting strings to identify material channels.
-from ..import layer_nodes
-from .. import logging
 
 
 # Dictionary of words / tags that may be in image texture names that could be used to identify material channels.

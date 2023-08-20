@@ -1,9 +1,10 @@
-# This module contains misc utility functions used internally (only in code) for this add-on.
+# This module contains misc / general utility functions used internally (only in code) for this add-on.
 
 import bpy
 from bpy.utils import resource_path
 from pathlib import Path
-from ..preferences import ADDON_NAME
+from .. import preferences
+import datetime
 
 def set_valid_mode():
     '''Verifies texture or object mode is being used. This should be used to avoid attempting to run functions in the wrong mode which may throw errors.'''
@@ -19,7 +20,7 @@ def set_valid_material_shading_mode(context):
 
 def get_blend_assets_path():
     '''Returns the asset path for the blend file.'''
-    blend_assets_path = str(Path(resource_path('USER')) / "scripts/addons" / ADDON_NAME / "blend" / "Matlayer.blend")
+    blend_assets_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "blend" / "Matlayer.blend")
     return blend_assets_path
 
 def append_custom_node_tree(node_tree_name, never_auto_delete):
@@ -106,3 +107,21 @@ def create_image(image_name, image_width, image_height, alpha_channel=False, thi
                                     tiled=False)
     
     return new_image
+
+def log(message):
+    '''Prints the given message to Blender's console window. This function helps log functions called by this add-on for debugging purposes.'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    if addon_preferences.logging:
+        print("[{0}]: {1}".format(datetime.datetime.now(), message))
+
+def log_status(message, self, type='ERROR'):
+    '''Prints the given message to Blender's console window and displays the message in Blender's status bar.'''
+    log(message)
+    self.report({type}, message)
+
+def popup_message_box(message = "", title = "Message Box", icon = 'INFO'):
+    def draw_popup_box(self, context):
+        self.layout.label(text=message)
+
+    bpy.context.window_manager.popup_menu(draw_popup_box, title = title, icon = icon)
+    print(title + ": " + message)

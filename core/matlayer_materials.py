@@ -1,8 +1,6 @@
 # This file contains functions for creating and verifying materials made with this add-on.
 
 import bpy
-from ..utilities import logging
-from ..utilities import internal_utils
 
 def verify_material(context):
     '''Returns true if the material is a valid material created using this add-on.'''
