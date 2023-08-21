@@ -5,7 +5,7 @@ import bpy
 from bpy.types import Operator
 from bpy.props import BoolProperty, FloatProperty, IntProperty, StringProperty, PointerProperty, EnumProperty
 from .texture_set_settings import TEXTURE_SET_RESOLUTIONS
-
+from ..utilities import internal_utils
 
 #----------------------------- BAKING SETTINGS & MISC FUNCTIONS -----------------------------#
 
