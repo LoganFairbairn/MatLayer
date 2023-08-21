@@ -27,7 +27,7 @@ from .preferences import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MA
 from .core.texture_set_settings import MATLAYER_texture_set_settings, GlobalMaterialChannelToggles
 
 # Import layer related modules.
-from .core.material_layers import *
+from .core.material_layers import MATLAYER_layer_stack, MATLAYER_layers, MATLAYER_OT_add_layer, MATLAYER_OT_delete_layer, MATLAYER_OT_duplicate_layer, MATLAYER_OT_move_layer
 
 # Import baking modules.
 from .core.baking import MATLAYER_baking_settings, MATLAYER_OT_bake, MATLAYER_OT_open_bake_folder, MATLAYER_OT_delete_ao_map, MATLAYER_OT_delete_curvature_map, MATLAYER_OT_delete_thickness_map, MATLAYER_OT_delete_normal_map, update_meshmap_names
@@ -87,6 +87,10 @@ classes = (
     # Layers
     MATLAYER_layer_stack,
     MATLAYER_layers,
+    MATLAYER_OT_add_layer, 
+    MATLAYER_OT_delete_layer,
+    MATLAYER_OT_duplicate_layer, 
+    MATLAYER_OT_move_layer,
 
     # Layer Operations
     MATLAYER_UL_layer_list,

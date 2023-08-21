@@ -9,3 +9,13 @@ def draw_layers_section_ui(self, context):
     '''Draws the layer section.'''
     ui_section_tabs.draw_section_tabs(self, context)
     layout = self.layout
+
+    split = layout.split()
+    column_one = split.column()
+    column_two = split.column()
+
+    row = column_one.row()
+    row.label(text="Column One...")
+
+    row = column_two.row()
+    row.label(text="Thing...")
