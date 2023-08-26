@@ -137,7 +137,7 @@ class MATLAYER_OT_add_layer_image(Operator):
                                   tiled=False)
         
         # Save to a folder. This allows users to use the edit externally function (to edit within a 2D image editor of their choice) later if desired.
-        matlayer_image_path = os.path.join(bpy.path.abspath("//"), "Matlayer")
+        matlayer_image_path = os.path.join(bpy.path.abspath("//"), "Assets")
         if os.path.exists(matlayer_image_path) == False:
             os.mkdir(matlayer_image_path)
 

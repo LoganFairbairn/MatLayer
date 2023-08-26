@@ -35,7 +35,7 @@ class MATLAYER_OT_append_workspace(Operator):
 
         USER = Path(resource_path('USER'))
         ADDON = ADDON_NAME
-        BLEND_FILE = "Matlayer.blend"
+        BLEND_FILE = "Assets.blend"
         source_path =  str(USER / "scripts/addons" / ADDON / "blend" / BLEND_FILE)
         
         with bpy.data.libraries.load(source_path) as (data_from, data_to):
@@ -81,7 +81,7 @@ class MATLAYER_OT_append_basic_brushes(Operator):
                 bpy.data.brushes.remove(brush)
 
         USER = Path(resource_path('USER'))
-        BLEND_FILE = "Matlayer.blend"
+        BLEND_FILE = "Assets.blend"
         source_path =  str(USER / "scripts/addons" / ADDON_NAME / "blend" / BLEND_FILE)
 
         with bpy.data.libraries.load(source_path) as (data_from, data_to):

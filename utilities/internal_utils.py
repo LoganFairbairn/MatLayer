@@ -20,7 +20,7 @@ def set_valid_material_shading_mode(context):
 
 def get_blend_assets_path():
     '''Returns the asset path for the blend file.'''
-    blend_assets_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "blend" / "Matlayer.blend")
+    blend_assets_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "blend" / "Assets.blend")
     return blend_assets_path
 
 def append_custom_node_tree(node_tree_name, never_auto_delete):

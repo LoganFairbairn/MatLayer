@@ -344,7 +344,7 @@ def create_bake_image(bake_type):
                               tiled=False)
 
     # Save the new image to a folder for baked images.
-    matlayer_image_path = os.path.join(bpy.path.abspath("//"), "Matlayer")
+    matlayer_image_path = os.path.join(bpy.path.abspath("//"), "Assets")
     if os.path.exists(matlayer_image_path) == False:
         os.mkdir(matlayer_image_path)
 
@@ -513,7 +513,7 @@ def bake_mesh_map(bake_type, self):
     bpy.context.scene.render.engine = 'BLENDER_EEVEE'
 
     # Display a finished message.
-    matlayer_image_path = os.path.join(bpy.path.abspath("//"), "Matlayer")
+    matlayer_image_path = os.path.join(bpy.path.abspath("//"), "Assets")
     bake_path = os.path.join(matlayer_image_path, "MeshMaps")
     self.report({'INFO'}, "Baking mesh maps complete. You can find all bake mesh maps here: {0}".format(bake_path))
 
@@ -555,7 +555,7 @@ class MATLAYER_OT_open_bake_folder(Operator):
         return context.active_object
 
     def execute(self, context):
-        matlayer_image_path = os.path.join(bpy.path.abspath("//"), "Matlayer")
+        matlayer_image_path = os.path.join(bpy.path.abspath("//"), "Assets")
         bake_path = os.path.join(matlayer_image_path, "MeshMaps")
         if os.path.exists(bake_path):
             os.startfile(bake_path)
