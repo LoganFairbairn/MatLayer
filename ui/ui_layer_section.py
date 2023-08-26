@@ -1,6 +1,7 @@
 # This file handles drawing the user interface for the layers section.
 
 import bpy
+from bpy.types import Operator
 from ..ui import ui_section_tabs
 
 SCALE_Y = 1.4
@@ -19,6 +20,7 @@ def draw_layers_section_ui(self, context):
 
     row = column_two.row()
     draw_material_selector(column_two)
+    draw_layer_operations(column_two)
 
 def draw_material_selector(layout):
     '''Draws a material selector and layer stack refresh button.'''
@@ -41,5 +43,39 @@ def draw_material_selector(layout):
 
         row = layout.row(align=True)
         row.template_ID(active_object, "active_material", new="matlayer.add_layer", live_icon=True)
-        row.operator("matlayer.read_layer_nodes", text="", icon='FILE_REFRESH')
-        row.scale_y = 1.5
+
+class MATLAYER_OT_add_material_layer_menu(Operator):
+    bl_label = ""
+    bl_idname = "matlayer.add_material_layer_menu"
+    bl_description = "Opens a menu of material layer types that can be added to the active material"
+
+    # Runs when the add layer button in the popup is clicked.
+    def execute(self, context):
+        return {'FINISHED'}
+
+    # Opens the popup when the add layer button is clicked.
+    def invoke(self, context, event):
+        return context.window_manager.invoke_popup(self, width=150)
+
+    # Draws the properties in the popup.
+    def draw(self, context):
+        layout = self.layout
+        split = layout.split()
+        col = split.column(align=True)
+        col.scale_y = 1.4
+        col.operator("matlayer.add_material_layer", text="Add Material Layer", icon='MATERIAL_DATA')
+        col.operator("matlayer.add_paint_material_layer", text="Add Paint Layer", icon='BRUSHES_ALL')
+        col.operator("matlayer.add_decal_material_layer", text="Add Decal Layer", icon='OUTLINER_OB_FONT')
+
+def draw_layer_operations(layout):
+    '''Draws layer operation buttons.'''
+    subrow = layout.row(align=True)
+    subrow.scale_y = 2.0
+    subrow.scale_x = 10
+    subrow.operator("matlayer.add_material_layer_menu", icon="ADD", text="")
+    operator = subrow.operator("matlayer.move_material_layer", icon="TRIA_UP", text="")
+    operator.direction = 'UP'
+    operator = subrow.operator("matlayer.move_material_layer", icon="TRIA_DOWN", text="")
+    operator.direction = 'DOWN'
+    subrow.operator("matlayer.duplicate_layer", icon="DUPLICATE", text="")
+    subrow.operator("matlayer.delete_layer", icon="TRASH", text="")

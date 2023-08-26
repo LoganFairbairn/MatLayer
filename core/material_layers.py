@@ -3,7 +3,6 @@
 import bpy
 from bpy.types import PropertyGroup, Operator
 from bpy.props import BoolProperty, FloatProperty, EnumProperty, StringProperty
-import math
 
 # List of node types that can be used in the texture slot.
 TEXTURE_NODE_TYPES = [
@@ -60,7 +59,6 @@ class MATLAYER_layer_stack(PropertyGroup):
     node_default_width: bpy.props.IntProperty(default=250)
     node_spacing: bpy.props.IntProperty(default=80)
     selected_material_channel: bpy.props.EnumProperty(items=MATERIAL_CHANNELS, name="Material Channel", description="The currently selected material channel", default='COLOR')
-    auto_update_layer_properties: bpy.props.BoolProperty(name="Auto Update Layer Properties", description="When true, select layer properties are automatically updated when changed. This toggle is used for rare cases when you want to perform an operation where layer properties are edited without them automatically updating (i.e refreshing / reading the layer stack)", default=True)
 
     # Note: These tabs exist to help keep the user interface elements on screen limited, thus simplifying the editing process, and helps avoid the need to scroll down on the user interface to see settings.
     # Tabs for material / mask layer properties.
@@ -97,9 +95,9 @@ class MATLAYER_layers(PropertyGroup):
     opacity: FloatProperty(name="Opacity", description="Layers Opacity", default=1.0, min=0.0, soft_max=1.0, subtype='FACTOR')
     hidden: BoolProperty(name="Hidden", description="Show if the layer is hidden")
 
-class MATLAYER_OT_add_layer(Operator):
-    bl_idname = "matlayer.add_layer"
-    bl_label = "Add Layer"
+class MATLAYER_OT_add_material_layer(Operator):
+    bl_idname = "matlayer.add_material_layer"
+    bl_label = "Add Material Layer"
     bl_description = ""
 
     # Disable when there is no active object.
@@ -116,7 +114,33 @@ class MATLAYER_OT_add_layer(Operator):
         # TODO: Organize layer group nodes.
 
         return {'FINISHED'}
-    
+
+class MATLAYER_OT_add_paint_material_layer(Operator):
+    bl_idname = "matlayer.add_paint_material_layer"
+    bl_label = "Add Paint Material Layer"
+    bl_description = "Creates a material layer and an image texture that's placed in the materials color channel"
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+class MATLAYER_OT_add_decal_material_layer(Operator):
+    bl_idname = "matlayer.add_decal_material_layer"
+    bl_label = "Add Decal Material Layer"
+    bl_description = ""
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        return {'FINISHED'}
+
 class MATLAYER_OT_delete_layer(Operator):
     bl_idname = "matlayer.delete_layer"
     bl_label = "Delete Layer"
@@ -145,10 +169,12 @@ class MATLAYER_OT_duplicate_layer(Operator):
 
         return {'FINISHED'}
     
-class MATLAYER_OT_move_layer(Operator):
-    bl_idname = "matlayer.move_layer"
+class MATLAYER_OT_move_material_layer(Operator):
+    bl_idname = "matlayer.move_material_layer"
     bl_label = "Move Layer"
-    bl_description = ""
+    bl_description = "Moves the material layer up or down on the layer stack"
+
+    direction: StringProperty(default='UP')
 
     # Disable when there is no active object.
     @ classmethod

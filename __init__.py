@@ -20,28 +20,14 @@ import bpy.utils.previews       # Imported for loading layer texture previews as
 from bpy.props import PointerProperty, CollectionProperty
 from bpy.app.handlers import persistent
 
-# Import add-on preference settings.
 from .preferences import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MATLAYER_texture_export_settings, AddonPreferences
-
-# Import texture set modules.
 from .core.texture_set_settings import MATLAYER_texture_set_settings, GlobalMaterialChannelToggles
-
-# Import layer related modules.
-from .core.material_layers import MATLAYER_layer_stack, MATLAYER_layers, MATLAYER_OT_add_layer, MATLAYER_OT_delete_layer, MATLAYER_OT_duplicate_layer, MATLAYER_OT_move_layer
-
-# Import baking modules.
+from .core.material_layers import MATLAYER_layer_stack, MATLAYER_layers, MATLAYER_OT_add_material_layer, MATLAYER_OT_add_paint_material_layer, MATLAYER_OT_add_decal_material_layer, MATLAYER_OT_delete_layer, MATLAYER_OT_duplicate_layer, MATLAYER_OT_move_material_layer
 from .core.baking import MATLAYER_baking_settings, MATLAYER_OT_bake, MATLAYER_OT_open_bake_folder, MATLAYER_OT_delete_ao_map, MATLAYER_OT_delete_curvature_map, MATLAYER_OT_delete_thickness_map, MATLAYER_OT_delete_normal_map, update_meshmap_names
-
-# Import exporting modules.
 from .core.exporting import MATLAYER_exporting_settings, MATLAYER_OT_export, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, ExportTemplateMenu, set_export_template
-
-# Import tool / utility modules.
 from .utilities.image_file_handling import MATLAYER_OT_add_layer_image, MATLAYER_OT_delete_layer_image, MATLAYER_OT_import_texture, MATLAYER_OT_import_texture_set
-
-# Import settings.
 from .utilities.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLAYER_OT_append_workspace, MATLAYER_OT_append_basic_brushes
-
-# Import user interface modules.
+from .ui.ui_layer_section import MATLAYER_OT_add_material_layer_menu
 from .ui.ui_main import *
 from .ui.ui_layer_stack import *
 
@@ -84,13 +70,15 @@ classes = (
     MATLAYER_OT_remove_export_texture,
     ExportTemplateMenu,
 
-    # Layers
+    # Material Layers
     MATLAYER_layer_stack,
     MATLAYER_layers,
-    MATLAYER_OT_add_layer, 
+    MATLAYER_OT_add_material_layer, 
+    MATLAYER_OT_add_paint_material_layer,
+    MATLAYER_OT_add_decal_material_layer,
     MATLAYER_OT_delete_layer,
     MATLAYER_OT_duplicate_layer, 
-    MATLAYER_OT_move_layer,
+    MATLAYER_OT_move_material_layer,
 
     # Layer Operations
     MATLAYER_UL_layer_list,
@@ -108,7 +96,8 @@ classes = (
     MATLAYER_OT_append_workspace,
     MATLAYER_OT_append_basic_brushes,
 
-    # Main Panel
+    # User Interface
+    MATLAYER_OT_add_material_layer_menu,
     MATLAYER_panel_properties,
     MATLAYER_PT_Panel
 )
