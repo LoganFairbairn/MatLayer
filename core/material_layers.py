@@ -7,15 +7,6 @@ from ..utilities import blender_addon_utils
 import random
 
 # List of node types that can be used in the texture slot.
-TEXTURE_NODE_TYPES = [
-    ("COLOR", "Color", "A RGB color value is used to represent the material channel."), 
-    ("VALUE", "Uniform Value", "RGB material channel values are represented uniformly by a single value. This mode is useful for locking the texture rgb representation to colourless values."),
-    ("TEXTURE", "Texture", "An image texture is used to represent the material channel."),
-    ("GROUP_NODE", "Group Node", "A custom group node is used to represent the material channel. You can create a custom group node and add it to the layer stack using this mode, with the only requirement being the first node output must be the main value used to represent the material channel."),
-    ("NOISE", "Noise", "Procedurally generated noise is used to represent the material channel."),
-    ("VORONOI", "Voronoi", "A procedurally generated voronoi pattern is used to represent the material channel."),
-    ("MUSGRAVE", "Musgrave", "A procedurally generated musgrave pattern is used to represent the material channel.")
-]
 
 PROJECTION_MODES = [
     ("FLAT", "UV / Flat", "Projects the texture using the model's UV map."),
@@ -37,17 +28,29 @@ TEXTURE_INTERPOLATION_MODES = [
     ("Smart", "Smart", "")
 ]
 
-MATERIAL_CHANNELS = [
+MATERIAL_CHANNEL = [
     ("COLOR", "Color", ""), 
     ("SUBSURFACE", "Subsurface", ""),
-    ("SUBSURFACE_COLOR", "Subsurface Color", ""),
     ("METALLIC", "Metallic", ""),
     ("SPECULAR", "Specular", ""),
     ("ROUGHNESS", "Roughness", ""),
     ("EMISSION", "Emission", ""),
     ("NORMAL", "Normal", ""),
-    ("HEIGHT", "Height", "")
+    ("HEIGHT", "Height", ""),
+    ("ALPHA", "Alpha", "")
 ]
+
+MATERIAL_CHANNEL_LIST = (
+    'COLOR',
+    'SUBSURFACE',
+    'METALLIC',
+    'SPECULAR',
+    'ROUGHNESS',
+    'EMISSION',
+    'NORMAL',
+    'HEIGHT',
+    'ALPHA'
+)
 
 MATERIAL_LAYER_TYPES = [
     ("FILL", "Fill", "A layer that fills the entier object with a material."), 
@@ -60,7 +63,7 @@ class MATLAYER_layer_stack(PropertyGroup):
     material_channel_preview: bpy.props.BoolProperty(name="Material Channel Preview", description="If true, only the rgb output values for the selected material channel will be used on the object.", default=False)
     node_default_width: bpy.props.IntProperty(default=250)
     node_spacing: bpy.props.IntProperty(default=80)
-    selected_material_channel: bpy.props.EnumProperty(items=MATERIAL_CHANNELS, name="Material Channel", description="The currently selected material channel", default='COLOR')
+    selected_material_channel: bpy.props.EnumProperty(items=MATERIAL_CHANNEL, name="Material Channel", description="The currently selected material channel", default='COLOR')
 
     # Note: These tabs exist to help keep the user interface elements on screen limited, thus simplifying the editing process, and helps avoid the need to scroll down on the user interface to see settings.
     # Tabs for material / mask layer properties.
@@ -237,13 +240,13 @@ def get_material_layer_node(layer_node_name, layer_index, material_channel_name=
             case 'PROJECTION':
                 return bpy.data.node_groups.get(layer_group_node_name).nodes.get("PROJECTION")
             case 'MIX':
-                mix_node_name = "{0}_MIX".format(material_channel_name.upper())
+                mix_node_name = "{0}_MIX".format(material_channel_name)
                 return bpy.data.node_groups.get(layer_group_node_name).nodes.get(mix_node_name)
             case 'OPACITY':
-                opacity_node_name = "{0}_OPACITY".format(material_channel_name.upper())
+                opacity_node_name = "{0}_OPACITY".format(material_channel_name)
                 return bpy.data.node_groups.get(layer_group_node_name).nodes.get(opacity_node_name)
             case 'VALUE':
-                value_node_name = "{0}_VALUE".format(material_channel_name.upper())
+                value_node_name = "{0}_VALUE".format(material_channel_name)
                 return bpy.data.node_groups.get(layer_group_node_name).nodes.get(value_node_name)
             case 'OUTPUT':
                 return bpy.data.node_groups.get(layer_group_node_name).nodes.get('Group Output')

@@ -2,6 +2,7 @@
 
 import bpy
 from bpy.types import Operator
+from ..core import material_layers
 from ..ui import ui_section_tabs
 
 SCALE_Y = 1.4
@@ -12,13 +13,12 @@ def draw_layers_section_ui(self, context):
     layout = self.layout
 
     split = layout.split()
+
     column_one = split.column()
+    draw_layer_material_channel_toggles(column_one)
+    draw_material_channel_properties(column_one)
+
     column_two = split.column()
-
-    row = column_one.row()
-    row.label(text="Column One...")
-
-    row = column_two.row()
     draw_material_selector(column_two)
     draw_layer_operations(column_two)
     draw_layer_stack(column_two)
@@ -87,3 +87,45 @@ def draw_layer_stack(layout):
         subrow = layout.row(align=True)
         subrow.template_list("MATLAYER_UL_layer_list", "Layers", bpy.context.scene, "matlayer_layers", bpy.context.scene.matlayer_layer_stack, "selected_layer_index", sort_reverse=True)
         subrow.scale_y = 2
+
+def draw_layer_material_channel_toggles(layout):
+    '''Draws on / off toggles for individual material channels.'''
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    row = layout.row()
+    row.scale_y = 1.4
+    drawn_toggles = 0
+    for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
+        mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, material_channel_name)
+        if mix_node:
+            row.prop(mix_node, "mute", text=material_channel_name, toggle=True, invert_checkbox=True)
+            drawn_toggles += 1
+            if drawn_toggles > 4:
+                row = layout.row()
+                row.scale_y = 1.4
+                drawn_toggles = 0
+
+def draw_material_channel_properties(layout):
+    '''Draws properties for all active material channels on selected material layer.'''
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
+        row = layout.row()
+        row.label(text=material_channel_name)
+
+        value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
+        if value_node:
+            row = layout.row()
+            row.scale_y = 1.4
+
+            # Draw values based on the node type used to represent the material channel value.
+            match value_node.bl_static_type:
+                case 'GROUP':
+                    # For group nodes used to represent default material channel values, draw only the first value.
+                    if value_node.node_tree.name.startswith('ML_Default'):
+                        row.prop(value_node.inputs[0], "default_value", text="")
+
+                    # For custom group nodes, draw all properties to the interface.
+                    else:
+                        for i in range(0, len(value_node.inputs)):
+                            row = layout.row()
+                            row.scale_y = 1.4
+                            row.prop(value_node.inputs[i], "default_value", text=value_node.inputs[i].name)
