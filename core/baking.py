@@ -5,7 +5,7 @@ import bpy
 from bpy.types import Operator
 from bpy.props import BoolProperty, FloatProperty, IntProperty, StringProperty, PointerProperty, EnumProperty
 from .texture_set_settings import TEXTURE_SET_RESOLUTIONS
-from ..utilities import internal_utils
+from ..utilities import addon_utils
 
 #----------------------------- BAKING SETTINGS & MISC FUNCTIONS -----------------------------#
 
@@ -384,12 +384,12 @@ def create_temp_bake_material(bake_type):
     bake_material.use_nodes = True
 
     # Rename the material output node so it's name is consistent even for users using different languages.
-    material_output_node = internal_utils.get_node_by_bl_static_type(bake_material.node_tree.nodes, 'OUTPUT_MATERIAL')
+    material_output_node = addon_utils.get_node_by_bl_static_type(bake_material.node_tree.nodes, 'OUTPUT_MATERIAL')
     material_output_node.name = "Material Output"
     material_output_node.label = material_output_node.name
 
     # Remove the Principled BSDF node from the material, it's not used in node setups for baking.
-    principled_bsdf_node = internal_utils.get_node_by_bl_static_type(bake_material.node_tree.nodes, 'BSDF_PRINCIPLED')
+    principled_bsdf_node = addon_utils.get_node_by_bl_static_type(bake_material.node_tree.nodes, 'BSDF_PRINCIPLED')
     principled_bsdf_node.name = "MatLayer BSDF"
     principled_bsdf_node.label = principled_bsdf_node.name
 
@@ -497,7 +497,7 @@ def bake_mesh_map(bake_type, self):
         if bake_image.is_dirty:
             bake_image.save()
         else:
-            internal_utils.popup_message_box("Baked image pixel data wasn't updated during baking.", "MatLay baking error.", 'ERROR')
+            addon_utils.popup_message_box("Baked image pixel data wasn't updated during baking.", "MatLay baking error.", 'ERROR')
 
     # Re-apply the materials that were originally on the object and 
     if len(original_materials) <= 0:

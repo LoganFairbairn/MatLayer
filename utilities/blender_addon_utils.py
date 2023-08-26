@@ -1,4 +1,4 @@
-# This module contains misc / general utility functions used internally (only in code) for this add-on.
+# This module contains misc / general Blender add-on utility functions such as debug logging, appending assets from an asset blend file, and adjusting modes.
 
 import bpy
 from bpy.utils import resource_path
@@ -39,48 +39,6 @@ def append_custom_node_tree(node_tree_name, never_auto_delete):
         return node_tree
     return node_tree
 
-def get_uv_mapping_node_tree():
-    '''Returns a custom mapping node group for UV / flat projection. The node tree will be appended if it doesn't exist in the current blend file.'''
-    return append_custom_node_tree("ML_OFFSET_ROTATION_SCALE", True)
-
-def get_normal_map_rotation_fix_node_tree():
-    '''Returns a custom node tree designed to fix normal map rotations. The node tree will be appended if it doesn't exist in the current blend file.'''
-    return append_custom_node_tree("ML_FIX_NORMAL_ROTATION", True)
-
-def get_triplanar_mapping_tree():
-    '''Returns a custom node tree designed specifically for triplanar projection. The node tree will be appended if it doesn't exist in the current blend file.'''
-    return append_custom_node_tree("ML_TRIPLANAR_MAPPING", True)
-
-def get_triplanar_node_tree():
-    '''Returns a custom triplanar projection node tree. The node tree will be appended if it doesn't exist in the current blend file.'''
-    return append_custom_node_tree("ML_TRIPLANAR", True)
-
-def get_normal_triplanar_node_tree():
-    '''Returns a custom triplanar projection node tree specifically for correct normal map projections. The node tree will be appended if it doesn't exist in the current blend file.'''
-    return append_custom_node_tree("ML_TRIPLANAR_NORMALS", True)
-
-def get_world_to_tangent_normal_node_tree():
-    '''Returns a converter node for world to tangent space normal maps. The node tree will be appended if it doesn't exist in the current blend file.'''
-    return append_custom_node_tree("ML_WORLD_TO_TANGENT_SPACE", True)
-
-def get_flat_blur_node_tree():
-    '''Returns a group node that can be used to blur flat / uv projected textures.'''
-    return append_custom_node_tree("ML_FLAT_BLUR", True)
-
-def get_triplanar_blur_node_tree():
-    '''Returns a group node that can be used to blur triplanar projected textures.'''
-    return append_custom_node_tree("ML_TRIPLANAR_BLUR", True)
-
-def append_default_node_trees():
-    '''Appends important node trees used in this add-on.'''
-    # Appending node trees in a defined order helps avoid duplicate node trees.
-    get_triplanar_node_tree()
-    get_triplanar_mapping_tree()
-    get_normal_triplanar_node_tree()
-    get_normal_map_rotation_fix_node_tree()
-    get_triplanar_blur_node_tree()
-    get_flat_blur_node_tree()
-
 def get_node_by_bl_static_type(nodes, bl_static_type):
     '''Finds and returns a node by it's bl_static_type.'''
     # When using a different language, default nodes must be accessed using their type because their default name translates.
@@ -105,7 +63,6 @@ def create_image(image_name, image_width, image_height, alpha_channel=False, thi
                                     stereo3d=False,
                                     is_data=data,
                                     tiled=False)
-    
     return new_image
 
 def log(message):
