@@ -21,6 +21,7 @@ def draw_layers_section_ui(self, context):
     row = column_two.row()
     draw_material_selector(column_two)
     draw_layer_operations(column_two)
+    draw_layer_stack(column_two)
 
 def draw_material_selector(layout):
     '''Draws a material selector and layer stack refresh button.'''
@@ -79,3 +80,10 @@ def draw_layer_operations(layout):
     operator.direction = 'DOWN'
     subrow.operator("matlayer.duplicate_layer", icon="DUPLICATE", text="")
     subrow.operator("matlayer.delete_layer", icon="TRASH", text="")
+
+def draw_layer_stack(layout):
+    '''Draws the material layer stack along with it's operators and material channel.'''
+    if len(bpy.context.scene.matlayer_layers) > 0:
+        subrow = layout.row(align=True)
+        subrow.template_list("MATLAYER_UL_layer_list", "Layers", bpy.context.scene, "matlayer_layers", bpy.context.scene.matlayer_layer_stack, "selected_layer_index", sort_reverse=True)
+        subrow.scale_y = 2

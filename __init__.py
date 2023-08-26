@@ -184,10 +184,10 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    # Panel Properties
+    # User Interface Properties
     bpy.types.Scene.matlayer_panel_properties = PointerProperty(type=MATLAYER_panel_properties)
 
-    # Layer Properties
+    # Material Layer Properties
     bpy.types.Scene.matlayer_layer_stack = PointerProperty(type=MATLAYER_layer_stack)
     bpy.types.Scene.matlayer_layers = CollectionProperty(type=MATLAYER_layers)
 

@@ -5,7 +5,6 @@ from bpy.types import Operator, PropertyGroup, Menu
 from bpy.props import BoolProperty, StringProperty, IntProperty
 from ..core import baking
 from ..core import texture_set_settings
-from ..core import matlayer_materials
 from .. import preferences
 
 
