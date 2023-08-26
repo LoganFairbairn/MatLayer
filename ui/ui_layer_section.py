@@ -5,7 +5,7 @@ from bpy.types import Operator
 from ..core import material_layers
 from ..ui import ui_section_tabs
 
-SCALE_Y = 1.4
+DEFAULT_UI_SCALE_Y = 1
 
 def draw_layers_section_ui(self, context):
     '''Draws the layer section user interface to the add-on side panel.'''
@@ -106,26 +106,37 @@ def draw_layer_material_channel_toggles(layout):
 
 def draw_material_channel_properties(layout):
     '''Draws properties for all active material channels on selected material layer.'''
+    layers = bpy.context.scene.matlayer_layers
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
         row = layout.row()
+        row.scale_y = 2.5
+        row.separator()
+
+        row = layout.row()
+        row.scale_y = DEFAULT_UI_SCALE_Y
         row.label(text=material_channel_name)
+        row.prop(layers[selected_layer_index].material_channel_node_types, "color_node_type", text="")
 
         value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
         if value_node:
-            row = layout.row()
-            row.scale_y = 1.4
 
             # Draw values based on the node type used to represent the material channel value.
             match value_node.bl_static_type:
                 case 'GROUP':
+                    row = layout.row()
+                    row.scale_y = DEFAULT_UI_SCALE_Y
+                    row.template_ID(value_node, "node_tree")
+
                     # For group nodes used to represent default material channel values, draw only the first value.
                     if value_node.node_tree.name.startswith('ML_Default'):
+                        row = layout.row()
+                        row.scale_y = DEFAULT_UI_SCALE_Y
                         row.prop(value_node.inputs[0], "default_value", text="")
 
                     # For custom group nodes, draw all properties to the interface.
                     else:
                         for i in range(0, len(value_node.inputs)):
                             row = layout.row()
-                            row.scale_y = 1.4
+                            row.scale_y = DEFAULT_UI_SCALE_Y
                             row.prop(value_node.inputs[i], "default_value", text=value_node.inputs[i].name)

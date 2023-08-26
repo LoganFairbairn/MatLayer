@@ -2,7 +2,7 @@
 
 import bpy
 from bpy.types import PropertyGroup, Operator
-from bpy.props import BoolProperty, FloatProperty, EnumProperty, StringProperty
+from bpy.props import BoolProperty, IntProperty, EnumProperty, StringProperty, PointerProperty
 from ..utilities import blender_addon_utils
 import random
 
@@ -15,10 +15,9 @@ PROJECTION_MODES = [
     #("TUBE", "Tube", "")
 ]
 
-TEXTURE_EXTENSION_MODES = [
-    ("REPEAT", "Repeat", ""), 
-    ("EXTEND", "Extend", ""),
-    ("CLIP", "Clip", "")
+TEXTURE_NODE_TYPES = [
+    ("GROUP", "GROUP", ""),
+    ("TEXTURE", "TEXTURE", ""),
 ]
 
 TEXTURE_INTERPOLATION_MODES = [
@@ -59,11 +58,9 @@ MATERIAL_LAYER_TYPES = [
 
 class MATLAYER_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''
-    selected_layer_index: bpy.props.IntProperty(default=-1, description="Selected material layer")
-    material_channel_preview: bpy.props.BoolProperty(name="Material Channel Preview", description="If true, only the rgb output values for the selected material channel will be used on the object.", default=False)
-    node_default_width: bpy.props.IntProperty(default=250)
-    node_spacing: bpy.props.IntProperty(default=80)
-    selected_material_channel: bpy.props.EnumProperty(items=MATERIAL_CHANNEL, name="Material Channel", description="The currently selected material channel", default='COLOR')
+    selected_layer_index: IntProperty(default=-1, description="Selected material layer")
+    material_channel_preview: BoolProperty(name="Material Channel Preview", description="If true, only the rgb output values for the selected material channel will be used on the object.", default=False)
+    selected_material_channel: EnumProperty(items=MATERIAL_CHANNEL, name="Material Channel", description="The currently selected material channel", default='COLOR')
 
     # Note: These tabs exist to help keep the user interface elements on screen limited, thus simplifying the editing process, and helps avoid the need to scroll down on the user interface to see settings.
     # Tabs for material / mask layer properties.
@@ -95,8 +92,48 @@ class MATLAYER_layer_stack(PropertyGroup):
         options={'HIDDEN'},
     )
 
+def update_color_channel_node_type(self, context):
+    print("Placeholder...")
+
+def update_subsurface_channel_node_type(self, context):
+    print("Placeholder...")
+
+def update_metallic_channel_node_type(self, context):
+    print("Placeholder...")
+
+def update_specular_channel_node_type(self, context):
+    print("Placeholder...")
+
+def update_roughness_channel_node_type(self, context):
+    print("Placeholder...")
+
+def update_emission_channel_node_type(self, context):
+    print("Placeholder...")
+
+def update_normal_channel_node_type(self, context):
+    print("Placeholder...")
+
+def update_height_channel_node_type(self, context):
+    print("Placeholder...")
+
+def update_alpha_channel_node_type(self, context):
+    print("Placeholder...")
+
+class MaterialChannelNodeType(PropertyGroup):
+    '''An enum node type for the material node used to represent the material channel texture in every material channel.'''
+    color_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Color Channel Node Type", description="The node type for the color channel", default='GROUP', update=update_color_channel_node_type)
+    subsurface_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Subsurface Scattering Channel Node Type", description="The node type for the subsurface scattering channel", default='GROUP', update=update_subsurface_channel_node_type)
+    metallic_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Metallic Channel Node Type", description="The node type for the metallic channel", default='GROUP', update=update_metallic_channel_node_type)
+    specular_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Specular Channel Node Type", description="The node type for the specular channel", default='GROUP', update=update_specular_channel_node_type)
+    roughness_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Roughness Channel Node Type", description="The node type for roughness channel", default='GROUP', update=update_roughness_channel_node_type)
+    emission_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Emission Channel Node Type", description="The node type for the emission channel", default='GROUP', update=update_emission_channel_node_type)
+    normal_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Normal Channel Node Type", description="The node type for the normal channel", default='GROUP', update=update_normal_channel_node_type)
+    height_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Height Channel Node Type", description="The node type for the height channel", default='GROUP', update=update_height_channel_node_type)
+    alpha_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Alpha Channel Node Type", description="The node type for the alpha channel", default='GROUP', update=update_emission_channel_node_type)
+    
 class MATLAYER_layers(PropertyGroup):
     hidden: BoolProperty(name="Hidden", description="Show if the layer is hidden")
+    material_channel_node_types: PointerProperty(type=MaterialChannelNodeType)
 
 class MATLAYER_OT_add_material_layer(Operator):
     bl_idname = "matlayer.add_material_layer"
