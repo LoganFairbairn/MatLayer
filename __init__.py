@@ -22,7 +22,7 @@ from bpy.app.handlers import persistent
 
 from .preferences import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MATLAYER_texture_export_settings, AddonPreferences
 from .core.texture_set_settings import MATLAYER_texture_set_settings, GlobalMaterialChannelToggles
-from .core.material_layers import MATLAYER_layer_stack, MaterialChannelNodeType, MATLAYER_layers, MATLAYER_OT_add_material_layer, MATLAYER_OT_add_paint_material_layer, MATLAYER_OT_add_decal_material_layer, MATLAYER_OT_delete_layer, MATLAYER_OT_duplicate_layer, MATLAYER_OT_move_material_layer, MATLAYER_OT_toggle_material_channel_preview
+from .core.material_layers import MATLAYER_layer_stack, MaterialChannelNodeType, MATLAYER_layers, MATLAYER_OT_add_material_layer, MATLAYER_OT_add_paint_material_layer, MATLAYER_OT_add_decal_material_layer, MATLAYER_OT_delete_layer, MATLAYER_OT_duplicate_layer, MATLAYER_OT_move_material_layer_up, MATLAYER_OT_move_material_layer_down, MATLAYER_OT_toggle_material_channel_preview
 from .core.baking import MATLAYER_baking_settings, MATLAYER_OT_bake, MATLAYER_OT_open_bake_folder, MATLAYER_OT_delete_ao_map, MATLAYER_OT_delete_curvature_map, MATLAYER_OT_delete_thickness_map, MATLAYER_OT_delete_normal_map, update_meshmap_names
 from .core.exporting import MATLAYER_exporting_settings, MATLAYER_OT_export, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, ExportTemplateMenu, set_export_template
 from .core.image_utilities import MATLAYER_OT_add_material_channel_image, MATLAYER_OT_import_texture, MATLAYER_OT_import_texture_set, MATLAYER_OT_edit_image_externally, MATLAYER_OT_reload_material_channel_image, MATLAYER_OT_delete_material_channel_image
@@ -79,7 +79,8 @@ classes = (
     MATLAYER_OT_add_decal_material_layer,
     MATLAYER_OT_delete_layer,
     MATLAYER_OT_duplicate_layer, 
-    MATLAYER_OT_move_material_layer,
+    MATLAYER_OT_move_material_layer_up,
+    MATLAYER_OT_move_material_layer_down,
     MATLAYER_OT_toggle_material_channel_preview,
 
     # Layer Operations

@@ -83,16 +83,14 @@ def draw_selected_material_channel(layout):
 
 def draw_layer_operations(layout):
     '''Draws layer operation buttons.'''
-    subrow = layout.row(align=True)
-    subrow.scale_y = 2.0
-    subrow.scale_x = 10
-    subrow.operator("matlayer.add_material_layer_menu", icon="ADD", text="")
-    operator = subrow.operator("matlayer.move_material_layer", icon="TRIA_UP", text="")
-    operator.direction = 'UP'
-    operator = subrow.operator("matlayer.move_material_layer", icon="TRIA_DOWN", text="")
-    operator.direction = 'DOWN'
-    subrow.operator("matlayer.duplicate_layer", icon="DUPLICATE", text="")
-    subrow.operator("matlayer.delete_layer", icon="TRASH", text="")
+    row = layout.row(align=True)
+    row.scale_y = 2.0
+    row.scale_x = 10
+    row.operator("matlayer.add_material_layer_menu", icon="ADD", text="")
+    row.operator("matlayer.move_material_layer_up", icon="TRIA_UP", text="")
+    row.operator("matlayer.move_material_layer_down", icon="TRIA_DOWN", text="")
+    row.operator("matlayer.duplicate_layer", icon="DUPLICATE", text="")
+    row.operator("matlayer.delete_layer", icon="TRASH", text="")
 
 def draw_layer_stack(layout):
     '''Draws the material layer stack along with it's operators and material channel.'''
@@ -122,7 +120,8 @@ def draw_material_channel_properties(layout):
     layers = bpy.context.scene.matlayer_layers
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
-    if len(layers) <= 0:
+    # Avoid drawing material channel properties for invalid layers.
+    if material_layers.get_material_layer_node('LAYER', selected_layer_index) == None or len(layers) <= 0:
         return
 
     for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:

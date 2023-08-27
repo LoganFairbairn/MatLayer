@@ -56,41 +56,7 @@ MATERIAL_LAYER_TYPES = [
     ("DECAL", "Decal", "A material projected onto the model using a decal object (empty) which allows users to dynamically position textures.")
 ]
 
-class MATLAYER_layer_stack(PropertyGroup):
-    '''Properties for the layer stack.'''
-    selected_layer_index: IntProperty(default=-1, description="Selected material layer")
-    material_channel_preview: BoolProperty(name="Material Channel Preview", description="If true, only the rgb output values for the selected material channel will be used on the object.", default=False)
-    selected_material_channel: EnumProperty(items=MATERIAL_CHANNEL, name="Material Channel", description="The currently selected material channel", default='COLOR')
-
-    # Note: These tabs exist to help keep the user interface elements on screen limited, thus simplifying the editing process, and helps avoid the need to scroll down on the user interface to see settings.
-    # Tabs for material / mask layer properties.
-    layer_property_tab: bpy.props.EnumProperty(
-        items=[('MATERIAL', "MATERIAL", "Material settings for the selected layer."),
-               ('MASK', "MASK", "Mask settings for the selected layer.")],
-        name="Layer Properties Tab",
-        description="Tabs for layer properties.",
-        default='MATERIAL',
-        options={'HIDDEN'},
-    )
-
-    material_property_tab: bpy.props.EnumProperty(
-        items=[('MATERIAL', "MATERIAL", "Material properties for the selected material layer."),
-               ('PROJECTION', "PROJECTION", "Projection settings for the selected material layer."),
-               ('FILTERS', "FILTERS", "Layer filters and their properties for the selected material layer.")],
-        name="Material Property Tabs",
-        description="Tabs for material layer properties",
-        default='MATERIAL',
-        options={'HIDDEN'},       
-    )
-
-    mask_property_tab: bpy.props.EnumProperty(
-        items=[('FILTERS', "FILTERS", "Masks, their properties and filters for masks."),
-               ('PROJECTION', "PROJECTION", "Projection settings for the selected mask.")],
-        name="Mask Property Tabs",
-        description="Tabs for layer mask properties.",
-        default='FILTERS',
-        options={'HIDDEN'},
-    )
+#----------------------------- UPDATING NODE TYPES -----------------------------#
 
 def replace_material_channel_node(material_channel_name, node_type):
     '''Replaces the existing material channel node with a new node of the given type.'''
@@ -146,6 +112,195 @@ def update_height_channel_node_type(self, context):
 
 def update_alpha_channel_node_type(self, context):
     replace_material_channel_node('ALPHA', self.alpha_node_type)
+
+#----------------------------- HELPER FUNCTIONS -----------------------------#
+
+def format_layer_group_node_name(active_material_name, layer_index):
+    '''Properly formats the layer group node names for this add-on.'''
+    return "{0}_{1}".format(active_material_name, layer_index)
+
+def get_layer_node_tree(layer_index):
+    '''Returns the node group for the specified layer (from Blender data) if it exists'''
+    layer_group_name = format_layer_group_node_name(bpy.context.active_object.active_material.name, layer_index)
+    return bpy.data.node_groups.get(layer_group_name)
+
+def get_material_layer_node(layer_node_name, layer_index, material_channel_name='COLOR'):
+    '''Returns the desired material node if it exists. Supply the material channel name to get nodes specific to material channels.'''
+    active_material = bpy.context.active_object.active_material
+    if active_material:
+        layer_group_node_name = format_layer_group_node_name(active_material.name, layer_index)
+
+        match layer_node_name:
+            case 'LAYER':
+                return active_material.node_tree.nodes.get(str(layer_index))
+            case 'PROJECTION':
+                node_tree = bpy.data.node_groups.get(layer_group_node_name)
+                if node_tree:
+                    return node_tree.nodes.get("PROJECTION")
+                return None
+            case 'MIX':
+                mix_node_name = "{0}_MIX".format(material_channel_name)
+                node_tree = bpy.data.node_groups.get(layer_group_node_name)
+                if node_tree:
+                    return node_tree.nodes.get(mix_node_name)
+                return None
+            case 'OPACITY':
+                opacity_node_name = "{0}_OPACITY".format(material_channel_name)
+                node_tree = bpy.data.node_groups.get(layer_group_node_name)
+                if node_tree:
+                    return node_tree.nodes.get(opacity_node_name)
+                return None
+            case 'VALUE':
+                value_node_name = "{0}_VALUE".format(material_channel_name)
+                node_tree = bpy.data.node_groups.get(layer_group_node_name)
+                if node_tree:
+                    return node_tree.nodes.get(value_node_name)
+                return None
+            case 'OUTPUT':
+                node_tree = bpy.data.node_groups.get(layer_group_node_name)
+                if node_tree:
+                    node_tree.nodes.get('Group Output')
+                return 
+            case 'INPUT':
+                node_tree = bpy.data.node_groups.get(layer_group_node_name)
+                if node_tree:
+                    node_tree.nodes.get('Group Input')
+
+def add_material_layer_slot():
+    '''Adds a new slot to the material layer stack, and returns the index of the new layer slot.'''
+    layers = bpy.context.scene.matlayer_layers
+    layer_stack = bpy.context.scene.matlayer_layer_stack
+
+    layer_slot = layers.add()
+
+    # Assign a random, unique number to the layer slot. This allows the layer slot array index to be found using the name of the layer slot as a key.
+    unique_random_slot_id = str(random.randrange(0, 999999))
+    while layers.find(unique_random_slot_id) != -1:
+        unique_random_slot_id = str(random.randrange(0, 999999))
+    layer_slot.name = unique_random_slot_id
+
+    # If there is no layer selected, move the layer to the top of the stack.
+    if bpy.context.scene.matlayer_layer_stack.selected_layer_index < 0:
+        move_index = len(layers) - 1
+        move_to_index = 0
+        layers.move(move_index, move_to_index)
+        layer_stack.layer_index = move_to_index
+        bpy.context.scene.matlayer_layer_stack.selected_layer_index = len(layers) - 1
+
+    # Moves the new layer above the currently selected layer and selects it.
+    else: 
+        move_index = len(layers) - 1
+        move_to_index = max(0, min(bpy.context.scene.matlayer_layer_stack.selected_layer_index + 1, len(layers) - 1))
+        layers.move(move_index, move_to_index)
+        layer_stack.layer_index = move_to_index
+        bpy.context.scene.matlayer_layer_stack.selected_layer_index = max(0, min(bpy.context.scene.matlayer_layer_stack.selected_layer_index + 1, len(layers) - 1))
+
+    return bpy.context.scene.matlayer_layer_stack.selected_layer_index
+
+def read_total_layers():
+    '''Counts the total layers in the active material by reading the active material's node tree.'''
+    active_material = bpy.context.active_object.active_material
+    layer_count = 1
+    while active_material.node_tree.nodes.get(str(layer_count)):
+        layer_count += 1
+    return layer_count
+
+def organize_layer_group_nodes():
+    '''Organizes all layer group nodes in the active material to ensure the node tree is easy to read.'''
+    active_material = bpy.context.active_object.active_material
+    layer_count = read_total_layers()
+
+    position_x = -500
+    for i in range(layer_count, 0, -1):
+        layer_group_node = active_material.node_tree.nodes.get(str(i - 1))
+        if layer_group_node:
+            layer_group_node.width = 300
+            layer_group_node.location = (position_x, 0)
+            position_x -= 500
+
+def link_layer_group_nodes():
+    '''Connects all layer group nodes to other existing group nodes, and the principled BSDF shader.'''
+    # Note: This function may be able to be optimized by only diconnecting nodes that must be disconnected, potentially reducing re-compile time for shaders.
+
+    active_material = bpy.context.active_object.active_material
+    node_tree = active_material.node_tree
+    layer_count = read_total_layers()
+
+
+    # TODO: Disconnect all layer group nodes.
+    for i in range(0, layer_count):
+        layer_node = get_material_layer_node('LAYER', i)
+        if layer_node:
+            for input in layer_node.inputs:
+                for link in input.links:
+                    node_tree.links.remove(link)
+
+    # Re-connect all layer group nodes.
+    for i in range(0, layer_count):
+        layer_node = get_material_layer_node('LAYER', i)
+        next_layer_node = get_material_layer_node('LAYER', i + 1)
+        if next_layer_node:
+            for material_channel_name in MATERIAL_CHANNEL_LIST:
+                output_socket_name = material_channel_name.capitalize()
+                input_socket_name = "{0}Mix".format(material_channel_name.capitalize())
+                node_tree.links.new(layer_node.outputs.get(output_socket_name), next_layer_node.inputs.get(input_socket_name))
+
+    # TODO: Only connect active material channels.
+    # Connect the last layer node to the principled BSDF.
+    normal_and_height_mix = active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
+    principled_bsdf = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+    last_layer_node = get_material_layer_node('LAYER', layer_count - 1)
+    for material_channel_name in MATERIAL_CHANNEL_LIST:
+        match material_channel_name:
+            case 'COLOR':
+                node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), principled_bsdf.inputs.get('Base Color'))
+
+            case 'NORMAL':
+                node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), normal_and_height_mix.inputs.get(material_channel_name.capitalize()))
+        
+            case 'HEIGHT':
+                node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), normal_and_height_mix.inputs.get(material_channel_name.capitalize()))
+
+            case _:
+                node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), principled_bsdf.inputs.get(material_channel_name.capitalize()))
+
+#----------------------------- OPERATORS -----------------------------#
+
+class MATLAYER_layer_stack(PropertyGroup):
+    '''Properties for the layer stack.'''
+    selected_layer_index: IntProperty(default=-1, description="Selected material layer")
+    material_channel_preview: BoolProperty(name="Material Channel Preview", description="If true, only the rgb output values for the selected material channel will be used on the object.", default=False)
+    selected_material_channel: EnumProperty(items=MATERIAL_CHANNEL, name="Material Channel", description="The currently selected material channel", default='COLOR')
+
+    # Note: These tabs exist to help keep the user interface elements on screen limited, thus simplifying the editing process, and helps avoid the need to scroll down on the user interface to see settings.
+    # Tabs for material / mask layer properties.
+    layer_property_tab: bpy.props.EnumProperty(
+        items=[('MATERIAL', "MATERIAL", "Material settings for the selected layer."),
+               ('MASK', "MASK", "Mask settings for the selected layer.")],
+        name="Layer Properties Tab",
+        description="Tabs for layer properties.",
+        default='MATERIAL',
+        options={'HIDDEN'},
+    )
+
+    material_property_tab: bpy.props.EnumProperty(
+        items=[('MATERIAL', "MATERIAL", "Material properties for the selected material layer."),
+               ('PROJECTION', "PROJECTION", "Projection settings for the selected material layer."),
+               ('FILTERS', "FILTERS", "Layer filters and their properties for the selected material layer.")],
+        name="Material Property Tabs",
+        description="Tabs for material layer properties",
+        default='MATERIAL',
+        options={'HIDDEN'},       
+    )
+
+    mask_property_tab: bpy.props.EnumProperty(
+        items=[('FILTERS', "FILTERS", "Masks, their properties and filters for masks."),
+               ('PROJECTION', "PROJECTION", "Projection settings for the selected mask.")],
+        name="Mask Property Tabs",
+        description="Tabs for layer mask properties.",
+        default='FILTERS',
+        options={'HIDDEN'},
+    )
 
 class MaterialChannelNodeType(PropertyGroup):
     '''An enum node type for the material node used to represent the material channel texture in every material channel.'''
@@ -209,7 +364,7 @@ class MATLAYER_OT_add_material_layer(Operator):
         new_layer_group_node.label = "Layer " + str(new_layer_slot_index)   # Layer display name.
         
         organize_layer_group_nodes()
-        connect_layer_group_nodes()
+        link_layer_group_nodes()
 
         return {'FINISHED'}
 
@@ -244,7 +399,7 @@ class MATLAYER_OT_add_decal_material_layer(Operator):
 class MATLAYER_OT_delete_layer(Operator):
     bl_idname = "matlayer.delete_layer"
     bl_label = "Delete Layer"
-    bl_description = ""
+    bl_description = "Deletes the selected material layer from the active material"
     bl_options = {'REGISTER', 'UNDO'}
 
     # Disable when there is no active object.
@@ -255,8 +410,25 @@ class MATLAYER_OT_delete_layer(Operator):
     def execute(self, context):
         layers = context.scene.matlayer_layers
         selected_layer_index = context.scene.matlayer_layer_stack.selected_layer_index
+
+        # Remove the layer group node (node tree) from Blender's data.
+        layer_node_tree = get_layer_node_tree(selected_layer_index)
+        if layer_node_tree:
+            bpy.data.node_groups.remove(layer_node_tree)
+
+        # Remove the layer node from the active materials node tree.
+        layer_group_node = get_material_layer_node('LAYER', selected_layer_index)
+        if layer_group_node:
+            active_material = bpy.context.active_object.active_material
+            active_material.node_tree.nodes.remove(layer_group_node)
+
+        # Remove the layer slot.
         layers.remove(selected_layer_index)
-        context.scene.matlayer_layer_stack.layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
+        context.scene.matlayer_layer_stack.selected_layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
+
+        organize_layer_group_nodes()
+        link_layer_group_nodes()
+
         return {'FINISHED'}
     
 class MATLAYER_OT_duplicate_layer(Operator):
@@ -274,10 +446,27 @@ class MATLAYER_OT_duplicate_layer(Operator):
 
         return {'FINISHED'}
     
-class MATLAYER_OT_move_material_layer(Operator):
-    bl_idname = "matlayer.move_material_layer"
-    bl_label = "Move Layer"
-    bl_description = "Moves the material layer up / down on the layer stack"
+class MATLAYER_OT_move_material_layer_up(Operator):
+    bl_idname = "matlayer.move_material_layer_up"
+    bl_label = "Move Layer Up"
+    bl_description = "Moves the material layer up on the layer stack"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    direction: StringProperty(default='UP')
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+
+        return {'FINISHED'}
+
+class MATLAYER_OT_move_material_layer_down(Operator):
+    bl_idname = "matlayer.move_material_layer_down"
+    bl_label = "Move Layer Down"
+    bl_description = "Moves the material layer down on the layer stack"
     bl_options = {'REGISTER', 'UNDO'}
 
     direction: StringProperty(default='UP')
@@ -306,139 +495,3 @@ class MATLAYER_OT_toggle_material_channel_preview(Operator):
 
     def execute(self, context):
         return {'FINISHED'}
-
-#----------------------------- HELPER FUNCTIONS -----------------------------#
-
-def format_layer_group_node_name(active_material_name, layer_index):
-    '''Properly formats the layer group node names for this add-on.'''
-    return "{0}_{1}".format(active_material_name, layer_index)
-
-def get_layer_node_tree(layer_index):
-    '''Returns the node group for the specified layer (from Blender data) if it exists'''
-    layer_group_name = format_layer_group_node_name(bpy.context.active_object.active_material.name, layer_index)
-    return bpy.data.node_groups.get(layer_group_name)
-
-def get_material_layer_node(layer_node_name, layer_index, material_channel_name='COLOR'):
-    '''Returns the desired material node if it exists. Supply the material channel name to get nodes specific to material channels.'''
-    active_material = bpy.context.active_object.active_material
-    if active_material:
-        layer_group_node_name = format_layer_group_node_name(active_material.name, layer_index)
-
-        match layer_node_name:
-            case 'LAYER':
-                return active_material.node_tree.nodes.get(str(layer_index))
-            case 'PROJECTION':
-                return bpy.data.node_groups.get(layer_group_node_name).nodes.get("PROJECTION")
-            case 'MIX':
-                mix_node_name = "{0}_MIX".format(material_channel_name)
-                return bpy.data.node_groups.get(layer_group_node_name).nodes.get(mix_node_name)
-            case 'OPACITY':
-                opacity_node_name = "{0}_OPACITY".format(material_channel_name)
-                return bpy.data.node_groups.get(layer_group_node_name).nodes.get(opacity_node_name)
-            case 'VALUE':
-                value_node_name = "{0}_VALUE".format(material_channel_name)
-                return bpy.data.node_groups.get(layer_group_node_name).nodes.get(value_node_name)
-            case 'OUTPUT':
-                return bpy.data.node_groups.get(layer_group_node_name).nodes.get('Group Output')
-            case 'INPUT':
-                return bpy.data.node_groups.get(layer_group_node_name).nodes.get('Group Input')
-
-def add_material_layer_slot():
-    '''Adds a new slot to the material layer stack, and returns the index of the new layer slot.'''
-    layers = bpy.context.scene.matlayer_layers
-    layer_stack = bpy.context.scene.matlayer_layer_stack
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-
-    layer_slot = layers.add()
-
-    # Assign a random, unique number to the layer slot. This allows the layer slot array index to be found using the name of the layer slot as a key.
-    unique_random_slot_id = str(random.randrange(0, 999999))
-    while layers.find(unique_random_slot_id) != -1:
-        unique_random_slot_id = str(random.randrange(0, 999999))
-    layer_slot.name = unique_random_slot_id
-
-    # If there is no layer selected, move the layer to the top of the stack.
-    if selected_layer_index < 0:
-        move_index = len(layers) - 1
-        move_to_index = 0
-        layers.move(move_index, move_to_index)
-        layer_stack.layer_index = move_to_index
-        selected_layer_index = len(layers) - 1
-
-    # Moves the new layer above the currently selected layer and selects it.
-    else: 
-        move_index = len(layers) - 1
-        move_to_index = max(0, min(selected_layer_index + 1, len(layers) - 1))
-        layers.move(move_index, move_to_index)
-        layer_stack.layer_index = move_to_index
-        selected_layer_index = max(0, min(selected_layer_index + 1, len(layers) - 1))
-
-    return selected_layer_index
-
-def read_total_layers():
-    '''Counts the total layers in the active material by reading the active material's node tree.'''
-    active_material = bpy.context.active_object.active_material
-    layer_count = 1
-    while active_material.node_tree.nodes.get(str(layer_count)):
-        layer_count += 1
-    return layer_count
-
-def organize_layer_group_nodes():
-    '''Organizes all layer group nodes in the active material to ensure the node tree is easy to read.'''
-    active_material = bpy.context.active_object.active_material
-    layer_count = read_total_layers()
-
-    position_x = -500
-    for i in range(layer_count, 0, -1):
-        layer_group_node = active_material.node_tree.nodes.get(str(i - 1))
-        if layer_group_node:
-            layer_group_node.width = 300
-            layer_group_node.location = (position_x, 0)
-            position_x -= 500
-
-def connect_layer_group_nodes():
-    '''Connects all layer group nodes to other existing group nodes, and the principled BSDF shader.'''
-    # Note: This function may be able to be optimized by only diconnecting nodes that must be disconnected, potentially reducing re-compile time for shaders.
-
-    active_material = bpy.context.active_object.active_material
-    node_tree = active_material.node_tree
-    layer_count = read_total_layers()
-
-
-    # TODO: Disconnect all layer group nodes.
-    for i in range(0, layer_count):
-        layer_node = get_material_layer_node('LAYER', i)
-        if layer_node:
-            for input in layer_node.inputs:
-                for link in input.links:
-                    node_tree.links.remove(link)
-
-    # Re-connect all layer group nodes.
-    for i in range(0, layer_count):
-        layer_node = get_material_layer_node('LAYER', i)
-        next_layer_node = get_material_layer_node('LAYER', i + 1)
-        if next_layer_node:
-            for material_channel_name in MATERIAL_CHANNEL_LIST:
-                output_socket_name = material_channel_name.capitalize()
-                input_socket_name = "{0}Mix".format(material_channel_name.capitalize())
-                node_tree.links.new(layer_node.outputs.get(output_socket_name), next_layer_node.inputs.get(input_socket_name))
-
-    # TODO: Only connect active material channels.
-    # Connect the last layer node to the principled BSDF.
-    normal_and_height_mix = active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
-    principled_bsdf = active_material.node_tree.nodes.get('MATLAYER_BSDF')
-    last_layer_node = get_material_layer_node('LAYER', layer_count - 1)
-    for material_channel_name in MATERIAL_CHANNEL_LIST:
-        match material_channel_name:
-            case 'COLOR':
-                node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), principled_bsdf.inputs.get('Base Color'))
-
-            case 'NORMAL':
-                node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), normal_and_height_mix.inputs.get(material_channel_name.capitalize()))
-        
-            case 'HEIGHT':
-                node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), normal_and_height_mix.inputs.get(material_channel_name.capitalize()))
-
-            case _:
-                node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), principled_bsdf.inputs.get(material_channel_name.capitalize()))
-        
