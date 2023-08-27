@@ -92,32 +92,60 @@ class MATLAYER_layer_stack(PropertyGroup):
         options={'HIDDEN'},
     )
 
+def replace_material_channel_node(material_channel_name, node_type):
+    '''Replaces the existing material channel node with a new node of the given type.'''
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    layer_group_node = get_layer_node_tree(selected_layer_index)
+    value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
+    old_node_location = value_node.location
+
+    layer_group_node.nodes.remove(value_node)
+
+    match node_type:
+        case 'GROUP':
+            new_node = layer_group_node.nodes.new('ShaderNodeGroup')
+            channel_name = material_channel_name.lower()
+            default_node_tree = bpy.data.node_groups.get("ML_Default{0}".format(channel_name.capitalize()))
+            new_node.node_tree = default_node_tree
+        case 'TEXTURE':
+            new_node = layer_group_node.nodes.new('ShaderNodeTexImage')
+            projection_node = get_material_layer_node('PROJECTION', selected_layer_index, material_channel_name)
+            layer_group_node.links.new(projection_node.outputs[0], new_node.inputs[0])
+
+    new_node.name = "{0}_VALUE".format(material_channel_name)
+    new_node.label = new_node.name
+    new_node.location = old_node_location
+    new_node.width = 200
+
+    mix_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
+    layer_group_node.links.new(new_node.outputs[0], mix_node.inputs[7])
+
 def update_color_channel_node_type(self, context):
-    print("Placeholder...")
+    replace_material_channel_node('COLOR', self.color_node_type)
 
 def update_subsurface_channel_node_type(self, context):
-    print("Placeholder...")
+    replace_material_channel_node('SUBSURFACE', self.subsurface_node_type)
 
 def update_metallic_channel_node_type(self, context):
-    print("Placeholder...")
+    replace_material_channel_node('METALLIC', self.metallic_node_type)
 
 def update_specular_channel_node_type(self, context):
-    print("Placeholder...")
+    replace_material_channel_node('SPECULAR', self.specular_node_type)
 
 def update_roughness_channel_node_type(self, context):
-    print("Placeholder...")
+    replace_material_channel_node('ROUGHNESS', self.roughness_node_type)
 
 def update_emission_channel_node_type(self, context):
-    print("Placeholder...")
+    replace_material_channel_node('EMISSION', self.emission_node_type)
 
 def update_normal_channel_node_type(self, context):
-    print("Placeholder...")
+    replace_material_channel_node('NORMAL', self.normal_node_type)
 
 def update_height_channel_node_type(self, context):
-    print("Placeholder...")
+    replace_material_channel_node('HEIGHT', self.height_node_type)
 
 def update_alpha_channel_node_type(self, context):
-    print("Placeholder...")
+    replace_material_channel_node('ALPHA', self.alpha_node_type)
 
 class MaterialChannelNodeType(PropertyGroup):
     '''An enum node type for the material node used to represent the material channel texture in every material channel.'''
@@ -130,7 +158,7 @@ class MaterialChannelNodeType(PropertyGroup):
     normal_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Normal Channel Node Type", description="The node type for the normal channel", default='GROUP', update=update_normal_channel_node_type)
     height_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Height Channel Node Type", description="The node type for the height channel", default='GROUP', update=update_height_channel_node_type)
     alpha_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Alpha Channel Node Type", description="The node type for the alpha channel", default='GROUP', update=update_emission_channel_node_type)
-    
+
 class MATLAYER_layers(PropertyGroup):
     hidden: BoolProperty(name="Hidden", description="Show if the layer is hidden")
     material_channel_node_types: PointerProperty(type=MaterialChannelNodeType)
@@ -261,11 +289,12 @@ def format_layer_group_node_name(active_material_name, layer_index):
     '''Properly formats the layer group node names for this add-on.'''
     return "{0}_{1}".format(active_material_name, layer_index)
 
-def get_layer_group_node(layer_index):
+def get_layer_node_tree(layer_index):
     '''Returns the node group for the specified layer (from Blender data) if it exists'''
-    return format_layer_group_node_name(bpy.context.active_object.active_material.name, layer_index)
+    layer_group_name = format_layer_group_node_name(bpy.context.active_object.active_material.name, layer_index)
+    return bpy.data.node_groups.get(layer_group_name)
 
-def get_material_layer_node(layer_node_name, layer_index, material_channel_name='Color'):
+def get_material_layer_node(layer_node_name, layer_index, material_channel_name='COLOR'):
     '''Returns the desired material node if it exists. Supply the material channel name to get nodes specific to material channels.'''
     active_material = bpy.context.active_object.active_material
     if active_material:
@@ -359,6 +388,7 @@ def connect_layer_group_nodes():
     normal_and_height_mix = active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
     layer_node = get_material_layer_node('LAYER', 0)
 
+    '''
     active_material.node_tree.links.new(layer_node.outputs.get('Color'), principled_bsdf.inputs.get('Base Color'))
     active_material.node_tree.links.new(layer_node.outputs.get('Subsurface'), principled_bsdf.inputs.get('Subsurface'))
     active_material.node_tree.links.new(layer_node.outputs.get('Metallic'), principled_bsdf.inputs.get('Metallic'))
@@ -368,3 +398,4 @@ def connect_layer_group_nodes():
     active_material.node_tree.links.new(layer_node.outputs.get('Alpha'), principled_bsdf.inputs.get('Alpha'))
     active_material.node_tree.links.new(layer_node.outputs.get('Normal'), normal_and_height_mix.inputs.get('Normal'))
     active_material.node_tree.links.new(layer_node.outputs.get('Height'), normal_and_height_mix.inputs.get('Height'))
+    '''

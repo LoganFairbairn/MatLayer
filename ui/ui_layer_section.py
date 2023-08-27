@@ -108,6 +108,10 @@ def draw_material_channel_properties(layout):
     '''Draws properties for all active material channels on selected material layer.'''
     layers = bpy.context.scene.matlayer_layers
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+
+    if len(layers) <= 0:
+        return
+
     for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
         row = layout.row()
         row.scale_y = 2.5
@@ -116,7 +120,7 @@ def draw_material_channel_properties(layout):
         row = layout.row()
         row.scale_y = DEFAULT_UI_SCALE_Y
         row.label(text=material_channel_name)
-        row.prop(layers[selected_layer_index].material_channel_node_types, "color_node_type", text="")
+        row.prop(layers[selected_layer_index].material_channel_node_types, material_channel_name.lower() + "_node_type", text="")
 
         value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
         if value_node:
