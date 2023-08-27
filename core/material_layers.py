@@ -121,50 +121,73 @@ def format_layer_group_node_name(active_material_name, layer_index):
 
 def get_layer_node_tree(layer_index):
     '''Returns the node group for the specified layer (from Blender data) if it exists'''
+    
+    if not bpy.context.active_object:
+        return None
+    
+    if not bpy.context.active_object.active_material:
+        return None
+    
     layer_group_name = format_layer_group_node_name(bpy.context.active_object.active_material.name, layer_index)
+
     return bpy.data.node_groups.get(layer_group_name)
 
-def get_material_layer_node(layer_node_name, layer_index, material_channel_name='COLOR'):
+def get_material_layer_node(layer_node_name, layer_index, material_channel_name='COLOR', get_changed_node=False):
     '''Returns the desired material node if it exists. Supply the material channel name to get nodes specific to material channels.'''
+    if bpy.context.active_object == None:
+        return
+    
     active_material = bpy.context.active_object.active_material
-    if active_material:
-        layer_group_node_name = format_layer_group_node_name(active_material.name, layer_index)
+    if active_material == None:
+        return
+    
+    layer_group_node_name = format_layer_group_node_name(active_material.name, layer_index)
 
-        match layer_node_name:
-            case 'LAYER':
+    match layer_node_name:
+        case 'LAYER':
+            if get_changed_node:
+                return active_material.node_tree.nodes.get(str(layer_index) + "~")
+            else:
                 return active_material.node_tree.nodes.get(str(layer_index))
-            case 'PROJECTION':
-                node_tree = bpy.data.node_groups.get(layer_group_node_name)
-                if node_tree:
-                    return node_tree.nodes.get("PROJECTION")
-                return None
-            case 'MIX':
-                mix_node_name = "{0}_MIX".format(material_channel_name)
-                node_tree = bpy.data.node_groups.get(layer_group_node_name)
-                if node_tree:
-                    return node_tree.nodes.get(mix_node_name)
-                return None
-            case 'OPACITY':
-                opacity_node_name = "{0}_OPACITY".format(material_channel_name)
-                node_tree = bpy.data.node_groups.get(layer_group_node_name)
-                if node_tree:
-                    return node_tree.nodes.get(opacity_node_name)
-                return None
-            case 'VALUE':
-                value_node_name = "{0}_VALUE".format(material_channel_name)
-                node_tree = bpy.data.node_groups.get(layer_group_node_name)
-                if node_tree:
-                    return node_tree.nodes.get(value_node_name)
-                return None
-            case 'OUTPUT':
-                node_tree = bpy.data.node_groups.get(layer_group_node_name)
-                if node_tree:
-                    node_tree.nodes.get('Group Output')
-                return 
-            case 'INPUT':
-                node_tree = bpy.data.node_groups.get(layer_group_node_name)
-                if node_tree:
-                    node_tree.nodes.get('Group Input')
+        
+        case 'PROJECTION':
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get("PROJECTION")
+            return None
+        
+        case 'MIX':
+            mix_node_name = "{0}_MIX".format(material_channel_name)
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get(mix_node_name)
+            return None
+        
+        case 'OPACITY':
+            opacity_node_name = "{0}_OPACITY".format(material_channel_name)
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get(opacity_node_name)
+            return None
+        
+        case 'VALUE':
+            value_node_name = "{0}_VALUE".format(material_channel_name)
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get(value_node_name)
+            return None
+        
+        case 'OUTPUT':
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                node_tree.nodes.get('Group Output')
+            return None
+        
+        case 'INPUT':
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                node_tree.nodes.get('Group Input')
+            return None
 
 def add_material_layer_slot():
     '''Adds a new slot to the material layer stack, and returns the index of the new layer slot.'''
@@ -199,6 +222,11 @@ def add_material_layer_slot():
 
 def read_total_layers():
     '''Counts the total layers in the active material by reading the active material's node tree.'''
+    if not bpy.context.active_object:
+        return 0
+    if not bpy.context.active_object.active_material:
+        return 0
+    
     active_material = bpy.context.active_object.active_material
     layer_count = 1
     while active_material.node_tree.nodes.get(str(layer_count)):
@@ -222,12 +250,17 @@ def link_layer_group_nodes():
     '''Connects all layer group nodes to other existing group nodes, and the principled BSDF shader.'''
     # Note: This function may be able to be optimized by only diconnecting nodes that must be disconnected, potentially reducing re-compile time for shaders.
 
+    if not bpy.context.active_object:
+        return
+
+    if not bpy.context.active_object.active_material:
+        return
+
     active_material = bpy.context.active_object.active_material
     node_tree = active_material.node_tree
     layer_count = read_total_layers()
 
-
-    # TODO: Disconnect all layer group nodes.
+    # Disconnect all layer group nodes.
     for i in range(0, layer_count):
         layer_node = get_material_layer_node('LAYER', i)
         if layer_node:
@@ -263,6 +296,33 @@ def link_layer_group_nodes():
 
             case _:
                 node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), principled_bsdf.inputs.get(material_channel_name.capitalize()))
+
+def reindex_layer_nodes(change_made, affected_layer_index):
+    '''Reindexes layer group nodes to keep them properly indexed. This should be called after a change is made that effects the layer stack order such as adding, duplicating, deleting, or moving a material layer on the layer stack.'''
+    match change_made:
+        case 'ADDED_LAYER':
+            # Increase the layer index for all layer group nodes and their node trees that exist above the affected layer.
+            total_layers = read_total_layers()
+            for i in range(total_layers, affected_layer_index, -1):
+                layer_node = get_material_layer_node('LAYER', i - 1)
+                layer_node.name = str(int(layer_node.name) + 1)
+                split_node_tree_name = layer_node.node_tree.name.split('_')
+                layer_node.node_tree.name = "{0}_{1}".format(split_node_tree_name[0], str(int(split_node_tree_name[1]) + 1))
+
+            new_layer_node = get_material_layer_node('LAYER', affected_layer_index, get_changed_node=True)
+            if new_layer_node:
+                new_layer_node.name = str(affected_layer_index)
+                split_node_tree_name = new_layer_node.node_tree.name.split('_')
+                new_layer_node.node_tree.name = "{0}_{1}".format(split_node_tree_name[0], str(affected_layer_index))
+
+        case 'DELETED_LAYER':
+            # Reduce the layer index for all layer group nodes and their nodes trees that exist above the affected layer.
+            layer_count = len(bpy.context.scene.matlayer_layers)
+            for i in range(layer_count, affected_layer_index + 1, -1):
+                layer_node = get_material_layer_node('LAYER', i - 1)
+                layer_node.name = str(int(layer_node.name) - 1)
+                split_node_tree_name = layer_node.node_tree.name.split('_')
+                layer_node.node_tree.name = "{0}_{1}".format(split_node_tree_name[0], str(int(split_node_tree_name[1]) - 1))
 
 #----------------------------- OPERATORS -----------------------------#
 
@@ -360,9 +420,10 @@ class MATLAYER_OT_add_material_layer(Operator):
         default_layer_node_group.name = "{0}_{1}".format(active_material.name, str(new_layer_slot_index))
         new_layer_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
         new_layer_group_node.node_tree = default_layer_node_group
-        new_layer_group_node.name = str(new_layer_slot_index)               # Layer index within the material layer stack.
-        new_layer_group_node.label = "Layer " + str(new_layer_slot_index)   # Layer display name.
+        new_layer_group_node.name = str(new_layer_slot_index) + "~"
+        new_layer_group_node.label = "Layer " + str(new_layer_slot_index + 1)
         
+        reindex_layer_nodes(change_made='ADDED_LAYER', affected_layer_index=new_layer_slot_index)
         organize_layer_group_nodes()
         link_layer_group_nodes()
 
@@ -422,12 +483,13 @@ class MATLAYER_OT_delete_layer(Operator):
             active_material = bpy.context.active_object.active_material
             active_material.node_tree.nodes.remove(layer_group_node)
 
+        reindex_layer_nodes(change_made='DELETED_LAYER', affected_layer_index=selected_layer_index)
+        organize_layer_group_nodes()
+        link_layer_group_nodes()
+
         # Remove the layer slot.
         layers.remove(selected_layer_index)
         context.scene.matlayer_layer_stack.selected_layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
-
-        organize_layer_group_nodes()
-        link_layer_group_nodes()
 
         return {'FINISHED'}
     
