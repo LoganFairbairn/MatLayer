@@ -144,3 +144,18 @@ def draw_material_channel_properties(layout):
                             row = layout.row()
                             row.scale_y = DEFAULT_UI_SCALE_Y
                             row.prop(value_node.inputs[i], "default_value", text=value_node.inputs[i].name)
+
+                case 'TEX_IMAGE':
+                    row = layout.row(align=True)
+                    row.scale_y = DEFAULT_UI_SCALE_Y
+                    row.prop(value_node, "image", text="")
+                    add_layer_image_operator = row.operator("matlayer.add_material_channel_image", icon="ADD", text="")
+                    add_layer_image_operator.material_channel_name = material_channel_name
+                    import_texture_operator = row.operator("matlayer.import_texture", icon="IMPORT", text="")
+                    import_texture_operator.material_channel_name = material_channel_name
+                    export_image_operator = row.operator("matlayer.edit_image_externally", icon="TPAINT_HLT", text="")
+                    export_image_operator.material_channel_name = material_channel_name
+                    reload_image_operator = row.operator("matlayer.reload_material_channel_image", icon="FILE_REFRESH", text="")
+                    reload_image_operator.material_channel_name = material_channel_name
+                    delete_layer_image_operator = row.operator("matlayer.delete_material_channel_image", icon="TRASH", text="")
+                    delete_layer_image_operator.material_channel_name = material_channel_name

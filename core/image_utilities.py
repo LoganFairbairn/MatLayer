@@ -1,4 +1,4 @@
-# This file provides functions to assist with importing, saving, or editing image files / textures made with this add-on.
+# This file provides functions to assist with importing, saving, or editing image files / textures for this add-on.
 
 import bpy
 from bpy.types import Operator
@@ -7,9 +7,8 @@ import random
 import os                                           # For saving layer images.
 import re                                           # For splitting strings to identify material channels.
 
-
 # Dictionary of words / tags that may be in image texture names that could be used to identify material channels.
-material_channel_tags = {
+MATERIAL_CHANNEL_TAGS = {
     "color": 'COLOR',
     "colour": 'COLOR',
     "couleur": 'COLOR',
@@ -79,11 +78,11 @@ def check_for_directx(filename):
     else:
         return False
 
-class MATLAYER_OT_add_layer_image(Operator):
-    bl_idname = "matlayer.add_layer_image"
-    bl_label = "Add Layer Image"
+class MATLAYER_OT_add_material_channel_image(Operator):
+    bl_idname = "matlayer.add_material_channel_image"
+    bl_label = "Add Material Channel Image"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Creates a image within Blender's data and adds it to the selected layer"
+    bl_description = "Creates an image within Blender's data and adds it to the specified material channel on the selected material layer"
 
     # Specified material channel.
     material_channel_name: bpy.props.StringProperty()
@@ -255,15 +254,15 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
         for file in self.files:
             tags = split_filename_by_components(file.name)
             for tag in tags:
-                if tag not in material_channel_occurance and tag in material_channel_tags:
-                    material_channel = material_channel_tags[tag]
+                if tag not in material_channel_occurance and tag in MATERIAL_CHANNEL_TAGS:
+                    material_channel = MATERIAL_CHANNEL_TAGS[tag]
                     material_channel_occurance[material_channel] = 0
 
         for file in self.files:
             tags = split_filename_by_components(file.name)
             for tag in tags:
-                if tag in material_channel_tags:
-                    material_channel = material_channel_tags[tag]
+                if tag in MATERIAL_CHANNEL_TAGS:
+                    material_channel = MATERIAL_CHANNEL_TAGS[tag]
                     if material_channel in material_channel_occurance:
                         material_channel_occurance[material_channel] += 1
 
@@ -275,8 +274,8 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
             tags = split_filename_by_components(file.name)
             material_channel_names_in_filename = []
             for tag in tags:
-                if tag in material_channel_tags:
-                    material_channel_names_in_filename.append(material_channel_tags[tag])
+                if tag in MATERIAL_CHANNEL_TAGS:
+                    material_channel_names_in_filename.append(MATERIAL_CHANNEL_TAGS[tag])
 
             # Only import files that have a material channel name detected in the file name.
             if len(material_channel_names_in_filename) > 0:
@@ -337,10 +336,34 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                     self.report({'INFO'}, "You may have imported a DirectX normal map which will cause your imported normal map to appear inverted. You should use an OpenGL normal map instead or fix the textures name if it's already an OpenGL normal map.")
         return {'FINISHED'}
 
-class MATLAYER_OT_delete_layer_image(Operator):
-    '''Deletes the current layer image from Blender's data'''
-    bl_idname = "matlayer.delete_layer_image"
-    bl_label = "Delete Layer Image"
+class MATLAYER_OT_edit_image_externally(Operator):
+    bl_idname = "matlayer.edit_image_externally"
+    bl_label = "Edit Image Externally"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Exports the specified material channel image to the external image editing software defined in Blenders preferences"
+
+    # Specified material channel.
+    material_channel_name: bpy.props.StringProperty()
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+class MATLAYER_OT_reload_material_channel_image(Operator):
+    bl_idname = "matlayer.reload_material_channel_image"
+    bl_label = "Reload Layer Image"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Reloads the layer image for the specified material channel"
+
+    # Specified material channel.
+    material_channel_name: bpy.props.StringProperty()
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+class MATLAYER_OT_delete_material_channel_image(Operator):
+    '''Deletes the current image from Blender's data for the specified material channel'''
+    bl_idname = "matlayer.delete_material_channel_image"
+    bl_label = "Delete Material Channel Image"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Deletes the current layer image from Blender's data and saved texture files. If you want to unlink the image from the texture node without deleting the image, use the 'x' button inside the image texture block"
 
@@ -349,8 +372,8 @@ class MATLAYER_OT_delete_layer_image(Operator):
 
     def execute(self, context):
         selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
-        texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel_name, selected_material_layer_index, context)
-        if texture_node:
-            if texture_node.image:
-                bpy.data.images.remove(texture_node.image)
+        #texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel_name, selected_material_layer_index, context)
+        #if texture_node:
+        #    if texture_node.image:
+        #        bpy.data.images.remove(texture_node.image)
         return {'FINISHED'}

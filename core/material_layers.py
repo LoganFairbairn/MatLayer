@@ -3,7 +3,7 @@
 import bpy
 from bpy.types import PropertyGroup, Operator
 from bpy.props import BoolProperty, IntProperty, EnumProperty, StringProperty, PointerProperty
-from ..utilities import blender_addon_utils
+from . import blender_addon_utils
 import random
 
 # List of node types that can be used in the texture slot.
@@ -284,6 +284,25 @@ class MATLAYER_OT_move_material_layer(Operator):
     def execute(self, context):
 
         return {'FINISHED'}
+
+
+#----------------------------- MATERIAL CHANNEL IMAGES / TEXTURES -----------------------------#
+
+class MATLAYER_OT_add_material_channel_image(Operator):
+    bl_idname = "matlayer.add_material_channel_image"
+    bl_label = "Add Material Channel Image"
+    bl_description = "Creates a new image and assigns it to the specified material channel"
+
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+#----------------------------- HELPER FUNCTIONS -----------------------------#
 
 def format_layer_group_node_name(active_material_name, layer_index):
     '''Properly formats the layer group node names for this add-on.'''

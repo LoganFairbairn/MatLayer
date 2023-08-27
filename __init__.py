@@ -25,8 +25,8 @@ from .core.texture_set_settings import MATLAYER_texture_set_settings, GlobalMate
 from .core.material_layers import MATLAYER_layer_stack, MaterialChannelNodeType, MATLAYER_layers, MATLAYER_OT_add_material_layer, MATLAYER_OT_add_paint_material_layer, MATLAYER_OT_add_decal_material_layer, MATLAYER_OT_delete_layer, MATLAYER_OT_duplicate_layer, MATLAYER_OT_move_material_layer
 from .core.baking import MATLAYER_baking_settings, MATLAYER_OT_bake, MATLAYER_OT_open_bake_folder, MATLAYER_OT_delete_ao_map, MATLAYER_OT_delete_curvature_map, MATLAYER_OT_delete_thickness_map, MATLAYER_OT_delete_normal_map, update_meshmap_names
 from .core.exporting import MATLAYER_exporting_settings, MATLAYER_OT_export, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, ExportTemplateMenu, set_export_template
-from .utilities.image_file_handling import MATLAYER_OT_add_layer_image, MATLAYER_OT_delete_layer_image, MATLAYER_OT_import_texture, MATLAYER_OT_import_texture_set
-from .utilities.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLAYER_OT_append_workspace, MATLAYER_OT_append_basic_brushes
+from .core.image_utilities import MATLAYER_OT_add_material_channel_image, MATLAYER_OT_import_texture, MATLAYER_OT_import_texture_set, MATLAYER_OT_edit_image_externally, MATLAYER_OT_reload_material_channel_image, MATLAYER_OT_delete_material_channel_image
+from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLAYER_OT_append_workspace, MATLAYER_OT_append_basic_brushes
 from .ui.ui_layer_section import MATLAYER_OT_add_material_layer_menu
 from .ui.ui_main import *
 from .ui.ui_layer_stack import *
@@ -83,10 +83,14 @@ classes = (
 
     # Layer Operations
     MATLAYER_UL_layer_list,
-    MATLAYER_OT_import_texture,
+
+    # Image Utilities
+    MATLAYER_OT_add_material_channel_image, 
+    MATLAYER_OT_import_texture, 
     MATLAYER_OT_import_texture_set,
-    MATLAYER_OT_add_layer_image,
-    MATLAYER_OT_delete_layer_image,
+    MATLAYER_OT_edit_image_externally,
+    MATLAYER_OT_reload_material_channel_image, 
+    MATLAYER_OT_delete_material_channel_image,
 
     # Texture Set Settings
     GlobalMaterialChannelToggles,
