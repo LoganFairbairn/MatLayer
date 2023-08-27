@@ -166,7 +166,8 @@ class MATLAYER_layers(PropertyGroup):
 class MATLAYER_OT_add_material_layer(Operator):
     bl_idname = "matlayer.add_material_layer"
     bl_label = "Add Material Layer"
-    bl_description = ""
+    bl_description = "Adds a material layer to the active material (if the material is created with this add-on)"
+    bl_options = {'REGISTER', 'UNDO'}
 
     # Disable when there is no active object.
     @ classmethod
@@ -216,6 +217,7 @@ class MATLAYER_OT_add_paint_material_layer(Operator):
     bl_idname = "matlayer.add_paint_material_layer"
     bl_label = "Add Paint Material Layer"
     bl_description = "Creates a material layer and an image texture that's placed in the materials color channel"
+    bl_options = {'REGISTER', 'UNDO'}
 
     # Disable when there is no active object.
     @ classmethod
@@ -229,6 +231,7 @@ class MATLAYER_OT_add_decal_material_layer(Operator):
     bl_idname = "matlayer.add_decal_material_layer"
     bl_label = "Add Decal Material Layer"
     bl_description = ""
+    bl_options = {'REGISTER', 'UNDO'}
 
     # Disable when there is no active object.
     @ classmethod
@@ -242,6 +245,7 @@ class MATLAYER_OT_delete_layer(Operator):
     bl_idname = "matlayer.delete_layer"
     bl_label = "Delete Layer"
     bl_description = ""
+    bl_options = {'REGISTER', 'UNDO'}
 
     # Disable when there is no active object.
     @ classmethod
@@ -258,7 +262,8 @@ class MATLAYER_OT_delete_layer(Operator):
 class MATLAYER_OT_duplicate_layer(Operator):
     bl_idname = "matlayer.duplicate_layer"
     bl_label = "Duplicate Layer"
-    bl_description = ""
+    bl_description = "Duplicates the selected layer"
+    bl_options = {'REGISTER', 'UNDO'}
 
     # Disable when there is no active object.
     @ classmethod
@@ -272,7 +277,8 @@ class MATLAYER_OT_duplicate_layer(Operator):
 class MATLAYER_OT_move_material_layer(Operator):
     bl_idname = "matlayer.move_material_layer"
     bl_label = "Move Layer"
-    bl_description = "Moves the material layer up or down on the layer stack"
+    bl_description = "Moves the material layer up / down on the layer stack"
+    bl_options = {'REGISTER', 'UNDO'}
 
     direction: StringProperty(default='UP')
 
@@ -289,6 +295,7 @@ class MATLAYER_OT_toggle_material_channel_preview(Operator):
     bl_idname = "matlayer.toggle_material_channel_preview"
     bl_label = "Toggle Material Channel Preview"
     bl_description = "Toggle on / off a preview for the selected material channel"
+    bl_options = {'REGISTER', 'UNDO'}
 
     direction: StringProperty(default='UP')
 
@@ -298,7 +305,6 @@ class MATLAYER_OT_toggle_material_channel_preview(Operator):
         return context.active_object
 
     def execute(self, context):
-
         return {'FINISHED'}
 
 #----------------------------- HELPER FUNCTIONS -----------------------------#
@@ -367,7 +373,7 @@ def add_material_layer_slot():
         layer_stack.layer_index = move_to_index
         selected_layer_index = max(0, min(selected_layer_index + 1, len(layers) - 1))
 
-    return bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    return selected_layer_index
 
 def read_total_layers():
     '''Counts the total layers in the active material by reading the active material's node tree.'''
@@ -383,8 +389,8 @@ def organize_layer_group_nodes():
     layer_count = read_total_layers()
 
     position_x = -500
-    for i in range(0, layer_count):
-        layer_group_node = active_material.node_tree.nodes.get(str(i))
+    for i in range(layer_count, 0, -1):
+        layer_group_node = active_material.node_tree.nodes.get(str(i - 1))
         if layer_group_node:
             layer_group_node.width = 300
             layer_group_node.location = (position_x, 0)
@@ -392,28 +398,47 @@ def organize_layer_group_nodes():
 
 def connect_layer_group_nodes():
     '''Connects all layer group nodes to other existing group nodes, and the principled BSDF shader.'''
-
-    # Note: This may be able to be optimized by only diconnecting nodes that must be disconnected.
-    # TODO: Disconnect all layer group nodes.
-
-    # TODO: Re-connect all layer group nodes.
-
-    layer_count = read_total_layers()
+    # Note: This function may be able to be optimized by only diconnecting nodes that must be disconnected, potentially reducing re-compile time for shaders.
 
     active_material = bpy.context.active_object.active_material
-    
-    principled_bsdf = active_material.node_tree.nodes.get('MATLAYER_BSDF')
-    normal_and_height_mix = active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
-    layer_node = get_material_layer_node('LAYER', 0)
+    node_tree = active_material.node_tree
+    layer_count = read_total_layers()
 
-    '''
-    active_material.node_tree.links.new(layer_node.outputs.get('Color'), principled_bsdf.inputs.get('Base Color'))
-    active_material.node_tree.links.new(layer_node.outputs.get('Subsurface'), principled_bsdf.inputs.get('Subsurface'))
-    active_material.node_tree.links.new(layer_node.outputs.get('Metallic'), principled_bsdf.inputs.get('Metallic'))
-    active_material.node_tree.links.new(layer_node.outputs.get('Specular'), principled_bsdf.inputs.get('Specular'))
-    active_material.node_tree.links.new(layer_node.outputs.get('Roughness'), principled_bsdf.inputs.get('Roughness'))
-    active_material.node_tree.links.new(layer_node.outputs.get('Emission'), principled_bsdf.inputs.get('Emission'))
-    active_material.node_tree.links.new(layer_node.outputs.get('Alpha'), principled_bsdf.inputs.get('Alpha'))
-    active_material.node_tree.links.new(layer_node.outputs.get('Normal'), normal_and_height_mix.inputs.get('Normal'))
-    active_material.node_tree.links.new(layer_node.outputs.get('Height'), normal_and_height_mix.inputs.get('Height'))
-    '''
+
+    # TODO: Disconnect all layer group nodes.
+    for i in range(0, layer_count):
+        layer_node = get_material_layer_node('LAYER', i)
+        if layer_node:
+            for input in layer_node.inputs:
+                for link in input.links:
+                    node_tree.links.remove(link)
+
+    # Re-connect all layer group nodes.
+    for i in range(0, layer_count):
+        layer_node = get_material_layer_node('LAYER', i)
+        next_layer_node = get_material_layer_node('LAYER', i + 1)
+        if next_layer_node:
+            for material_channel_name in MATERIAL_CHANNEL_LIST:
+                output_socket_name = material_channel_name.capitalize()
+                input_socket_name = "{0}Mix".format(material_channel_name.capitalize())
+                node_tree.links.new(layer_node.outputs.get(output_socket_name), next_layer_node.inputs.get(input_socket_name))
+
+    # TODO: Only connect active material channels.
+    # Connect the last layer node to the principled BSDF.
+    normal_and_height_mix = active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
+    principled_bsdf = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+    last_layer_node = get_material_layer_node('LAYER', layer_count - 1)
+    for material_channel_name in MATERIAL_CHANNEL_LIST:
+        match material_channel_name:
+            case 'COLOR':
+                node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), principled_bsdf.inputs.get('Base Color'))
+
+            case 'NORMAL':
+                node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), normal_and_height_mix.inputs.get(material_channel_name.capitalize()))
+        
+            case 'HEIGHT':
+                node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), normal_and_height_mix.inputs.get(material_channel_name.capitalize()))
+
+            case _:
+                node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), principled_bsdf.inputs.get(material_channel_name.capitalize()))
+        
