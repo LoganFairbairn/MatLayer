@@ -285,6 +285,21 @@ class MATLAYER_OT_move_material_layer(Operator):
 
         return {'FINISHED'}
 
+class MATLAYER_OT_toggle_material_channel_preview(Operator):
+    bl_idname = "matlayer.toggle_material_channel_preview"
+    bl_label = "Toggle Material Channel Preview"
+    bl_description = "Toggle on / off a preview for the selected material channel"
+
+    direction: StringProperty(default='UP')
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+
+        return {'FINISHED'}
 
 #----------------------------- MATERIAL CHANNEL IMAGES / TEXTURES -----------------------------#
 

@@ -20,6 +20,7 @@ def draw_layers_section_ui(self, context):
 
     column_two = split.column()
     draw_material_selector(column_two)
+    draw_selected_material_channel(column_two)
     draw_layer_operations(column_two)
     draw_layer_stack(column_two)
 
@@ -67,6 +68,18 @@ class MATLAYER_OT_add_material_layer_menu(Operator):
         col.operator("matlayer.add_material_layer", text="Add Material Layer", icon='MATERIAL_DATA')
         col.operator("matlayer.add_paint_material_layer", text="Add Paint Layer", icon='BRUSHES_ALL')
         col.operator("matlayer.add_decal_material_layer", text="Add Decal Layer", icon='OUTLINER_OB_FONT')
+
+def draw_selected_material_channel(layout):
+    '''Draws the selected material channel.'''
+    subrow = layout.row(align=True)
+    subrow.scale_x = 2
+    subrow.scale_y = 1.4
+    subrow.prop(bpy.context.scene.matlayer_layer_stack, "selected_material_channel", text="")
+    if bpy.context.scene.matlayer_layer_stack.material_channel_preview == False:
+        subrow.operator("matlayer.toggle_material_channel_preview", text="", icon='MATERIAL')
+
+    elif bpy.context.scene.matlayer_layer_stack.material_channel_preview == True:
+        subrow.operator("matlayer.toggle_material_channel_preview", text="", icon='MATERIAL', depress=True)
 
 def draw_layer_operations(layout):
     '''Draws layer operation buttons.'''
