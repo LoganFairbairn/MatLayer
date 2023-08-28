@@ -56,29 +56,6 @@ def draw_material_selector(layout):
         row = layout.row(align=True)
         row.template_ID(active_object, "active_material", new="matlayer.add_layer", live_icon=True)
 
-class MATLAYER_OT_add_material_layer_menu(Operator):
-    bl_label = ""
-    bl_idname = "matlayer.add_material_layer_menu"
-    bl_description = "Opens a menu of material layer types that can be added to the active material"
-
-    # Runs when the add layer button in the popup is clicked.
-    def execute(self, context):
-        return {'FINISHED'}
-
-    # Opens the popup when the add layer button is clicked.
-    def invoke(self, context, event):
-        return context.window_manager.invoke_popup(self, width=150)
-
-    # Draws the properties in the popup.
-    def draw(self, context):
-        layout = self.layout
-        split = layout.split()
-        col = split.column(align=True)
-        col.scale_y = 1.4
-        col.operator("matlayer.add_material_layer", text="Add Material Layer", icon='MATERIAL_DATA')
-        col.operator("matlayer.add_paint_material_layer", text="Add Paint Layer", icon='BRUSHES_ALL')
-        col.operator("matlayer.add_decal_material_layer", text="Add Decal Layer", icon='OUTLINER_OB_FONT')
-
 def draw_selected_material_channel(layout):
     '''Draws the selected material channel.'''
     subrow = layout.row(align=True)
@@ -190,4 +167,27 @@ def draw_material_channel_properties(layout):
                     reload_image_operator.material_channel_name = material_channel_name
                     delete_layer_image_operator = row.operator("matlayer.delete_material_channel_image", icon="TRASH", text="")
                     delete_layer_image_operator.material_channel_name = material_channel_name
+
+class MATLAYER_OT_add_material_layer_menu(Operator):
+    bl_label = ""
+    bl_idname = "matlayer.add_material_layer_menu"
+    bl_description = "Opens a menu of material layer types that can be added to the active material"
+
+    # Runs when the add layer button in the popup is clicked.
+    def execute(self, context):
+        return {'FINISHED'}
+
+    # Opens the popup when the add layer button is clicked.
+    def invoke(self, context, event):
+        return context.window_manager.invoke_popup(self, width=150)
+
+    # Draws the properties in the popup.
+    def draw(self, context):
+        layout = self.layout
+        split = layout.split()
+        col = split.column(align=True)
+        col.scale_y = 1.4
+        col.operator("matlayer.add_material_layer", text="Add Material Layer", icon='MATERIAL_DATA')
+        col.operator("matlayer.add_paint_material_layer", text="Add Paint Layer", icon='BRUSHES_ALL')
+        col.operator("matlayer.add_decal_material_layer", text="Add Decal Layer", icon='OUTLINER_OB_FONT')
 
