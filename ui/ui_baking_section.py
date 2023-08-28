@@ -62,42 +62,7 @@ def draw_baking_section_ui(self, context):
     baking_settings = context.scene.matlayer_baking_settings
     scale_y = 1.4
 
-    #----------------------------- BAKE SETTINGS -----------------------------#
-
-    row = layout.row()
-    row.scale_y = 1.4
-
-    col = row.split()
-    col.prop(baking_settings, "output_width", text="Bake Size")
-
-    col = row.split()
-    if baking_settings.match_bake_resolution:
-        col.prop(baking_settings, "match_bake_resolution", text="", icon="LOCKED")
-    else:
-        col.prop(baking_settings, "match_bake_resolution", text="", icon="UNLOCKED")
-
-    col = row.split()
-    if baking_settings.match_bake_resolution:
-        col.enabled = False
-    col.prop(baking_settings, "output_height", text="")
-
-    row = layout.row()
-    row.scale_y = scale_y
-    row.prop(baking_settings, "high_poly_object", slider=True)
-
-    if "cycles" in bpy.context.preferences.addons:
-        row = layout.row()
-        row.scale_y = scale_y
-        row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
-        row.prop(baking_settings, "output_quality", text="")
-
     #----------------------------- MESH MAPS -----------------------------#
-
-    row = layout.row()
-    row.separator()
-    row = layout.row()
-    row.separator()
-    layout.label(text="MESH MAPS: ")
 
     # Draw bake button.
     row = layout.row(align=True)
@@ -105,6 +70,7 @@ def draw_baking_section_ui(self, context):
     row.operator("matlayer.bake")
     row.operator("matlayer.open_bake_folder", text="", icon='FILE_FOLDER')
 
+    layout.label(text="MESH MAPS")
     split = layout.split()
     first_column = split.column()
     second_column = split.column()
@@ -164,12 +130,45 @@ def draw_baking_section_ui(self, context):
     row.operator("matlayer.delete_normal_map", text="", icon='TRASH')
     row.scale_y = scale_y
 
+    #----------------------------- BAKE SETTINGS -----------------------------#
+
+    row = layout.row()
+    row.separator()
+    row.scale_y = 2
+    layout.label(text="BASIC SETTINGS")
+
+    row = layout.row()
+    row.scale_y = 1.4
+
+    col = row.split()
+    col.prop(baking_settings, "output_width", text="Bake Size")
+
+    col = row.split()
+    if baking_settings.match_bake_resolution:
+        col.prop(baking_settings, "match_bake_resolution", text="", icon="LOCKED")
+    else:
+        col.prop(baking_settings, "match_bake_resolution", text="", icon="UNLOCKED")
+
+    col = row.split()
+    if baking_settings.match_bake_resolution:
+        col.enabled = False
+    col.prop(baking_settings, "output_height", text="")
+
+    row = layout.row()
+    row.scale_y = scale_y
+    row.prop(baking_settings, "high_poly_object", slider=True)
+
+    if "cycles" in bpy.context.preferences.addons:
+        row = layout.row()
+        row.scale_y = scale_y
+        row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
+        row.prop(baking_settings, "output_quality", text="")
+
     #----------------------------- ADVANCED SETTINGS -----------------------------#
 
     row = layout.row()
     row.separator()
-    row = layout.row()
-    row.separator()
+    row.scale_y = 2
     layout.label(text="ADVANCED SETTINGS")
 
     row = layout.row()
