@@ -332,36 +332,6 @@ class MATLAYER_layer_stack(PropertyGroup):
     material_channel_preview: BoolProperty(name="Material Channel Preview", description="If true, only the rgb output values for the selected material channel will be used on the object.", default=False)
     selected_material_channel: EnumProperty(items=MATERIAL_CHANNEL, name="Material Channel", description="The currently selected material channel", default='COLOR')
 
-    # Note: These tabs exist to help keep the user interface elements on screen limited, thus simplifying the editing process, and helps avoid the need to scroll down on the user interface to see settings.
-    # Tabs for material / mask layer properties.
-    layer_property_tab: bpy.props.EnumProperty(
-        items=[('MATERIAL', "MATERIAL", "Material settings for the selected layer."),
-               ('MASK', "MASK", "Mask settings for the selected layer.")],
-        name="Layer Properties Tab",
-        description="Tabs for layer properties.",
-        default='MATERIAL',
-        options={'HIDDEN'},
-    )
-
-    material_property_tab: bpy.props.EnumProperty(
-        items=[('MATERIAL', "MATERIAL", "Material properties for the selected material layer."),
-               ('PROJECTION', "PROJECTION", "Projection settings for the selected material layer."),
-               ('FILTERS', "FILTERS", "Layer filters and their properties for the selected material layer.")],
-        name="Material Property Tabs",
-        description="Tabs for material layer properties",
-        default='MATERIAL',
-        options={'HIDDEN'},       
-    )
-
-    mask_property_tab: bpy.props.EnumProperty(
-        items=[('FILTERS', "FILTERS", "Masks, their properties and filters for masks."),
-               ('PROJECTION', "PROJECTION", "Projection settings for the selected mask.")],
-        name="Mask Property Tabs",
-        description="Tabs for layer mask properties.",
-        default='FILTERS',
-        options={'HIDDEN'},
-    )
-
 class MaterialChannelNodeType(PropertyGroup):
     '''An enum node type for the material node used to represent the material channel texture in every material channel.'''
     color_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Color Channel Node Type", description="The node type for the color channel", default='GROUP', update=update_color_channel_node_type)

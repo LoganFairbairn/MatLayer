@@ -28,6 +28,15 @@ def draw_layers_section_ui(self, context):
             draw_layer_material_channel_toggles(column_one)
             draw_material_channel_properties(column_one)
 
+        case 'PROJECTION':
+            draw_layer_projection(column_one)
+
+        case 'FILTERS':
+            draw_material_filters(column_one)
+
+        case 'MASKS':
+            draw_layer_masks(column_one)
+
     column_two = split.column()
     draw_material_selector(column_two)
     draw_selected_material_channel(column_two)
@@ -74,6 +83,7 @@ def draw_layer_operations(layout):
     row.scale_y = 2.0
     row.scale_x = 10
     row.operator("matlayer.add_material_layer_menu", icon="ADD", text="")
+    row.operator("matlayer.add_material_effects_menu", icon="SHADERFX", text="")
     row.operator("matlayer.move_material_layer_up", icon="TRIA_UP", text="")
     row.operator("matlayer.move_material_layer_down", icon="TRIA_DOWN", text="")
     row.operator("matlayer.duplicate_layer", icon="DUPLICATE", text="")
@@ -82,9 +92,9 @@ def draw_layer_operations(layout):
 def draw_layer_stack(layout):
     '''Draws the material layer stack along with it's operators and material channel.'''
     if len(bpy.context.scene.matlayer_layers) > 0:
-        subrow = layout.row(align=True)
-        subrow.template_list("MATLAYER_UL_layer_list", "Layers", bpy.context.scene, "matlayer_layers", bpy.context.scene.matlayer_layer_stack, "selected_layer_index", sort_reverse=True)
-        subrow.scale_y = 2
+        row = layout.row(align=True)
+        row.template_list("MATLAYER_UL_layer_list", "Layers", bpy.context.scene, "matlayer_layers", bpy.context.scene.matlayer_layer_stack, "selected_layer_index", sort_reverse=True)
+        row.scale_y = 2
 
 def draw_material_property_tabs(layout):
     '''Draws tabs to change between editing the material layer and the masks applied to the material layer.'''
@@ -98,6 +108,9 @@ def draw_material_property_tabs(layout):
 def draw_layer_material_channel_toggles(layout):
     '''Draws on / off toggles for individual material channels.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    row = layout.row()
+    row.separator()
+
     row = layout.row()
     row.scale_y = 1.4
     drawn_toggles = 0
@@ -168,6 +181,43 @@ def draw_material_channel_properties(layout):
                     delete_layer_image_operator = row.operator("matlayer.delete_material_channel_image", icon="TRASH", text="")
                     delete_layer_image_operator.material_channel_name = material_channel_name
 
+def draw_layer_projection(layout):
+    row = layout.row()
+    row.scale_y = DEFAULT_UI_SCALE_Y
+    row.label(text="PROJECTION")
+
+def draw_material_filters(layout):
+    row = layout.row()
+    row.scale_y = DEFAULT_UI_SCALE_Y
+    row.label(text="MATERIAL FILTERS")
+    row = layout.row(align=True)
+    row.scale_x = 10
+    row.scale_y = DEFAULT_UI_SCALE_Y + 0.6
+    row.operator("matlayer.add_material_filter_menu", icon="ADD", text="")
+    row.operator("matlayer.move_material_filter_up", icon="TRIA_UP", text="")
+    row.operator("matlayer.move_material_filter_down", icon="TRIA_DOWN", text="")
+    row.operator("matlayer.duplicate_material_filter", icon="DUPLICATE", text="")
+    row.operator("matlayer.delete_material_filter", icon="TRASH", text="")
+    row = layout.row(align=True)
+    row.template_list("MATLAYER_UL_material_filter_list", "Material Filters", bpy.context.scene, "matlayer_material_filters", bpy.context.scene.matlayer_material_filter_stack, "selected_index", sort_reverse=True)
+    row.scale_y = 2
+
+def draw_layer_masks(layout):
+    row = layout.row()
+    row.scale_y = DEFAULT_UI_SCALE_Y
+    row.label(text="MASKS")
+    row = layout.row(align=True)
+    row.scale_x = 10
+    row.scale_y = DEFAULT_UI_SCALE_Y + 0.6
+    row.operator("matlayer.add_layer_mask_menu", icon="ADD", text="")
+    row.operator("matlayer.move_layer_mask_up", icon="TRIA_UP", text="")
+    row.operator("matlayer.move_layer_mask_down", icon="TRIA_DOWN", text="")
+    row.operator("matlayer.duplicate_layer_mask", icon="DUPLICATE", text="")
+    row.operator("matlayer.delete_layer_mask", icon="TRASH", text="")
+    row = layout.row(align=True)
+    row.template_list("MATLAYER_UL_mask_list", "Masks", bpy.context.scene, "matlayer_masks", bpy.context.scene.matlayer_mask_stack, "selected_index", sort_reverse=True)
+    row.scale_y = 2
+
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
     bl_idname = "matlayer.add_material_layer_menu"
@@ -191,3 +241,69 @@ class MATLAYER_OT_add_material_layer_menu(Operator):
         col.operator("matlayer.add_paint_material_layer", text="Add Paint Layer", icon='BRUSHES_ALL')
         col.operator("matlayer.add_decal_material_layer", text="Add Decal Layer", icon='OUTLINER_OB_FONT')
 
+class MATLAYER_OT_add_layer_mask_menu(Operator):
+    bl_label = "Add Mask"
+    bl_idname = "matlayer.add_layer_mask_menu"
+
+    # Runs when the add layer button in the popup is clicked.
+    def execute(self, context):
+        return {'FINISHED'}
+
+    # Opens the popup when the add layer button is clicked.
+    def invoke(self, context, event):
+        return context.window_manager.invoke_popup(self, width=150)
+
+    # Draws the properties in the popup.
+    def draw(self, context):
+        layout = self.layout
+        split = layout.split()
+        col = split.column(align=True)
+        col.scale_y = 1.4
+        col.operator("matlayer.add_empty_layer_mask", text="Empty")
+        col.operator("matlayer.add_black_layer_mask", text="Black")
+        col.operator("matlayer.add_white_layer_mask", text="White")
+
+class MATLAYER_OT_add_material_filter_menu(Operator):
+    bl_label = ""
+    bl_idname = "matlayer.add_material_filter_menu"
+
+    # Runs when the add layer button in the popup is clicked.
+    def execute(self, context):
+        return {'FINISHED'}
+
+    # Opens the popup when the add layer button is clicked.
+    def invoke(self, context, event):
+        return context.window_manager.invoke_popup(self, width=150)
+    
+    # Draws the properties in the popup.
+    def draw(self, context):
+        layout = self.layout
+        split = layout.split()
+        col = split.column(align=True)
+        col.scale_y = 1.4
+        col.operator("matlayer.add_material_filter_hsv", text="Add HSV")
+        col.operator("matlayer.add_material_filter_color_ramp", text="Add Color Ramp")
+        col.operator("matlayer.add_material_filter_invert", text="Add Invert")
+
+class MATLAYER_OT_add_material_effects_menu(Operator):
+    bl_label = ""
+    bl_idname = "matlayer.add_material_effects_menu"
+
+    # Runs when the add layer button in the popup is clicked.
+    def execute(self, context):
+        return {'FINISHED'}
+
+    # Opens the popup when the add layer button is clicked.
+    def invoke(self, context, event):
+        return context.window_manager.invoke_popup(self, width=150)
+    
+    # Draws the properties in the popup.
+    def draw(self, context):
+        layout = self.layout
+        split = layout.split()
+        col = split.column(align=True)
+        col.scale_y = 1.4
+        col.operator("matlayer.add_edge_wear")
+        col.operator("matlayer.add_grunge")
+        col.operator("matlayer.add_dust")
+        col.operator("matlayer.add_drips")

@@ -20,17 +20,39 @@ import bpy.utils.previews       # Imported for loading layer texture previews as
 from bpy.props import PointerProperty, CollectionProperty, EnumProperty
 from bpy.app.handlers import persistent
 
+# Preferences
 from .preferences import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MATLAYER_texture_export_settings, AddonPreferences
+
+# Texture Set Settings
 from .core.texture_set_settings import MATLAYER_texture_set_settings, GlobalMaterialChannelToggles
+
+# Layer Masks
+from .core.layer_masks import MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_mask_list, MATLAYER_OT_move_layer_mask_up, MATLAYER_OT_move_layer_mask_down, MATLAYER_OT_duplicate_layer_mask, MATLAYER_OT_delete_layer_mask, MATLAYER_OT_add_empty_layer_mask, MATLAYER_OT_add_black_layer_mask, MATLAYER_OT_add_white_layer_mask
+
+# Material Filters
+from .core.material_filters import MATLAYER_material_filter_stack, MATLAYER_material_filters, MATLAYER_UL_material_filter_list, MATLAYER_OT_add_material_filter_hsv, MATLAYER_OT_add_material_filter_color_ramp, MATLAYER_OT_add_material_filter_invert, MATLAYER_OT_move_material_filter_up, MATLAYER_OT_move_material_filter_down, MATLAYER_OT_duplicate_material_filter, MATLAYER_OT_delete_material_filter
+
+# Material Layers
 from .core.material_layers import MATLAYER_layer_stack, MaterialChannelNodeType, MATLAYER_layers, MATLAYER_OT_add_material_layer, MATLAYER_OT_add_paint_material_layer, MATLAYER_OT_add_decal_material_layer, MATLAYER_OT_delete_layer, MATLAYER_OT_duplicate_layer, MATLAYER_OT_move_material_layer_up, MATLAYER_OT_move_material_layer_down, MATLAYER_OT_toggle_material_channel_preview
+
+# Material Effects
+from .core.material_effects import MATLAYER_OT_add_edge_wear, MATLAYER_OT_add_grunge, MATLAYER_OT_add_dust, MATLAYER_OT_add_drips
+
+# Baking
 from .core.baking import MATLAYER_baking_settings, MATLAYER_OT_bake, MATLAYER_OT_open_bake_folder, MATLAYER_OT_delete_ao_map, MATLAYER_OT_delete_curvature_map, MATLAYER_OT_delete_thickness_map, MATLAYER_OT_delete_normal_map, update_meshmap_names
+
+# Exporting
 from .core.exporting import MATLAYER_exporting_settings, MATLAYER_OT_export, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, ExportTemplateMenu, set_export_template
+
+# Utilities
 from .core.image_utilities import MATLAYER_OT_add_material_channel_image, MATLAYER_OT_import_texture, MATLAYER_OT_import_texture_set, MATLAYER_OT_edit_image_externally, MATLAYER_OT_reload_material_channel_image, MATLAYER_OT_delete_material_channel_image
 from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLAYER_OT_append_workspace, MATLAYER_OT_append_basic_brushes
+
+# User Interface
 from .ui.ui_section_tabs import UtilitySubMenu
-from .ui.ui_layer_section import MATLAYER_OT_add_material_layer_menu, MATERIAL_LAYER_PROPERTY_TABS
+from .ui.ui_layer_section import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, MATLAYER_OT_add_material_filter_menu, MATLAYER_OT_add_material_effects_menu, MATERIAL_LAYER_PROPERTY_TABS
 from .ui.ui_main import *
-from .ui.ui_layer_stack import *
+from .ui.ui_layer_stack import MATLAYER_UL_layer_list
 
 bl_info = {
     "name": "MatLayer",
@@ -71,6 +93,30 @@ classes = (
     MATLAYER_OT_remove_export_texture,
     ExportTemplateMenu,
 
+    # Layer Masks
+    MATLAYER_mask_stack, 
+    MATLAYER_masks,
+    MATLAYER_UL_mask_list,
+    MATLAYER_OT_move_layer_mask_up, 
+    MATLAYER_OT_move_layer_mask_down, 
+    MATLAYER_OT_duplicate_layer_mask, 
+    MATLAYER_OT_delete_layer_mask,
+    MATLAYER_OT_add_empty_layer_mask, 
+    MATLAYER_OT_add_black_layer_mask,
+    MATLAYER_OT_add_white_layer_mask,
+    
+    # Material Filters
+    MATLAYER_material_filter_stack, 
+    MATLAYER_material_filters,
+    MATLAYER_UL_material_filter_list,
+    MATLAYER_OT_add_material_filter_hsv,
+    MATLAYER_OT_add_material_filter_color_ramp, 
+    MATLAYER_OT_add_material_filter_invert,
+    MATLAYER_OT_move_material_filter_up, 
+    MATLAYER_OT_move_material_filter_down, 
+    MATLAYER_OT_duplicate_material_filter, 
+    MATLAYER_OT_delete_material_filter,
+
     # Material Layers
     MATLAYER_layer_stack,
     MaterialChannelNodeType,
@@ -84,8 +130,11 @@ classes = (
     MATLAYER_OT_move_material_layer_down,
     MATLAYER_OT_toggle_material_channel_preview,
 
-    # Layer Operations
-    MATLAYER_UL_layer_list,
+    # Material Effects
+    MATLAYER_OT_add_edge_wear, 
+    MATLAYER_OT_add_grunge, 
+    MATLAYER_OT_add_dust,
+    MATLAYER_OT_add_drips,
 
     # Image Utilities
     MATLAYER_OT_add_material_channel_image, 
@@ -105,8 +154,12 @@ classes = (
     MATLAYER_OT_append_basic_brushes,
 
     # User Interface
+    MATLAYER_UL_layer_list,
     UtilitySubMenu,
     MATLAYER_OT_add_material_layer_menu,
+    MATLAYER_OT_add_layer_mask_menu,
+    MATLAYER_OT_add_material_filter_menu,
+    MATLAYER_OT_add_material_effects_menu,
     MATLAYER_panel_properties,
     MATLAYER_PT_Panel
 )
@@ -200,6 +253,14 @@ def register():
     # Material Layer Properties
     bpy.types.Scene.matlayer_layer_stack = PointerProperty(type=MATLAYER_layer_stack)
     bpy.types.Scene.matlayer_layers = CollectionProperty(type=MATLAYER_layers)
+
+    # Material Filter Properties
+    bpy.types.Scene.matlayer_material_filter_stack = PointerProperty(type=MATLAYER_material_filter_stack)
+    bpy.types.Scene.matlayer_material_filters = CollectionProperty(type=MATLAYER_material_filters)
+
+    # Layer Mask Properties
+    bpy.types.Scene.matlayer_mask_stack = PointerProperty(type=MATLAYER_mask_stack)
+    bpy.types.Scene.matlayer_masks = CollectionProperty(type=MATLAYER_masks)
 
     # Settings
     bpy.types.Scene.matlayer_texture_set_settings = PointerProperty(type=MATLAYER_texture_set_settings)
