@@ -10,7 +10,7 @@ TEXTURE_SET_RESOLUTIONS = [
     ("ONEK", "1024", ""),
     ("TWOK", "2048", ""),
     ("FOURK", "4096", ""),
-    ]
+]
 
 def update_match_image_resolution(self, context):
     if context.scene.matlayer_texture_set_settings.auto_update_properties == False:
@@ -43,8 +43,6 @@ def get_texture_width():
         case 'FOURK':
             return 4096
         case _:
-            # Error if this is hit, return 10 to make it apparent.
-            internal_utils.log("Error - texture width enum invalid.")
             return 10
 
 def get_texture_height():
@@ -59,21 +57,19 @@ def get_texture_height():
         case 'FOURK':
             return 4096
         case _:
-            # Error if this is hit, return 10 to make it apparent.
-            internal_utils.log("Error - texture height enum invalid.")
             return 10
 
 class GlobalMaterialChannelToggles(PropertyGroup):
     '''A boolean toggle for each material channel to toggle it off / on for all layers.'''
     color_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the color material channel for this layer")
     subsurface_channel_toggle: BoolProperty(default=False, description="Click to toggle on / off the subsurface material channel for this layer")
-    subsurface_color_channel_toggle: BoolProperty(default=False, description="Click to toggle on / off the subsurface color material channel for this layer.")
     metallic_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the metallic material channel for this layer")
-    specular_channel_toggle: BoolProperty(default=False, description="Click to toggle on / off the specular material channel for this layer.")
+    specular_channel_toggle: BoolProperty(default=False, description="Click to toggle on / off the specular material channel for this layer")
     roughness_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the roughness material channel for this layer")
     emission_channel_toggle: BoolProperty(default=False, description="Click to toggle on / off the emission material channel for this layer")
     normal_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the normal material channel for this layer")
     height_channel_toggle: BoolProperty(default=False, description="Click to toggle on / off the height material channel for this layer")
+    alpha_channel_toggle: BoolProperty(default=False, description="Click to toggle on / off the alpha material channel for this layer")
 
 class MATLAYER_texture_set_settings(PropertyGroup):
     image_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Width", description="Image width in pixels for the new image.", default='TWOK', update=update_image_width)

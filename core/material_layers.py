@@ -115,6 +115,15 @@ def update_alpha_channel_node_type(self, context):
 
 #----------------------------- HELPER FUNCTIONS -----------------------------#
 
+def update_layer_projection_mode(self, context):
+    '''Updates the projection mode for the selected layer'''
+    print("Placeholder...")
+
+def update_sync_layer_projection_scale(self, context):
+    print("Placeholder...")
+
+#----------------------------- HELPER FUNCTIONS -----------------------------#
+
 def format_layer_group_node_name(active_material_name, layer_index):
     '''Properly formats the layer group node names for this add-on.'''
     return "{0}_{1}".format(active_material_name, layer_index)
@@ -132,7 +141,7 @@ def get_layer_node_tree(layer_index):
 
     return bpy.data.node_groups.get(layer_group_name)
 
-def get_material_layer_node(layer_node_name, layer_index, material_channel_name='COLOR', get_changed_node=False):
+def get_material_layer_node(layer_node_name, layer_index=0, material_channel_name='COLOR', get_changed_node=False):
     '''Returns the desired material node if it exists. Supply the material channel name to get nodes specific to material channels.'''
     if bpy.context.active_object == None:
         return
@@ -149,6 +158,10 @@ def get_material_layer_node(layer_node_name, layer_index, material_channel_name=
                 return active_material.node_tree.nodes.get(str(layer_index) + "~")
             else:
                 return active_material.node_tree.nodes.get(str(layer_index))
+            
+        case 'GLOBAL':
+            global_channel_toggle_node_name = "GLOBAL_{0}_TOGGLE".format(material_channel_name)
+            return active_material.node_tree.nodes.get(global_channel_toggle_node_name)
         
         case 'PROJECTION':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
@@ -305,9 +318,10 @@ def reindex_layer_nodes(change_made, affected_layer_index):
             total_layers = read_total_layers()
             for i in range(total_layers, affected_layer_index, -1):
                 layer_node = get_material_layer_node('LAYER', i - 1)
-                layer_node.name = str(int(layer_node.name) + 1)
-                split_node_tree_name = layer_node.node_tree.name.split('_')
-                layer_node.node_tree.name = "{0}_{1}".format(split_node_tree_name[0], str(int(split_node_tree_name[1]) + 1))
+                if layer_node:
+                    layer_node.name = str(int(layer_node.name) + 1)
+                    split_node_tree_name = layer_node.node_tree.name.split('_')
+                    layer_node.node_tree.name = "{0}_{1}".format(split_node_tree_name[0], str(int(split_node_tree_name[1]) + 1))
 
             new_layer_node = get_material_layer_node('LAYER', affected_layer_index, get_changed_node=True)
             if new_layer_node:
@@ -332,6 +346,11 @@ class MATLAYER_layer_stack(PropertyGroup):
     material_channel_preview: BoolProperty(name="Material Channel Preview", description="If true, only the rgb output values for the selected material channel will be used on the object.", default=False)
     selected_material_channel: EnumProperty(items=MATERIAL_CHANNEL, name="Material Channel", description="The currently selected material channel", default='COLOR')
 
+class ProjectionSettings(PropertyGroup):
+    '''Projection settings for this add-on.'''
+    mode: EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT', update=update_layer_projection_mode)
+    sync_projection_scale: BoolProperty(name="Sync Projection Scale", description="When enabled Y and Z projection (if the projection mode has a z projection) will be synced with the X projection", default=True,update=update_sync_layer_projection_scale)
+
 class MaterialChannelNodeType(PropertyGroup):
     '''An enum node type for the material node used to represent the material channel texture in every material channel.'''
     color_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Color Channel Node Type", description="The node type for the color channel", default='GROUP', update=update_color_channel_node_type)
@@ -347,6 +366,7 @@ class MaterialChannelNodeType(PropertyGroup):
 class MATLAYER_layers(PropertyGroup):
     hidden: BoolProperty(name="Hidden", description="Show if the layer is hidden")
     material_channel_node_types: PointerProperty(type=MaterialChannelNodeType)
+    projection: PointerProperty(type=ProjectionSettings)
 
 class MATLAYER_OT_add_material_layer(Operator):
     bl_idname = "matlayer.add_material_layer"

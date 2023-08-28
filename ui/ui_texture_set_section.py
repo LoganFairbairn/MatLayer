@@ -1,5 +1,6 @@
 import bpy
 from .import ui_section_tabs
+from ..core.material_layers import MATERIAL_CHANNEL_LIST
 
 def draw_texture_set_section_ui(self, context):
     '''Draws the layer section UI.'''
@@ -32,8 +33,7 @@ def draw_texture_set_section_ui(self, context):
 
     # Draw global material channel toggles.
     layout.label(text="MATERIAL CHANNELS")
-    material_channel_list = get_material_channel_list()
-    for material_channel_name in material_channel_list:
+    for material_channel_name in MATERIAL_CHANNEL_LIST:
         row = layout.row()
         row.scale_y = SCALE_Y
         material_channel_name_text = material_channel_name.replace('_', ' ')
