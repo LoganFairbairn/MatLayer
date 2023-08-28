@@ -17,7 +17,7 @@
 
 import bpy
 import bpy.utils.previews       # Imported for loading layer texture previews as icons.
-from bpy.props import PointerProperty, CollectionProperty
+from bpy.props import PointerProperty, CollectionProperty, EnumProperty
 from bpy.app.handlers import persistent
 
 from .preferences import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MATLAYER_texture_export_settings, AddonPreferences
@@ -27,7 +27,7 @@ from .core.baking import MATLAYER_baking_settings, MATLAYER_OT_bake, MATLAYER_OT
 from .core.exporting import MATLAYER_exporting_settings, MATLAYER_OT_export, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, ExportTemplateMenu, set_export_template
 from .core.image_utilities import MATLAYER_OT_add_material_channel_image, MATLAYER_OT_import_texture, MATLAYER_OT_import_texture_set, MATLAYER_OT_edit_image_externally, MATLAYER_OT_reload_material_channel_image, MATLAYER_OT_delete_material_channel_image
 from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLAYER_OT_append_workspace, MATLAYER_OT_append_basic_brushes
-from .ui.ui_layer_section import MATLAYER_OT_add_material_layer_menu
+from .ui.ui_layer_section import MATLAYER_OT_add_material_layer_menu, MATERIAL_LAYER_PROPERTY_TABS
 from .ui.ui_main import *
 from .ui.ui_layer_stack import *
 
@@ -193,6 +193,7 @@ def register():
 
     # User Interface Properties
     bpy.types.Scene.matlayer_panel_properties = PointerProperty(type=MATLAYER_panel_properties)
+    bpy.types.Scene.matlayer_material_property_tabs = EnumProperty(items=MATERIAL_LAYER_PROPERTY_TABS)
 
     # Material Layer Properties
     bpy.types.Scene.matlayer_layer_stack = PointerProperty(type=MATLAYER_layer_stack)

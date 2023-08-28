@@ -7,6 +7,13 @@ from ..ui import ui_section_tabs
 
 DEFAULT_UI_SCALE_Y = 1
 
+MATERIAL_LAYER_PROPERTY_TABS = [
+    ("MATERIAL", "MATERIAL", "Properties for the selected material layer"),
+    ("PROJECTION", "PROJECTION", "Projection properties for the selected material layer"),
+    ("FILTERS", "FILTERS", "Filter properties for the selected material layer"),
+    ("MASKS", "MASKS", "Properties for masks applied to the selected material layer")
+]
+
 def draw_layers_section_ui(self, context):
     '''Draws the layer section user interface to the add-on side panel.'''
     ui_section_tabs.draw_section_tabs(self, context)
@@ -15,8 +22,11 @@ def draw_layers_section_ui(self, context):
     split = layout.split()
 
     column_one = split.column()
-    draw_layer_material_channel_toggles(column_one)
-    draw_material_channel_properties(column_one)
+    draw_material_property_tabs(column_one)
+    match bpy.context.scene.matlayer_material_property_tabs:
+        case 'MATERIAL':
+            draw_layer_material_channel_toggles(column_one)
+            draw_material_channel_properties(column_one)
 
     column_two = split.column()
     draw_material_selector(column_two)
@@ -99,6 +109,15 @@ def draw_layer_stack(layout):
         subrow.template_list("MATLAYER_UL_layer_list", "Layers", bpy.context.scene, "matlayer_layers", bpy.context.scene.matlayer_layer_stack, "selected_layer_index", sort_reverse=True)
         subrow.scale_y = 2
 
+def draw_material_property_tabs(layout):
+    '''Draws tabs to change between editing the material layer and the masks applied to the material layer.'''
+    row = layout.row(align=True)
+    row.scale_y = 1.5
+    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MATERIAL')
+    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'PROJECTION')
+    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'FILTERS')
+    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MASKS')
+
 def draw_layer_material_channel_toggles(layout):
     '''Draws on / off toggles for individual material channels.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
@@ -171,3 +190,4 @@ def draw_material_channel_properties(layout):
                     reload_image_operator.material_channel_name = material_channel_name
                     delete_layer_image_operator = row.operator("matlayer.delete_material_channel_image", icon="TRASH", text="")
                     delete_layer_image_operator.material_channel_name = material_channel_name
+
