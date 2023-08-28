@@ -186,6 +186,77 @@ def draw_layer_projection(layout):
     row.scale_y = DEFAULT_UI_SCALE_Y
     row.label(text="PROJECTION")
 
+    layers = bpy.context.scene.matlayer_layers
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+
+    split = layout.split(factor=0.25)
+    first_column = split.column()
+    second_column = split.column()
+
+    row = first_column.row()
+    row.scale_y = 1.4
+    row.label(text="Mode")
+    row = second_column.row()
+    row.scale_y = 1.4
+    row.prop(layers[selected_layer_index].projection, "mode", text="", slider=True, index=0)
+
+    projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
+    if projection_node:
+        match layers[selected_layer_index].projection.mode:
+            case 'UV':
+                row = first_column.row()
+                row.scale_y = 1.4
+                row.label(text="Offset")
+                row = second_column.row()
+                row.scale_y = 1.4
+                row.prop(projection_node.inputs.get('Offset'), "default_value", text="X", slider=True, index=0)
+                row.prop(layers[selected_layer_index].projection, "sync_projection_scale", text="", icon='LOCKED')
+                row.prop(projection_node.inputs.get('Offset'), "default_value", text="Y", slider=True, index=1)
+
+                row = first_column.row()
+                row.scale_y = 1.4
+                row.label(text="Rotation")
+                row = second_column.row()
+                row.scale_y = 1.4
+                row.prop(projection_node.inputs.get('Rotation'), "default_value", text="", slider=True)
+
+                row = first_column.row()
+                row.scale_y = 1.4
+                row.label(text="Scale")
+                row = second_column.row()
+                row.scale_y = 1.4
+                row.prop(projection_node.inputs.get('Scale'), "default_value", text="X", slider=True, index=0)
+                row.prop(projection_node.inputs.get('Scale'), "default_value", text="Y", slider=True, index=1)
+
+            case 'TRIPLANAR':
+                row = first_column.row()
+                row.scale_y = 1.4
+                row.label(text="Offset")
+                row = second_column.row()
+                row.scale_y = 1.4
+                row.prop(projection_node.inputs.get('Offset'), "default_value", text="", slider=True, index=0)
+                row.prop(projection_node.inputs.get('Offset'), "default_value", text="", slider=True, index=1)
+                row.prop(projection_node.inputs.get('Offset'), "default_value", text="", slider=True, index=2)
+                row.prop(layers[selected_layer_index].projection, "sync_projection_scale", text="", icon='LOCKED')
+
+                row = first_column.row()
+                row.scale_y = 1.4
+                row.label(text="Rotation")
+                row = second_column.row()
+                row.scale_y = 1.4
+                row.prop(projection_node.inputs.get('Rotation'), "default_value", text="", slider=True, index=0)
+                row.prop(projection_node.inputs.get('Rotation'), "default_value", text="", slider=True, index=1)
+                row.prop(projection_node.inputs.get('Rotation'), "default_value", text="", slider=True, index=2)
+
+                row = first_column.row()
+                row.scale_y = 1.4
+                row.label(text="Scale")
+                row = second_column.row()
+                row.scale_y = 1.4
+                row.prop(projection_node.inputs.get('Scale'), "default_value", text="", slider=True, index=0)
+                row.prop(projection_node.inputs.get('Scale'), "default_value", text="", slider=True, index=1)
+                row.prop(projection_node.inputs.get('Scale'), "default_value", text="", slider=True, index=2)
+
 def draw_material_filters(layout):
     row = layout.row()
     row.scale_y = DEFAULT_UI_SCALE_Y

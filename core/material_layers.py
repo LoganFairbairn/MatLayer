@@ -9,7 +9,7 @@ import random
 # List of node types that can be used in the texture slot.
 
 PROJECTION_MODES = [
-    ("FLAT", "UV / Flat", "Projects the texture using the model's UV map."),
+    ("UV", "UV / Flat", "Projects the texture using the model's UV map."),
     ("TRIPLANAR", "Triplanar", "Projects the textures onto the object from each axis. This projection method can be used to quickly remove seams from objects."),
     #("SPHERE", "Sphere", ""),
     #("TUBE", "Tube", "")
@@ -348,7 +348,7 @@ class MATLAYER_layer_stack(PropertyGroup):
 
 class ProjectionSettings(PropertyGroup):
     '''Projection settings for this add-on.'''
-    mode: EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='FLAT', update=update_layer_projection_mode)
+    mode: EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='UV', update=update_layer_projection_mode)
     sync_projection_scale: BoolProperty(name="Sync Projection Scale", description="When enabled Y and Z projection (if the projection mode has a z projection) will be synced with the X projection", default=True,update=update_sync_layer_projection_scale)
 
 class MaterialChannelNodeType(PropertyGroup):
