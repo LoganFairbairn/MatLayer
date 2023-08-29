@@ -71,19 +71,26 @@ def add_mask_slot():
 
 def add_layer_mask(type):
     '''Adds a mask of the specified type to the selected material layer.'''
-    match type:
-        case 'EDGE_WEAR':
-            selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-            new_mask_slot_index = add_mask_slot()
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    new_mask_slot_index = add_mask_slot()
+    active_material = bpy.context.active_object.active_material
 
-            active_material = bpy.context.active_object.active_material
+    match type:
+        case 'BLACK':
+            print("Placeholder...")
+
+        case 'WHITE':
+            print("Placeholder...")
+
+        case 'EDGE_WEAR':
             default_node_group = blender_addon_utils.append_node_group("ML_EdgeWear", never_auto_delete=True)
             default_node_group.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
 
-            new_layer_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
-            new_layer_group_node.node_tree = default_node_group
-            new_layer_group_node.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
-            new_layer_group_node.label = "Edge Wear"
+            new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+            new_mask_group_node.node_tree = default_node_group
+            new_mask_group_node.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
+            new_mask_group_node.label = "Edge Wear"
+            new_mask_group_node.hide = True
 
     reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
     organize_mask_nodes()
@@ -123,12 +130,12 @@ def organize_mask_nodes():
     
     position_y = layer_node.location[1] - 600
     masks = bpy.context.scene.matlayer_masks
-    for i in range(0, len(masks)):
-        mask_node = get_mask_node('MASK', selected_layer_index, i)
+    for i in range(len(masks), 0, -1):
+        mask_node = get_mask_node('MASK', selected_layer_index, i - 1)
         if mask_node:
             mask_node.location = (layer_node.location[0], position_y)
             mask_node.width = 300
-            position_y -= 600
+            position_y -= 100
 
 def link_mask_nodes(layer_index):
     '''Links existing mask nodes together and to their respective material layer.'''
@@ -156,7 +163,7 @@ def link_mask_nodes(layer_index):
         mask_node = get_mask_node('MASK', layer_index, i)
         next_mask_node = get_mask_node('MASK', layer_index, i + 1)
         if next_mask_node:
-            last_input_index = len(next_mask_node.inputs)
+            last_input_index = len(next_mask_node.inputs) - 1
             node_tree.links.new(mask_node.outputs[0], next_mask_node.inputs[last_input_index])
 
     # Connect the last layer node.
