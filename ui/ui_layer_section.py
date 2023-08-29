@@ -3,6 +3,7 @@
 import bpy
 from bpy.types import Operator
 from ..core import material_layers
+from ..core import layer_masks
 from ..ui import ui_section_tabs
 
 DEFAULT_UI_SCALE_Y = 1
@@ -288,6 +289,16 @@ def draw_layer_masks(layout):
     row = layout.row(align=True)
     row.template_list("MATLAYER_UL_mask_list", "Masks", bpy.context.scene, "matlayer_masks", bpy.context.scene.matlayer_mask_stack, "selected_index", sort_reverse=True)
     row.scale_y = 2
+
+    # Draw properties for the selected mask.
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+    mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, selected_mask_index)
+    if mask_node:
+        for i in range(0, len(mask_node.inputs)):
+            row = layout.row()
+            row.scale_y = DEFAULT_UI_SCALE_Y
+            row.prop(mask_node.inputs[i], "default_value", text=mask_node.inputs[i].name)
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""

@@ -3,6 +3,7 @@ from bpy.types import PropertyGroup, Operator
 from bpy.props import BoolProperty, IntProperty, EnumProperty, StringProperty, PointerProperty
 import random
 from ..core import material_layers
+from ..core import baking
 from ..core import blender_addon_utils
 
 def format_mask_name(active_material_name, layer_index, mask_index):
@@ -36,6 +37,20 @@ def get_mask_node(node_name, layer_index, mask_index, get_changed=False):
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
                 return node_tree.nodes.get('MASK_MIX')
+            return None
+        
+        case 'AMBIENT_OCCLUSION':
+            mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
+            node_tree = bpy.data.node_groups.get(mask_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('AMBIENT_OCCLUSION')
+            return None
+
+        case 'CURVATURE':
+            mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
+            node_tree = bpy.data.node_groups.get(mask_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('CURVATURE')
             return None
 
 def add_mask_slot():
@@ -75,6 +90,7 @@ def add_layer_mask(type):
     new_mask_slot_index = add_mask_slot()
     active_material = bpy.context.active_object.active_material
 
+    new_mask_group_node = None
     match type:
         case 'BLACK':
             print("Placeholder...")
@@ -91,10 +107,19 @@ def add_layer_mask(type):
             new_mask_group_node.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
             new_mask_group_node.label = "Edge Wear"
             new_mask_group_node.hide = True
-
+    
+    apply_mesh_maps(new_mask_group_node.node_tree)
     reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
     organize_mask_nodes()
     link_mask_nodes(selected_layer_index)
+
+def apply_mesh_maps(node_tree):
+    '''Searches for all mesh map texture nodes in the node tree and applies mesh maps if they exist.'''
+    for map_type in baking.MESH_MAP_TYPES:
+        mesh_map_node = node_tree.nodes.get(map_type)
+        if mesh_map_node:
+            if mesh_map_node.bl_static_type == 'TEX_IMAGE':
+                mesh_map_node.image = baking.get_meshmap_image(bpy.context.active_object.name, map_type)
 
 def reindex_masks(change_made, layer_index, affected_mask_index):
     '''Reindexes mask nodes and node trees. This should be called after a change is made that effects the mask stack order (adding, duplicating, deleting, or moving a mask).'''
@@ -325,4 +350,7 @@ class MATLAYER_OT_delete_layer_mask(Operator):
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
+        masks = context.scene.matlayer_masks
+        selected_mask_index = context.scene.matlayer_mask_stack.selected_index
+        masks.remove(selected_mask_index)
         return {'FINISHED'}
