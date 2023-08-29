@@ -330,9 +330,9 @@ class MATLAYER_OT_add_layer_mask_menu(Operator):
         split = layout.split()
         col = split.column(align=True)
         col.scale_y = 1.4
-        col.operator("matlayer.add_empty_layer_mask", text="Empty")
         col.operator("matlayer.add_black_layer_mask", text="Black")
         col.operator("matlayer.add_white_layer_mask", text="White")
+        col.operator("matlayer.add_edge_wear_mask", text="Edge Wear")
 
 class MATLAYER_OT_add_material_filter_menu(Operator):
     bl_label = ""

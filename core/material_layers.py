@@ -141,7 +141,7 @@ def get_layer_node_tree(layer_index):
 
     return bpy.data.node_groups.get(layer_group_name)
 
-def get_material_layer_node(layer_node_name, layer_index=0, material_channel_name='COLOR', get_changed_node=False):
+def get_material_layer_node(layer_node_name, layer_index=0, material_channel_name='COLOR', get_changed=False):
     '''Returns the desired material node if it exists. Supply the material channel name to get nodes specific to material channels.'''
     if bpy.context.active_object == None:
         return
@@ -154,7 +154,7 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
 
     match layer_node_name:
         case 'LAYER':
-            if get_changed_node:
+            if get_changed:
                 return active_material.node_tree.nodes.get(str(layer_index) + "~")
             else:
                 return active_material.node_tree.nodes.get(str(layer_index))
@@ -323,7 +323,7 @@ def reindex_layer_nodes(change_made, affected_layer_index):
                     split_node_tree_name = layer_node.node_tree.name.split('_')
                     layer_node.node_tree.name = "{0}_{1}".format(split_node_tree_name[0], str(int(split_node_tree_name[1]) + 1))
 
-            new_layer_node = get_material_layer_node('LAYER', affected_layer_index, get_changed_node=True)
+            new_layer_node = get_material_layer_node('LAYER', affected_layer_index, get_changed=True)
             if new_layer_node:
                 new_layer_node.name = str(affected_layer_index)
                 split_node_tree_name = new_layer_node.node_tree.name.split('_')
