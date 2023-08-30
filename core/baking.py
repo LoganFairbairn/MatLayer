@@ -14,7 +14,8 @@ SELECTED_BAKE_TYPE = [
     ("AMBIENT_OCCLUSION", "Ambient Occlusion", ""), 
     ("CURVATURE", "Curvature", ""),
     ("THICKNESS", "Thickness", ""),
-    ("NORMAL", "Normals", "")
+    ("NORMAL", "Normals", ""),
+    ("WORLD_SPACE_NORMALS", "World Space Normals", "")
 ]
 
 QUALITY_SETTINGS = [
