@@ -1,10 +1,9 @@
-# This module contains misc / general Blender add-on utility functions such as debug logging, appending assets from an asset blend file, and adjusting modes.
+# This module contains misc / general Blender add-on utility functions such as, appending assets from an asset blend file, and adjusting modes.
 
 import bpy
 from bpy.utils import resource_path
 from pathlib import Path
 from .. import preferences
-import datetime
 
 def set_valid_material_editing_mode():
     '''Verifies texture or object mode is being used. This should be used to avoid attempting to run material editing functions in the wrong mode (Edit Mode, Pose Mode, Weight Paint, etc...) which may throw errors.'''
@@ -94,21 +93,3 @@ def create_image(image_name, image_width, image_height, alpha_channel=False, thi
                                     is_data=data,
                                     tiled=False)
     return new_image
-
-def log(message):
-    '''Prints the given message to Blender's console window. This function helps log functions called by this add-on for debugging purposes.'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-    if addon_preferences.logging:
-        print("[{0}]: {1}".format(datetime.datetime.now(), message))
-
-def log_status(message, self, type='ERROR'):
-    '''Prints the given message to Blender's console window and displays the message in Blender's status bar.'''
-    log(message)
-    self.report({type}, message)
-
-def popup_message_box(message = "", title = "Message Box", icon = 'INFO'):
-    def draw_popup_box(self, context):
-        self.layout.label(text=message)
-
-    bpy.context.window_manager.popup_menu(draw_popup_box, title = title, icon = icon)
-    print(title + ": " + message)
