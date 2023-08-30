@@ -169,37 +169,44 @@ def apply_baking_quality_settings():
 def bake_mesh_map(mesh_map_type, self):
     '''Applies a premade baking material to the active object and starts baking. Returns true if baking was successful.'''
 
+    baking_settings = bpy.context.scene.matlayer_baking_settings
+    if mesh_map_type == 'NORMALS' and baking_settings.high_poly_object == None:
+        debug_logging.log("Skipping normal map baking, no high poly object is specified.")
+        return True
+
     # Append a premade material for baking the specified mesh map type.
     match mesh_map_type:
         case 'AMBIENT_OCCLUSION':
-            self._temp_bake_material = blender_addon_utils.append_material('BakeAmbientOcclusion')
+            temp_bake_material = blender_addon_utils.append_material('BakeAmbientOcclusion')
             self._mesh_map_group_node_name = "ML_AmbientOcclusion"
 
         case 'CURVATURE':
-            self._temp_bake_material = blender_addon_utils.append_material('BakeCurvature')
+            temp_bake_material = blender_addon_utils.append_material('BakeCurvature')
             self._mesh_map_group_node_name = "ML_Curvature"
 
         case 'THICKNESS':
-            self._temp_bake_material = blender_addon_utils.append_material('BakeThickness')
+            temp_bake_material = blender_addon_utils.append_material('BakeThickness')
             self._mesh_map_group_node_name = "ML_Thickness"
 
         case 'NORMALS':
-            self._temp_bake_material = blender_addon_utils.append_material('BakeNormals')
+            temp_bake_material = blender_addon_utils.append_material('BakeNormals')
 
         case 'WORLD_SPACE_NORMALS':
-            self._temp_bake_material = blender_addon_utils.append_material('BakeWorldSpaceNormals')
+            temp_bake_material = blender_addon_utils.append_material('BakeWorldSpaceNormals')
             self._mesh_map_group_node_name = "ML_WorldSpaceNormals"
+
+    self._temp_bake_material_name = temp_bake_material.name
 
     # Create and assign an image to bake the mesh map to.
     new_bake_image = create_bake_image(mesh_map_type)
     self._mesh_map_image_index = bpy.data.images.find(new_bake_image.name)
-    bake_image_node = self._temp_bake_material.node_tree.nodes.get("BAKE_IMAGE")
+    bake_image_node = temp_bake_material.node_tree.nodes.get("BAKE_IMAGE")
     if bake_image_node:
         bake_image_node.image = new_bake_image
-        for node in self._temp_bake_material.node_tree.nodes:
+        for node in temp_bake_material.node_tree.nodes:
             node.select = False
         bake_image_node.select = True
-        self._temp_bake_material.node_tree.nodes.active = bake_image_node
+        temp_bake_material.node_tree.nodes.active = bake_image_node
         bpy.context.scene.tool_settings.image_paint.canvas = new_bake_image
     else:
         debug_logging.log_status("Error: Image node not found in premade mesh map baking material setup.", self, type='ERROR')
@@ -208,29 +215,24 @@ def bake_mesh_map(mesh_map_type, self):
     # Apply the bake material to the object.
     if len(bpy.context.object.material_slots) > 0:
         for x in bpy.context.object.material_slots:
-            x.material = self._temp_bake_material
+            x.material = temp_bake_material
     else:
-        bpy.context.object.data.materials.append(self._temp_bake_material)
+        bpy.context.object.data.materials.append(temp_bake_material)
 
     # Set render engine settings and trigger the baking process.
-    baking_settings = bpy.context.scene.matlayer_baking_settings
     bpy.context.scene.render.engine = 'CYCLES'
     match mesh_map_type:
         case 'NORMALS':
-            if baking_settings.high_poly_object == None:
-                debug_logging.log("Skipping normal map baking, no high poly object is specified.")
-                bpy.context.scene.render.bake.use_selected_to_active = False
-            else:
-                bpy.context.scene.render.bake.use_selected_to_active = True
-                bpy.context.scene.render.bake.cage_extrusion = baking_settings.cage_extrusion
-                
-                # Select the low poly and high poly objects.
-                active_object = bpy.context.active_object
-                bpy.ops.object.select_all(action='DESELECT')
-                baking_settings.high_poly_object.select_set(True)
-                active_object.select_set(True)
-                bpy.context.scene.render.bake.use_selected_to_active = True
-                bpy.ops.object.bake('INVOKE_DEFAULT', type='NORMAL')
+            bpy.context.scene.render.bake.use_selected_to_active = True
+            bpy.context.scene.render.bake.cage_extrusion = baking_settings.cage_extrusion
+            
+            # Select the low poly and high poly objects.
+            active_object = bpy.context.active_object
+            bpy.ops.object.select_all(action='DESELECT')
+            baking_settings.high_poly_object.select_set(True)
+            active_object.select_set(True)
+            bpy.context.scene.render.bake.use_selected_to_active = True
+            bpy.ops.object.bake('INVOKE_DEFAULT', type='NORMAL')
 
         case _:
             bpy.context.scene.render.bake.use_selected_to_active = False
@@ -490,7 +492,7 @@ class MATLAYER_OT_batch_bake(Operator):
     bl_description = "Bakes all checked mesh texture maps in succession. Note that this function can take a few minutes, especially on slower computers, or when using CPU for rendering"
 
     _timer = None
-    _temp_bake_material = None
+    _temp_bake_material_name = ""
     _mesh_map_image_index = 0
     _mesh_map_group_node_name = ""
     _mesh_maps_to_bake = []
@@ -514,7 +516,10 @@ class MATLAYER_OT_batch_bake(Operator):
             if not bpy.app.is_job_running('OBJECT_BAKE'):
                 debug_logging.log("Finished baking {0}.".format(self._mesh_maps_to_bake[self._baked_mesh_map_count]))
                 self._baked_mesh_map_count += 1
-                bpy.data.materials.remove(self._temp_bake_material)
+
+                temp_bake_material = bpy.data.materials.get(self._temp_bake_material_name)
+                if temp_bake_material:
+                    bpy.data.materials.remove(temp_bake_material)
 
                 bake_node_group = bpy.data.node_groups.get(self._mesh_map_group_node_name)
                 if bake_node_group:
@@ -592,7 +597,7 @@ class MATLAYER_OT_batch_bake(Operator):
         # Reset the render engine.
         bpy.context.scene.render.engine = self._original_render_engine
 
-        self.report({'INFO'}, "Baking mesh map was manually cancelled.")
+        debug_logging.log_status("Baking mesh map was manually cancelled.", self, 'INFO')
 
     def finish(self, context):
         # Remove the timer.
@@ -613,7 +618,7 @@ class MATLAYER_OT_batch_bake(Operator):
         # Reset the render engine.
         bpy.context.scene.render.engine = self._original_render_engine
 
-        self.report({'INFO'}, "Baking mesh map completed.")
+        debug_logging.log_status("Baking mesh map completed.", self, 'INFO')
 
 class MATLAYER_OT_open_bake_folder(Operator):
     bl_idname = "matlayer.open_bake_folder"
