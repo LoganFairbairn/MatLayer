@@ -157,7 +157,6 @@ def draw_material_channel_properties(layout):
         row.separator()
         row.scale_y = 2.5
 
-
         row = layout.row()
         row.scale_y = DEFAULT_UI_SCALE_Y
         row.label(text=material_channel_name)
@@ -191,19 +190,13 @@ def draw_material_channel_properties(layout):
                             row.prop(value_node.inputs[i], "default_value", text=value_node.inputs[i].name)
 
                 case 'TEX_IMAGE':
+                    node_tree = material_layers.get_layer_node_tree(selected_layer_index)
                     row = layout.row(align=True)
                     row.scale_y = DEFAULT_UI_SCALE_Y
                     row.prop(value_node, "image", text="")
-                    add_layer_image_operator = row.operator("matlayer.add_material_channel_image", icon="ADD", text="")
-                    add_layer_image_operator.material_channel_name = material_channel_name
-                    import_texture_operator = row.operator("matlayer.import_texture", icon="IMPORT", text="")
-                    import_texture_operator.material_channel_name = material_channel_name
-                    export_image_operator = row.operator("matlayer.edit_image_externally", icon="TPAINT_HLT", text="")
-                    export_image_operator.material_channel_name = material_channel_name
-                    reload_image_operator = row.operator("matlayer.reload_material_channel_image", icon="FILE_REFRESH", text="")
-                    reload_image_operator.material_channel_name = material_channel_name
-                    delete_layer_image_operator = row.operator("matlayer.delete_material_channel_image", icon="TRASH", text="")
-                    delete_layer_image_operator.material_channel_name = material_channel_name
+                    row.context_pointer_set("node_tree", node_tree)
+                    row.context_pointer_set("node", value_node)
+                    row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
         # Draw filter properties for the material channel.
         if filter_node:
@@ -501,8 +494,23 @@ class ImageUtilitySubMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        add_layer_image_operator = layout.operator("matlayer.add_material_channel_image", icon="ADD", text="New Image")
-        import_texture_operator = layout.operator("matlayer.import_texture", icon="IMPORT", text="Import Image")
-        export_image_operator = layout.operator("matlayer.edit_image_externally", icon="TPAINT_HLT", text="Edit Image Externally")
-        reload_image_operator = layout.operator("matlayer.reload_material_channel_image", icon="FILE_REFRESH", text="Reload Image")
-        delete_layer_image_operator = layout.operator("matlayer.delete_material_channel_image", icon="TRASH", text="Delete Image")
+        if context.node_tree and context.node:
+            operator = layout.operator("matlayer.add_texture_node_image", icon="ADD", text="Add New Image")
+            operator.node_tree_name = context.node_tree.name
+            operator.node_name = context.node.name
+
+            operator = layout.operator("matlayer.import_texture_node_image", icon="IMPORT", text="Import Image")
+            operator.node_tree_name = context.node_tree.name
+            operator.node_name = context.node.name
+
+            operator = layout.operator("matlayer.edit_image_externally", icon="TPAINT_HLT", text="Edit Image Externally")
+            operator.node_tree_name = context.node_tree.name
+            operator.node_name = context.node.name
+
+            operator = layout.operator("matlayer.reload_material_channel_image", icon="FILE_REFRESH", text="Reload Image")
+            operator.node_tree_name = context.node_tree.name
+            operator.node_name = context.node.name
+
+            operator = layout.operator("matlayer.delete_material_channel_image", icon="TRASH", text="Delete Image")
+            operator.node_tree_name = context.node_tree.name
+            operator.node_name = context.node.name

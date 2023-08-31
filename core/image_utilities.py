@@ -2,7 +2,12 @@
 
 import bpy
 from bpy.types import Operator
+from bpy.props import StringProperty
 from bpy_extras.io_utils import ImportHelper        # For importing images.
+from ..core import texture_set_settings as tss
+from ..core import material_layers
+from ..core import debug_logging
+from ..core import blender_addon_utils
 import random
 import os                                           # For saving layer images.
 import re                                           # For splitting strings to identify material channels.
@@ -78,64 +83,41 @@ def check_for_directx(filename):
     else:
         return False
 
-class MATLAYER_OT_add_material_channel_image(Operator):
-    bl_idname = "matlayer.add_material_channel_image"
-    bl_label = "Add Material Channel Image"
+class MATLAYER_OT_add_texture_node_image(Operator):
+    bl_idname = "matlayer.add_texture_node_image"
+    bl_label = "Add Texture Node Image"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Creates an image within Blender's data and adds it to the specified material channel on the selected material layer"
+    bl_description = "Creates a new image (uses texture set pixel resolution) and adds it to the specified texture node"
 
-    # Specified material channel.
-    material_channel_name: bpy.props.StringProperty()
+    node_tree_name: StringProperty(default="")
+    node_name: StringProperty(default="")
 
     def execute(self, context):
-        active_object = bpy.context.active_object
-        if not active_object:
-            logging.popup_message_box("No selected object when adding a layer image.", 'User Error', 'ERROR')
-            return
+        node_group = bpy.data.node_groups.get(self.node_tree_name)
+        if not node_group:
+            debug_logging.log_status("Provided node group does not exist in Blenders data when attempting to import a texture to a texture node.", self)
+            return {'FINISHED'}
+
+        if self.node_name == "":
+            debug_logging.log_status("Provided texture node name is blank when attempting to import a texture to a texture node.", self)
+            return {'FINISHED'}
         
-        # Assign the new image the layer name + a random image id number.
-        image_name = active_object.name + "_" + get_random_image_id()
+        texture_node = node_group.nodes.get(self.node_name)
+        if not texture_node:
+            debug_logging.log_status("Can't find the specified texture node when attempting to import a texture to a texture node.", self)
+            return {'FINISHED'}
+        
+        # Assign the new image a random name.
+        image_name = "Image_" + get_random_image_id()
         while bpy.data.images.get(image_name) != None:
-            image_name = active_object.name + "_" + get_random_image_id()
+            image_name = "Image_" + get_random_image_id()
 
         # Create a new image of the texture size defined in the texture set settings.
-        texture_set_settings = context.scene.matlayer_texture_set_settings
-        match texture_set_settings.image_width:
-            case 'FIVE_TWELVE':
-                image_width = 512
-            case 'ONEK':
-                image_width = 1024
-            case'TWOK':
-                image_width = 2048
-            case 'FOURK':
-                image_width = 4096
-            case _:
-                image_width = 2048
-
-        image_height = 128
-        match texture_set_settings.image_height:
-            case 'FIVE_TWELVE':
-                image_height = 512
-            case 'ONEK':
-                image_height = 1024
-            case 'TWOK':
-                image_height = 2048
-            case 'FOURK':
-                image_height = 4096
-            case _:
-                image_width = 2048
-
-        image = bpy.ops.image.new(name=image_name,
-                                  width=image_width,
-                                  height=image_height,
-                                  color=(0.0, 0.0, 0.0, 0.0),
-                                  alpha=True,
-                                  generated_type='BLANK',
-                                  float=False,
-                                  use_stereo_3d=False,
-                                  tiled=False)
+        image_width = tss.get_texture_width()
+        image_height = tss.get_texture_height()
+        new_image = blender_addon_utils.create_image(image_name, image_width, image_height, alpha_channel=True, thirty_two_bit=True)
         
-        # Save to a folder. This allows users to use the edit externally function (to edit within a 2D image editor of their choice) later if desired.
+        # Save the new image to a folder. This allows users to easily edit their image in a 2D image editor later.
         matlayer_image_path = os.path.join(bpy.path.abspath("//"), "Assets")
         if os.path.exists(matlayer_image_path) == False:
             os.mkdir(matlayer_image_path)
@@ -150,27 +132,20 @@ class MATLAYER_OT_add_material_channel_image(Operator):
         if image:
             image.save()
 
-        # Add the new image to the selected layer.
-        selected_layer_index = context.scene.matlayer_layer_stack.layer_index
-        texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel_name, selected_layer_index, context)
-        new_image = bpy.data.images[image_name]
-        if texture_node:
-            texture_node.image = new_image
-            context.scene.matlayer_layers[selected_layer_index].material_channel_textures.color_channel_texture = new_image
-
-        # Select the new texture for painting.
-        context.scene.tool_settings.image_paint.canvas = texture_node.image
+        texture_node.image = new_image                                              # Add the new image to the image node.
+        context.scene.tool_settings.image_paint.canvas = texture_node.image         # Select the new texture for painting.
         
         return {'FINISHED'}
 
-class MATLAYER_OT_import_texture(Operator, ImportHelper):
-    bl_idname = "matlayer.import_texture"
+class MATLAYER_OT_import_texture_node_image(Operator, ImportHelper):
+    bl_idname = "matlayer.import_texture_node_image"
     bl_label = "Import Texture"
-    bl_description = "Opens a menu that allows the user to import a texture file into a specific material channel"
+    bl_description = "Opens a menu that allows the user to import a texture file into the specified texture node"
     bl_options = {'REGISTER', 'UNDO'}
 
-    # Specified material channel.
-    material_channel_name: bpy.props.StringProperty()
+    node_tree_name: StringProperty(default="")
+    node_name: StringProperty(default="")
+    material_channel_name: StringProperty(default="COLOR")
 
     filter_glob: bpy.props.StringProperty(
         default='*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.bmp;*.exr',
@@ -178,36 +153,44 @@ class MATLAYER_OT_import_texture(Operator, ImportHelper):
     )
 
     def execute(self, context):
-        selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
-        selected_material_layer = context.scene.matlayer_layers[selected_material_layer_index]
+        node_group = bpy.data.node_groups.get(self.node_tree_name)
+        if not node_group:
+            debug_logging.log_status("Provided node group does not exist in Blenders data when attempting to import a texture to a texture node.", self)
+            return {'FINISHED'}
+
+        if self.node_name == "":
+            debug_logging.log_status("Provided texture node name is blank when attempting to import a texture to a texture node.", self)
+            return {'FINISHED'}
+        
+        texture_node = node_group.nodes.get(self.node_name)
+        if not texture_node:
+            debug_logging.log_status("Can't find the specified texture node when attempting to import a texture to a texture node.", self)
+            return {'FINISHED'}
+
 
         # Open a window to import an image into blender.
         head_tail = os.path.split(self.filepath)
         image_name = head_tail[1]
         bpy.ops.image.open(filepath=self.filepath)
+        image = bpy.data.images[image_name]
 
         # Apply the selected image texture to the selected layer based on projection mode.
-        context.scene.matlayer_layer_stack.auto_update_layer_properties = False
-        image = bpy.data.images[image_name]
-        if selected_material_layer.projection.mode == 'TRIPLANAR':
-            triplanar_texture_sample_nodes = layer_nodes.get_triplanar_texture_sample_nodes(self.material_channel_name, selected_material_layer_index)
-            for node in triplanar_texture_sample_nodes:
-                if node:
-                    node.image = image
-        else:
-            texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel_name, selected_material_layer_index, context)
-            if texture_node:
+        selected_material_layer = context.scene.matlayer_layers[context.scene.matlayer_layer_stack.selected_layer_index]
+        match selected_material_layer.projection.mode:
+            case 'UV':
                 texture_node.image = image
-        
-        setattr(selected_material_layer.material_channel_textures, self.material_channel_name.lower() + "_channel_texture", image)
-        context.scene.matlayer_layer_stack.auto_update_layer_properties = True
 
-        # For specific material channels, imported textures automatically have their color space corrected.
-        set_image_colorspace_by_material_channel(image, self.material_channel_name)
+            case 'TRIPLANAR':
+                # TODO: Fill triplanar out.
+                print("Placeholder...")
+                
+        # If a material channel is defined, set the color space.
+        if self.material_channel_name != "":
+            set_image_colorspace_by_material_channel(image, self.material_channel_name)
 
-        # Print information about using DirectX normal maps for users if it's detected they are using one.
+        # Print a warning about using DirectX normal maps for users if it's detected they are using one.
         if check_for_directx(image_name) and self.material_channel_name == 'NORMAL':
-            self.report({'INFO'}, "You may have imported a DirectX normal map which will cause your imported normal map to appear inverted. You should use an OpenGL normal map instead or fix the textures name if it's already an OpenGL normal map.")
+            debug_logging.log_status("You may have imported a DirectX normal map which will cause your imported normal map to appear inverted.", self, type='WARNING')
 
         return {'FINISHED'}
 
@@ -216,7 +199,7 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
     bl_label = "Import Texture Set"
     bl_description = "Imports multiple selected textures into material channels based on file names. This function requires decent texture file naming conventions to work properly"
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     files: bpy.props.CollectionProperty(
         type=bpy.types.OperatorFileListElement,
         options={'HIDDEN', 'SKIP_SAVE'}
@@ -342,8 +325,8 @@ class MATLAYER_OT_edit_image_externally(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Exports the specified material channel image to the external image editing software defined in Blenders preferences"
 
-    # Specified material channel.
-    material_channel_name: bpy.props.StringProperty()
+    node_tree_name: StringProperty(default="")
+    node_name: StringProperty(default="")
 
     def execute(self, context):
         return {'FINISHED'}
@@ -354,8 +337,8 @@ class MATLAYER_OT_reload_material_channel_image(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Reloads the layer image for the specified material channel"
 
-    # Specified material channel.
-    material_channel_name: bpy.props.StringProperty()
+    node_tree_name: StringProperty(default="")
+    node_name: StringProperty(default="")
 
     def execute(self, context):
         return {'FINISHED'}
@@ -367,8 +350,8 @@ class MATLAYER_OT_delete_material_channel_image(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Deletes the current layer image from Blender's data and saved texture files. If you want to unlink the image from the texture node without deleting the image, use the 'x' button inside the image texture block"
 
-    # Specified material channel.
-    material_channel_name: bpy.props.StringProperty()
+    node_tree_name: StringProperty(default="")
+    node_name: StringProperty(default="")
 
     def execute(self, context):
         selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
