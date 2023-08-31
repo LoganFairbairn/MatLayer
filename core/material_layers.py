@@ -234,7 +234,7 @@ def add_material_layer_slot():
 
     return bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
-def read_total_layers():
+def count_layers():
     '''Counts the total layers in the active material by reading the active material's node tree.'''
     if not bpy.context.active_object:
         return 0
@@ -250,7 +250,7 @@ def read_total_layers():
 def organize_layer_group_nodes():
     '''Organizes all layer group nodes in the active material to ensure the node tree is easy to read.'''
     active_material = bpy.context.active_object.active_material
-    layer_count = read_total_layers()
+    layer_count = count_layers()
 
     position_x = -500
     for i in range(layer_count, 0, -1):
@@ -272,7 +272,7 @@ def link_layer_group_nodes():
 
     active_material = bpy.context.active_object.active_material
     node_tree = active_material.node_tree
-    layer_count = read_total_layers()
+    layer_count = count_layers()
 
     # Disconnect all layer group nodes.
     for i in range(0, layer_count):
@@ -316,7 +316,7 @@ def reindex_layer_nodes(change_made, affected_layer_index):
     match change_made:
         case 'ADDED_LAYER':
             # Increase the layer index for all layer group nodes and their node trees that exist above the affected layer.
-            total_layers = read_total_layers()
+            total_layers = count_layers()
             for i in range(total_layers, affected_layer_index, -1):
                 layer_node = get_material_layer_node('LAYER', i - 1)
                 if layer_node:
@@ -432,6 +432,8 @@ class MATLAYER_OT_add_material_layer(Operator):
         reindex_layer_nodes(change_made='ADDED_LAYER', affected_layer_index=new_layer_slot_index)
         organize_layer_group_nodes()
         link_layer_group_nodes()
+
+        layer_masks.organize_mask_nodes()
 
         return {'FINISHED'}
 

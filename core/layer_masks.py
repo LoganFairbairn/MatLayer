@@ -134,7 +134,6 @@ def add_layer_mask(type):
             new_mask_group_node.node_tree = default_node_group
             new_mask_group_node.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
             new_mask_group_node.label = "Edge Wear"
-            new_mask_group_node.hide = True
     
     material_layers.apply_mesh_maps()
     reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
@@ -170,17 +169,17 @@ def reindex_masks(change_made, layer_index, affected_mask_index):
 
 def organize_mask_nodes():
     '''Organizes the position of all mask nodes in the active materials node tree.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
-    
-    position_y = layer_node.location[1] - 600
-    masks = bpy.context.scene.matlayer_masks
-    for i in range(len(masks), 0, -1):
-        mask_node = get_mask_node('MASK', selected_layer_index, i - 1)
-        if mask_node:
-            mask_node.location = (layer_node.location[0], position_y)
-            mask_node.width = 300
-            position_y -= 100
+    layer_count = material_layers.count_layers()
+    for i in range(0, layer_count):
+        layer_node = material_layers.get_material_layer_node('LAYER', i)
+        position_y = layer_node.location[1] - 600
+        mask_count = count_masks(i)
+        for c in range(mask_count, 0, -1):
+            mask_node = get_mask_node('MASK', i, c - 1)
+            if mask_node:
+                mask_node.location = (layer_node.location[0], position_y)
+                mask_node.width = 300
+                position_y -= 300
 
 def link_mask_nodes(layer_index):
     '''Links existing mask nodes together and to their respective material layer.'''
