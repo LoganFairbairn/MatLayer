@@ -223,7 +223,7 @@ def refresh_mask_slots():
     masks.clear()
     mask_count = count_masks(selected_layer_index)
     for i in range(0, mask_count):
-        masks.add()
+        add_mask_slot()
 
 class MATLAYER_mask_stack(PropertyGroup):
     '''Properties for the layer stack.'''
