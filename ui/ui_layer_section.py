@@ -507,10 +507,10 @@ class ImageUtilitySubMenu(Menu):
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
 
-            operator = layout.operator("matlayer.reload_material_channel_image", icon="FILE_REFRESH", text="Reload Image")
+            operator = layout.operator("matlayer.reload_texture_node_image", icon="FILE_REFRESH", text="Reload Image")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
 
-            operator = layout.operator("matlayer.delete_material_channel_image", icon="TRASH", text="Delete Image")
+            operator = layout.operator("matlayer.delete_texture_node_image", icon="TRASH", text="Delete Image")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name

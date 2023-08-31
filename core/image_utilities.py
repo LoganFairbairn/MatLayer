@@ -167,7 +167,6 @@ class MATLAYER_OT_import_texture_node_image(Operator, ImportHelper):
             debug_logging.log_status("Can't find the specified texture node when attempting to import a texture to a texture node.", self)
             return {'FINISHED'}
 
-
         # Open a window to import an image into blender.
         head_tail = os.path.split(self.filepath)
         image_name = head_tail[1]
@@ -329,34 +328,91 @@ class MATLAYER_OT_edit_image_externally(Operator):
     node_name: StringProperty(default="")
 
     def execute(self, context):
+        node_group = bpy.data.node_groups.get(self.node_tree_name)
+        if not node_group:
+            debug_logging.log_status("Provided node group does not exist in Blenders data when attempting to import a texture to a texture node.", self)
+            return {'FINISHED'}
+
+        if self.node_name == "":
+            debug_logging.log_status("Provided texture node name is blank when attempting to import a texture to a texture node.", self)
+            return {'FINISHED'}
+        
+        texture_node = node_group.nodes.get(self.node_name)
+        if not texture_node:
+            debug_logging.log_status("Can't find the specified texture node when attempting to import a texture to a texture node.", self)
+            return {'FINISHED'}
+
+        # Save the image if it needs saving.
+        if texture_node.image.is_dirty:
+            texture_node.image.save()
+
+        # Select and then export the image to the external image editing software.
+        context.scene.tool_settings.image_paint.canvas = texture_node.image
+        bpy.ops.image.external_edit(filepath=texture_node.image.filepath)
+
         return {'FINISHED'}
 
-class MATLAYER_OT_reload_material_channel_image(Operator):
-    bl_idname = "matlayer.reload_material_channel_image"
-    bl_label = "Reload Layer Image"
+class MATLAYER_OT_reload_texture_node_image(Operator):
+    bl_idname = "matlayer.reload_texture_node_image"
+    bl_label = "Reload Texture Node Image"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Reloads the layer image for the specified material channel"
+    bl_description = "Reloads the texture node image from it's associated saved file"
 
     node_tree_name: StringProperty(default="")
     node_name: StringProperty(default="")
 
     def execute(self, context):
+        node_group = bpy.data.node_groups.get(self.node_tree_name)
+        if not node_group:
+            debug_logging.log_status("Provided node group does not exist in Blenders data when attempting to import a texture to a texture node.", self)
+            return {'FINISHED'}
+
+        if self.node_name == "":
+            debug_logging.log_status("Provided texture node name is blank when attempting to import a texture to a texture node.", self)
+            return {'FINISHED'}
+        
+        texture_node = node_group.nodes.get(self.node_name)
+        if not texture_node:
+            debug_logging.log_status("Can't find the specified texture node when attempting to import a texture to a texture node.", self)
+            return {'FINISHED'}
+        
+        # Select and then reload the image in the texture node.
+        if texture_node.image:
+            context.scene.tool_settings.image_paint.canvas = texture_node.image
+            bpy.ops.image.reload()
+            debug_logging.log_status("Reloaded {0}.".format(texture_node.image.name), self, type='INFO')
         return {'FINISHED'}
 
-class MATLAYER_OT_delete_material_channel_image(Operator):
-    '''Deletes the current image from Blender's data for the specified material channel'''
-    bl_idname = "matlayer.delete_material_channel_image"
-    bl_label = "Delete Material Channel Image"
+class MATLAYER_OT_delete_texture_node_image(Operator):
+    bl_idname = "matlayer.delete_texture_node_image"
+    bl_label = "Delete Texture Node Image"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Deletes the current layer image from Blender's data and saved texture files. If you want to unlink the image from the texture node without deleting the image, use the 'x' button inside the image texture block"
+    bl_description = "Deletes the texture image stored in the texture node from blenders data, and it's saved file on disk if one exists"
 
     node_tree_name: StringProperty(default="")
     node_name: StringProperty(default="")
 
     def execute(self, context):
-        selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
-        #texture_node = layer_nodes.get_layer_node("TEXTURE", self.material_channel_name, selected_material_layer_index, context)
-        #if texture_node:
-        #    if texture_node.image:
-        #        bpy.data.images.remove(texture_node.image)
+        node_group = bpy.data.node_groups.get(self.node_tree_name)
+        if not node_group:
+            debug_logging.log_status("Provided node group does not exist in Blenders data when attempting to import a texture to a texture node.", self)
+            return {'FINISHED'}
+
+        if self.node_name == "":
+            debug_logging.log_status("Provided texture node name is blank when attempting to import a texture to a texture node.", self)
+            return {'FINISHED'}
+        
+        texture_node = node_group.nodes.get(self.node_name)
+        if not texture_node:
+            debug_logging.log_status("Can't find the specified texture node when attempting to import a texture to a texture node.", self)
+            return {'FINISHED'}
+        
+        # Delete the image in the texture node from the blend data if one exists.
+        if texture_node.image:
+            image_name = texture_node.image.name
+            bpy.data.images.remove(texture_node.image)
+            debug_logging.log_status("Deleted " + image_name, self, type='INFO')
+        else:
+            debug_logging.log_status("No image to delete.", self, type='INFO')
+
         return {'FINISHED'}
