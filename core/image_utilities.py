@@ -318,8 +318,8 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                     self.report({'INFO'}, "You may have imported a DirectX normal map which will cause your imported normal map to appear inverted. You should use an OpenGL normal map instead or fix the textures name if it's already an OpenGL normal map.")
         return {'FINISHED'}
 
-class MATLAYER_OT_edit_image_externally(Operator):
-    bl_idname = "matlayer.edit_image_externally"
+class MATLAYER_OT_edit_texture_node_image_externally(Operator):
+    bl_idname = "matlayer.edit_texture_node_image_externally"
     bl_label = "Edit Image Externally"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Exports the specified material channel image to the external image editing software defined in Blenders preferences"

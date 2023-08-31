@@ -503,7 +503,7 @@ class ImageUtilitySubMenu(Menu):
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
 
-            operator = layout.operator("matlayer.edit_image_externally", icon="TPAINT_HLT", text="Edit Image Externally")
+            operator = layout.operator("matlayer.edit_texture_node_image_externally", icon="TPAINT_HLT", text="Edit Image Externally")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
 
