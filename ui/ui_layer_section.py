@@ -11,8 +11,8 @@ import re
 DEFAULT_UI_SCALE_Y = 1
 
 MATERIAL_LAYER_PROPERTY_TABS = [
-    ("MATERIAL", "MATERIAL", "Properties for the selected material layer"),
-    ("MASKS", "MASKS", "Properties for masks applied to the selected material layer")
+    ("MATERIAL", "MATERIAL", "Properties for the selected material layer."),
+    ("MASKS", "MASKS", "Properties for masks applied to the selected material layer.")
 ]
 
 def draw_layers_section_ui(self, context):
@@ -23,16 +23,17 @@ def draw_layers_section_ui(self, context):
     split = layout.split()
 
     column_one = split.column()
-    draw_material_property_tabs(column_one)
-    match bpy.context.scene.matlayer_material_property_tabs:
-        case 'MATERIAL':
-            draw_layer_projection(column_one)
-            draw_layer_material_channel_toggles(column_one)
-            draw_material_channel_properties(column_one)
-            draw_material_filters(column_one)
+    layer_count = material_layers.count_layers()
+    if layer_count > 0:
+        draw_material_property_tabs(column_one)
+        match bpy.context.scene.matlayer_material_property_tabs:
+            case 'MATERIAL':
+                draw_layer_projection(column_one)
+                draw_layer_material_channel_toggles(column_one)
+                draw_material_channel_properties(column_one)
 
-        case 'MASKS':
-            draw_layer_masks(column_one)
+            case 'MASKS':
+                draw_layer_masks(column_one)
 
     column_two = split.column()
     draw_material_selector(column_two)
@@ -88,10 +89,9 @@ def draw_layer_operations(layout):
 
 def draw_layer_stack(layout):
     '''Draws the material layer stack along with it's operators and material channel.'''
-    if len(bpy.context.scene.matlayer_layers) > 0:
-        row = layout.row(align=True)
-        row.template_list("MATLAYER_UL_layer_list", "Layers", bpy.context.scene, "matlayer_layers", bpy.context.scene.matlayer_layer_stack, "selected_layer_index", sort_reverse=True)
-        row.scale_y = 2
+    row = layout.row(align=True)
+    row.template_list("MATLAYER_UL_layer_list", "Layers", bpy.context.scene, "matlayer_layers", bpy.context.scene.matlayer_layer_stack, "selected_layer_index", sort_reverse=True)
+    row.scale_y = 2
 
 def draw_material_property_tabs(layout):
     '''Draws tabs to change between editing the material layer and the masks applied to the material layer.'''
@@ -137,7 +137,7 @@ def draw_material_channel_properties(layout):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
     # Avoid drawing material channel properties for invalid layers.
-    if material_layers.get_material_layer_node('LAYER', selected_layer_index) == None or len(layers) <= 0:
+    if material_layers.get_material_layer_node('LAYER', selected_layer_index) == None:
         return
     for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
 
@@ -157,10 +157,15 @@ def draw_material_channel_properties(layout):
         row.separator()
         row.scale_y = 2.5
 
+
         row = layout.row()
         row.scale_y = DEFAULT_UI_SCALE_Y
         row.label(text=material_channel_name)
         row.prop(layers[selected_layer_index].material_channel_node_types, material_channel_name.lower() + "_node_type", text="")
+
+        filter_node = material_layers.get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
+        if filter_node:
+            row.prop(filter_node, "mute", icon='FILTER', text="", invert_checkbox=True)
 
         value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
         if value_node:
@@ -200,14 +205,31 @@ def draw_material_channel_properties(layout):
                     delete_layer_image_operator = row.operator("matlayer.delete_material_channel_image", icon="TRASH", text="")
                     delete_layer_image_operator.material_channel_name = material_channel_name
 
+        # Draw filter properties for the material channel.
+        if filter_node:
+            if filter_node.mute == False:
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                match filter_node.bl_static_type:
+                    case 'HUE_SAT':
+                        layout.prop(filter_node.inputs[0], "default_value", slider=True, text=filter_node.inputs[0].name)
+                        layout.prop(filter_node.inputs[1], "default_value", slider=True, text=filter_node.inputs[1].name)
+                        layout.prop(filter_node.inputs[2], "default_value", slider=True, text=filter_node.inputs[2].name)
+                    case 'VALTORGB':
+                        layout.template_color_ramp(filter_node, "color_ramp", expand=True)
+                    case 'GROUP':
+                        layout.prop(filter_node.inputs[1], "default_value", slider=True, text="Normal Intensity")
+
 def draw_layer_projection(layout):
+    '''Draws layer projection settings.'''
+
+    layers = bpy.context.scene.matlayer_layers
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    
     row = layout.row()
     row.alignment = 'LEFT'
     row.scale_y = DEFAULT_UI_SCALE_Y
     row.label(text="LAYER PROJECTION")
-
-    layers = bpy.context.scene.matlayer_layers
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
     split = layout.split(factor=0.25)
     first_column = split.column()
@@ -276,26 +298,6 @@ def draw_layer_projection(layout):
                 row.prop(projection_node.inputs.get('Scale'), "default_value", text="", slider=True, index=0)
                 row.prop(projection_node.inputs.get('Scale'), "default_value", text="", slider=True, index=1)
                 row.prop(projection_node.inputs.get('Scale'), "default_value", text="", slider=True, index=2)
-
-def draw_material_filters(layout):
-    row = layout.row()
-    row.scale_y = 2.5
-    row.separator()
-    row = layout.row()
-    row.alignment = 'LEFT'
-    row.scale_y = DEFAULT_UI_SCALE_Y
-    row.label(text="FILTERS")
-    row = layout.row(align=True)
-    row.scale_x = 10
-    row.scale_y = DEFAULT_UI_SCALE_Y + 1.0
-    row.operator("matlayer.add_material_filter_menu", icon="ADD", text="")
-    row.operator("matlayer.move_material_filter_up", icon="TRIA_UP", text="")
-    row.operator("matlayer.move_material_filter_down", icon="TRIA_DOWN", text="")
-    row.operator("matlayer.duplicate_material_filter", icon="DUPLICATE", text="")
-    row.operator("matlayer.delete_material_filter", icon="TRASH", text="")
-    row = layout.row(align=True)
-    row.template_list("MATLAYER_UL_material_filter_list", "Material Filters", bpy.context.scene, "matlayer_material_filters", bpy.context.scene.matlayer_material_filter_stack, "selected_index", sort_reverse=True)
-    row.scale_y = 2
 
 def draw_layer_masks(layout):
     row = layout.row(align=True)

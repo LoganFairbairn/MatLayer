@@ -18,7 +18,7 @@ PROJECTION_MODES = [
     #("TUBE", "Tube", "")
 ]
 
-TEXTURE_NODE_TYPES = [
+VALUE_NODE_TYPES = [
     ("GROUP", "GROUP", ""),
     ("TEXTURE", "TEXTURE", ""),
 ]
@@ -193,6 +193,13 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
                 return node_tree.nodes.get(value_node_name)
+            return None
+        
+        case 'FILTER':
+            filter_node_name = "{0}_FILTER".format(material_channel_name)
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get(filter_node_name)
             return None
         
         case 'OUTPUT':
@@ -373,15 +380,15 @@ class ProjectionSettings(PropertyGroup):
 
 class MaterialChannelNodeType(PropertyGroup):
     '''An enum node type for the material node used to represent the material channel texture in every material channel.'''
-    color_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Color Channel Node Type", description="The node type for the color channel", default='GROUP', update=update_color_channel_node_type)
-    subsurface_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Subsurface Scattering Channel Node Type", description="The node type for the subsurface scattering channel", default='GROUP', update=update_subsurface_channel_node_type)
-    metallic_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Metallic Channel Node Type", description="The node type for the metallic channel", default='GROUP', update=update_metallic_channel_node_type)
-    specular_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Specular Channel Node Type", description="The node type for the specular channel", default='GROUP', update=update_specular_channel_node_type)
-    roughness_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Roughness Channel Node Type", description="The node type for roughness channel", default='GROUP', update=update_roughness_channel_node_type)
-    emission_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Emission Channel Node Type", description="The node type for the emission channel", default='GROUP', update=update_emission_channel_node_type)
-    normal_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Normal Channel Node Type", description="The node type for the normal channel", default='GROUP', update=update_normal_channel_node_type)
-    height_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Height Channel Node Type", description="The node type for the height channel", default='GROUP', update=update_height_channel_node_type)
-    alpha_node_type: EnumProperty(items=TEXTURE_NODE_TYPES, name="Alpha Channel Node Type", description="The node type for the alpha channel", default='GROUP', update=update_emission_channel_node_type)
+    color_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Color Channel Node Type", description="The node type for the color channel", default='GROUP', update=update_color_channel_node_type)
+    subsurface_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Subsurface Scattering Channel Node Type", description="The node type for the subsurface scattering channel", default='GROUP', update=update_subsurface_channel_node_type)
+    metallic_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Metallic Channel Node Type", description="The node type for the metallic channel", default='GROUP', update=update_metallic_channel_node_type)
+    specular_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Specular Channel Node Type", description="The node type for the specular channel", default='GROUP', update=update_specular_channel_node_type)
+    roughness_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Roughness Channel Node Type", description="The node type for roughness channel", default='GROUP', update=update_roughness_channel_node_type)
+    emission_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Emission Channel Node Type", description="The node type for the emission channel", default='GROUP', update=update_emission_channel_node_type)
+    normal_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Normal Channel Node Type", description="The node type for the normal channel", default='GROUP', update=update_normal_channel_node_type)
+    height_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Height Channel Node Type", description="The node type for the height channel", default='GROUP', update=update_height_channel_node_type)
+    alpha_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Alpha Channel Node Type", description="The node type for the alpha channel", default='GROUP', update=update_emission_channel_node_type)
 
 class MATLAYER_layers(PropertyGroup):
     hidden: BoolProperty(name="Hidden", description="Show if the layer is hidden")

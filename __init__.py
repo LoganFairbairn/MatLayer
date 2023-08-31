@@ -32,9 +32,6 @@ from .core.material_layers import ProjectionSettings, MATLAYER_layer_stack, Mate
 # Layer Masks
 from .core.layer_masks import MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_mask_list, MATLAYER_OT_move_layer_mask_up, MATLAYER_OT_move_layer_mask_down, MATLAYER_OT_duplicate_layer_mask, MATLAYER_OT_delete_layer_mask, MATLAYER_OT_add_black_layer_mask, MATLAYER_OT_add_white_layer_mask, MATLAYER_OT_add_edge_wear_mask
 
-# Material Filters
-from .core.material_filters import MATLAYER_material_filter_stack, MATLAYER_material_filters, MATLAYER_UL_material_filter_list, MATLAYER_OT_add_material_filter_hsv, MATLAYER_OT_add_material_filter_color_ramp, MATLAYER_OT_add_material_filter_invert, MATLAYER_OT_move_material_filter_up, MATLAYER_OT_move_material_filter_down, MATLAYER_OT_duplicate_material_filter, MATLAYER_OT_delete_material_filter
-
 # Material Effects
 from .core.material_effects import MATLAYER_OT_add_edge_wear, MATLAYER_OT_add_grunge, MATLAYER_OT_add_dust, MATLAYER_OT_add_drips
 
@@ -120,18 +117,6 @@ classes = (
     MATLAYER_OT_add_black_layer_mask,
     MATLAYER_OT_add_white_layer_mask,
     MATLAYER_OT_add_edge_wear_mask,
-    
-    # Material Filters
-    MATLAYER_material_filter_stack, 
-    MATLAYER_material_filters,
-    MATLAYER_UL_material_filter_list,
-    MATLAYER_OT_add_material_filter_hsv,
-    MATLAYER_OT_add_material_filter_color_ramp, 
-    MATLAYER_OT_add_material_filter_invert,
-    MATLAYER_OT_move_material_filter_up, 
-    MATLAYER_OT_move_material_filter_down, 
-    MATLAYER_OT_duplicate_material_filter, 
-    MATLAYER_OT_delete_material_filter,
 
     # Material Effects
     MATLAYER_OT_add_edge_wear, 
@@ -257,10 +242,6 @@ def register():
     # Material Layer Properties
     bpy.types.Scene.matlayer_layer_stack = PointerProperty(type=MATLAYER_layer_stack)
     bpy.types.Scene.matlayer_layers = CollectionProperty(type=MATLAYER_layers)
-
-    # Material Filter Properties
-    bpy.types.Scene.matlayer_material_filter_stack = PointerProperty(type=MATLAYER_material_filter_stack)
-    bpy.types.Scene.matlayer_material_filters = CollectionProperty(type=MATLAYER_material_filters)
 
     # Layer Mask Properties
     bpy.types.Scene.matlayer_mask_stack = PointerProperty(type=MATLAYER_mask_stack)
