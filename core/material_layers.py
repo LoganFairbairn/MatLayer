@@ -59,7 +59,7 @@ MATERIAL_LAYER_TYPES = [
     ("DECAL", "Decal", "A material projected onto the model using a decal object (empty) which allows users to dynamically position textures.")
 ]
 
-#----------------------------- UPDATING NODE TYPES -----------------------------#
+#----------------------------- UPDATING PROPERTIES -----------------------------#
 
 def replace_material_channel_node(material_channel_name, node_type):
     '''Replaces the existing material channel node with a new node of the given type.'''
@@ -115,8 +115,6 @@ def update_height_channel_node_type(self, context):
 
 def update_alpha_channel_node_type(self, context):
     replace_material_channel_node('ALPHA', self.alpha_node_type)
-
-#----------------------------- HELPER FUNCTIONS -----------------------------#
 
 def update_layer_projection_mode(self, context):
     '''Updates the projection mode for the selected layer'''
