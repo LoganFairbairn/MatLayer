@@ -5,6 +5,7 @@ import os
 from bpy.types import Operator
 from bpy.utils import resource_path
 from pathlib import Path
+from ..core import debug_logging
 from ..preferences import ADDON_NAME
 
 class MATLAYER_OT_set_decal_layer_snapping(Operator):
@@ -28,7 +29,7 @@ class MATLAYER_OT_append_workspace(Operator):
     def execute(self, context):
         workspace = bpy.data.workspaces.get('Matlayer')
         if workspace:
-            internal_utils.popup_message_box("The default workspace already exists, manually delete it and click this operator again to re-load the workspace.", 'Info', 'INFO')
+            debug_logging.log_status("The default workspace already exists, manually delete it and click this operator again to re-load the workspace.", self, 'INFO')
             return {'FINISHED'}
         
         previously_selected_object = bpy.context.active_object

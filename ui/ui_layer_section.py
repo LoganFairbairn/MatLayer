@@ -1,7 +1,7 @@
 # This file handles drawing the user interface for the layers section.
 
 import bpy
-from bpy.types import Operator
+from bpy.types import Operator, Menu
 from ..core import material_layers
 from ..core import layer_masks
 from ..core import baking
@@ -290,6 +290,7 @@ def draw_layer_masks(layout):
     row.scale_y = 2
 
     # Draw properties for the selected mask.
+    masks = bpy.context.scene.matlayer_masks
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
     mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, selected_mask_index)
@@ -303,12 +304,53 @@ def draw_layer_masks(layout):
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.prop(mask_node.inputs[i], "default_value", text=mask_node.inputs[i].name)
 
+        # Draw mask texture inputs if any exist.
+        for node in mask_node.node_tree.nodes:
+            if node.bl_static_type == 'TEX_IMAGE' and node.name not in baking.MESH_MAP_TYPES:
+                row = layout.row(align=True)
+                row.prop(node, "image", text=node.label)
+                row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+
+        # Draw mask projection options if it exists.
+        row = layout.row()
+        row.separator()
+        row = layout.row()
+        row.scale_y = DEFAULT_UI_SCALE_Y
+        row.label(text="MASK PROJECTION")
+        mask_projection_node = layer_masks.get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
+        if mask_projection_node:
+            split = layout.split(factor=0.25)
+            first_column = split.column()
+            second_column = split.column()
+
+            row = first_column.row()
+            row.scale_y = DEFAULT_UI_SCALE_Y
+            row.label(text="Offset")
+            row = second_column.row()
+            row.scale_y = DEFAULT_UI_SCALE_Y
+            row.prop(mask_projection_node.inputs.get('Offset'), "default_value", text="X", slider=True, index=0)
+            row.prop(masks[selected_mask_index], "sync_projection_scale", text="", icon='LOCKED')
+            row.prop(mask_projection_node.inputs.get('Offset'), "default_value", text="Y", slider=True, index=1)
+
+            row = first_column.row()
+            row.label(text="Rotation")
+            row = second_column.row()
+            row.prop(mask_projection_node.inputs.get('Rotation'), "default_value", text="", slider=True)
+
+            row = first_column.row()
+            row.scale_y = DEFAULT_UI_SCALE_Y
+            row.label(text="Scale")
+            row = second_column.row()
+            row.scale_y = DEFAULT_UI_SCALE_Y
+            row.prop(mask_projection_node.inputs.get('Scale'), "default_value", text="X", slider=True, index=0)
+            row.prop(mask_projection_node.inputs.get('Scale'), "default_value", text="Y", slider=True, index=1)
+
         # Draw mesh maps for the selected mask if any exist.
         row = layout.row()
         row.separator()
         row = layout.row()
         row.scale_y = DEFAULT_UI_SCALE_Y
-        row.label(text="MESH MAPS")
+        row.label(text="USED MESH MAPS")
         for mesh_map_name in baking.MESH_MAP_TYPES:
             mesh_map_node = layer_masks.get_mask_node(mesh_map_name, selected_layer_index, selected_mask_index)
             if mesh_map_node:
@@ -416,3 +458,15 @@ class MATLAYER_OT_add_material_effects_menu(Operator):
         col.operator("matlayer.add_grunge")
         col.operator("matlayer.add_dust")
         col.operator("matlayer.add_drips")
+
+class ImageUtilitySubMenu(Menu):
+    bl_idname = "MATLAYER_MT_image_utility_sub_menu"
+    bl_label = "Image Utility Sub Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        add_layer_image_operator = layout.operator("matlayer.add_material_channel_image", icon="ADD", text="New Image")
+        import_texture_operator = layout.operator("matlayer.import_texture", icon="IMPORT", text="Import Image")
+        export_image_operator = layout.operator("matlayer.edit_image_externally", icon="TPAINT_HLT", text="Edit Image Externally")
+        reload_image_operator = layout.operator("matlayer.reload_material_channel_image", icon="FILE_REFRESH", text="Reload Image")
+        delete_layer_image_operator = layout.operator("matlayer.delete_material_channel_image", icon="TRASH", text="Delete Image")

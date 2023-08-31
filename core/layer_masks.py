@@ -36,7 +36,7 @@ def get_mask_node(node_name, layer_index, mask_index, get_changed=False):
             mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
-                return node_tree.nodes.get('MASK_MIX')
+                return node_tree.nodes.get('PROJECTION')
             return None
         
         case 'AMBIENT_OCCLUSION':
@@ -223,6 +223,7 @@ class MATLAYER_mask_stack(PropertyGroup):
 
 class MATLAYER_masks(PropertyGroup):
     hidden: BoolProperty(name="Hidden", description="Show if the layer is hidden")
+    sync_projection_scale: BoolProperty(name="Sync Projection Scale", description="When enabled Y and Z projection (if the projection mode has a z projection) will be synced with the X projection", default=True)
 
 class MATLAYER_UL_mask_list(bpy.types.UIList):
     '''Draws the mask stack.'''
