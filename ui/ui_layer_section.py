@@ -105,13 +105,14 @@ def draw_layer_material_channel_toggles(layout):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     row = layout.row()
     row.separator()
+    row.scale_y = 2.5
 
     row = layout.row()
     row.alignment = 'LEFT'
     row.label(text="CHANNEL TOGGLES")
 
     row = layout.row()
-    row.scale_y = 1.4
+    row.scale_y = DEFAULT_UI_SCALE_Y
     drawn_toggles = 0
     for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
         mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, material_channel_name)
@@ -120,7 +121,7 @@ def draw_layer_material_channel_toggles(layout):
             drawn_toggles += 1
             if drawn_toggles > 4:
                 row = layout.row()
-                row.scale_y = 1.4
+                row.scale_y = DEFAULT_UI_SCALE_Y
                 drawn_toggles = 0
 
 def draw_material_channel_properties(layout):
@@ -279,10 +280,10 @@ def draw_material_filters(layout):
     row = layout.row()
     row.alignment = 'LEFT'
     row.scale_y = DEFAULT_UI_SCALE_Y
-    row.label(text="MATERIAL FILTERS")
+    row.label(text="FILTERS")
     row = layout.row(align=True)
     row.scale_x = 10
-    row.scale_y = DEFAULT_UI_SCALE_Y + 0.6
+    row.scale_y = DEFAULT_UI_SCALE_Y + 1.0
     row.operator("matlayer.add_material_filter_menu", icon="ADD", text="")
     row.operator("matlayer.move_material_filter_up", icon="TRIA_UP", text="")
     row.operator("matlayer.move_material_filter_down", icon="TRIA_DOWN", text="")
