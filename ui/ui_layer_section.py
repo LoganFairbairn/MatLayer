@@ -310,6 +310,22 @@ def draw_layer_masks(layout):
                     row = layout.row()
                     row.prop(node, "projection_blend", text=node.label + " Blending")
 
+        # Draw properties for any (non-mesh map) textures used in the mask.
+        for node in mask_node.node_tree.nodes:
+            if node.bl_static_type == 'TEX_IMAGE' and node.name not in baking.MESH_MAP_TYPES:
+                split = layout.split(factor=0.4)
+                first_column = split.column()
+                second_column = split.column()
+
+                row = first_column.row()
+                texture_display_name = node.label.replace('_', ' ')
+                texture_display_name = re.sub(r'\b[a-z]', lambda m: m.group().upper(), texture_display_name.capitalize())
+                row.label(text=texture_display_name)
+
+                row = second_column.row(align=True)
+                row.prop(node, "image", text="")
+                row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+
         # Draw mask projection options if it exists.
         row = layout.row()
         row.separator()
@@ -344,26 +360,27 @@ def draw_layer_masks(layout):
             row.prop(mask_projection_node.inputs.get('Scale'), "default_value", text="X", slider=True, index=0)
             row.prop(mask_projection_node.inputs.get('Scale'), "default_value", text="Y", slider=True, index=1)
 
-        # Draw properties for any textures used in the mask.
+        # Draw any mesh maps used for this mask.
         row = layout.row()
         row.separator()
         row = layout.row()
         row.scale_y = DEFAULT_UI_SCALE_Y
-        row.label(text="TEXTURES")
-        for node in mask_node.node_tree.nodes:
-            if node.bl_static_type == 'TEX_IMAGE':
+        row.label(text="MESH MAPS")
+
+        for mesh_map_name in baking.MESH_MAP_TYPES:
+            mesh_map_texture_node = layer_masks.get_mask_node(mesh_map_name, selected_layer_index, selected_mask_index)
+            if mesh_map_texture_node:
                 split = layout.split(factor=0.4)
                 first_column = split.column()
                 second_column = split.column()
 
                 row = first_column.row()
-                texture_display_name = node.label.replace('_', ' ')
-                texture_display_name = re.sub(r'\b[a-z]', lambda m: m.group().upper(), texture_display_name.capitalize())
-                row.label(text=texture_display_name)
+                mesh_map_display_name = mesh_map_texture_node.label.replace('_', ' ')
+                mesh_map_display_name = re.sub(r'\b[a-z]', lambda m: m.group().upper(), mesh_map_display_name.capitalize())
+                row.label(text=mesh_map_display_name)
 
                 row = second_column.row(align=True)
-                row.prop(node, "image", text="")
-                row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+                row.prop(mesh_map_texture_node, "image", text="")
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
