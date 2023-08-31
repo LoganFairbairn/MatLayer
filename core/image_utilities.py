@@ -352,6 +352,62 @@ class MATLAYER_OT_edit_texture_node_image_externally(Operator):
 
         return {'FINISHED'}
 
+class MATLAY_OT_export_uvs(Operator):
+    bl_idname = "matlayer.export_uvs"
+    bl_label = "Export UVs"
+    bl_description = "Exports the selected object's UV layout to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor)"
+
+    def execute(self, context):
+        blender_addon_utils.set_valid_material_editing_mode()
+
+        original_mode = bpy.context.object.mode
+        active_object = bpy.context.active_object
+
+        # Validate the selected object can export a uv layout.
+        if active_object == None:
+            self.report({'ERROR'}, "No active object is selected, please select an object to export the uv layout for.")
+            return{'FINISHED'}
+        
+        if active_object.type != 'MESH':
+            self.report({'ERROR'}, "The active object isn't a mesh, please select a mesh type object to export the uv layout for.")
+            return{'FINISHED'}
+
+        if active_object.data.uv_layers.active == None:
+            self.report({'ERROR'}, "Active object has no active UV layout to export UVs for. Add one, or select a different object.")
+            return{'FINISHED'}
+
+        # Set edit mode and select all uvs.
+        bpy.ops.object.mode_set(mode = 'EDIT')
+        bpy.ops.uv.select_all(action='SELECT')
+
+        # Save UV layout to folder.
+        matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
+        if os.path.exists(matlay_image_path) == False:
+            os.mkdir(matlay_image_path)
+
+        uv_layout_path = os.path.join(matlay_image_path, "UVLayouts")
+        if os.path.exists(uv_layout_path) == False:
+            os.mkdir(uv_layout_path)
+    
+        uv_image_name = bpy.context.active_object.name + "_" + "UVLayout"
+        uv_layout_path += "/" + uv_image_name + ".png"
+        bpy.ops.uv.export_layout(filepath=uv_layout_path, size=(tss.get_texture_width(), tss.get_texture_height()))
+
+        # Load the UV layout into Blender's data so it can be exported directly from Blender.
+        uv_image = bpy.data.images.get(uv_image_name + ".png")
+        if uv_image:
+            bpy.data.images.remove(uv_image)
+        uv_layout_image = bpy.data.images.load(uv_layout_path)
+
+        # Select and export UV layout.
+        context.scene.tool_settings.image_paint.canvas = uv_layout_image
+        bpy.ops.image.external_edit(filepath=uv_layout_image.filepath)
+
+        # Reset mode.
+        bpy.ops.object.mode_set(mode = original_mode)
+        
+        return{'FINISHED'}
+
 class MATLAYER_OT_reload_texture_node_image(Operator):
     bl_idname = "matlayer.reload_texture_node_image"
     bl_label = "Reload Texture Node Image"
