@@ -304,12 +304,23 @@ def draw_layer_masks(layout):
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.prop(mask_node.inputs[i], "default_value", text=mask_node.inputs[i].name)
 
-        # Draw mask texture inputs if any exist.
+        # Draw properties for any textures used in the mask.
         for node in mask_node.node_tree.nodes:
-            if node.bl_static_type == 'TEX_IMAGE' and node.name not in baking.MESH_MAP_TYPES:
-                row = layout.row(align=True)
-                row.prop(node, "image", text=node.label)
+            if node.bl_static_type == 'TEX_IMAGE' and node.label not in baking.MESH_MAP_TYPES:
+                split = layout.split(factor=0.4)
+                first_column = split.column()
+                second_column = split.column()
+
+                row = first_column.row()
+                row.label(text=node.label)
+
+                row = second_column.row(align=True)
+                row.prop(node, "image", text="")
                 row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+
+                if node.projection == 'BOX':
+                    row = layout.row()
+                    row.prop(node, "projection_blend", text=node.label + " Blending")
 
         # Draw mask projection options if it exists.
         row = layout.row()
@@ -355,7 +366,7 @@ def draw_layer_masks(layout):
             mesh_map_node = layer_masks.get_mask_node(mesh_map_name, selected_layer_index, selected_mask_index)
             if mesh_map_node:
                 if mesh_map_node.bl_static_type == 'TEX_IMAGE':
-                    split = layout.split(factor=0.5)
+                    split = layout.split(factor=0.4)
                     first_column = split.column()
                     second_column = split.column()
 
@@ -365,9 +376,10 @@ def draw_layer_masks(layout):
                     map_display_name = re.sub(r'\b[a-z]', lambda m: m.group().upper(), map_display_name.capitalize())
                     row.label(text=map_display_name)
 
-                    row = second_column.row()
+                    row = second_column.row(align=True)
                     row.scale_y = DEFAULT_UI_SCALE_Y
                     row.prop(mesh_map_node, "image", text="")
+                    row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
