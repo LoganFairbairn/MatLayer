@@ -102,19 +102,26 @@ def draw_material_property_tabs(layout):
 
 def draw_layer_material_channel_toggles(layout):
     '''Draws on / off toggles for individual material channels.'''
+    texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+
     row = layout.row()
     row.separator()
     row.scale_y = 2.5
-
     row = layout.row()
-    row.alignment = 'LEFT'
     row.label(text="CHANNEL TOGGLES")
 
     row = layout.row()
     row.scale_y = DEFAULT_UI_SCALE_Y
     drawn_toggles = 0
+    
     for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
+
+        # Do not draw toggles for globally inactive material channels.
+        material_channel_active = getattr(texture_set_settings.global_material_channel_toggles, "{0}_channel_toggle".format(material_channel_name.lower()))
+        if not material_channel_active:
+            continue
+
         mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, material_channel_name)
         if mix_node:
             row.prop(mix_node, "mute", text=material_channel_name, toggle=True, invert_checkbox=True)
@@ -126,19 +133,12 @@ def draw_layer_material_channel_toggles(layout):
 
 def draw_material_channel_properties(layout):
     '''Draws properties for all active material channels on selected material layer.'''
-    row = layout.row()
-    row.separator()
-    row.scale_y = 2.5
-    row = layout.row()
-    row.label(text="CHANNEL PROPERTIES")
-
     layers = bpy.context.scene.matlayer_layers
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
     # Avoid drawing material channel properties for invalid layers.
     if material_layers.get_material_layer_node('LAYER', selected_layer_index) == None or len(layers) <= 0:
         return
-
     for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
 
         # Do not draw properties for globally inactive material channels.
@@ -152,6 +152,10 @@ def draw_material_channel_properties(layout):
         if mix_node:
             if mix_node.mute:
                 continue
+            
+        row = layout.row()
+        row.separator()
+        row.scale_y = 2.5
 
         row = layout.row()
         row.scale_y = DEFAULT_UI_SCALE_Y
