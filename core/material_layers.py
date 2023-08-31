@@ -3,7 +3,10 @@
 import bpy
 from bpy.types import PropertyGroup, Operator
 from bpy.props import BoolProperty, IntProperty, EnumProperty, StringProperty, PointerProperty
-from . import blender_addon_utils
+from ..core import layer_masks
+from ..core import baking
+from ..core import blender_addon_utils
+from ..core import debug_logging
 import random
 
 # List of node types that can be used in the texture slot.
@@ -337,6 +340,21 @@ def reindex_layer_nodes(change_made, affected_layer_index):
                 layer_node.name = str(int(layer_node.name) - 1)
                 split_node_tree_name = layer_node.node_tree.name.split('_')
                 layer_node.node_tree.name = "{0}_{1}".format(split_node_tree_name[0], str(int(split_node_tree_name[1]) - 1))
+
+def apply_mesh_maps():
+    '''Searches for all mesh map texture nodes in the node tree and applies mesh maps if they exist.'''
+    # Apply baked mesh maps to all group nodes used as masks for all material layers.
+    layers = bpy.context.scene.matlayer_layers
+    for layer_index in range(0, len(layers)):
+        mask_count = layer_masks.count_masks(layer_index)
+        for mask_index in range(0, mask_count):
+            for mesh_map_type in baking.MESH_MAP_TYPES:
+                mask_node = layer_masks.get_mask_node('MASK', layer_index, mask_index)
+                mesh_map_node = mask_node.node_tree.get(mesh_map_type)
+                if mesh_map_node:
+                    if mesh_map_node.bl_static_type == 'TEX_IMAGE':
+                        mesh_map_node.image = baking.get_meshmap_image(bpy.context.active_object.name, mesh_map_type)
+    debug_logging.log("Applied baked mesh maps.")
 
 #----------------------------- OPERATORS -----------------------------#
 

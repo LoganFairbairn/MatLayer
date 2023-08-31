@@ -5,8 +5,9 @@ import bpy
 from bpy.types import Operator
 from bpy.props import BoolProperty, FloatProperty, IntProperty, StringProperty, PointerProperty, EnumProperty
 from .texture_set_settings import TEXTURE_SET_RESOLUTIONS
-from . import blender_addon_utils
-from . import debug_logging
+from ..core import material_layers
+from ..core import blender_addon_utils
+from ..core import debug_logging
 
 MESH_MAP_TYPES = ("AMBIENT_OCCLUSION", "CURVATURE", "THICKNESS", "NORMALS", "WORLD_SPACE_NORMALS")
 
@@ -485,6 +486,8 @@ class MATLAYER_OT_bake_mesh_map(Operator):
         # Reset the render engine.
         bpy.context.scene.render.engine = self._original_render_engine
 
+        material_layers.apply_mesh_maps()
+
         self.report({'INFO'}, "Baking mesh map completed.")
 
 class MATLAYER_OT_batch_bake(Operator):
@@ -618,8 +621,9 @@ class MATLAYER_OT_batch_bake(Operator):
 
         # Reset the render engine.
         bpy.context.scene.render.engine = self._original_render_engine
-
+        
         debug_logging.log_status("Baking mesh map completed.", self, 'INFO')
+        material_layers.apply_mesh_maps()
 
 class MATLAYER_OT_open_bake_folder(Operator):
     bl_idname = "matlayer.open_bake_folder"

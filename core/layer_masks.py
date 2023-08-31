@@ -74,6 +74,13 @@ def get_mask_node(node_name, layer_index, mask_index, get_changed=False):
                 return node_tree.nodes.get('WORLD_SPACE_NORMALS')
             return None
 
+def count_masks(layer_index):
+    '''Counts the total number of masks by applied to the layer with the specified index by reading the material node tree.'''
+    mask_count = 0
+    while get_mask_node('MASK', layer_index, mask_count):
+        mask_count += 1
+    return mask_count
+
 def add_mask_slot():
     '''Adds a new mask slot to the mask stack.'''
     masks = bpy.context.scene.matlayer_masks
@@ -129,18 +136,10 @@ def add_layer_mask(type):
             new_mask_group_node.label = "Edge Wear"
             new_mask_group_node.hide = True
     
-    apply_mesh_maps(new_mask_group_node.node_tree)
+    material_layers.apply_mesh_maps()
     reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
     organize_mask_nodes()
     link_mask_nodes(selected_layer_index)
-
-def apply_mesh_maps(node_tree):
-    '''Searches for all mesh map texture nodes in the node tree and applies mesh maps if they exist.'''
-    for map_type in baking.MESH_MAP_TYPES:
-        mesh_map_node = node_tree.nodes.get(map_type)
-        if mesh_map_node:
-            if mesh_map_node.bl_static_type == 'TEX_IMAGE':
-                mesh_map_node.image = baking.get_meshmap_image(bpy.context.active_object.name, map_type)
 
 def reindex_masks(change_made, layer_index, affected_mask_index):
     '''Reindexes mask nodes and node trees. This should be called after a change is made that effects the mask stack order (adding, duplicating, deleting, or moving a mask).'''
