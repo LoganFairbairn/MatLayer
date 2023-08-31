@@ -137,6 +137,19 @@ def draw_material_channel_properties(layout):
         return
 
     for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
+
+        # Do not draw properties for globally inactive material channels.
+        texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
+        material_channel_active = getattr(texture_set_settings.global_material_channel_toggles, "{0}_channel_toggle".format(material_channel_name.lower()))
+        if not material_channel_active:
+            continue
+
+        # Do no draw properties for material channels inactive on this material layer.
+        mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, material_channel_name)
+        if mix_node:
+            if mix_node.mute:
+                continue
+
         row = layout.row()
         row.scale_y = 2.5
         row.separator()
