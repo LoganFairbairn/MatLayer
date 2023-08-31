@@ -251,9 +251,9 @@ def draw_layer_projection(layout):
                 row.label(text="Offset")
                 row = second_column.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('Offset'), "default_value", text="X", slider=True, index=0)
+                row.prop(projection_node.inputs.get('OffsetX'), "default_value", text="X", slider=True)
                 row.prop(layers[selected_layer_index].projection, "sync_projection_scale", text="", icon='LOCKED')
-                row.prop(projection_node.inputs.get('Offset'), "default_value", text="Y", slider=True, index=1)
+                row.prop(projection_node.inputs.get('OffsetY'), "default_value", text="Y", slider=True)
 
                 row = first_column.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
@@ -267,8 +267,8 @@ def draw_layer_projection(layout):
                 row.label(text="Scale")
                 row = second_column.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('Scale'), "default_value", text="X", slider=True, index=0)
-                row.prop(projection_node.inputs.get('Scale'), "default_value", text="Y", slider=True, index=1)
+                row.prop(projection_node.inputs.get('ScaleX'), "default_value", text="X", slider=True)
+                row.prop(projection_node.inputs.get('ScaleY'), "default_value", text="Y", slider=True)
 
             case 'TRIPLANAR':
                 row = first_column.row()
@@ -276,9 +276,9 @@ def draw_layer_projection(layout):
                 row.label(text="Offset")
                 row = second_column.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('Offset'), "default_value", text="", slider=True, index=0)
-                row.prop(projection_node.inputs.get('Offset'), "default_value", text="", slider=True, index=1)
-                row.prop(projection_node.inputs.get('Offset'), "default_value", text="", slider=True, index=2)
+                row.prop(projection_node.inputs.get('OffsetX'), "default_value", text="", slider=True)
+                row.prop(projection_node.inputs.get('OffsetY'), "default_value", text="", slider=True)
+                row.prop(projection_node.inputs.get('OffsetZ'), "default_value", text="", slider=True)
                 row.prop(layers[selected_layer_index].projection, "sync_projection_scale", text="", icon='LOCKED')
 
                 row = first_column.row()
@@ -286,18 +286,18 @@ def draw_layer_projection(layout):
                 row.label(text="Rotation")
                 row = second_column.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('Rotation'), "default_value", text="", slider=True, index=0)
-                row.prop(projection_node.inputs.get('Rotation'), "default_value", text="", slider=True, index=1)
-                row.prop(projection_node.inputs.get('Rotation'), "default_value", text="", slider=True, index=2)
+                row.prop(projection_node.inputs.get('RotationX'), "default_value", text="", slider=True)
+                row.prop(projection_node.inputs.get('RotationY'), "default_value", text="", slider=True)
+                row.prop(projection_node.inputs.get('RotationZ'), "default_value", text="", slider=True)
 
                 row = first_column.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.label(text="Scale")
                 row = second_column.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('Scale'), "default_value", text="", slider=True, index=0)
-                row.prop(projection_node.inputs.get('Scale'), "default_value", text="", slider=True, index=1)
-                row.prop(projection_node.inputs.get('Scale'), "default_value", text="", slider=True, index=2)
+                row.prop(projection_node.inputs.get('ScaleX'), "default_value", text="", slider=True)
+                row.prop(projection_node.inputs.get('ScaleY'), "default_value", text="", slider=True)
+                row.prop(projection_node.inputs.get('ScaleZ'), "default_value", text="", slider=True)
 
 def draw_layer_masks(layout):
     row = layout.row(align=True)
