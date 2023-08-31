@@ -4,7 +4,9 @@ import bpy
 from bpy.types import Operator
 from ..core import material_layers
 from ..core import layer_masks
+from ..core import baking
 from ..ui import ui_section_tabs
+import re
 
 DEFAULT_UI_SCALE_Y = 1
 
@@ -275,12 +277,9 @@ def draw_material_filters(layout):
     row.scale_y = 2
 
 def draw_layer_masks(layout):
-    row = layout.row()
-    row.scale_y = DEFAULT_UI_SCALE_Y
-    row.label(text="MASKS")
     row = layout.row(align=True)
     row.scale_x = 10
-    row.scale_y = DEFAULT_UI_SCALE_Y + 0.6
+    row.scale_y = DEFAULT_UI_SCALE_Y + 1.0
     row.operator("matlayer.add_layer_mask_menu", icon="ADD", text="")
     row.operator("matlayer.move_layer_mask_up", icon="TRIA_UP", text="")
     row.operator("matlayer.move_layer_mask_down", icon="TRIA_DOWN", text="")
@@ -295,10 +294,38 @@ def draw_layer_masks(layout):
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
     mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, selected_mask_index)
     if mask_node:
+        row = layout.row()
+        row.scale_y = DEFAULT_UI_SCALE_Y
+        row.label(text="{0} PROPERTIES".format(mask_node.label))
         for i in range(0, len(mask_node.inputs)):
-            row = layout.row()
-            row.scale_y = DEFAULT_UI_SCALE_Y
-            row.prop(mask_node.inputs[i], "default_value", text=mask_node.inputs[i].name)
+            if mask_node.inputs[i].name != 'Mix':
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.prop(mask_node.inputs[i], "default_value", text=mask_node.inputs[i].name)
+
+        # Draw mesh maps for the selected mask if any exist.
+        row = layout.row()
+        row.separator()
+        row = layout.row()
+        row.scale_y = DEFAULT_UI_SCALE_Y
+        row.label(text="MESH MAPS")
+        for mesh_map_name in baking.MESH_MAP_TYPES:
+            mesh_map_node = layer_masks.get_mask_node(mesh_map_name, selected_layer_index, selected_mask_index)
+            if mesh_map_node:
+                if mesh_map_node.bl_static_type == 'TEX_IMAGE':
+                    split = layout.split(factor=0.5)
+                    first_column = split.column()
+                    second_column = split.column()
+
+                    row = first_column.row()
+                    row.scale_y = DEFAULT_UI_SCALE_Y
+                    map_display_name = mesh_map_name.replace('_', ' ')
+                    map_display_name = re.sub(r'\b[a-z]', lambda m: m.group().upper(), map_display_name.capitalize())
+                    row.label(text=map_display_name)
+
+                    row = second_column.row()
+                    row.scale_y = DEFAULT_UI_SCALE_Y
+                    row.prop(mesh_map_node, "image", text="")
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""

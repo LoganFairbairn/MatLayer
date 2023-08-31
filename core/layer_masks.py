@@ -52,6 +52,27 @@ def get_mask_node(node_name, layer_index, mask_index, get_changed=False):
             if node_tree:
                 return node_tree.nodes.get('CURVATURE')
             return None
+        
+        case 'THICKNESS':
+            mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
+            node_tree = bpy.data.node_groups.get(mask_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('THICKNESS')
+            return None
+        
+        case 'NORMALS':
+            mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
+            node_tree = bpy.data.node_groups.get(mask_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('NORMALS')
+            return None
+        
+        case 'WORLD_SPACE_NORMALS':
+            mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
+            node_tree = bpy.data.node_groups.get(mask_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('WORLD_SPACE_NORMALS')
+            return None
 
 def add_mask_slot():
     '''Adds a new mask slot to the mask stack.'''
