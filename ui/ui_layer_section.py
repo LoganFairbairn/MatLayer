@@ -12,8 +12,6 @@ DEFAULT_UI_SCALE_Y = 1
 
 MATERIAL_LAYER_PROPERTY_TABS = [
     ("MATERIAL", "MATERIAL", "Properties for the selected material layer"),
-    ("PROJECTION", "PROJECTION", "Projection properties for the selected material layer"),
-    ("FILTERS", "FILTERS", "Filter properties for the selected material layer"),
     ("MASKS", "MASKS", "Properties for masks applied to the selected material layer")
 ]
 
@@ -28,13 +26,9 @@ def draw_layers_section_ui(self, context):
     draw_material_property_tabs(column_one)
     match bpy.context.scene.matlayer_material_property_tabs:
         case 'MATERIAL':
+            draw_layer_projection(column_one)
             draw_layer_material_channel_toggles(column_one)
             draw_material_channel_properties(column_one)
-
-        case 'PROJECTION':
-            draw_layer_projection(column_one)
-
-        case 'FILTERS':
             draw_material_filters(column_one)
 
         case 'MASKS':
@@ -104,8 +98,6 @@ def draw_material_property_tabs(layout):
     row = layout.row(align=True)
     row.scale_y = 1.5
     row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MATERIAL')
-    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'PROJECTION')
-    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'FILTERS')
     row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MASKS')
 
 def draw_layer_material_channel_toggles(layout):
@@ -113,6 +105,10 @@ def draw_layer_material_channel_toggles(layout):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     row = layout.row()
     row.separator()
+
+    row = layout.row()
+    row.alignment = 'LEFT'
+    row.label(text="CHANNEL TOGGLES")
 
     row = layout.row()
     row.scale_y = 1.4
@@ -129,6 +125,12 @@ def draw_layer_material_channel_toggles(layout):
 
 def draw_material_channel_properties(layout):
     '''Draws properties for all active material channels on selected material layer.'''
+    row = layout.row()
+    row.separator()
+    row.scale_y = 2.5
+    row = layout.row()
+    row.label(text="CHANNEL PROPERTIES")
+
     layers = bpy.context.scene.matlayer_layers
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
@@ -149,10 +151,6 @@ def draw_material_channel_properties(layout):
         if mix_node:
             if mix_node.mute:
                 continue
-
-        row = layout.row()
-        row.scale_y = 2.5
-        row.separator()
 
         row = layout.row()
         row.scale_y = DEFAULT_UI_SCALE_Y
@@ -199,8 +197,9 @@ def draw_material_channel_properties(layout):
 
 def draw_layer_projection(layout):
     row = layout.row()
+    row.alignment = 'LEFT'
     row.scale_y = DEFAULT_UI_SCALE_Y
-    row.label(text="PROJECTION")
+    row.label(text="LAYER PROJECTION")
 
     layers = bpy.context.scene.matlayer_layers
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
@@ -210,10 +209,10 @@ def draw_layer_projection(layout):
     second_column = split.column()
 
     row = first_column.row()
-    row.scale_y = 1.4
+    row.scale_y = DEFAULT_UI_SCALE_Y
     row.label(text="Mode")
     row = second_column.row()
-    row.scale_y = 1.4
+    row.scale_y = DEFAULT_UI_SCALE_Y
     row.prop(layers[selected_layer_index].projection, "mode", text="", slider=True, index=0)
 
     projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
@@ -221,60 +220,64 @@ def draw_layer_projection(layout):
         match layers[selected_layer_index].projection.mode:
             case 'UV':
                 row = first_column.row()
-                row.scale_y = 1.4
+                row.scale_y = DEFAULT_UI_SCALE_Y
                 row.label(text="Offset")
                 row = second_column.row()
-                row.scale_y = 1.4
+                row.scale_y = DEFAULT_UI_SCALE_Y
                 row.prop(projection_node.inputs.get('Offset'), "default_value", text="X", slider=True, index=0)
                 row.prop(layers[selected_layer_index].projection, "sync_projection_scale", text="", icon='LOCKED')
                 row.prop(projection_node.inputs.get('Offset'), "default_value", text="Y", slider=True, index=1)
 
                 row = first_column.row()
-                row.scale_y = 1.4
+                row.scale_y = DEFAULT_UI_SCALE_Y
                 row.label(text="Rotation")
                 row = second_column.row()
-                row.scale_y = 1.4
+                row.scale_y = DEFAULT_UI_SCALE_Y
                 row.prop(projection_node.inputs.get('Rotation'), "default_value", text="", slider=True)
 
                 row = first_column.row()
-                row.scale_y = 1.4
+                row.scale_y = DEFAULT_UI_SCALE_Y
                 row.label(text="Scale")
                 row = second_column.row()
-                row.scale_y = 1.4
+                row.scale_y = DEFAULT_UI_SCALE_Y
                 row.prop(projection_node.inputs.get('Scale'), "default_value", text="X", slider=True, index=0)
                 row.prop(projection_node.inputs.get('Scale'), "default_value", text="Y", slider=True, index=1)
 
             case 'TRIPLANAR':
                 row = first_column.row()
-                row.scale_y = 1.4
+                row.scale_y = DEFAULT_UI_SCALE_Y
                 row.label(text="Offset")
                 row = second_column.row()
-                row.scale_y = 1.4
+                row.scale_y = DEFAULT_UI_SCALE_Y
                 row.prop(projection_node.inputs.get('Offset'), "default_value", text="", slider=True, index=0)
                 row.prop(projection_node.inputs.get('Offset'), "default_value", text="", slider=True, index=1)
                 row.prop(projection_node.inputs.get('Offset'), "default_value", text="", slider=True, index=2)
                 row.prop(layers[selected_layer_index].projection, "sync_projection_scale", text="", icon='LOCKED')
 
                 row = first_column.row()
-                row.scale_y = 1.4
+                row.scale_y = DEFAULT_UI_SCALE_Y
                 row.label(text="Rotation")
                 row = second_column.row()
-                row.scale_y = 1.4
+                row.scale_y = DEFAULT_UI_SCALE_Y
                 row.prop(projection_node.inputs.get('Rotation'), "default_value", text="", slider=True, index=0)
                 row.prop(projection_node.inputs.get('Rotation'), "default_value", text="", slider=True, index=1)
                 row.prop(projection_node.inputs.get('Rotation'), "default_value", text="", slider=True, index=2)
 
                 row = first_column.row()
-                row.scale_y = 1.4
+                row.scale_y = DEFAULT_UI_SCALE_Y
                 row.label(text="Scale")
                 row = second_column.row()
-                row.scale_y = 1.4
+                row.scale_y = DEFAULT_UI_SCALE_Y
                 row.prop(projection_node.inputs.get('Scale'), "default_value", text="", slider=True, index=0)
                 row.prop(projection_node.inputs.get('Scale'), "default_value", text="", slider=True, index=1)
                 row.prop(projection_node.inputs.get('Scale'), "default_value", text="", slider=True, index=2)
 
 def draw_material_filters(layout):
     row = layout.row()
+    row.scale_y = 2.5
+    row.separator()
+    row = layout.row()
+    row.alignment = 'LEFT'
     row.scale_y = DEFAULT_UI_SCALE_Y
     row.label(text="MATERIAL FILTERS")
     row = layout.row(align=True)
