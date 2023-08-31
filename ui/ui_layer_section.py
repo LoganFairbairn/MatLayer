@@ -296,7 +296,7 @@ def draw_layer_masks(layout):
     if mask_node:
         row = layout.row()
         row.scale_y = DEFAULT_UI_SCALE_Y
-        row.label(text="{0} PROPERTIES".format(mask_node.label))
+        row.label(text="MASK PROPERTIES")
         for i in range(0, len(mask_node.inputs)):
             if mask_node.inputs[i].name != 'Mix':
                 row = layout.row()
