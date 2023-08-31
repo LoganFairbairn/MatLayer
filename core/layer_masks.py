@@ -216,6 +216,15 @@ def link_mask_nodes(layer_index):
     if last_mask_node and last_mask_node:
         node_tree.links.new(last_mask_node.outputs[0], layer_node.inputs.get('LayerMask'))
 
+def refresh_mask_slots():
+    '''Refreshes the number of mask slots in the mask stack by counting the number of mask nodes in the active materials node tree.'''
+    masks = bpy.context.scene.matlayer_masks
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    masks.clear()
+    mask_count = count_masks(selected_layer_index)
+    for i in range(0, mask_count):
+        masks.add()
+
 class MATLAYER_mask_stack(PropertyGroup):
     '''Properties for the layer stack.'''
     selected_index: IntProperty(default=-1, description="Selected material filter index")

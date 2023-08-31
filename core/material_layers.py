@@ -61,6 +61,10 @@ MATERIAL_LAYER_TYPES = [
 
 #----------------------------- UPDATING PROPERTIES -----------------------------#
 
+def update_layer_index(self, context):
+    '''Updates properties and user interface when a new layer is selected.'''
+    layer_masks.refresh_mask_slots()
+
 def replace_material_channel_node(material_channel_name, node_type):
     '''Replaces the existing material channel node with a new node of the given type.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
@@ -358,7 +362,7 @@ def apply_mesh_maps():
 
 class MATLAYER_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''
-    selected_layer_index: IntProperty(default=-1, description="Selected material layer")
+    selected_layer_index: IntProperty(default=-1, description="Selected material layer", update=update_layer_index)
     material_channel_preview: BoolProperty(name="Material Channel Preview", description="If true, only the rgb output values for the selected material channel will be used on the object.", default=False)
     selected_material_channel: EnumProperty(items=MATERIAL_CHANNEL, name="Material Channel", description="The currently selected material channel", default='COLOR')
 
