@@ -377,15 +377,18 @@ def draw_layer_masks(layout):
             row.prop(mask_projection_node.inputs.get('ScaleY'), "default_value", text="Y", slider=True)
 
         # Draw any mesh maps used for this mask.
-        row = layout.row()
-        row.separator()
-        row = layout.row()
-        row.scale_y = DEFAULT_UI_SCALE_Y
-        row.label(text="MESH MAPS")
-
+        drew_title = False
         for mesh_map_name in baking.MESH_MAP_TYPES:
             mesh_map_texture_node = layer_masks.get_mask_node(mesh_map_name, selected_layer_index, selected_mask_index)
             if mesh_map_texture_node:
+                if not drew_title:
+                    row = layout.row()
+                    row.separator()
+                    row = layout.row()
+                    row.scale_y = DEFAULT_UI_SCALE_Y
+                    row.label(text="MESH MAPS")
+                    drew_title = True
+
                 split = layout.split(factor=0.4)
                 first_column = split.column()
                 second_column = split.column()
