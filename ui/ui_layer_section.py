@@ -340,6 +340,8 @@ def draw_layer_masks(layout):
 
                 row = second_column.row(align=True)
                 row.prop(node, "image", text="")
+                row.context_pointer_set("node_tree", mask_node.node_tree)
+                row.context_pointer_set("node", node)
                 row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
         # Draw mask projection options if it exists.
