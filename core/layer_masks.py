@@ -45,7 +45,14 @@ def get_mask_node(node_name, layer_index, mask_index, get_changed=False):
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
                 return node_tree.nodes.get('MASK_TEXTURE')
-            return None   
+            return None
+        
+        case 'BLUR':
+            mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
+            node_tree = bpy.data.node_groups.get(mask_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('BLUR')
+            return None        
 
         case 'AMBIENT_OCCLUSION':
             mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)

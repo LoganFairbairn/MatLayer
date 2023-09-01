@@ -344,6 +344,17 @@ def draw_layer_masks(layout):
                 row.context_pointer_set("node", node)
                 row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
+        # Draw blur options if they exist.
+        blur_node = layer_masks.get_mask_node('BLUR', selected_layer_index, selected_mask_index)
+        if blur_node:
+            row = layout.row()
+            row.scale_y = DEFAULT_UI_SCALE_Y
+            if blur_node.mute == False:
+                row.prop(blur_node, "mute", toggle=True, invert_checkbox=True, text="", icon='CHECKBOX_HLT')
+            else:
+                row.prop(blur_node, "mute", toggle=True, invert_checkbox=True, text="", icon='CHECKBOX_DEHLT')
+            row.prop(blur_node.inputs.get('Blur Amount'), "default_value", text="Blur")
+
         # Draw mask projection options if it exists.
         row = layout.row()
         row.separator()
