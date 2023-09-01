@@ -2,6 +2,7 @@ import bpy
 from bpy.types import PropertyGroup, Operator
 from bpy.props import BoolProperty, IntProperty, EnumProperty, StringProperty, PointerProperty
 import random
+from ..core import texture_set_settings as tss
 from ..core import material_layers
 from ..core import baking
 from ..core import blender_addon_utils
@@ -39,6 +40,13 @@ def get_mask_node(node_name, layer_index, mask_index, get_changed=False):
                 return node_tree.nodes.get('PROJECTION')
             return None
         
+        case 'TEXTURE':
+            mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
+            node_tree = bpy.data.node_groups.get(mask_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('MASK_TEXTURE')
+            return None   
+
         case 'AMBIENT_OCCLUSION':
             mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
@@ -121,10 +129,54 @@ def add_layer_mask(type):
     new_mask_group_node = None
     match type:
         case 'BLACK':
-            print("Placeholder...")
+            default_node_group = blender_addon_utils.append_node_group("ML_ImageMask", never_auto_delete=True)
+            default_node_group.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
+
+            new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+            new_mask_group_node.node_tree = default_node_group
+            new_mask_group_node.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
+            new_mask_group_node.label = "Image Mask"
+
+            image_name = "Mask_" + str(random.randrange(10000,99999))
+            while bpy.data.images.get(image_name) != None:
+                image_name = "Mask_" + str(random.randrange(10000,99999))
+            bpy.ops.image.new(name=image_name, 
+                              width=tss.get_texture_width(), 
+                              height=tss.get_texture_height(), 
+                              color=(0.0, 0.0, 0.0, 1.0), 
+                              alpha=False, generated_type='BLANK', 
+                              float=True, 
+                              use_stereo_3d=False, 
+                              tiled=False)
+            
+            texture_node = get_mask_node('TEXTURE', selected_layer_index, new_mask_slot_index)
+            if texture_node:
+                texture_node.image = bpy.data.images.get(image_name)
 
         case 'WHITE':
-            print("Placeholder...")
+            default_node_group = blender_addon_utils.append_node_group("ML_ImageMask", never_auto_delete=True)
+            default_node_group.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
+
+            new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+            new_mask_group_node.node_tree = default_node_group
+            new_mask_group_node.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
+            new_mask_group_node.label = "Image Mask"
+
+            image_name = "Mask_" + str(random.randrange(10000,99999))
+            while bpy.data.images.get(image_name) != None:
+                image_name = "Mask_" + str(random.randrange(10000,99999))
+            bpy.ops.image.new(name=image_name, 
+                              width=tss.get_texture_width(), 
+                              height=tss.get_texture_height(), 
+                              color=(1.0, 1.0, 1.0, 1.0), 
+                              alpha=False, generated_type='BLANK', 
+                              float=True, 
+                              use_stereo_3d=False, 
+                              tiled=False)
+            
+            texture_node = get_mask_node('TEXTURE', selected_layer_index, new_mask_slot_index)
+            if texture_node:
+                texture_node.image = bpy.data.images.get(image_name)
 
         case 'EDGE_WEAR':
             default_node_group = blender_addon_utils.append_node_group("ML_EdgeWear", never_auto_delete=True)
@@ -288,6 +340,7 @@ class MATLAYER_OT_add_black_layer_mask(Operator):
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
+        add_layer_mask('BLACK')
         return {'FINISHED'}
     
 class MATLAYER_OT_add_white_layer_mask(Operator):
@@ -303,6 +356,7 @@ class MATLAYER_OT_add_white_layer_mask(Operator):
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
+        add_layer_mask('WHITE')
         return {'FINISHED'}
 
 class MATLAYER_OT_add_edge_wear_mask(Operator):

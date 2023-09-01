@@ -359,9 +359,9 @@ def draw_layer_masks(layout):
             row.label(text="Offset")
             row = second_column.row()
             row.scale_y = DEFAULT_UI_SCALE_Y
-            row.prop(mask_projection_node.inputs.get('Offset'), "default_value", text="X", slider=True, index=0)
+            row.prop(mask_projection_node.inputs.get('OffsetX'), "default_value", text="X", slider=True)
             row.prop(masks[selected_mask_index], "sync_projection_scale", text="", icon='LOCKED')
-            row.prop(mask_projection_node.inputs.get('Offset'), "default_value", text="Y", slider=True, index=1)
+            row.prop(mask_projection_node.inputs.get('OffsetY'), "default_value", text="Y", slider=True)
 
             row = first_column.row()
             row.label(text="Rotation")
@@ -373,8 +373,8 @@ def draw_layer_masks(layout):
             row.label(text="Scale")
             row = second_column.row()
             row.scale_y = DEFAULT_UI_SCALE_Y
-            row.prop(mask_projection_node.inputs.get('Scale'), "default_value", text="X", slider=True, index=0)
-            row.prop(mask_projection_node.inputs.get('Scale'), "default_value", text="Y", slider=True, index=1)
+            row.prop(mask_projection_node.inputs.get('ScaleX'), "default_value", text="X", slider=True)
+            row.prop(mask_projection_node.inputs.get('ScaleY'), "default_value", text="Y", slider=True)
 
         # Draw any mesh maps used for this mask.
         row = layout.row()
