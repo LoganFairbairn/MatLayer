@@ -149,6 +149,11 @@ def add_layer_mask(type):
                               use_stereo_3d=False, 
                               tiled=False)
             
+            reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
+            organize_mask_nodes()
+            link_mask_nodes(selected_layer_index)
+            material_layers.apply_mesh_maps()
+
             texture_node = get_mask_node('TEXTURE', selected_layer_index, new_mask_slot_index)
             if texture_node:
                 texture_node.image = bpy.data.images.get(image_name)
@@ -174,6 +179,11 @@ def add_layer_mask(type):
                               use_stereo_3d=False, 
                               tiled=False)
             
+            reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
+            organize_mask_nodes()
+            link_mask_nodes(selected_layer_index)
+            material_layers.apply_mesh_maps()
+
             texture_node = get_mask_node('TEXTURE', selected_layer_index, new_mask_slot_index)
             if texture_node:
                 texture_node.image = bpy.data.images.get(image_name)
@@ -187,10 +197,10 @@ def add_layer_mask(type):
             new_mask_group_node.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
             new_mask_group_node.label = "Edge Wear"
     
-    material_layers.apply_mesh_maps()
-    reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
-    organize_mask_nodes()
-    link_mask_nodes(selected_layer_index)
+            reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
+            organize_mask_nodes()
+            link_mask_nodes(selected_layer_index)
+            material_layers.apply_mesh_maps()
 
 def reindex_masks(change_made, layer_index, affected_mask_index):
     '''Reindexes mask nodes and node trees. This should be called after a change is made that effects the mask stack order (adding, duplicating, deleting, or moving a mask).'''
