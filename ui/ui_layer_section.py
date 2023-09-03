@@ -30,9 +30,9 @@ def draw_layers_section_ui(self, context):
             case 'MATERIAL':
                 draw_layer_utilities(column_one)
                 draw_layer_projection(column_one)
-                draw_layer_blur_settings(column_one)
                 draw_layer_material_channel_toggles(column_one)
                 draw_material_channel_properties(column_one)
+                draw_layer_properties(column_one)
 
             case 'MASKS':
                 draw_layer_masks(column_one)
@@ -426,10 +426,6 @@ def draw_layer_masks(layout):
                 row.prop(mesh_map_texture_node, "image", text="")
 
 def draw_layer_blur_settings(layout):
-    row = layout.row()
-    row.separator()
-    row.scale_y = 2.5
-
     texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     blur_node = material_layers.get_material_layer_node('LAYER_BLUR', selected_layer_index)
@@ -440,7 +436,7 @@ def draw_layer_blur_settings(layout):
             row.prop(blur_node, "mute", text="", icon='CHECKBOX_DEHLT', invert_checkbox=True)
         else:
             row.prop(blur_node, "mute", text="", icon='CHECKBOX_HLT', invert_checkbox=True)
-        row.label(text="Blur")
+        row.prop(blur_node.inputs.get('Blur Amount'), "default_value", text="Blur Amount")
 
         if not blur_node.mute:
             row = layout.row()
@@ -461,8 +457,15 @@ def draw_layer_blur_settings(layout):
                         row.scale_y = DEFAULT_UI_SCALE_Y
                         drawn_toggles = 0
 
-            row = layout.row()
-            row.prop(blur_node.inputs.get('Blur Amount'), "default_value", text="Blur Amount")
+def draw_layer_properties(layout):
+    '''Draws properties specific to the selected layer such as blurring, or decal properties.'''
+    row = layout.row()
+    row.separator()
+    row.scale_y = 2.5
+
+    row = layout.row()
+    row.label(text="LAYER PROPERTIES")
+    draw_layer_blur_settings(layout)
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
