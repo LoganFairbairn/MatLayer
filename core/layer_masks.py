@@ -7,6 +7,14 @@ from ..core import material_layers
 from ..core import baking
 from ..core import blender_addon_utils
 
+def update_selected_mask_index(self, context):
+    '''Updates properties when the selected mask slot is changed.'''
+    selected_layer_index = context.scene.matlayer_layer_stack.selected_layer_index
+    selected_mask_index = context.scene.matlayer_mask_stack.selected_index
+    mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
+    if mask_texture_node:
+        context.scene.tool_settings.image_paint.canvas = mask_texture_node.image
+
 def format_mask_name(active_material_name, layer_index, mask_index):
     '''Returns a properly formatted name for a mask node created with this add-on.'''
     return "{0}_{1}_{2}".format(active_material_name, str(layer_index), str(mask_index))
@@ -296,7 +304,7 @@ def refresh_mask_slots():
 
 class MATLAYER_mask_stack(PropertyGroup):
     '''Properties for the layer stack.'''
-    selected_index: IntProperty(default=-1, description="Selected material filter index")
+    selected_index: IntProperty(default=-1, description="Selected material filter index", update=update_selected_mask_index)
 
 class MATLAYER_masks(PropertyGroup):
     hidden: BoolProperty(name="Hidden", description="Show if the layer is hidden")
