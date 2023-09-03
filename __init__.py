@@ -42,7 +42,8 @@ from .core.baking import MATLAYER_baking_settings, MATLAYER_OT_bake_mesh_map, MA
 from .core.exporting import MATLAYER_exporting_settings, MATLAYER_OT_export, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, ExportTemplateMenu, set_export_template
 
 # Utilities
-from .core.image_utilities import MATLAYER_OT_add_texture_node_image, MATLAYER_OT_import_texture_node_image, MATLAYER_OT_import_texture_set, MATLAYER_OT_edit_texture_node_image_externally, MATLAY_OT_export_uvs, MATLAYER_OT_reload_texture_node_image, MATLAYER_OT_delete_texture_node_image
+from .core.image_utilities import MATLAYER_OT_add_texture_node_image, MATLAYER_OT_import_texture_node_image, MATLAYER_OT_edit_texture_node_image_externally, MATLAY_OT_export_uvs, MATLAYER_OT_reload_texture_node_image, MATLAYER_OT_delete_texture_node_image
+from .core.layer_utilities import MATLAYER_OT_import_texture_set, MATLAYER_OT_merge_materials
 from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLAYER_OT_append_workspace, MATLAYER_OT_append_basic_brushes
 
 # User Interface
@@ -128,11 +129,14 @@ classes = (
     # Image Utilities
     MATLAYER_OT_add_texture_node_image, 
     MATLAYER_OT_import_texture_node_image, 
-    MATLAYER_OT_import_texture_set,
     MATLAYER_OT_edit_texture_node_image_externally,
     MATLAY_OT_export_uvs,
     MATLAYER_OT_reload_texture_node_image, 
     MATLAYER_OT_delete_texture_node_image,
+
+    # Layer Utilities
+    MATLAYER_OT_import_texture_set,
+    MATLAYER_OT_merge_materials,
 
     # Texture Set Settings
     GlobalMaterialChannelToggles,

@@ -28,6 +28,7 @@ def draw_layers_section_ui(self, context):
         draw_material_property_tabs(column_one)
         match bpy.context.scene.matlayer_material_property_tabs:
             case 'MATERIAL':
+                draw_layer_utilities(column_one)
                 draw_layer_projection(column_one)
                 draw_layer_blur_settings(column_one)
                 draw_layer_material_channel_toggles(column_one)
@@ -166,7 +167,6 @@ def draw_material_channel_properties(layout):
         filter_node = material_layers.get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
         if filter_node:
             row.prop(filter_node, "mute", icon='FILTER', text="", invert_checkbox=True)
-        row.menu("MATLAYER_MT_layer_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
         value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
         if value_node:
@@ -214,6 +214,15 @@ def draw_material_channel_properties(layout):
                         layout.template_color_ramp(filter_node, "color_ramp", expand=True)
                     case 'GROUP':
                         layout.prop(filter_node.inputs[1], "default_value", slider=True, text="Normal Intensity")
+
+def draw_layer_utilities(layout):
+    '''Draws utility operations for the material layer.'''
+    row = layout.row(align=True)
+    row.scale_x = 10
+    row.scale_y = 2
+    row.label(text="LAYER UTILITIES")
+    row.operator("matlayer.import_texture_set", icon='IMPORT', text="")
+    row.operator("matlayer.merge_materials", icon='AUTOMERGE_ON', text="")
 
 def draw_layer_projection(layout):
     '''Draws layer projection settings.'''
