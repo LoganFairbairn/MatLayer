@@ -442,11 +442,21 @@ def draw_layer_blur_settings(layout):
     blur_node = material_layers.get_material_layer_node('LAYER_BLUR', selected_layer_index)
 
     if blur_node:
-        row = layout.row()
+        split = layout.split(factor=0.075)
+        first_column = split.column()
+        second_column = split.column()
+
+        row = first_column.row()
         if blur_node.mute:
             row.prop(blur_node, "mute", text="", icon='CHECKBOX_DEHLT', invert_checkbox=True)
+            row = second_column.row()
+            row.enabled = False
+
         else:
             row.prop(blur_node, "mute", text="", icon='CHECKBOX_HLT', invert_checkbox=True)
+            row = second_column.row()
+            row.enabled = True
+
         row.prop(blur_node.inputs.get('Blur Amount'), "default_value", text="Blur Amount")
 
         if not blur_node.mute:
