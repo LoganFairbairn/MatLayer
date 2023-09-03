@@ -130,6 +130,28 @@ def update_sync_layer_projection_scale(self, context):
 
 #----------------------------- HELPER FUNCTIONS -----------------------------#
 
+def get_shorthand_material_channel_name(material_channel_name):
+    '''Returns the short-hand version of the provided material channel name.'''
+    match material_channel_name:
+        case 'COLOR':
+            return 'COLOR'
+        case 'SUBSURFACE':
+            return 'SUBSURF'
+        case 'METALLIC':
+            return 'METAL'
+        case 'SPECULAR':
+            return 'SPEC'
+        case 'ROUGHNESS':
+            return 'ROUGH'
+        case 'EMISSION':
+            return 'EMIT'
+        case 'NORMAL':
+            return 'NORMAL'
+        case 'HEIGHT':
+            return 'HEIGHT'
+        case 'ALPHA':
+            return 'ALPHA'
+
 def format_layer_group_node_name(active_material_name, layer_index):
     '''Properly formats the layer group node names for this add-on.'''
     return "{0}_{1}".format(active_material_name, layer_index)

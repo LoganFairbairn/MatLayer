@@ -125,7 +125,7 @@ def draw_layer_material_channel_toggles(layout):
 
         mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, material_channel_name)
         if mix_node:
-            row.prop(mix_node, "mute", text=material_channel_name, toggle=True, invert_checkbox=True)
+            row.prop(mix_node, "mute", text=material_layers.get_shorthand_material_channel_name(material_channel_name), toggle=True, invert_checkbox=True)
             drawn_toggles += 1
             if drawn_toggles > 4:
                 row = layout.row()
@@ -445,7 +445,7 @@ def draw_layer_blur_settings(layout):
 
                 blur_toggle_node = blur_node.node_tree.nodes.get(material_channel_name + "_BLUR_TOGGLE")
                 if blur_toggle_node:
-                    row.prop(blur_toggle_node, "mute", text=material_channel_name, toggle=True, invert_checkbox=True)
+                    row.prop(blur_toggle_node, "mute", text=material_layers.get_shorthand_material_channel_name(material_channel_name), toggle=True, invert_checkbox=True)
                     drawn_toggles += 1
                     if drawn_toggles > 4:
                         row = layout.row()
