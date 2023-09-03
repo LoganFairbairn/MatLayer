@@ -459,6 +459,11 @@ class MATLAYER_OT_delete_layer_mask(Operator):
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
         masks = context.scene.matlayer_masks
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
         selected_mask_index = context.scene.matlayer_mask_stack.selected_index
         masks.remove(selected_mask_index)
+
+        reindex_masks('DELETED_MASK', selected_layer_index, selected_mask_index)
+        organize_mask_nodes()
+        link_mask_nodes(selected_layer_index)
         return {'FINISHED'}
