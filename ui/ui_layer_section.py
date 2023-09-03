@@ -29,6 +29,7 @@ def draw_layers_section_ui(self, context):
         match bpy.context.scene.matlayer_material_property_tabs:
             case 'MATERIAL':
                 draw_layer_projection(column_one)
+                draw_layer_blur_settings(column_one)
                 draw_layer_material_channel_toggles(column_one)
                 draw_material_channel_properties(column_one)
 
@@ -157,7 +158,7 @@ def draw_material_channel_properties(layout):
         row.separator()
         row.scale_y = 2.5
 
-        row = layout.row()
+        row = layout.row(align=True)
         row.scale_y = DEFAULT_UI_SCALE_Y
         row.label(text=material_channel_name)
         row.prop(layers[selected_layer_index].material_channel_node_types, material_channel_name.lower() + "_node_type", text="")
@@ -165,6 +166,7 @@ def draw_material_channel_properties(layout):
         filter_node = material_layers.get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
         if filter_node:
             row.prop(filter_node, "mute", icon='FILTER', text="", invert_checkbox=True)
+        row.menu("MATLAYER_MT_layer_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
         value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
         if value_node:
@@ -413,6 +415,45 @@ def draw_layer_masks(layout):
 
                 row = second_column.row(align=True)
                 row.prop(mesh_map_texture_node, "image", text="")
+
+def draw_layer_blur_settings(layout):
+    row = layout.row()
+    row.separator()
+    row.scale_y = 2.5
+
+    texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    blur_node = material_layers.get_material_layer_node('LAYER_BLUR', selected_layer_index)
+
+    if blur_node:
+        row = layout.row()
+        if blur_node.mute:
+            row.prop(blur_node, "mute", text="", icon='CHECKBOX_DEHLT', invert_checkbox=True)
+        else:
+            row.prop(blur_node, "mute", text="", icon='CHECKBOX_HLT', invert_checkbox=True)
+        row.label(text="Blur")
+
+        if not blur_node.mute:
+            row = layout.row()
+            drawn_toggles = 0
+            for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
+
+                # Do not draw blur toggles for globally inactive material channels.
+                material_channel_active = getattr(texture_set_settings.global_material_channel_toggles, "{0}_channel_toggle".format(material_channel_name.lower()))
+                if not material_channel_active:
+                    continue
+
+                blur_toggle_node = blur_node.node_tree.nodes.get(material_channel_name + "_BLUR_TOGGLE")
+                if blur_toggle_node:
+                    row.prop(blur_toggle_node, "mute", text=material_channel_name, toggle=True, invert_checkbox=True)
+                    drawn_toggles += 1
+                    if drawn_toggles > 4:
+                        row = layout.row()
+                        row.scale_y = DEFAULT_UI_SCALE_Y
+                        drawn_toggles = 0
+
+            row = layout.row()
+            row.prop(blur_node.inputs.get('Blur Amount'), "default_value", text="Blur Amount")
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""

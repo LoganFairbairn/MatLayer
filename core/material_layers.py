@@ -82,8 +82,9 @@ def replace_material_channel_node(material_channel_name, node_type):
             new_node.node_tree = default_node_tree
         case 'TEXTURE':
             new_node = layer_group_node.nodes.new('ShaderNodeTexImage')
-            projection_node = get_material_layer_node('PROJECTION', selected_layer_index, material_channel_name)
-            layer_group_node.links.new(projection_node.outputs[0], new_node.inputs[0])
+            layer_blur_node = get_material_layer_node('LAYER_BLUR', selected_layer_index)
+            if layer_blur_node:
+                layer_group_node.links.new(layer_blur_node.outputs.get(material_channel_name.capitalize()), new_node.inputs[0])
 
     new_node.name = "{0}_VALUE".format(material_channel_name)
     new_node.label = new_node.name
@@ -174,6 +175,11 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
                 return node_tree.nodes.get("PROJECTION")
             return None
         
+        case 'LAYER_BLUR':
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get("LAYER_BLUR")
+
         case 'MIX':
             mix_node_name = "{0}_MIX".format(material_channel_name)
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
@@ -575,4 +581,47 @@ class MATLAYER_OT_toggle_material_channel_preview(Operator):
         return context.active_object
 
     def execute(self, context):
+        return {'FINISHED'}
+
+class MATLAYER_OT_toggle_layer_blur(Operator):
+    bl_idname = "matlayer.toggle_layer_blur"
+    bl_label = "Toggle Layer Blur"
+    bl_description = "Toggle on / off a blur filter for the specified material channel"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    material_channel_name: StringProperty(default="COLOR")
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        selected_layer_index = context.scene.matlayer_layer_stack.selected_layer_index
+
+        # TODO: Disable and disconnect the layer blur if it's applied.
+        layer_blur_node = get_material_layer_node('LAYER_BLUR', selected_layer_index)
+        if layer_blur_node:
+            layer_blur_node.mute = True
+
+        # Enable blurring for the specified material channel.
+        blur_node = get_material_layer_node('BLUR', selected_layer_index, self.material_channel_name)
+        if blur_node:
+            if blur_node.mute:
+                blur_node.mute = False
+
+                # Connect the projection node to the blur node.
+                layer_node_tree = get_layer_node_tree(selected_layer_index)
+                projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
+                if projection_node and layer_node_tree:
+                    layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
+
+                # Connect to the value node if it's a texture.
+                value_node = get_material_layer_node('VALUE', selected_layer_index, self.material_channel_name)
+                if value_node:
+                    if value_node.bl_static_type == 'TEX_IMAGE':
+                        layer_node_tree.links.new(blur_node.outputs[0], value_node.inputs[0])
+
+            else:
+                blur_node.mute = True
         return {'FINISHED'}
