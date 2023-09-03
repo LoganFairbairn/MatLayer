@@ -367,7 +367,7 @@ def count_layers():
         return 0
     
     active_material = bpy.context.active_object.active_material
-    layer_count = 1
+    layer_count = 0
     while active_material.node_tree.nodes.get(str(layer_count)):
         layer_count += 1
     return layer_count
@@ -397,7 +397,11 @@ def link_layer_group_nodes():
 
     active_material = bpy.context.active_object.active_material
     node_tree = active_material.node_tree
+
+    # Don't attempt to link layer group nodes if there are no layers.
     layer_count = count_layers()
+    if layer_count <= 0:
+        return
 
     # Disconnect all layer group nodes.
     for i in range(0, layer_count):
