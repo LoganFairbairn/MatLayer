@@ -241,6 +241,18 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
             if node_tree:
                 node_tree.nodes.get('Group Input')
             return None
+        
+        case 'DECAL_COORDINATES':
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                node_tree.nodes.get('DECAL_COORDINATES')
+            return None
+        
+        case 'DECAL_MASK':
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                node_tree.nodes.get('DECAL_MASK')
+            return None
 
 def add_material_layer_slot():
     '''Adds a new slot to the material layer stack, and returns the index of the new layer slot.'''
@@ -272,6 +284,80 @@ def add_material_layer_slot():
         bpy.context.scene.matlayer_layer_stack.selected_layer_index = max(0, min(bpy.context.scene.matlayer_layer_stack.selected_layer_index + 1, len(layers) - 1))
 
     return bpy.context.scene.matlayer_layer_stack.selected_layer_index
+
+def add_material_layer(layer_type):
+    '''Adds a material layer to the active materials layer stack.'''
+    active_object = bpy.context.active_object
+
+    # Append default node groups to avoid them being duplicated if they are imported as a sub node group.
+    blender_addon_utils.append_default_node_groups()
+
+    # Run checks the make sure this operator can be ran without errors, display info messages to users if it can't be ran.
+    if active_object.type != 'MESH':
+        blender_addon_utils.log_status("Selected object must be a mesh to add materials", self, 'ERROR')
+        return {'FINISHED'}
+
+    # If there are no material slots, or no material in the active material slot, make a new MatLayer material by appending the default material setup.
+    if len(active_object.material_slots) == 0:
+        new_material = blender_addon_utils.append_material("DefaultMatLayerMaterial")
+        new_material.name = active_object.name
+        active_object.data.materials.append(new_material)
+        active_object.active_material_index = 0
+
+    elif active_object.material_slots[active_object.active_material_index].material == None:
+        new_material = blender_addon_utils.append_material("DefaultMatLayerMaterial")
+        new_material.name = active_object.name
+        active_object.material_slots[active_object.active_material_index].material = new_material
+
+    new_layer_slot_index = add_material_layer_slot()
+
+    # Add a material layer group node based on the specified layer type.
+    active_material = bpy.context.active_object.active_material
+    match layer_type:
+        case 'DEFAULT':
+            default_layer_node_group = blender_addon_utils.append_node_group("ML_DefaultLayer", never_auto_delete=True)
+
+        case 'PAINT':
+            default_layer_node_group = blender_addon_utils.append_node_group("ML_DefaultLayer", never_auto_delete=True)
+
+        case 'DECAL':
+            default_layer_node_group = blender_addon_utils.append_node_group("ML_DecalLayer", never_auto_delete=True)
+
+    default_layer_node_group.name = "{0}_{1}".format(active_material.name, str(new_layer_slot_index))
+    new_layer_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+    new_layer_group_node.node_tree = default_layer_node_group
+    new_layer_group_node.name = str(new_layer_slot_index) + "~"
+    new_layer_group_node.label = "Layer " + str(new_layer_slot_index + 1)
+    
+    reindex_layer_nodes(change_made='ADDED_LAYER', affected_layer_index=new_layer_slot_index)
+    organize_layer_group_nodes()
+    link_layer_group_nodes()
+
+    layer_masks.organize_mask_nodes()
+
+    # For specific layer types, perform additional setup steps.
+    match layer_type:
+        case 'PAINT':
+            print("Placeholder...")
+
+        case 'DECAL':
+            # Append a default decal image.
+            decal_mask_node = get_material_layer_node('DECAL_MASK', new_layer_slot_index)
+            if decal_mask_node:
+                default_decal_image = blender_addon_utils.append_image('DefaultDecal')
+                decal_mask_node.image = default_decal_image
+
+            # Create a new decal object.
+            bpy.ops.object.mode_set(mode = 'OBJECT')
+            bpy.ops.object.empty_add(type='CUBE', align='WORLD', location=(0, 0, 0), scale=(1, 1, 0.1))
+            decal_object = bpy.context.active_object
+
+            # Add the new decal object to the decal coordinate node.
+            decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', new_layer_slot_index)
+            if decal_coordinate_node:
+                decal_coordinate_node.object = decal_object
+
+            # TODO: Set ideal decal snapping settings.
 
 def count_layers():
     '''Counts the total layers in the active material by reading the active material's node tree.'''
@@ -435,45 +521,7 @@ class MATLAYER_OT_add_material_layer(Operator):
         return context.active_object
 
     def execute(self, context):
-        active_object = bpy.context.active_object
-
-        # Append default node groups to avoid them being duplicated if they are imported as a sub node group.
-        blender_addon_utils.append_default_node_groups()
-
-        # Run checks the make sure this operator can be ran without errors, display info messages to users if it can't be ran.
-        if active_object.type != 'MESH':
-            blender_addon_utils.log_status("Selected object must be a mesh to add materials", self, 'ERROR')
-            return {'FINISHED'}
-
-        # If there are no material slots, or no material in the active material slot, make a new MatLayer material by appending the default material setup.
-        if len(active_object.material_slots) == 0:
-            new_material = blender_addon_utils.append_material("DefaultMatLayerMaterial")
-            new_material.name = active_object.name
-            active_object.data.materials.append(new_material)
-            active_object.active_material_index = 0
-
-        elif active_object.material_slots[active_object.active_material_index].material == None:
-            new_material = blender_addon_utils.append_material("DefaultMatLayerMaterial")
-            new_material.name = active_object.name
-            active_object.material_slots[active_object.active_material_index].material = new_material
-
-        new_layer_slot_index = add_material_layer_slot()
-
-        # Add a material layer by appending a layer group node.
-        active_material = bpy.context.active_object.active_material
-        default_layer_node_group = blender_addon_utils.append_node_group("ML_DefaultLayer", never_auto_delete=True)
-        default_layer_node_group.name = "{0}_{1}".format(active_material.name, str(new_layer_slot_index))
-        new_layer_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
-        new_layer_group_node.node_tree = default_layer_node_group
-        new_layer_group_node.name = str(new_layer_slot_index) + "~"
-        new_layer_group_node.label = "Layer " + str(new_layer_slot_index + 1)
-        
-        reindex_layer_nodes(change_made='ADDED_LAYER', affected_layer_index=new_layer_slot_index)
-        organize_layer_group_nodes()
-        link_layer_group_nodes()
-
-        layer_masks.organize_mask_nodes()
-
+        add_material_layer('DEFAULT')
         return {'FINISHED'}
 
 class MATLAYER_OT_add_paint_material_layer(Operator):
@@ -488,6 +536,7 @@ class MATLAYER_OT_add_paint_material_layer(Operator):
         return context.active_object
 
     def execute(self, context):
+        add_material_layer('PAINT')
         return {'FINISHED'}
 
 class MATLAYER_OT_add_decal_material_layer(Operator):
@@ -502,6 +551,7 @@ class MATLAYER_OT_add_decal_material_layer(Operator):
         return context.active_object
 
     def execute(self, context):
+        add_material_layer('DECAL')
         return {'FINISHED'}
 
 class MATLAYER_OT_delete_layer(Operator):

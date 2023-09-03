@@ -68,6 +68,17 @@ def append_material(material_name):
         return material
     return material
 
+def append_image(image_name):
+    '''Appends the specified texture from the blend asset file for this add-on.'''
+    image = bpy.data.images.get(image_name)
+    if image == None:
+        blend_assets_path = get_blend_assets_path()
+        with bpy.data.libraries.load(blend_assets_path, link=False) as (data_from, data_to):
+            data_to.images = [image_name]
+        image = bpy.data.images.get(image_name)
+        return image
+    return image
+
 def get_node_by_bl_static_type(nodes, bl_static_type):
     '''Finds and returns a node by it's bl_static_type.'''
     # When using a different language, default nodes must be accessed using their type because their default name translates.
