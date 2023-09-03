@@ -258,6 +258,8 @@ def register():
     bpy.types.Scene.matlayer_baking_settings = PointerProperty(type=MATLAYER_baking_settings)
     bpy.types.Scene.matlayer_export_settings = PointerProperty(type=MATLAYER_exporting_settings)
 
+    bpy.types.Scene.matlayer_merge_material = PointerProperty(type=bpy.types.Material)
+
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     export_textures = addon_preferences.export_textures
     if len(export_textures) <= 0:

@@ -28,7 +28,6 @@ def draw_layers_section_ui(self, context):
         draw_material_property_tabs(column_one)
         match bpy.context.scene.matlayer_material_property_tabs:
             case 'MATERIAL':
-                draw_layer_utilities(column_one)
                 draw_layer_projection(column_one)
                 draw_layer_material_channel_toggles(column_one)
                 draw_material_channel_properties(column_one)
@@ -62,8 +61,28 @@ def draw_material_selector(layout):
         second_column.operator("object.material_slot_assign", text="", icon='MATERIAL_DATA')
         second_column.operator("object.material_slot_select", text="", icon='SELECT_SET')
 
-        row = layout.row(align=True)
-        row.template_ID(active_object, "active_material", new="matlayer.add_layer", live_icon=True)
+
+        split = layout.split(factor=0.15, align=True)
+        first_column = split.column(align=True)
+        second_column = split.column(align=True)
+
+        split = second_column.split(factor=0.7)
+        material_column = split.column()
+        merge_operator_column = split.column()
+
+        row = first_column.row()
+        row.label(text="Active: ")
+        row = material_column.row(align=True)
+        row.prop(active_object, "active_material", text="")
+
+        row = first_column.row()
+        row.label(text="Merge: ")
+        row = material_column.row()
+        row.prop(bpy.context.scene, "matlayer_merge_material", text="")
+
+        row = merge_operator_column.row()
+        row.scale_y = 2.0
+        row.operator("matlayer.merge_materials", text="MERGE")
 
 def draw_selected_material_channel(layout):
     '''Draws the selected material channel.'''
@@ -83,6 +102,7 @@ def draw_layer_operations(layout):
     row.scale_y = 2.0
     row.scale_x = 10
     row.operator("matlayer.add_material_layer_menu", icon="ADD", text="")
+    row.operator("matlayer.import_texture_set", text="", icon='DOCUMENTS')
     row.operator("matlayer.add_material_effects_menu", icon="SHADERFX", text="")
     row.operator("matlayer.move_material_layer_up", icon="TRIA_UP", text="")
     row.operator("matlayer.move_material_layer_down", icon="TRIA_DOWN", text="")
@@ -214,15 +234,6 @@ def draw_material_channel_properties(layout):
                         layout.template_color_ramp(filter_node, "color_ramp", expand=True)
                     case 'GROUP':
                         layout.prop(filter_node.inputs[1], "default_value", slider=True, text="Normal Intensity")
-
-def draw_layer_utilities(layout):
-    '''Draws utility operations for the material layer.'''
-    row = layout.row(align=True)
-    row.scale_x = 10
-    row.scale_y = 2
-    row.label(text="LAYER UTILITIES")
-    row.operator("matlayer.import_texture_set", icon='IMPORT', text="")
-    row.operator("matlayer.merge_materials", icon='AUTOMERGE_ON', text="")
 
 def draw_layer_projection(layout):
     '''Draws layer projection settings.'''
