@@ -143,6 +143,19 @@ def add_layer_mask(type):
 
     new_mask_group_node = None
     match type:
+        case 'EMPTY':
+            default_node_group = blender_addon_utils.append_group_node("ML_ImageMask", never_auto_delete=True)
+            default_node_group.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
+
+            new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+            new_mask_group_node.node_tree = default_node_group
+            new_mask_group_node.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
+            new_mask_group_node.label = "Image Mask"
+            
+            reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
+            organize_mask_nodes()
+            link_mask_nodes(selected_layer_index)
+                
         case 'BLACK':
             default_node_group = blender_addon_utils.append_group_node("ML_ImageMask", never_auto_delete=True)
             default_node_group.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
@@ -167,7 +180,6 @@ def add_layer_mask(type):
             reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
             organize_mask_nodes()
             link_mask_nodes(selected_layer_index)
-            material_layers.apply_mesh_maps()
 
             texture_node = get_mask_node('TEXTURE', selected_layer_index, new_mask_slot_index)
             if texture_node:
@@ -197,7 +209,6 @@ def add_layer_mask(type):
             reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
             organize_mask_nodes()
             link_mask_nodes(selected_layer_index)
-            material_layers.apply_mesh_maps()
 
             texture_node = get_mask_node('TEXTURE', selected_layer_index, new_mask_slot_index)
             if texture_node:
@@ -351,6 +362,22 @@ class MATLAYER_UL_mask_list(bpy.types.UIList):
                 col.scale_y = 0.5
                 col.prop(mask_mix_node.inputs[0], "default_value", text="", emboss=True)
                 col.prop(mask_mix_node, "blend_type", text="")
+
+class MATLAYER_OT_add_empty_layer_mask(Operator):
+    bl_label = "Add Empty Layer Mask"
+    bl_idname = "matlayer.add_empty_layer_mask"
+    bl_description = "Adds an default image based node group mask with to the selected material layer and fills the image slot with a no image"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    # Runs when the add layer button in the popup is clicked.
+    def execute(self, context):
+        add_layer_mask('EMPTY')
+        return {'FINISHED'}
 
 class MATLAYER_OT_add_black_layer_mask(Operator):
     bl_label = "Add Black Layer Mask"

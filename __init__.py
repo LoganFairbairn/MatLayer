@@ -30,7 +30,7 @@ from .core.texture_set_settings import GlobalMaterialChannelToggles, MATLAYER_te
 from .core.material_layers import ProjectionSettings, MATLAYER_layer_stack, MaterialChannelNodeType, MATLAYER_layers, MATLAYER_OT_add_material_layer, MATLAYER_OT_add_paint_material_layer, MATLAYER_OT_add_decal_material_layer, MATLAYER_OT_delete_layer, MATLAYER_OT_duplicate_layer, MATLAYER_OT_move_material_layer_up, MATLAYER_OT_move_material_layer_down, MATLAYER_OT_toggle_material_channel_preview, MATLAYER_OT_toggle_layer_blur
 
 # Layer Masks
-from .core.layer_masks import MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_mask_list, MATLAYER_OT_move_layer_mask_up, MATLAYER_OT_move_layer_mask_down, MATLAYER_OT_duplicate_layer_mask, MATLAYER_OT_delete_layer_mask, MATLAYER_OT_add_black_layer_mask, MATLAYER_OT_add_white_layer_mask, MATLAYER_OT_add_edge_wear_mask
+from .core.layer_masks import MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_mask_list, MATLAYER_OT_move_layer_mask_up, MATLAYER_OT_move_layer_mask_down, MATLAYER_OT_duplicate_layer_mask, MATLAYER_OT_delete_layer_mask, MATLAYER_OT_add_empty_layer_mask, MATLAYER_OT_add_black_layer_mask, MATLAYER_OT_add_white_layer_mask, MATLAYER_OT_add_edge_wear_mask
 
 # Material Effects
 from .core.material_effects import MATLAYER_OT_add_edge_wear, MATLAYER_OT_add_grunge, MATLAYER_OT_add_dust, MATLAYER_OT_add_drips
@@ -116,6 +116,7 @@ classes = (
     MATLAYER_OT_move_layer_mask_down, 
     MATLAYER_OT_duplicate_layer_mask, 
     MATLAYER_OT_delete_layer_mask,
+    MATLAYER_OT_add_empty_layer_mask,
     MATLAYER_OT_add_black_layer_mask,
     MATLAYER_OT_add_white_layer_mask,
     MATLAYER_OT_add_edge_wear_mask,
