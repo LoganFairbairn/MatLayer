@@ -158,7 +158,7 @@ def append_material(material_name):
         with bpy.data.libraries.load(blend_assets_path, link=False) as (data_from, data_to):
             data_to.materials = [material_name]
         material = bpy.data.materials.get(material_name)
-        replace_duplicate_node_groups(material.node_tree.nodes)
+        replace_duplicate_node_groups(material.node_tree)
         return material
 
 def append_image(image_name):
