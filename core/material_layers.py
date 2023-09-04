@@ -331,7 +331,6 @@ def add_material_layer(layer_type, self):
     reindex_layer_nodes(change_made='ADDED_LAYER', affected_layer_index=new_layer_slot_index)
     organize_layer_group_nodes()
     link_layer_group_nodes()
-
     layer_masks.organize_mask_nodes()
 
     # For specific layer types, perform additional setup steps.
@@ -357,6 +356,32 @@ def add_material_layer(layer_type, self):
                 decal_coordinate_node.object = decal_object
 
             # TODO: Set ideal decal snapping settings.
+
+def duplicate_layer(layer_index, self):
+    '''Duplicates the material layer at the provided layer index.'''
+
+    if blender_addon_utils.verify_material_operation_context(self) == False:
+        return
+
+    # Duplicate the node tree and add it to the layer stack.
+    layer_node_tree = get_layer_node_tree(layer_index)
+    if layer_node_tree:
+        duplicated_node_tree = blender_addon_utils.duplicate_node_group(layer_node_tree.name)
+        if duplicated_node_tree:
+            active_material = bpy.context.active_object.active_material
+
+            new_layer_slot_index = add_material_layer_slot()
+
+            duplicated_node_tree.name = "{0}_{1}".format(active_material.name, str(new_layer_slot_index))
+            new_layer_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+            new_layer_group_node.node_tree = duplicated_node_tree
+            new_layer_group_node.name = str(new_layer_slot_index) + "~"
+            new_layer_group_node.label = "Layer " + str(new_layer_slot_index + 1)
+            
+            reindex_layer_nodes(change_made='ADDED_LAYER', affected_layer_index=new_layer_slot_index)
+            organize_layer_group_nodes()
+            link_layer_group_nodes()
+            layer_masks.organize_mask_nodes()
 
 def count_layers():
     '''Counts the total layers in the active material by reading the active material's node tree.'''
@@ -605,7 +630,8 @@ class MATLAYER_OT_duplicate_layer(Operator):
         return context.active_object
 
     def execute(self, context):
-
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        duplicate_layer(selected_layer_index, self)
         return {'FINISHED'}
     
 class MATLAYER_OT_move_material_layer_up(Operator):

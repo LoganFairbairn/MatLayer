@@ -18,6 +18,24 @@ def set_valid_material_shading_mode(context):
             if context.space_data.shading.type != 'MATERIAL' and context.space_data.shading.type != 'RENDERED':
                 context.space_data.shading.type = 'MATERIAL'
 
+def verify_material_operation_context(self, display_message=True, check_active_object=True, check_mesh=True, check_active_material=True):
+    '''Runs checks to verify that a material editing operation can be ran without errors. Returns True if the all conditions are correct for a material editing operation to be ran.'''
+    
+    # Check for an active object.
+    if check_active_object and not bpy.context.active_object:
+        debug_logging.log_status("No active object.", self, 'ERROR')
+        return None
+    
+    # Check the active object is a mesh.
+    if check_mesh and bpy.context.active_object.type != 'MESH':
+        debug_logging.log_status("Selected object must be a mesh.", self, 'ERROR')
+        return {'FINISHED'}
+    
+    # Check for an active material.
+    if check_active_material and not bpy.context.active_object.active_material:
+        debug_logging.log_status("No active material.", self, 'ERROR')
+        return None
+
 def get_blend_assets_path():
     '''Returns the asset path for the blend file.'''
     blend_assets_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "blend" / "Assets.blend")
@@ -25,7 +43,6 @@ def get_blend_assets_path():
 
 def duplicate_node_group(node_group_name):
     '''Duplicates (makes a unique version of) the provided node group.'''
-    print("Placeholder...")
     node_group = bpy.data.node_groups.get(node_group_name)
     if node_group:
         duplicated_node_group = node_group.copy()
@@ -33,6 +50,7 @@ def duplicate_node_group(node_group_name):
         return duplicated_node_group
     else:
         debug_logging.log("Error: Can't duplicate node, group node with the provided name does not exist.")
+        return None
 
 def replace_duplicate_node_groups(node_tree):
     '''Replaces duplicate node groups (any node groups marked with .00X at the end of their names) within the provided node tree with their original node group.'''
