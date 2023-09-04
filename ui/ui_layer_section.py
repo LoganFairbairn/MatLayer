@@ -267,7 +267,6 @@ def draw_layer_projection(layout):
                 row = second_column.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.prop(projection_node.inputs.get('OffsetX'), "default_value", text="X", slider=True)
-                row.prop(layers[selected_layer_index].projection, "sync_projection_scale", text="", icon='LOCKED')
                 row.prop(projection_node.inputs.get('OffsetY'), "default_value", text="Y", slider=True)
 
                 row = first_column.row()
@@ -280,10 +279,21 @@ def draw_layer_projection(layout):
                 row = first_column.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.label(text="Scale")
+                
                 row = second_column.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('ScaleX'), "default_value", text="X", slider=True)
-                row.prop(projection_node.inputs.get('ScaleY'), "default_value", text="Y", slider=True)
+                col = row.split()
+                col.prop(projection_node.inputs.get('ScaleX'), "default_value", text="")
+
+                col = row.split()
+                if layers[selected_layer_index].projection.sync_projection_scale:
+                    col.prop(layers[selected_layer_index].projection, "sync_projection_scale", text="", icon="LOCKED")
+                else:
+                    col.prop(layers[selected_layer_index].projection, "sync_projection_scale", text="", icon="UNLOCKED")
+
+                col = row.split()
+                if layers[selected_layer_index].projection.sync_projection_scale:
+                    col.enabled = False
+                col.prop(projection_node.inputs.get('ScaleY'), "default_value", text="")
 
             case 'TRIPLANAR':
                 row = first_column.row()
@@ -395,7 +405,6 @@ def draw_layer_masks(layout):
             row = second_column.row()
             row.scale_y = DEFAULT_UI_SCALE_Y
             row.prop(mask_projection_node.inputs.get('OffsetX'), "default_value", text="X", slider=True)
-            row.prop(masks[selected_mask_index], "sync_projection_scale", text="", icon='LOCKED')
             row.prop(mask_projection_node.inputs.get('OffsetY'), "default_value", text="Y", slider=True)
 
             row = first_column.row()
@@ -406,10 +415,21 @@ def draw_layer_masks(layout):
             row = first_column.row()
             row.scale_y = DEFAULT_UI_SCALE_Y
             row.label(text="Scale")
+            
             row = second_column.row()
-            row.scale_y = DEFAULT_UI_SCALE_Y
-            row.prop(mask_projection_node.inputs.get('ScaleX'), "default_value", text="X", slider=True)
-            row.prop(mask_projection_node.inputs.get('ScaleY'), "default_value", text="Y", slider=True)
+            col = row.split()
+            col.prop(mask_projection_node.inputs.get('ScaleX'), "default_value", text="")
+
+            col = row.split()
+            if masks[selected_mask_index].sync_projection_scale:
+                col.prop(masks[selected_mask_index], "sync_projection_scale", text="", icon="LOCKED")
+            else:
+                col.prop(masks[selected_mask_index], "sync_projection_scale", text="", icon="UNLOCKED")
+
+            col = row.split()
+            if masks[selected_mask_index].sync_projection_scale:
+                col.enabled = False
+            col.prop(mask_projection_node.inputs.get('ScaleY'), "default_value", text="")
 
         # Draw any mesh maps used for this mask.
         drew_title = False
