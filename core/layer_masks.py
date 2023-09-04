@@ -144,7 +144,7 @@ def add_layer_mask(type):
     new_mask_group_node = None
     match type:
         case 'BLACK':
-            default_node_group = blender_addon_utils.append_node_group("ML_ImageMask", never_auto_delete=True)
+            default_node_group = blender_addon_utils.append_group_node("ML_ImageMask", never_auto_delete=True)
             default_node_group.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -174,7 +174,7 @@ def add_layer_mask(type):
                 texture_node.image = bpy.data.images.get(image_name)
 
         case 'WHITE':
-            default_node_group = blender_addon_utils.append_node_group("ML_ImageMask", never_auto_delete=True)
+            default_node_group = blender_addon_utils.append_group_node("ML_ImageMask", never_auto_delete=True)
             default_node_group.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -204,7 +204,7 @@ def add_layer_mask(type):
                 texture_node.image = bpy.data.images.get(image_name)
 
         case 'EDGE_WEAR':
-            default_node_group = blender_addon_utils.append_node_group("ML_EdgeWear", never_auto_delete=True)
+            default_node_group = blender_addon_utils.append_group_node("ML_EdgeWear", never_auto_delete=True)
             default_node_group.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')

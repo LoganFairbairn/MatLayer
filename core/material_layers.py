@@ -285,12 +285,11 @@ def add_material_layer_slot():
 
     return bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
-def add_material_layer(layer_type):
+def add_material_layer(layer_type, self):
     '''Adds a material layer to the active materials layer stack.'''
     active_object = bpy.context.active_object
 
-    # Append default node groups to avoid them being duplicated if they are imported as a sub node group.
-    blender_addon_utils.append_default_node_groups()
+    blender_addon_utils.append_default_node_groups()        # Append all required node groups first to avoid node group duplication from re-appending.
 
     # Run checks the make sure this operator can be ran without errors, display info messages to users if it can't be ran.
     if active_object.type != 'MESH':
@@ -315,13 +314,13 @@ def add_material_layer(layer_type):
     active_material = bpy.context.active_object.active_material
     match layer_type:
         case 'DEFAULT':
-            default_layer_node_group = blender_addon_utils.append_node_group("ML_DefaultLayer", never_auto_delete=True)
+            default_layer_node_group = blender_addon_utils.append_group_node("ML_DefaultLayer", return_unique=True, never_auto_delete=True)
 
         case 'PAINT':
-            default_layer_node_group = blender_addon_utils.append_node_group("ML_DefaultLayer", never_auto_delete=True)
+            default_layer_node_group = blender_addon_utils.append_group_node("ML_DefaultLayer", return_unique=True, never_auto_delete=True)
 
         case 'DECAL':
-            default_layer_node_group = blender_addon_utils.append_node_group("ML_DecalLayer", never_auto_delete=True)
+            default_layer_node_group = blender_addon_utils.append_group_node("ML_DecalLayer", return_unique=True, never_auto_delete=True)
 
     default_layer_node_group.name = "{0}_{1}".format(active_material.name, str(new_layer_slot_index))
     new_layer_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -525,7 +524,7 @@ class MATLAYER_OT_add_material_layer(Operator):
         return context.active_object
 
     def execute(self, context):
-        add_material_layer('DEFAULT')
+        add_material_layer('DEFAULT', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_add_paint_material_layer(Operator):
@@ -540,7 +539,7 @@ class MATLAYER_OT_add_paint_material_layer(Operator):
         return context.active_object
 
     def execute(self, context):
-        add_material_layer('PAINT')
+        add_material_layer('PAINT', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_add_decal_material_layer(Operator):
@@ -555,7 +554,7 @@ class MATLAYER_OT_add_decal_material_layer(Operator):
         return context.active_object
 
     def execute(self, context):
-        add_material_layer('DECAL')
+        add_material_layer('DECAL', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_delete_layer(Operator):
