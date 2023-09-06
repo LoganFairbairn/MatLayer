@@ -407,6 +407,43 @@ def duplicate_layer(original_layer_index, self):
         layer_masks.link_mask_nodes(new_layer_slot_index)
         layer_masks.organize_mask_nodes()
 
+def delete_layer(self):
+    '''Deletes the selected layer'''
+    if blender_addon_utils.verify_material_operation_context(self) == False:
+        return {'FINISHED'}
+
+    layers = bpy.context.scene.matlayer_layers
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    active_material = bpy.context.active_object.active_material
+
+    # Remove all mask group nodes and node trees associated with the layer.
+    mask_count = layer_masks.count_masks(selected_layer_index)
+    for i in range(0, mask_count):
+        mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i)
+        if mask_node.bl_static_type == 'GROUP' and mask_node.node_tree:
+            bpy.data.node_groups.remove(mask_node.node_tree)
+        active_material.node_tree.nodes.remove(mask_node)
+
+    # Remove the layer group node (node tree) from Blender's data.
+    layer_node_tree = get_layer_node_tree(selected_layer_index)
+    if layer_node_tree:
+        bpy.data.node_groups.remove(layer_node_tree)
+
+    # Remove the layer node from the active materials node tree.
+    layer_group_node = get_material_layer_node('LAYER', selected_layer_index)
+    if layer_group_node:
+        active_material.node_tree.nodes.remove(layer_group_node)
+
+    reindex_layer_nodes(change_made='DELETED_LAYER', affected_layer_index=selected_layer_index)
+    organize_layer_group_nodes()
+    link_layer_group_nodes()
+
+    layer_masks.organize_mask_nodes()
+
+    # Remove the layer slot and reset the selected layer index.
+    layers.remove(selected_layer_index)
+    bpy.context.scene.matlayer_layer_stack.selected_layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
+    
 def count_layers():
     '''Counts the total layers in the active material by reading the active material's node tree.'''
     if not bpy.context.active_object:
@@ -619,39 +656,7 @@ class MATLAYER_OT_delete_layer(Operator):
         return context.active_object
 
     def execute(self, context):
-        if blender_addon_utils.verify_material_operation_context(self) == False:
-            return {'FINISHED'}
-
-        layers = context.scene.matlayer_layers
-        selected_layer_index = context.scene.matlayer_layer_stack.selected_layer_index
-        active_material = bpy.context.active_object.active_material
-
-        # Remove all mask group nodes and node trees associated with the layer.
-        mask_count = layer_masks.count_masks(selected_layer_index)
-        for i in range(0, mask_count):
-            mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i)
-            if mask_node.bl_static_type == 'GROUP' and mask_node.node_tree:
-                bpy.data.node_groups.remove(mask_node.node_tree)
-            active_material.node_tree.nodes.remove(mask_node)
-
-        # Remove the layer group node (node tree) from Blender's data.
-        layer_node_tree = get_layer_node_tree(selected_layer_index)
-        if layer_node_tree:
-            bpy.data.node_groups.remove(layer_node_tree)
-
-        # Remove the layer node from the active materials node tree.
-        layer_group_node = get_material_layer_node('LAYER', selected_layer_index)
-        if layer_group_node:
-            active_material.node_tree.nodes.remove(layer_group_node)
-
-        reindex_layer_nodes(change_made='DELETED_LAYER', affected_layer_index=selected_layer_index)
-        organize_layer_group_nodes()
-        link_layer_group_nodes()
-
-        # Remove the layer slot and reset the selected layer index.
-        layers.remove(selected_layer_index)
-        context.scene.matlayer_layer_stack.selected_layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
-
+        delete_layer(self)
         return {'FINISHED'}
 
 class MATLAYER_OT_duplicate_layer(Operator):
