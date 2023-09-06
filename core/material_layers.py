@@ -437,13 +437,73 @@ def delete_layer(self):
     reindex_layer_nodes(change_made='DELETED_LAYER', affected_layer_index=selected_layer_index)
     organize_layer_group_nodes()
     link_layer_group_nodes()
-
     layer_masks.organize_mask_nodes()
 
     # Remove the layer slot and reset the selected layer index.
     layers.remove(selected_layer_index)
     bpy.context.scene.matlayer_layer_stack.selected_layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
-    
+
+def move_layer(direction, self):
+    '''Moves the selected layer up or down on the material layer stack.'''
+    match direction:
+        case 'UP':
+            # Swap the layer index for all layer nodes in this layer with the layer above it (if one exists).
+            layers = bpy.context.scene.matlayer_layers
+            selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+            if selected_layer_index < len(layers) - 1:
+                layer_node = get_material_layer_node('LAYER', selected_layer_index)
+                if layer_node:
+                    layer_node.name += "~"
+                    if layer_node.node_tree:
+                        layer_node.node_tree.name += "~"
+
+                above_layer_node = get_material_layer_node('LAYER', selected_layer_index + 1)
+                if above_layer_node:
+                    above_layer_node.name = str(selected_layer_index)
+                    if above_layer_node.node_tree:
+                        above_layer_node.node_tree.name = above_layer_node.node_tree.name.split('_')[0] + "_" + str(selected_layer_index)
+
+                layer_node.name = str(selected_layer_index + 1)
+                layer_node.node_tree.name = layer_node.node_tree.name.split('_')[0] + "_" + str(selected_layer_index + 1)
+
+                bpy.context.scene.matlayer_layer_stack.selected_layer_index = selected_layer_index + 1
+
+                # TODO: Swap the layer index for all mask nodes in this layer with the layer above it.
+
+
+            else:
+                debug_logging.log("Can't move layer up, no layers exist above the selected layer.")
+
+        case 'DOWN':
+            # Swap the layer index for all nodes in this layer with the layer below it (if one exists).
+            layers = bpy.context.scene.matlayer_layers
+            selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+            if selected_layer_index - 1 >= 0:
+                layer_node = get_material_layer_node('LAYER', selected_layer_index)
+                layer_node.name += "~"
+                layer_node.node_tree.name += "~"
+
+                below_layer_node = get_material_layer_node('LAYER', selected_layer_index - 1)
+                below_layer_node.name = str(selected_layer_index)
+                below_layer_node.node_tree.name = below_layer_node.node_tree.name.split('_')[0] + "_" + str(selected_layer_index)
+
+                layer_node.name = str(selected_layer_index - 1)
+                layer_node.node_tree.name = layer_node.node_tree.name.split('_')[0] + "_" + str(selected_layer_index - 1)
+
+                bpy.context.scene.matlayer_layer_stack.selected_layer_index = selected_layer_index - 1
+
+                # TODO: Swap the layer index for all mask nodes in this layer with the layer below it.
+
+            else:
+                debug_logging.log("Can't move layer down, no layers exist below the selected layer.")
+
+        case _:
+            debug_logging.log_status("Invalid direction provided for moving a material layer.", self, 'ERROR')
+            return
+
+    organize_layer_group_nodes()
+    link_layer_group_nodes()
+
 def count_layers():
     '''Counts the total layers in the active material by reading the active material's node tree.'''
     if not bpy.context.active_object:
@@ -644,21 +704,6 @@ class MATLAYER_OT_add_decal_material_layer(Operator):
         add_material_layer('DECAL', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_delete_layer(Operator):
-    bl_idname = "matlayer.delete_layer"
-    bl_label = "Delete Layer"
-    bl_description = "Deletes the selected material layer from the active material"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    # Disable when there is no active object.
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def execute(self, context):
-        delete_layer(self)
-        return {'FINISHED'}
-
 class MATLAYER_OT_duplicate_layer(Operator):
     bl_idname = "matlayer.duplicate_layer"
     bl_label = "Duplicate Layer"
@@ -674,7 +719,22 @@ class MATLAYER_OT_duplicate_layer(Operator):
         selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
         duplicate_layer(selected_layer_index, self)
         return {'FINISHED'}
-    
+
+class MATLAYER_OT_delete_layer(Operator):
+    bl_idname = "matlayer.delete_layer"
+    bl_label = "Delete Layer"
+    bl_description = "Deletes the selected material layer from the active material"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        delete_layer(self)
+        return {'FINISHED'}
+
 class MATLAYER_OT_move_material_layer_up(Operator):
     bl_idname = "matlayer.move_material_layer_up"
     bl_label = "Move Layer Up"
@@ -689,7 +749,7 @@ class MATLAYER_OT_move_material_layer_up(Operator):
         return context.active_object
 
     def execute(self, context):
-
+        move_layer('UP', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_move_material_layer_down(Operator):
@@ -706,7 +766,7 @@ class MATLAYER_OT_move_material_layer_down(Operator):
         return context.active_object
 
     def execute(self, context):
-
+        move_layer('DOWN', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_toggle_material_channel_preview(Operator):
