@@ -233,8 +233,8 @@ def reindex_masks(change_made, layer_index, affected_mask_index):
     match change_made:
         case 'ADDED_MASK':
             # Increase the layer index for all layer group nodes and their node trees that exist above the affected layer.
-            total_layers = len(bpy.context.scene.matlayer_masks)
-            for i in range(total_layers, affected_mask_index, -1):
+            total_masks = len(bpy.context.scene.matlayer_masks)
+            for i in range(total_masks, affected_mask_index, -1):
                 mask_node = get_mask_node('MASK', layer_index, i - 1)
                 if mask_node:
                     mask_node_name = format_mask_name(bpy.context.active_object.active_material.name, layer_index, int(mask_node.name) + 1)
