@@ -540,6 +540,7 @@ def link_layer_group_nodes():
     if not bpy.context.active_object.active_material:
         return
 
+    texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
     active_material = bpy.context.active_object.active_material
     node_tree = active_material.node_tree
 
@@ -560,12 +561,10 @@ def link_layer_group_nodes():
                 for link in output.links:
                     node_tree.links.remove(link)
 
-    # TODO: Re-connect all (non-muted / active) layer group nodes. Only connect ACTIVE material channels.
+    # Re-connect all (non-muted / active) layer group nodes.
     for i in range(0, layer_count):
         layer_node = get_material_layer_node('LAYER', i)
         if blender_addon_utils.get_node_active(layer_node):
-
-
             next_layer_index = i + 1
             next_layer_node = get_material_layer_node('LAYER', next_layer_index)
             if next_layer_node:
@@ -576,12 +575,18 @@ def link_layer_group_nodes():
             if next_layer_node:
                 if blender_addon_utils.get_node_active(next_layer_node):
                     for material_channel_name in MATERIAL_CHANNEL_LIST:
+
+                        # Only connect active material channels.
+                        material_channel_active = getattr(texture_set_settings.global_material_channel_toggles, "{0}_channel_toggle".format(material_channel_name.lower()))
+                        if not material_channel_active:
+                            continue
+
                         output_socket_name = material_channel_name.capitalize()
                         input_socket_name = "{0}Mix".format(material_channel_name.capitalize())
                         node_tree.links.new(layer_node.outputs.get(output_socket_name), next_layer_node.inputs.get(input_socket_name))
 
 
-    # TODO: Connect the last (non-muted / active) layer node to the principled BSDF. Only connect ACTIVE material channels.
+    # Connect the last (non-muted / active) layer node to the principled BSDF.
     normal_and_height_mix = active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
     principled_bsdf = active_material.node_tree.nodes.get('MATLAYER_BSDF')
 
@@ -595,6 +600,12 @@ def link_layer_group_nodes():
     if last_layer_node:
         if blender_addon_utils.get_node_active(last_layer_node):
             for material_channel_name in MATERIAL_CHANNEL_LIST:
+
+                # Only connect active material channels.
+                material_channel_active = getattr(texture_set_settings.global_material_channel_toggles, "{0}_channel_toggle".format(material_channel_name.lower()))
+                if not material_channel_active:
+                    continue
+
                 match material_channel_name:
                     case 'COLOR':
                         node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), principled_bsdf.inputs.get('Base Color'))
