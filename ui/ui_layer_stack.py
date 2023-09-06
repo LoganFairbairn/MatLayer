@@ -3,6 +3,7 @@
 import bpy
 import bpy.utils.previews       # Imported for loading texture previews as icons.
 from ..core import material_layers
+from ..core import blender_addon_utils
 
 class MATLAYER_UL_layer_list(bpy.types.UIList):
     '''Draws the layer stack.'''
@@ -14,19 +15,22 @@ class MATLAYER_UL_layer_list(bpy.types.UIList):
         self.use_filter_reverse = True
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            # Hidden Icon
-            row = layout.row(align=True)
-            row.ui_units_x = 1
-            if item.hidden == True:
-                row.prop(item, "hidden", text="", emboss=False, icon='HIDE_ON')
-
-            elif item.hidden == False:
-                row.prop(item, "hidden", text="", emboss=False, icon='HIDE_OFF')
-
-            # Layer Name
             layers = bpy.context.scene.matlayer_layers
             item_index = layers.find(item.name)
             layer_node = material_layers.get_material_layer_node('LAYER', item_index)
+
+            # Draw the hide layer toggle button.
+            row = layout.row(align=True)
+            row.ui_units_x = 1
+            if blender_addon_utils.get_node_active(layer_node):
+                operator = row.operator("matlayer.toggle_hide_layer", text="", emboss=False, icon='HIDE_OFF')
+                operator.layer_index = item_index
+
+            else:
+                operator = row.operator("matlayer.toggle_hide_layer", text="", emboss=False, icon='HIDE_ON')
+                operator.layer_index = item_index
+
+            # Draw the layer name.
             if layer_node:
                 row = layout.row()
                 row.ui_units_x = 3

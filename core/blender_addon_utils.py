@@ -215,3 +215,22 @@ def create_image(image_name, image_width, image_height, alpha_channel=False, thi
                                     is_data=data,
                                     tiled=False)
     return new_image
+
+def set_node_active(node, active):
+    '''Marks the node as inactive by changing it's color. This is a work-around for a memory leak within Blender caused by compiling shaders that contain muted group nodes'''
+    if active:
+        node.use_custom_color = False
+        node.color = (0.1, 0.1, 0.1)
+    else:
+        node.use_custom_color = True
+        node.color = (1.0, 0.0, 0.0)
+
+def get_node_active(node):
+    '''Returns true if the provided node is marked as active according to this add-on. This is a work-around for a memory leak within Blender caused by compiling shaders that contain muted group nodes'''
+    if node == None:
+        return False
+    
+    if node.color.r == 1.0 and node.color.g == 0.0 and node.color.b == 0.0:
+        return False
+    else:
+        return True

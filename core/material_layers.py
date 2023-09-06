@@ -556,35 +556,57 @@ def link_layer_group_nodes():
                 if input.name != 'LayerMask':
                     for link in input.links:
                         node_tree.links.remove(link)
+            for output in layer_node.outputs:
+                for link in output.links:
+                    node_tree.links.remove(link)
 
-    # Re-connect all layer group nodes.
+    # TODO: Re-connect all (non-muted / active) layer group nodes. Only connect ACTIVE material channels.
     for i in range(0, layer_count):
         layer_node = get_material_layer_node('LAYER', i)
-        next_layer_node = get_material_layer_node('LAYER', i + 1)
-        if next_layer_node:
-            for material_channel_name in MATERIAL_CHANNEL_LIST:
-                output_socket_name = material_channel_name.capitalize()
-                input_socket_name = "{0}Mix".format(material_channel_name.capitalize())
-                node_tree.links.new(layer_node.outputs.get(output_socket_name), next_layer_node.inputs.get(input_socket_name))
+        if blender_addon_utils.get_node_active(layer_node):
 
-    # TODO: Only connect active material channels.
-    # Connect the last layer node to the principled BSDF.
+
+            next_layer_index = i + 1
+            next_layer_node = get_material_layer_node('LAYER', next_layer_index)
+            if next_layer_node:
+                while not blender_addon_utils.get_node_active(next_layer_node) and next_layer_index <= layer_count - 1:
+                    next_layer_index += 1
+                    next_layer_node = get_material_layer_node('LAYER', next_layer_index)
+
+            if next_layer_node:
+                if blender_addon_utils.get_node_active(next_layer_node):
+                    for material_channel_name in MATERIAL_CHANNEL_LIST:
+                        output_socket_name = material_channel_name.capitalize()
+                        input_socket_name = "{0}Mix".format(material_channel_name.capitalize())
+                        node_tree.links.new(layer_node.outputs.get(output_socket_name), next_layer_node.inputs.get(input_socket_name))
+
+
+    # TODO: Connect the last (non-muted / active) layer node to the principled BSDF. Only connect ACTIVE material channels.
     normal_and_height_mix = active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
     principled_bsdf = active_material.node_tree.nodes.get('MATLAYER_BSDF')
-    last_layer_node = get_material_layer_node('LAYER', layer_count - 1)
-    for material_channel_name in MATERIAL_CHANNEL_LIST:
-        match material_channel_name:
-            case 'COLOR':
-                node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), principled_bsdf.inputs.get('Base Color'))
 
-            case 'NORMAL':
-                node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), normal_and_height_mix.inputs.get(material_channel_name.capitalize()))
-        
-            case 'HEIGHT':
-                node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), normal_and_height_mix.inputs.get(material_channel_name.capitalize()))
+    last_layer_node_index = layer_count - 1
+    last_layer_node = get_material_layer_node('LAYER', last_layer_node_index)
+    if last_layer_node:
+        while not blender_addon_utils.get_node_active(last_layer_node) and last_layer_node_index >= 0:
+            last_layer_node = get_material_layer_node('LAYER', last_layer_node_index)
+            last_layer_node_index -= 1
 
-            case _:
-                node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), principled_bsdf.inputs.get(material_channel_name.capitalize()))
+    if last_layer_node:
+        if blender_addon_utils.get_node_active(last_layer_node):
+            for material_channel_name in MATERIAL_CHANNEL_LIST:
+                match material_channel_name:
+                    case 'COLOR':
+                        node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), principled_bsdf.inputs.get('Base Color'))
+
+                    case 'NORMAL':
+                        node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), normal_and_height_mix.inputs.get(material_channel_name.capitalize()))
+                
+                    case 'HEIGHT':
+                        node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), normal_and_height_mix.inputs.get(material_channel_name.capitalize()))
+
+                    case _:
+                        node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), principled_bsdf.inputs.get(material_channel_name.capitalize()))
 
 def reindex_layer_nodes(change_made, affected_layer_index):
     '''Reindexes layer group nodes to keep them properly indexed. This should be called after a change is made that effects the layer stack order such as adding, duplicating, deleting, or moving a material layer on the layer stack.'''
@@ -655,7 +677,6 @@ class MaterialChannelNodeType(PropertyGroup):
     alpha_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Alpha Channel Node Type", description="The node type for the alpha channel", default='GROUP', update=update_emission_channel_node_type)
 
 class MATLAYER_layers(PropertyGroup):
-    hidden: BoolProperty(name="Hidden", description="Show if the layer is hidden")
     material_channel_node_types: PointerProperty(type=MaterialChannelNodeType)
     projection: PointerProperty(type=ProjectionSettings)
 
@@ -826,4 +847,28 @@ class MATLAYER_OT_toggle_layer_blur(Operator):
 
             else:
                 blur_node.mute = True
+        return {'FINISHED'}
+    
+class MATLAYER_OT_toggle_hide_layer(Operator):
+    bl_idname = "matlayer.toggle_hide_layer"
+    bl_label = "Toggle Hide Layer"
+    bl_description = "Hides / Unhides the layer by muting / unmuting the layer group node and triggering a relink of group nodes"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    layer_index: IntProperty(default=-1)
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        layer_node = get_material_layer_node('LAYER', self.layer_index)
+
+        if blender_addon_utils.get_node_active(layer_node):
+            blender_addon_utils.set_node_active(layer_node, False)
+        else:
+            blender_addon_utils.set_node_active(layer_node, True)
+
+        link_layer_group_nodes()
         return {'FINISHED'}

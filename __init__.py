@@ -27,7 +27,7 @@ from .preferences import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MA
 from .core.texture_set_settings import GlobalMaterialChannelToggles, MATLAYER_texture_set_settings
 
 # Material Layers
-from .core.material_layers import ProjectionSettings, MATLAYER_layer_stack, MaterialChannelNodeType, MATLAYER_layers, MATLAYER_OT_add_material_layer, MATLAYER_OT_add_paint_material_layer, MATLAYER_OT_add_decal_material_layer, MATLAYER_OT_delete_layer, MATLAYER_OT_duplicate_layer, MATLAYER_OT_move_material_layer_up, MATLAYER_OT_move_material_layer_down, MATLAYER_OT_toggle_material_channel_preview, MATLAYER_OT_toggle_layer_blur
+from .core.material_layers import ProjectionSettings, MATLAYER_layer_stack, MaterialChannelNodeType, MATLAYER_layers, MATLAYER_OT_add_material_layer, MATLAYER_OT_add_paint_material_layer, MATLAYER_OT_add_decal_material_layer, MATLAYER_OT_delete_layer, MATLAYER_OT_duplicate_layer, MATLAYER_OT_move_material_layer_up, MATLAYER_OT_move_material_layer_down, MATLAYER_OT_toggle_material_channel_preview, MATLAYER_OT_toggle_layer_blur, MATLAYER_OT_toggle_hide_layer
 
 # Layer Masks
 from .core.layer_masks import MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_mask_list, MATLAYER_OT_move_layer_mask_up, MATLAYER_OT_move_layer_mask_down, MATLAYER_OT_duplicate_layer_mask, MATLAYER_OT_delete_layer_mask, MATLAYER_OT_add_empty_layer_mask, MATLAYER_OT_add_black_layer_mask, MATLAYER_OT_add_white_layer_mask, MATLAYER_OT_add_edge_wear_mask
@@ -107,6 +107,7 @@ classes = (
     MATLAYER_OT_move_material_layer_down,
     MATLAYER_OT_toggle_material_channel_preview,
     MATLAYER_OT_toggle_layer_blur,
+    MATLAYER_OT_toggle_hide_layer,
 
     # Layer Masks
     MATLAYER_mask_stack, 
