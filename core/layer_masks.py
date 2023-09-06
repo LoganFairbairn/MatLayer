@@ -279,8 +279,7 @@ def link_mask_nodes(layer_index):
 
     active_material = bpy.context.active_object.active_material
     node_tree = active_material.node_tree
-    masks = bpy.context.scene.matlayer_masks
-    mask_count = len(masks)
+    mask_count = count_masks(layer_index)
 
     # Disconnect all mask group nodes.
     for i in range(0, mask_count):
@@ -290,7 +289,7 @@ def link_mask_nodes(layer_index):
                 for link in input.links:
                     node_tree.links.remove(link)
 
-    # Re-connect all layer group nodes.
+    # Re-connect all mask group nodes.
     for i in range(0, mask_count):
         mask_node = get_mask_node('MASK', layer_index, i)
         next_mask_node = get_mask_node('MASK', layer_index, i + 1)

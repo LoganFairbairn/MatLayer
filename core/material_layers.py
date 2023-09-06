@@ -451,13 +451,14 @@ def link_layer_group_nodes():
     if layer_count <= 0:
         return
 
-    # Disconnect all layer group nodes.
+    # Disconnect all layer group nodes (Don't disconnect masks).
     for i in range(0, layer_count):
         layer_node = get_material_layer_node('LAYER', i)
         if layer_node:
             for input in layer_node.inputs:
-                for link in input.links:
-                    node_tree.links.remove(link)
+                if input.name != 'LayerMask':
+                    for link in input.links:
+                        node_tree.links.remove(link)
 
     # Re-connect all layer group nodes.
     for i in range(0, layer_count):
