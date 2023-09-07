@@ -7,6 +7,7 @@ from bpy_extras.io_utils import ImportHelper        # For importing images.
 from ..core import texture_set_settings as tss
 from ..core import debug_logging
 from ..core import blender_addon_utils
+from ..core import material_layers
 import random
 import os                                           # For saving layer images.
 
@@ -131,18 +132,29 @@ class MATLAYER_OT_import_texture_node_image(Operator, ImportHelper):
         # Open a window to import an image into blender.
         head_tail = os.path.split(self.filepath)
         image_name = head_tail[1]
+
+        # Delete images with the same name if they exist.
+        image = bpy.data.images.get(image_name)
+        if image:
+            debug_logging.log("Removed " + image.name)
+            bpy.data.images.remove(image)
+            
         bpy.ops.image.open(filepath=self.filepath)
         image = bpy.data.images[image_name]
 
         # Apply the selected image texture to the selected layer based on projection mode.
-        selected_material_layer = context.scene.matlayer_layers[context.scene.matlayer_layer_stack.selected_layer_index]
-        match selected_material_layer.projection.mode:
-            case 'UV':
-                texture_node.image = image
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
+        if projection_node:
+            match projection_node.node_tree.name:
+                case 'ML_UVProjection':
+                    texture_node.image = image
 
-            case 'TRIPLANAR':
-                # TODO: Fill triplanar out.
-                print("Placeholder...")
+                case 'ML_TriplanarProjection':
+                    # TODO: Fill triplanar out.
+                    print("Placeholder...")
+        else:
+            texture_node.image = image
                 
         # If a material channel is defined, set the color space.
         if self.material_channel_name != "":
