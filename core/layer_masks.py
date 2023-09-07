@@ -228,6 +228,19 @@ def add_layer_mask(type):
             link_mask_nodes(selected_layer_index)
             material_layers.apply_mesh_maps()
 
+def delete_layer_mask():
+    '''Removed the selected layer mask from the mask stack.'''
+    masks = bpy.context.scene.matlayer_masks
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+    masks.remove(selected_mask_index)
+
+    bpy.context.scene.matlayer_mask_stack.selected_index -= 1
+
+    reindex_masks('DELETED_MASK', selected_layer_index, selected_mask_index)
+    organize_mask_nodes()
+    link_mask_nodes(selected_layer_index)
+
 def reindex_masks(change_made, layer_index, affected_mask_index):
     '''Reindexes mask nodes and node trees. This should be called after a change is made that effects the mask stack order (adding, duplicating, deleting, or moving a mask).'''
     match change_made:
@@ -484,12 +497,5 @@ class MATLAYER_OT_delete_layer_mask(Operator):
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
-        masks = context.scene.matlayer_masks
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-        selected_mask_index = context.scene.matlayer_mask_stack.selected_index
-        masks.remove(selected_mask_index)
-
-        reindex_masks('DELETED_MASK', selected_layer_index, selected_mask_index)
-        organize_mask_nodes()
-        link_mask_nodes(selected_layer_index)
+        delete_layer_mask()
         return {'FINISHED'}

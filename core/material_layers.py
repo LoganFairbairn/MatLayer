@@ -724,7 +724,7 @@ class MaterialChannelNodeType(PropertyGroup):
     height_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Height Channel Node Type", description="The node type for the height channel", default='GROUP', update=update_height_channel_node_type)
     alpha_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Alpha Channel Node Type", description="The node type for the alpha channel", default='GROUP', update=update_emission_channel_node_type)
 
-# Can these properties be removed in favor of using properties stored in the material node tree?
+# TODO: Can these properties be removed in favor of using properties stored in the material node tree?
 class MATLAYER_layers(PropertyGroup):
     material_channel_node_types: PointerProperty(type=MaterialChannelNodeType)
     projection: PointerProperty(type=ProjectionSettings)
