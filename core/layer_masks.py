@@ -233,8 +233,18 @@ def delete_layer_mask():
     masks = bpy.context.scene.matlayer_masks
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+    active_material = bpy.context.active_object.active_material
+
     masks.remove(selected_mask_index)
 
+    # Remove the mask node and it's node tree.
+    mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
+    if mask_node:
+        if mask_node.node_tree:
+            bpy.data.node_groups.remove(mask_node.node_tree)
+        active_material.node_tree.nodes.remove(mask_node)
+
+    # Reset the mask index.
     bpy.context.scene.matlayer_mask_stack.selected_index -= 1
 
     reindex_masks('DELETED_MASK', selected_layer_index, selected_mask_index)
