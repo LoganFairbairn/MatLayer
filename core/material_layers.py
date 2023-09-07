@@ -315,12 +315,15 @@ def add_material_layer(layer_type, self):
     match layer_type:
         case 'DEFAULT':
             default_layer_node_group = blender_addon_utils.append_group_node("ML_DefaultLayer", return_unique=True, never_auto_delete=True)
+            debug_logging.log("Added material layer.")
 
         case 'PAINT':
             default_layer_node_group = blender_addon_utils.append_group_node("ML_DefaultLayer", return_unique=True, never_auto_delete=True)
+            debug_logging.log("Added paint layer.")
 
         case 'DECAL':
             default_layer_node_group = blender_addon_utils.append_group_node("ML_DecalLayer", return_unique=True, never_auto_delete=True)
+            debug_logging.log("Added decal layer.")
 
     default_layer_node_group.name = "{0}_{1}".format(active_material.name, str(new_layer_slot_index))
     new_layer_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -407,6 +410,8 @@ def duplicate_layer(original_layer_index, self):
         layer_masks.link_mask_nodes(new_layer_slot_index)
         layer_masks.organize_mask_nodes()
 
+        debug_logging.log("Duplicated material layer.")
+
 def delete_layer(self):
     '''Deletes the selected layer'''
     if blender_addon_utils.verify_material_operation_context(self) == False:
@@ -442,6 +447,8 @@ def delete_layer(self):
     # Remove the layer slot and reset the selected layer index.
     layers.remove(selected_layer_index)
     bpy.context.scene.matlayer_layer_stack.selected_layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
+
+    debug_logging.log("Deleted material layer.")
 
 def move_layer(direction, self):
     '''Moves the selected layer up or down on the material layer stack.'''
@@ -541,6 +548,8 @@ def move_layer(direction, self):
     layer_masks.organize_mask_nodes()
     layer_masks.refresh_mask_slots()
 
+    debug_logging.log("Moved material layer.")
+
 def count_layers():
     '''Counts the total layers in the active material by reading the active material's node tree.'''
     if not bpy.context.active_object:
@@ -566,6 +575,7 @@ def organize_layer_group_nodes():
             layer_group_node.width = 300
             layer_group_node.location = (position_x, 0)
             position_x -= 500
+    debug_logging.log("Organized layer group nodes.")
 
 def link_layer_group_nodes():
     '''Connects all layer group nodes to other existing group nodes, and the principled BSDF shader.'''
@@ -656,6 +666,8 @@ def link_layer_group_nodes():
                     case _:
                         node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), principled_bsdf.inputs.get(material_channel_name.capitalize()))
 
+    debug_logging.log("Linked layer group nodes.")
+
 def reindex_layer_nodes(change_made, affected_layer_index):
     '''Reindexes layer group nodes to keep them properly indexed. This should be called after a change is made that effects the layer stack order such as adding, duplicating, deleting, or moving a material layer on the layer stack.'''
     match change_made:
@@ -683,6 +695,8 @@ def reindex_layer_nodes(change_made, affected_layer_index):
                 layer_node.name = str(int(layer_node.name) - 1)
                 split_node_tree_name = layer_node.node_tree.name.split('_')
                 layer_node.node_tree.name = "{0}_{1}".format(split_node_tree_name[0], str(int(split_node_tree_name[1]) - 1))
+
+    debug_logging.log("Re-indexed material layers.")
 
 def apply_mesh_maps():
     '''Searches for all mesh map texture nodes in the node tree and applies mesh maps if they exist.'''
