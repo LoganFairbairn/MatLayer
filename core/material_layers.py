@@ -904,5 +904,5 @@ class MATLAYER_OT_change_material_channel_value_node(Operator):
         return context.active_object
 
     def execute(self, context):
-        debug_logging.log("Provided Material Channel Name: " + self.material_channel_name)
+        replace_material_channel_node(self.material_channel_name, node_type=self.node_type)
         return {'FINISHED'}
