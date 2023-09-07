@@ -483,16 +483,15 @@ def move_layer(direction, self):
                     mask_node.name += "~"
                     mask_node.node_tree.name = mask_node.name
 
-                active_material_name = bpy.context.active_object.active_material.name
                 above_layer_mask_count = layer_masks.count_masks(selected_layer_index + 1)
                 for i in range(0, above_layer_mask_count):
                     mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i)
-                    mask_node.name = layer_masks.format_mask_name(active_material_name, selected_layer_index, i)
+                    mask_node.name = layer_masks.format_mask_name(selected_layer_index, i)
                     mask_node.node_tree.name = mask_node.name
 
                 for i in range(0, selected_layer_mask_count):
                     mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i, get_changed=True)
-                    mask_node.name = layer_masks.format_mask_name(active_material_name, selected_layer_index + 1, i)
+                    mask_node.name = layer_masks.format_mask_name(selected_layer_index + 1, i)
                     mask_node.node_tree.name = mask_node.name
 
             else:
@@ -523,18 +522,15 @@ def move_layer(direction, self):
                     mask_node.name += "~"
                     mask_node.node_tree.name = mask_node.name
 
-                active_material_name = bpy.context.active_object.active_material.name
                 below_layer_mask_count = layer_masks.count_masks(selected_layer_index - 1)
                 for i in range(0, below_layer_mask_count):
                     mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i)
-                    mask_node.name = layer_masks.format_mask_name(active_material_name, selected_layer_index, i)
-                    mask_node.label = mask_node.name
+                    mask_node.name = layer_masks.format_mask_name(selected_layer_index, i)
                     mask_node.node_tree.name = mask_node.name
 
                 for i in range(0, selected_layer_mask_count):
                     mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i, get_changed=True)
-                    mask_node.name = layer_masks.format_mask_name(active_material_name, selected_layer_index - 1, i)
-                    mask_node.label = mask_node.name
+                    mask_node.name = layer_masks.format_mask_name(selected_layer_index - 1, i)
                     mask_node.node_tree.name = mask_node.name
 
             else:
