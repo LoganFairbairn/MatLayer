@@ -155,7 +155,6 @@ def draw_layer_material_channel_toggles(layout):
 
 def draw_material_channel_properties(layout):
     '''Draws properties for all active material channels on selected material layer.'''
-    layers = bpy.context.scene.matlayer_layers
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
     # Avoid drawing material channel properties for invalid layers.
@@ -179,17 +178,24 @@ def draw_material_channel_properties(layout):
         row.separator()
         row.scale_y = 2.5
 
-        row = layout.row(align=True)
-        row.scale_y = DEFAULT_UI_SCALE_Y
-        row.label(text=material_channel_name)
-        row.prop(layers[selected_layer_index].material_channel_node_types, material_channel_name.lower() + "_node_type", text="")
-
-        filter_node = material_layers.get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
-        if filter_node:
-            row.prop(filter_node, "mute", icon='FILTER', text="", invert_checkbox=True)
-
         value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
         if value_node:
+            # Draw the value node type and options to swap to different node types. 
+            # We'll pass the mix material channel node as context for determining parameters that need to be passed to operators that change material channel node types.
+            row = layout.row(align=True)
+            row.scale_y = DEFAULT_UI_SCALE_Y
+            row.label(text=material_channel_name)
+            row.context_pointer_set("mix_node", mix_node)
+            match value_node.bl_static_type:
+                case 'GROUP':
+                    row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text='GROUP')
+                case 'TEX_IMAGE':
+                    row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text='TEXTURE')
+
+            # Draw quick filter toggle for material channels.
+            filter_node = material_layers.get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
+            if filter_node:
+                row.prop(filter_node, "mute", icon='FILTER', text="", invert_checkbox=True)
 
             # Draw values based on the node type used to represent the material channel value.
             match value_node.bl_static_type:
@@ -250,17 +256,18 @@ def draw_layer_projection(layout):
     first_column = split.column()
     second_column = split.column()
 
+    # Draw the projection mode.
     row = first_column.row()
     row.scale_y = DEFAULT_UI_SCALE_Y
     row.label(text="Mode")
     row = second_column.row()
     row.scale_y = DEFAULT_UI_SCALE_Y
-    row.prop(layers[selected_layer_index].projection, "mode", text="", slider=True, index=0)
+    row.menu('MATLAYER_MT_layer_projection_sub_menu', text="UV")
 
     projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
     if projection_node:
-        match layers[selected_layer_index].projection.mode:
-            case 'UV':
+        match projection_node.node_tree.name:
+            case 'ML_UVProjection':
                 row = first_column.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.label(text="Offset")
@@ -284,18 +291,19 @@ def draw_layer_projection(layout):
                 col = row.split()
                 col.prop(projection_node.inputs.get('ScaleX'), "default_value", text="")
 
+                sync_projection_scale = bpy.context.scene.matlayer_sync_projection_scale
                 col = row.split()
-                if layers[selected_layer_index].projection.sync_projection_scale:
-                    col.prop(layers[selected_layer_index].projection, "sync_projection_scale", text="", icon="LOCKED")
+                if sync_projection_scale:
+                    col.prop(bpy.context.scene, "matlayer_sync_projection_scale", text="", icon="LOCKED")
                 else:
-                    col.prop(layers[selected_layer_index].projection, "sync_projection_scale", text="", icon="UNLOCKED")
+                    col.prop(bpy.context.scene, "matlayer_sync_projection_scale", text="", icon="UNLOCKED")
 
                 col = row.split()
-                if layers[selected_layer_index].projection.sync_projection_scale:
+                if sync_projection_scale:
                     col.enabled = False
                 col.prop(projection_node.inputs.get('ScaleY'), "default_value", text="")
 
-            case 'TRIPLANAR':
+            case 'ML_TriplanarProjection':
                 row = first_column.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.label(text="Offset")
@@ -304,7 +312,7 @@ def draw_layer_projection(layout):
                 row.prop(projection_node.inputs.get('OffsetX'), "default_value", text="", slider=True)
                 row.prop(projection_node.inputs.get('OffsetY'), "default_value", text="", slider=True)
                 row.prop(projection_node.inputs.get('OffsetZ'), "default_value", text="", slider=True)
-                row.prop(layers[selected_layer_index].projection, "sync_projection_scale", text="", icon='LOCKED')
+                row.prop(bpy.context.scene, "sync_projection_scale", text="", icon='LOCKED')
 
                 row = first_column.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
@@ -508,6 +516,8 @@ def draw_layer_properties(layout):
     row.label(text="LAYER PROPERTIES")
     draw_layer_blur_settings(layout)
 
+    # TODO: Draw decal layer properties here.
+
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
     bl_idname = "matlayer.add_material_layer_menu"
@@ -605,7 +615,7 @@ class ImageUtilitySubMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        if context.node_tree and context.node:
+        if context.node and context.node_tree:
             operator = layout.operator("matlayer.add_texture_node_image", icon="ADD", text="Add New Image")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
@@ -627,3 +637,31 @@ class ImageUtilitySubMenu(Menu):
             operator = layout.operator("matlayer.delete_texture_node_image", icon="TRASH", text="Delete Image")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
+
+class LayerProjectionModeSubMenu(Menu):
+    bl_idname = "MATLAYER_MT_layer_projection_sub_menu"
+    bl_label = "Layer Projection Sub Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("matlayer.set_layer_projection_uv", text="UV")
+        layout.operator("matlayer.set_layer_projection_triplanar", text="Triplanar")
+
+class MaterialChannelValueNodeSubMenu(Menu):
+    bl_idname = "MATLAYER_MT_material_channel_value_node_sub_menu"
+    bl_label = "Material Channel Value Node Sub Menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        # This is a work-around for not being able (or not knowing how) to pass a string to this sub-menu from the draw layout call.
+        # Get the material channel name from the mix node being drawn.
+        material_channel_name = context.mix_node.name.replace('_MIX', '')
+
+        operator = layout.operator("matlayer.change_material_channel_value_node", text='GROUP')
+        operator.material_channel_name = material_channel_name
+        operator.node_type = 'GROUP'
+
+        operator = layout.operator("matlayer.change_material_channel_value_node", text='TEXTURE')
+        operator.material_channel_name = material_channel_name
+        operator.node_type = 'TEXTURE'

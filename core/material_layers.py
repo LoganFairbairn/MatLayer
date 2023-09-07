@@ -11,25 +11,6 @@ import random
 
 # List of node types that can be used in the texture slot.
 
-PROJECTION_MODES = [
-    ("UV", "UV / Flat", "Projects the texture using the model's UV map."),
-    ("TRIPLANAR", "Triplanar", "Projects the textures onto the object from each axis. This projection method can be used to quickly remove seams from objects."),
-    #("SPHERE", "Sphere", ""),
-    #("TUBE", "Tube", "")
-]
-
-VALUE_NODE_TYPES = [
-    ("GROUP", "GROUP", ""),
-    ("TEXTURE", "TEXTURE", ""),
-]
-
-TEXTURE_INTERPOLATION_MODES = [
-    ("Linear", "Linear", ""),
-    ("Cubic", "Cubic", ""),
-    ("Closest", "Closest", ""),
-    ("Smart", "Smart", "")
-]
-
 MATERIAL_CHANNEL = [
     ("COLOR", "Color", ""), 
     ("SUBSURFACE", "Subsurface", ""),
@@ -64,71 +45,6 @@ MATERIAL_LAYER_TYPES = [
 def update_layer_index(self, context):
     '''Updates properties and user interface when a new layer is selected.'''
     layer_masks.refresh_mask_slots()
-
-def replace_material_channel_node(material_channel_name, node_type):
-    '''Replaces the existing material channel node with a new node of the given type.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    layer_group_node = get_layer_node_tree(selected_layer_index)
-    value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
-    old_node_location = value_node.location
-
-    layer_group_node.nodes.remove(value_node)
-
-    match node_type:
-        case 'GROUP':
-            new_node = layer_group_node.nodes.new('ShaderNodeGroup')
-            channel_name = material_channel_name.lower()
-            default_node_tree = bpy.data.node_groups.get("ML_Default{0}".format(channel_name.capitalize()))
-            new_node.node_tree = default_node_tree
-        case 'TEXTURE':
-            new_node = layer_group_node.nodes.new('ShaderNodeTexImage')
-            layer_blur_node = get_material_layer_node('LAYER_BLUR', selected_layer_index)
-            if layer_blur_node:
-                layer_group_node.links.new(layer_blur_node.outputs.get(material_channel_name.capitalize()), new_node.inputs[0])
-
-    new_node.name = "{0}_VALUE".format(material_channel_name)
-    new_node.label = new_node.name
-    new_node.location = old_node_location
-    new_node.width = 200
-
-    mix_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
-    layer_group_node.links.new(new_node.outputs[0], mix_node.inputs[7])
-
-def update_color_channel_node_type(self, context):
-    replace_material_channel_node('COLOR', self.color_node_type)
-
-def update_subsurface_channel_node_type(self, context):
-    replace_material_channel_node('SUBSURFACE', self.subsurface_node_type)
-
-def update_metallic_channel_node_type(self, context):
-    replace_material_channel_node('METALLIC', self.metallic_node_type)
-
-def update_specular_channel_node_type(self, context):
-    replace_material_channel_node('SPECULAR', self.specular_node_type)
-
-def update_roughness_channel_node_type(self, context):
-    replace_material_channel_node('ROUGHNESS', self.roughness_node_type)
-
-def update_emission_channel_node_type(self, context):
-    replace_material_channel_node('EMISSION', self.emission_node_type)
-
-def update_normal_channel_node_type(self, context):
-    replace_material_channel_node('NORMAL', self.normal_node_type)
-
-def update_height_channel_node_type(self, context):
-    replace_material_channel_node('HEIGHT', self.height_node_type)
-
-def update_alpha_channel_node_type(self, context):
-    replace_material_channel_node('ALPHA', self.alpha_node_type)
-
-def update_layer_projection_mode(self, context):
-    '''Updates the projection mode for the selected layer'''
-    print("Placeholder...")
-
-def update_sync_layer_projection_scale(self, context):
-    print("Placeholder...")
-
-#----------------------------- HELPER FUNCTIONS -----------------------------#
 
 def get_shorthand_material_channel_name(material_channel_name):
     '''Returns the short-hand version of the provided material channel name.'''
@@ -710,6 +626,35 @@ def apply_mesh_maps():
                         mesh_map_node.image = baking.get_meshmap_image(bpy.context.active_object.name, mesh_map_type)
     debug_logging.log("Applied baked mesh maps.")
 
+def replace_material_channel_node(material_channel_name, node_type):
+    '''Replaces the existing material channel node with a new node of the given type.'''
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    layer_group_node = get_layer_node_tree(selected_layer_index)
+    value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
+    old_node_location = value_node.location
+
+    layer_group_node.nodes.remove(value_node)
+
+    match node_type:
+        case 'GROUP':
+            new_node = layer_group_node.nodes.new('ShaderNodeGroup')
+            channel_name = material_channel_name.lower()
+            default_node_tree = bpy.data.node_groups.get("ML_Default{0}".format(channel_name.capitalize()))
+            new_node.node_tree = default_node_tree
+        case 'TEXTURE':
+            new_node = layer_group_node.nodes.new('ShaderNodeTexImage')
+            layer_blur_node = get_material_layer_node('LAYER_BLUR', selected_layer_index)
+            if layer_blur_node:
+                layer_group_node.links.new(layer_blur_node.outputs.get(material_channel_name.capitalize()), new_node.inputs[0])
+
+    new_node.name = "{0}_VALUE".format(material_channel_name)
+    new_node.label = new_node.name
+    new_node.location = old_node_location
+    new_node.width = 200
+
+    mix_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
+    layer_group_node.links.new(new_node.outputs[0], mix_node.inputs[7])
+
 #----------------------------- OPERATORS -----------------------------#
 
 class MATLAYER_layer_stack(PropertyGroup):
@@ -718,27 +663,13 @@ class MATLAYER_layer_stack(PropertyGroup):
     material_channel_preview: BoolProperty(name="Material Channel Preview", description="If true, only the rgb output values for the selected material channel will be used on the object.", default=False)
     selected_material_channel: EnumProperty(items=MATERIAL_CHANNEL, name="Material Channel", description="The currently selected material channel", default='COLOR')
 
-class ProjectionSettings(PropertyGroup):
-    '''Projection settings for this add-on.'''
-    mode: EnumProperty(items=PROJECTION_MODES, name="Projection", description="Projection type of the image attached to the selected layer", default='UV', update=update_layer_projection_mode)
-    sync_projection_scale: BoolProperty(name="Sync Projection Scale", description="When enabled Y and Z projection (if the projection mode has a z projection) will be synced with the X projection", default=True,update=update_sync_layer_projection_scale)
-
-class MaterialChannelNodeType(PropertyGroup):
-    '''An enum node type for the material node used to represent the material channel texture in every material channel.'''
-    color_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Color Channel Node Type", description="The node type for the color channel", default='GROUP', update=update_color_channel_node_type)
-    subsurface_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Subsurface Scattering Channel Node Type", description="The node type for the subsurface scattering channel", default='GROUP', update=update_subsurface_channel_node_type)
-    metallic_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Metallic Channel Node Type", description="The node type for the metallic channel", default='GROUP', update=update_metallic_channel_node_type)
-    specular_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Specular Channel Node Type", description="The node type for the specular channel", default='GROUP', update=update_specular_channel_node_type)
-    roughness_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Roughness Channel Node Type", description="The node type for roughness channel", default='GROUP', update=update_roughness_channel_node_type)
-    emission_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Emission Channel Node Type", description="The node type for the emission channel", default='GROUP', update=update_emission_channel_node_type)
-    normal_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Normal Channel Node Type", description="The node type for the normal channel", default='GROUP', update=update_normal_channel_node_type)
-    height_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Height Channel Node Type", description="The node type for the height channel", default='GROUP', update=update_height_channel_node_type)
-    alpha_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Alpha Channel Node Type", description="The node type for the alpha channel", default='GROUP', update=update_emission_channel_node_type)
-
-# TODO: Can these properties be removed in favor of using properties stored in the material node tree?
 class MATLAYER_layers(PropertyGroup):
-    material_channel_node_types: PointerProperty(type=MaterialChannelNodeType)
-    projection: PointerProperty(type=ProjectionSettings)
+    # Storing properties in the layer slot data can potentially cause many errors and often more code -
+    # - Properties stored in the layer slots must be read from the material node tree when a new active material is selected.
+    # - Properties stored in the layer slots must be updated first in the interface, then trigger callback functions to update their associated properties in material nodes.
+    # To help avoid the errors above, all properties are stored in the material node tree of created materials (in one way or another) and referenced directly when displayed in the user interface.
+    # A placeholder property is kept here so the UI still has a property group to reference to draw the UIList.
+    placeholder_property: IntProperty()
 
 class MATLAYER_OT_add_material_layer(Operator):
     bl_idname = "matlayer.add_material_layer"
@@ -931,4 +862,52 @@ class MATLAYER_OT_toggle_hide_layer(Operator):
             blender_addon_utils.set_node_active(layer_node, True)
 
         link_layer_group_nodes()
+        return {'FINISHED'}
+
+class MATLAYER_OT_set_layer_projection_uv(Operator):
+    bl_idname = "matlayer.set_layer_projection_uv"
+    bl_label = "Set Layer Projection UV"
+    bl_description = "Sets the projection mode for the layer to UV projection, which uses the UV layout of the object to project textures used on this material layer"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+
+        return {'FINISHED'}
+
+class MATLAYER_OT_set_layer_projection_triplanar(Operator):
+    bl_idname = "matlayer.set_layer_projection_triplanar"
+    bl_label = "Set Layer Projection Triplanar"
+    bl_description = "Sets the projection mode for the layer to triplanar projection which projects the textures onto the object from each axis. This projection method can be used to apply materials to objects without needing to manually blend seams"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+
+        return {'FINISHED'}
+    
+class MATLAYER_OT_change_material_channel_value_node(Operator):
+    bl_idname = "matlayer.change_material_channel_value_node"
+    bl_label = "Change Material Channel Node"
+    bl_description = "Changes value node representing the provided layer material channel"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    material_channel_name: StringProperty(default='COLOR')
+    node_type: StringProperty(default='GROUP')
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        debug_logging.log("Provided Material Channel Name: " + self.material_channel_name)
         return {'FINISHED'}

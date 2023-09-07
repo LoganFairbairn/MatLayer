@@ -99,11 +99,12 @@ def append_default_node_groups():
 
     # Append mapping nodes.
     append_group_node("ML_OffsetRotationScale", never_auto_delete=True)
-    append_group_node("ML_TriplanarMapping", never_auto_delete=True)
+    append_group_node("ML_UVProjection", never_auto_delete=True)
+    append_group_node("ML_TriplanarProjection", never_auto_delete=True)
     append_group_node("ML_TriplanarNormalFix", never_auto_delete=True)
-    append_group_node("ML_TriplanarNormals", never_auto_delete=True)
     append_group_node("ML_WorldToTangentSpace", never_auto_delete=True)
-    append_group_node("ML_Triplanar", never_auto_delete=True)
+    append_group_node("ML_TriplanarBlend", never_auto_delete=True)
+    append_group_node("ML_TriplanarNormalsBlend", never_auto_delete=True)
 
     # Append mesh map baking node group setups.
     append_group_node("ML_AmbientOcclusion", never_auto_delete=True)
