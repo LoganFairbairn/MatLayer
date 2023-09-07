@@ -290,7 +290,7 @@ def add_material_layer(layer_type, self):
 
     blender_addon_utils.append_default_node_groups()        # Append all required node groups first to avoid node group duplication from re-appending.
 
-    if blender_addon_utils.verify_material_operation_context(self) == False:
+    if blender_addon_utils.verify_material_operation_context(self, check_active_material=False) == False:
         return
 
     active_object = bpy.context.active_object
