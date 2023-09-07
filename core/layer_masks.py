@@ -288,6 +288,51 @@ def delete_layer_mask():
     masks.remove(selected_mask_index)
     bpy.context.scene.matlayer_mask_stack.selected_index -= 1
 
+def move_mask(direction):
+    '''Moves the selected mask up / down on the material layer stack.'''
+    masks = bpy.context.scene.matlayer_masks
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+
+    match direction:
+        case 'UP':
+            # TODO: Swap the mask node and node tree index for the selected mask node with the mask above it (if one exists).
+            selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+
+            if selected_mask_index < len(masks) - 1:
+                mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
+                mask_node.name += "~"
+                mask_node.node_tree.name += "~"
+
+                above_mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index + 1)
+                above_mask_node.name = format_mask_name(selected_layer_index, selected_mask_index)
+                above_mask_node.node_tree.name = above_mask_node.name
+
+                mask_node.name = format_mask_name(selected_layer_index, selected_mask_index + 1)
+                mask_node.node_tree.name = mask_node.name
+
+                bpy.context.scene.matlayer_mask_stack.selected_index = selected_mask_index + 1
+
+        case 'DOWN':
+            # TODO: Swap the mask node and node tree index for the selected mask node with the mask below it (if one exists).
+            selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+
+            if selected_mask_index - 1 >= 0:
+                mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
+                mask_node.name += "~"
+                mask_node.node_tree.name += "~"
+
+                above_mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index - 1)
+                above_mask_node.name = format_mask_name(selected_layer_index, selected_mask_index)
+                above_mask_node.node_tree.name = above_mask_node.name
+
+                mask_node.name = format_mask_name(selected_layer_index, selected_mask_index - 1)
+                mask_node.node_tree.name = mask_node.name
+
+                bpy.context.scene.matlayer_mask_stack.selected_index = selected_mask_index - 1
+
+    organize_mask_nodes()
+    link_mask_nodes(selected_layer_index)
+
 def reindex_masks(change_made, layer_index, affected_mask_index):
     '''Reindexes mask nodes and node trees. This should be called after a change is made that effects the mask stack order (adding, duplicating, deleting, or moving a mask).'''
     active_material_name = bpy.context.active_object.active_material.name
@@ -500,6 +545,7 @@ class MATLAYER_OT_move_layer_mask_up(Operator):
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
+        move_mask('UP')
         return {'FINISHED'}
 
 class MATLAYER_OT_move_layer_mask_down(Operator):
@@ -515,6 +561,7 @@ class MATLAYER_OT_move_layer_mask_down(Operator):
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
+        move_mask('DOWN')
         return {'FINISHED'}
 
 class MATLAYER_OT_duplicate_layer_mask(Operator):
