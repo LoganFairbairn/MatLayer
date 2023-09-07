@@ -23,18 +23,24 @@ def verify_material_operation_context(self, display_message=True, check_active_o
     
     # Check for an active object.
     if check_active_object and not bpy.context.active_object:
-        debug_logging.log_status("No active object.", self, 'ERROR')
-        return None
+        if display_message:
+            debug_logging.log_status("No active object.", self, 'ERROR')
+        return False
     
     # Check the active object is a mesh.
     if check_mesh and bpy.context.active_object.type != 'MESH':
-        debug_logging.log_status("Selected object must be a mesh.", self, 'ERROR')
-        return {'FINISHED'}
+        if display_message:
+            debug_logging.log_status("Selected object must be a mesh.", self, 'ERROR')
+        return False
     
     # Check for an active material.
     if check_active_material and not bpy.context.active_object.active_material:
-        debug_logging.log_status("No active material.", self, 'ERROR')
-        return None
+        if display_message:
+            debug_logging.log_status("No active material.", self, 'ERROR')
+        return False
+    
+    # No context issues found, return true.
+    return True
 
 def get_blend_assets_path():
     '''Returns the asset path for the blend file.'''

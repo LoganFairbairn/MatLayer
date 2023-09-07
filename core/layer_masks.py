@@ -146,8 +146,12 @@ def add_mask_slot():
 
     return bpy.context.scene.matlayer_mask_stack.selected_index
 
-def add_layer_mask(type):
+def add_layer_mask(type, self):
     '''Adds a mask of the specified type to the selected material layer.'''
+
+    if blender_addon_utils.verify_material_operation_context(self) == False:
+        return
+
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     new_mask_slot_index = add_mask_slot()
     active_material = bpy.context.active_object.active_material
@@ -276,8 +280,11 @@ def duplicate_mask(self, mask_index=-1):
 
         debug_logging.log("Duplicated layer mask.")
 
-def delete_layer_mask():
+def delete_layer_mask(self):
     '''Removed the selected layer mask from the mask stack.'''
+    if blender_addon_utils.verify_material_operation_context(self) == False:
+        return
+
     masks = bpy.context.scene.matlayer_masks
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
@@ -299,8 +306,11 @@ def delete_layer_mask():
     bpy.context.scene.matlayer_mask_stack.selected_index -= 1
     debug_logging.log("Deleted layer mask.")
 
-def move_mask(direction):
+def move_mask(direction, self):
     '''Moves the selected mask up / down on the material layer stack.'''
+    if blender_addon_utils.verify_material_operation_context(self) == False:
+        return
+
     masks = bpy.context.scene.matlayer_masks
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
@@ -502,7 +512,7 @@ class MATLAYER_OT_add_empty_layer_mask(Operator):
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
-        add_layer_mask('EMPTY')
+        add_layer_mask('EMPTY', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_add_black_layer_mask(Operator):
@@ -518,7 +528,7 @@ class MATLAYER_OT_add_black_layer_mask(Operator):
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
-        add_layer_mask('BLACK')
+        add_layer_mask('BLACK', self)
         return {'FINISHED'}
     
 class MATLAYER_OT_add_white_layer_mask(Operator):
@@ -534,7 +544,7 @@ class MATLAYER_OT_add_white_layer_mask(Operator):
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
-        add_layer_mask('WHITE')
+        add_layer_mask('WHITE', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_add_edge_wear_mask(Operator):
@@ -550,7 +560,7 @@ class MATLAYER_OT_add_edge_wear_mask(Operator):
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
-        add_layer_mask('EDGE_WEAR')
+        add_layer_mask('EDGE_WEAR', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_move_layer_mask_up(Operator):
@@ -566,7 +576,7 @@ class MATLAYER_OT_move_layer_mask_up(Operator):
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
-        move_mask('UP')
+        move_mask('UP', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_move_layer_mask_down(Operator):
@@ -582,7 +592,7 @@ class MATLAYER_OT_move_layer_mask_down(Operator):
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
-        move_mask('DOWN')
+        move_mask('DOWN', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_duplicate_layer_mask(Operator):
@@ -614,5 +624,5 @@ class MATLAYER_OT_delete_layer_mask(Operator):
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
-        delete_layer_mask()
+        delete_layer_mask(self)
         return {'FINISHED'}

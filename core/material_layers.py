@@ -287,15 +287,13 @@ def add_material_layer_slot():
 
 def add_material_layer(layer_type, self):
     '''Adds a material layer to the active materials layer stack.'''
-    active_object = bpy.context.active_object
 
     blender_addon_utils.append_default_node_groups()        # Append all required node groups first to avoid node group duplication from re-appending.
 
-    # Run checks the make sure this operator can be ran without errors, display info messages to users if it can't be ran.
-    if active_object.type != 'MESH':
-        blender_addon_utils.log_status("Selected object must be a mesh to add materials", self, 'ERROR')
-        return {'FINISHED'}
+    if blender_addon_utils.verify_material_operation_context(self) == False:
+        return
 
+    active_object = bpy.context.active_object
     # If there are no material slots, or no material in the active material slot, make a new MatLayer material by appending the default material setup.
     if len(active_object.material_slots) == 0:
         new_material = blender_addon_utils.append_material("DefaultMatLayerMaterial")
@@ -363,7 +361,7 @@ def add_material_layer(layer_type, self):
 def duplicate_layer(original_layer_index, self):
     '''Duplicates the material layer at the provided layer index.'''
 
-    if not blender_addon_utils.verify_material_operation_context(self) == False:
+    if blender_addon_utils.verify_material_operation_context(self) == False:
         return
 
     # Duplicate the node tree and add it to the layer stack.
@@ -452,6 +450,9 @@ def delete_layer(self):
 
 def move_layer(direction, self):
     '''Moves the selected layer up or down on the material layer stack.'''
+    if blender_addon_utils.verify_material_operation_context(self) == False:
+        return
+
     match direction:
         case 'UP':
             # Swap the layer index for all layer nodes in this layer with the layer above it (if one exists).
