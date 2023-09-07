@@ -6,6 +6,7 @@ from ..core import texture_set_settings as tss
 from ..core import material_layers
 from ..core import baking
 from ..core import blender_addon_utils
+from ..core import debug_logging
 
 def update_selected_mask_index(self, context):
     '''Updates properties when the selected mask slot is changed.'''
@@ -14,6 +15,7 @@ def update_selected_mask_index(self, context):
     mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
     if mask_texture_node:
         context.scene.tool_settings.image_paint.canvas = mask_texture_node.image
+    debug_logging.log("Updated selected mask index.")
 
 def format_mask_name(layer_index, mask_index, active_material_name=""):
     '''Returns a properly formatted name for a mask node created with this add-on.'''
@@ -164,6 +166,7 @@ def add_layer_mask(type):
             reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
             organize_mask_nodes()
             link_mask_nodes(selected_layer_index)
+            debug_logging.log("Added empty layer mask.")
                 
         case 'BLACK':
             default_node_group = blender_addon_utils.append_group_node("ML_ImageMask", never_auto_delete=True)
@@ -194,6 +197,8 @@ def add_layer_mask(type):
             if texture_node:
                 texture_node.image = bpy.data.images.get(image_name)
 
+            debug_logging.log("Added black layer mask.")
+
         case 'WHITE':
             default_node_group = blender_addon_utils.append_group_node("ML_ImageMask", never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
@@ -223,6 +228,8 @@ def add_layer_mask(type):
             if texture_node:
                 texture_node.image = bpy.data.images.get(image_name)
 
+            debug_logging.log("Added white layer mask.")
+
         case 'EDGE_WEAR':
             default_node_group = blender_addon_utils.append_group_node("ML_EdgeWear", never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
@@ -236,6 +243,7 @@ def add_layer_mask(type):
             organize_mask_nodes()
             link_mask_nodes(selected_layer_index)
             material_layers.apply_mesh_maps()
+            debug_logging.log("Added edge wear mask.")
 
 def duplicate_mask(self, mask_index=-1):
     '''Duplicates the mask at the provided mask index.'''
@@ -266,6 +274,8 @@ def duplicate_mask(self, mask_index=-1):
             organize_mask_nodes()
             link_mask_nodes(selected_layer_index)
 
+        debug_logging.log("Duplicated layer mask.")
+
 def delete_layer_mask():
     '''Removed the selected layer mask from the mask stack.'''
     masks = bpy.context.scene.matlayer_masks
@@ -287,6 +297,7 @@ def delete_layer_mask():
     # Remove the mask slot and reset the mask index.
     masks.remove(selected_mask_index)
     bpy.context.scene.matlayer_mask_stack.selected_index -= 1
+    debug_logging.log("Deleted layer mask.")
 
 def move_mask(direction):
     '''Moves the selected mask up / down on the material layer stack.'''
@@ -295,7 +306,7 @@ def move_mask(direction):
 
     match direction:
         case 'UP':
-            # TODO: Swap the mask node and node tree index for the selected mask node with the mask above it (if one exists).
+            # Swap the mask node and node tree index for the selected mask node with the mask above it (if one exists).
             selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
 
             if selected_mask_index < len(masks) - 1:
@@ -312,8 +323,10 @@ def move_mask(direction):
 
                 bpy.context.scene.matlayer_mask_stack.selected_index = selected_mask_index + 1
 
+                debug_logging.log("Moved mask up on the mask stack.")
+
         case 'DOWN':
-            # TODO: Swap the mask node and node tree index for the selected mask node with the mask below it (if one exists).
+            # Swap the mask node and node tree index for the selected mask node with the mask below it (if one exists).
             selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
 
             if selected_mask_index - 1 >= 0:
@@ -330,12 +343,13 @@ def move_mask(direction):
 
                 bpy.context.scene.matlayer_mask_stack.selected_index = selected_mask_index - 1
 
+                debug_logging.log("Moved mask down on the mask stack.")
+
     organize_mask_nodes()
     link_mask_nodes(selected_layer_index)
-
+    
 def reindex_masks(change_made, layer_index, affected_mask_index):
-    '''Reindexes mask nodes and node trees. This should be called after a change is made that effects the mask stack order (adding, duplicating, deleting, or moving a mask).'''
-    active_material_name = bpy.context.active_object.active_material.name
+    '''Reindexes mask nodes and node trees. This should be called after a change is made that effects the mask stack order (adding, duplicating, deleting a mask).'''
     match change_made:
         case 'ADDED_MASK':
             # Increase the layer index for all layer group nodes and their node trees that exist above the affected layer.
@@ -352,6 +366,7 @@ def reindex_masks(change_made, layer_index, affected_mask_index):
                 mask_node_name = format_mask_name(layer_index, affected_mask_index)
                 new_mask_node.name = mask_node_name
                 new_mask_node.node_tree.name = mask_node_name
+            debug_logging.log("Re-indexed masks for a new added / duplicated mask.")
 
         case 'DELETED_MASK':
             # Reduce the layer index for all layer group nodes and their nodes trees that exist above the affected layer.
@@ -360,6 +375,7 @@ def reindex_masks(change_made, layer_index, affected_mask_index):
                 mask_node = get_mask_node('MASK', layer_index, i - 1)
                 mask_node.name = format_mask_name(layer_index, int(mask_node.name.split('_')[2]) - 1)
                 mask_node.node_tree.name = mask_node.name
+            debug_logging.log("Re-indexed mask nodes for after a mask was deleted.")
 
 def organize_mask_nodes():
     '''Organizes the position of all mask nodes in the active materials node tree.'''
@@ -374,6 +390,7 @@ def organize_mask_nodes():
                 mask_node.location = (layer_node.location[0], position_y)
                 mask_node.width = 300
                 position_y -= 300
+    debug_logging.log("Organized masks nodes.")
 
 def link_mask_nodes(layer_index):
     '''Links existing mask nodes together and to their respective material layer.'''
@@ -409,6 +426,8 @@ def link_mask_nodes(layer_index):
     if last_mask_node and last_mask_node:
         node_tree.links.new(last_mask_node.outputs[0], layer_node.inputs.get('LayerMask'))
 
+    debug_logging.log("Re-linked mask nodes.")
+
 def refresh_mask_slots():
     '''Refreshes the number of mask slots in the mask stack by counting the number of mask nodes in the active materials node tree.'''
     masks = bpy.context.scene.matlayer_masks
@@ -417,6 +436,8 @@ def refresh_mask_slots():
     mask_count = count_masks(selected_layer_index)
     for i in range(0, mask_count):
         add_mask_slot()
+
+    debug_logging.log("Refreshed mask slots.")
 
 class MATLAYER_mask_stack(PropertyGroup):
     '''Properties for the layer stack.'''
