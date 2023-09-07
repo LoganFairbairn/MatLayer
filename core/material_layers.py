@@ -468,8 +468,24 @@ def move_layer(direction, self):
 
                 bpy.context.scene.matlayer_layer_stack.selected_layer_index = selected_layer_index + 1
 
-                # TODO: Swap the layer index for all mask nodes in this layer with the layer above it.
+                # Swap the layer index for all mask nodes in this layer with the layer above it.
+                selected_layer_mask_count = layer_masks.count_masks(selected_layer_index)
+                for i in range(0, selected_layer_mask_count):
+                    mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i)
+                    mask_node.name += "~"
+                    mask_node.node_tree.name = mask_node.name
 
+                active_material_name = bpy.context.active_object.active_material.name
+                above_layer_mask_count = layer_masks.count_masks(selected_layer_index + 1)
+                for i in range(0, above_layer_mask_count):
+                    mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i)
+                    mask_node.name = layer_masks.format_mask_name(active_material_name, selected_layer_index, i)
+                    mask_node.node_tree.name = mask_node.name
+
+                for i in range(0, selected_layer_mask_count):
+                    mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i, get_changed=True)
+                    mask_node.name = layer_masks.format_mask_name(active_material_name, selected_layer_index + 1, i)
+                    mask_node.node_tree.name = mask_node.name
 
             else:
                 debug_logging.log("Can't move layer up, no layers exist above the selected layer.")
@@ -492,7 +508,26 @@ def move_layer(direction, self):
 
                 bpy.context.scene.matlayer_layer_stack.selected_layer_index = selected_layer_index - 1
 
-                # TODO: Swap the layer index for all mask nodes in this layer with the layer below it.
+                # Swap the layer index for all mask nodes in this layer with the layer below it.
+                selected_layer_mask_count = layer_masks.count_masks(selected_layer_index)
+                for i in range(0, selected_layer_mask_count):
+                    mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i)
+                    mask_node.name += "~"
+                    mask_node.node_tree.name = mask_node.name
+
+                active_material_name = bpy.context.active_object.active_material.name
+                below_layer_mask_count = layer_masks.count_masks(selected_layer_index - 1)
+                for i in range(0, below_layer_mask_count):
+                    mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i)
+                    mask_node.name = layer_masks.format_mask_name(active_material_name, selected_layer_index, i)
+                    mask_node.label = mask_node.name
+                    mask_node.node_tree.name = mask_node.name
+
+                for i in range(0, selected_layer_mask_count):
+                    mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i, get_changed=True)
+                    mask_node.name = layer_masks.format_mask_name(active_material_name, selected_layer_index - 1, i)
+                    mask_node.label = mask_node.name
+                    mask_node.node_tree.name = mask_node.name
 
             else:
                 debug_logging.log("Can't move layer down, no layers exist below the selected layer.")
@@ -503,6 +538,8 @@ def move_layer(direction, self):
 
     organize_layer_group_nodes()
     link_layer_group_nodes()
+    layer_masks.organize_mask_nodes()
+    layer_masks.refresh_mask_slots()
 
 def count_layers():
     '''Counts the total layers in the active material by reading the active material's node tree.'''
@@ -687,6 +724,7 @@ class MaterialChannelNodeType(PropertyGroup):
     height_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Height Channel Node Type", description="The node type for the height channel", default='GROUP', update=update_height_channel_node_type)
     alpha_node_type: EnumProperty(items=VALUE_NODE_TYPES, name="Alpha Channel Node Type", description="The node type for the alpha channel", default='GROUP', update=update_emission_channel_node_type)
 
+# Can these properties be removed in favor of using properties stored in the material node tree?
 class MATLAYER_layers(PropertyGroup):
     material_channel_node_types: PointerProperty(type=MaterialChannelNodeType)
     projection: PointerProperty(type=ProjectionSettings)
