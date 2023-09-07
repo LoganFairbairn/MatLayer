@@ -235,8 +235,6 @@ def delete_layer_mask():
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
     active_material = bpy.context.active_object.active_material
 
-    masks.remove(selected_mask_index)
-
     # Remove the mask node and it's node tree.
     mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
     if mask_node:
@@ -244,15 +242,17 @@ def delete_layer_mask():
             bpy.data.node_groups.remove(mask_node.node_tree)
         active_material.node_tree.nodes.remove(mask_node)
 
-    # Reset the mask index.
-    bpy.context.scene.matlayer_mask_stack.selected_index -= 1
-
     reindex_masks('DELETED_MASK', selected_layer_index, selected_mask_index)
     organize_mask_nodes()
     link_mask_nodes(selected_layer_index)
 
+    # Remove the mask slot and reset the mask index.
+    masks.remove(selected_mask_index)
+    bpy.context.scene.matlayer_mask_stack.selected_index -= 1
+
 def reindex_masks(change_made, layer_index, affected_mask_index):
     '''Reindexes mask nodes and node trees. This should be called after a change is made that effects the mask stack order (adding, duplicating, deleting, or moving a mask).'''
+    active_material_name = bpy.context.active_object.active_material.name
     match change_made:
         case 'ADDED_MASK':
             # Increase the layer index for all layer group nodes and their node trees that exist above the affected layer.
@@ -260,13 +260,13 @@ def reindex_masks(change_made, layer_index, affected_mask_index):
             for i in range(total_masks, affected_mask_index, -1):
                 mask_node = get_mask_node('MASK', layer_index, i - 1)
                 if mask_node:
-                    mask_node_name = format_mask_name(bpy.context.active_object.active_material.name, layer_index, int(mask_node.name) + 1)
+                    mask_node_name = format_mask_name(active_material_name, layer_index, int(mask_node.name.split('_')[2]) + 1)
                     mask_node.name = mask_node_name
                     mask_node.node_tree.name = mask_node_name
 
             new_mask_node = get_mask_node('MASK', layer_index, affected_mask_index, get_changed=True)
             if new_mask_node:
-                mask_node_name = format_mask_name(bpy.context.active_object.active_material.name, layer_index, affected_mask_index)
+                mask_node_name = format_mask_name(active_material_name, layer_index, affected_mask_index)
                 new_mask_node.name = mask_node_name
                 new_mask_node.node_tree.name = mask_node_name
 
@@ -275,8 +275,8 @@ def reindex_masks(change_made, layer_index, affected_mask_index):
             mask_count = len(bpy.context.scene.matlayer_masks)
             for i in range(mask_count, affected_mask_index + 1, -1):
                 mask_node = get_mask_node('MASK', layer_index, i - 1)
-                mask_node.name = str(int(mask_node.name) - 1)
-                mask_node.node_tree.name = format_mask_name(bpy.context.active_object.active_material.name, layer_index, int(mask_node.name) - 1)
+                mask_node.name = format_mask_name(active_material_name, layer_index, int(mask_node.name.split('_')[2]) - 1)
+                mask_node.node_tree.name = mask_node.name
 
 def organize_mask_nodes():
     '''Organizes the position of all mask nodes in the active materials node tree.'''
