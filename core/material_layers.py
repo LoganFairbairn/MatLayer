@@ -360,7 +360,7 @@ def add_material_layer(layer_type, self):
 def duplicate_layer(original_layer_index, self):
     '''Duplicates the material layer at the provided layer index.'''
 
-    if blender_addon_utils.verify_material_operation_context(self) == False:
+    if not blender_addon_utils.verify_material_operation_context(self) == False:
         return
 
     # Duplicate the node tree and add it to the layer stack.

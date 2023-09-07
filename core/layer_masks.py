@@ -15,9 +15,18 @@ def update_selected_mask_index(self, context):
     if mask_texture_node:
         context.scene.tool_settings.image_paint.canvas = mask_texture_node.image
 
-def format_mask_name(active_material_name, layer_index, mask_index):
+def format_mask_name(layer_index, mask_index, active_material_name=""):
     '''Returns a properly formatted name for a mask node created with this add-on.'''
+    if active_material_name == "":
+        active_material_name = bpy.context.active_object.active_material.name
     return "{0}_{1}_{2}".format(active_material_name, str(layer_index), str(mask_index))
+
+def get_mask_node_tree(layer_index, mask_index, active_material_name=""):
+    '''Returns the mask node tree / node group at the provided layer and mask index.'''
+    if active_material_name == "":
+        active_material_name = bpy.context.active_object.active_material.name
+    mask_node_tree_name = format_mask_name(layer_index, mask_index, active_material_name)
+    return bpy.data.node_groups.get(mask_node_tree_name)
 
 def get_mask_node(node_name, layer_index, mask_index, get_changed=False):
     if bpy.context.active_object == None:
@@ -29,69 +38,69 @@ def get_mask_node(node_name, layer_index, mask_index, get_changed=False):
 
     match node_name:
         case 'MASK':
-            mask_node_name = format_mask_name(active_material.name, layer_index, mask_index)
+            mask_node_name = format_mask_name(layer_index, mask_index)
             if get_changed:
                 mask_node_name += "~"
             return active_material.node_tree.nodes.get(mask_node_name)
     
         case 'MASK_MIX':
-            mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
                 return node_tree.nodes.get('MASK_MIX')
             return None
         
         case 'PROJECTION':
-            mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
                 return node_tree.nodes.get('PROJECTION')
             return None
         
         case 'TEXTURE':
-            mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
                 return node_tree.nodes.get('MASK_TEXTURE')
             return None
         
         case 'BLUR':
-            mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
                 return node_tree.nodes.get('BLUR')
             return None        
 
         case 'AMBIENT_OCCLUSION':
-            mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
                 return node_tree.nodes.get('AMBIENT_OCCLUSION')
             return None
 
         case 'CURVATURE':
-            mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
                 return node_tree.nodes.get('CURVATURE')
             return None
         
         case 'THICKNESS':
-            mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
                 return node_tree.nodes.get('THICKNESS')
             return None
         
         case 'NORMALS':
-            mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
                 return node_tree.nodes.get('NORMALS')
             return None
         
         case 'WORLD_SPACE_NORMALS':
-            mask_group_node_name = format_mask_name(active_material.name, layer_index, mask_index)
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
                 return node_tree.nodes.get('WORLD_SPACE_NORMALS')
@@ -145,11 +154,11 @@ def add_layer_mask(type):
     match type:
         case 'EMPTY':
             default_node_group = blender_addon_utils.append_group_node("ML_ImageMask", never_auto_delete=True)
-            default_node_group.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
+            default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
             new_mask_group_node.node_tree = default_node_group
-            new_mask_group_node.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
+            new_mask_group_node.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
             new_mask_group_node.label = "Image Mask"
             
             reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
@@ -158,11 +167,11 @@ def add_layer_mask(type):
                 
         case 'BLACK':
             default_node_group = blender_addon_utils.append_group_node("ML_ImageMask", never_auto_delete=True)
-            default_node_group.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
+            default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
             new_mask_group_node.node_tree = default_node_group
-            new_mask_group_node.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
+            new_mask_group_node.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
             new_mask_group_node.label = "Image Mask"
 
             image_name = "Mask_" + str(random.randrange(10000,99999))
@@ -187,11 +196,11 @@ def add_layer_mask(type):
 
         case 'WHITE':
             default_node_group = blender_addon_utils.append_group_node("ML_ImageMask", never_auto_delete=True)
-            default_node_group.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
+            default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
             new_mask_group_node.node_tree = default_node_group
-            new_mask_group_node.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
+            new_mask_group_node.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
             new_mask_group_node.label = "Image Mask"
 
             image_name = "Mask_" + str(random.randrange(10000,99999))
@@ -216,17 +225,46 @@ def add_layer_mask(type):
 
         case 'EDGE_WEAR':
             default_node_group = blender_addon_utils.append_group_node("ML_EdgeWear", never_auto_delete=True)
-            default_node_group.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
+            default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
             new_mask_group_node.node_tree = default_node_group
-            new_mask_group_node.name = format_mask_name(active_material.name, selected_layer_index, new_mask_slot_index) + "~"
+            new_mask_group_node.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
             new_mask_group_node.label = "Edge Wear"
     
             reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
             organize_mask_nodes()
             link_mask_nodes(selected_layer_index)
             material_layers.apply_mesh_maps()
+
+def duplicate_mask(self, mask_index=-1):
+    '''Duplicates the mask at the provided mask index.'''
+    if blender_addon_utils.verify_material_operation_context(self) == False:
+        return
+    
+    # Duplicate the selected mask index if a mask index to duplicate is not specified.
+    if mask_index == -1:
+        mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+
+    # Duplicate the mask node, mask node tree and add it to the mask stack.
+    active_material = bpy.context.active_object.active_material
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    mask_node = get_mask_node('MASK', selected_layer_index, mask_index)
+    mask_node_tree = get_mask_node_tree(selected_layer_index, mask_index)
+    if mask_node_tree:
+        duplicated_node_tree = blender_addon_utils.duplicate_node_group(mask_node_tree.name)
+
+        if duplicated_node_tree:
+            new_mask_slot_index = add_mask_slot()
+            duplicated_node_tree.name = format_mask_name(selected_layer_index, new_mask_slot_index)
+            new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+            new_mask_group_node.node_tree = duplicated_node_tree
+            new_mask_group_node.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
+            new_mask_group_node.label = mask_node.label
+
+            reindex_masks(change_made='ADDED_MASK', layer_index=selected_layer_index, affected_mask_index=new_mask_slot_index)
+            organize_mask_nodes()
+            link_mask_nodes(selected_layer_index)
 
 def delete_layer_mask():
     '''Removed the selected layer mask from the mask stack.'''
@@ -260,13 +298,13 @@ def reindex_masks(change_made, layer_index, affected_mask_index):
             for i in range(total_masks, affected_mask_index, -1):
                 mask_node = get_mask_node('MASK', layer_index, i - 1)
                 if mask_node:
-                    mask_node_name = format_mask_name(active_material_name, layer_index, int(mask_node.name.split('_')[2]) + 1)
+                    mask_node_name = format_mask_name(layer_index, int(mask_node.name.split('_')[2]) + 1)
                     mask_node.name = mask_node_name
                     mask_node.node_tree.name = mask_node_name
 
             new_mask_node = get_mask_node('MASK', layer_index, affected_mask_index, get_changed=True)
             if new_mask_node:
-                mask_node_name = format_mask_name(active_material_name, layer_index, affected_mask_index)
+                mask_node_name = format_mask_name(layer_index, affected_mask_index)
                 new_mask_node.name = mask_node_name
                 new_mask_node.node_tree.name = mask_node_name
 
@@ -275,7 +313,7 @@ def reindex_masks(change_made, layer_index, affected_mask_index):
             mask_count = len(bpy.context.scene.matlayer_masks)
             for i in range(mask_count, affected_mask_index + 1, -1):
                 mask_node = get_mask_node('MASK', layer_index, i - 1)
-                mask_node.name = format_mask_name(active_material_name, layer_index, int(mask_node.name.split('_')[2]) - 1)
+                mask_node.name = format_mask_name(layer_index, int(mask_node.name.split('_')[2]) - 1)
                 mask_node.node_tree.name = mask_node.name
 
 def organize_mask_nodes():
@@ -492,6 +530,7 @@ class MATLAYER_OT_duplicate_layer_mask(Operator):
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
+        duplicate_mask(self)
         return {'FINISHED'}
 
 class MATLAYER_OT_delete_layer_mask(Operator):
