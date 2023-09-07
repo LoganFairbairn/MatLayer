@@ -243,8 +243,6 @@ def draw_material_channel_properties(layout):
 
 def draw_layer_projection(layout):
     '''Draws layer projection settings.'''
-
-    layers = bpy.context.scene.matlayer_layers
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     
     row = layout.row()
@@ -257,17 +255,19 @@ def draw_layer_projection(layout):
     second_column = split.column()
 
     # Draw the projection mode.
+    projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
     row = first_column.row()
     row.scale_y = DEFAULT_UI_SCALE_Y
     row.label(text="Mode")
     row = second_column.row()
     row.scale_y = DEFAULT_UI_SCALE_Y
-    row.menu('MATLAYER_MT_layer_projection_sub_menu', text="UV")
+    
 
-    projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
     if projection_node:
         match projection_node.node_tree.name:
             case 'ML_UVProjection':
+                row.menu('MATLAYER_MT_layer_projection_sub_menu', text="UV")
+
                 row = first_column.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.label(text="Offset")
@@ -304,6 +304,8 @@ def draw_layer_projection(layout):
                 col.prop(projection_node.inputs.get('ScaleY'), "default_value", text="")
 
             case 'ML_TriplanarProjection':
+                row.menu('MATLAYER_MT_layer_projection_sub_menu', text="TRIPLANAR")
+
                 row = first_column.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.label(text="Offset")
@@ -312,7 +314,6 @@ def draw_layer_projection(layout):
                 row.prop(projection_node.inputs.get('OffsetX'), "default_value", text="", slider=True)
                 row.prop(projection_node.inputs.get('OffsetY'), "default_value", text="", slider=True)
                 row.prop(projection_node.inputs.get('OffsetZ'), "default_value", text="", slider=True)
-                row.prop(bpy.context.scene, "sync_projection_scale", text="", icon='LOCKED')
 
                 row = first_column.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
@@ -331,6 +332,7 @@ def draw_layer_projection(layout):
                 row.prop(projection_node.inputs.get('ScaleX'), "default_value", text="", slider=True)
                 row.prop(projection_node.inputs.get('ScaleY'), "default_value", text="", slider=True)
                 row.prop(projection_node.inputs.get('ScaleZ'), "default_value", text="", slider=True)
+                row.prop(bpy.context.scene, "matlayer_sync_projection_scale", text="", icon='LOCKED')
 
 def draw_layer_masks(layout):
     row = layout.row(align=True)

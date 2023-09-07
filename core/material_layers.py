@@ -80,7 +80,7 @@ def get_layer_node_tree(layer_index):
 
     return bpy.data.node_groups.get(layer_group_name)
 
-def get_material_layer_node(layer_node_name, layer_index=0, material_channel_name='COLOR', get_changed=False):
+def get_material_layer_node(layer_node_name, layer_index=0, material_channel_name='COLOR', value_node_number=1, get_changed=False):
     '''Returns the desired material node if it exists. Supply the material channel name to get nodes specific to material channels.'''
     if bpy.context.active_object == None:
         return
@@ -108,6 +108,12 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
                 return node_tree.nodes.get("PROJECTION")
             return None
         
+        case 'TRIPLANAR_BLEND':
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get("TRIPLANAR_BLEND_{0}".format(material_channel_name))
+            return None
+
         case 'LAYER_BLUR':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
@@ -128,7 +134,7 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
             return None
         
         case 'VALUE':
-            value_node_name = "{0}_VALUE".format(material_channel_name)
+            value_node_name = "{0}_VALUE_{1}".format(material_channel_name, value_node_number)
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
                 return node_tree.nodes.get(value_node_name)
@@ -242,7 +248,7 @@ def add_material_layer(layer_type, self):
     
     reindex_layer_nodes(change_made='ADDED_LAYER', affected_layer_index=new_layer_slot_index)
     organize_layer_group_nodes()
-    link_layer_group_nodes()
+    link_layer_group_nodes(self)
     layer_masks.organize_mask_nodes()
 
     # For specific layer types, perform additional setup steps.
@@ -292,7 +298,7 @@ def duplicate_layer(original_layer_index, self):
             
             reindex_layer_nodes(change_made='ADDED_LAYER', affected_layer_index=new_layer_slot_index)
             organize_layer_group_nodes()
-            link_layer_group_nodes()
+            link_layer_group_nodes(self)
             layer_masks.organize_mask_nodes()
 
         # Clear the mask stack from the new layer.
@@ -350,7 +356,7 @@ def delete_layer(self):
 
     reindex_layer_nodes(change_made='DELETED_LAYER', affected_layer_index=selected_layer_index)
     organize_layer_group_nodes()
-    link_layer_group_nodes()
+    link_layer_group_nodes(self)
     layer_masks.organize_mask_nodes()
 
     # Remove the layer slot and reset the selected layer index.
@@ -452,7 +458,7 @@ def move_layer(direction, self):
             return
 
     organize_layer_group_nodes()
-    link_layer_group_nodes()
+    link_layer_group_nodes(self)
     layer_masks.organize_mask_nodes()
     layer_masks.refresh_mask_slots()
 
@@ -485,14 +491,11 @@ def organize_layer_group_nodes():
             position_x -= 500
     debug_logging.log("Organized layer group nodes.")
 
-def link_layer_group_nodes():
+def link_layer_group_nodes(self):
     '''Connects all layer group nodes to other existing group nodes, and the principled BSDF shader.'''
     # Note: This function may be able to be optimized by only diconnecting nodes that must be disconnected, potentially reducing re-compile time for shaders.
 
-    if not bpy.context.active_object:
-        return
-
-    if not bpy.context.active_object.active_material:
+    if blender_addon_utils.verify_material_operation_context(self) == False:
         return
 
     texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
@@ -628,8 +631,10 @@ def replace_material_channel_node(material_channel_name, node_type):
     value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
     old_node_location = value_node.location
 
+    # Remove the old node.
     layer_group_node.nodes.remove(value_node)
 
+    # Replace the node.
     match node_type:
         case 'GROUP':
             new_node = layer_group_node.nodes.new('ShaderNodeGroup')
@@ -642,13 +647,129 @@ def replace_material_channel_node(material_channel_name, node_type):
             if layer_blur_node:
                 layer_group_node.links.new(layer_blur_node.outputs.get(material_channel_name.capitalize()), new_node.inputs[0])
 
-    new_node.name = "{0}_VALUE".format(material_channel_name)
+    new_node.name = "{0}_VALUE_{1}".format(material_channel_name, 1)
     new_node.label = new_node.name
     new_node.location = old_node_location
     new_node.width = 200
 
+    # Connect the node so it will be mixed with the previous layer.
     mix_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
     layer_group_node.links.new(new_node.outputs[0], mix_node.inputs[7])
+
+def set_layer_projection(projection_mode, self):
+    '''Changes projection nodes for the layer to use the specified projection mode. Valid options include: 'UV', 'TRIPLANAR'.'''
+    if blender_addon_utils.verify_material_operation_context(self) == False:
+        return
+
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
+    if not projection_node:
+        debug_logging.log_status("Error, missing layer projection node. The material node format is corrupt, or the active material is not made with this add-on.")
+        return
+
+    match projection_mode:
+        case 'UV':
+            if projection_node.node_tree.name != "ML_UVProjection":
+                projection_node.node_tree = blender_addon_utils.append_group_node("ML_UVProjection")
+
+                for material_channel_name in MATERIAL_CHANNEL_LIST:
+                    value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, 1)
+                    if value_node.bl_static_type == 'TEX_IMAGE':
+
+                        # Remember original location and image of the texture node.
+                        original_image = value_node.image
+                        original_node_location = value_node.location
+
+                        # Delete triplanar texture nodes if they exist.
+                        layer_node_tree = get_layer_node_tree(selected_layer_index)
+                        for i in range(0, 3):
+                            texture_sample_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, i + 1)
+                            if texture_sample_node:
+                                layer_node_tree.nodes.remove(texture_sample_node)
+
+                        triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, material_channel_name)
+                        if triplanar_blend_node:
+                            layer_node_tree.nodes.remove(triplanar_blend_node)
+
+                        # Replace with a single texture node.
+                        texture_sample_node = layer_node_tree.nodes.new('ShaderNodeTexImage')
+                        texture_sample_node.name = "{0}_VALUE_{1}".format(material_channel_name, 1)
+                        texture_sample_node.label = texture_sample_node.name
+                        texture_sample_node.hide = True
+                        texture_sample_node.width = 300
+                        texture_sample_node.location = original_node_location
+                        texture_sample_node.image = original_image
+
+                        # Connect the texture to be blended with the previous layer and the UV projection (layer blur).
+                        blur_node = get_material_layer_node('LAYER_BLUR', selected_layer_index)
+                        mix_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
+
+                        layer_node_tree.links.new(blur_node.outputs.get(material_channel_name.capitalize()), texture_sample_node.inputs[0])
+                        layer_node_tree.links.new(texture_sample_node.outputs[0], mix_node.inputs[7])
+
+                debug_logging.log("Changed layer projection to 'UV'.")
+
+        case 'TRIPLANAR':
+            if projection_node.node_tree.name != "ML_TriplanarProjection":
+                projection_node.node_tree = blender_addon_utils.append_group_node("ML_TriplanarProjection")
+
+                # Add and connect triplanar blending and texture nodes for all material channels using texture nodes.
+                for material_channel_name in MATERIAL_CHANNEL_LIST:
+                    value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
+                    if value_node:
+                        if value_node.bl_static_type == 'TEX_IMAGE':
+
+                            # Remember the old image and location.
+                            original_image = value_node.image
+                            original_node_location = value_node.location
+
+                            layer_node_tree = get_layer_node_tree(selected_layer_index)
+                            layer_node_tree.nodes.remove(value_node)
+
+                            # Add 3 required texture samples for triplanar projection.
+                            texture_sample_nodes = []
+                            location_x = original_node_location[0]
+                            location_y = original_node_location[1]
+                            for i in range(0, 3):
+                                texture_sample_node = layer_node_tree.nodes.new('ShaderNodeTexImage')
+                                texture_sample_node.name = "{0}_VALUE_{1}".format(material_channel_name, i + 1)
+                                texture_sample_node.label = texture_sample_node.name
+                                texture_sample_node.hide = True
+                                texture_sample_node.width = 300
+                                texture_sample_node.location = (location_x, location_y)
+                                texture_sample_node.image = original_image
+                                texture_sample_nodes.append(texture_sample_node)
+                                location_y -= 50
+
+                            # Add a node for blending texture samples.
+                            triplanar_blend_node = layer_node_tree.nodes.new('ShaderNodeGroup')
+                            if material_channel_name == 'NORMAL':
+                                triplanar_blend_node.node_tree = blender_addon_utils.append_group_node("ML_TriplanarBlend")
+                            else:
+                                triplanar_blend_node.node_tree = blender_addon_utils.append_group_node("ML_TriplanarNormalsBlend")
+                            triplanar_blend_node.name = "TRIPLANAR_BLEND_{0}".format(material_channel_name)
+                            triplanar_blend_node.label = triplanar_blend_node.name
+                            triplanar_blend_node.width = 300
+                            triplanar_blend_node.hide = True
+                            triplanar_blend_node.location = (location_x, location_y)
+
+                            # Connect texture sample and blending nodes.
+                            layer_node_tree.links.new(projection_node.outputs.get('X'), texture_sample_nodes[0].inputs[0])
+                            layer_node_tree.links.new(projection_node.outputs.get('Y'), texture_sample_nodes[1].inputs[0])
+                            layer_node_tree.links.new(projection_node.outputs.get('Z'), texture_sample_nodes[2].inputs[0])
+                            layer_node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
+
+                            if material_channel_name == 'NORMAL':
+                                layer_node_tree.links.new(projection_node.outputs.get('Rotation'), triplanar_blend_node.inputs.get('Rotation'))
+
+                            layer_node_tree.links.new(texture_sample_nodes[0].outputs[0], triplanar_blend_node.inputs[0])
+                            layer_node_tree.links.new(texture_sample_nodes[1].outputs[0], triplanar_blend_node.inputs[1])
+                            layer_node_tree.links.new(texture_sample_nodes[2].outputs[0], triplanar_blend_node.inputs[2])
+
+                            mix_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
+                            layer_node_tree.links.new(triplanar_blend_node.outputs[0], mix_node.inputs[7])
+
+                debug_logging.log("Changed layer projection to 'TRIPLANAR'.")
 
 #----------------------------- OPERATORS -----------------------------#
 
@@ -856,7 +977,7 @@ class MATLAYER_OT_toggle_hide_layer(Operator):
         else:
             blender_addon_utils.set_node_active(layer_node, True)
 
-        link_layer_group_nodes()
+        link_layer_group_nodes(self)
         return {'FINISHED'}
 
 class MATLAYER_OT_set_layer_projection_uv(Operator):
@@ -871,7 +992,7 @@ class MATLAYER_OT_set_layer_projection_uv(Operator):
         return context.active_object
 
     def execute(self, context):
-
+        set_layer_projection('UV', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_set_layer_projection_triplanar(Operator):
@@ -886,7 +1007,7 @@ class MATLAYER_OT_set_layer_projection_triplanar(Operator):
         return context.active_object
 
     def execute(self, context):
-
+        set_layer_projection('TRIPLANAR', self)
         return {'FINISHED'}
     
 class MATLAYER_OT_change_material_channel_value_node(Operator):
