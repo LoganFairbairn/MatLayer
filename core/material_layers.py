@@ -35,11 +35,6 @@ MATERIAL_CHANNEL_LIST = (
     'ALPHA'
 )
 
-MATERIAL_LAYER_TYPES = [
-    ("FILL", "Fill", "A layer that fills the entier object with a material."), 
-    ("DECAL", "Decal", "A material projected onto the model using a decal object (empty) which allows users to dynamically position textures.")
-]
-
 #----------------------------- UPDATING PROPERTIES -----------------------------#
 
 def update_layer_index(self, context):
