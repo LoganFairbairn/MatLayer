@@ -5,6 +5,7 @@ from bpy.types import Operator, Menu
 from ..core import material_layers
 from ..core import layer_masks
 from ..core import baking
+from ..core import blender_addon_utils
 from ..ui import ui_section_tabs
 import re
 
@@ -477,36 +478,35 @@ def draw_layer_blur_settings(layout):
         second_column = split.column()
 
         row = first_column.row()
-        if blur_node.mute:
-            row.prop(blur_node, "mute", text="", icon='CHECKBOX_DEHLT', invert_checkbox=True)
-            row = second_column.row()
-            row.enabled = False
-
-        else:
-            row.prop(blur_node, "mute", text="", icon='CHECKBOX_HLT', invert_checkbox=True)
+        if blender_addon_utils.get_node_active(blur_node):
+            row.operator("matlayer.toggle_layer_blur", text="", icon='CHECKBOX_HLT')
             row = second_column.row()
             row.enabled = True
 
+        else:
+            row.operator("matlayer.toggle_layer_blur", text="", icon='CHECKBOX_DEHLT')
+            row = second_column.row()
+            row.enabled = False
+
         row.prop(blur_node.inputs.get('Blur Amount'), "default_value", text="Blur Amount")
 
-        if not blur_node.mute:
+        if blender_addon_utils.get_node_active(blur_node):
             row = layout.row()
             drawn_toggles = 0
             for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
 
-                # Do not draw blur toggles for globally inactive material channels.
+                # Do not draw blur toggles for material channels not active in the texture set.
                 material_channel_active = getattr(texture_set_settings.global_material_channel_toggles, "{0}_channel_toggle".format(material_channel_name.lower()))
                 if not material_channel_active:
                     continue
 
-                blur_toggle_node = blur_node.node_tree.nodes.get(material_channel_name + "_BLUR_TOGGLE")
-                if blur_toggle_node:
-                    row.prop(blur_toggle_node, "mute", text=material_layers.get_shorthand_material_channel_name(material_channel_name), toggle=True, invert_checkbox=True)
-                    drawn_toggles += 1
-                    if drawn_toggles > 4:
-                        row = layout.row()
-                        row.scale_y = DEFAULT_UI_SCALE_Y
-                        drawn_toggles = 0
+                blur_toggle_property_name = "{0}BlurToggle".format(material_channel_name.capitalize())
+                if blur_node.inputs.get(blur_toggle_property_name).default_value == 1:
+                    operator = row.operator("matlayer.toggle_material_channel_blur", text=material_layers.get_shorthand_material_channel_name(material_channel_name), depress=True)
+                    operator.material_channel_name = material_channel_name
+                if blur_node.inputs.get(blur_toggle_property_name).default_value == 0:
+                    operator = row.operator("matlayer.toggle_material_channel_blur", text=material_layers.get_shorthand_material_channel_name(material_channel_name), depress=False)
+                    operator.material_channel_name = material_channel_name
 
 def draw_layer_properties(layout):
     '''Draws properties specific to the selected layer such as blurring, or decal properties.'''

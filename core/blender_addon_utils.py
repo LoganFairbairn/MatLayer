@@ -76,12 +76,14 @@ def replace_duplicate_node_groups(node_tree):
 def append_default_node_groups():
     '''Appends default nodes used by this add-on to the current blend file. Appending node groups in an initial batch helps avoid appending duplicates of node groups.'''
 
-    # Sub node groups are appended first to avoid duplication of node groups.
+    append_group_node("ML_DefaultLayer", never_auto_delete=True)
+    append_group_node("ML_DecalLayer", never_auto_delete=True)
+    append_group_node("ML_TriplanarLayerBlur", never_auto_delete=True)
+
     append_group_node("ML_NormalAndHeightMix", never_auto_delete=True)
     append_group_node("ML_FixNormalRotation", never_auto_delete=True)
     append_group_node("ML_AdjustNormalIntensity", never_auto_delete=True)
 
-    # Append default nodes.
     append_group_node("ML_DefaultColor", never_auto_delete=True)
     append_group_node("ML_DefaultSubsurface", never_auto_delete=True)
     append_group_node("ML_DefaultMetallic", never_auto_delete=True)
@@ -92,12 +94,10 @@ def append_default_node_groups():
     append_group_node("ML_DefaultHeight", never_auto_delete=True)
     append_group_node("ML_DefaultAlpha", never_auto_delete=True)
 
-    # Append blurring nodes.
-    append_group_node("ML_Blur", never_auto_delete=True)
+    append_group_node("ML_Blur", keep_link=True, never_auto_delete=True)
     append_group_node("ML_LayerBlur", never_auto_delete=True)
     append_group_node("ML_TriplanarBlur", never_auto_delete=True)
 
-    # Append mapping nodes.
     append_group_node("ML_OffsetRotationScale", never_auto_delete=True)
     append_group_node("ML_UVProjection", never_auto_delete=True)
     append_group_node("ML_TriplanarProjection", never_auto_delete=True)
@@ -106,22 +106,16 @@ def append_default_node_groups():
     append_group_node("ML_TriplanarBlend", never_auto_delete=True)
     append_group_node("ML_TriplanarNormalsBlend", never_auto_delete=True)
 
-    # Append mesh map baking node group setups.
     append_group_node("ML_AmbientOcclusion", never_auto_delete=True)
     append_group_node("ML_CheapContrast", never_auto_delete=True)
     append_group_node("ML_Curvature", never_auto_delete=True)
     append_group_node("ML_Thickness", never_auto_delete=True)
     append_group_node("ML_WorldSpaceNormals", never_auto_delete=True)
 
-    # Append Masks
     append_group_node("ML_ImageMask", never_auto_delete=True)
     append_group_node("ML_EdgeWear", never_auto_delete=True)
 
-    # Append layer group nodes.
-    append_group_node("ML_DefaultLayer", never_auto_delete=True)
-    append_group_node("ML_DecalLayer", never_auto_delete=True)
-
-def append_group_node(node_group_name, return_unique=False, append_missing=True, never_auto_delete=True):
+def append_group_node(node_group_name, keep_link=False, return_unique=False, append_missing=True, never_auto_delete=True):
     '''Returns the group node with the provided name. appends appends it from the asset blend file for this add-on if it doesn't exist.'''
 
     node_tree = bpy.data.node_groups.get(node_group_name)
@@ -129,7 +123,7 @@ def append_group_node(node_group_name, return_unique=False, append_missing=True,
     # If the node group doesn't exist, attempt to append it from the blend asset file for the add-on.
     if not node_tree and append_missing:
         blend_assets_path = get_blend_assets_path()
-        with bpy.data.libraries.load(blend_assets_path, link=False) as (data_from, data_to):
+        with bpy.data.libraries.load(blend_assets_path, link=keep_link) as (data_from, data_to):
             data_to.node_groups = [node_group_name]
 
         # Mark appended node trees with a 'fake user' to stop them from being auto deleted from the blend file if they are not actively used.
@@ -241,3 +235,16 @@ def get_node_active(node):
         return False
     else:
         return True
+    
+def unlink_node(node, node_tree, unlink_inputs=True, unlink_outputs=True):
+    '''Unlinks the given nodes input and / or outputs.'''
+
+    if unlink_inputs:
+        for input in node.inputs:
+            for link in input.links:
+                node_tree.links.remove(link)
+    
+    if unlink_outputs:
+        for output in node.outputs:
+            for link in output.links:
+                node_tree.links.remove(link)
