@@ -666,14 +666,19 @@ def relink_layer_projection(relink_material_channel_name="", delink_layer_projec
                     for i in range(0, 3):
                         # Link projection / blur nodes to the image textures.
                         value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=i + 1)
+                        triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, material_channel_name)
+
                         if value_node.bl_static_type == 'TEX_IMAGE':
                             if blender_addon_utils.get_node_active(blur_node):
                                 layer_node_tree.links.new(blur_node.outputs.get(material_channel_name.capitalize() + str(i + 1)), value_node.inputs[0])
                             else:
                                 layer_node_tree.links.new(projection_node.outputs[i], value_node.inputs[0])
+                            
+                            layer_node_tree.links.new(value_node.outputs[0], triplanar_blend_node.inputs[0])
+                            layer_node_tree.links.new(value_node.outputs[0], triplanar_blend_node.inputs[1])
+                            layer_node_tree.links.new(value_node.outputs[0], triplanar_blend_node.inputs[2])
 
                         # Link triplanar blending nodes.
-                        triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, material_channel_name)
                         if triplanar_blend_node:
                             layer_node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
                             if material_channel_name == 'NORMAL':
