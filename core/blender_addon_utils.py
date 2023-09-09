@@ -2,6 +2,7 @@
 
 import bpy
 from bpy.utils import resource_path
+import numpy as np
 from pathlib import Path
 from ..core import debug_logging
 from .. import preferences
@@ -58,32 +59,27 @@ def duplicate_node_group(node_group_name):
         debug_logging.log("Error: Can't duplicate node, group node with the provided name does not exist.")
         return None
 
-def replace_duplicate_node_groups(node_tree):
-    '''Replaces duplicate node groups (any node groups marked with .00X at the end of their names) within the provided node tree with their original node group.'''
-    for node in node_tree.nodes:
-        if node.bl_static_type == 'GROUP':
-            if node.node_tree:
-                split = node.node_tree.name.split('.')
-                if len(split) > 1:
-                    if len(split[1]) == 3:
-                        duplicate_node_tree = node.node_tree
-                        original_node_tree_name = duplicate_node_tree.name.split('.')[0]
-                        original_node_tree = bpy.data.node_groups.get(original_node_tree_name)
-                        if original_node_tree:
-                            node.node_tree = original_node_tree
-                            bpy.data.node_groups.remove(duplicate_node_tree)
-
 def append_default_node_groups():
     '''Appends default nodes used by this add-on to the current blend file. Appending node groups in an initial batch helps avoid appending duplicates of node groups.'''
-
     append_group_node("ML_DefaultLayer", never_auto_delete=True)
     append_group_node("ML_DecalLayer", never_auto_delete=True)
+    append_group_node("ML_LayerBlur", never_auto_delete=True)
+    append_group_node("ML_TriplanarBlur", never_auto_delete=True)
     append_group_node("ML_TriplanarLayerBlur", never_auto_delete=True)
-
+    append_group_node("ML_UVProjection", never_auto_delete=True)
+    append_group_node("ML_TriplanarProjection", never_auto_delete=True)
+    append_group_node("ML_TriplanarNormalFix", never_auto_delete=True)
+    append_group_node("ML_WorldToTangentSpace", never_auto_delete=True)
+    append_group_node("ML_TriplanarBlend", never_auto_delete=True)
+    append_group_node("ML_TriplanarNormalsBlend", never_auto_delete=True)
+    append_group_node("ML_ImageMask", never_auto_delete=True)
+    append_group_node("ML_EdgeWear", never_auto_delete=True)
+    append_group_node("ML_Blur", never_auto_delete=True)
     append_group_node("ML_NormalAndHeightMix", never_auto_delete=True)
-    append_group_node("ML_FixNormalRotation", never_auto_delete=True)
     append_group_node("ML_AdjustNormalIntensity", never_auto_delete=True)
-
+    append_group_node("ML_FixNormalRotation", never_auto_delete=True)
+    append_group_node("ML_OffsetRotationScale", never_auto_delete=True)
+    append_group_node("ML_CheapContrast", never_auto_delete=True)
     append_group_node("ML_DefaultColor", never_auto_delete=True)
     append_group_node("ML_DefaultSubsurface", never_auto_delete=True)
     append_group_node("ML_DefaultMetallic", never_auto_delete=True)
@@ -92,28 +88,50 @@ def append_default_node_groups():
     append_group_node("ML_DefaultEmission", never_auto_delete=True)
     append_group_node("ML_DefaultNormal", never_auto_delete=True)
     append_group_node("ML_DefaultHeight", never_auto_delete=True)
-    append_group_node("ML_DefaultAlpha", never_auto_delete=True)
 
-    append_group_node("ML_Blur", keep_link=True, never_auto_delete=True)
-    append_group_node("ML_LayerBlur", never_auto_delete=True)
-    append_group_node("ML_TriplanarBlur", never_auto_delete=True)
+def cleanse_duplicated_node_groups(old_node_groups, cleanse_node_groups=True, cleanse_materials=True):
+    '''Replaces and removes all duplicated node groups within blender that were appended from sub-node groups.'''
+    # Replace and remove duplicate node trees from group nodes.
+    if cleanse_node_groups:
+        for node_tree in bpy.data.node_groups:
+            for node in node_tree.nodes:
+                if node.type == 'GROUP':
+                    if node.node_tree != None:
+                        (original_node_group_name, separator, duplicate_number) = node.node_tree.name.rpartition('.')
+                        if duplicate_number.isnumeric() and len(duplicate_number) == 3:
+                            duplicate_node_tree = node.node_tree
+                            original_node_group = bpy.data.node_groups.get(original_node_group_name)
+                            if original_node_group:
+                                if original_node_group:
+                                    duplicate_node_tree.use_fake_user = False
+                                    bpy.data.node_groups.remove(duplicate_node_tree)
+                                    node.node_tree = original_node_group
 
-    append_group_node("ML_OffsetRotationScale", never_auto_delete=True)
-    append_group_node("ML_UVProjection", never_auto_delete=True)
-    append_group_node("ML_TriplanarProjection", never_auto_delete=True)
-    append_group_node("ML_TriplanarNormalFix", never_auto_delete=True)
-    append_group_node("ML_WorldToTangentSpace", never_auto_delete=True)
-    append_group_node("ML_TriplanarBlend", never_auto_delete=True)
-    append_group_node("ML_TriplanarNormalsBlend", never_auto_delete=True)
+    # Replace and remove duplicate node trees from material node trees.
+    if cleanse_materials:
+        for material in bpy.data.materials:
+            if material.use_nodes:
+                for node in material.node_tree.nodes:
+                    if node.type == 'GROUP':
+                        if node.node_tree != None:
+                            (original_node_group_name, separator, duplicate_number) = node.node_tree.name.rpartition('.')
+                            if duplicate_number.isnumeric() and len(duplicate_number) == 3:
+                                duplicate_node_tree = node.node_tree
+                                original_node_group = bpy.data.node_groups.get(original_node_group_name)
+                                if original_node_group:
+                                    if original_node_group:
+                                        duplicate_node_tree.use_fake_user = False
+                                        bpy.data.node_groups.remove(duplicate_node_tree)
+                                        node.node_tree = original_node_group
 
-    append_group_node("ML_AmbientOcclusion", never_auto_delete=True)
-    append_group_node("ML_CheapContrast", never_auto_delete=True)
-    append_group_node("ML_Curvature", never_auto_delete=True)
-    append_group_node("ML_Thickness", never_auto_delete=True)
-    append_group_node("ML_WorldSpaceNormals", never_auto_delete=True)
-
-    append_group_node("ML_ImageMask", never_auto_delete=True)
-    append_group_node("ML_EdgeWear", never_auto_delete=True)
+    # In some cases, it's possible to append node trees that don't exist in group nodes any materials or node trees.
+    # Remove all recently appended group nodes with 0 users.
+    new_node_groups = [group for group in bpy.data.node_groups]
+    node_group_existed = np.isin(new_node_groups, old_node_groups)
+    for i in range(0, len(node_group_existed)):
+        if not node_group_existed[i]:
+            if new_node_groups[i].users == 0:
+                bpy.data.node_groups.remove(new_node_groups[i])
 
 def append_group_node(node_group_name, keep_link=False, return_unique=False, append_missing=True, never_auto_delete=True):
     '''Returns the group node with the provided name. appends appends it from the asset blend file for this add-on if it doesn't exist.'''
@@ -122,35 +140,21 @@ def append_group_node(node_group_name, keep_link=False, return_unique=False, app
 
     # If the node group doesn't exist, attempt to append it from the blend asset file for the add-on.
     if not node_tree and append_missing:
+        old_node_groups = [group for group in bpy.data.node_groups]
+
         blend_assets_path = get_blend_assets_path()
         with bpy.data.libraries.load(blend_assets_path, link=keep_link) as (data_from, data_to):
             data_to.node_groups = [node_group_name]
-
-        # Mark appended node trees with a 'fake user' to stop them from being auto deleted from the blend file if they are not actively used.
+        
+        # Check if the node group was successfully appended.
         node_tree = bpy.data.node_groups.get(node_group_name)
         if node_tree:
+
+            # Mark appended node trees with a 'fake user' to stop them from being auto deleted from the blend file if they are not actively used.
             if never_auto_delete:
                 node_tree.use_fake_user = True
-            
-            # Replace and remove duplicate sub group nodes that append with the main group node if any exist.
-            for node in node_tree.nodes:
-                if node.bl_static_type == 'GROUP':
-                    if node.node_tree:
-                        split = node.node_tree.name.split('.')
-                        if len(split) > 1:
-                            if len(split[1]) == 3:
-                                duplicate_node_tree = node.node_tree
-                                original_node_tree_name = duplicate_node_tree.name.split('.')[0]
-                                original_node_tree = bpy.data.node_groups.get(original_node_tree_name)
-                                if original_node_tree:
-                                    node.node_tree = original_node_tree
-                                    bpy.data.node_groups.remove(duplicate_node_tree)
 
-            # Purge unused data-blocks (requires context override).
-            override = bpy.context.copy()
-            override["area.type"] = ['OUTLINER']
-            override["display_mode"] = ['ORPHAN_DATA']
-            bpy.ops.outliner.orphans_purge(override)
+            cleanse_duplicated_node_groups(old_node_groups, cleanse_node_groups=True, cleanse_materials=False)
 
         # Throw an error if the node group doesn't exist and can't be appended.
         else:
@@ -166,18 +170,26 @@ def append_group_node(node_group_name, keep_link=False, return_unique=False, app
     # Return the node tree.
     return node_tree
 
-def append_material(material_name):
+def append_material(material_name, append_missing=True):
     '''Appends a material with the provided name from the asset blend file for this add-on'''
-    material = bpy.data.materials.get(material_name)
-    if material:
-        return material
 
-    else:
+    material = bpy.data.materials.get(material_name)
+
+    # If the material doesn't exist, attempt to append it from the blend asset file for this add-on.
+    if not material and append_missing:
+        old_node_groups = [group for group in bpy.data.node_groups]
+
         blend_assets_path = get_blend_assets_path()
         with bpy.data.libraries.load(blend_assets_path, link=False) as (data_from, data_to):
             data_to.materials = [material_name]
         material = bpy.data.materials.get(material_name)
-        replace_duplicate_node_groups(material.node_tree)
+
+        cleanse_duplicated_node_groups(old_node_groups, cleanse_node_groups=True, cleanse_materials=True)
+
+        return material
+    
+    # The material already exists, return the material.
+    else:
         return material
 
 def append_image(image_name):
