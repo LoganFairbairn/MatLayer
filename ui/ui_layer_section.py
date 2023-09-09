@@ -231,93 +231,70 @@ def draw_layer_projection(layout):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     
     row = layout.row()
-    row.alignment = 'LEFT'
     row.scale_y = DEFAULT_UI_SCALE_Y
     row.label(text="LAYER PROJECTION")
 
-    split = layout.split(factor=0.25)
-    first_column = split.column()
-    second_column = split.column()
-
     # Draw the projection mode.
     projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
-    row = first_column.row()
-    row.scale_y = DEFAULT_UI_SCALE_Y
-    row.label(text="Mode")
-    row = second_column.row()
-    row.scale_y = DEFAULT_UI_SCALE_Y
-    
-
     if projection_node:
         match projection_node.node_tree.name:
             case 'ML_UVProjection':
-                row.menu('MATLAYER_MT_layer_projection_sub_menu', text="UV")
-
-                row = first_column.row()
+                row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
-                row.label(text="Offset")
-                row = second_column.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('OffsetX'), "default_value", text="X", slider=True)
-                row.prop(projection_node.inputs.get('OffsetY'), "default_value", text="Y", slider=True)
+                row.menu('MATLAYER_MT_layer_projection_sub_menu', text="UV Projection")
 
-                row = first_column.row()
+                row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
-                row.label(text="Rotation")
-                row = second_column.row()
+                row.prop(projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
+                row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('Rotation'), "default_value", text="", slider=True)
+                row.prop(projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
 
-                row = first_column.row()
+                row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
-                row.label(text="Scale")
-                
-                row = second_column.row()
-                col = row.split()
-                col.prop(projection_node.inputs.get('ScaleX'), "default_value", text="")
+                row.prop(projection_node.inputs.get('Rotation'), "default_value", text="Rotation", slider=True)
 
-                sync_projection_scale = bpy.context.scene.matlayer_sync_projection_scale
-                col = row.split()
-                if sync_projection_scale:
-                    col.prop(bpy.context.scene, "matlayer_sync_projection_scale", text="", icon="LOCKED")
-                else:
-                    col.prop(bpy.context.scene, "matlayer_sync_projection_scale", text="", icon="UNLOCKED")
-
-                col = row.split()
-                if sync_projection_scale:
-                    col.enabled = False
-                col.prop(projection_node.inputs.get('ScaleY'), "default_value", text="")
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.prop(projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.prop(projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
 
             case 'ML_TriplanarProjection':
-                row.menu('MATLAYER_MT_layer_projection_sub_menu', text="TRIPLANAR")
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.menu('MATLAYER_MT_layer_projection_sub_menu', text="Triplanar Projection")
 
-                row = first_column.row()
+                row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
-                row.label(text="Offset")
-                row = second_column.row()
+                row.prop(projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
+                row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('OffsetX'), "default_value", text="", slider=True)
-                row.prop(projection_node.inputs.get('OffsetY'), "default_value", text="", slider=True)
-                row.prop(projection_node.inputs.get('OffsetZ'), "default_value", text="", slider=True)
+                row.prop(projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.prop(projection_node.inputs.get('OffsetZ'), "default_value", text="Offset Z", slider=True)
 
-                row = first_column.row()
+                row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
-                row.label(text="Rotation")
-                row = second_column.row()
+                row.prop(projection_node.inputs.get('RotationX'), "default_value", text="Rotation X", slider=True)
+                row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('RotationX'), "default_value", text="", slider=True)
-                row.prop(projection_node.inputs.get('RotationY'), "default_value", text="", slider=True)
-                row.prop(projection_node.inputs.get('RotationZ'), "default_value", text="", slider=True)
+                row.prop(projection_node.inputs.get('RotationY'), "default_value", text="Rotation Y", slider=True)
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.prop(projection_node.inputs.get('RotationZ'), "default_value", text="Rotation Z", slider=True)
 
-                row = first_column.row()
+                row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
-                row.label(text="Scale")
-                row = second_column.row()
+                row.prop(projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
+                row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('ScaleX'), "default_value", text="", slider=True)
-                row.prop(projection_node.inputs.get('ScaleY'), "default_value", text="", slider=True)
-                row.prop(projection_node.inputs.get('ScaleZ'), "default_value", text="", slider=True)
-                row.prop(bpy.context.scene, "matlayer_sync_projection_scale", text="", icon='LOCKED')
+                row.prop(projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.prop(projection_node.inputs.get('ScaleZ'), "default_value", text="Scale Z")
 
 def draw_layer_masks(layout):
     row = layout.row(align=True)

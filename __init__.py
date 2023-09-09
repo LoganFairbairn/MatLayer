@@ -240,7 +240,6 @@ def register():
     bpy.types.Scene.matlayer_panel_properties = PointerProperty(type=MATLAYER_panel_properties)
     bpy.types.Scene.matlayer_material_property_tabs = EnumProperty(items=MATERIAL_LAYER_PROPERTY_TABS)
     bpy.types.Scene.matlayer_merge_material = PointerProperty(type=bpy.types.Material)
-    bpy.types.Scene.matlayer_sync_projection_scale = BoolProperty(default=True, name="Sync Projection Scale", description="If enabled, Y and Z projection (if the projection mode uses a Z axis scale), will be matched")
 
     # Material Layer Properties
     bpy.types.Scene.matlayer_layer_stack = PointerProperty(type=MATLAYER_layer_stack)
