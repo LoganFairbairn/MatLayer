@@ -526,9 +526,9 @@ class MATLAYER_OT_add_material_layer_menu(Operator):
         split = layout.split()
         col = split.column(align=True)
         col.scale_y = 1.4
-        col.operator("matlayer.add_material_layer", text="Add Material Layer", icon='MATERIAL_DATA')
-        col.operator("matlayer.add_paint_material_layer", text="Add Paint Layer", icon='BRUSHES_ALL')
-        col.operator("matlayer.add_decal_material_layer", text="Add Decal Layer", icon='OUTLINER_OB_FONT')
+        col.operator("matlayer.add_material_layer", text="Add Material")
+        col.operator("matlayer.add_paint_material_layer", text="Add Paint")
+        col.operator("matlayer.add_decal_material_layer", text="Add Decal")
 
 class MATLAYER_OT_add_layer_mask_menu(Operator):
     bl_label = "Add Mask"
