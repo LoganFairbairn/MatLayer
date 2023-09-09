@@ -27,7 +27,7 @@ from .preferences import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MA
 from .core.texture_set_settings import GlobalMaterialChannelToggles, MATLAYER_texture_set_settings
 
 # Material Layers
-from .core.material_layers import MATLAYER_layer_stack, MATLAYER_layers, MATLAYER_OT_add_material_layer, MATLAYER_OT_add_paint_material_layer, MATLAYER_OT_add_decal_material_layer, MATLAYER_OT_delete_layer, MATLAYER_OT_duplicate_layer, MATLAYER_OT_move_material_layer_up, MATLAYER_OT_move_material_layer_down, MATLAYER_OT_toggle_material_channel_preview, MATLAYER_OT_toggle_layer_blur, MATLAYER_OT_toggle_material_channel_blur, MATLAYER_OT_toggle_hide_layer, MATLAYER_OT_set_layer_projection_uv, MATLAYER_OT_set_layer_projection_triplanar, MATLAYER_OT_change_material_channel_value_node
+from .core.material_layers import MATLAYER_layer_stack, MATLAYER_layers, MATLAYER_OT_add_material_layer, MATLAYER_OT_add_paint_material_layer, MATLAYER_OT_add_decal_material_layer, MATLAYER_OT_delete_layer, MATLAYER_OT_duplicate_layer, MATLAYER_OT_move_material_layer_up, MATLAYER_OT_move_material_layer_down, MATLAYER_OT_toggle_material_channel_preview, MATLAYER_OT_toggle_layer_blur, MATLAYER_OT_toggle_material_channel_blur, MATLAYER_OT_toggle_hide_layer, MATLAYER_OT_set_layer_projection_uv, MATLAYER_OT_set_layer_projection_triplanar, MATLAYER_OT_change_material_channel_value_node, refresh_layer_stack
 
 # Layer Masks
 from .core.layer_masks import MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_mask_list, MATLAYER_OT_move_layer_mask_up, MATLAYER_OT_move_layer_mask_down, MATLAYER_OT_duplicate_layer_mask, MATLAYER_OT_delete_layer_mask, MATLAYER_OT_add_empty_layer_mask, MATLAYER_OT_add_black_layer_mask, MATLAYER_OT_add_white_layer_mask, MATLAYER_OT_add_edge_wear_mask
@@ -167,8 +167,8 @@ classes = (
 
 def on_active_material_index_changed():
     '''Reads material nodes into the user interface when the active material index is changed.'''
-    bpy.context.scene.matlayer_layer_stack.layer_index = 0
-    bpy.ops.matlayer.read_layer_nodes(auto_called=True)
+    bpy.context.scene.matlayer_layer_stack.selected_layer_index = 0
+    refresh_layer_stack()
     bpy.types.Scene.previous_active_material_name = bpy.context.view_layer.objects.active.active_material.name
 
 def on_active_material_name_changed():
@@ -182,7 +182,7 @@ def on_active_object_name_changed():
 
 def on_active_object_changed():
     '''Triggers a layer stack refresh when the selected object changes.'''
-    bpy.ops.matlayer.read_layer_nodes(auto_called=True)
+    refresh_layer_stack()
     active_object = bpy.context.view_layer.objects.active
 
     # Re-subscribe to the active objects name.
@@ -204,7 +204,6 @@ def on_active_object_changed():
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_owner)
                 if active_object.type == 'MESH' and active_object.active_material:
                     bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_index_owner,notify=on_active_material_name_changed, args=())
-
 
 # Mark load handlers as persistent so they are not freed when loading a new blend file.
 @persistent
@@ -236,8 +235,7 @@ def load_handler(dummy):
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_owner)
                 bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_index_owner,notify=on_active_material_name_changed, args=())
 
-                # Read active material settings when the blender file loads.
-                bpy.ops.matlayer.read_layer_nodes(auto_called=True)
+                refresh_layer_stack()   # Refresh layer stack on blender file load.
 
 # Run startup functions when a new blend file is loaded.
 bpy.app.handlers.load_post.append(load_handler)

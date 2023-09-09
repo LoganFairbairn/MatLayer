@@ -875,6 +875,23 @@ def set_layer_projection(projection_mode, self):
 
                 debug_logging.log("Changed layer projection to 'TRIPLANAR'.")
 
+def refresh_layer_stack():
+    '''Clears, and then reads the active material, to sync the number of layers in the user interface with the number of layers that exist within the material node tree.'''
+    layers = bpy.context.scene.matlayer_layers
+
+    layers.clear()
+
+    layer_count = count_layers()
+    for layer in range(0, layer_count):
+        add_material_layer_slot()
+
+    # Reset the layer index if it's out of range.
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    if selected_layer_index > len(layers) - 1 or selected_layer_index < 0:
+        bpy.context.scene.matlayer_layer_stack.selected_layer_index = 0
+
+    debug_logging.log("Refreshed layer stack.")
+
 #----------------------------- OPERATORS -----------------------------#
 
 class MATLAYER_layer_stack(PropertyGroup):
