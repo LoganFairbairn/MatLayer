@@ -243,58 +243,44 @@ def draw_layer_projection(layout):
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.menu('MATLAYER_MT_layer_projection_sub_menu', text="UV Projection")
 
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
+                split = layout.split()
+                col = split.column()
+                col.scale_y = DEFAULT_UI_SCALE_Y
+                col.prop(projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
+                col.prop(projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
+
+                col = split.column()
+                col.scale_y = DEFAULT_UI_SCALE_Y
+                col.prop(projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
+                col.prop(projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
 
                 row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.prop(projection_node.inputs.get('Rotation'), "default_value", text="Rotation", slider=True)
-
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
 
             case 'ML_TriplanarProjection':
                 row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.menu('MATLAYER_MT_layer_projection_sub_menu', text="Triplanar Projection")
 
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('OffsetZ'), "default_value", text="Offset Z", slider=True)
+                split = layout.split()
+                col = split.column()
+                col.scale_y = DEFAULT_UI_SCALE_Y
+                col.prop(projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
+                col.prop(projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
+                col.prop(projection_node.inputs.get('OffsetZ'), "default_value", text="Offset Z", slider=True)
 
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('RotationX'), "default_value", text="Rotation X", slider=True)
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('RotationY'), "default_value", text="Rotation Y", slider=True)
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('RotationZ'), "default_value", text="Rotation Z", slider=True)
+                col = split.column()
+                col.scale_y = DEFAULT_UI_SCALE_Y
+                col.prop(projection_node.inputs.get('RotationX'), "default_value", text="Rotation X", slider=True)
+                col.prop(projection_node.inputs.get('RotationY'), "default_value", text="Rotation Y", slider=True)
+                col.prop(projection_node.inputs.get('RotationZ'), "default_value", text="Rotation Z", slider=True)
 
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('ScaleZ'), "default_value", text="Scale Z")
+                col = split.column()
+                col.scale_y = DEFAULT_UI_SCALE_Y
+                col.prop(projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
+                col.prop(projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
+                col.prop(projection_node.inputs.get('ScaleZ'), "default_value", text="Scale Z")
 
                 row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
