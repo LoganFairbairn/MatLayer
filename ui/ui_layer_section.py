@@ -452,7 +452,6 @@ def draw_layer_masks(layout):
                 row.prop(mesh_map_texture_node, "image", text="")
 
 def draw_layer_blur_settings(layout):
-    texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     blur_node = material_layers.get_material_layer_node('LAYER_BLUR', selected_layer_index)
 
@@ -490,6 +489,11 @@ def draw_layer_blur_settings(layout):
                 if blur_node.inputs.get(blur_toggle_property_name).default_value == 0:
                     operator = row.operator("matlayer.toggle_material_channel_blur", text=material_layers.get_shorthand_material_channel_name(material_channel_name), depress=False)
                     operator.material_channel_name = material_channel_name
+                
+                drawn_toggles += 1
+                if drawn_toggles >= 5:
+                    row = layout.row()
+                    drawn_toggles = 0
 
 def draw_layer_properties(layout):
     '''Draws properties specific to the selected layer such as blurring, or decal properties.'''
