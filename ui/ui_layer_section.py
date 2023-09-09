@@ -296,6 +296,10 @@ def draw_layer_projection(layout):
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.prop(projection_node.inputs.get('ScaleZ'), "default_value", text="Scale Z")
 
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.prop(projection_node.inputs.get('Blending'), "default_value", text="Blending")
+
 def draw_layer_masks(layout):
     row = layout.row(align=True)
     row.scale_x = 10
