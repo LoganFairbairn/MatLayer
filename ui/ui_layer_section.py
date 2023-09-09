@@ -104,7 +104,6 @@ def draw_layer_operations(layout):
     row.scale_x = 10
     row.operator("matlayer.add_material_layer_menu", icon="ADD", text="")
     row.operator("matlayer.import_texture_set", text="", icon='DOCUMENTS')
-    row.operator("matlayer.add_material_effects_menu", icon="SHADERFX", text="")
     row.operator("matlayer.move_material_layer_up", icon="TRIA_UP", text="")
     row.operator("matlayer.move_material_layer_down", icon="TRIA_DOWN", text="")
     row.operator("matlayer.duplicate_layer", icon="DUPLICATE", text="")
@@ -587,29 +586,6 @@ class MATLAYER_OT_add_material_filter_menu(Operator):
         col.operator("matlayer.add_material_filter_hsv", text="Add HSV")
         col.operator("matlayer.add_material_filter_color_ramp", text="Add Color Ramp")
         col.operator("matlayer.add_material_filter_invert", text="Add Invert")
-
-class MATLAYER_OT_add_material_effects_menu(Operator):
-    bl_label = ""
-    bl_idname = "matlayer.add_material_effects_menu"
-
-    # Runs when the add layer button in the popup is clicked.
-    def execute(self, context):
-        return {'FINISHED'}
-
-    # Opens the popup when the add layer button is clicked.
-    def invoke(self, context, event):
-        return context.window_manager.invoke_popup(self, width=150)
-    
-    # Draws the properties in the popup.
-    def draw(self, context):
-        layout = self.layout
-        split = layout.split()
-        col = split.column(align=True)
-        col.scale_y = 1.4
-        col.operator("matlayer.add_edge_wear")
-        col.operator("matlayer.add_grunge")
-        col.operator("matlayer.add_dust")
-        col.operator("matlayer.add_drips")
 
 class ImageUtilitySubMenu(Menu):
     bl_idname = "MATLAYER_MT_image_utility_sub_menu"
