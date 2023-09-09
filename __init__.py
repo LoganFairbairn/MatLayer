@@ -24,7 +24,7 @@ from bpy.app.handlers import persistent
 from .preferences import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MATLAYER_texture_export_settings, AddonPreferences
 
 # Texture Set Settings
-from .core.texture_set_settings import GlobalMaterialChannelToggles, MATLAYER_texture_set_settings
+from .core.texture_set_settings import MATLAYER_texture_set_settings, MATLAYER_OT_toggle_texture_set_material_channel
 
 # Material Layers
 from .core.material_layers import MATLAYER_layer_stack, MATLAYER_layers, MATLAYER_OT_add_material_layer, MATLAYER_OT_add_paint_material_layer, MATLAYER_OT_add_decal_material_layer, MATLAYER_OT_delete_layer, MATLAYER_OT_duplicate_layer, MATLAYER_OT_move_material_layer_up, MATLAYER_OT_move_material_layer_down, MATLAYER_OT_toggle_material_channel_preview, MATLAYER_OT_toggle_layer_blur, MATLAYER_OT_toggle_material_channel_blur, MATLAYER_OT_toggle_hide_layer, MATLAYER_OT_set_layer_projection_uv, MATLAYER_OT_set_layer_projection_triplanar, MATLAYER_OT_change_material_channel_value_node, refresh_layer_stack
@@ -134,8 +134,8 @@ classes = (
     MATLAYER_OT_merge_materials,
 
     # Texture Set Settings
-    GlobalMaterialChannelToggles,
     MATLAYER_texture_set_settings,
+    MATLAYER_OT_toggle_texture_set_material_channel,
 
     # Utility Operators
     MATLAYER_OT_set_decal_layer_snapping,

@@ -1,8 +1,9 @@
 # This file contains settings and functions the users texture set.
 
 import bpy
-from bpy.types import PropertyGroup
+from bpy.types import PropertyGroup, Operator
 from bpy.props import BoolProperty, StringProperty, PointerProperty, FloatVectorProperty, EnumProperty
+from ..core import blender_addon_utils
 
 # Available texture resolutions for texture sets.
 TEXTURE_SET_RESOLUTIONS = [
@@ -59,17 +60,21 @@ def get_texture_height():
         case _:
             return 10
 
-class GlobalMaterialChannelToggles(PropertyGroup):
-    '''A boolean toggle for each material channel to toggle it off / on for all layers.'''
-    color_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the color material channel for this layer")
-    subsurface_channel_toggle: BoolProperty(default=False, description="Click to toggle on / off the subsurface material channel for this layer")
-    metallic_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the metallic material channel for this layer")
-    specular_channel_toggle: BoolProperty(default=False, description="Click to toggle on / off the specular material channel for this layer")
-    roughness_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the roughness material channel for this layer")
-    emission_channel_toggle: BoolProperty(default=False, description="Click to toggle on / off the emission material channel for this layer")
-    normal_channel_toggle: BoolProperty(default=True, description="Click to toggle on / off the normal material channel for this layer")
-    height_channel_toggle: BoolProperty(default=False, description="Click to toggle on / off the height material channel for this layer")
-    alpha_channel_toggle: BoolProperty(default=False, description="Click to toggle on / off the alpha material channel for this layer")
+def get_material_channel_active(material_channel_name):
+    '''Returns if the material channel is active in the active materials texture set.'''
+    if not bpy.context.active_object:
+        return
+    
+    active_material = bpy.context.active_object.active_material
+    if not active_material:
+        return
+    
+    material_channel_toggle_node = active_material.node_tree.nodes.get("GLOBAL_{0}_TOGGLE".format(material_channel_name))
+
+    if material_channel_toggle_node.mute:
+        return False
+    else:
+        return True
 
 class MATLAYER_texture_set_settings(PropertyGroup):
     image_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Width", description="Image width in pixels for the new image.", default='TWOK', update=update_image_width)
@@ -77,5 +82,26 @@ class MATLAYER_texture_set_settings(PropertyGroup):
     layer_folder: StringProperty(default="", description="Path to folder location where layer images are saved", name="Image Layer Folder Path")
     match_image_resolution: BoolProperty(name="Match Image Resolution", description="When toggled on, the image width and height will be matched", default=True, update=update_match_image_resolution)
     thirty_two_bit: BoolProperty(name="32 Bit Color", description="When toggled on, images created using this add-on will be created with 32 bit color depth. 32-bit images will take up more memory, but will have significantly less color banding in gradients. On monitors (generally older or cheap ones) that don't support this color depth there will be no visual difference", default=True)
-    global_material_channel_toggles: PointerProperty(type=GlobalMaterialChannelToggles, description="Toggles for each material channel that toggle them on / off for all layers.")
-    auto_update_properties: BoolProperty(name="Auto Update Properties", default=True, description="If true, changing texture set settings will trigger automatic updates.")
+
+class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
+    bl_idname = "matlayer.toggle_texture_set_material_channel"
+    bl_label = "Toggle Texture Set Material Channel"
+    bl_description = "Toggles the specified material channel on / off for the active materials texture set"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    material_channel_name: StringProperty(default='COLOR')
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        blender_addon_utils.verify_material_operation_context(self)
+        active_material = bpy.context.active_object.active_material
+        channel_toggle_node = active_material.node_tree.nodes.get("GLOBAL_{0}_TOGGLE".format(self.material_channel_name))
+        if channel_toggle_node.mute:
+            channel_toggle_node.mute = False
+        else:
+            channel_toggle_node.mute = True
+        return {'FINISHED'}

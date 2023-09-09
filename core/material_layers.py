@@ -7,6 +7,7 @@ from ..core import layer_masks
 from ..core import baking
 from ..core import blender_addon_utils
 from ..core import debug_logging
+from ..core import texture_set_settings as tss
 import random
 
 # List of node types that can be used in the texture slot.
@@ -540,8 +541,7 @@ def link_layer_group_nodes(self):
                     for material_channel_name in MATERIAL_CHANNEL_LIST:
 
                         # Only connect active material channels.
-                        material_channel_active = getattr(texture_set_settings.global_material_channel_toggles, "{0}_channel_toggle".format(material_channel_name.lower()))
-                        if not material_channel_active:
+                        if not tss.get_material_channel_active(material_channel_name):
                             continue
 
                         output_socket_name = material_channel_name.capitalize()
@@ -565,8 +565,7 @@ def link_layer_group_nodes(self):
             for material_channel_name in MATERIAL_CHANNEL_LIST:
 
                 # Only connect active material channels.
-                material_channel_active = getattr(texture_set_settings.global_material_channel_toggles, "{0}_channel_toggle".format(material_channel_name.lower()))
-                if not material_channel_active:
+                if not tss.get_material_channel_active(material_channel_name):
                     continue
 
                 match material_channel_name:

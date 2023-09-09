@@ -6,6 +6,7 @@ from ..core import material_layers
 from ..core import layer_masks
 from ..core import baking
 from ..core import blender_addon_utils
+from ..core import texture_set_settings as tss
 from ..ui import ui_section_tabs
 import re
 
@@ -111,7 +112,6 @@ def draw_material_property_tabs(layout):
 
 def draw_layer_material_channel_toggles(layout):
     '''Draws on / off toggles for individual material channels.'''
-    texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
     row = layout.row()
@@ -127,8 +127,7 @@ def draw_layer_material_channel_toggles(layout):
     for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
 
         # Do not draw toggles for globally inactive material channels.
-        material_channel_active = getattr(texture_set_settings.global_material_channel_toggles, "{0}_channel_toggle".format(material_channel_name.lower()))
-        if not material_channel_active:
+        if not tss.get_material_channel_active(material_channel_name):
             continue
 
         mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, material_channel_name)
@@ -151,8 +150,7 @@ def draw_material_channel_properties(layout):
 
         # Do not draw properties for globally inactive material channels.
         texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
-        material_channel_active = getattr(texture_set_settings.global_material_channel_toggles, "{0}_channel_toggle".format(material_channel_name.lower()))
-        if not material_channel_active:
+        if not tss.get_material_channel_active(material_channel_name):
             continue
 
         # Do no draw properties for material channels inactive on this material layer.
@@ -482,8 +480,7 @@ def draw_layer_blur_settings(layout):
             for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
 
                 # Do not draw blur toggles for material channels not active in the texture set.
-                material_channel_active = getattr(texture_set_settings.global_material_channel_toggles, "{0}_channel_toggle".format(material_channel_name.lower()))
-                if not material_channel_active:
+                if not tss.get_material_channel_active(material_channel_name):
                     continue
 
                 blur_toggle_property_name = "{0}BlurToggle".format(material_channel_name.capitalize())

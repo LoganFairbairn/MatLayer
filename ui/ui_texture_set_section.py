@@ -1,6 +1,7 @@
 import bpy
 from .import ui_section_tabs
 from ..core.material_layers import MATERIAL_CHANNEL_LIST
+from ..core import texture_set_settings as tss
 
 def draw_texture_set_section_ui(self, context):
     '''Draws the layer section UI.'''
@@ -11,6 +12,17 @@ def draw_texture_set_section_ui(self, context):
     SCALE_Y = 1.4
     texture_set_settings = context.scene.matlayer_texture_set_settings
 
+    # Draw global material channel toggles.
+    layout.label(text="MATERIAL CHANNELS")
+    for material_channel_name in MATERIAL_CHANNEL_LIST:
+        row = layout.row()
+        row.scale_y = SCALE_Y
+        if tss.get_material_channel_active(material_channel_name):
+            operator = row.operator("matlayer.toggle_texture_set_material_channel", text=material_channel_name.capitalize(), depress=True)
+        else:
+            operator = row.operator("matlayer.toggle_texture_set_material_channel", text=material_channel_name.capitalize())
+        operator.material_channel_name = material_channel_name
+    
     row = layout.row()
     row.scale_y = SCALE_Y
 
@@ -30,14 +42,6 @@ def draw_texture_set_section_ui(self, context):
     if texture_set_settings.match_image_resolution:
         col.enabled = False
     col.prop(texture_set_settings, "image_height", text="")
-
-    # Draw global material channel toggles.
-    layout.label(text="MATERIAL CHANNELS")
-    for material_channel_name in MATERIAL_CHANNEL_LIST:
-        row = layout.row()
-        row.scale_y = SCALE_Y
-        material_channel_name_text = material_channel_name.replace('_', ' ')
-        row.prop(texture_set_settings.global_material_channel_toggles, material_channel_name.lower() + "_channel_toggle", text=material_channel_name_text, toggle=1)
 
     # Draw additional settings.
     row = layout.row()
