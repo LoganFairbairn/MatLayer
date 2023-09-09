@@ -89,7 +89,7 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
     bl_description = "Toggles the specified material channel on / off for the active materials texture set"
     bl_options = {'REGISTER', 'UNDO'}
 
-    material_channel_name: StringProperty(default='COLOR')
+    material_channel_name: StringProperty(default='COLOR', name="Material Channel Name")
 
     # Disable when there is no active object.
     @ classmethod
@@ -102,6 +102,15 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
         channel_toggle_node = active_material.node_tree.nodes.get("GLOBAL_{0}_TOGGLE".format(self.material_channel_name))
         if channel_toggle_node.mute:
             channel_toggle_node.mute = False
+
+            # Toggle on alpha clip to allow transparency.
+            if self.material_channel_name == 'ALPHA':
+                active_material.blend_method = 'CLIP'
         else:
             channel_toggle_node.mute = True
+
+            # Toggle off alpha clip for better shader performance.
+            if self.material_channel_name == 'ALPHA':
+                active_material.blend_method = 'OPAQUE'
+
         return {'FINISHED'}
