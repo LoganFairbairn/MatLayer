@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty
+from bpy.props import PointerProperty, StringProperty
 from bpy_extras.io_utils import ImportHelper        # For importing images.
 from ..core import debug_logging                    # For printing / displaying debugging related messages.
 from ..core import image_utilities                  # For access to image related helper functions.
@@ -175,6 +175,7 @@ class MATLAYER_OT_merge_materials(Operator):
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Merges the layers from the selected material into the active material. Any mesh map textures in the merged material will be replaced by the mesh maps on the active object if they are baked"
 
+    bpy.types.Scene.matlayer_merge_material = PointerProperty(type=bpy.types.Material)
     material_name: StringProperty(default="")
 
     def execute(self, context):

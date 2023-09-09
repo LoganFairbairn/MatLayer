@@ -62,28 +62,15 @@ def draw_material_selector(layout):
         second_column.operator("object.material_slot_assign", text="", icon='MATERIAL_DATA')
         second_column.operator("object.material_slot_select", text="", icon='SELECT_SET')
 
-
-        split = layout.split(factor=0.15, align=True)
+        split = layout.split(factor=0.70, align=True)
         first_column = split.column(align=True)
         second_column = split.column(align=True)
-
-        split = second_column.split(factor=0.7)
-        material_column = split.column()
-        merge_operator_column = split.column()
-
-        row = first_column.row()
-        row.label(text="Active: ")
-        row = material_column.row(align=True)
-        row.prop(active_object, "active_material", text="")
-
-        row = first_column.row()
-        row.label(text="Merge: ")
-        row = material_column.row()
+        row = first_column.row(align=True)
+        row.scale_y = 1.4
         row.prop(bpy.context.scene, "matlayer_merge_material", text="")
-
-        row = merge_operator_column.row()
-        row.scale_y = 2.0
-        row.operator("matlayer.merge_materials", text="MERGE")
+        row = second_column.row(align=True)
+        row.scale_y = 1.4
+        row.operator("matlayer.merge_materials", text="Merge")
 
 def draw_selected_material_channel(layout):
     '''Draws the selected material channel.'''
@@ -103,7 +90,6 @@ def draw_layer_operations(layout):
     row.scale_y = 2.0
     row.scale_x = 10
     row.operator("matlayer.add_material_layer_menu", icon="ADD", text="")
-    row.operator("matlayer.import_texture_set", text="", icon='DOCUMENTS')
     row.operator("matlayer.move_material_layer_up", icon="TRIA_UP", text="")
     row.operator("matlayer.move_material_layer_down", icon="TRIA_DOWN", text="")
     row.operator("matlayer.duplicate_layer", icon="DUPLICATE", text="")
@@ -121,6 +107,7 @@ def draw_material_property_tabs(layout):
     row.scale_y = 1.5
     row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MATERIAL')
     row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MASKS')
+    row.menu("MATLAYER_MT_layer_utility_sub_menu", text="Layer Utils")
 
 def draw_layer_material_channel_toggles(layout):
     '''Draws on / off toggles for individual material channels.'''
@@ -643,3 +630,11 @@ class MaterialChannelValueNodeSubMenu(Menu):
         operator = layout.operator("matlayer.change_material_channel_value_node", text='TEXTURE')
         operator.material_channel_name = material_channel_name
         operator.node_type = 'TEXTURE'
+
+class LayerUtilitySubMenu(Menu):
+    bl_idname = "MATLAYER_MT_layer_utility_sub_menu"
+    bl_label = "Layer Utility Sub Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("matlayer.import_texture_set", text="Import Texture Set")
