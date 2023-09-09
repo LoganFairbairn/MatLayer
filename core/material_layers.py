@@ -673,9 +673,7 @@ def relink_layer_projection(relink_material_channel_name="", delink_layer_projec
                             else:
                                 layer_node_tree.links.new(projection_node.outputs[i], value_node.inputs[0])
                             
-                            layer_node_tree.links.new(value_node.outputs[0], triplanar_blend_node.inputs[0])
-                            layer_node_tree.links.new(value_node.outputs[0], triplanar_blend_node.inputs[1])
-                            layer_node_tree.links.new(value_node.outputs[0], triplanar_blend_node.inputs[2])
+                            layer_node_tree.links.new(value_node.outputs[0], triplanar_blend_node.inputs[i])
 
                         # Link triplanar blending nodes.
                         if triplanar_blend_node:
