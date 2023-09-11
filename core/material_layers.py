@@ -805,7 +805,7 @@ def apply_material_channel_projection(material_channel_name, projection_method, 
                 layer_node_tree.links.new(triplanar_blend_node.outputs[0], mix_node.inputs[7])
 
 def replace_material_channel_node(material_channel_name, node_type):
-    '''Replaces the existing material channel node with a new node of the given type.'''
+    '''Replaces the existing material channel node with a new node of the given type. Valid node types include: 'GROUP', 'TEXTURE'.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layer_group_node = get_layer_node_tree(selected_layer_index)
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)

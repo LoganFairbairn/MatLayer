@@ -4,6 +4,7 @@ from bpy.props import PointerProperty, StringProperty
 from bpy_extras.io_utils import ImportHelper        # For importing images.
 from ..core import debug_logging                    # For printing / displaying debugging related messages.
 from ..core import image_utilities                  # For access to image related helper functions.
+from ..core import material_layers                  # For accessing material layer nodes.
 import os                                           # For saving layer images.
 import re                                           # For splitting strings to identify material channels.
 
@@ -41,7 +42,10 @@ MATERIAL_CHANNEL_TAGS = {
     "ndx": 'NORMAL',
     "height": 'HEIGHT',
     "hauteur": 'HEIGHT',
-    "bump": 'HEIGHT'
+    "bump": 'HEIGHT',
+    "opacity": 'ALPHA',
+    "opaque": 'ALPHA',
+    "alpha": 'ALPHA'
 }
 
 class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
@@ -128,13 +132,11 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                         if material_channel_occurance[material_channel_name] > material_channel_occurance[selected_material_channel_name]:
                             selected_material_channel_name = material_channel_name
                             
-                # Change the material channels node type to a texture node.
-                material_layers = context.scene.matlayer_layers
-                selected_material_layer_index = context.scene.matlayer_layer_stack.layer_index
-                attribute_name = material_channel_name.lower() + "_node_type"
-                material_channel_node_type = getattr(material_layers[selected_material_layer_index].channel_node_types, attribute_name)
-                if material_channel_node_type != 'TEXTURE':
-                    setattr(material_layers[selected_material_layer_index].channel_node_types, attribute_name, 'TEXTURE')
+                # Change the material channels node type to a texture node (if it's not using one already).
+                selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+                value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, selected_material_channel_name)
+                if value_node.bl_static_type != 'TEX_IMAGE':
+                    material_layers.replace_material_channel_node(selected_material_channel_name, 'TEXTURE')
 
                 # Import the image.
                 folder_directory = os.path.split(self.filepath)
@@ -147,19 +149,19 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                     context.scene.tool_settings.image_paint.canvas = imported_image
                     selected_image_file = True
 
-                # Place the image into a material channel and nodes based on texture projection and inferred material channel name.
-                selected_material_layer = material_layers[selected_material_layer_index]
-                if selected_material_layer.projection.mode == 'TRIPLANAR':
-                    triplanar_texture_sample_nodes = layer_nodes.get_triplanar_texture_sample_nodes(material_channel_name, selected_material_layer_index)
-                    for node in triplanar_texture_sample_nodes:
-                        if node:
-                            node.image = imported_image
-                            setattr(selected_material_layer.material_channel_textures, material_channel_name.lower() + "_channel_texture", imported_image)
-                else:
-                    texture_node = layer_nodes.get_layer_node('TEXTURE', material_channel_name, selected_material_layer_index, context)
-                    if texture_node:
-                        texture_node.image = imported_image
-                        setattr(selected_material_layer.material_channel_textures, material_channel_name.lower() + "_channel_texture", imported_image)
+                # Place the image into a material nodes based on texture projection and inferred material channel name.
+                projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
+                match projection_node.node_tree.name:
+                    case 'ML_UVProjection':
+                        value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, selected_material_channel_name)
+                        if value_node.bl_static_type == 'TEX_IMAGE':
+                            value_node.image = imported_image
+
+                    case 'ML_TriplanarProjection':
+                        for i in range(0, 3):
+                            value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, selected_material_channel_name, node_number=i + 1)
+                            if value_node.bl_static_type == 'TEX_IMAGE':
+                                value_node.image = imported_image
 
                 # Update the imported images colorspace based on it's specified material channel.
                 image_utilities.set_image_colorspace_by_material_channel(imported_image, material_channel_name)
