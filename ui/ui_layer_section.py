@@ -285,6 +285,7 @@ def draw_layer_projection(layout):
                 row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.prop(projection_node.inputs.get('Blending'), "default_value", text="Blending")
+                row.menu("MATLAYER_MT_triplanar_projection_sub_menu", text="", icon='DOWNARROW_HLT')
 
 def draw_layer_masks(layout):
     row = layout.row(align=True)
@@ -606,3 +607,11 @@ class LayerUtilitySubMenu(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator("matlayer.import_texture_set", text="Import Texture Set")
+
+class LayerTriplanarProjectionSubMenu(Menu):
+    bl_idname = "MATLAYER_MT_triplanar_projection_sub_menu"
+    bl_label = "Layer Projection Sub Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("matlayer.toggle_triplanar_flip_correction", text="Toggle Triplanar Axis Correction Flip")

@@ -1152,3 +1152,32 @@ class MATLAYER_OT_change_material_channel_value_node(Operator):
     def execute(self, context):
         replace_material_channel_node(self.material_channel_name, node_type=self.node_type)
         return {'FINISHED'}
+
+class MATLAYER_OT_toggle_triplanar_flip_correction(Operator):
+    bl_idname = "matlayer.toggle_triplanar_flip_correction"
+    bl_label = "Toggle Triplanar Flip Correction"
+    bl_description = "Toggles extra shader math that correctly flips the axis projection. This allows textures with text or directional pixel information to be properly projected using triplanar projection. Most texture's don't require this, which is why it's off by default"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    material_channel_name: StringProperty(default='COLOR')
+    node_type: StringProperty(default='GROUP')
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        # Mute / unmute nodes that correct triplanar projection axis flipping.
+        selected_layer_index = context.scene.matlayer_layer_stack.selected_layer_index
+        projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
+        if projection_node:
+            if projection_node.node_tree.name == 'ML_TriplanarProjection':
+                for i in range(0, 3):
+                    correct_axis_flip_node = projection_node.node_tree.nodes.get("CORRECT_AXIS_FLIP_{0}".format(i + 1))
+                    if correct_axis_flip_node:
+                        if correct_axis_flip_node.mute:
+                            correct_axis_flip_node.mute = False
+                        else:
+                            correct_axis_flip_node.mute = True
+        return {'FINISHED'}

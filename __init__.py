@@ -27,7 +27,7 @@ from .preferences import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MA
 from .core.texture_set_settings import MATLAYER_texture_set_settings, MATLAYER_OT_toggle_texture_set_material_channel
 
 # Material Layers
-from .core.material_layers import MATLAYER_layer_stack, MATLAYER_layers, MATLAYER_OT_add_material_layer, MATLAYER_OT_add_paint_material_layer, MATLAYER_OT_add_decal_material_layer, MATLAYER_OT_delete_layer, MATLAYER_OT_duplicate_layer, MATLAYER_OT_move_material_layer_up, MATLAYER_OT_move_material_layer_down, MATLAYER_OT_toggle_material_channel_preview, MATLAYER_OT_toggle_layer_blur, MATLAYER_OT_toggle_material_channel_blur, MATLAYER_OT_toggle_hide_layer, MATLAYER_OT_set_layer_projection_uv, MATLAYER_OT_set_layer_projection_triplanar, MATLAYER_OT_change_material_channel_value_node, refresh_layer_stack
+from .core.material_layers import MATLAYER_layer_stack, MATLAYER_layers, MATLAYER_OT_add_material_layer, MATLAYER_OT_add_paint_material_layer, MATLAYER_OT_add_decal_material_layer, MATLAYER_OT_delete_layer, MATLAYER_OT_duplicate_layer, MATLAYER_OT_move_material_layer_up, MATLAYER_OT_move_material_layer_down, MATLAYER_OT_toggle_material_channel_preview, MATLAYER_OT_toggle_layer_blur, MATLAYER_OT_toggle_material_channel_blur, MATLAYER_OT_toggle_hide_layer, MATLAYER_OT_set_layer_projection_uv, MATLAYER_OT_set_layer_projection_triplanar, MATLAYER_OT_change_material_channel_value_node, MATLAYER_OT_toggle_triplanar_flip_correction, refresh_layer_stack
 
 # Layer Masks
 from .core.layer_masks import MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_mask_list, MATLAYER_OT_move_layer_mask_up, MATLAYER_OT_move_layer_mask_down, MATLAYER_OT_duplicate_layer_mask, MATLAYER_OT_delete_layer_mask, MATLAYER_OT_add_empty_layer_mask, MATLAYER_OT_add_black_layer_mask, MATLAYER_OT_add_white_layer_mask, MATLAYER_OT_add_edge_wear_mask
@@ -45,7 +45,7 @@ from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLA
 
 # User Interface
 from .ui.ui_section_tabs import UtilitySubMenu
-from .ui.ui_layer_section import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, MATLAYER_OT_add_material_filter_menu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, LayerUtilitySubMenu, MATERIAL_LAYER_PROPERTY_TABS
+from .ui.ui_layer_section import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, MATLAYER_OT_add_material_filter_menu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, LayerUtilitySubMenu, LayerTriplanarProjectionSubMenu, MATERIAL_LAYER_PROPERTY_TABS
 from .ui.ui_main import *
 from .ui.ui_layer_stack import MATLAYER_UL_layer_list
 
@@ -107,6 +107,7 @@ classes = (
     MATLAYER_OT_set_layer_projection_uv,
     MATLAYER_OT_set_layer_projection_triplanar,
     MATLAYER_OT_change_material_channel_value_node,
+    MATLAYER_OT_toggle_triplanar_flip_correction,
 
     # Layer Masks
     MATLAYER_mask_stack, 
@@ -152,6 +153,7 @@ classes = (
     LayerProjectionModeSubMenu,
     MaterialChannelValueNodeSubMenu,
     LayerUtilitySubMenu,
+    LayerTriplanarProjectionSubMenu,
     MATLAYER_panel_properties,
     MATLAYER_PT_Panel
 )
