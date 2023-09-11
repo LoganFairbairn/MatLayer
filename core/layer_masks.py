@@ -30,7 +30,7 @@ def get_mask_node_tree(layer_index, mask_index, active_material_name=""):
     mask_node_tree_name = format_mask_name(layer_index, mask_index, active_material_name)
     return bpy.data.node_groups.get(mask_node_tree_name)
 
-def get_mask_node(node_name, layer_index, mask_index, get_changed=False):
+def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed=False):
     if bpy.context.active_object == None:
         return None
     
@@ -51,19 +51,33 @@ def get_mask_node(node_name, layer_index, mask_index, get_changed=False):
             if node_tree:
                 return node_tree.nodes.get('MASK_MIX')
             return None
-        
+
+        case 'MASK_FILTER':
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
+            node_tree = bpy.data.node_groups.get(mask_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('MASK_FILTER')
+            return None
+
         case 'PROJECTION':
             mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
                 return node_tree.nodes.get('PROJECTION')
             return None
-        
+
+        case 'TRIPLANAR_BLEND':
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
+            node_tree = bpy.data.node_groups.get(mask_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('TRIPLANAR_BLEND')
+            return None
+
         case 'TEXTURE':
             mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
-                return node_tree.nodes.get('MASK_TEXTURE')
+                return node_tree.nodes.get("MASK_TEXTURE_{0}".format(node_number))
             return None
         
         case 'BLUR':
@@ -449,6 +463,133 @@ def refresh_mask_slots():
 
     debug_logging.log("Refreshed mask slots.")
 
+def relink_mask_projection():
+    '''Relinks mask nodes to projection nodes.'''
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+    mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
+    projection_node = get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
+    blur_node = get_mask_node('BLUR', selected_layer_index, selected_mask_index)
+
+    # Disconnect the projection and blur nodes.
+    blender_addon_utils.unlink_node(projection_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
+    blender_addon_utils.unlink_node(blur_node, mask_node.node_tree, unlink_inputs=True, unlink_outputs=True)
+
+    # Link mask nodes based on the mask projection mode.
+    match projection_node.node_tree.name:
+        case 'ML_UVProjection':
+            mask_node.node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
+
+            texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
+            if blender_addon_utils.get_node_active(blur_node):
+                mask_node.node_tree.links.new(blur_node.outputs.get[0], texture_node.inputs[0])
+
+            else:
+                mask_node.node_tree.links.new(projection_node.outputs[0], texture_node.inputs[0])
+
+            mask_filter_node = get_mask_node('MASK_FILTER', selected_layer_index, selected_mask_index)
+            mask_node.node_tree.links.new(texture_node.outputs[0], mask_filter_node.inputs[0])
+
+        case "ML_TriplanarProjection":
+            mask_node.node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
+            mask_node.node_tree.links.new(projection_node.outputs[1], blur_node.inputs[1])
+            mask_node.node_tree.links.new(projection_node.outputs[2], blur_node.inputs[2])
+
+            if blender_addon_utils.get_node_active(blur_node):
+                for i in range(0, 3):
+                    texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=i + 1)
+                    if texture_node:
+                        mask_node.node_tree.links.new(blur_node.outputs[0], texture_node.inputs[0])
+            
+            else:
+                triplanar_blend_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
+
+                for i in range(0, 3):
+                    texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=i + 1)
+                    if texture_node:
+                        mask_node.node_tree.links.new(projection_node.outputs[0], texture_node.inputs[0])
+                        mask_node.node_tree.links.new(texture_node.outputs[0], triplanar_blend_node.inputs[i])
+                mask_node.node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
+
+                mask_filter_node = get_mask_node('MASK_FILTER', selected_layer_index, selected_mask_index)
+                if mask_filter_node:
+                    mask_node.node_tree.links.new(triplanar_blend_node.outputs[0], mask_filter_node.inputs[0])
+                        
+
+def set_mask_projection_mode(projection_mode):
+    '''Sets the projection mode of the mask. Only image masks can have their projection mode swapped.'''
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+    
+    match projection_mode:
+        case 'UV':
+            mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
+            projection_node = get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
+
+            # Replace triplanar mask node setup.
+            mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
+            if mask_texture_node:
+                original_texture_node_location = mask_texture_node.location
+
+                for i in range(0, 3):
+                    texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=i + 1)
+                    if texture_node:
+                        mask_node.node_tree.nodes.remove(texture_node)
+
+                triplanar_blend_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
+                if triplanar_blend_node:
+                    mask_node.node_tree.nodes.remove(triplanar_blend_node)
+
+                new_mask_texture_node = mask_node.node_tree.nodes.new('ShaderNodeTexImage')
+                new_mask_texture_node.name = "MASK_TEXTURE_1"
+                new_mask_texture_node.label = new_mask_texture_node.name
+                new_mask_texture_node.location = original_texture_node_location
+
+            # Set the projection and blur nodes to use triplanar setups.
+            projection_node.node_tree = blender_addon_utils.append_group_node('ML_UVProjection')
+            blur_node = get_mask_node('BLUR', selected_layer_index, selected_mask_index)
+            if blur_node:
+                blur_node.node_tree = blender_addon_utils.append_group_node('ML_Blur')
+
+        case 'TRIPLANAR':
+            mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
+            projection_node = get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
+            if projection_node.node_tree.name != 'ML_TriplanarProjection':
+
+                # Replace the UV mask texture node setup with a triplanar texture node setup.
+                mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
+                if mask_texture_node:
+                    original_texture_node_location = mask_texture_node.location
+                    mask_node.node_tree.nodes.remove(mask_texture_node)
+
+                    location_x = original_texture_node_location[0]
+                    location_y = original_texture_node_location[1]
+                    for i in range(0, 3):
+                        new_mask_texture_node = mask_node.node_tree.nodes.new('ShaderNodeTexImage')
+                        new_mask_texture_node.name = "MASK_TEXTURE_{0}".format(i + 1)
+                        new_mask_texture_node.label = new_mask_texture_node.name
+                        new_mask_texture_node.location = (location_x, location_y)
+                        new_mask_texture_node.hide = True
+                        new_mask_texture_node.width = 200
+                        location_y -= 50
+
+                    # Add a triplanar blending node.
+                    triplanar_blend_node = mask_node.node_tree.nodes.new('ShaderNodeGroup')
+                    triplanar_blend_node.node_tree = blender_addon_utils.append_group_node("ML_TriplanarBlend")
+                    triplanar_blend_node.name = "TRIPLANAR_BLEND"
+                    triplanar_blend_node.label = triplanar_blend_node.name
+                    triplanar_blend_node.width = 200
+                    triplanar_blend_node.hide = True
+                    triplanar_blend_node.location = (location_x, location_y)
+
+                # Set the projection and blur nodes to use triplanar setups.
+                projection_node.node_tree = blender_addon_utils.append_group_node('ML_TriplanarProjection')
+                blur_node = get_mask_node('BLUR', selected_layer_index, selected_mask_index)
+                if blur_node:
+                    blur_node.node_tree = blender_addon_utils.append_group_node('ML_TriplanarBlur')
+
+#----------------------------- OPERATORS -----------------------------#
+
 class MATLAYER_mask_stack(PropertyGroup):
     '''Properties for the layer stack.'''
     selected_index: IntProperty(default=-1, description="Selected material filter index", update=update_selected_mask_index)
@@ -625,4 +766,38 @@ class MATLAYER_OT_delete_layer_mask(Operator):
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
         delete_layer_mask(self)
+        return {'FINISHED'}
+
+class MATLAYER_OT_set_mask_projection_uv(Operator):
+    bl_label = "Set Mask Projection UV"
+    bl_idname = "matlayer.set_mask_projection_uv"
+    bl_description = "Sets the projection mode for the selected mask to UV projection, which uses the UV layout of the object to project textures used on this material layer"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    # Runs when the add layer button in the popup is clicked.
+    def execute(self, context):
+        set_mask_projection_mode('UV')
+        relink_mask_projection()
+        return {'FINISHED'}
+
+class MATLAYER_OT_set_mask_projection_triplanar(Operator):
+    bl_label = "Set Mask Projection Triplanar"
+    bl_idname = "matlayer.set_mask_projection_triplanar"
+    bl_description = "Sets the projection mode for the mask to triplanar projection which projects the textures onto the object from each axis. This projection method can be used to apply materials to objects without needing to manually blend seams"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    # Runs when the add layer button in the popup is clicked.
+    def execute(self, context):
+        set_mask_projection_mode('TRIPLANAR')
+        relink_mask_projection()
         return {'FINISHED'}

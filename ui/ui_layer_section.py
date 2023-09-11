@@ -287,6 +287,69 @@ def draw_layer_projection(layout):
                 row.prop(projection_node.inputs.get('Blending'), "default_value", text="Blending")
                 row.menu("MATLAYER_MT_triplanar_projection_sub_menu", text="", icon='DOWNARROW_HLT')
 
+def draw_mask_projection(layout):
+    '''Draws projection settings for the selected mask.'''
+    row = layout.row()
+    row.scale_y = 2.5
+    row.separator()
+    row = layout.row()
+    row.scale_y = DEFAULT_UI_SCALE_Y
+    row.label(text="MASK PROJECTION")
+
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+    mask_projection_node = layer_masks.get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
+    if mask_projection_node:
+        match mask_projection_node.node_tree.name:
+            case 'ML_UVProjection':
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.menu('MATLAYER_MT_mask_projection_sub_menu', text="UV Projection")
+
+                split = layout.split()
+                col = split.column()
+                col.scale_y = DEFAULT_UI_SCALE_Y
+                col.prop(mask_projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
+                col.prop(mask_projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
+
+                col = split.column()
+                col.scale_y = DEFAULT_UI_SCALE_Y
+                col.prop(mask_projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
+                col.prop(mask_projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
+
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.prop(mask_projection_node.inputs.get('Rotation'), "default_value", text="Rotation", slider=True)
+
+            case 'ML_TriplanarProjection':
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.menu('MATLAYER_MT_mask_projection_sub_menu', text="Triplanar Projection")
+
+                split = layout.split()
+                col = split.column()
+                col.scale_y = DEFAULT_UI_SCALE_Y
+                col.prop(mask_projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
+                col.prop(mask_projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
+                col.prop(mask_projection_node.inputs.get('OffsetZ'), "default_value", text="Offset Z", slider=True)
+
+                col = split.column()
+                col.scale_y = DEFAULT_UI_SCALE_Y
+                col.prop(mask_projection_node.inputs.get('RotationX'), "default_value", text="Rotation X", slider=True)
+                col.prop(mask_projection_node.inputs.get('RotationY'), "default_value", text="Rotation Y", slider=True)
+                col.prop(mask_projection_node.inputs.get('RotationZ'), "default_value", text="Rotation Z", slider=True)
+
+                col = split.column()
+                col.scale_y = DEFAULT_UI_SCALE_Y
+                col.prop(mask_projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
+                col.prop(mask_projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
+                col.prop(mask_projection_node.inputs.get('ScaleZ'), "default_value", text="Scale Z")
+
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.prop(mask_projection_node.inputs.get('Blending'), "default_value", text="Blending")
+                #row.menu("MATLAYER_MT_triplanar_projection_sub_menu", text="", icon='DOWNARROW_HLT')
+
 def draw_layer_masks(layout):
     row = layout.row(align=True)
     row.scale_x = 10
@@ -351,48 +414,7 @@ def draw_layer_masks(layout):
             row.prop(blur_node.inputs.get('Blur Amount'), "default_value", text="Blur")
 
         # Draw mask projection options if it exists.
-        row = layout.row()
-        row.separator()
-        row = layout.row()
-        row.scale_y = DEFAULT_UI_SCALE_Y
-        row.label(text="MASK PROJECTION")
-        mask_projection_node = layer_masks.get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
-        if mask_projection_node:
-            split = layout.split(factor=0.25)
-            first_column = split.column()
-            second_column = split.column()
-
-            row = first_column.row()
-            row.scale_y = DEFAULT_UI_SCALE_Y
-            row.label(text="Offset")
-            row = second_column.row()
-            row.scale_y = DEFAULT_UI_SCALE_Y
-            row.prop(mask_projection_node.inputs.get('OffsetX'), "default_value", text="X", slider=True)
-            row.prop(mask_projection_node.inputs.get('OffsetY'), "default_value", text="Y", slider=True)
-
-            row = first_column.row()
-            row.label(text="Rotation")
-            row = second_column.row()
-            row.prop(mask_projection_node.inputs.get('Rotation'), "default_value", text="", slider=True)
-
-            row = first_column.row()
-            row.scale_y = DEFAULT_UI_SCALE_Y
-            row.label(text="Scale")
-            
-            row = second_column.row()
-            col = row.split()
-            col.prop(mask_projection_node.inputs.get('ScaleX'), "default_value", text="")
-
-            col = row.split()
-            if masks[selected_mask_index].sync_projection_scale:
-                col.prop(masks[selected_mask_index], "sync_projection_scale", text="", icon="LOCKED")
-            else:
-                col.prop(masks[selected_mask_index], "sync_projection_scale", text="", icon="UNLOCKED")
-
-            col = row.split()
-            if masks[selected_mask_index].sync_projection_scale:
-                col.enabled = False
-            col.prop(mask_projection_node.inputs.get('ScaleY'), "default_value", text="")
+        draw_mask_projection(layout)
 
         # Draw any mesh maps used for this mask.
         drew_title = False
@@ -580,6 +602,15 @@ class LayerProjectionModeSubMenu(Menu):
         layout = self.layout
         layout.operator("matlayer.set_layer_projection_uv", text="UV")
         layout.operator("matlayer.set_layer_projection_triplanar", text="Triplanar")
+
+class MaskProjectionModeSubMenu(Menu):
+    bl_idname = "MATLAYER_MT_mask_projection_sub_menu"
+    bl_label = "Mask Projection Sub Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("matlayer.set_mask_projection_uv", text="UV")
+        layout.operator("matlayer.set_mask_projection_triplanar", text="Triplanar")
 
 class MaterialChannelValueNodeSubMenu(Menu):
     bl_idname = "MATLAYER_MT_material_channel_value_node_sub_menu"
