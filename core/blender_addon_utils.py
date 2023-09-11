@@ -61,6 +61,7 @@ def duplicate_node_group(node_group_name):
 
 def append_default_node_groups():
     '''Appends default nodes used by this add-on to the current blend file. Appending node groups in an initial batch helps avoid appending duplicates of node groups.'''
+    append_group_node("ML_TriplanarNormalsBlend", never_auto_delete=True)
     append_group_node("ML_DefaultLayer", never_auto_delete=True)
     append_group_node("ML_DecalLayer", never_auto_delete=True)
     append_group_node("ML_LayerBlur", never_auto_delete=True)
@@ -71,7 +72,6 @@ def append_default_node_groups():
     append_group_node("ML_TriplanarNormalFix", never_auto_delete=True)
     append_group_node("ML_WorldToTangentSpace", never_auto_delete=True)
     append_group_node("ML_TriplanarBlend", never_auto_delete=True)
-    append_group_node("ML_TriplanarNormalsBlend", never_auto_delete=True)
     append_group_node("ML_ImageMask", never_auto_delete=True)
     append_group_node("ML_EdgeWear", never_auto_delete=True)
     append_group_node("ML_Blur", never_auto_delete=True)
