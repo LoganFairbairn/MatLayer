@@ -364,7 +364,6 @@ def draw_layer_masks(layout):
     row.scale_y = 2
 
     # Draw properties for the selected mask.
-    masks = bpy.context.scene.matlayer_masks
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
     mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, selected_mask_index)
@@ -401,6 +400,15 @@ def draw_layer_masks(layout):
                 row.context_pointer_set("node_tree", mask_node.node_tree)
                 row.context_pointer_set("node", node)
                 row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+
+        # Draw mask filter properties.
+        mask_filter_node = layer_masks.get_mask_node('MASK_FILTER', selected_layer_index, selected_mask_index)
+        if mask_filter_node:
+            row = layout.row()
+            row.prop(mask_filter_node, "mute", text="", icon='FILTER', toggle=True, invert_checkbox=True)
+            if not mask_filter_node.mute:
+                row = layout.row()
+                layout.template_color_ramp(mask_filter_node, "color_ramp", expand=True)
 
         # Draw blur options if they exist.
         blur_node = layer_masks.get_mask_node('BLUR', selected_layer_index, selected_mask_index)
