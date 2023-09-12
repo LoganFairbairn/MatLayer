@@ -3,6 +3,7 @@
 import bpy
 from bpy.utils import resource_path
 import numpy as np
+import os
 from pathlib import Path
 from ..core import debug_logging
 from .. import preferences
@@ -271,3 +272,14 @@ def set_texture_paint_image(image):
         bpy.context.scene.tool_settings.image_paint.canvas = image
     else:
         debug_logging.log("Can't set texture paint image, invalid image provided.")
+
+def save_image(image, file_format='PNG'):
+    '''Saves the provided image to the default or defined location for the provided asset type.'''
+
+    export_path = os.path.join(bpy.path.abspath("//"), "LayerImages")
+    if os.path.exists(export_path) == False:
+        os.mkdir(export_path)
+
+    image.file_format = file_format
+    image.filepath = "{0}/{1}.{2}".format(export_path, image.name, file_format.lower())
+    image.save()
