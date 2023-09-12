@@ -277,6 +277,7 @@ def add_material_layer(layer_type, self):
             if texture_node:
                 texture_node.image = new_image
             blender_addon_utils.set_texture_paint_image(new_image)
+            blender_addon_utils.save_image(new_image)
 
             for material_channel_name in MATERIAL_CHANNEL_LIST:
                 if material_channel_name != 'COLOR':
