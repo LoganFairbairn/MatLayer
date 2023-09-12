@@ -211,7 +211,7 @@ def get_node_by_bl_static_type(nodes, bl_static_type):
         if node.bl_static_type == bl_static_type:
             return node
 
-def create_image(image_name, image_width, image_height, alpha_channel=False, thirty_two_bit=False, data=False)
+def create_image(image_name, image_width, image_height, alpha_channel=False, thirty_two_bit=False, data=False):
     '''Deletes existing images with the same name if it exists, then creates a new image in Blender's data with the provided settings.'''
 
     # Delete an image that shares the same name if one exists.
@@ -273,9 +273,15 @@ def set_texture_paint_image(image):
     else:
         debug_logging.log("Can't set texture paint image, invalid image provided.")
 
+def get_layer_image_path(image_name, file_format='PNG'):
+    '''Returns the image path.'''
+    export_path = os.path.join(bpy.path.abspath("//"), "LayerImages")
+    if os.path.exists(export_path) == False:
+        os.mkdir(export_path)
+    return "{0}/{1}.{2}".format(export_path, image_name, file_format.lower())
+
 def save_image(image, file_format='PNG'):
     '''Saves the provided image to the default or defined location for the provided asset type.'''
-
     export_path = os.path.join(bpy.path.abspath("//"), "LayerImages")
     if os.path.exists(export_path) == False:
         os.mkdir(export_path)

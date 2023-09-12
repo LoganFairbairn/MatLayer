@@ -624,7 +624,8 @@ class ImageUtilitySubMenu(Menu):
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
             
-            operator = layout.operator("matlayer.export_uvs", icon="TPAINT_HLT", text="Export UVs")
+            operator = layout.operator("matlayer.image_edit_uvs", icon="UV", text="Externally Image Edit UVs")
+            operator = layout.operator("matlayer.export_uvs", icon="UV_DATA", text="Export UVs")
 
             operator = layout.operator("matlayer.reload_texture_node_image", icon="FILE_REFRESH", text="Reload Image")
             operator.node_tree_name = context.node_tree.name

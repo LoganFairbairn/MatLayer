@@ -80,19 +80,9 @@ class MATLAYER_OT_add_texture_node_image(Operator):
         new_image = blender_addon_utils.create_image(image_name, image_width, image_height, alpha_channel=True, thirty_two_bit=True)
         
         # Save the new image to a folder. This allows users to easily edit their image in a 2D image editor later.
-        matlayer_image_path = os.path.join(bpy.path.abspath("//"), "Assets")
-        if os.path.exists(matlayer_image_path) == False:
-            os.mkdir(matlayer_image_path)
-
-        layer_image_path = os.path.join(matlayer_image_path, "Layers")
-        if os.path.exists(layer_image_path) == False:
-            os.mkdir(layer_image_path)
-
         image = bpy.data.images[image_name]
-        image.filepath = layer_image_path + "/" + image_name + ".png"
-        image.file_format = 'PNG'
         if image:
-            image.save()
+            blender_addon_utils.save_image(image, 'PNG')
 
         texture_node.image = new_image                                              # Add the new image to the image node.
         bpy.context.scene.tool_settings.image_paint.canvas = texture_node.image     # Select the new texture for painting.
@@ -203,22 +193,14 @@ class MATLAYER_OT_edit_texture_node_image_externally(Operator):
 class MATLAY_OT_export_uvs(Operator):
     bl_idname = "matlayer.export_uvs"
     bl_label = "Export UVs"
-    bl_description = "Exports the selected object's UV layout to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor)"
+    bl_description = "Exports the selected object's UV layout to a folder next to the blend file"
 
     def execute(self, context):
         blender_addon_utils.set_valid_material_editing_mode()
+        blender_addon_utils.verify_material_operation_context(self)
 
         original_mode = bpy.context.object.mode
         active_object = bpy.context.active_object
-
-        # Validate the selected object can export a uv layout.
-        if active_object == None:
-            self.report({'ERROR'}, "No active object is selected, please select an object to export the uv layout for.")
-            return{'FINISHED'}
-        
-        if active_object.type != 'MESH':
-            self.report({'ERROR'}, "The active object isn't a mesh, please select a mesh type object to export the uv layout for.")
-            return{'FINISHED'}
 
         if active_object.data.uv_layers.active == None:
             self.report({'ERROR'}, "Active object has no active UV layout to export UVs for. Add one, or select a different object.")
@@ -228,17 +210,39 @@ class MATLAY_OT_export_uvs(Operator):
         bpy.ops.object.mode_set(mode = 'EDIT')
         bpy.ops.uv.select_all(action='SELECT')
 
-        # Save UV layout to folder.
-        matlay_image_path = os.path.join(bpy.path.abspath("//"), "Matlay")
-        if os.path.exists(matlay_image_path) == False:
-            os.mkdir(matlay_image_path)
-
-        uv_layout_path = os.path.join(matlay_image_path, "UVLayouts")
-        if os.path.exists(uv_layout_path) == False:
-            os.mkdir(uv_layout_path)
-    
+        # Save UV layout to a folder.
         uv_image_name = bpy.context.active_object.name + "_" + "UVLayout"
-        uv_layout_path += "/" + uv_image_name + ".png"
+        uv_layout_path = blender_addon_utils.get_layer_image_path(uv_image_name, 'PNG')
+        bpy.ops.uv.export_layout(filepath=uv_layout_path, size=(tss.get_texture_width(), tss.get_texture_height()))
+
+        # Reset mode.
+        bpy.ops.object.mode_set(mode = original_mode)
+        
+        return{'FINISHED'}
+
+class MATLAY_OT_image_edit_uvs(Operator):
+    bl_idname = "matlayer.image_edit_uvs"
+    bl_label = "Image Edit UVs"
+    bl_description = "Exports the selected object's UV layout to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor)"
+
+    def execute(self, context):
+        blender_addon_utils.set_valid_material_editing_mode()
+        blender_addon_utils.verify_material_operation_context(self)
+
+        original_mode = bpy.context.object.mode
+        active_object = bpy.context.active_object
+
+        if active_object.data.uv_layers.active == None:
+            self.report({'ERROR'}, "Active object has no active UV layout to export UVs for. Add one, or select a different object.")
+            return{'FINISHED'}
+
+        # Set edit mode and select all uvs.
+        bpy.ops.object.mode_set(mode = 'EDIT')
+        bpy.ops.uv.select_all(action='SELECT')
+
+        # Save UV layout to a folder.
+        uv_image_name = bpy.context.active_object.name + "_" + "UVLayout"
+        uv_layout_path = blender_addon_utils.get_layer_image_path(uv_image_name, 'PNG')
         bpy.ops.uv.export_layout(filepath=uv_layout_path, size=(tss.get_texture_width(), tss.get_texture_height()))
 
         # Load the UV layout into Blender's data so it can be exported directly from Blender.
