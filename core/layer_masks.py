@@ -504,7 +504,7 @@ def relink_mask_projection():
                 for i in range(0, 3):
                     texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=i + 1)
                     if texture_node:
-                        mask_node.node_tree.links.new(blur_node.outputs[0], texture_node.inputs[0])
+                        mask_node.node_tree.links.new(blur_node.outputs[i], texture_node.inputs[0])
             
             else:
                 triplanar_blend_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
@@ -512,7 +512,7 @@ def relink_mask_projection():
                 for i in range(0, 3):
                     texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=i + 1)
                     if texture_node:
-                        mask_node.node_tree.links.new(projection_node.outputs[0], texture_node.inputs[0])
+                        mask_node.node_tree.links.new(projection_node.outputs[i], texture_node.inputs[0])
                         mask_node.node_tree.links.new(texture_node.outputs[0], triplanar_blend_node.inputs[i])
                 mask_node.node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
 
@@ -541,6 +541,7 @@ def set_mask_projection_mode(projection_mode):
             mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
             if mask_texture_node:
                 original_texture_node_location = mask_texture_node.location
+                original_texture_node_image = mask_texture_node.image
 
                 for i in range(0, 3):
                     texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=i + 1)
@@ -552,9 +553,10 @@ def set_mask_projection_mode(projection_mode):
                     mask_node.node_tree.nodes.remove(triplanar_blend_node)
 
                 new_mask_texture_node = mask_node.node_tree.nodes.new('ShaderNodeTexImage')
-                new_mask_texture_node.name = "MASK_TEXTURE_1"
+                new_mask_texture_node.name = "TEXTURE_1"
                 new_mask_texture_node.label = new_mask_texture_node.name
                 new_mask_texture_node.location = original_texture_node_location
+                new_mask_texture_node.image = original_texture_node_image
 
             # Set the projection and blur nodes to use triplanar setups.
             projection_node.node_tree = blender_addon_utils.append_group_node('ML_UVProjection')
@@ -571,17 +573,20 @@ def set_mask_projection_mode(projection_mode):
                 mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
                 if mask_texture_node:
                     original_texture_node_location = mask_texture_node.location
+                    original_texture_node_image = mask_texture_node.image
+
                     mask_node.node_tree.nodes.remove(mask_texture_node)
 
                     location_x = original_texture_node_location[0]
                     location_y = original_texture_node_location[1]
                     for i in range(0, 3):
                         new_mask_texture_node = mask_node.node_tree.nodes.new('ShaderNodeTexImage')
-                        new_mask_texture_node.name = "MASK_TEXTURE_{0}".format(i + 1)
+                        new_mask_texture_node.name = "TEXTURE_{0}".format(i + 1)
                         new_mask_texture_node.label = new_mask_texture_node.name
                         new_mask_texture_node.location = (location_x, location_y)
                         new_mask_texture_node.hide = True
                         new_mask_texture_node.width = 200
+                        new_mask_texture_node.image = original_texture_node_image
                         location_y -= 50
 
                     # Add a triplanar blending node.
@@ -808,7 +813,7 @@ class MATLAYER_OT_set_mask_projection_triplanar(Operator):
         set_mask_projection_mode('TRIPLANAR')
         relink_mask_projection()
         return {'FINISHED'}
-    
+
 class MATLAYER_OT_set_mask_output_channel(Operator):
     bl_label = "Set Mask Output Channel"
     bl_idname = "matlayer.set_mask_output_channel"
