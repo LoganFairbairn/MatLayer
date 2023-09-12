@@ -43,6 +43,15 @@ def update_layer_index(self, context):
     show_layer(self)
     layer_masks.refresh_mask_slots()
 
+    # Select the image for texture painting.
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
+    value_node = get_material_layer_node('VALUE', selected_layer_index, selected_material_channel)
+    if value_node:
+        if value_node.bl_static_type == 'TEX_IMAGE':
+            if value_node.image != None:
+                blender_addon_utils.set_texture_paint_image(value_node.image)
+
 def get_shorthand_material_channel_name(material_channel_name):
     '''Returns the short-hand version of the provided material channel name.'''
     match material_channel_name:
@@ -261,7 +270,19 @@ def add_material_layer(layer_type, self):
     # For specific layer types, perform additional setup steps.
     match layer_type:
         case 'PAINT':
-            print("Placeholder...")
+            replace_material_channel_node('COLOR', 'TEXTURE')
+            new_image = blender_addon_utils.create_image("Paint", base_color=(0.0, 0.0, 0.0, 0.0), alpha_channel=True, add_unique_id=True)
+            selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+            texture_node = get_material_layer_node('VALUE', selected_layer_index, 'COLOR')
+            if texture_node:
+                texture_node.image = new_image
+            blender_addon_utils.set_texture_paint_image(new_image)
+
+            for material_channel_name in MATERIAL_CHANNEL_LIST:
+                if material_channel_name != 'COLOR':
+                    mix_layer_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
+                    if mix_layer_node:
+                        mix_layer_node.mute = True
 
         case 'DECAL':
             # Append a default decal image.

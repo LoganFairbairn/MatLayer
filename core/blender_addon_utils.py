@@ -3,8 +3,10 @@
 import bpy
 from bpy.utils import resource_path
 import numpy as np
+import random
 import os
 from pathlib import Path
+from ..core import texture_set_settings as tss
 from ..core import debug_logging
 from .. import preferences
 
@@ -211,13 +213,43 @@ def get_node_by_bl_static_type(nodes, bl_static_type):
         if node.bl_static_type == bl_static_type:
             return node
 
-def create_image(image_name, image_width, image_height, alpha_channel=False, thirty_two_bit=False, data=False):
-    '''Deletes existing images with the same name if it exists, then creates a new image in Blender's data with the provided settings.'''
+def create_image(new_image_name, image_width=-1, image_height=-1, base_color=(0.0, 0.0, 0.0, 1.0), generate_type='BLANK', alpha_channel=False, thirty_two_bit=False, add_unique_id=False, delete_existing=False):
+    '''Creates a new image in blend data.'''
+    if delete_existing:
+        existing_image = bpy.data.images.get(new_image_name)
+        if existing_image:
+            bpy.data.images.remove(existing_image)
 
+    if add_unique_id:
+        new_image_name = "{0}_{1}".format(new_image_name, str(random.randrange(10000,99999)))
+        while bpy.data.images.get(new_image_name) != None:
+            new_image_name = "{0}_{1}".format(new_image_name, str(random.randrange(10000,99999)))
+
+    # If -1 is passed, use the image resolution defined in the texture set settings.
+    if image_width == -1:
+        w = tss.get_texture_width()
+    if image_height == -1:
+        h = tss.get_texture_height()
+
+    bpy.ops.image.new(name=new_image_name, 
+                      width=w, 
+                      height=h,
+                      color=base_color, 
+                      alpha=alpha_channel, 
+                      generated_type=generate_type,
+                      float=thirty_two_bit,
+                      use_stereo_3d=False, 
+                      tiled=False)
+
+    return bpy.data.images.get(new_image_name)
+    
+def create_data_image(image_name, image_width, image_height, alpha_channel=False, thirty_two_bit=False, data=False, delete_existing=True):
+    '''Creates a new data based image in the blend file.'''
     # Delete an image that shares the same name if one exists.
-    new_image = bpy.data.images.get(image_name)
-    if new_image:
-        bpy.data.images.remove(new_image)
+    if delete_existing:
+        new_image = bpy.data.images.get(image_name)
+        if new_image:
+            bpy.data.images.remove(new_image)
 
     # Create a new image.
     new_image = bpy.data.images.new(name=image_name,
@@ -265,11 +297,12 @@ def unlink_node(node, node_tree, unlink_inputs=True, unlink_outputs=True):
 def set_texture_paint_image(image):
     '''Sets the image being actively edited using Blender's texture paint mode to the provided image if it exists within the texture paint slots from the active material.'''
     if image:
-        #texture_paint_images = bpy.context.active_object.active_material.texture_paint_images
-        #texture_paint_slot_index = texture_paint_images.find(image.name)
-        #if texture_paint_slot_index >= 0 and texture_paint_slot_index < len(texture_paint_images):
-        #    bpy.context.object.active_material.paint_active_slot = texture_paint_slot_index
         bpy.context.scene.tool_settings.image_paint.canvas = image
+        bpy.context.scene.tool_settings.image_paint.mode = 'IMAGE'
+        texture_paint_images = bpy.context.active_object.active_material.texture_paint_images
+        texture_paint_slot_index = texture_paint_images.find(image.name)
+        if texture_paint_slot_index >= 0 and texture_paint_slot_index < len(texture_paint_images):
+            bpy.context.object.active_material.paint_active_slot = texture_paint_slot_index
     else:
         debug_logging.log("Can't set texture paint image, invalid image provided.")
 
