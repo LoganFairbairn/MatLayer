@@ -346,7 +346,7 @@ def draw_mask_projection(layout):
                 row.prop(mask_projection_node.inputs.get('Blending'), "default_value", text="Blending")
                 #row.menu("MATLAYER_MT_triplanar_projection_sub_menu", text="", icon='DOWNARROW_HLT')
 
-def draw_mask_channel(layout):
+def draw_mask_channel(layout, selected_layer_index, selected_mask_index):
     '''Draws the mask channel and sub menu to change the mask channel used.'''
     split = layout.split(factor=0.25)
     first_column = split.column()
@@ -355,8 +355,11 @@ def draw_mask_channel(layout):
     row = first_column.row()
     row.label(text="Channel")
 
-    row = second_column.row()
-    row.menu("MATLAYER_MT_mask_channel_sub_menu", text="Channel")
+    mask_filter_node = layer_masks.get_mask_node("MASK_FILTER", selected_layer_index, selected_mask_index)
+    if mask_filter_node:
+        menu_label = mask_filter_node.inputs[0].links[0].from_socket.name
+        row = second_column.row()
+        row.menu("MATLAYER_MT_mask_channel_sub_menu", text=menu_label)
 
 def draw_mask_textures(layout, mask_node):
     '''Draws all non-mesh map textures used in the mask.'''
@@ -470,7 +473,7 @@ def draw_masks(layout):
         row.scale_y = DEFAULT_UI_SCALE_Y
         row.label(text="MASK PROPERTIES")
 
-        draw_mask_channel(layout)
+        draw_mask_channel(layout, selected_layer_index, selected_mask_index)
         draw_mask_textures(layout, mask_node)
         draw_mask_filters(layout, selected_layer_index, selected_mask_index)
         draw_mask_group_node_properties(layout, mask_node)
@@ -690,13 +693,13 @@ class MaskChannelSubMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        operator = layout.operator("matlayer.set_mask_projection_triplanar", text="Color")
+        operator = layout.operator("matlayer.set_mask_output_channel", text="Color")
         operator.channel_name = 'COLOR'
-        operator = layout.operator("matlayer.set_mask_projection_triplanar", text="Alpha")
+        operator = layout.operator("matlayer.set_mask_output_channel", text="Alpha")
         operator.channel_name = 'ALPHA'
-        operator = layout.operator("matlayer.set_mask_projection_triplanar", text="Red")
+        operator = layout.operator("matlayer.set_mask_output_channel", text="Red")
         operator.channel_name = 'RED'
-        operator = layout.operator("matlayer.set_mask_projection_triplanar", text="Green")
+        operator = layout.operator("matlayer.set_mask_output_channel", text="Green")
         operator.channel_name = 'GREEN'
-        operator = layout.operator("matlayer.set_mask_projection_triplanar", text="Blue")
+        operator = layout.operator("matlayer.set_mask_output_channel", text="Blue")
         operator.channel_name = 'BLUE'

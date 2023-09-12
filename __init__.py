@@ -17,7 +17,7 @@
 
 import bpy
 import bpy.utils.previews       # Imported for loading layer texture previews as icons.
-from bpy.props import PointerProperty, CollectionProperty, EnumProperty, BoolProperty
+from bpy.props import PointerProperty, CollectionProperty, EnumProperty
 from bpy.app.handlers import persistent
 
 # Preferences

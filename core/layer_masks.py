@@ -812,7 +812,7 @@ class MATLAYER_OT_set_mask_projection_triplanar(Operator):
 class MATLAYER_OT_set_mask_output_channel(Operator):
     bl_label = "Set Mask Output Channel"
     bl_idname = "matlayer.set_mask_output_channel"
-    bl_description = "Sets the projection mode for the mask to triplanar projection which projects the textures onto the object from each axis. This projection method can be used to apply materials to objects without needing to manually blend seams"
+    bl_description = "Sets the channel used for the mask to the specified value. This allows for the use of RGBA channel packed masks, and using image transparency as a mask"
     bl_options = {'REGISTER', 'UNDO'}
 
     channel_name: StringProperty(default='COLOR')
@@ -841,7 +841,7 @@ class MATLAYER_OT_set_mask_output_channel(Operator):
                 mask_node.node_tree.links.new(mask_texture_node.outputs[0], mask_filter_node.inputs[0])
 
             case 'ALPHA':
-                mask_node.node_tree.links.new(mask_texture_node.outputs[1], separate_color_node.inputs[0])
+                mask_node.node_tree.links.new(mask_texture_node.outputs[1], mask_filter_node.inputs[0])
 
             case 'RED':
                 mask_node.node_tree.links.new(mask_texture_node.outputs[0], separate_color_node.inputs[0])
