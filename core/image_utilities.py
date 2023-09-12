@@ -95,7 +95,7 @@ class MATLAYER_OT_add_texture_node_image(Operator):
             image.save()
 
         texture_node.image = new_image                                              # Add the new image to the image node.
-        context.scene.tool_settings.image_paint.canvas = texture_node.image         # Select the new texture for painting.
+        bpy.context.scene.tool_settings.image_paint.canvas = texture_node.image     # Select the new texture for painting.
         
         return {'FINISHED'}
 

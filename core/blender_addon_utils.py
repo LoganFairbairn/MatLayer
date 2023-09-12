@@ -210,7 +210,7 @@ def get_node_by_bl_static_type(nodes, bl_static_type):
         if node.bl_static_type == bl_static_type:
             return node
 
-def create_image(image_name, image_width, image_height, alpha_channel=False, thirty_two_bit=False, data=False):
+def create_image(image_name, image_width, image_height, alpha_channel=False, thirty_two_bit=False, data=False)
     '''Deletes existing images with the same name if it exists, then creates a new image in Blender's data with the provided settings.'''
 
     # Delete an image that shares the same name if one exists.
@@ -260,3 +260,14 @@ def unlink_node(node, node_tree, unlink_inputs=True, unlink_outputs=True):
         for output in node.outputs:
             for link in output.links:
                 node_tree.links.remove(link)
+
+def set_texture_paint_image(image):
+    '''Sets the image being actively edited using Blender's texture paint mode to the provided image if it exists within the texture paint slots from the active material.'''
+    if image:
+        #texture_paint_images = bpy.context.active_object.active_material.texture_paint_images
+        #texture_paint_slot_index = texture_paint_images.find(image.name)
+        #if texture_paint_slot_index >= 0 and texture_paint_slot_index < len(texture_paint_images):
+        #    bpy.context.object.active_material.paint_active_slot = texture_paint_slot_index
+        bpy.context.scene.tool_settings.image_paint.canvas = image
+    else:
+        debug_logging.log("Can't set texture paint image, invalid image provided.")

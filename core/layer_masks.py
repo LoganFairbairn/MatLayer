@@ -13,7 +13,7 @@ def update_selected_mask_index(self, context):
     selected_mask_index = context.scene.matlayer_mask_stack.selected_index
     mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
     if mask_texture_node:
-        context.scene.tool_settings.image_paint.canvas = mask_texture_node.image
+        blender_addon_utils.set_texture_paint_image(mask_texture_node.image)
     debug_logging.log("Updated selected mask index.")
 
 def format_mask_name(layer_index, mask_index, active_material_name=""):
@@ -211,9 +211,11 @@ def add_layer_mask(type, self):
             link_mask_nodes(selected_layer_index)
 
             texture_node = get_mask_node('TEXTURE', selected_layer_index, new_mask_slot_index)
-            if texture_node:
-                texture_node.image = bpy.data.images.get(image_name)
+            new_image = bpy.data.images.get(image_name)
+            if texture_node and new_image:
+                texture_node.image = new_image
 
+            bpy.context.scene.tool_settings.image_paint.canvas = new_image
             debug_logging.log("Added black layer mask.")
 
         case 'WHITE':
@@ -242,9 +244,11 @@ def add_layer_mask(type, self):
             link_mask_nodes(selected_layer_index)
 
             texture_node = get_mask_node('TEXTURE', selected_layer_index, new_mask_slot_index)
-            if texture_node:
-                texture_node.image = bpy.data.images.get(image_name)
+            new_image = bpy.data.images.get(image_name)
+            if texture_node and new_image:
+                texture_node.image = new_image
 
+            bpy.context.scene.tool_settings.image_paint.canvas = new_image
             debug_logging.log("Added white layer mask.")
 
         case 'EDGE_WEAR':
