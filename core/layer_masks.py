@@ -909,7 +909,7 @@ class MATLAYER_OT_isolate_mask(Operator):
             active_material.node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
         else:
             principled_bsdf = active_material.node_tree.nodes.get('MATLAYER_BSDF')
-            blender_addon_utils.unlink_node(emission_node, active_material.node_tree, unlink_inputs=False, unlink_outputs=True)
+            blender_addon_utils.unlink_node(emission_node, active_material.node_tree, unlink_inputs=True, unlink_outputs=True)
             active_material.node_tree.links.new(principled_bsdf.outputs[0], material_output.inputs[0])
 
         return {'FINISHED'}
