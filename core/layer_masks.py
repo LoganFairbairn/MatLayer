@@ -628,10 +628,16 @@ class MATLAYER_UL_mask_list(bpy.types.UIList):
             elif item.hidden == False:
                 row.prop(item, "hidden", text="", emboss=False, icon='HIDE_OFF')
 
-            # Layer Name
-            selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+            # Isolate Icon
+            row = layout.row(align=True)
+            row.ui_units_x = 1
             masks = bpy.context.scene.matlayer_masks
             item_index = masks.find(item.name)
+            operator = row.operator("matlayer.isolate_mask", text="", icon='MOD_MASK', emboss=False)
+            operator.mask_index = item_index
+
+            # Layer Name
+            selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
             mask_node = get_mask_node('MASK', selected_layer_index, item_index)
             if mask_node:
                 row = layout.row()
@@ -871,4 +877,39 @@ class MATLAYER_OT_toggle_mask_blur(Operator):
             else:
                 blender_addon_utils.set_node_active(blur_node, True)
         relink_mask_projection()
+        return {'FINISHED'}
+
+class MATLAYER_OT_isolate_mask(Operator):
+    bl_label = "Isolate Mask"
+    bl_idname = "matlayer.isolate_mask"
+    bl_description = "Isolate Mask"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    mask_index: IntProperty(default=-1)
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        if blender_addon_utils.verify_material_operation_context(self) == False:
+            return
+
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+        active_material = context.active_object.active_material
+
+        mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
+        emission_node = active_material.node_tree.nodes.get('EMISSION')
+        material_output = active_material.node_tree.nodes.get('MATERIAL_OUTPUT')
+
+        if len(emission_node.outputs[0].links) == 0:
+            active_material.node_tree.links.new(mask_node.outputs[0], emission_node.inputs[0])
+            active_material.node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
+        else:
+            principled_bsdf = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+            blender_addon_utils.unlink_node(emission_node, active_material.node_tree, unlink_inputs=False, unlink_outputs=True)
+            active_material.node_tree.links.new(principled_bsdf.outputs[0], material_output.inputs[0])
+
         return {'FINISHED'}
