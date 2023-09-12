@@ -75,15 +75,11 @@ def draw_material_selector(layout):
 
 def draw_selected_material_channel(layout):
     '''Draws the selected material channel.'''
-    subrow = layout.row(align=True)
-    subrow.scale_x = 2
-    subrow.scale_y = 1.4
-    subrow.prop(bpy.context.scene.matlayer_layer_stack, "selected_material_channel", text="")
-    if bpy.context.scene.matlayer_layer_stack.material_channel_preview == False:
-        subrow.operator("matlayer.toggle_material_channel_preview", text="", icon='MATERIAL')
-
-    elif bpy.context.scene.matlayer_layer_stack.material_channel_preview == True:
-        subrow.operator("matlayer.toggle_material_channel_preview", text="", icon='MATERIAL', depress=True)
+    row = layout.row(align=True)
+    row.scale_x = 2
+    row.scale_y = 1.4
+    row.prop(bpy.context.scene.matlayer_layer_stack, "selected_material_channel", text="")
+    row.operator("matlayer.isolate_material_channel", text="", icon='MATERIAL')
 
 def draw_layer_operations(layout):
     '''Draws layer operation buttons.'''

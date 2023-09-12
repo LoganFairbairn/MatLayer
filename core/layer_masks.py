@@ -887,7 +887,6 @@ class MATLAYER_OT_isolate_mask(Operator):
 
     mask_index: IntProperty(default=-1)
 
-    # Disable when there is no active object.
     @ classmethod
     def poll(cls, context):
         return context.active_object
@@ -898,18 +897,15 @@ class MATLAYER_OT_isolate_mask(Operator):
 
         selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
         selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
-        active_material = context.active_object.active_material
+        active_node_tree = bpy.context.active_object.active_material.node_tree
 
         mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
-        emission_node = active_material.node_tree.nodes.get('EMISSION')
-        material_output = active_material.node_tree.nodes.get('MATERIAL_OUTPUT')
+        emission_node = active_node_tree.nodes.get('EMISSION')
+        material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
 
-        if len(emission_node.outputs[0].links) == 0:
-            active_material.node_tree.links.new(mask_node.outputs[0], emission_node.inputs[0])
-            active_material.node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
-        else:
-            principled_bsdf = active_material.node_tree.nodes.get('MATLAYER_BSDF')
-            blender_addon_utils.unlink_node(emission_node, active_material.node_tree, unlink_inputs=True, unlink_outputs=True)
-            active_material.node_tree.links.new(principled_bsdf.outputs[0], material_output.inputs[0])
+        blender_addon_utils.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
+
+        active_node_tree.links.new(mask_node.outputs[0], emission_node.inputs[0])
+        active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
 
         return {'FINISHED'}

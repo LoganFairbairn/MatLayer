@@ -40,6 +40,7 @@ MATERIAL_CHANNEL_LIST = (
 
 def update_layer_index(self, context):
     '''Updates properties and user interface when a new layer is selected.'''
+    show_layer(self)
     layer_masks.refresh_mask_slots()
 
 def get_shorthand_material_channel_name(material_channel_name):
@@ -889,12 +890,24 @@ def refresh_layer_stack():
 
     debug_logging.log("Refreshed layer stack.")
 
+def show_layer(self):
+    '''Removes material channel or mask isolation if they are applied.'''
+    if blender_addon_utils.verify_material_operation_context(self) == False:
+        return
+
+    active_node_tree = bpy.context.active_object.active_material.node_tree
+    emission_node = active_node_tree.nodes.get('EMISSION')
+    if len(emission_node.outputs[0].links) != 0:
+        blender_addon_utils.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
+        material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
+        principled_bsdf = active_node_tree.nodes.get('MATLAYER_BSDF')
+        active_node_tree.links.new(principled_bsdf.outputs[0], material_output.inputs[0])
+
 #----------------------------- OPERATORS -----------------------------#
 
 class MATLAYER_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''
     selected_layer_index: IntProperty(default=-1, description="Selected material layer", update=update_layer_index)
-    material_channel_preview: BoolProperty(name="Material Channel Preview", description="If true, only the rgb output values for the selected material channel will be used on the object.", default=False)
     selected_material_channel: EnumProperty(items=MATERIAL_CHANNEL, name="Material Channel", description="The currently selected material channel", default='COLOR')
 
 class MATLAYER_layers(PropertyGroup):
@@ -1180,4 +1193,32 @@ class MATLAYER_OT_toggle_triplanar_flip_correction(Operator):
                             correct_axis_flip_node.mute = False
                         else:
                             correct_axis_flip_node.mute = True
+        return {'FINISHED'}
+
+class MATLAYER_OT_isolate_material_channel(Operator):
+    bl_idname = "matlayer.isolate_material_channel"
+    bl_label = "Isolate Material Channel"
+    bl_description = "Isolates the selected material channel."
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
+        active_node_tree = context.active_object.active_material.node_tree
+
+        layer_node = get_material_layer_node('LAYER', selected_layer_index)
+        emission_node = active_node_tree.nodes.get('EMISSION')
+        material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
+
+        # Unlink the emission node.
+        blender_addon_utils.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
+
+        # Connect the selected material channel.
+        active_node_tree.links.new(layer_node.outputs.get(selected_material_channel.capitalize()), emission_node.inputs[0])
+        active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
         return {'FINISHED'}
