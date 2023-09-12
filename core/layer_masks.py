@@ -4,7 +4,6 @@ from bpy.props import BoolProperty, IntProperty, EnumProperty, StringProperty, P
 import random
 from ..core import texture_set_settings as tss
 from ..core import material_layers
-from ..core import baking
 from ..core import blender_addon_utils
 from ..core import debug_logging
 
@@ -77,7 +76,7 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
             mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
-                return node_tree.nodes.get("MASK_TEXTURE_{0}".format(node_number))
+                return node_tree.nodes.get("TEXTURE_{0}".format(node_number))
             return None
         
         case 'BLUR':
@@ -482,13 +481,19 @@ def relink_mask_projection():
 
             texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
             if blender_addon_utils.get_node_active(blur_node):
-                mask_node.node_tree.links.new(blur_node.outputs.get[0], texture_node.inputs[0])
+                mask_node.node_tree.links.new(blur_node.outputs[0], texture_node.inputs[0])
 
             else:
                 mask_node.node_tree.links.new(projection_node.outputs[0], texture_node.inputs[0])
 
             mask_filter_node = get_mask_node('MASK_FILTER', selected_layer_index, selected_mask_index)
             mask_node.node_tree.links.new(texture_node.outputs[0], mask_filter_node.inputs[0])
+
+            # Unlink and re-link the mask filter node to trigger a re-compile of the material.
+            blender_addon_utils.unlink_node(mask_filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
+            mix_node = get_mask_node('MASK_MIX', selected_layer_index, selected_mask_index)
+            if mix_node:
+                mask_node.node_tree.links.new(mask_filter_node.outputs[0], mix_node.inputs[7])
 
         case "ML_TriplanarProjection":
             mask_node.node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
@@ -513,8 +518,14 @@ def relink_mask_projection():
 
                 mask_filter_node = get_mask_node('MASK_FILTER', selected_layer_index, selected_mask_index)
                 if mask_filter_node:
+                    blender_addon_utils.unlink_node(mask_filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
                     mask_node.node_tree.links.new(triplanar_blend_node.outputs[0], mask_filter_node.inputs[0])
-                        
+
+            # Unlink and re-link the mask filter node to trigger a re-compile of the material.
+            blender_addon_utils.unlink_node(mask_filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
+            mix_node = get_mask_node('MASK_MIX', selected_layer_index, selected_mask_index)
+            if mix_node:
+                mask_node.node_tree.links.new(mask_filter_node.outputs[0], mix_node.inputs[7])
 
 def set_mask_projection_mode(projection_mode):
     '''Sets the projection mode of the mask. Only image masks can have their projection mode swapped.'''
@@ -650,8 +661,7 @@ class MATLAYER_OT_add_empty_layer_mask(Operator):
     @ classmethod
     def poll(cls, context):
         return context.active_object
-
-    # Runs when the add layer button in the popup is clicked.
+    
     def execute(self, context):
         add_layer_mask('EMPTY', self)
         return {'FINISHED'}
@@ -667,7 +677,6 @@ class MATLAYER_OT_add_black_layer_mask(Operator):
     def poll(cls, context):
         return context.active_object
 
-    # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
         add_layer_mask('BLACK', self)
         return {'FINISHED'}
@@ -683,7 +692,6 @@ class MATLAYER_OT_add_white_layer_mask(Operator):
     def poll(cls, context):
         return context.active_object
 
-    # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
         add_layer_mask('WHITE', self)
         return {'FINISHED'}
@@ -699,7 +707,6 @@ class MATLAYER_OT_add_edge_wear_mask(Operator):
     def poll(cls, context):
         return context.active_object
 
-    # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
         add_layer_mask('EDGE_WEAR', self)
         return {'FINISHED'}
@@ -715,7 +722,6 @@ class MATLAYER_OT_move_layer_mask_up(Operator):
     def poll(cls, context):
         return context.active_object
 
-    # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
         move_mask('UP', self)
         return {'FINISHED'}
@@ -730,8 +736,7 @@ class MATLAYER_OT_move_layer_mask_down(Operator):
     @ classmethod
     def poll(cls, context):
         return context.active_object
-
-    # Runs when the add layer button in the popup is clicked.
+    
     def execute(self, context):
         move_mask('DOWN', self)
         return {'FINISHED'}
@@ -747,7 +752,6 @@ class MATLAYER_OT_duplicate_layer_mask(Operator):
     def poll(cls, context):
         return context.active_object
 
-    # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
         duplicate_mask(self)
         return {'FINISHED'}
@@ -762,8 +766,7 @@ class MATLAYER_OT_delete_layer_mask(Operator):
     @ classmethod
     def poll(cls, context):
         return context.active_object
-
-    # Runs when the add layer button in the popup is clicked.
+    
     def execute(self, context):
         delete_layer_mask(self)
         return {'FINISHED'}
@@ -779,7 +782,6 @@ class MATLAYER_OT_set_mask_projection_uv(Operator):
     def poll(cls, context):
         return context.active_object
 
-    # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
         set_mask_projection_mode('UV')
         relink_mask_projection()
@@ -796,8 +798,77 @@ class MATLAYER_OT_set_mask_projection_triplanar(Operator):
     def poll(cls, context):
         return context.active_object
 
-    # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
         set_mask_projection_mode('TRIPLANAR')
+        relink_mask_projection()
+        return {'FINISHED'}
+    
+class MATLAYER_OT_set_mask_output_channel(Operator):
+    bl_label = "Set Mask Output Channel"
+    bl_idname = "matlayer.set_mask_output_channel"
+    bl_description = "Sets the projection mode for the mask to triplanar projection which projects the textures onto the object from each axis. This projection method can be used to apply materials to objects without needing to manually blend seams"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    channel_name: StringProperty(default='COLOR')
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+
+        mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
+        mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
+        mask_filter_node = get_mask_node('MASK_FILTER', selected_layer_index, selected_mask_index)
+        separate_color_node = mask_node.node_tree.nodes.get('SEPARATE_COLOR')
+
+        # Disconnect the mask nodes.
+        blender_addon_utils.unlink_node(mask_texture_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
+        blender_addon_utils.unlink_node(separate_color_node, mask_node.node_tree, unlink_inputs=True, unlink_outputs=True)
+
+        # Connect the specified channel to the mask filter.
+        match self.channel_name:
+            case 'COLOR':
+                mask_node.node_tree.links.new(mask_texture_node.outputs[0], mask_filter_node.inputs[0])
+
+            case 'ALPHA':
+                mask_node.node_tree.links.new(mask_texture_node.outputs[1], separate_color_node.inputs[0])
+
+            case 'RED':
+                mask_node.node_tree.links.new(mask_texture_node.outputs[0], separate_color_node.inputs[0])
+                mask_node.node_tree.links.new(separate_color_node.outputs[0], mask_filter_node.inputs[0])
+
+            case 'GREEN':
+                mask_node.node_tree.links.new(mask_texture_node.outputs[0], separate_color_node.inputs[0])
+                mask_node.node_tree.links.new(separate_color_node.outputs[1], mask_filter_node.inputs[0])
+
+            case 'BLUE':
+                mask_node.node_tree.links.new(mask_texture_node.outputs[0], separate_color_node.inputs[0])
+                mask_node.node_tree.links.new(separate_color_node.outputs[2], mask_filter_node.inputs[0])
+        return {'FINISHED'}
+
+class MATLAYER_OT_toggle_mask_blur(Operator):
+    bl_label = "Toggle Mask Blur"
+    bl_idname = "matlayer.toggle_mask_blur"
+    bl_description = "Toggles blurring for the selected mask"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+        blur_node = get_mask_node('BLUR', selected_layer_index, selected_mask_index)
+        if blur_node:
+            if blender_addon_utils.get_node_active(blur_node):
+                blender_addon_utils.set_node_active(blur_node, False)
+            else:
+                blender_addon_utils.set_node_active(blur_node, True)
         relink_mask_projection()
         return {'FINISHED'}

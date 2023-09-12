@@ -36,7 +36,7 @@ def draw_layers_section_ui(self, context):
                 draw_layer_properties(column_one)
 
             case 'MASKS':
-                draw_layer_masks(column_one)
+                draw_masks(column_one)
 
     column_two = split.column()
     draw_material_selector(column_two)
@@ -108,7 +108,7 @@ def draw_material_property_tabs(layout):
     row.scale_y = 1.5
     row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MATERIAL')
     row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MASKS')
-    row.menu("MATLAYER_MT_layer_utility_sub_menu", text="Layer Utils")
+    row.menu("MATLAYER_MT_layer_utility_sub_menu", text="", icon='MODIFIER_ON')
 
 def draw_layer_material_channel_toggles(layout):
     '''Draws on / off toggles for individual material channels.'''
@@ -350,7 +350,109 @@ def draw_mask_projection(layout):
                 row.prop(mask_projection_node.inputs.get('Blending'), "default_value", text="Blending")
                 #row.menu("MATLAYER_MT_triplanar_projection_sub_menu", text="", icon='DOWNARROW_HLT')
 
-def draw_layer_masks(layout):
+def draw_mask_channel(layout):
+    '''Draws the mask channel and sub menu to change the mask channel used.'''
+    split = layout.split(factor=0.25)
+    first_column = split.column()
+    second_column = split.column()
+
+    row = first_column.row()
+    row.label(text="Channel")
+
+    row = second_column.row()
+    row.menu("MATLAYER_MT_mask_channel_sub_menu", text="Channel")
+
+def draw_mask_textures(layout, mask_node):
+    '''Draws all non-mesh map textures used in the mask.'''
+    for node in mask_node.node_tree.nodes:
+        if node.bl_static_type == 'TEX_IMAGE' and node.name not in baking.MESH_MAP_TYPES:
+            split = layout.split(factor=0.25)
+            first_column = split.column()
+            second_column = split.column()
+
+            row = first_column.row()
+            texture_display_name = node.label.replace('_', ' ')
+            texture_display_name = re.sub(r'\b[a-z]', lambda m: m.group().upper(), texture_display_name.capitalize())
+            row.label(text=texture_display_name)
+
+            row = second_column.row(align=True)
+            row.prop(node, "image", text="")
+            row.context_pointer_set("node_tree", mask_node.node_tree)
+            row.context_pointer_set("node", node)
+            row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+
+def draw_mask_filters(layout, selected_layer_index, selected_mask_index):
+    '''Draws all properties for filters applied to the selected mask.'''
+    mask_filter_node = layer_masks.get_mask_node('MASK_FILTER', selected_layer_index, selected_mask_index)
+    if mask_filter_node:
+        split = layout.split(factor=0.25)
+        first_column = split.column()
+        second_column = split.column()
+
+        row = first_column.row()
+        row.label(text="Filter")
+
+        row = second_column.row()
+        row.prop(mask_filter_node, "mute", text="Filter", icon='FILTER', toggle=True, invert_checkbox=True)
+        if not mask_filter_node.mute:
+            row = layout.row()
+            layout.template_color_ramp(mask_filter_node, "color_ramp", expand=True)
+
+def draw_mask_group_node_properties(layout, mask_node):
+    '''Draws group node properties for the selected mask.'''
+    for i in range(0, len(mask_node.inputs)):
+        if mask_node.inputs[i].name != 'Mix':
+            row = layout.row()
+            row.scale_y = DEFAULT_UI_SCALE_Y
+            row.prop(mask_node.inputs[i], "default_value", text=mask_node.inputs[i].name)
+
+def draw_mask_blur_properties(layout, selected_layer_index, selected_mask_index):
+    '''Draws blurring properties for the selected mask (if they exist).'''
+    blur_node = layer_masks.get_mask_node('BLUR', selected_layer_index, selected_mask_index)
+    if blur_node:
+        split = layout.split(factor=0.25)
+        first_column = split.column()
+        second_column = split.column()
+
+        row = first_column.row()
+        row.scale_y = DEFAULT_UI_SCALE_Y
+        row.label(text="Blur")
+
+        row = second_column.row()
+        row.scale_y = DEFAULT_UI_SCALE_Y
+        if blender_addon_utils.get_node_active(blur_node):
+            row.operator("matlayer.toggle_mask_blur", depress=True, text="", icon='CHECKBOX_HLT')
+        else:
+            row.operator("matlayer.toggle_mask_blur", text="", icon='CHECKBOX_DEHLT')
+        row.prop(blur_node.inputs.get('Blur Amount'), "default_value", text="Blur")
+
+def draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index):
+    '''Draws mesh maps for the selected mask.'''
+    drew_title = False
+    for mesh_map_name in baking.MESH_MAP_TYPES:
+        mesh_map_texture_node = layer_masks.get_mask_node(mesh_map_name, selected_layer_index, selected_mask_index)
+        if mesh_map_texture_node:
+            if not drew_title:
+                row = layout.row()
+                row.separator()
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.label(text="MESH MAPS")
+                drew_title = True
+
+            split = layout.split(factor=0.4)
+            first_column = split.column()
+            second_column = split.column()
+
+            row = first_column.row()
+            mesh_map_display_name = mesh_map_texture_node.label.replace('_', ' ')
+            mesh_map_display_name = re.sub(r'\b[a-z]', lambda m: m.group().upper(), mesh_map_display_name.capitalize())
+            row.label(text=mesh_map_display_name)
+
+            row = second_column.row(align=True)
+            row.prop(mesh_map_texture_node, "image", text="")
+
+def draw_masks(layout):
     row = layout.row(align=True)
     row.scale_x = 10
     row.scale_y = DEFAULT_UI_SCALE_Y + 1.0
@@ -371,83 +473,14 @@ def draw_layer_masks(layout):
         row = layout.row()
         row.scale_y = DEFAULT_UI_SCALE_Y
         row.label(text="MASK PROPERTIES")
-        for i in range(0, len(mask_node.inputs)):
-            if mask_node.inputs[i].name != 'Mix':
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(mask_node.inputs[i], "default_value", text=mask_node.inputs[i].name)
 
-        for node in mask_node.node_tree.nodes:
-            if node.bl_static_type == 'TEX_IMAGE':
-                if node.projection == 'BOX':
-                    row = layout.row()
-                    row.prop(node, "projection_blend", text=node.label + " Blending")
-
-        # Draw properties for any (non-mesh map) textures used in the mask.
-        for node in mask_node.node_tree.nodes:
-            if node.bl_static_type == 'TEX_IMAGE' and node.name not in baking.MESH_MAP_TYPES:
-                split = layout.split(factor=0.4)
-                first_column = split.column()
-                second_column = split.column()
-
-                row = first_column.row()
-                texture_display_name = node.label.replace('_', ' ')
-                texture_display_name = re.sub(r'\b[a-z]', lambda m: m.group().upper(), texture_display_name.capitalize())
-                row.label(text=texture_display_name)
-
-                row = second_column.row(align=True)
-                row.prop(node, "image", text="")
-                row.context_pointer_set("node_tree", mask_node.node_tree)
-                row.context_pointer_set("node", node)
-                row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
-
-        # Draw mask filter properties.
-        mask_filter_node = layer_masks.get_mask_node('MASK_FILTER', selected_layer_index, selected_mask_index)
-        if mask_filter_node:
-            row = layout.row()
-            row.prop(mask_filter_node, "mute", text="", icon='FILTER', toggle=True, invert_checkbox=True)
-            if not mask_filter_node.mute:
-                row = layout.row()
-                layout.template_color_ramp(mask_filter_node, "color_ramp", expand=True)
-
-        # Draw blur options if they exist.
-        blur_node = layer_masks.get_mask_node('BLUR', selected_layer_index, selected_mask_index)
-        if blur_node:
-            row = layout.row()
-            row.scale_y = DEFAULT_UI_SCALE_Y
-            if blur_node.mute == False:
-                row.prop(blur_node, "mute", toggle=True, invert_checkbox=True, text="", icon='CHECKBOX_HLT')
-            else:
-                row.prop(blur_node, "mute", toggle=True, invert_checkbox=True, text="", icon='CHECKBOX_DEHLT')
-            row.prop(blur_node.inputs.get('Blur Amount'), "default_value", text="Blur")
-
-        # Draw mask projection options if it exists.
+        draw_mask_channel(layout)
+        draw_mask_textures(layout, mask_node)
+        draw_mask_filters(layout, selected_layer_index, selected_mask_index)
+        draw_mask_group_node_properties(layout, mask_node)
+        draw_mask_blur_properties(layout, selected_layer_index, selected_mask_index)
         draw_mask_projection(layout)
-
-        # Draw any mesh maps used for this mask.
-        drew_title = False
-        for mesh_map_name in baking.MESH_MAP_TYPES:
-            mesh_map_texture_node = layer_masks.get_mask_node(mesh_map_name, selected_layer_index, selected_mask_index)
-            if mesh_map_texture_node:
-                if not drew_title:
-                    row = layout.row()
-                    row.separator()
-                    row = layout.row()
-                    row.scale_y = DEFAULT_UI_SCALE_Y
-                    row.label(text="MESH MAPS")
-                    drew_title = True
-
-                split = layout.split(factor=0.4)
-                first_column = split.column()
-                second_column = split.column()
-
-                row = first_column.row()
-                mesh_map_display_name = mesh_map_texture_node.label.replace('_', ' ')
-                mesh_map_display_name = re.sub(r'\b[a-z]', lambda m: m.group().upper(), mesh_map_display_name.capitalize())
-                row.label(text=mesh_map_display_name)
-
-                row = second_column.row(align=True)
-                row.prop(mesh_map_texture_node, "image", text="")
+        draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index)
 
 def draw_layer_blur_settings(layout):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
@@ -654,3 +687,20 @@ class LayerTriplanarProjectionSubMenu(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator("matlayer.toggle_triplanar_flip_correction", text="Toggle Triplanar Axis Correction Flip")
+
+class MaskChannelSubMenu(Menu):
+    bl_idname = "MATLAYER_MT_mask_channel_sub_menu"
+    bl_label = "Mask Channel Sub Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        operator = layout.operator("matlayer.set_mask_projection_triplanar", text="Color")
+        operator.channel_name = 'COLOR'
+        operator = layout.operator("matlayer.set_mask_projection_triplanar", text="Alpha")
+        operator.channel_name = 'ALPHA'
+        operator = layout.operator("matlayer.set_mask_projection_triplanar", text="Red")
+        operator.channel_name = 'RED'
+        operator = layout.operator("matlayer.set_mask_projection_triplanar", text="Green")
+        operator.channel_name = 'GREEN'
+        operator = layout.operator("matlayer.set_mask_projection_triplanar", text="Blue")
+        operator.channel_name = 'BLUE'
