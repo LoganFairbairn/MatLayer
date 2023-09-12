@@ -135,6 +135,80 @@ def draw_layer_material_channel_toggles(layout):
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 drawn_toggles = 0
 
+def draw_value_node_type(layout, value_node, mix_node, selected_layer_index, material_channel_name):
+    '''Draws the value node type to the UI.'''
+    split = layout.split(factor=0.25)
+    first_column = split.column()
+    second_column = split.column()
+
+    
+    row = first_column.row()
+    row.label(text="Node Type")
+    row = second_column.row(align=True)
+    row.context_pointer_set("mix_node", mix_node)
+    match value_node.bl_static_type:
+        case 'GROUP':
+            row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text='GROUP')
+        case 'TEX_IMAGE':
+            row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text='TEXTURE')
+
+def draw_value_node_properties(layout, value_node):
+    '''Draws properties for the provided value node.'''
+    split = layout.split(factor=0.25)
+    first_column = split.column()
+    second_column = split.column()
+
+    match value_node.bl_static_type:
+        case 'GROUP':
+            row = first_column.row()
+            row.label(text="Group Node")
+            row = second_column.row()
+            row.prop(value_node, "node_tree", text="")
+
+            for i in range(0, len(value_node.inputs)):
+                row = first_column.row()
+                row.label(text=value_node.inputs[i].name)
+                row = second_column.row()
+                row.prop(value_node.inputs[i], "default_value", text="")
+
+        case 'TEX_IMAGE':
+            row = first_column.row()
+            row.label(text="Texture")
+
+            row = second_column.row()
+            row.prop(value_node, "image", text="")
+            #row.context_pointer_set("node_tree", value_node.node_tree)
+            #row.context_pointer_set("node", value_node)
+            #row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+
+def draw_material_channel_filter_properties(layout, selected_layer_index, material_channel_name):
+    '''Draws properties for material channel filter group node.'''
+    filter_node = material_layers.get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
+    if filter_node:
+        split = layout.split(factor=0.25)
+        first_column = split.column()
+        second_column = split.column()
+
+        row = first_column.row()
+        row.label(text="Filter")
+
+        split = second_column.split(align=True, factor=0.1)
+        row = split.column(align=True)
+        row.prop(filter_node, "mute", icon='FILTER', text="", invert_checkbox=True)
+        row = split.column(align=True)
+        if filter_node.mute:
+            row.enabled = False
+        row.prop(filter_node, "node_tree", text="")
+
+        if not filter_node.mute:
+            for i in range(0, len(filter_node.inputs)):
+                if i == 0:
+                    continue
+                row = first_column.row()
+                row.label(text=filter_node.inputs[i].name)
+                row = second_column.row()
+                row.prop(filter_node.inputs[i], "default_value", text="")
+
 def draw_material_channel_properties(layout):
     '''Draws properties for all active material channels on selected material layer.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
@@ -142,85 +216,27 @@ def draw_material_channel_properties(layout):
     # Avoid drawing material channel properties for invalid layers.
     if material_layers.get_material_layer_node('LAYER', selected_layer_index) == None:
         return
+    
+    # Draw properties for all active material channels.
     for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
 
         # Do not draw properties for globally inactive material channels.
-        texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
         if not tss.get_material_channel_active(material_channel_name):
             continue
 
-        # Do no draw properties for material channels inactive on this material layer.
         mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, material_channel_name)
-        if mix_node:
-            if mix_node.mute:
-                continue
-            
-        row = layout.row()
-        row.separator()
-        row.scale_y = 2.5
-
         value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
         if value_node:
-            # Draw the value node type and options to swap to different node types. 
-            # We'll pass the mix material channel node as context for determining parameters that need to be passed to operators that change material channel node types.
-            row = layout.row(align=True)
-            row.scale_y = DEFAULT_UI_SCALE_Y
-            row.label(text=material_channel_name)
-            row.context_pointer_set("mix_node", mix_node)
-            match value_node.bl_static_type:
-                case 'GROUP':
-                    row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text='GROUP')
-                case 'TEX_IMAGE':
-                    row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text='TEXTURE')
-
-            # Draw quick filter toggle for material channels.
-            filter_node = material_layers.get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
-            if filter_node:
-                row.prop(filter_node, "mute", icon='FILTER', text="", invert_checkbox=True)
-
-            # Draw values based on the node type used to represent the material channel value.
-            match value_node.bl_static_type:
-                case 'GROUP':
-                    row = layout.row()
-                    row.scale_y = DEFAULT_UI_SCALE_Y
-                    row.template_ID(value_node, "node_tree")
-
-                    # For group nodes used to represent default material channel values, draw only the first value.
-                    if value_node.node_tree.name.startswith('ML_Default'):
-                        row = layout.row()
-                        row.scale_y = DEFAULT_UI_SCALE_Y
-                        row.prop(value_node.inputs[0], "default_value", text="")
-
-                    # For custom group nodes, draw all properties to the interface.
-                    else:
-                        for i in range(0, len(value_node.inputs)):
-                            row = layout.row()
-                            row.scale_y = DEFAULT_UI_SCALE_Y
-                            row.prop(value_node.inputs[i], "default_value", text=value_node.inputs[i].name)
-
-                case 'TEX_IMAGE':
-                    node_tree = material_layers.get_layer_node_tree(selected_layer_index)
-                    row = layout.row(align=True)
-                    row.scale_y = DEFAULT_UI_SCALE_Y
-                    row.prop(value_node, "image", text="")
-                    row.context_pointer_set("node_tree", node_tree)
-                    row.context_pointer_set("node", value_node)
-                    row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
-
-        # Draw filter properties for the material channel.
-        if filter_node:
-            if filter_node.mute == False:
+            
+            # Only draw properties for material channels that are active in this layer.
+            if not mix_node.mute:
                 row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                match filter_node.bl_static_type:
-                    case 'HUE_SAT':
-                        layout.prop(filter_node.inputs[0], "default_value", slider=True, text=filter_node.inputs[0].name)
-                        layout.prop(filter_node.inputs[1], "default_value", slider=True, text=filter_node.inputs[1].name)
-                        layout.prop(filter_node.inputs[2], "default_value", slider=True, text=filter_node.inputs[2].name)
-                    case 'VALTORGB':
-                        layout.template_color_ramp(filter_node, "color_ramp", expand=False)
-                    case 'GROUP':
-                        layout.prop(filter_node.inputs[1], "default_value", slider=True, text="Normal Intensity")
+                row.separator()
+                row = layout.row()
+                row.label(text="• {0}".format(material_channel_name))
+                draw_value_node_type(layout, value_node, mix_node, selected_layer_index, material_channel_name)
+                draw_value_node_properties(layout, value_node)
+                draw_material_channel_filter_properties(layout, selected_layer_index, material_channel_name)
 
 def draw_layer_projection(layout):
     '''Draws layer projection settings.'''
