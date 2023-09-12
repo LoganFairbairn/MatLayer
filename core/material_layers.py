@@ -125,6 +125,12 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
                 return node_tree.nodes.get("TRIPLANAR_BLEND_{0}".format(material_channel_name))
             return None
 
+        case 'MIX_IMAGE_ALPHA':
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get("MIX_{0}_IMAGE_ALPHA".format(material_channel_name))
+            return None  
+
         case 'LAYER_BLUR':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:

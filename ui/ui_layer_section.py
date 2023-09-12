@@ -218,7 +218,7 @@ def draw_material_channel_properties(layout):
                         layout.prop(filter_node.inputs[1], "default_value", slider=True, text=filter_node.inputs[1].name)
                         layout.prop(filter_node.inputs[2], "default_value", slider=True, text=filter_node.inputs[2].name)
                     case 'VALTORGB':
-                        layout.template_color_ramp(filter_node, "color_ramp", expand=True)
+                        layout.template_color_ramp(filter_node, "color_ramp", expand=False)
                     case 'GROUP':
                         layout.prop(filter_node.inputs[1], "default_value", slider=True, text="Normal Intensity")
 

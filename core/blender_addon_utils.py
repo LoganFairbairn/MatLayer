@@ -91,6 +91,15 @@ def append_default_node_groups():
     append_group_node("ML_DefaultEmission", never_auto_delete=True)
     append_group_node("ML_DefaultNormal", never_auto_delete=True)
     append_group_node("ML_DefaultHeight", never_auto_delete=True)
+    append_group_node("ML_DefaultColorFilter", never_auto_delete=True)
+    append_group_node("ML_DefaultSubsurfaceFilter", never_auto_delete=True)
+    append_group_node("ML_DefaultMetallicFilter", never_auto_delete=True)
+    append_group_node("ML_DefaultSpecularFilter", never_auto_delete=True)
+    append_group_node("ML_DefaultRoughnessFilter", never_auto_delete=True)
+    append_group_node("ML_DefaultEmissionFilter", never_auto_delete=True)
+    append_group_node("ML_DefaultNormalFilter", never_auto_delete=True)
+    append_group_node("ML_DefaultHeightFilter", never_auto_delete=True)
+    append_group_node("ML_DefaultAlphaFilter", never_auto_delete=True)
 
 def cleanse_duplicated_node_groups(old_node_groups, cleanse_node_groups=True, cleanse_materials=True):
     '''Replaces and removes all duplicated node groups within blender that were appended from sub-node groups.'''
