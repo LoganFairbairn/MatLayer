@@ -201,6 +201,8 @@ def draw_material_channel_filter_properties(layout, selected_layer_index, materi
         row.prop(filter_node, "node_tree", text="")
 
         if not filter_node.mute:
+
+            # Draw all properties.
             for i in range(0, len(filter_node.inputs)):
                 if i == 0:
                     continue
@@ -208,6 +210,11 @@ def draw_material_channel_filter_properties(layout, selected_layer_index, materi
                 row.label(text=filter_node.inputs[i].name)
                 row = second_column.row()
                 row.prop(filter_node.inputs[i], "default_value", text="")
+            
+            # Draw all color ramp properties from within node groups.
+            for node in filter_node.node_tree.nodes:
+                if node.bl_static_type == 'VALTORGB':
+                    layout.template_color_ramp(node, "color_ramp", expand=True)
 
 def draw_material_channel_properties(layout):
     '''Draws properties for all active material channels on selected material layer.'''
