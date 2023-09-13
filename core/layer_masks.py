@@ -121,12 +121,19 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
                 return node_tree.nodes.get('WORLD_SPACE_NORMALS')
             return None
 
-def count_masks(layer_index):
+def count_masks(layer_index, material=None):
     '''Counts the total number of masks by applied to the layer with the specified index by reading the material node tree.'''
-    mask_count = 0
-    while get_mask_node('MASK', layer_index, mask_count):
-        mask_count += 1
-    return mask_count
+    if material:
+        mask_count = 0
+        while material.node_tree.nodes.get(format_mask_name(layer_index, mask_count)):
+            mask_count += 1
+        return mask_count
+
+    else:
+        mask_count = 0
+        while get_mask_node('MASK', layer_index, mask_count):
+            mask_count += 1
+        return mask_count
 
 def add_mask_slot():
     '''Adds a new mask slot to the mask stack.'''

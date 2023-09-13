@@ -5,6 +5,8 @@ from bpy_extras.io_utils import ImportHelper        # For importing images.
 from ..core import debug_logging                    # For printing / displaying debugging related messages.
 from ..core import image_utilities                  # For access to image related helper functions.
 from ..core import material_layers                  # For accessing material layer nodes.
+from ..core import layer_masks                      # For editing layer masks.
+from ..core import blender_addon_utils              # For extra helpful Blender utilities.
 import os                                           # For saving layer images.
 import re                                           # For splitting strings to identify material channels.
 
@@ -175,10 +177,69 @@ class MATLAYER_OT_merge_materials(Operator):
     bl_idname = "matlayer.merge_materials"
     bl_label = "Merge Materials"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Merges the layers from the selected material into the active material. Any mesh map textures in the merged material will be replaced by the mesh maps on the active object if they are baked"
-
-    bpy.types.Scene.matlayer_merge_material = PointerProperty(type=bpy.types.Material)
-    material_name: StringProperty(default="")
+    bl_description = "Merges all layers from the selected material into the active material. Any mesh map textures in the merged material will be replaced by the mesh maps on the active object"
 
     def execute(self, context):
+        if blender_addon_utils.verify_material_operation_context(self) == False:
+            return {'FINISHED'}
+
+        merge_material = bpy.context.scene.matlayer_merge_material
+        if merge_material:
+            layer_count = material_layers.count_layers(merge_material)
+            if (layer_count) <= 0:
+                debug_logging.log_status("No layers to merge in the merge material.", self, type='ERROR')
+                return {'FINISHED'}
+
+            else:
+                active_material = bpy.context.active_object.active_material
+                for i in range(0, layer_count):
+                    
+                    # Duplicate the layer node tree and add a new layer group node to the tree.
+                    merge_layer_node = merge_material.node_tree.nodes.get(i)
+                    if merge_layer_node:
+                        if merge_layer_node.node_tree:
+                            duplicated_node_tree = blender_addon_utils.duplicate_node_group(merge_layer_node.node_tree.name)
+                            if duplicated_node_tree:
+                                new_layer_slot_index = material_layers.add_material_layer_slot()
+
+                                duplicated_node_tree.name = "{0}_{1}".format(active_material.name, str(new_layer_slot_index))
+                                new_layer_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+                                new_layer_group_node.node_tree = duplicated_node_tree
+                                new_layer_group_node.name = str(new_layer_slot_index) + "~"
+                                new_layer_group_node.label = merge_layer_node.label
+                                
+                                material_layers.reindex_layer_nodes(change_made='ADDED_LAYER', affected_layer_index=new_layer_slot_index)
+                                material_layers.organize_layer_group_nodes()
+                                material_layers.link_layer_group_nodes(self)
+                                layer_masks.organize_mask_nodes()
+
+                        # Clear the mask stack from the new layer.
+                        masks = bpy.context.scene.matlayer_masks
+                        masks.clear()
+
+                        # Duplicate all masks associated with that layer.
+                        mask_count = layer_masks.count_masks(i)
+                        for c in range(0, mask_count):
+                            original_mask_node = layer_masks.get_mask_node('MASK', i, c)
+                            if original_mask_node:
+                                duplicated_node_tree = blender_addon_utils.duplicate_node_group(original_mask_node.node_tree.name)
+                                if duplicated_node_tree:
+                                    new_mask_slot_index = layer_masks.add_mask_slot()
+                                    duplicated_mask_name = layer_masks.format_mask_name(bpy.context.active_object.active_material.name, new_layer_slot_index, new_mask_slot_index) + "~"
+                                    duplicated_node_tree.name = duplicated_mask_name
+                                    new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+                                    new_mask_group_node.node_tree = duplicated_node_tree
+                                    new_mask_group_node.name = duplicated_mask_name
+                                    new_mask_group_node.label = original_mask_node.label
+
+                                    layer_masks.reindex_masks('ADDED_MASK', new_layer_slot_index, affected_mask_index=i)
+
+                        layer_masks.link_mask_nodes(new_layer_slot_index)
+                        layer_masks.organize_mask_nodes()
+
+            debug_logging.log_status("Merged materials.", self, type='INFO')
+
+        else:
+            debug_logging.log_status("Merge material specified is empty, or invalid.", self, type='ERROR')
+            return {'FINISHED'}
         return {'FINISHED'}

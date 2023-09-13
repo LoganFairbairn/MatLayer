@@ -499,18 +499,27 @@ def move_layer(direction, self):
 
     debug_logging.log("Moved material layer.")
 
-def count_layers():
-    '''Counts the total layers in the active material by reading the active material's node tree.'''
-    if not bpy.context.active_object:
-        return 0
-    if not bpy.context.active_object.active_material:
-        return 0
+def count_layers(material=None):
+    '''Counts the total layers in the specified material (active material if no material is specified) by reading the active material's node tree.'''
+    # Count the number of layers in the specified material.
+    if material != None:
+        layer_count = 0
+        while active_material.node_tree.nodes.get(str(layer_count)):
+            layer_count += 1
+        return layer_count
     
-    active_material = bpy.context.active_object.active_material
-    layer_count = 0
-    while active_material.node_tree.nodes.get(str(layer_count)):
-        layer_count += 1
-    return layer_count
+    # Count the active material, since no material was specified to have it's layers counted.
+    else:
+        if not bpy.context.active_object:
+            return 0
+        if not bpy.context.active_object.active_material:
+            return 0
+        
+        active_material = bpy.context.active_object.active_material
+        layer_count = 0
+        while active_material.node_tree.nodes.get(str(layer_count)):
+            layer_count += 1
+        return layer_count
 
 def organize_layer_group_nodes():
     '''Organizes all layer group nodes in the active material to ensure the node tree is easy to read.'''
