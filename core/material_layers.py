@@ -504,7 +504,7 @@ def count_layers(material=None):
     # Count the number of layers in the specified material.
     if material != None:
         layer_count = 0
-        while active_material.node_tree.nodes.get(str(layer_count)):
+        while material.node_tree.nodes.get(str(layer_count)):
             layer_count += 1
         return layer_count
     

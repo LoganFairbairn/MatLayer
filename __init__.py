@@ -17,7 +17,7 @@
 
 import bpy
 import bpy.utils.previews       # Imported for loading layer texture previews as icons.
-from bpy.props import PointerProperty, CollectionProperty, EnumProperty
+from bpy.props import PointerProperty, CollectionProperty, EnumProperty, StringProperty
 from bpy.app.handlers import persistent
 
 # Preferences
@@ -49,6 +49,9 @@ from .ui.ui_layer_section import MATLAYER_OT_add_material_layer_menu, MATLAYER_O
 from .ui.ui_main import *
 from .ui.ui_layer_stack import MATLAYER_UL_layer_list
 
+# Subscription Update Handler
+from .core.subscription_update_handler import on_active_object_changed, on_active_object_name_changed, on_active_material_index_changed, on_active_material_name_changed
+
 bl_info = {
     "name": "MatLayer",
     "author": "Logan Fairbairn (Ryver)",
@@ -63,22 +66,6 @@ bl_info = {
 
 # List of classes to be registered.
 classes = (
-    # User Interface
-    MATLAYER_UL_layer_list,
-    UtilitySubMenu,
-    MATLAYER_OT_add_material_layer_menu,
-    MATLAYER_OT_add_layer_mask_menu,
-    MATLAYER_OT_add_material_filter_menu,
-    ImageUtilitySubMenu,
-    LayerProjectionModeSubMenu,
-    MaskProjectionModeSubMenu,
-    MaterialChannelValueNodeSubMenu,
-    LayerUtilitySubMenu,
-    LayerTriplanarProjectionSubMenu,
-    MaskChannelSubMenu,
-    MATLAYER_panel_properties,
-    MATLAYER_PT_Panel,
-
     # Preferences
     MATLAYER_pack_textures, 
     MATLAYER_RGBA_pack_channels,
@@ -164,52 +151,29 @@ classes = (
     # Utility Operators
     MATLAYER_OT_set_decal_layer_snapping,
     MATLAYER_OT_append_workspace,
-    MATLAYER_OT_append_basic_brushes
+    MATLAYER_OT_append_basic_brushes,
+
+    # User Interface
+    MATLAYER_UL_layer_list,
+    UtilitySubMenu,
+    MATLAYER_OT_add_material_layer_menu,
+    MATLAYER_OT_add_layer_mask_menu,
+    MATLAYER_OT_add_material_filter_menu,
+    ImageUtilitySubMenu,
+    LayerProjectionModeSubMenu,
+    MaskProjectionModeSubMenu,
+    MaterialChannelValueNodeSubMenu,
+    LayerUtilitySubMenu,
+    LayerTriplanarProjectionSubMenu,
+    MaskChannelSubMenu,
+    MATLAYER_panel_properties,
+    MATLAYER_PT_Panel
 )
-
-def on_active_material_index_changed():
-    '''Reads material nodes into the user interface when the active material index is changed.'''
-    bpy.context.scene.matlayer_layer_stack.selected_layer_index = 0
-    refresh_layer_stack()
-    bpy.types.Scene.previous_active_material_name = bpy.context.view_layer.objects.active.active_material.name
-
-def on_active_material_name_changed():
-    '''Updates material channel nodes when the active material name is changed.'''
-    bpy.types.Scene.previous_active_material_name = bpy.context.view_layer.objects.active.active_material.name
-
-def on_active_object_name_changed():
-    '''Updates mesh maps when the object name is changed.'''
-    update_meshmap_names(bpy.types.Scene.previous_object_name)
-    bpy.types.Scene.previous_object_name = bpy.context.view_layer.objects.active.name
-
-def on_active_object_changed():
-    '''Triggers a layer stack refresh when the selected object changes.'''
-    refresh_layer_stack()
-    active_object = bpy.context.view_layer.objects.active
-
-    # Re-subscribe to the active objects name.
-    bpy.types.Scene.previous_object_name = active_object.name
-    bpy.msgbus.clear_by_owner(bpy.types.Scene.active_object_name_owner)
-    if active_object:
-        if active_object.type == 'MESH':
-            bpy.msgbus.subscribe_rna(key=active_object.path_resolve("name", False), owner=bpy.types.Scene.active_object_name_owner, notify=on_active_object_name_changed, args=())
-
-            if active_object.active_material:
-
-                # Re-subscribe to the active material index
-                bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_index_owner)
-                bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material_index", False), owner=bpy.types.Scene.active_material_index_owner, notify=on_active_material_index_changed, args=())
-
-                # Re-subscribe to the active materials name.
-                bpy.types.Scene.previous_active_material_name = active_object.active_material.name
-                bpy.types.Scene.active_material_name_owner = object()
-                bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_owner)
-                if active_object.type == 'MESH' and active_object.active_material:
-                    bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_index_owner,notify=on_active_material_name_changed, args=())
 
 # Mark load handlers as persistent so they are not freed when loading a new blend file.
 @persistent
 def load_handler(dummy):
+    bpy.types.Scene.previous_active_material_name = bpy.context.view_layer.objects.active.active_material.name
 
     # Subscribe to the active object.
     subscribe_to = bpy.types.LayerObjects, "active"
@@ -226,6 +190,7 @@ def load_handler(dummy):
             bpy.msgbus.subscribe_rna(key=active_object.path_resolve("name", False), owner=bpy.types.Scene.active_object_name_owner, notify=on_active_object_name_changed, args=())
 
             if active_object.active_material:
+
                 # Subscribe to the active material index.
                 bpy.types.Scene.active_material_index_owner = object()
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_index_owner)
@@ -264,6 +229,9 @@ def register():
     bpy.types.Scene.matlayer_texture_set_settings = PointerProperty(type=MATLAYER_texture_set_settings)
     bpy.types.Scene.matlayer_baking_settings = PointerProperty(type=MATLAYER_baking_settings)
     bpy.types.Scene.matlayer_export_settings = PointerProperty(type=MATLAYER_exporting_settings)
+
+    # Subscription Update Handling Properties
+    bpy.types.Scene.previous_active_material_name = StringProperty(default="")
 
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     export_textures = addon_preferences.export_textures
