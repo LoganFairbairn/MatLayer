@@ -1226,7 +1226,7 @@ class MATLAYER_OT_toggle_triplanar_flip_correction(Operator):
 class MATLAYER_OT_isolate_material_channel(Operator):
     bl_idname = "matlayer.isolate_material_channel"
     bl_label = "Isolate Material Channel"
-    bl_description = "Isolates the selected material channel."
+    bl_description = "Isolates the selected material channel"
     bl_options = {'REGISTER', 'UNDO'}
 
     # Disable when there is no active object.
