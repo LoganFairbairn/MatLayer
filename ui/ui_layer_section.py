@@ -63,15 +63,16 @@ def draw_material_selector(layout):
         second_column.operator("object.material_slot_assign", text="", icon='MATERIAL_DATA')
         second_column.operator("object.material_slot_select", text="", icon='SELECT_SET')
 
-        split = layout.split(factor=0.70, align=True)
-        first_column = split.column(align=True)
-        second_column = split.column(align=True)
-        row = first_column.row(align=True)
-        row.scale_y = 1.4
-        row.prop(bpy.context.scene, "matlayer_merge_material", text="")
-        row = second_column.row(align=True)
-        row.scale_y = 1.4
-        row.operator("matlayer.merge_materials", text="Merge")
+        split = layout.split(factor=0.70)
+        first_column = split.column()
+        second_column = split.column()
+        col = first_column.column()
+        if bpy.context.active_object:
+            col.prop(bpy.context.active_object, "active_material", text="")
+            col.prop(bpy.context.scene, "matlayer_merge_material", text="")
+            col = second_column.column()
+            col.scale_y = 2.0
+            col.operator("matlayer.merge_materials", text="Merge")
 
 def draw_selected_material_channel(layout):
     '''Draws the selected material channel.'''
