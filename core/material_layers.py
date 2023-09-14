@@ -242,7 +242,17 @@ def add_material_layer(layer_type, self):
 
     elif active_object.material_slots[active_object.active_material_index].material == None:
         new_material = blender_addon_utils.append_material("DefaultMatLayerMaterial")
-        new_material.name = active_object.name
+
+        # Get a unique name for the new material.
+        material_variation_id = 0
+        new_material_name = active_object.name
+        material = bpy.data.materials.get(new_material_name)
+        while material:
+            material_variation_id += 1
+            new_material_name = active_object.name + str(material_variation_id)
+            material = bpy.data.materials.get(new_material_name)
+
+        new_material.name = new_material_name
         active_object.material_slots[active_object.active_material_index].material = new_material
 
     new_layer_slot_index = add_material_layer_slot()
