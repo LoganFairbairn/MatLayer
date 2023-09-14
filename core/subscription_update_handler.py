@@ -20,14 +20,14 @@ def on_active_material_name_changed():
     for i in range(0, layer_count):
         layer_node_tree = bpy.data.node_groups.get("{0}_{1}".format(previous_material_name, i))
         if layer_node_tree:
-            layer_node_tree.name = "{0}_{1}".format(active_material.name, i)
+            layer_node_tree.name = material_layers.format_layer_group_node_name(active_material.name, i)
 
         # Rename all mask group nodes related to the renamed material.
         mask_count = layer_masks.count_masks(i)
         for c in range(0, mask_count):
             mask_node_tree = bpy.data.node_groups.get("{0}_{1}_{2}".format(previous_material_name, i, c))
             if mask_node_tree:
-                mask_node_tree.name = "{0}_{1}_{2}".format(active_material.name, i, c)
+                mask_node_tree.name = layer_masks.format_mask_name(i, c, active_material.name)
 
     bpy.types.Scene.previous_active_material_name = active_material.name
     debug_logging.log("Updated group node names for all group nodes related to the renamed material.")
@@ -74,4 +74,4 @@ def on_active_object_changed():
                 bpy.types.Scene.previous_active_material_name = active_object.active_material.name
                 bpy.types.Scene.active_material_name_owner = object()
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_owner)
-                bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_index_owner,notify=on_active_material_name_changed, args=())
+                bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_name_owner, notify=on_active_material_name_changed, args=())

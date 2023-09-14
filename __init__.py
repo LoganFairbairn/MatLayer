@@ -198,13 +198,13 @@ def load_handler(dummy):
                 # Subscribe to the active material index to get notifications when it's changed.
                 bpy.types.Scene.active_material_index_owner = object()
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_index_owner)
-                bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material_index", False), owner=bpy.types.Scene.active_material_index_owner,notify=on_active_material_index_changed, args=())
+                bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material_index", False), owner=bpy.types.Scene.active_material_index_owner, notify=on_active_material_index_changed, args=())
 
                 # Subscribe to the active material name to get notifications when it's changed.
                 bpy.types.Scene.previous_active_material_name = active_object.active_material.name
                 bpy.types.Scene.active_material_name_owner = object()
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_owner)
-                bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_index_owner,notify=on_active_material_name_changed, args=())
+                bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_name_owner, notify=on_active_material_name_changed, args=())
 
                 refresh_layer_stack()   # Refresh layer stack on blender file load.
 

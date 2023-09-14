@@ -262,7 +262,7 @@ def add_material_layer(layer_type, self):
             default_layer_node_group = blender_addon_utils.append_group_node("ML_DecalLayer", return_unique=True, never_auto_delete=True)
             debug_logging.log("Added decal layer.")
 
-    default_layer_node_group.name = "{0}_{1}".format(active_material.name, str(new_layer_slot_index))
+    default_layer_node_group.name = format_layer_group_node_name(active_material.name, str(new_layer_slot_index))
     new_layer_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
     new_layer_group_node.node_tree = default_layer_node_group
     new_layer_group_node.name = str(new_layer_slot_index) + "~"
