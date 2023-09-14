@@ -40,7 +40,7 @@ MATERIAL_CHANNEL_LIST = (
 
 def update_layer_index(self, context):
     '''Updates properties and user interface when a new layer is selected.'''
-    show_layer(self)
+    show_layer()
     layer_masks.refresh_mask_slots()
 
     # Select the image for texture painting.
@@ -927,18 +927,17 @@ def refresh_layer_stack():
 
     debug_logging.log("Refreshed layer stack.")
 
-def show_layer(self):
+def show_layer():
     '''Removes material channel or mask isolation if they are applied.'''
-    if blender_addon_utils.verify_material_operation_context(self) == False:
-        return
-
-    active_node_tree = bpy.context.active_object.active_material.node_tree
-    emission_node = active_node_tree.nodes.get('EMISSION')
-    if len(emission_node.outputs[0].links) != 0:
-        blender_addon_utils.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
-        material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
-        principled_bsdf = active_node_tree.nodes.get('MATLAYER_BSDF')
-        active_node_tree.links.new(principled_bsdf.outputs[0], material_output.inputs[0])
+    if bpy.context.active_object:
+        if bpy.context.active_object.active_material:
+            active_node_tree = bpy.context.active_object.active_material.node_tree
+            emission_node = active_node_tree.nodes.get('EMISSION')
+            if len(emission_node.outputs[0].links) != 0:
+                blender_addon_utils.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
+                material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
+                principled_bsdf = active_node_tree.nodes.get('MATLAYER_BSDF')
+                active_node_tree.links.new(principled_bsdf.outputs[0], material_output.inputs[0])
 
 #----------------------------- OPERATORS -----------------------------#
 
