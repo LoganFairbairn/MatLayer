@@ -4,23 +4,41 @@ from ..core import layer_masks
 from ..core import baking
 from ..core import debug_logging
 
+def sub_to_active_object_name(active_object):
+    '''Re-subscribes to the active object's name.'''
+    bpy.types.Scene.previous_object_name = active_object.name
+    bpy.msgbus.clear_by_owner(bpy.types.Scene.active_object_name_sub_owner)
+    bpy.msgbus.subscribe_rna(key=active_object.path_resolve("name", False), owner=bpy.types.Scene.active_object_name_sub_owner, notify=on_active_object_name_changed, args=())
+
+def sub_to_active_material_name(active_object):
+    '''Re-subscribes to the active materials name.'''
+    bpy.types.Scene.previous_active_material_name = active_object.active_material.name
+    bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_sub_owner)
+    bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_name_sub_owner, notify=on_active_material_name_changed, args=())
+
+def sub_to_active_material_index(active_object):
+    '''Re-subscribe to the active material index.'''
+    bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_index_sub_owner)
+    bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material_index", False), owner=bpy.types.Scene.active_material_index_sub_owner, notify=on_active_material_index_changed, args=())
+
 def on_active_material_changed():
     '''Update properties when the active material is changed.'''
-    debug_logging.log("Changed active material.")
-    material_layers.refresh_layer_stack()
+    material_layers.refresh_layer_stack("Active material changed.")
+    sub_to_active_material_name()
 
 def on_active_material_index_changed():
     '''Reads material nodes into the user interface when the active material index is changed.'''
-    debug_logging.log("Active material index changed.")
     bpy.context.scene.matlayer_layer_stack.selected_layer_index = 0
-    material_layers.refresh_layer_stack()
+    material_layers.refresh_layer_stack("Active material index changed.")
 
     active_object = bpy.context.view_layer.objects.active
     if active_object:
-        if active_object.active_material:
-            bpy.types.Scene.previous_active_material_name = active_object.active_material.name
-        else:
-            bpy.types.Scene.previous_active_material_name = ""
+        if active_object.type == 'MESH':
+            if active_object.active_material:
+                bpy.types.Scene.previous_active_material_name = active_object.active_material.name
+                sub_to_active_material_name(active_object)
+            else:
+                bpy.types.Scene.previous_active_material_name = ""
 
 def on_active_material_name_changed():
     '''Updates layer and mask group node names associated with materials created with this add-on when the active material is renamed.'''
@@ -63,26 +81,15 @@ def on_active_object_name_changed():
 def on_active_object_changed():
     '''Triggers a layer stack refresh when the selected object changes.'''
 
-    material_layers.refresh_layer_stack()
+    material_layers.refresh_layer_stack("Active object changed.")
     active_object = bpy.context.view_layer.objects.active
     
     if active_object:
         if active_object.type == 'MESH':
 
             debug_logging.log("Changed active object.")
-
-            # Re-subscribe to the active objects name.
-            bpy.types.Scene.previous_object_name = active_object.name
-            bpy.msgbus.clear_by_owner(bpy.types.Scene.active_object_name_sub_owner)
-            bpy.msgbus.subscribe_rna(key=active_object.path_resolve("name", False), owner=bpy.types.Scene.active_object_name_sub_owner, notify=on_active_object_name_changed, args=())
+            sub_to_active_object_name(active_object)
 
             if active_object.active_material:
-
-                # Re-subscribe to the active material index.
-                bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_index_sub_owner)
-                bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material_index", False), owner=bpy.types.Scene.active_material_index_sub_owner, notify=on_active_material_index_changed, args=())
-
-                # Re-subscribe to the active materials name.
-                bpy.types.Scene.previous_active_material_name = active_object.active_material.name
-                bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_sub_owner)
-                bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_name_sub_owner, notify=on_active_material_name_changed, args=())
+                sub_to_active_material_index(active_object)
+                sub_to_active_material_name(active_object)
