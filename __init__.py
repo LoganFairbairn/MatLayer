@@ -173,14 +173,18 @@ classes = (
 # Mark load handlers as persistent so they are not freed when loading a new blend file.
 @persistent
 def load_handler(dummy):
-    bpy.types.Scene.previous_active_material_name = bpy.context.view_layer.objects.active.active_material.name
 
-    # Subscribe to the active object.
+    # Remember the active objects name.
+    active_object = bpy.context.view_layer.objects.active
+    if active_object:
+        bpy.types.Scene.previous_active_material_name = active_object.name
+
+    # Subscribe to the active object to get notifications when it's changed.
     subscribe_to = bpy.types.LayerObjects, "active"
     bpy.types.Scene.matlayer_object_selection_updater = object()
     bpy.msgbus.subscribe_rna(key=subscribe_to, owner=bpy.types.Scene.matlayer_object_selection_updater, args=(), notify=on_active_object_changed)
 
-    # Subscribe to the active objects name.
+    # Subscribe to the active objects name to get notifications when it's changed.
     active_object = bpy.context.view_layer.objects.active
     bpy.types.Scene.previous_object_name = active_object.name
     bpy.types.Scene.active_object_name_owner = object()
@@ -191,12 +195,12 @@ def load_handler(dummy):
 
             if active_object.active_material:
 
-                # Subscribe to the active material index.
+                # Subscribe to the active material index to get notifications when it's changed.
                 bpy.types.Scene.active_material_index_owner = object()
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_index_owner)
                 bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material_index", False), owner=bpy.types.Scene.active_material_index_owner,notify=on_active_material_index_changed, args=())
 
-                # Subscribe to the active material name.
+                # Subscribe to the active material name to get notifications when it's changed.
                 bpy.types.Scene.previous_active_material_name = active_object.active_material.name
                 bpy.types.Scene.active_material_name_owner = object()
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_owner)
@@ -232,6 +236,7 @@ def register():
 
     # Subscription Update Handling Properties
     bpy.types.Scene.previous_active_material_name = StringProperty(default="")
+    bpy.types.Scene.previous_object_name = StringProperty(default="")
 
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     export_textures = addon_preferences.export_textures

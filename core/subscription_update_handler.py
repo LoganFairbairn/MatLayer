@@ -1,11 +1,8 @@
 import bpy
 from ..core import material_layers
 from ..core import layer_masks
+from ..core import baking
 from ..core import debug_logging
-
-def update_meshmap_names():
-    '''Renames meshmap names when an object is renamed to ensure the mesh maps are still identifiable as being linked to the renamed object.'''
-    print("Placeholder...")
 
 def on_active_material_index_changed():
     '''Reads material nodes into the user interface when the active material index is changed.'''
@@ -36,26 +33,40 @@ def on_active_material_name_changed():
     debug_logging.log("Updated group node names for all group nodes related to the renamed material.")
 
 def on_active_object_name_changed():
-    '''Updates mesh maps when the object name is changed.'''
-    update_meshmap_names(bpy.types.Scene.previous_object_name)
+    '''Updates properties when the object name is changed.'''
+    
+    # Update names for any mesh maps related to the renamed object.
+    previous_object_name = bpy.types.Scene.previous_object_name
+    active_object = bpy.context.active_object
+
+    for mesh_map_type in baking.MESH_MAP_TYPES:
+        mesh_map_name = baking.get_meshmap_name(previous_object_name, mesh_map_type)
+        mesh_map_image = bpy.data.images.get(mesh_map_name)
+        if mesh_map_image:
+            mesh_map_image.name = baking.get_meshmap_name(active_object.name, mesh_map_type)
+
     bpy.types.Scene.previous_object_name = bpy.context.view_layer.objects.active.name
+    #bpy.context.scene.previous_object_name = active_object.name
 
 def on_active_object_changed():
     '''Triggers a layer stack refresh when the selected object changes.'''
 
     material_layers.refresh_layer_stack()
     active_object = bpy.context.view_layer.objects.active
-
-    # Re-subscribe to the active objects name.
-    bpy.types.Scene.previous_object_name = active_object.name
-    bpy.msgbus.clear_by_owner(bpy.types.Scene.active_object_name_owner)
+    
     if active_object:
         if active_object.type == 'MESH':
+
+            debug_logging.log("Changed active object.")
+
+            # Re-subscribe to the active objects name.
+            bpy.types.Scene.previous_object_name = active_object.name
+            bpy.msgbus.clear_by_owner(bpy.types.Scene.active_object_name_owner)
             bpy.msgbus.subscribe_rna(key=active_object.path_resolve("name", False), owner=bpy.types.Scene.active_object_name_owner, notify=on_active_object_name_changed, args=())
 
             if active_object.active_material:
 
-                # Re-subscribe to the active material index
+                # Re-subscribe to the active material index.
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_index_owner)
                 bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material_index", False), owner=bpy.types.Scene.active_material_index_owner, notify=on_active_material_index_changed, args=())
 
@@ -63,5 +74,4 @@ def on_active_object_changed():
                 bpy.types.Scene.previous_active_material_name = active_object.active_material.name
                 bpy.types.Scene.active_material_name_owner = object()
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_owner)
-                if active_object.type == 'MESH' and active_object.active_material:
-                    bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_index_owner,notify=on_active_material_name_changed, args=())
+                bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_index_owner,notify=on_active_material_name_changed, args=())
