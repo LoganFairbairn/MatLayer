@@ -53,7 +53,7 @@ from .ui.ui_main import *
 from .ui.ui_layer_stack import MATLAYER_UL_layer_list
 
 # Subscription Update Handler
-from .core.subscription_update_handler import on_active_object_changed, on_active_object_name_changed, on_active_material_index_changed, on_active_material_name_changed
+from .core.subscription_update_handler import on_active_material_changed, on_active_object_changed, on_active_object_name_changed, on_active_material_index_changed, on_active_material_name_changed
 
 bl_info = {
     "name": "MatLayer",
@@ -196,24 +196,30 @@ def load_handler(dummy):
     # Subscribe to the active objects name to get notifications when it's changed.
     active_object = bpy.context.view_layer.objects.active
     bpy.types.Scene.previous_object_name = active_object.name
-    bpy.types.Scene.active_object_name_owner = object()
-    bpy.msgbus.clear_by_owner(bpy.types.Scene.active_object_name_owner)
+    bpy.types.Scene.active_object_name_sub_owner = object()
+    bpy.msgbus.clear_by_owner(bpy.types.Scene.active_object_name_sub_owner)
     if active_object:
         if active_object.type == 'MESH':
-            bpy.msgbus.subscribe_rna(key=active_object.path_resolve("name", False), owner=bpy.types.Scene.active_object_name_owner, notify=on_active_object_name_changed, args=())
+            bpy.msgbus.subscribe_rna(key=active_object.path_resolve("name", False), owner=bpy.types.Scene.active_object_name_sub_owner, notify=on_active_object_name_changed, args=())
 
             if active_object.active_material:
 
+                # Subscribe to the active material to get notifications when it's changed.
+                bpy.types.Scene.active_material = active_object.active_material
+                bpy.types.Scene.active_material_sub_owner = object()
+                bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_sub_owner)
+                bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material", False), owner=bpy.types.Scene.active_material_sub_owner, notify=on_active_material_changed, args=())
+
                 # Subscribe to the active material index to get notifications when it's changed.
-                bpy.types.Scene.active_material_index_owner = object()
-                bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_index_owner)
-                bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material_index", False), owner=bpy.types.Scene.active_material_index_owner, notify=on_active_material_index_changed, args=())
+                bpy.types.Scene.active_material_index_sub_owner = object()
+                bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_index_sub_owner)
+                bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material_index", False), owner=bpy.types.Scene.active_material_index_sub_owner, notify=on_active_material_index_changed, args=())
 
                 # Subscribe to the active material name to get notifications when it's changed.
                 bpy.types.Scene.previous_active_material_name = active_object.active_material.name
-                bpy.types.Scene.active_material_name_owner = object()
-                bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_owner)
-                bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_name_owner, notify=on_active_material_name_changed, args=())
+                bpy.types.Scene.active_material_name_sub_owner = object()
+                bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_sub_owner)
+                bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_name_sub_owner, notify=on_active_material_name_changed, args=())
 
                 refresh_layer_stack()   # Refresh layer stack on blender file load.
 

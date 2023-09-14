@@ -4,6 +4,11 @@ from ..core import layer_masks
 from ..core import baking
 from ..core import debug_logging
 
+def on_active_material_changed():
+    '''Update properties when the active material is changed.'''
+    debug_logging.log("Changed active material.")
+    material_layers.refresh_layer_stack()
+
 def on_active_material_index_changed():
     '''Reads material nodes into the user interface when the active material index is changed.'''
     debug_logging.log("Active material index changed.")
@@ -53,7 +58,7 @@ def on_active_object_name_changed():
             mesh_map_image.name = baking.get_meshmap_name(active_object.name, mesh_map_type)
 
     bpy.types.Scene.previous_object_name = bpy.context.view_layer.objects.active.name
-    #bpy.context.scene.previous_object_name = active_object.name
+    debug_logging.log("Updated mesh map names after active object was renamed.")
 
 def on_active_object_changed():
     '''Triggers a layer stack refresh when the selected object changes.'''
@@ -68,17 +73,22 @@ def on_active_object_changed():
 
             # Re-subscribe to the active objects name.
             bpy.types.Scene.previous_object_name = active_object.name
-            bpy.msgbus.clear_by_owner(bpy.types.Scene.active_object_name_owner)
-            bpy.msgbus.subscribe_rna(key=active_object.path_resolve("name", False), owner=bpy.types.Scene.active_object_name_owner, notify=on_active_object_name_changed, args=())
+            bpy.msgbus.clear_by_owner(bpy.types.Scene.active_object_name_sub_owner)
+            bpy.msgbus.subscribe_rna(key=active_object.path_resolve("name", False), owner=bpy.types.Scene.active_object_name_sub_owner, notify=on_active_object_name_changed, args=())
 
             if active_object.active_material:
+                # Re-subscribe to the active material to get notifications when it's changed.
+                bpy.types.Scene.active_material = active_object.active_material
+                #bpy.types.Scene.active_material_sub_owner = object()
+                bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_sub_owner)
+                bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material", False), owner=bpy.types.Scene.active_material_sub_owner, notify=on_active_material_changed, args=())
 
                 # Re-subscribe to the active material index.
-                bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_index_owner)
-                bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material_index", False), owner=bpy.types.Scene.active_material_index_owner, notify=on_active_material_index_changed, args=())
+                bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_index_sub_owner)
+                bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material_index", False), owner=bpy.types.Scene.active_material_index_sub_owner, notify=on_active_material_index_changed, args=())
 
                 # Re-subscribe to the active materials name.
                 bpy.types.Scene.previous_active_material_name = active_object.active_material.name
-                bpy.types.Scene.active_material_name_owner = object()
-                bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_owner)
-                bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_name_owner, notify=on_active_material_name_changed, args=())
+                #bpy.types.Scene.active_material_name_sub_owner = object()
+                bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_sub_owner)
+                bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_name_sub_owner, notify=on_active_material_name_changed, args=())
