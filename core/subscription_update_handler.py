@@ -77,11 +77,6 @@ def on_active_object_changed():
             bpy.msgbus.subscribe_rna(key=active_object.path_resolve("name", False), owner=bpy.types.Scene.active_object_name_sub_owner, notify=on_active_object_name_changed, args=())
 
             if active_object.active_material:
-                # Re-subscribe to the active material to get notifications when it's changed.
-                bpy.types.Scene.active_material = active_object.active_material
-                #bpy.types.Scene.active_material_sub_owner = object()
-                bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_sub_owner)
-                bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material", False), owner=bpy.types.Scene.active_material_sub_owner, notify=on_active_material_changed, args=())
 
                 # Re-subscribe to the active material index.
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_index_sub_owner)
@@ -89,6 +84,5 @@ def on_active_object_changed():
 
                 # Re-subscribe to the active materials name.
                 bpy.types.Scene.previous_active_material_name = active_object.active_material.name
-                #bpy.types.Scene.active_material_name_sub_owner = object()
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_sub_owner)
                 bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_name_sub_owner, notify=on_active_material_name_changed, args=())

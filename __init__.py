@@ -179,9 +179,19 @@ classes = (
     MATLAYER_PT_Panel
 )
 
+@persistent
+def active_material_change_handler(scene, depsgraph):
+    for update in depsgraph.updates:
+        if "Material" in update.id.name:
+            on_active_material_changed()
+
 # Mark load handlers as persistent so they are not freed when loading a new blend file.
 @persistent
 def load_handler(dummy):
+
+    # Add an app handler to update properties when the active material is changed.
+    bpy.app.handlers.depsgraph_update_post.clear()
+    bpy.app.handlers.depsgraph_update_post.append(active_material_change_handler)
 
     # Remember the active objects name.
     active_object = bpy.context.view_layer.objects.active
@@ -203,12 +213,6 @@ def load_handler(dummy):
             bpy.msgbus.subscribe_rna(key=active_object.path_resolve("name", False), owner=bpy.types.Scene.active_object_name_sub_owner, notify=on_active_object_name_changed, args=())
 
             if active_object.active_material:
-
-                # Subscribe to the active material to get notifications when it's changed.
-                bpy.types.Scene.active_material = active_object.active_material
-                bpy.types.Scene.active_material_sub_owner = object()
-                bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_sub_owner)
-                bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material", False), owner=bpy.types.Scene.active_material_sub_owner, notify=on_active_material_changed, args=())
 
                 # Subscribe to the active material index to get notifications when it's changed.
                 bpy.types.Scene.active_material_index_sub_owner = object()
