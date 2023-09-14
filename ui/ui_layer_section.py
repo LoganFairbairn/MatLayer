@@ -54,12 +54,10 @@ def draw_material_selector(layout):
         second_column.scale_x = 0.1
 
         first_column.template_list("MATERIAL_UL_matslots", "Layers", bpy.context.active_object, "material_slots", bpy.context.active_object, "active_material_index")
-        second_column.operator("object.material_slot_add", text="", icon='ADD')
-        second_column.operator("object.material_slot_remove", text="-")
-        operator = second_column.operator("object.material_slot_move", text="", icon='TRIA_UP')
-        operator.direction = 'UP'
-        operator = second_column.operator("object.material_slot_move", text="", icon='TRIA_DOWN')
-        operator.direction = 'DOWN'
+        second_column.operator("matlayer.add_material_slot", text="", icon='ADD')
+        second_column.operator("matlayer.remove_material_slot", text="-")
+        second_column.operator("matlayer.move_material_slot_up", text="", icon='TRIA_UP')
+        second_column.operator("matlayer.move_material_slot_down", text="", icon='TRIA_DOWN')
         second_column.operator("object.material_slot_assign", text="", icon='MATERIAL_DATA')
         second_column.operator("object.material_slot_select", text="", icon='SELECT_SET')
 

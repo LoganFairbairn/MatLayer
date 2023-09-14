@@ -32,6 +32,9 @@ from .core.material_layers import MATLAYER_layer_stack, MATLAYER_layers, MATLAYE
 # Layer Masks
 from .core.layer_masks import MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_mask_list, MATLAYER_OT_move_layer_mask_up, MATLAYER_OT_move_layer_mask_down, MATLAYER_OT_duplicate_layer_mask, MATLAYER_OT_delete_layer_mask, MATLAYER_OT_add_empty_layer_mask, MATLAYER_OT_add_black_layer_mask, MATLAYER_OT_add_white_layer_mask, MATLAYER_OT_add_edge_wear_mask, MATLAYER_OT_set_mask_projection_uv, MATLAYER_OT_set_mask_projection_triplanar, MATLAYER_OT_set_mask_output_channel, MATLAYER_OT_toggle_mask_blur, MATLAYER_OT_isolate_mask
 
+# Material Slots
+from .core.material_slots import MATLAYER_OT_add_material_slot, MATLAYER_OT_remove_material_slot, MATLAYER_OT_move_material_slot_up, MATLAYER_OT_move_material_slot_down
+
 # Baking
 from .core.baking import MATLAYER_baking_settings, MATLAYER_OT_bake_mesh_map, MATLAYER_OT_batch_bake, MATLAYER_OT_open_bake_folder, MATLAYER_OT_delete_ao_map, MATLAYER_OT_delete_curvature_map, MATLAYER_OT_delete_thickness_map, MATLAYER_OT_delete_normal_map, MATLAYER_OT_delete_world_space_normals_map, update_meshmap_names
 
@@ -130,6 +133,12 @@ classes = (
     MATLAYER_OT_set_mask_output_channel,
     MATLAYER_OT_toggle_mask_blur,
     MATLAYER_OT_isolate_mask,
+
+    # Material Slots
+    MATLAYER_OT_add_material_slot, 
+    MATLAYER_OT_remove_material_slot,
+    MATLAYER_OT_move_material_slot_up, 
+    MATLAYER_OT_move_material_slot_down,
 
     # Image Utilities
     MATLAYER_OT_add_texture_node_image, 
