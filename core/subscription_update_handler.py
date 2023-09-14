@@ -6,9 +6,16 @@ from ..core import debug_logging
 
 def on_active_material_index_changed():
     '''Reads material nodes into the user interface when the active material index is changed.'''
+    debug_logging.log("Active material index changed.")
     bpy.context.scene.matlayer_layer_stack.selected_layer_index = 0
     material_layers.refresh_layer_stack()
-    bpy.types.Scene.previous_active_material_name = bpy.context.view_layer.objects.active.active_material.name
+
+    active_object = bpy.context.view_layer.objects.active
+    if active_object:
+        if active_object.active_material:
+            bpy.types.Scene.previous_active_material_name = active_object.active_material.name
+        else:
+            bpy.types.Scene.previous_active_material_name = ""
 
 def on_active_material_name_changed():
     '''Updates layer and mask group node names associated with materials created with this add-on when the active material is renamed.'''
