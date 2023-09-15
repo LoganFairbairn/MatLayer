@@ -331,3 +331,10 @@ def save_image(image, file_format='PNG'):
     image.file_format = file_format
     image.filepath = "{0}/{1}.{2}".format(export_path, image.name, file_format.lower())
     image.save()
+
+def verify_addon_material(material):
+    '''Verifies the material is created with this add-on.'''
+    if material.node_tree.nodes.get('MATLAYER_BSDF') != None:
+        return True
+    else:
+        return False
