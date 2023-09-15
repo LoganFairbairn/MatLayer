@@ -8,6 +8,15 @@ from ..core import material_layers
 from ..core import blender_addon_utils
 from ..core import debug_logging
 from .. import preferences
+import re
+
+MESH_MAP_MATERIAL_NAMES = (
+    "BakeNormals",
+    "BakeAmbientOcclusion",
+    "BakeCurvature",
+    "BakeThickness",
+    "BakeWorldSpaceNormals"
+)
 
 MESH_MAP_TYPES = ("NORMALS", "AMBIENT_OCCLUSION", "CURVATURE", "THICKNESS", "WORLD_SPACE_NORMALS")
 
@@ -673,6 +682,29 @@ class MATLAYER_OT_preview_mesh_map(Operator):
         bpy.context.space_data.shading.type = 'RENDERED'
         bpy.context.scene.render.engine = 'CYCLES'
 
+        return {'FINISHED'}
+
+class MATLAYER_OT_disable_mesh_map_preview(Operator):
+    bl_idname = "matlayer.disable_mesh_map_preview"
+    bl_label = "Disable Mesh Map Preview"
+    bl_description = "Sets the render engine back to EEVEE, and removes all mesh map preview materials on active objects (if any exist)"
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+
+        for mesh_map_type in MESH_MAP_TYPES:
+            mesh_map_material_name = mesh_map_type.replace('_', ' ')
+            mesh_map_material_name = "Bake" + re.sub(r'\b[a-z]', lambda m: m.group().upper(), mesh_map_material_name.capitalize())
+            
+            mesh_map_material = bpy.data.materials.get(mesh_map_material_name)
+            if mesh_map_material:
+                bpy.data.materials.remove(mesh_map_material)
+
+        bpy.context.space_data.shading.type = 'MATERIAL'
+        bpy.context.scene.render.engine = 'BLENDER_EEVEE'
         return {'FINISHED'}
 
 class MATLAYER_OT_delete_mesh_map(Operator):
