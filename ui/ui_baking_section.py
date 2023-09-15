@@ -161,7 +161,7 @@ def draw_normal_settings(layout):
     row = second_column.row()
     row.prop(bpy.data.scenes["Scene"].render.bake, "max_ray_distance", slider=True)
 
-def draw_mesh_map_settings(layout, addon_preferences, baking_settings):
+def draw_mesh_map_settings(layout, addon_preferences):
     '''Draws settings for individual mesh maps.'''
     draw_ambient_occlusion_settings(layout, addon_preferences)
     draw_curvature_settings(layout, addon_preferences)
@@ -191,4 +191,4 @@ def draw_baking_section_ui(self, context):
 
     draw_mesh_map_status(layout, addon_preferences)
     draw_general_settings(layout, addon_preferences, baking_settings)
-    draw_mesh_map_settings(layout, addon_preferences, baking_settings)
+    draw_mesh_map_settings(layout, addon_preferences)
