@@ -8,9 +8,9 @@ from .. import preferences
 def draw_mesh_map_operators(layout, mesh_map_type):
     operator = layout.operator("matlayer.bake_mesh_map", text="", icon='RENDER_STILL')
     operator.mesh_map_type = mesh_map_type
-    #if mesh_map_type != 'NORMALS':
-    #    operator = layout.operator("matlayer.preview_mesh_map", text="", icon='MATERIAL_DATA')
-    #    operator.mesh_map_type = mesh_map_type
+    if mesh_map_type != 'NORMALS':
+        operator = layout.operator("matlayer.preview_mesh_map", text="", icon='MATERIAL_DATA')
+        operator.mesh_map_type = mesh_map_type
     operator = layout.operator("matlayer.delete_mesh_map", text="", icon='TRASH')
     operator.mesh_map_name = mesh_map_type
 

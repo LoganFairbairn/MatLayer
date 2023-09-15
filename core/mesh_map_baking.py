@@ -629,7 +629,7 @@ class MATLAYER_OT_open_bake_folder(Operator):
 class MATLAYER_OT_preview_mesh_map(Operator):
     bl_idname = "matlayer.preview_mesh_map"
     bl_label = "Preview Mesh Map"
-    bl_description = "Replaces all material slots on the selected object with a material used for baking the specified mesh map, then sets the render engine to Cycles"
+    bl_description = "Replaces all material slots on the selected (active) object with a material used for baking the specified mesh map, then applies viewport and render settings to make the preview visible"
 
     mesh_map_type: StringProperty(default='AMBIENT_OCCLUSION')
 
@@ -638,7 +638,7 @@ class MATLAYER_OT_preview_mesh_map(Operator):
         return context.active_object
 
     def execute(self, context):
-        if blender_addon_utils.verify_material_operation_context(self) == False:
+        if blender_addon_utils.verify_material_operation_context(self, check_active_material=False) == False:
             return {'FINISHED'}
 
         match self.mesh_map_type:
