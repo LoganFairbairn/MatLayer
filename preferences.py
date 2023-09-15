@@ -140,18 +140,9 @@ class AddonPreferences(AddonPreferences):
     roughness_mode: EnumProperty(name="Roughness Mode", items=ROUGHNESS_MODE, default='ROUGHNESS')
     normal_map_mode: EnumProperty(name="Normal Map Mode", items=NORMAL_MAP_MODE, default='OPEN_GL')
 
-    #----------------------------- MISC -----------------------------#
-    
-    organize_nodes: BoolProperty(
-        name="Organize Nodes",
-        default=True,
-        description="Organizes nodes created with this add-on. It's useful in some cases to toggle this off to be able to organize shader nodes for add-on development testing."
-    )
-
     #----------------------------- DRAWING -----------------------------#
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "auto_delete_unused_images")
         #layout.prop(self, "save_imported_textures")
-        layout.prop(self, "organize_nodes")
         layout.prop(self, "logging")
