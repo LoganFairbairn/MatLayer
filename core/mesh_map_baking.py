@@ -7,6 +7,7 @@ from bpy.props import BoolProperty, StringProperty, PointerProperty
 from ..core import material_layers
 from ..core import blender_addon_utils
 from ..core import debug_logging
+from .. import preferences
 
 MESH_MAP_TYPES = ("NORMALS", "AMBIENT_OCCLUSION", "CURVATURE", "THICKNESS", "WORLD_SPACE_NORMALS")
 
@@ -14,16 +15,18 @@ MESH_MAP_TYPES = ("NORMALS", "AMBIENT_OCCLUSION", "CURVATURE", "THICKNESS", "WOR
 
 def update_match_bake_resolution(self, context):
     '''Match the height to the width.'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     baking_settings = context.scene.matlayer_baking_settings
     if baking_settings.match_bake_resolution:
-        baking_settings.output_height = baking_settings.output_width
+        addon_preferences.output_height = addon_preferences.output_width
 
 def update_bake_width(self, context):
     '''Match the height to the width of the bake output'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     baking_settings = context.scene.matlayer_baking_settings
     if baking_settings.match_bake_resolution:
-        if baking_settings.output_height != baking_settings.output_width:
-            baking_settings.output_height = baking_settings.output_width
+        if addon_preferences.output_height != addon_preferences.output_width:
+            addon_preferences.output_height = addon_preferences.output_width
 
 def update_meshmap_names(previous_name):
     '''Updates the meshmap names using old names to the name of the active object (called after an object name change).'''
@@ -95,8 +98,8 @@ def create_bake_image(mesh_map_type):
     '''Creates a new image in Blender's data to bake to.'''
 
     # Define the baking size based on settings.
-    baking_settings = bpy.context.scene.matlayer_baking_settings
-    match baking_settings.output_width:
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    match addon_preferences.output_width:
         case 'FIVE_TWELVE':
             output_width = 512
         case 'ONEK':
@@ -106,7 +109,7 @@ def create_bake_image(mesh_map_type):
         case 'FOURK':
             output_width = 4096
 
-    match baking_settings.output_height:
+    match addon_preferences.output_height:
         case 'FIVE_TWELVE':
             output_height = 512
         case 'ONEK':
@@ -142,8 +145,8 @@ def create_bake_image(mesh_map_type):
 
 def apply_baking_quality_settings():
     '''Applies baking quality settings.'''
-    baking_settings = bpy.context.scene.matlayer_baking_settings
-    match baking_settings.output_quality:
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    match addon_preferences.output_quality:
         case 'LOW_QUALITY':
             bpy.data.scenes["Scene"].cycles.samples = 1
 
@@ -155,8 +158,12 @@ def apply_baking_quality_settings():
 
 def bake_mesh_map(mesh_map_type, self):
     '''Applies a premade baking material to the active object and starts baking. Returns true if baking was successful.'''
-
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     baking_settings = bpy.context.scene.matlayer_baking_settings
+
+    bpy.context.scene.render.engine = 'CYCLES'      # Set render engine to Cycles (required for baking).
+
+    # Skip normal map baking if there is no high poly object defined, no normal information can be baked without a high poly object.
     if mesh_map_type == 'NORMALS' and baking_settings.high_poly_object == None:
         debug_logging.log("Skipping normal map baking, no high poly object is specified.")
         return True
@@ -199,30 +206,41 @@ def bake_mesh_map(mesh_map_type, self):
         debug_logging.log_status("Error: Image node not found in premade mesh map baking material setup.", self, type='ERROR')
         return False
 
-    # Apply the bake material to the object.
+    # Apply the bake material to the low poly object.
+    active_object = bpy.context.active_object
     if len(bpy.context.object.material_slots) > 0:
-        for x in bpy.context.object.material_slots:
-            x.material = temp_bake_material
+        for material_slot in bpy.context.object.material_slots:
+            material_slot.material = temp_bake_material
     else:
-        bpy.context.object.data.materials.append(temp_bake_material)
+        active_object.materials.append(temp_bake_material)
 
-    # Set render engine settings and trigger the baking process.
-    bpy.context.scene.render.engine = 'CYCLES'
+    # If a high poly object is specified...
+    high_poly_object = baking_settings.high_poly_object
+    if high_poly_object != None:
+        # Apply the bake material to the high poly object (high poly details for curvature, ambient occlusion will not be transfered otherwise).
+        if len(high_poly_object.material_slots) > 0:
+            for material_slot in high_poly_object.material_slots:
+                material_slot.material = temp_bake_material
+        else:
+            high_poly_object.materials.append(temp_bake_material)
+
+        # Select the low poly and high poly objects in the correct order.
+        bpy.ops.object.select_all(action='DESELECT')
+        high_poly_object.select_set(True)
+        active_object.select_set(True)
+
+        # Apply high to low poly render settings
+        bpy.context.scene.render.bake.use_selected_to_active = True
+        bpy.context.scene.render.bake.cage_extrusion = addon_preferences.cage_extrusion
+
+    else:
+        bpy.context.scene.render.bake.use_selected_to_active = False
+
+    # Trigger the baking process.
     match mesh_map_type:
         case 'NORMALS':
-            bpy.context.scene.render.bake.use_selected_to_active = True
-            bpy.context.scene.render.bake.cage_extrusion = baking_settings.cage_extrusion
-            
-            # Select the low poly and high poly objects.
-            active_object = bpy.context.active_object
-            bpy.ops.object.select_all(action='DESELECT')
-            baking_settings.high_poly_object.select_set(True)
-            active_object.select_set(True)
-            bpy.context.scene.render.bake.use_selected_to_active = True
             bpy.ops.object.bake('INVOKE_DEFAULT', type='NORMAL')
-
         case _:
-            bpy.context.scene.render.bake.use_selected_to_active = False
             bpy.ops.object.bake('INVOKE_DEFAULT', type='EMIT')
     return True
 
@@ -241,22 +259,22 @@ def delete_meshmap(meshmap_type, self):
 
 def get_batch_bake_mesh_maps():
     '''Returns a list of mesh maps checked for inclusion in the batch baking process.'''
-    baking_settings = bpy.context.scene.matlayer_baking_settings
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     mesh_maps_to_bake = []
 
-    if baking_settings.bake_ambient_occlusion:
+    if addon_preferences.bake_ambient_occlusion:
         mesh_maps_to_bake.append('AMBIENT_OCCLUSION')
 
-    if baking_settings.bake_curvature:
+    if addon_preferences.bake_curvature:
         mesh_maps_to_bake.append('CURVATURE')
 
-    if baking_settings.bake_thickness:
+    if addon_preferences.bake_thickness:
         mesh_maps_to_bake.append('THICKNESS')
 
-    if baking_settings.bake_normals:
+    if addon_preferences.bake_normals:
         mesh_maps_to_bake.append('NORMALS')
 
-    if baking_settings.bake_world_space_normals:
+    if addon_preferences.bake_world_space_normals:
         mesh_maps_to_bake.append('WORLD_SPACE_NORMALS')
 
     return mesh_maps_to_bake
