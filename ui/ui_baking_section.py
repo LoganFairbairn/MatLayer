@@ -5,6 +5,15 @@ from .import ui_section_tabs
 from ..core import mesh_map_baking
 from .. import preferences
 
+def draw_mesh_map_operators(layout, mesh_map_type):
+    operator = layout.operator("matlayer.bake_mesh_map", text="", icon='RENDER_STILL')
+    operator.mesh_map_type = mesh_map_type
+    #if mesh_map_type != 'NORMALS':
+    #    operator = layout.operator("matlayer.preview_mesh_map", text="", icon='MATERIAL_DATA')
+    #    operator.mesh_map_type = mesh_map_type
+    operator = layout.operator("matlayer.delete_mesh_map", text="", icon='TRASH')
+    operator.mesh_map_name = mesh_map_type
+
 def draw_mesh_map_status(layout, addon_preferences):
     '''Draws status and operators for each mesh map type.'''
     layout.label(text="MESH MAPS")
@@ -19,8 +28,9 @@ def draw_mesh_map_status(layout, addon_preferences):
         mesh_map_label = mesh_map_type.replace('_', ' ')
         mesh_map_label = mesh_map_label.capitalize()
 
+        bake_checkbox_property_name = "bake_{0}".format(mesh_map_type.lower())
         row = first_column.row()
-        row.prop(addon_preferences, "bake_ambient_occlusion", text="")
+        row.prop(addon_preferences, bake_checkbox_property_name, text="")
         row.label(text=mesh_map_label)
 
         row = second_column.row()
@@ -29,10 +39,8 @@ def draw_mesh_map_status(layout, addon_preferences):
             row.label(text=mesh_map_name)
         else:
             row.label(text=null_meshmap_text)
-        operator = row.operator("matlayer.bake_mesh_map", text="BAKE")
-        operator.mesh_map_type = mesh_map_type
-        operator = row.operator("matlayer.delete_mesh_map", text="", icon='TRASH')
-        operator.mesh_map_name = mesh_map_type
+
+        draw_mesh_map_operators(row, mesh_map_type)
 
 def draw_general_settings(layout, addon_preferences, baking_settings):
     '''Draws general settings for mesh map baking.'''

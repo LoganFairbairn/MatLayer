@@ -8,7 +8,7 @@ from ..core import material_layers
 from ..core import blender_addon_utils
 from ..core import debug_logging
 
-MESH_MAP_TYPES = ("AMBIENT_OCCLUSION", "CURVATURE", "THICKNESS", "NORMALS", "WORLD_SPACE_NORMALS")
+MESH_MAP_TYPES = ("NORMALS", "AMBIENT_OCCLUSION", "CURVATURE", "THICKNESS", "WORLD_SPACE_NORMALS")
 
 #----------------------------- UPDATING FUNCTIONS -----------------------------#
 
@@ -606,6 +606,55 @@ class MATLAYER_OT_open_bake_folder(Operator):
             os.startfile(bake_path)
         else:
             self.report({'ERROR'}, "Bake folder doesn't exist, bake mesh maps and the bake folder will be automatically created for you.")
+        return {'FINISHED'}
+
+class MATLAYER_OT_preview_mesh_map(Operator):
+    bl_idname = "matlayer.preview_mesh_map"
+    bl_label = "Preview Mesh Map"
+    bl_description = "Replaces all material slots on the selected object with a material used for baking the specified mesh map, then sets the render engine to Cycles"
+
+    mesh_map_type: StringProperty(default='AMBIENT_OCCLUSION')
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        if blender_addon_utils.verify_material_operation_context(self) == False:
+            return {'FINISHED'}
+
+        match self.mesh_map_type:
+            case 'AMBIENT_OCCLUSION':
+                mesh_map_material = blender_addon_utils.append_material('BakeAmbientOcclusion')
+
+            case 'CURVATURE':
+                mesh_map_material = blender_addon_utils.append_material('BakeCurvature')
+
+            case 'THICKNESS':
+                mesh_map_material = blender_addon_utils.append_material('BakeThickness')
+
+            case 'NORMALS':
+                mesh_map_material = blender_addon_utils.append_material('BakeNormals')
+
+            case 'WORLD_SPACE_NORMALS':
+                mesh_map_material = blender_addon_utils.append_material('BakeWorldSpaceNormals')
+
+        active_object = bpy.context.active_object
+
+        # If there is no material slots on the selected object, add one.
+        if len(active_object.material_slots) <= 0:
+            active_object.materials.append(mesh_map_material)
+
+        # If the object has material slots, assign the new color grid material to all material slots for all selected objects.
+        else:
+            active_object.active_material_index = 0
+            for i in range(len(active_object.material_slots)):
+                active_object.material_slots[i].material = mesh_map_material
+
+        # Apply viewport and render engine settings to allow the user to see the mesh map preview.
+        bpy.context.space_data.shading.type = 'RENDERED'
+        bpy.context.scene.render.engine = 'CYCLES'
+
         return {'FINISHED'}
 
 class MATLAYER_OT_delete_mesh_map(Operator):
