@@ -3,7 +3,7 @@ import numpy
 import bpy
 from bpy.types import Operator, PropertyGroup, Menu
 from bpy.props import BoolProperty, StringProperty, IntProperty
-from ..core import baking
+from . import mesh_map_baking
 from ..core import texture_set_settings
 from .. import preferences
 
@@ -392,7 +392,7 @@ def bake_material_channel(material_channel_name, export_image_name, thirty_two_b
     '''Bakes the defined material channel to an image texture (stores it in Blender's data). Returns true if baking was successful.'''
 
     # Verify the selected object can be baked from.
-    if baking.verify_bake_object(self) == False:
+    if mesh_map_baking.verify_bake_object(self) == False:
         return
     
     # Verify the material can be baked from.
@@ -622,22 +622,22 @@ def channel_pack_textures():
 
             match texture_channel:
                 case 'AMBIENT_OCCLUSION':
-                    meshmap_name = baking.get_meshmap_name('AMBIENT_OCCLUSION')
+                    meshmap_name = mesh_map_baking.get_meshmap_name('AMBIENT_OCCLUSION')
                     image = bpy.data.images.get(meshmap_name)
                     input_images.append(image)
 
                 case 'CURVATURE':
-                    meshmap_name = baking.get_meshmap_name('CURVATURE')
+                    meshmap_name = mesh_map_baking.get_meshmap_name('CURVATURE')
                     image = bpy.data.images.get(meshmap_name)
                     input_images.append(image)
 
                 case 'THICKNESS':
-                    meshmap_name = baking.get_meshmap_name('THICKNESS')
+                    meshmap_name = mesh_map_baking.get_meshmap_name('THICKNESS')
                     image = bpy.data.images.get(meshmap_name)
                     input_images.append(image)
 
                 case 'BASE_NORMALS':
-                    meshmap_name = baking.get_meshmap_name('NORMAL')
+                    meshmap_name = mesh_map_baking.get_meshmap_name('NORMAL')
                     image = bpy.data.images.get(meshmap_name)
                     input_images.append(image)
 
@@ -697,22 +697,22 @@ def channel_pack_textures():
         texture_channel = getattr(export_texture.input_textures, key)
         match texture_channel:
             case 'AMBIENT_OCCLUSION':
-                meshmap_name = baking.get_meshmap_name('AMBIENT_OCCLUSION')
+                meshmap_name = mesh_map_baking.get_meshmap_name('AMBIENT_OCCLUSION')
                 image = bpy.data.images.get(meshmap_name)
                 input_images.append(image)
 
             case 'CURVATURE':
-                meshmap_name = baking.get_meshmap_name('CURVATURE')
+                meshmap_name = mesh_map_baking.get_meshmap_name('CURVATURE')
                 image = bpy.data.images.get(meshmap_name)
                 input_images.append(image)
 
             case 'THICKNESS':
-                meshmap_name = baking.get_meshmap_name('THICKNESS')
+                meshmap_name = mesh_map_baking.get_meshmap_name('THICKNESS')
                 image = bpy.data.images.get(meshmap_name)
                 input_images.append(image)
 
             case 'BASE_NORMALS':
-                meshmap_name = baking.get_meshmap_name('NORMAL')
+                meshmap_name = mesh_map_baking.get_meshmap_name('NORMAL')
                 image = bpy.data.images.get(meshmap_name)
                 input_images.append(image)
 
@@ -757,7 +757,7 @@ class MATLAYER_OT_export(Operator):
     
     def execute(self, context):
         # Verify the selected object can be baked from.
-        if baking.verify_bake_object(self) == False:
+        if mesh_map_baking.verify_bake_object(self) == False:
             return {'FINISHED'}
         
         # Verify the material can be baked from.

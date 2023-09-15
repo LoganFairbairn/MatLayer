@@ -4,7 +4,7 @@ import bpy
 from bpy.types import PropertyGroup, Operator
 from bpy.props import BoolProperty, IntProperty, EnumProperty, StringProperty, PointerProperty
 from ..core import layer_masks
-from ..core import baking
+from . import mesh_map_baking
 from ..core import blender_addon_utils
 from ..core import debug_logging
 from ..core import texture_set_settings as tss
@@ -668,12 +668,12 @@ def apply_mesh_maps():
     for layer_index in range(0, len(layers)):
         mask_count = layer_masks.count_masks(layer_index)
         for mask_index in range(0, mask_count):
-            for mesh_map_type in baking.MESH_MAP_TYPES:
+            for mesh_map_type in mesh_map_baking.MESH_MAP_TYPES:
                 mask_node = layer_masks.get_mask_node('MASK', layer_index, mask_index)
                 mesh_map_node = mask_node.node_tree.get(mesh_map_type)
                 if mesh_map_node:
                     if mesh_map_node.bl_static_type == 'TEX_IMAGE':
-                        mesh_map_node.image = baking.get_meshmap_image(bpy.context.active_object.name, mesh_map_type)
+                        mesh_map_node.image = mesh_map_baking.get_meshmap_image(bpy.context.active_object.name, mesh_map_type)
     debug_logging.log("Applied baked mesh maps.")
 
 def relink_layer_projection(relink_material_channel_name="", delink_layer_projection_nodes=True):

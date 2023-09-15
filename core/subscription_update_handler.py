@@ -1,7 +1,7 @@
 import bpy
 from ..core import material_layers
 from ..core import layer_masks
-from ..core import baking
+from . import mesh_map_baking
 from ..core import debug_logging
 
 def sub_to_active_object_name(active_object):
@@ -69,11 +69,11 @@ def on_active_object_name_changed():
     previous_object_name = bpy.types.Scene.previous_object_name
     active_object = bpy.context.active_object
 
-    for mesh_map_type in baking.MESH_MAP_TYPES:
-        mesh_map_name = baking.get_meshmap_name(previous_object_name, mesh_map_type)
+    for mesh_map_type in mesh_map_baking.MESH_MAP_TYPES:
+        mesh_map_name = mesh_map_baking.get_meshmap_name(previous_object_name, mesh_map_type)
         mesh_map_image = bpy.data.images.get(mesh_map_name)
         if mesh_map_image:
-            mesh_map_image.name = baking.get_meshmap_name(active_object.name, mesh_map_type)
+            mesh_map_image.name = mesh_map_baking.get_meshmap_name(active_object.name, mesh_map_type)
 
     bpy.types.Scene.previous_object_name = bpy.context.view_layer.objects.active.name
     debug_logging.log("Updated mesh map names after active object was renamed.")

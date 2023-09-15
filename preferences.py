@@ -3,6 +3,8 @@
 import bpy
 from bpy.types import AddonPreferences, PropertyGroup
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty, FloatProperty, PointerProperty, CollectionProperty
+from .core.mesh_map_baking import update_bake_width
+from .core.texture_set_settings import TEXTURE_SET_RESOLUTIONS
 
 ADDON_NAME = __package__
 
@@ -51,6 +53,12 @@ TEXTURE_EXPORT_FORMAT = [
     ("JPG", "jpg", "Exports the selected material channel in JPG texture format. This is a compressed format, which could be used for textures applied to models that will be shown in a web browser"),
     ("TARGA", "tga", "Exports the selected material channel in TARGA texture format"),
     ("EXR", "exr", "Exports the selected material channel in open exr texture format")
+]
+
+MESH_MAP_QUALITY_SETTINGS = [
+    ("LOW_QUALITY", "Low Quality (for testing)", "Extremly low quality baking, generally used only for testing baking functionality or previewing a really rough version of baked textures. Using this quality will significantly reduce time it takes to bake mesh maps"), 
+    ("RECOMMENDED_QUALITY", "Recommended Quality", "The suggested quality for baking texture maps"),
+    ("HIGH_QUALITY", "High Quality", "A higher than average baking quality. This should be used for when fine, accurate detail is required in mesh map textures. Using this quality will significantly slow down baking speeds")
 ]
 
 class MATLAYER_pack_textures(PropertyGroup):
@@ -114,35 +122,43 @@ class AddonPreferences(AddonPreferences):
     #----------------------------- DEBUGGING -----------------------------#
 
     logging: BoolProperty(
-        name="Logging",
+        name="Debug Logging",
         default=True,
-        description="Prints all major functions this add-on runs in Blenders terminal. This is useful for debugging purposes, specifically checking which functions are being called and verifying the function call order is correct."
+        description="Prints debugging info for functions this add-on runs in Blenders terminal."
     )
 
-    #----------------------------- USER INTERFACE PROPERTIES -----------------------------#
+    #----------------------------- MESH MAP BAKING PROPERTIES -----------------------------#
 
-    ui_y_scale: FloatProperty(
-        name="Interface Y Scale",
-        default=1.4,
-        description="Y scale modifier for the user interface. Can be used to help make interface elements larger so they are easier to click, and to help keep the interface less cluttered."
-    )
+    output_quality: EnumProperty(items=MESH_MAP_QUALITY_SETTINGS, name="Output Quality", description="Output quality of the baked mesh maps", default='RECOMMENDED_QUALITY')
+    output_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS,name="Output Height",description="Image size for the baked texure map result(s)", default='TWOK', update=update_bake_width)
+    output_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Output Height", description="Image size for the baked texure map result(s)", default='TWOK')
+    bake_ambient_occlusion: BoolProperty(name="Bake Ambient Occlusion", description="Toggle for baking ambient occlusion as part of the batch baking operator", default=True)
+    ambient_occlusion_image_name: StringProperty(name="", description="The baking AO image", default="")
+    ambient_occlusion_intensity: FloatProperty(name="Ambient Occlusion Intensity", description="", min=0.1, max=0.99, default=0.15)
+    ambient_occlusion_samples: IntProperty(name="Ambient Occlusion Samples", description="The amount of samples for ambient occlusion taken", min=1, max=128, default=64)
+    ambient_occlusion_local: BoolProperty(name="Local Ambient Occlusion", description="Ambient occlusion will not bake shadows cast by other objects", default=True)
+    bake_curvature: BoolProperty(name="Bake Curvature", description="Toggle for baking curvature as part of the batch baking process", default=True)
+    curvature_image_name: StringProperty(name="", description="The baked curvature for object", default="")
+    curvature_edge_intensity: FloatProperty(name="Edge Intensity", description="Brightens edges", min=0.0, max=10.0, default=3.0)
+    curvature_edge_radius: FloatProperty(name="Edge Radius", description="Edge radius", min=0.001, max=0.1, default=0.01)
+    curvature_ao_masking: FloatProperty(name="AO Masking", description="Mask the curvature edges using ambient occlusion", min=0.0, max=1.0, default=1.0)
+    bake_thickness: BoolProperty(name="Bake Thickness", description="Toggle for baking thickness as part of the batch baking operator", default=True)
+    thickness_samples: IntProperty(name="Thickness Samples", description="The amount of samples for thickness baking. Increasing this value will increase the quality of the output thickness maps", min=1, max=128, default=64)
+    bake_normals: BoolProperty(name="Bake Normal", description="Toggle for baking normal maps for baking as part of the batch baking operator", default=True)
+    cage_extrusion: FloatProperty(name="Cage Extrusion", description="Infaltes the active object by the specified amount for baking. This helps matching to points nearer to the outside of the selected object meshes", default=0.111, min=0.0, max=1.0)
+    bake_bevel_normals: BoolProperty(name="Bake Bevel Normal", description="Toggle for baking a bevel normal map for baking as part of the batch baking operator", default=False)
+    bake_world_space_normals: BoolProperty(name="Bake World Space Normals", description="Toggle for baking world space normals as part of the batch baking operator", default=True)
 
-    #----------------------------- EXPORTING PROPERTIES -----------------------------#
+    #----------------------------- TEXTURE EXPORTING PROPERTIES -----------------------------#
 
     export_template_name: StringProperty(name="Export Template Name", default="Unreal Engine 4 (Metallic, Packed)")
-
     padding: IntProperty(name="Padding", default=16)
-
     export_textures: CollectionProperty(type=MATLAYER_texture_export_settings)
-
     delete_unpacked_images: BoolProperty(name="Delete Unpacked Images", default=True, description="Deletes unpacked image textures after packing")
-
     roughness_mode: EnumProperty(name="Roughness Mode", items=ROUGHNESS_MODE, default='ROUGHNESS')
     normal_map_mode: EnumProperty(name="Normal Map Mode", items=NORMAL_MAP_MODE, default='OPEN_GL')
 
     #----------------------------- DRAWING -----------------------------#
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, "auto_delete_unused_images")
-        #layout.prop(self, "save_imported_textures")
         layout.prop(self, "logging")

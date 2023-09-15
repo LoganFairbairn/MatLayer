@@ -3,27 +3,12 @@
 import os
 import bpy
 from bpy.types import Operator
-from bpy.props import BoolProperty, FloatProperty, IntProperty, StringProperty, PointerProperty, EnumProperty
-from .texture_set_settings import TEXTURE_SET_RESOLUTIONS
+from bpy.props import BoolProperty, StringProperty, PointerProperty
 from ..core import material_layers
 from ..core import blender_addon_utils
 from ..core import debug_logging
 
 MESH_MAP_TYPES = ("AMBIENT_OCCLUSION", "CURVATURE", "THICKNESS", "NORMALS", "WORLD_SPACE_NORMALS")
-
-SELECTED_BAKE_TYPE = [
-    ("AMBIENT_OCCLUSION", "Ambient Occlusion", ""), 
-    ("CURVATURE", "Curvature", ""),
-    ("THICKNESS", "Thickness", ""),
-    ("NORMAL", "Normals", ""),
-    ("WORLD_SPACE_NORMALS", "World Space Normals", "")
-]
-
-QUALITY_SETTINGS = [
-    ("LOW_QUALITY", "Low Quality (for testing)", "Extremly low quality baking, generally used only for testing baking functionality or previewing a really rough version of baked textures. Using this quality will significantly reduce time it takes to bake mesh maps"), 
-    ("RECOMMENDED_QUALITY", "Recommended Quality", "The suggested quality for baking texture maps"),
-    ("HIGH_QUALITY", "High Quality", "A higher than average baking quality. This should be used for when fine, accurate detail is required in mesh map textures. Using this quality will significantly slow down baking speeds")
-]
 
 #----------------------------- UPDATING FUNCTIONS -----------------------------#
 
@@ -279,29 +264,8 @@ def get_batch_bake_mesh_maps():
 #----------------------------- OPERATORS AND PROPERTIES -----------------------------#
 
 class MATLAYER_baking_settings(bpy.types.PropertyGroup):
-    bake_type: EnumProperty(items=SELECTED_BAKE_TYPE, name="Bake Types", description="Bake type currently selected", default='AMBIENT_OCCLUSION')
-    output_quality: EnumProperty(items=QUALITY_SETTINGS, name="Output Quality", description="Output quality of the baked mesh maps", default='RECOMMENDED_QUALITY')
-    output_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS,name="Output Height",description="Image size for the baked texure map result(s)", default='TWOK', update=update_bake_width)
-    output_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Output Height", description="Image size for the baked texure map result(s)", default='TWOK')
     match_bake_resolution: BoolProperty(name="Match Bake Resoltion", description="When toggled on, the bake resolution's width and height will be synced", default=True, update=update_match_bake_resolution)
-    bake_ambient_occlusion: BoolProperty(name="Bake Ambient Occlusion", description="Toggle for baking ambient occlusion as part of the batch baking operator", default=True)
-    ambient_occlusion_image_name: StringProperty(name="", description="The baking AO image", default="")
-    ambient_occlusion_intensity: FloatProperty(name="Ambient Occlusion Intensity", description="", min=0.1, max=0.99, default=0.15)
-    ambient_occlusion_samples: IntProperty(name="Ambient Occlusion Samples", description="The amount of samples for ambient occlusion taken", min=1, max=128, default=64)
-    ambient_occlusion_local: BoolProperty(name="Local AO", description="Ambient occlusion will not bake shadow cast by other objects", default=True)
-    ambient_occlusion_inside: BoolProperty(name="Inside AO", description="Ambient occlusion will trace rays towards the inside of the object", default=False)
-    bake_curvature: BoolProperty(name="Bake Curvature", description="Toggle for baking curvature as part of the batch baking process", default=True)
-    curvature_image_name: StringProperty(name="", description="The baked curvature for object", default="")
-    curvature_edge_intensity: FloatProperty(name="Edge Intensity", description="Brightens edges", min=0.0, max=10.0, default=3.0)
-    curvature_edge_radius: FloatProperty(name="Edge Radius", description="Edge radius", min=0.001, max=0.1, default=0.01)
-    curvature_ao_masking: FloatProperty(name="AO Masking", description="Mask the curvature edges using ambient occlusion", min=0.0, max=1.0, default=1.0)
-    bake_thickness: BoolProperty(name="Bake Thickness", description="Toggle for baking thickness as part of the batch baking operator", default=True)
-    thickness_samples: IntProperty(name="Thickness Samples", description="The amount of samples for thickness baking. Increasing this value will increase the quality of the output thickness maps", min=1, max=128, default=64)
-    bake_normals: BoolProperty(name="Bake Normal", description="Toggle for baking normal maps for baking as part of the batch baking operator", default=True)
-    cage_extrusion: FloatProperty(name="Cage Extrusion", description="Infaltes the active object by the specified amount for baking. This helps matching to points nearer to the outside of the selected object meshes", default=0.111, min=0.0, max=1.0)
     high_poly_object: PointerProperty(type=bpy.types.Object, name="High Poly Object", description="The high poly object (must be a mesh) from which mesh detail will be baked to texture maps. The high poly mesh should generally be overlapped by your low poly mesh before starting baking. You do not need to provide a high poly mesh for baking texture maps")
-    bake_bevel_normals: BoolProperty(name="Bake Bevel Normal", description="Toggle for baking a bevel normal map for baking as part of the batch baking operator", default=False)
-    bake_world_space_normals: BoolProperty(name="Bake World Space Normals", description="Toggle for baking world space normals as part of the batch baking operator", default=True)
 
 class MATLAYER_OT_bake_mesh_map(Operator):
     bl_idname = "matlayer.bake_mesh_map"
@@ -644,72 +608,17 @@ class MATLAYER_OT_open_bake_folder(Operator):
             self.report({'ERROR'}, "Bake folder doesn't exist, bake mesh maps and the bake folder will be automatically created for you.")
         return {'FINISHED'}
 
-class MATLAYER_OT_delete_ao_map(Operator):
-    bl_idname = "matlayer.delete_ao_map"
-    bl_label = "Delete Ambient Occlusion Map"
-    bl_description = "Deletes the baked ambient occlusion map for the active object if one exists"
+class MATLAYER_OT_delete_mesh_map(Operator):
+    bl_idname = "matlayer.delete_mesh_map"
+    bl_label = "Delete Mesh Map"
+    bl_description = "Deletes the specified mesh map from the blend files data for the active object if one exists"
 
-    # Disable when there is no active object.
+    mesh_map_name: StringProperty(default='AMBIENT_OCCLUSION')
+
     @ classmethod
     def poll(cls, context):
         return context.active_object
 
     def execute(self, context):
-        delete_meshmap('AMBIENT_OCCLUSION', self)
-        return {'FINISHED'}
-    
-class MATLAYER_OT_delete_curvature_map(Operator):
-    bl_idname = "matlayer.delete_curvature_map"
-    bl_label = "Delete Curvature Map"
-    bl_description = "Deletes the baked curvature map for the active object if one exists"
-
-    # Disable when there is no active object.
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def execute(self, context):
-        delete_meshmap('CURVATURE', self)
-        return {'FINISHED'}
-    
-class MATLAYER_OT_delete_thickness_map(Operator):
-    bl_idname = "matlayer.delete_thickness_map"
-    bl_label = "Delete Thickness Map"
-    bl_description = "Deletes the baked thickness map for the active object if one exists"
-
-    # Disable when there is no active object.
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def execute(self, context):
-        delete_meshmap('THICKNESS', self)
-        return {'FINISHED'}
-    
-class MATLAYER_OT_delete_normal_map(Operator):
-    bl_idname = "matlayer.delete_normal_map"
-    bl_label = "Delete Normal Map"
-    bl_description = "Deletes the baked normal map for the active object if one exists"
-
-    # Disable when there is no active object.
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def execute(self, context):
-        delete_meshmap('NORMALS', self)
-        return {'FINISHED'}
-
-class MATLAYER_OT_delete_world_space_normals_map(Operator):
-    bl_idname = "matlayer.delete_world_space_normals_map"
-    bl_label = "Delete World Space Normals Map"
-    bl_description = "Deletes the baked world space normals map for the active object if one exists"
-
-    # Disable when there is no active object.
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def execute(self, context):
-        delete_meshmap('WORLD_SPACE_NORMALS', self)
+        delete_meshmap(self.mesh_map_name, self)
         return {'FINISHED'}

@@ -4,7 +4,7 @@ import bpy
 from bpy.types import Operator, Menu
 from ..core import material_layers
 from ..core import layer_masks
-from ..core import baking
+from ..core import mesh_map_baking
 from ..core import blender_addon_utils
 from ..core import texture_set_settings as tss
 from ..ui import ui_section_tabs
@@ -386,7 +386,7 @@ def draw_mask_channel(layout, selected_layer_index, selected_mask_index):
 def draw_mask_textures(layout, mask_node):
     '''Draws all non-mesh map textures used in the mask.'''
     for node in mask_node.node_tree.nodes:
-        if node.bl_static_type == 'TEX_IMAGE' and node.name not in baking.MESH_MAP_TYPES:
+        if node.bl_static_type == 'TEX_IMAGE' and node.name not in mesh_map_baking.MESH_MAP_TYPES:
             split = layout.split(factor=0.25)
             first_column = split.column()
             second_column = split.column()
@@ -450,7 +450,7 @@ def draw_mask_blur_properties(layout, selected_layer_index, selected_mask_index)
 def draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index):
     '''Draws mesh maps for the selected mask.'''
     drew_title = False
-    for mesh_map_name in baking.MESH_MAP_TYPES:
+    for mesh_map_name in mesh_map_baking.MESH_MAP_TYPES:
         mesh_map_texture_node = layer_masks.get_mask_node(mesh_map_name, selected_layer_index, selected_mask_index)
         if mesh_map_texture_node:
             if not drew_title:
