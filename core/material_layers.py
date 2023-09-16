@@ -1291,7 +1291,7 @@ class MATLAYER_OT_isolate_material_channel(Operator):
 class MATLAYER_OT_toggle_image_alpha_blending(Operator):
     bl_idname = "matlayer.toggle_image_alpha_blending"
     bl_label = "Toggle Image Alpha Blending"
-    bl_description = "Toggles blending the alpha channel of the image node into the layers opacity"
+    bl_description = "Toggles blending the alpha channel of the image node into the layers opacity. Off by default for better shader compilation and viewport performance"
     bl_options = {'REGISTER', 'UNDO'}
 
     material_channel_name: StringProperty(default='COLOR')
