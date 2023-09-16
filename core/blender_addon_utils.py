@@ -237,8 +237,13 @@ def create_image(new_image_name, image_width=-1, image_height=-1, base_color=(0.
     # If -1 is passed, use the image resolution defined in the texture set settings.
     if image_width == -1:
         w = tss.get_texture_width()
+    else:
+        w = image_width
+
     if image_height == -1:
         h = tss.get_texture_height()
+    else:
+        h = image_height
 
     bpy.ops.image.new(name=new_image_name, 
                       width=w, 
