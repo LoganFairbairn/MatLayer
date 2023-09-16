@@ -18,6 +18,13 @@ MESH_MAP_MATERIAL_NAMES = (
     "BakeWorldSpaceNormals"
 )
 
+MESH_MAP_GROUP_NAMES = (
+    "ML_AmbientOcclusion",
+    "ML_Curvature",
+    "ML_Thickness",
+    "ML_WorldSpaceNormals"
+)
+
 MESH_MAP_TYPES = ("NORMALS", "AMBIENT_OCCLUSION", "CURVATURE", "THICKNESS", "WORLD_SPACE_NORMALS")
 
 #----------------------------- UPDATING FUNCTIONS -----------------------------#
@@ -748,13 +755,17 @@ class MATLAYER_OT_disable_mesh_map_preview(Operator):
 
     def execute(self, context):
 
-        for mesh_map_type in MESH_MAP_TYPES:
-            mesh_map_material_name = mesh_map_type.replace('_', ' ')
-            mesh_map_material_name = "Bake" + re.sub(r'\b[a-z]', lambda m: m.group().upper(), mesh_map_material_name.capitalize())
-            
+        # Remove all mesh map materials.
+        for mesh_map_material_name in MESH_MAP_MATERIAL_NAMES:
             mesh_map_material = bpy.data.materials.get(mesh_map_material_name)
             if mesh_map_material:
                 bpy.data.materials.remove(mesh_map_material)
+
+        # Remove all mesh map group nodes.
+        for group_node_name in MESH_MAP_GROUP_NAMES:
+            mesh_map_group_node = bpy.data.node_groups.get(group_node_name)
+            if mesh_map_group_node:
+                bpy.data.node_groups.remove(mesh_map_group_node)
 
         bpy.context.space_data.shading.type = 'MATERIAL'
         bpy.context.scene.render.engine = 'BLENDER_EEVEE'
