@@ -688,6 +688,7 @@ def relink_layer_projection(relink_material_channel_name="", delink_layer_projec
         blender_addon_utils.unlink_node(projection_node, layer_node_tree, unlink_inputs=False, unlink_outputs=True)
         blender_addon_utils.unlink_node(blur_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
 
+    # Relink the projection node and blur node.
     match projection_node.node_tree.name:
         case 'ML_UVProjection':
             layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
@@ -703,11 +704,13 @@ def relink_layer_projection(relink_material_channel_name="", delink_layer_projec
             match projection_node.node_tree.name:
                 case 'ML_UVProjection':
                     value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
+                    mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
                     if value_node.bl_static_type == 'TEX_IMAGE':
                         if blender_addon_utils.get_node_active(blur_node):
                             layer_node_tree.links.new(blur_node.outputs.get(material_channel_name.capitalize()), value_node.inputs[0])
                         else:
                             layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
+                            layer_node_tree.links.new(value_node.outputs.get('Alpha'), mix_image_alpha_node.inputs[1])
 
                 case 'ML_TriplanarProjection':
                     for i in range(0, 3):
@@ -721,7 +724,8 @@ def relink_layer_projection(relink_material_channel_name="", delink_layer_projec
                             else:
                                 layer_node_tree.links.new(projection_node.outputs[i], value_node.inputs[0])
                             
-                            layer_node_tree.links.new(value_node.outputs[0], triplanar_blend_node.inputs[i])
+                            layer_node_tree.links.new(value_node.outputs.get('Color'), triplanar_blend_node.inputs[i])
+                            layer_node_tree.links.new(value_node.outputs.get('Alpha'), triplanar_blend_node.inputs[i + 3])
 
                         # Link triplanar blending nodes.
                         if triplanar_blend_node:
@@ -807,7 +811,11 @@ def apply_material_channel_projection(material_channel_name, projection_method, 
 
                 # Link the texture to projection / blur and mix layer nodes.
                 relink_layer_projection(material_channel_name, delink_layer_projection_nodes=False)
+                mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
+                opacity_node = get_material_layer_node('OPACITY', selected_layer_index, material_channel_name)
                 layer_node_tree.links.new(texture_sample_node.outputs[0], mix_node.inputs[7])
+                layer_node_tree.links.new(mix_image_alpha_node.outputs[0], opacity_node.inputs[3])
+                layer_node_tree.links.new(texture_sample_node.outputs.get('Alpha'), mix_image_alpha_node.inputs[1])
 
             case 'TRIPLANAR':
                 # Remember the old image and location.
@@ -850,7 +858,11 @@ def apply_material_channel_projection(material_channel_name, projection_method, 
                 relink_layer_projection(material_channel_name, delink_layer_projection_nodes=False)
 
                 mix_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
-                layer_node_tree.links.new(triplanar_blend_node.outputs[0], mix_node.inputs[7])
+                mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
+                opacity_node = get_material_layer_node('OPACITY', selected_layer_index, material_channel_name)
+                layer_node_tree.links.new(triplanar_blend_node.outputs.get('Color'), mix_node.inputs[7])
+                layer_node_tree.links.new(triplanar_blend_node.outputs.get('Alpha'), mix_image_alpha_node.inputs[1])
+                layer_node_tree.links.new(mix_image_alpha_node.outputs[0], opacity_node.inputs[3])
 
 def replace_material_channel_node(material_channel_name, node_type):
     '''Replaces the existing material channel node with a new node of the given type. Valid node types include: 'GROUP', 'TEXTURE'.'''
@@ -1270,4 +1282,25 @@ class MATLAYER_OT_isolate_material_channel(Operator):
         # Connect the selected material channel.
         active_node_tree.links.new(layer_node.outputs.get(selected_material_channel.capitalize()), emission_node.inputs[0])
         active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
+        return {'FINISHED'}
+
+class MATLAYER_OT_toggle_image_alpha_blending(Operator):
+    bl_idname = "matlayer.toggle_image_alpha_blending"
+    bl_label = "Toggle Image Alpha Blending"
+    bl_description = "Toggles blending the alpha channel of the image node into the layers opacity"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    material_channel_name: StringProperty(default='COLOR')
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, self.material_channel_name)
+        if image_alpha_node.mute:
+            image_alpha_node.mute = False
+        else:
+            image_alpha_node.mute = True
         return {'FINISHED'}

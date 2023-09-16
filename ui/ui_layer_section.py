@@ -151,7 +151,7 @@ def draw_value_node_type(layout, value_node, mix_node, selected_layer_index, mat
         case 'TEX_IMAGE':
             row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text='TEXTURE')
 
-def draw_value_node_properties(layout, value_node, layer_node_tree):
+def draw_value_node_properties(layout, value_node, layer_node_tree, selected_layer_index, material_channel_name):
     '''Draws properties for the provided value node.'''
     split = layout.split(factor=0.25)
     first_column = split.column()
@@ -173,12 +173,16 @@ def draw_value_node_properties(layout, value_node, layer_node_tree):
         case 'TEX_IMAGE':
             row = first_column.row()
             row.label(text="Texture")
-
-            row = second_column.row()
-            
+            row = second_column.row(align=True)
             row.prop(value_node, "image", text="")
             row.context_pointer_set("node_tree", layer_node_tree)
             row.context_pointer_set("node", value_node)
+            mix_image_alpha_node = material_layers.get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
+            if mix_image_alpha_node.mute:
+                operator = row.operator("matlayer.toggle_image_alpha_blending", text="", icon='IMAGE_ALPHA')
+            else:
+                operator = row.operator("matlayer.toggle_image_alpha_blending", text="", icon='IMAGE_ALPHA', depress=True)
+            operator.material_channel_name = material_channel_name
             row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
 def draw_material_channel_filter_properties(layout, selected_layer_index, material_channel_name):
@@ -243,7 +247,7 @@ def draw_material_channel_properties(layout):
                 row = layout.row()
                 row.label(text="• {0}".format(material_channel_name))
                 draw_value_node_type(layout, value_node, mix_node, selected_layer_index, material_channel_name)
-                draw_value_node_properties(layout, value_node, layer_node_tree)
+                draw_value_node_properties(layout, value_node, layer_node_tree, selected_layer_index, material_channel_name)
                 draw_material_channel_filter_properties(layout, selected_layer_index, material_channel_name)
 
 def draw_layer_projection(layout):
