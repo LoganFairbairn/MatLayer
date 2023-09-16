@@ -301,6 +301,10 @@ def add_material_layer(layer_type, self):
                     if mix_layer_node:
                         mix_layer_node.mute = True
 
+            # Unmute the mix image alpha node to apply image alpha blending.
+            mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, 'COLOR')
+            mix_image_alpha_node.mute = False
+
         case 'DECAL':
             # Append a default decal image.
             decal_mask_node = get_material_layer_node('DECAL_MASK', new_layer_slot_index)
