@@ -198,13 +198,18 @@ def draw_material_channel_filter_properties(layout, selected_layer_index, materi
 
         split = second_column.split(align=True, factor=0.1)
         row = split.column(align=True)
-        row.prop(filter_node, "mute", icon='FILTER', text="", invert_checkbox=True)
+
+        if blender_addon_utils.get_node_active(filter_node) == True:
+            operator = row.operator("matlayer.toggle_material_channel_filter", text='', icon='FILTER', depress=True)
+        else:
+            operator = row.operator("matlayer.toggle_material_channel_filter", text='', icon='FILTER')
+        operator.material_channel_name = material_channel_name
         row = split.column(align=True)
         if filter_node.mute:
             row.enabled = False
         row.prop(filter_node, "node_tree", text="")
 
-        if not filter_node.mute:
+        if blender_addon_utils.get_node_active(filter_node) == True:
 
             # Draw all properties.
             for i in range(0, len(filter_node.inputs)):

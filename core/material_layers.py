@@ -168,25 +168,25 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
         case 'OUTPUT':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                node_tree.nodes.get('Group Output')
+                return node_tree.nodes.get('Group Output')
             return None
         
         case 'INPUT':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                node_tree.nodes.get('Group Input')
+                return node_tree.nodes.get('Group Input')
             return None
         
         case 'DECAL_COORDINATES':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                node_tree.nodes.get('DECAL_COORDINATES')
+                return node_tree.nodes.get('DECAL_COORDINATES')
             return None
         
         case 'DECAL_MASK':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                node_tree.nodes.get('DECAL_MASK')
+                return node_tree.nodes.get('DECAL_MASK')
             return None
         
         case _:
@@ -1307,4 +1307,35 @@ class MATLAYER_OT_toggle_image_alpha_blending(Operator):
             image_alpha_node.mute = False
         else:
             image_alpha_node.mute = True
+        return {'FINISHED'}
+
+class MATLAYER_OT_toggle_material_channel_filter(Operator):
+    bl_idname = "matlayer.toggle_material_channel_filter"
+    bl_label = "Toggle Material Channel Filter"
+    bl_description = "Toggles the filter node for the material channel on / off"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    material_channel_name: StringProperty(default='COLOR')
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        # Mark the material channel filter node on / off and relink the material nodes accordingly.
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        layer_node_tree = get_layer_node_tree(selected_layer_index)
+        filter_node = get_material_layer_node('FILTER', selected_layer_index, self.material_channel_name)
+        mix_node = get_material_layer_node('MIX', selected_layer_index, self.material_channel_name)
+        group_output_node = get_material_layer_node('OUTPUT', selected_layer_index)
+        if blender_addon_utils.get_node_active(filter_node) == True:
+            blender_addon_utils.set_node_active(filter_node, False)
+            blender_addon_utils.unlink_node(filter_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
+            layer_node_tree.links.new(mix_node.outputs[2], group_output_node.inputs.get(self.material_channel_name.capitalize()))
+            
+        else:
+            blender_addon_utils.set_node_active(filter_node, True)
+            layer_node_tree.links.new(mix_node.outputs[2], filter_node.inputs[0])
+            layer_node_tree.links.new(filter_node.outputs[0], group_output_node.inputs.get(self.material_channel_name.capitalize()))
+
         return {'FINISHED'}
