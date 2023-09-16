@@ -343,3 +343,26 @@ def verify_addon_material(material):
         return True
     else:
         return False
+    
+def set_snapping(snapping_mode, snap_on=True):
+    '''Sets ideal snapping settings for the specified mode.'''
+    match snapping_mode:
+        case 'DEFAULT':
+            bpy.context.scene.tool_settings.use_snap = snap_on
+            bpy.context.scene.tool_settings.snap_elements = {'INCREMENT'}
+            bpy.context.scene.tool_settings.use_snap_align_rotation = False
+            bpy.context.scene.tool_settings.use_snap_project = False
+            bpy.context.scene.tool_settings.snap_target = 'CLOSEST'
+
+        case 'DECAL':
+            bpy.context.scene.tool_settings.use_snap = snap_on
+            bpy.context.scene.tool_settings.snap_elements = {'FACE'}
+            bpy.context.scene.tool_settings.use_snap_align_rotation = True
+            bpy.context.scene.tool_settings.snap_target = 'CLOSEST'
+
+def select_only(select_object):
+    '''Deselects all objects excluding the provided one.'''
+    for obj in bpy.data.objects:
+        obj.select_set(False)
+    select_object.select_set(True)
+    bpy.context.view_layer.objects.active = select_object

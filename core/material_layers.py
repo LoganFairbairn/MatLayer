@@ -52,6 +52,16 @@ def update_layer_index(self, context):
             if value_node.image != None:
                 blender_addon_utils.set_texture_paint_image(value_node.image)
 
+    # Apply snapping mode based on the layer type.
+    projection_node = get_material_layer_node('PROJECTION', selected_layer_index, selected_material_channel)
+    match projection_node.node_tree.name:
+        case 'ML_UVProjection':
+            blender_addon_utils.set_snapping('DEFAULT', snap_on=False)
+        case 'ML_TriplanarProjection':
+            blender_addon_utils.set_snapping('DEFAULT', snap_on=False)
+        case 'ML_DecalProjection':
+            blender_addon_utils.set_snapping('DECAL', snap_on=True)
+
 def get_shorthand_material_channel_name(material_channel_name):
     '''Returns the short-hand version of the provided material channel name.'''
     match material_channel_name:
@@ -180,7 +190,9 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
         case 'DECAL_COORDINATES':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                return node_tree.nodes.get('DECAL_COORDINATES')
+                decal_projection_node = node_tree.nodes.get('PROJECTION')
+                if decal_projection_node:
+                    return decal_projection_node.node_tree.nodes.get('DECAL_OBJECT_COORDINATES')
             return None
         
         case 'DECAL_MASK':
@@ -288,8 +300,7 @@ def add_material_layer(layer_type, self):
         case 'PAINT':
             replace_material_channel_node('COLOR', 'TEXTURE')
             new_image = blender_addon_utils.create_image("Paint", base_color=(0.0, 0.0, 0.0, 0.0), alpha_channel=True, add_unique_id=True)
-            selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-            texture_node = get_material_layer_node('VALUE', selected_layer_index, 'COLOR')
+            texture_node = get_material_layer_node('VALUE', new_layer_slot_index, 'COLOR')
             if texture_node:
                 texture_node.image = new_image
             blender_addon_utils.set_texture_paint_image(new_image)
@@ -297,12 +308,12 @@ def add_material_layer(layer_type, self):
 
             for material_channel_name in MATERIAL_CHANNEL_LIST:
                 if material_channel_name != 'COLOR':
-                    mix_layer_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
+                    mix_layer_node = get_material_layer_node('MIX', new_layer_slot_index, material_channel_name)
                     if mix_layer_node:
                         mix_layer_node.mute = True
 
             # Unmute the mix image alpha node to apply image alpha blending.
-            mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, 'COLOR')
+            mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', new_layer_slot_index, 'COLOR')
             mix_image_alpha_node.mute = False
 
         case 'DECAL':
@@ -312,17 +323,30 @@ def add_material_layer(layer_type, self):
                 default_decal_image = blender_addon_utils.append_image('DefaultDecal')
                 decal_mask_node.image = default_decal_image
 
-            # Create a new decal object.
-            bpy.ops.object.mode_set(mode = 'OBJECT')
-            bpy.ops.object.empty_add(type='CUBE', align='WORLD', location=(0, 0, 0), scale=(1, 1, 0.1))
-            decal_object = bpy.context.active_object
+            # Create a new empty to use as a decal object.
+            decal_object = bpy.data.objects.new("Empty", None)
+            bpy.context.scene.collection.objects.link(decal_object)
+            decal_object.empty_display_type = 'CUBE'
+            decal_object.scale[2] = 0.1
 
             # Add the new decal object to the decal coordinate node.
             decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', new_layer_slot_index)
             if decal_coordinate_node:
                 decal_coordinate_node.object = decal_object
 
-            # TODO: Set ideal decal snapping settings.
+            # Add a default decal icon.
+            replace_material_channel_node('COLOR', 'TEXTURE')
+            new_image = blender_addon_utils.append_image('DefaultDecal')
+            texture_node = get_material_layer_node('VALUE', new_layer_slot_index, 'COLOR')
+            if texture_node:
+                if texture_node.bl_static_type == 'TEX_IMAGE':
+                    texture_node.image = new_image
+                    blender_addon_utils.set_texture_paint_image(new_image)
+                    blender_addon_utils.save_image(new_image)
+
+            # Select the decal object.
+            blender_addon_utils.set_snapping('DECAL', snap_on=True)
+            blender_addon_utils.select_only(decal_object)
 
 def duplicate_layer(original_layer_index, self):
     '''Duplicates the material layer at the provided layer index.'''
@@ -384,6 +408,13 @@ def delete_layer(self):
     layers = bpy.context.scene.matlayer_layers
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     active_material = bpy.context.active_object.active_material
+
+    # For decal layers, delete the accociated empty object if one exists.
+    decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', selected_layer_index)
+    if decal_coordinate_node:
+        decal_object = decal_coordinate_node.object
+        if decal_object:
+            bpy.data.objects.remove(decal_object)
 
     # Remove all mask group nodes and node trees associated with the layer.
     mask_count = layer_masks.count_masks(selected_layer_index)
@@ -702,6 +733,9 @@ def relink_layer_projection(relink_material_channel_name="", delink_layer_projec
             layer_node_tree.links.new(projection_node.outputs[1], blur_node.inputs[1])
             layer_node_tree.links.new(projection_node.outputs[2], blur_node.inputs[2])
 
+        case 'ML_DecalProjection':
+            layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
+
     # Relink projection for all material channels if no channel is specified.
     for material_channel_name in MATERIAL_CHANNEL_LIST:
         if relink_material_channel_name == "" or relink_material_channel_name == material_channel_name:
@@ -740,6 +774,16 @@ def relink_layer_projection(relink_material_channel_name="", delink_layer_projec
                         # No need to link projection for layers not using image textures.
                         else:
                             break
+
+                case 'ML_DecalProjection':
+                    value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
+                    mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
+                    if value_node.bl_static_type == 'TEX_IMAGE':
+                        if blender_addon_utils.get_node_active(blur_node):
+                            layer_node_tree.links.new(blur_node.outputs.get(material_channel_name.capitalize()), value_node.inputs[0])
+                        else:
+                            layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
+                            layer_node_tree.links.new(value_node.outputs.get('Alpha'), mix_image_alpha_node.inputs[1])
 
 def set_layer_projection_nodes(projection_method):
     '''Changes the layer projection nodes to use the specified layer projection method.'''
@@ -810,6 +854,32 @@ def apply_material_channel_projection(material_channel_name, projection_method, 
                 texture_sample_node.width = 300
                 texture_sample_node.location = original_node_location
 
+                if original_value_node_type == 'TEX_IMAGE':
+                    texture_sample_node.image = original_image
+
+                # Link the texture to projection / blur and mix layer nodes.
+                relink_layer_projection(material_channel_name, delink_layer_projection_nodes=False)
+                mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
+                opacity_node = get_material_layer_node('OPACITY', selected_layer_index, material_channel_name)
+                layer_node_tree.links.new(texture_sample_node.outputs[0], mix_node.inputs[7])
+                layer_node_tree.links.new(mix_image_alpha_node.outputs[0], opacity_node.inputs[3])
+                layer_node_tree.links.new(texture_sample_node.outputs.get('Alpha'), mix_image_alpha_node.inputs[1])
+
+            case 'DECAL':
+                # Remember original location and image of the texture node.
+                if original_value_node_type == 'TEX_IMAGE':
+                    original_image = value_node.image
+
+                # Delete triplanar texture nodes if they exist.
+                delete_triplanar_blending_nodes(material_channel_name)
+
+                # Replace with a single texture node.
+                texture_sample_node = layer_node_tree.nodes.new('ShaderNodeTexImage')
+                texture_sample_node.name = "{0}_VALUE_{1}".format(material_channel_name, 1)
+                texture_sample_node.label = texture_sample_node.name
+                texture_sample_node.hide = True
+                texture_sample_node.width = 300
+                texture_sample_node.location = original_node_location
                 if original_value_node_type == 'TEX_IMAGE':
                     texture_sample_node.image = original_image
 
@@ -899,12 +969,16 @@ def replace_material_channel_node(material_channel_name, node_type):
             layer_group_node.links.new(new_node.outputs[0], mix_node.inputs[7])
 
         case 'TEXTURE':
+            # Apply projection to texture nodes based on the projection node tree name.
             match projection_node.node_tree.name:
                 case 'ML_UVProjection':
                     apply_material_channel_projection(material_channel_name, 'UV', set_texture_node=True)
 
                 case 'ML_TriplanarProjection':
                     apply_material_channel_projection(material_channel_name, 'TRIPLANAR', set_texture_node=True)
+
+                case 'ML_DecalProjection':
+                    apply_material_channel_projection(material_channel_name, 'DECAL', set_texture_node=True)
 
 def set_layer_projection(projection_mode, self):
     '''Changes projection nodes for the layer to use the specified projection mode. Valid options include: 'UV', 'TRIPLANAR'.'''
