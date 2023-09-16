@@ -519,19 +519,27 @@ def draw_layer_blur_settings(layout):
     blur_node = material_layers.get_material_layer_node('LAYER_BLUR', selected_layer_index)
 
     if blur_node:
-        split = layout.split(factor=0.075)
+        split = layout.split(factor=0.25)
         first_column = split.column()
         second_column = split.column()
 
         row = first_column.row()
+        row.label(text="Blur")
+
+        split = second_column.row()
+        column_1 = split.column()
+        column_2 = split.column()
+
+        row = column_1.row()
+
         if blender_addon_utils.get_node_active(blur_node):
             row.operator("matlayer.toggle_layer_blur", text="", icon='CHECKBOX_HLT')
-            row = second_column.row()
+            row = column_2.row()
             row.enabled = True
 
         else:
             row.operator("matlayer.toggle_layer_blur", text="", icon='CHECKBOX_DEHLT')
-            row = second_column.row()
+            row = column_2.row()
             row.enabled = False
 
         row.prop(blur_node.inputs.get('Blur Amount'), "default_value", text="Blur Amount")
@@ -562,13 +570,27 @@ def draw_layer_properties(layout):
     '''Draws properties specific to the selected layer such as blurring, or decal properties.'''
     row = layout.row()
     row.separator()
-    row.scale_y = 2.5
 
     row = layout.row()
     row.label(text="LAYER PROPERTIES")
     draw_layer_blur_settings(layout)
 
-    # TODO: Draw decal layer properties here.
+    # Draw decal layer properties here.
+    split = layout.split(factor=0.25)
+    first_column = split.column()
+    second_column = split.column()
+
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    layer_node_tree = material_layers.get_layer_node_tree(selected_layer_index)
+    decal_mask_node = material_layers.get_material_layer_node('DECAL_MASK', selected_layer_index)
+    if decal_mask_node:
+        row = first_column.row()
+        row.label(text="Decal Mask")
+        row = second_column.row(align=True)
+        row.prop(decal_mask_node, "image", text="")
+        row.context_pointer_set("node_tree", layer_node_tree)
+        row.context_pointer_set("node", decal_mask_node)
+        row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
