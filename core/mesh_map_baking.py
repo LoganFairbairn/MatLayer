@@ -212,19 +212,6 @@ def create_bake_image(mesh_map_type):
 
     return mesh_map_image
 
-def apply_baking_quality_settings():
-    '''Applies baking quality settings.'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-    match addon_preferences.output_quality:
-        case 'LOW_QUALITY':
-            bpy.data.scenes["Scene"].cycles.samples = 1
-
-        case 'RECOMMENDED_QUALITY':
-            bpy.data.scenes["Scene"].cycles.samples = 64
-
-        case 'HIGH_QUALITY':
-            bpy.data.scenes["Scene"].cycles.samples = 128
-
 def bake_mesh_map(mesh_map_type, self):
     '''Applies a premade baking material to the active object and starts baking. Returns true if baking was successful.'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
@@ -622,8 +609,7 @@ class MATLAYER_OT_batch_bake(Operator):
                     self._original_material_names.append(x.material.name)
                 else:
                     self._original_material_names.append("")
-        
-        apply_baking_quality_settings()                                         # Apply bake settings and bake the material to a texture.
+
         self._original_render_engine = bpy.context.scene.render.engine          # Remember the render engine so we can reset it after baking.        
         baked_successfully = bake_mesh_map(self._mesh_maps_to_bake[0], self)    # Start baking the mesh map.
         if baked_successfully == False:
