@@ -91,30 +91,9 @@ def draw_general_settings(layout, addon_preferences, baking_settings):
     row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
 
     row = first_column.row()
-    row.label(text="Output Quality: ")
+    row.label(text="Cage Extrusion: ")
     row = second_column.row()
-    row.prop(addon_preferences, "output_quality", text="")
-
-def draw_ambient_occlusion_settings(layout, addon_preferences):
-    layout.separator()
-    layout.label(text="AMBIENT OCCLUSION")
-
-    split = layout.split(factor=0.25)
-    first_column = split.column()
-    second_column = split.column()
-
-    row = first_column.row()
-    row.label(text="Intensity")
-    row = second_column.row()
-    row.prop(addon_preferences, "ambient_occlusion_intensity", slider=True, text="")
-    
-    row = first_column.row()
-    row.label(text="Samples")
-    row = second_column.row()
-    row.prop(addon_preferences, "ambient_occlusion_samples", slider=True, text="")
-
-    row = layout.row()
-    row.prop(addon_preferences, "ambient_occlusion_local", text="Local Occlusion")
+    row.prop(addon_preferences, "cage_extrusion", text="")
 
 def draw_curvature_settings(layout, addon_preferences):
     layout.separator()
@@ -180,10 +159,51 @@ def draw_normal_settings(layout):
 
 def draw_mesh_map_settings(layout, addon_preferences):
     '''Draws settings for individual mesh maps.'''
-    draw_ambient_occlusion_settings(layout, addon_preferences)
-    draw_curvature_settings(layout, addon_preferences)
-    draw_thickness_settings(layout, addon_preferences)
-    draw_normal_settings(layout)
+    layout.separator()
+
+    layout.label(text="MESH MAP SETTINGS")
+
+    split = layout.split(factor=0.3)
+    first_column = split.column()
+    second_column = split.column()
+    
+    row = first_column.row()
+    row.label(text="Occlusion Samples")
+    row = second_column.row()
+    row.prop(addon_preferences, "occlusion_samples", slider=True, text="")
+
+    row = first_column.row()
+    row.label(text="Occlusion Distance")
+    row = second_column.row()
+    row.prop(addon_preferences, "occlusion_distance", slider=True, text="")
+
+    row = first_column.row()
+    row.label(text="Occlusion Contrast")
+    row = second_column.row()
+    row.prop(addon_preferences, "occlusion_contrast", slider=True, text="")
+
+    row = first_column.row()
+    row.label(text="Curvature Bevel Radius")
+    row = second_column.row()
+    row.prop(addon_preferences, "curvature_bevel_radius", slider=True, text="")
+
+    row = first_column.row()
+    row.label(text="Curvature Bevel Samples")
+    row = second_column.row()
+    row.prop(addon_preferences, "curvature_bevel_samples", slider=True, text="")
+
+    row = first_column.row()
+    row.label(text="Curvature Edge Intensity")
+    row = second_column.row()
+    row.prop(addon_preferences, "curvature_edge_intensity", slider=True, text="")
+
+    row = first_column.row()
+    row.label(text="Curvature Occlusion Masking")
+    row = second_column.row()
+    row.prop(addon_preferences, "curvature_occlusion_masking", slider=True, text="")
+
+    row = layout.row()
+    row.prop(addon_preferences, "local_occlusion", text="Local Occlusion")
 
 def draw_baking_section_ui(self, context):
     '''Draws the baking section user interface'''

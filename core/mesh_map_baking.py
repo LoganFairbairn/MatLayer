@@ -48,7 +48,60 @@ def update_meshmap_names(previous_name):
             meshmap_image.name = format_meshmap_name(bpy.context.active_object.name, meshmap_type)
     '''
 
+def update_occlusion_samples(self, context):
+    '''Updates the occlusion samples setting in the active material'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    node = get_meshmap_node('AMBIENT_OCCLUSION')
+    node.samples = addon_preferences.occlusion_samples
+
+def update_occlusion_distance(self, context):
+    '''Updates the occlusion distance setting in the active material'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    node = get_meshmap_node('AMBIENT_OCCLUSION')
+    node.inputs.get('Distance').default_value = addon_preferences.occlusion_distance
+
+def update_occlusion_contrast(self, context):
+    '''Updates the occlusion contrast setting in the active material'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    node = get_meshmap_node('CONTRAST')
+    node.inputs.get('Contrast').default_value = addon_preferences.occlusion_contrast
+
+def update_curvature_bevel_radius(self, context):
+    '''Updates the bevel radius setting in the active material'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    node = get_meshmap_node('BEVEL')
+    node.inputs.get('Radius').default_value = addon_preferences.curvature_bevel_radius
+
+def update_curvature_bevel_samples(self, context):
+    '''Updates the curvature bevel samples setting in the active material'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    node = get_meshmap_node('BEVEL')
+    node.samples = addon_preferences.curvature_bevel_samples
+
+def update_curvature_edge_intensity(self, context):
+    '''Updates the curvature edge intensity setting in the active material'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    node = get_meshmap_node('EDGE_INTENSITY')
+    node.inputs[1].default_value = addon_preferences.curvature_edge_intensity
+
+def update_curvature_occlusion_masking(self, context):
+    '''Updates the curvature occlusion masking setting in the active material'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    node = get_meshmap_node('AMBIENT_OCCLUSION_MASKING')
+    node.inputs[1].default_value = addon_preferences.curvature_occlusion_masking
+
 #----------------------------- HELPER FUNCTIONS -----------------------------#
+
+def get_meshmap_node(node_type):
+    '''Returns a node found within a mesh map material setup if it exists.'''
+    active_object = bpy.context.active_object
+    if active_object:
+        if active_object.active_material:
+            ao_node = active_object.active_material.node_tree.nodes.get('MESH_MAP')
+            if ao_node:
+                return ao_node.node_tree.nodes.get(node_type)
+            else:
+                debug_logging.log("Mesh map group node does not exist.")
 
 def get_meshmap_name(mesh_name, mesh_map_type):
     '''Returns the image file name for the mesh map of the specified type. The mesh name can be an objects name if the object is a mesh type.'''

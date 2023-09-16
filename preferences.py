@@ -3,7 +3,7 @@
 import bpy
 from bpy.types import AddonPreferences, PropertyGroup
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty, FloatProperty, PointerProperty, CollectionProperty
-from .core.mesh_map_baking import update_bake_width
+from .core.mesh_map_baking import update_bake_width, update_occlusion_samples, update_occlusion_distance, update_occlusion_contrast, update_curvature_bevel_radius, update_curvature_bevel_samples, update_curvature_edge_intensity, update_curvature_occlusion_masking
 from .core.texture_set_settings import TEXTURE_SET_RESOLUTIONS
 
 ADDON_NAME = __package__
@@ -53,12 +53,6 @@ TEXTURE_EXPORT_FORMAT = [
     ("JPG", "jpg", "Exports the selected material channel in JPG texture format. This is a compressed format, which could be used for textures applied to models that will be shown in a web browser"),
     ("TARGA", "tga", "Exports the selected material channel in TARGA texture format"),
     ("EXR", "exr", "Exports the selected material channel in open exr texture format")
-]
-
-MESH_MAP_QUALITY_SETTINGS = [
-    ("LOW_QUALITY", "Low Quality (for testing)", "Extremly low quality baking, generally used only for testing baking functionality or previewing a really rough version of baked textures. Using this quality will significantly reduce time it takes to bake mesh maps"), 
-    ("RECOMMENDED_QUALITY", "Recommended Quality", "The suggested quality for baking texture maps"),
-    ("HIGH_QUALITY", "High Quality", "A higher than average baking quality. This should be used for when fine, accurate detail is required in mesh map textures. Using this quality will significantly slow down baking speeds")
 ]
 
 class MATLAYER_pack_textures(PropertyGroup):
@@ -129,25 +123,91 @@ class AddonPreferences(AddonPreferences):
 
     #----------------------------- MESH MAP BAKING PROPERTIES -----------------------------#
 
-    output_quality: EnumProperty(items=MESH_MAP_QUALITY_SETTINGS, name="Output Quality", description="Output quality of the baked mesh maps", default='RECOMMENDED_QUALITY')
     output_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS,name="Output Height",description="Image size for the baked texure map result(s)", default='TWOK', update=update_bake_width)
     output_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Output Height", description="Image size for the baked texure map result(s)", default='TWOK')
-    bake_ambient_occlusion: BoolProperty(name="Bake Ambient Occlusion", description="Toggle for baking ambient occlusion as part of the batch baking operator", default=True)
-    ambient_occlusion_image_name: StringProperty(name="", description="The baking AO image", default="")
-    ambient_occlusion_intensity: FloatProperty(name="Ambient Occlusion Intensity", description="", min=0.1, max=0.99, default=0.15)
-    ambient_occlusion_samples: IntProperty(name="Ambient Occlusion Samples", description="The amount of samples for ambient occlusion taken", min=1, max=128, default=64)
-    ambient_occlusion_local: BoolProperty(name="Local Ambient Occlusion", description="Ambient occlusion will not bake shadows cast by other objects", default=True)
-    bake_curvature: BoolProperty(name="Bake Curvature", description="Toggle for baking curvature as part of the batch baking process", default=True)
-    curvature_image_name: StringProperty(name="", description="The baked curvature for object", default="")
-    curvature_edge_intensity: FloatProperty(name="Edge Intensity", description="Brightens edges", min=0.0, max=10.0, default=3.0)
-    curvature_edge_radius: FloatProperty(name="Edge Radius", description="Edge radius", min=0.001, max=0.1, default=0.01)
-    curvature_ao_masking: FloatProperty(name="AO Masking", description="Mask the curvature edges using ambient occlusion", min=0.0, max=1.0, default=1.0)
-    bake_thickness: BoolProperty(name="Bake Thickness", description="Toggle for baking thickness as part of the batch baking operator", default=True)
-    thickness_samples: IntProperty(name="Thickness Samples", description="The amount of samples for thickness baking. Increasing this value will increase the quality of the output thickness maps", min=1, max=128, default=64)
+
     bake_normals: BoolProperty(name="Bake Normal", description="Toggle for baking normal maps for baking as part of the batch baking operator", default=True)
-    cage_extrusion: FloatProperty(name="Cage Extrusion", description="Infaltes the active object by the specified amount for baking. This helps matching to points nearer to the outside of the selected object meshes", default=0.111, min=0.0, max=1.0)
-    bake_bevel_normals: BoolProperty(name="Bake Bevel Normal", description="Toggle for baking a bevel normal map for baking as part of the batch baking operator", default=False)
+    bake_ambient_occlusion: BoolProperty(name="Bake Ambient Occlusion", description="Toggle for baking ambient occlusion as part of the batch baking operator", default=True)
+    bake_curvature: BoolProperty(name="Bake Curvature", description="Toggle for baking curvature as part of the batch baking operator", default=True)
+    bake_thickness: BoolProperty(name="Bake Thickness", description="Toggle for baking thickness as part of the batch baking operator", default=True)
     bake_world_space_normals: BoolProperty(name="Bake World Space Normals", description="Toggle for baking world space normals as part of the batch baking operator", default=True)
+
+    occlusion_samples: IntProperty(
+        name="Occlusion Samples", 
+        description="Number of rays to trace for occlusion shader evaluation. Higher values help slightly with quality occlusion quality", 
+        default=64, 
+        min=1, 
+        max=128, 
+        update=update_occlusion_samples
+    )
+    
+    occlusion_distance: FloatProperty(
+        name="Occlusion Distance", 
+        description="Occlusion distance between polygons. Lower values results in less occlusion",
+        default=1.0,
+        min=0.1,
+        max=1.0,
+        update=update_occlusion_distance
+    )
+
+    occlusion_contrast: FloatProperty(
+        name="Occlusion Contrast",
+        description="Occlusion contrast. Higher values result in more intense differences between white and black pixel values in the occlusion map output",
+        default=0.333,
+        min=0.1,
+        max=2.0,
+        update=update_occlusion_contrast
+    )
+
+    curvature_bevel_radius: FloatProperty(
+        name="Curvature Bevel Radius",
+        description="The radius of the bevel baked into the curvature map output",
+        default=5.0,
+        min=0.0,
+        max=10.0,
+        update=update_curvature_bevel_radius
+    )
+
+    curvature_bevel_samples: IntProperty(
+        name="Curvature Bevel Samples",
+        description = "The number of rays to trace per shader evaluation for the marked bevel baked into the curvature map output. Increasing the bevel samples results in a sharper more defined bevel",
+        default=6,
+        min=2,
+        max=16,
+        update=update_curvature_bevel_samples
+    )
+
+    curvature_edge_intensity: FloatProperty(
+        name="Curvature Edge Intensity",
+        description="Intensity of the edges baked into the curvature map output",
+        default=5.0,
+        min=0.0,
+        max=10.0,
+        update=update_curvature_edge_intensity
+    )
+
+    curvature_occlusion_masking: FloatProperty(
+        name="Curvature Occlusion Masking",
+        description="The intensity of the occlusion masking applied to the curvature bevel. Higher masking values results in bevels being less prominant in areas with tight geometry",
+        default=0.75,
+        min=0.0,
+        max=2.0,
+        update=update_curvature_occlusion_masking
+    )
+
+    local_occlusion: BoolProperty(
+        name="Local Occlusion",
+        description="When off, other objects within the scene will contribute occlusion to the output maps",
+        default=True
+    )
+
+    cage_extrusion: FloatProperty(
+        name="Cage Extrusion",
+        description="Infaltes the active object by the specified amount for baking. This helps matching to points nearer to the outside of the selected object meshes", 
+        default=0.111, 
+        min=0.0,
+        max=1.0
+    )
 
     #----------------------------- TEXTURE EXPORTING PROPERTIES -----------------------------#
 
