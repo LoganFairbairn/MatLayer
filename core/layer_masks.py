@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import PropertyGroup, Operator
-from bpy.props import BoolProperty, IntProperty, EnumProperty, StringProperty, PointerProperty
+from bpy.props import BoolProperty, IntProperty, StringProperty
 import random
 from ..core import texture_set_settings as tss
 from ..core import material_layers
