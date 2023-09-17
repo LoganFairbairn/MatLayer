@@ -30,10 +30,21 @@ class MATLAYER_UL_layer_list(bpy.types.UIList):
                 operator = row.operator("matlayer.toggle_hide_layer", text="", emboss=False, icon='HIDE_ON')
                 operator.layer_index = item_index
 
+            # Draw the layer type icon.
+            row = layout.row()
+            row.ui_units_x = 1
+            projection_node = material_layers.get_material_layer_node('PROJECTION', item_index)
+            match projection_node.node_tree.name:
+                case 'ML_DecalProjection':
+                    row.label(text="", icon='FONT_DATA')
+
+                case _:
+                    row.label(text="", icon='MATERIAL_DATA')
+
             # Draw the layer name.
             if layer_node:
                 row = layout.row()
-                row.ui_units_x = 3
+                row.ui_units_x = 2
                 row.prop(layer_node, "label", text="", emboss=False)
 
             # Layer opacity and blending mode (for the selected material channel).
@@ -42,7 +53,7 @@ class MATLAYER_UL_layer_list(bpy.types.UIList):
             mix_layer_node = material_layers.get_material_layer_node('MIX', item_index, material_channel_name=selected_material_channel.upper())
             if mix_layer_node:
                 row = layout.row(align=True)
-                row.ui_units_x = 2
+                row.ui_units_x = 5
 
                 split = layout.split()
                 col = split.column(align=True)
