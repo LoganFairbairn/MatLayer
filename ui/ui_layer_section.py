@@ -325,9 +325,6 @@ def draw_mask_projection(layout):
     row = layout.row()
     row.scale_y = 2.5
     row.separator()
-    row = layout.row()
-    row.scale_y = DEFAULT_UI_SCALE_Y
-    row.label(text="MASK PROJECTION")
 
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
@@ -335,6 +332,10 @@ def draw_mask_projection(layout):
     if mask_projection_node:
         match mask_projection_node.node_tree.name:
             case 'ML_UVProjection':
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.label(text="MASK PROJECTION")
+
                 row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.menu('MATLAYER_MT_mask_projection_sub_menu', text="UV Projection")
@@ -355,6 +356,10 @@ def draw_mask_projection(layout):
                 row.prop(mask_projection_node.inputs.get('Rotation'), "default_value", text="Rotation", slider=True)
 
             case 'ML_TriplanarProjection':
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.label(text="MASK PROJECTION")
+
                 row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.menu('MATLAYER_MT_mask_projection_sub_menu', text="Triplanar Projection")
@@ -434,33 +439,36 @@ def draw_mask_filters(layout, selected_layer_index, selected_mask_index):
             row = layout.row()
             layout.template_color_ramp(mask_filter_node, "color_ramp", expand=True)
 
-def draw_mask_group_node_properties(layout, mask_node):
+def draw_mask_group_node_properties(layout, mask_node, selected_layer_index, selected_mask_index):
     '''Draws group node properties for the selected mask.'''
+    split = layout.split(factor=0.25)
+    first_column = split.column()
+    second_column = split.column()
+
     for i in range(0, len(mask_node.inputs)):
         if mask_node.inputs[i].name != 'Mix':
-            row = layout.row()
-            row.scale_y = DEFAULT_UI_SCALE_Y
-            row.prop(mask_node.inputs[i], "default_value", text=mask_node.inputs[i].name)
 
-def draw_mask_blur_properties(layout, selected_layer_index, selected_mask_index):
-    '''Draws blurring properties for the selected mask (if they exist).'''
-    blur_node = layer_masks.get_mask_node('BLUR', selected_layer_index, selected_mask_index)
-    if blur_node:
-        split = layout.split(factor=0.25)
-        first_column = split.column()
-        second_column = split.column()
+            if mask_node.inputs[i].name == 'Blur Amount':
+                row = first_column.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.label(text="Blur")
+                row = second_column.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                blur_node = layer_masks.get_mask_node('BLUR', selected_layer_index, selected_mask_index)
+                if blender_addon_utils.get_node_active(blur_node):
+                    row.operator("matlayer.toggle_mask_blur", depress=True, text="", icon='CHECKBOX_HLT')
+                else:
+                    row.operator("matlayer.toggle_mask_blur", text="", icon='CHECKBOX_DEHLT')
+                row.prop(mask_node.inputs[i], "default_value", text=mask_node.inputs[i].name)
 
-        row = first_column.row()
-        row.scale_y = DEFAULT_UI_SCALE_Y
-        row.label(text="Blur")
+            else:
+                row = first_column.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.label(text=mask_node.inputs[i].name)
 
-        row = second_column.row()
-        row.scale_y = DEFAULT_UI_SCALE_Y
-        if blender_addon_utils.get_node_active(blur_node):
-            row.operator("matlayer.toggle_mask_blur", depress=True, text="", icon='CHECKBOX_HLT')
-        else:
-            row.operator("matlayer.toggle_mask_blur", text="", icon='CHECKBOX_DEHLT')
-        row.prop(blur_node.inputs.get('Blur Amount'), "default_value", text="Blur")
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.prop(mask_node.inputs[i], "default_value", text="")
 
 def draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index):
     '''Draws mesh maps for the selected mask.'''
@@ -513,8 +521,7 @@ def draw_masks(layout):
         draw_mask_channel(layout, selected_layer_index, selected_mask_index)
         draw_mask_textures(layout, mask_node)
         draw_mask_filters(layout, selected_layer_index, selected_mask_index)
-        draw_mask_group_node_properties(layout, mask_node)
-        draw_mask_blur_properties(layout, selected_layer_index, selected_mask_index)
+        draw_mask_group_node_properties(layout, mask_node, selected_layer_index, selected_mask_index)
         draw_mask_projection(layout)
         draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index)
 
