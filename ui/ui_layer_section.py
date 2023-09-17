@@ -111,7 +111,7 @@ def draw_layer_material_channel_toggles(layout):
 
     row = layout.row()
     row.separator()
-    row.scale_y = 2.5
+    row.scale_y = 2
     row = layout.row()
     row.label(text="CHANNEL TOGGLES")
 
@@ -259,15 +259,15 @@ def draw_layer_projection(layout):
     '''Draws layer projection settings.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     
-    row = layout.row()
-    row.scale_y = DEFAULT_UI_SCALE_Y
-    row.label(text="LAYER PROJECTION")
-
     # Draw the projection mode.
     projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
     if projection_node:
         match projection_node.node_tree.name:
             case 'ML_UVProjection':
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.label(text="LAYER PROJECTION")
+
                 row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.menu('MATLAYER_MT_layer_projection_sub_menu', text="UV Projection")
@@ -288,6 +288,10 @@ def draw_layer_projection(layout):
                 row.prop(projection_node.inputs.get('Rotation'), "default_value", text="Rotation", slider=True)
 
             case 'ML_TriplanarProjection':
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.label(text="LAYER PROJECTION")
+
                 row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.menu('MATLAYER_MT_layer_projection_sub_menu', text="Triplanar Projection")
@@ -388,7 +392,7 @@ def draw_mask_channel(layout, selected_layer_index, selected_mask_index):
     row = first_column.row()
     row.label(text="Channel")
 
-    mask_filter_node = layer_masks.get_mask_node("MASK_FILTER", selected_layer_index, selected_mask_index)
+    mask_filter_node = layer_masks.get_mask_node("FILTER", selected_layer_index, selected_mask_index)
     if mask_filter_node:
         menu_label = mask_filter_node.inputs[0].links[0].from_socket.name
         row = second_column.row()
@@ -415,7 +419,7 @@ def draw_mask_textures(layout, mask_node):
 
 def draw_mask_filters(layout, selected_layer_index, selected_mask_index):
     '''Draws all properties for filters applied to the selected mask.'''
-    mask_filter_node = layer_masks.get_mask_node('MASK_FILTER', selected_layer_index, selected_mask_index)
+    mask_filter_node = layer_masks.get_mask_node('FILTER', selected_layer_index, selected_mask_index)
     if mask_filter_node:
         split = layout.split(factor=0.25)
         first_column = split.column()
@@ -516,7 +520,7 @@ def draw_masks(layout):
 
 def draw_layer_blur_settings(layout):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    blur_node = material_layers.get_material_layer_node('LAYER_BLUR', selected_layer_index)
+    blur_node = material_layers.get_material_layer_node('BLUR', selected_layer_index)
 
     if blur_node:
         split = layout.split(factor=0.25)
@@ -570,27 +574,11 @@ def draw_layer_properties(layout):
     '''Draws properties specific to the selected layer such as blurring, or decal properties.'''
     row = layout.row()
     row.separator()
+    row.scale_y = 2
 
     row = layout.row()
     row.label(text="LAYER PROPERTIES")
     draw_layer_blur_settings(layout)
-
-    # Draw decal layer properties here.
-    split = layout.split(factor=0.25)
-    first_column = split.column()
-    second_column = split.column()
-
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    layer_node_tree = material_layers.get_layer_node_tree(selected_layer_index)
-    decal_mask_node = material_layers.get_material_layer_node('DECAL_MASK', selected_layer_index)
-    if decal_mask_node:
-        row = first_column.row()
-        row.label(text="Decal Mask")
-        row = second_column.row(align=True)
-        row.prop(decal_mask_node, "image", text="")
-        row.context_pointer_set("node_tree", layer_node_tree)
-        row.context_pointer_set("node", decal_mask_node)
-        row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
@@ -637,6 +625,7 @@ class MATLAYER_OT_add_layer_mask_menu(Operator):
         col.operator("matlayer.add_black_layer_mask", text="Black")
         col.operator("matlayer.add_white_layer_mask", text="White")
         col.operator("matlayer.add_edge_wear_mask", text="Edge Wear")
+        col.operator("matlayer.add_decal_mask", text="Decal Mask")
 
 class MATLAYER_OT_add_material_filter_menu(Operator):
     bl_label = ""

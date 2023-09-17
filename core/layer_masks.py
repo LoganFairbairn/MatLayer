@@ -51,11 +51,11 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
                 return node_tree.nodes.get('MASK_MIX')
             return None
 
-        case 'MASK_FILTER':
+        case 'FILTER':
             mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
-                return node_tree.nodes.get('MASK_FILTER')
+                return node_tree.nodes.get('FILTER')
             return None
 
         case 'PROJECTION':
@@ -63,6 +63,13 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
                 return node_tree.nodes.get('PROJECTION')
+            return None
+
+        case 'COORDINATES':
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
+            node_tree = bpy.data.node_groups.get(mask_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('COORDINATES')
             return None
 
         case 'TRIPLANAR_BLEND':
@@ -272,6 +279,26 @@ def add_layer_mask(type, self):
             link_mask_nodes(selected_layer_index)
             material_layers.apply_mesh_maps()
             debug_logging.log("Added edge wear mask.")
+
+        case 'DECAL':
+            default_node_group = blender_addon_utils.append_group_node("ML_DecalMask", never_auto_delete=True)
+            default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
+
+            new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+            new_mask_group_node.node_tree = default_node_group
+            new_mask_group_node.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
+            new_mask_group_node.label = "Decal Mask"
+            
+            reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
+            organize_mask_nodes()
+            link_mask_nodes(selected_layer_index)
+
+            # Add the decal object to the mask coordinate node.
+            layer_coordinate_node = material_layers.get_material_layer_node('COORDINATES', selected_layer_index)
+            decal_coordinate_node = get_mask_node('COORDINATES', selected_layer_index, new_mask_slot_index)
+            decal_coordinate_node.object = layer_coordinate_node.object
+
+            debug_logging.log("Added decal layer mask.")
 
 def duplicate_mask(self, mask_index=-1):
     '''Duplicates the mask at the provided mask index.'''
@@ -497,7 +524,7 @@ def relink_mask_projection():
             else:
                 mask_node.node_tree.links.new(projection_node.outputs[0], texture_node.inputs[0])
 
-            mask_filter_node = get_mask_node('MASK_FILTER', selected_layer_index, selected_mask_index)
+            mask_filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
             mask_node.node_tree.links.new(texture_node.outputs[0], mask_filter_node.inputs[0])
 
             # Unlink and re-link the mask filter node to trigger a re-compile of the material.
@@ -527,7 +554,7 @@ def relink_mask_projection():
                         mask_node.node_tree.links.new(texture_node.outputs[0], triplanar_blend_node.inputs[i])
                 mask_node.node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
 
-                mask_filter_node = get_mask_node('MASK_FILTER', selected_layer_index, selected_mask_index)
+                mask_filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
                 if mask_filter_node:
                     blender_addon_utils.unlink_node(mask_filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
                     mask_node.node_tree.links.new(triplanar_blend_node.outputs[0], mask_filter_node.inputs[0])
@@ -733,6 +760,21 @@ class MATLAYER_OT_add_edge_wear_mask(Operator):
         add_layer_mask('EDGE_WEAR', self)
         return {'FINISHED'}
 
+class MATLAYER_OT_add_decal_mask(Operator):
+    bl_label = "Add Decal Mask"
+    bl_idname = "matlayer.add_decal_mask"
+    bl_description = "Adds a mask with decal projection to the selected material layer"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        add_layer_mask('DECAL', self)
+        return {'FINISHED'}
+
 class MATLAYER_OT_move_layer_mask_up(Operator):
     bl_label = "Move Layer Mask Up"
     bl_idname = "matlayer.move_layer_mask_up"
@@ -844,7 +886,7 @@ class MATLAYER_OT_set_mask_output_channel(Operator):
 
         mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
         mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
-        mask_filter_node = get_mask_node('MASK_FILTER', selected_layer_index, selected_mask_index)
+        mask_filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
         separate_color_node = mask_node.node_tree.nodes.get('SEPARATE_COLOR')
 
         # Disconnect the mask nodes.

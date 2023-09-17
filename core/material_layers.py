@@ -2,7 +2,7 @@
 
 import bpy
 from bpy.types import PropertyGroup, Operator
-from bpy.props import BoolProperty, IntProperty, EnumProperty, StringProperty, PointerProperty
+from bpy.props import IntProperty, EnumProperty, StringProperty
 from ..core import layer_masks
 from . import mesh_map_baking
 from ..core import blender_addon_utils
@@ -103,6 +103,11 @@ def get_layer_node_tree(layer_index):
 
 def get_material_layer_node(layer_node_name, layer_index=0, material_channel_name='COLOR', node_number=1, get_changed=False):
     '''Returns the desired material node if it exists. Supply the material channel name to get nodes specific to material channels.'''
+
+    # This function exists to allow easy access to premade nodes from materials a node tree appended from an asset blend file.
+    # Using specified names for nodes allows consistent access to specific nodes accross languages in Blender (as Blender's auto translate feature will translate default node names).
+    # This function also has the benefit of being able to return nodes in sub-node groups, if required.
+
     if bpy.context.active_object == None:
         return
     
@@ -141,10 +146,10 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
                 return node_tree.nodes.get("MIX_{0}_IMAGE_ALPHA".format(material_channel_name))
             return None  
 
-        case 'LAYER_BLUR':
+        case 'BLUR':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                return node_tree.nodes.get("LAYER_BLUR")
+                return node_tree.nodes.get("BLUR")
             return None
 
         case 'MIX':
@@ -187,20 +192,14 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
                 return node_tree.nodes.get('Group Input')
             return None
         
-        case 'DECAL_COORDINATES':
+        case 'COORDINATES':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
                 decal_projection_node = node_tree.nodes.get('PROJECTION')
                 if decal_projection_node:
-                    return decal_projection_node.node_tree.nodes.get('DECAL_OBJECT_COORDINATES')
+                    return decal_projection_node.node_tree.nodes.get('COORDINATES')
             return None
-        
-        case 'DECAL_MASK':
-            node_tree = bpy.data.node_groups.get(layer_group_node_name)
-            if node_tree:
-                return node_tree.nodes.get('DECAL_MASK')
-            return None
-        
+
         case _:
             debug_logging.log("Invalid material node name passed to get_material_layer_node.")
             return None
@@ -317,11 +316,6 @@ def add_material_layer(layer_type, self):
             mix_image_alpha_node.mute = False
 
         case 'DECAL':
-            # Append a default decal image.
-            decal_mask_node = get_material_layer_node('DECAL_MASK', new_layer_slot_index)
-            if decal_mask_node:
-                default_decal_image = blender_addon_utils.append_image('DefaultDecal')
-                decal_mask_node.image = default_decal_image
 
             # Create a new empty to use as a decal object.
             decal_object = bpy.data.objects.new("Empty", None)
@@ -330,23 +324,24 @@ def add_material_layer(layer_type, self):
             decal_object.scale[2] = 0.1
 
             # Add the new decal object to the decal coordinate node.
-            decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', new_layer_slot_index)
+            decal_coordinate_node = get_material_layer_node('COORDINATES', new_layer_slot_index)
             if decal_coordinate_node:
                 decal_coordinate_node.object = decal_object
 
-            # Add a default decal icon.
+            # Create a new decal mask and insert a default decal image.
+            default_decal_image = blender_addon_utils.append_image('DefaultDecal')
+            layer_masks.add_layer_mask('DECAL', self)
+            mask_texture_node = layer_masks.get_mask_node('TEXTURE', new_layer_slot_index, 0)
+            mask_texture_node.image = default_decal_image
+
+            # Add a default decal to the color material channel.
             replace_material_channel_node('COLOR', 'TEXTURE')
-            new_image = blender_addon_utils.append_image('DefaultDecal')
             texture_node = get_material_layer_node('VALUE', new_layer_slot_index, 'COLOR')
             if texture_node:
                 if texture_node.bl_static_type == 'TEX_IMAGE':
-                    texture_node.image = new_image
-                    blender_addon_utils.set_texture_paint_image(new_image)
-                    blender_addon_utils.save_image(new_image)
-
-            # Select the decal object.
-            blender_addon_utils.set_snapping('DECAL', snap_on=True)
-            blender_addon_utils.select_only(decal_object)
+                    texture_node.image = default_decal_image
+                    blender_addon_utils.set_texture_paint_image(default_decal_image)
+                    blender_addon_utils.save_image(default_decal_image)
 
 def duplicate_layer(original_layer_index, self):
     '''Duplicates the material layer at the provided layer index.'''
@@ -410,7 +405,7 @@ def delete_layer(self):
     active_material = bpy.context.active_object.active_material
 
     # For decal layers, delete the accociated empty object if one exists.
-    decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', selected_layer_index)
+    decal_coordinate_node = get_material_layer_node('COORDINATES', selected_layer_index)
     if decal_coordinate_node:
         decal_object = decal_coordinate_node.object
         if decal_object:
@@ -716,7 +711,7 @@ def relink_layer_projection(relink_material_channel_name="", delink_layer_projec
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layer_node_tree = get_layer_node_tree(selected_layer_index)
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
-    blur_node = get_material_layer_node('LAYER_BLUR', selected_layer_index)
+    blur_node = get_material_layer_node('BLUR', selected_layer_index)
 
     # Disconnect the projection and blur nodes.
     if delink_layer_projection_nodes:
@@ -734,6 +729,7 @@ def relink_layer_projection(relink_material_channel_name="", delink_layer_projec
             layer_node_tree.links.new(projection_node.outputs[2], blur_node.inputs[2])
 
         case 'ML_DecalProjection':
+            layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
             layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
 
     # Relink projection for all material channels if no channel is specified.
@@ -790,24 +786,24 @@ def set_layer_projection_nodes(projection_method):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
     layer_node_tree = get_layer_node_tree(selected_layer_index)
-    layer_blur_node = get_material_layer_node('LAYER_BLUR', selected_layer_index)
+    BLUR_node = get_material_layer_node('BLUR', selected_layer_index)
     
     match projection_method:
         case 'UV':
             projection_node.node_tree = blender_addon_utils.append_group_node("ML_UVProjection")
-            layer_blur_node.node_tree = blender_addon_utils.append_group_node("ML_LayerBlur")
+            BLUR_node.node_tree = blender_addon_utils.append_group_node("ML_LayerBlur")
 
-            if blender_addon_utils.get_node_active(layer_blur_node):
-                layer_node_tree.links.new(projection_node.outputs[0], layer_blur_node.inputs[0])
+            if blender_addon_utils.get_node_active(BLUR_node):
+                layer_node_tree.links.new(projection_node.outputs[0], BLUR_node.inputs[0])
 
         case 'TRIPLANAR':
             projection_node.node_tree = blender_addon_utils.append_group_node("ML_TriplanarProjection")
-            layer_blur_node.node_tree = blender_addon_utils.append_group_node("ML_TriplanarLayerBlur")
+            BLUR_node.node_tree = blender_addon_utils.append_group_node("ML_TriplanarLayerBlur")
 
-            if blender_addon_utils.get_node_active(layer_blur_node):
-                layer_node_tree.links.new(projection_node.outputs.get('X'), layer_blur_node.inputs.get('X'))
-                layer_node_tree.links.new(projection_node.outputs.get('Y'), layer_blur_node.inputs.get('Y'))
-                layer_node_tree.links.new(projection_node.outputs.get('Z'), layer_blur_node.inputs.get('Z'))
+            if blender_addon_utils.get_node_active(BLUR_node):
+                layer_node_tree.links.new(projection_node.outputs.get('X'), BLUR_node.inputs.get('X'))
+                layer_node_tree.links.new(projection_node.outputs.get('Y'), BLUR_node.inputs.get('Y'))
+                layer_node_tree.links.new(projection_node.outputs.get('Z'), BLUR_node.inputs.get('Z'))
 
 def delete_triplanar_blending_nodes(material_channel_name):
     '''Deletes nodes used for triplanar texture sampling and blending for the specified material channel.'''
@@ -833,9 +829,8 @@ def apply_material_channel_projection(material_channel_name, projection_method, 
     original_value_node_type = value_node.bl_static_type
     original_node_location = value_node.location
     
-    # Texture nodes are the only nodes that require a specific projection node setup.
-    # Only apply projection for a material channel if the material channel uses a texture node to represent it's value.
-    # If set_texture_node is true, the material channel value node will be changed to use a texture node, regardless of it's original node type.
+    # Texture nodes are the only nodes that require a specific projection node setup, ignore other node types.
+    # If set_texture_node is true, the material channel value node will be replaces with a texture node, regardless of it's original node type.
     if value_node.bl_static_type == 'TEX_IMAGE' or set_texture_node:
         match projection_method:
             case 'UV':
@@ -874,22 +869,23 @@ def apply_material_channel_projection(material_channel_name, projection_method, 
                 delete_triplanar_blending_nodes(material_channel_name)
 
                 # Replace with a single texture node.
-                texture_sample_node = layer_node_tree.nodes.new('ShaderNodeTexImage')
-                texture_sample_node.name = "{0}_VALUE_{1}".format(material_channel_name, 1)
-                texture_sample_node.label = texture_sample_node.name
-                texture_sample_node.hide = True
-                texture_sample_node.width = 300
-                texture_sample_node.location = original_node_location
+                texture_node = layer_node_tree.nodes.new('ShaderNodeTexImage')
+                texture_node.name = "{0}_VALUE_{1}".format(material_channel_name, 1)
+                texture_node.label = texture_node.name
+                texture_node.hide = True
+                texture_node.width = 300
+                texture_node.location = original_node_location
+                texture_node.extension = 'CLIP'
                 if original_value_node_type == 'TEX_IMAGE':
-                    texture_sample_node.image = original_image
+                    texture_node.image = original_image
 
                 # Link the texture to projection / blur and mix layer nodes.
                 relink_layer_projection(material_channel_name, delink_layer_projection_nodes=False)
                 mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
                 opacity_node = get_material_layer_node('OPACITY', selected_layer_index, material_channel_name)
-                layer_node_tree.links.new(texture_sample_node.outputs[0], mix_node.inputs[7])
+                layer_node_tree.links.new(texture_node.outputs[0], mix_node.inputs[7])
                 layer_node_tree.links.new(mix_image_alpha_node.outputs[0], opacity_node.inputs[3])
-                layer_node_tree.links.new(texture_sample_node.outputs.get('Alpha'), mix_image_alpha_node.inputs[1])
+                layer_node_tree.links.new(texture_node.outputs.get('Alpha'), mix_image_alpha_node.inputs[1])
 
             case 'TRIPLANAR':
                 # Remember the old image and location.
@@ -1196,7 +1192,7 @@ class MATLAYER_OT_toggle_layer_blur(Operator):
 
     def execute(self, context):
         selected_layer_index = context.scene.matlayer_layer_stack.selected_layer_index
-        blur_node = get_material_layer_node('LAYER_BLUR', selected_layer_index)
+        blur_node = get_material_layer_node('BLUR', selected_layer_index)
         if blur_node:
             # Connect the projection node to all material channels.
             if blender_addon_utils.get_node_active(blur_node):
@@ -1224,12 +1220,12 @@ class MATLAYER_OT_toggle_material_channel_blur(Operator):
     def execute(self, context):
         selected_layer_index = context.scene.matlayer_layer_stack.selected_layer_index
 
-        layer_blur_node = get_material_layer_node('LAYER_BLUR', selected_layer_index)
+        BLUR_node = get_material_layer_node('BLUR', selected_layer_index)
         blur_toggle_property_name = "{0}BlurToggle".format(self.material_channel_name.capitalize())
-        if layer_blur_node.inputs.get(blur_toggle_property_name).default_value == 1:
-            layer_blur_node.inputs.get(blur_toggle_property_name).default_value = 0
+        if BLUR_node.inputs.get(blur_toggle_property_name).default_value == 1:
+            BLUR_node.inputs.get(blur_toggle_property_name).default_value = 0
         else:
-            layer_blur_node.inputs.get(blur_toggle_property_name).default_value = 1
+            BLUR_node.inputs.get(blur_toggle_property_name).default_value = 1
 
         return {'FINISHED'}
     
