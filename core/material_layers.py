@@ -343,6 +343,8 @@ def add_material_layer(layer_type, self):
                     blender_addon_utils.set_texture_paint_image(default_decal_image)
                     blender_addon_utils.save_image(default_decal_image)
 
+            blender_addon_utils.set_snapping('DECAL', snap_on=True)
+
 def duplicate_layer(original_layer_index, self):
     '''Duplicates the material layer at the provided layer index.'''
 
