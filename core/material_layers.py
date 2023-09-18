@@ -338,9 +338,8 @@ def add_material_layer(layer_type, self):
                     if mix_layer_node:
                         mix_layer_node.mute = True
 
-            # Unmute the mix image alpha node to apply image alpha blending.
-            mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', new_layer_slot_index, 'COLOR')
-            mix_image_alpha_node.mute = False
+            # Use image alpha blending by default.
+            toggle_image_alpha_blending('COLOR')
 
         case 'DECAL':
 
@@ -355,18 +354,8 @@ def add_material_layer(layer_type, self):
             if decal_coordinate_node:
                 decal_coordinate_node.object = decal_object
 
-            # Create a new decal mask and insert a default decal image.
-            default_decal_image = blender_addon_utils.append_image('DefaultDecal')
-            layer_masks.add_layer_mask('DECAL', self)
-            mask_texture_node = layer_masks.get_mask_node('TEXTURE', new_layer_slot_index, 0)
-            mask_texture_node.image = default_decal_image
-
-            # Put the new decal object into the decal mask.
-            mask_coordinate_node = layer_masks.get_mask_node('COORDINATES', new_layer_slot_index, 0)
-            if mask_coordinate_node:
-                mask_coordinate_node.object = decal_object
-
             # Add a default decal to the color material channel.
+            default_decal_image = blender_addon_utils.append_image('DefaultDecal')
             replace_material_channel_node('COLOR', 'TEXTURE')
             texture_node = get_material_layer_node('VALUE', new_layer_slot_index, 'COLOR')
             if texture_node:
@@ -375,7 +364,8 @@ def add_material_layer(layer_type, self):
                     blender_addon_utils.set_texture_paint_image(default_decal_image)
                     blender_addon_utils.save_image(default_decal_image)
 
-            layer_masks.set_mask_output_channel('ALPHA')
+            # Use image alpha blending by default for this layer.
+            toggle_image_alpha_blending('COLOR')
             
             blender_addon_utils.set_snapping('DECAL', snap_on=True)
 
@@ -1080,6 +1070,14 @@ def show_layer():
                 principled_bsdf = active_node_tree.nodes.get('MATLAYER_BSDF')
                 active_node_tree.links.new(principled_bsdf.outputs[0], material_output.inputs[0])
 
+def toggle_image_alpha_blending(material_channel_name):
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
+    if image_alpha_node.mute:
+        image_alpha_node.mute = False
+    else:
+        image_alpha_node.mute = True
+
 #----------------------------- OPERATORS -----------------------------#
 
 class MATLAYER_layer_stack(PropertyGroup):
@@ -1413,12 +1411,7 @@ class MATLAYER_OT_toggle_image_alpha_blending(Operator):
         return context.active_object
 
     def execute(self, context):
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-        image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, self.material_channel_name)
-        if image_alpha_node.mute:
-            image_alpha_node.mute = False
-        else:
-            image_alpha_node.mute = True
+        toggle_image_alpha_blending(self.material_channel_name)
         return {'FINISHED'}
 
 class MATLAYER_OT_toggle_material_channel_filter(Operator):
