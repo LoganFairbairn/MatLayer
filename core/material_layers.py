@@ -200,6 +200,12 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
                     return decal_projection_node.node_tree.nodes.get('COORDINATES')
             return None
 
+        case 'DECAL_COORDINATES':
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('DECAL_COORDINATES')
+            return None
+
         case _:
             debug_logging.log("Invalid material node name passed to get_material_layer_node.")
             return None
@@ -324,7 +330,7 @@ def add_material_layer(layer_type, self):
             decal_object.scale[2] = 0.1
 
             # Add the new decal object to the decal coordinate node.
-            decal_coordinate_node = get_material_layer_node('COORDINATES', new_layer_slot_index)
+            decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', new_layer_slot_index)
             if decal_coordinate_node:
                 decal_coordinate_node.object = decal_object
 
@@ -333,6 +339,11 @@ def add_material_layer(layer_type, self):
             layer_masks.add_layer_mask('DECAL', self)
             mask_texture_node = layer_masks.get_mask_node('TEXTURE', new_layer_slot_index, 0)
             mask_texture_node.image = default_decal_image
+
+            # Put the new decal object into the decal mask.
+            mask_coordinate_node = layer_masks.get_mask_node('COORDINATES', new_layer_slot_index, 0)
+            if mask_coordinate_node:
+                mask_coordinate_node.object = decal_object
 
             # Add a default decal to the color material channel.
             replace_material_channel_node('COLOR', 'TEXTURE')
@@ -409,7 +420,7 @@ def delete_layer(self):
     active_material = bpy.context.active_object.active_material
 
     # For decal layers, delete the accociated empty object if one exists.
-    decal_coordinate_node = get_material_layer_node('COORDINATES', selected_layer_index)
+    decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', selected_layer_index)
     if decal_coordinate_node:
         decal_object = decal_coordinate_node.object
         if decal_object:

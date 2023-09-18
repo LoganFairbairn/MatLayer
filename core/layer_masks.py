@@ -294,7 +294,7 @@ def add_layer_mask(type, self):
             link_mask_nodes(selected_layer_index)
 
             # Add the decal object to the mask coordinate node.
-            layer_coordinate_node = material_layers.get_material_layer_node('COORDINATES', selected_layer_index)
+            layer_coordinate_node = material_layers.get_material_layer_node('DECAL_COORDINATES', selected_layer_index)
             decal_coordinate_node = get_mask_node('COORDINATES', selected_layer_index, new_mask_slot_index)
             decal_coordinate_node.object = layer_coordinate_node.object
 
