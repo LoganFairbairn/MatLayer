@@ -131,20 +131,7 @@ class MATLAYER_OT_import_texture_node_image(Operator, ImportHelper):
             
         bpy.ops.image.open(filepath=self.filepath)
         image = bpy.data.images[image_name]
-
-        # Apply the selected image texture to the selected layer based on projection mode.
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-        projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
-        if projection_node:
-            match projection_node.node_tree.name:
-                case 'ML_UVProjection':
-                    texture_node.image = image
-
-                case 'ML_TriplanarProjection':
-                    # TODO: Fill triplanar out.
-                    print("Placeholder...")
-        else:
-            texture_node.image = image
+        texture_node.image = image
                 
         # If a material channel is defined, set the color space.
         if self.material_channel_name != "":
