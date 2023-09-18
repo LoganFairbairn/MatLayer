@@ -1222,7 +1222,7 @@ class MATLAYER_OT_toggle_material_channel_preview(Operator):
 class MATLAYER_OT_toggle_layer_blur(Operator):
     bl_idname = "matlayer.toggle_layer_blur"
     bl_label = "Toggle Layer Blur"
-    bl_description = "Toggle on / off blurring for the selected layer"
+    bl_description = "Toggle on / off blurring for the selected layer. Toggle blurring off when not in use to improve shader compilation time and viewport performance"
     bl_options = {'REGISTER', 'UNDO'}
 
     # Disable when there is no active object.
