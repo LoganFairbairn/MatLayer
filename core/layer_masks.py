@@ -642,6 +642,39 @@ def set_mask_projection_mode(projection_mode):
                 if blur_node:
                     blur_node.node_tree = blender_addon_utils.append_group_node('ML_TriplanarBlur')
 
+def set_mask_output_channel(output_channel):
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+
+    mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
+    mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
+    mask_filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
+    separate_color_node = mask_node.node_tree.nodes.get('SEPARATE_COLOR')
+
+    # Disconnect the mask nodes.
+    blender_addon_utils.unlink_node(mask_texture_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
+    blender_addon_utils.unlink_node(separate_color_node, mask_node.node_tree, unlink_inputs=True, unlink_outputs=True)
+
+    # Connect the specified channel to the mask filter.
+    match output_channel:
+        case 'COLOR':
+            mask_node.node_tree.links.new(mask_texture_node.outputs[0], mask_filter_node.inputs[0])
+
+        case 'ALPHA':
+            mask_node.node_tree.links.new(mask_texture_node.outputs[1], mask_filter_node.inputs[0])
+
+        case 'RED':
+            mask_node.node_tree.links.new(mask_texture_node.outputs[0], separate_color_node.inputs[0])
+            mask_node.node_tree.links.new(separate_color_node.outputs[0], mask_filter_node.inputs[0])
+
+        case 'GREEN':
+            mask_node.node_tree.links.new(mask_texture_node.outputs[0], separate_color_node.inputs[0])
+            mask_node.node_tree.links.new(separate_color_node.outputs[1], mask_filter_node.inputs[0])
+
+        case 'BLUE':
+            mask_node.node_tree.links.new(mask_texture_node.outputs[0], separate_color_node.inputs[0])
+            mask_node.node_tree.links.new(separate_color_node.outputs[2], mask_filter_node.inputs[0])
+
 #----------------------------- OPERATORS -----------------------------#
 
 class MATLAYER_mask_stack(PropertyGroup):
@@ -881,37 +914,7 @@ class MATLAYER_OT_set_mask_output_channel(Operator):
         return context.active_object
 
     def execute(self, context):
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-        selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
-
-        mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
-        mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
-        mask_filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
-        separate_color_node = mask_node.node_tree.nodes.get('SEPARATE_COLOR')
-
-        # Disconnect the mask nodes.
-        blender_addon_utils.unlink_node(mask_texture_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
-        blender_addon_utils.unlink_node(separate_color_node, mask_node.node_tree, unlink_inputs=True, unlink_outputs=True)
-
-        # Connect the specified channel to the mask filter.
-        match self.channel_name:
-            case 'COLOR':
-                mask_node.node_tree.links.new(mask_texture_node.outputs[0], mask_filter_node.inputs[0])
-
-            case 'ALPHA':
-                mask_node.node_tree.links.new(mask_texture_node.outputs[1], mask_filter_node.inputs[0])
-
-            case 'RED':
-                mask_node.node_tree.links.new(mask_texture_node.outputs[0], separate_color_node.inputs[0])
-                mask_node.node_tree.links.new(separate_color_node.outputs[0], mask_filter_node.inputs[0])
-
-            case 'GREEN':
-                mask_node.node_tree.links.new(mask_texture_node.outputs[0], separate_color_node.inputs[0])
-                mask_node.node_tree.links.new(separate_color_node.outputs[1], mask_filter_node.inputs[0])
-
-            case 'BLUE':
-                mask_node.node_tree.links.new(mask_texture_node.outputs[0], separate_color_node.inputs[0])
-                mask_node.node_tree.links.new(separate_color_node.outputs[2], mask_filter_node.inputs[0])
+        set_mask_output_channel(self.channel_name)
         return {'FINISHED'}
 
 class MATLAYER_OT_toggle_mask_blur(Operator):
