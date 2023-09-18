@@ -134,46 +134,23 @@ def draw_layer_material_channel_toggles(layout):
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 drawn_toggles = 0
 
-def draw_value_node_type(layout, value_node, mix_node, selected_layer_index, material_channel_name):
+def draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_layer_index, material_channel_name):
     '''Draws the value node type to the UI.'''
     split = layout.split(factor=0.25)
     first_column = split.column()
     second_column = split.column()
-
     
     row = first_column.row()
-    row.label(text="Node Type")
+    row.label(text="Value")
     row = second_column.row(align=True)
     row.context_pointer_set("mix_node", mix_node)
     match value_node.bl_static_type:
         case 'GROUP':
-            row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text='GROUP')
-        case 'TEX_IMAGE':
-            row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text='TEXTURE')
-
-def draw_value_node_properties(layout, value_node, layer_node_tree, selected_layer_index, material_channel_name):
-    '''Draws properties for the provided value node.'''
-    split = layout.split(factor=0.25)
-    first_column = split.column()
-    second_column = split.column()
-
-    match value_node.bl_static_type:
-        case 'GROUP':
-            row = first_column.row()
-            row.label(text="Group Node")
-            row = second_column.row()
+            row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text="", icon='NODETREE')
             row.prop(value_node, "node_tree", text="")
 
-            for i in range(0, len(value_node.inputs)):
-                row = first_column.row()
-                row.label(text=value_node.inputs[i].name)
-                row = second_column.row()
-                row.prop(value_node.inputs[i], "default_value", text="")
-
         case 'TEX_IMAGE':
-            row = first_column.row()
-            row.label(text="Texture")
-            row = second_column.row(align=True)
+            row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text="", icon='IMAGE_DATA')
             row.prop(value_node, "image", text="")
             row.context_pointer_set("node_tree", layer_node_tree)
             row.context_pointer_set("node", value_node)
@@ -185,8 +162,8 @@ def draw_value_node_properties(layout, value_node, layer_node_tree, selected_lay
             operator.material_channel_name = material_channel_name
             row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
-def draw_material_channel_filter_properties(layout, selected_layer_index, material_channel_name):
-    '''Draws properties for material channel filter group node.'''
+def draw_material_channel_filter_node(layout, material_channel_name, selected_layer_index):
+    '''Draws the material channel filter toggle and group node used to filter the material channel.'''
     filter_node = material_layers.get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
     if filter_node:
         split = layout.split(factor=0.25)
@@ -209,9 +186,17 @@ def draw_material_channel_filter_properties(layout, selected_layer_index, materi
             row.enabled = False
         row.prop(filter_node, "node_tree", text="")
 
+def draw_material_channel_filter_properties(layout, selected_layer_index, material_channel_name):
+    '''Draws properties for material channel filter group node.'''
+    filter_node = material_layers.get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
+    if filter_node:
+        split = layout.split(factor=0.25)
+        first_column = split.column()
+        second_column = split.column()
+    
         if blender_addon_utils.get_node_active(filter_node) == True:
 
-            # Draw all properties.
+            # Draw all group node input properties.
             for i in range(0, len(filter_node.inputs)):
                 if i == 0:
                     continue
@@ -224,6 +209,20 @@ def draw_material_channel_filter_properties(layout, selected_layer_index, materi
             for node in filter_node.node_tree.nodes:
                 if node.bl_static_type == 'VALTORGB':
                     layout.template_color_ramp(node, "color_ramp", expand=True)
+
+def draw_group_node_properties(layout, value_node):
+    '''Draws properties for the provided value node.'''
+    split = layout.split(factor=0.25)
+    first_column = split.column()
+    second_column = split.column()
+
+    match value_node.bl_static_type:
+        case 'GROUP':
+            for i in range(0, len(value_node.inputs)):
+                row = first_column.row()
+                row.label(text=value_node.inputs[i].name)
+                row = second_column.row()
+                row.prop(value_node.inputs[i], "default_value", text="")
 
 def draw_material_channel_properties(layout):
     '''Draws properties for all active material channels on selected material layer.'''
@@ -251,8 +250,9 @@ def draw_material_channel_properties(layout):
                 row.separator()
                 row = layout.row()
                 row.label(text="• {0}".format(material_channel_name))
-                draw_value_node_type(layout, value_node, mix_node, selected_layer_index, material_channel_name)
-                draw_value_node_properties(layout, value_node, layer_node_tree, selected_layer_index, material_channel_name)
+                draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_layer_index, material_channel_name)
+                draw_material_channel_filter_node(layout, material_channel_name, selected_layer_index)
+                draw_group_node_properties(layout, value_node)
                 draw_material_channel_filter_properties(layout, selected_layer_index, material_channel_name)
 
 def draw_layer_projection(layout):
@@ -715,11 +715,11 @@ class MaterialChannelValueNodeSubMenu(Menu):
         # Get the material channel name from the mix node being drawn.
         material_channel_name = context.mix_node.name.replace('_MIX', '')
 
-        operator = layout.operator("matlayer.change_material_channel_value_node", text='GROUP')
+        operator = layout.operator("matlayer.change_material_channel_value_node", text='GROUP', icon='NODETREE')
         operator.material_channel_name = material_channel_name
         operator.node_type = 'GROUP'
 
-        operator = layout.operator("matlayer.change_material_channel_value_node", text='TEXTURE')
+        operator = layout.operator("matlayer.change_material_channel_value_node", text='TEXTURE', icon='IMAGE_DATA')
         operator.material_channel_name = material_channel_name
         operator.node_type = 'TEXTURE'
 

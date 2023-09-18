@@ -70,7 +70,7 @@ bl_info = {
 # List of classes to be registered.
 classes = (
     # Preferences
-    MATLAYER_pack_textures, 
+    MATLAYER_pack_textures,
     MATLAYER_RGBA_pack_channels,
     MATLAYER_texture_export_settings,
     AddonPreferences,
