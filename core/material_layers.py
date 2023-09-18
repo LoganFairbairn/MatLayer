@@ -263,6 +263,8 @@ def add_material_layer_slot():
 def add_material_layer(layer_type, self):
     '''Adds a material layer to the active materials layer stack.'''
 
+    refresh_layer_stack("Added material layer.")
+
     blender_addon_utils.append_default_node_groups()        # Append all required node groups first to avoid node group duplication from re-appending.
 
     if blender_addon_utils.verify_material_operation_context(self, check_active_material=False) == False:
@@ -380,6 +382,8 @@ def add_material_layer(layer_type, self):
 def duplicate_layer(original_layer_index, self):
     '''Duplicates the material layer at the provided layer index.'''
 
+    refresh_layer_stack("Duplicated material layer.")
+
     if blender_addon_utils.verify_material_operation_context(self) == False:
         return
 
@@ -434,6 +438,8 @@ def delete_layer(self):
     if blender_addon_utils.verify_material_operation_context(self) == False:
         return {'FINISHED'}
 
+    refresh_layer_stack("Deleted material layer.")
+
     layers = bpy.context.scene.matlayer_layers
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     active_material = bpy.context.active_object.active_material
@@ -478,6 +484,8 @@ def move_layer(direction, self):
     '''Moves the selected layer up or down on the material layer stack.'''
     if blender_addon_utils.verify_material_operation_context(self) == False:
         return
+    
+    refresh_layer_stack("Moved material layer.")
 
     match direction:
         case 'UP':
