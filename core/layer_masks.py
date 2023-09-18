@@ -72,6 +72,13 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
                 return node_tree.nodes.get('COORDINATES')
             return None
 
+        case 'DECAL_OFFSET':
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
+            node_tree = bpy.data.node_groups.get(mask_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('DECAL_OFFSET')
+            return None
+
         case 'TRIPLANAR_BLEND':
             mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
@@ -500,8 +507,8 @@ def refresh_mask_slots():
 
     debug_logging.log("Refreshed mask slots.")
 
-def relink_mask_projection():
-    '''Relinks mask nodes to projection nodes.'''
+def relink_image_mask_projection():
+    '''Relinks projection nodes based on the projection mode for image masks.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
     mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
@@ -937,7 +944,20 @@ class MATLAYER_OT_toggle_mask_blur(Operator):
                 blender_addon_utils.set_node_active(blur_node, False)
             else:
                 blender_addon_utils.set_node_active(blur_node, True)
-        relink_mask_projection()
+
+        # Relink mask projection nodes based on mask type.
+        mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
+        coordinate_node = get_mask_node('COORDINATES', selected_layer_index, selected_mask_index)
+        decal_offset_node = get_mask_node('DECAL_OFFSET', selected_layer_index, selected_mask_index)
+        if decal_offset_node:
+            blender_addon_utils.unlink_node(decal_offset_node, mask_node.node_tree, unlink_inputs=True, unlink_outputs=False)
+            if blur_node:
+                if blender_addon_utils.get_node_active(blur_node):
+                    mask_node.node_tree.links.new(blur_node.outputs[0], decal_offset_node.inputs[0])
+                else:
+                    mask_node.node_tree.links.new(coordinate_node.outputs.get('Object'), decal_offset_node.inputs[0])
+        else:
+            relink_image_mask_projection()
         return {'FINISHED'}
 
 class MATLAYER_OT_isolate_mask(Operator):
