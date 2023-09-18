@@ -62,6 +62,25 @@ def update_layer_index(self, context):
         case 'ML_DecalProjection':
             blender_addon_utils.set_snapping('DECAL', snap_on=True)
 
+def sync_triplanar_samples():
+    '''Syncs triplanar texture samples to match the first texture sample (only if triplanar projection is being used).'''
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
+    if projection_node:
+        if projection_node.node_tree.name == 'ML_TriplanarProjection':
+            for material_channel_name in MATERIAL_CHANNEL_LIST:
+                value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=1)
+                if value_node:
+                    if value_node.bl_static_type == 'TEX_IMAGE':
+                        texture_sample_2 = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=2)
+                        texture_sample_3 = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=3)
+                        
+                        # Running these additional if checks to avoid accidentally triggering shader re-compiling by changing an image to the same image.
+                        if texture_sample_2.image != value_node.image:
+                            texture_sample_2.image = value_node.image
+                        if texture_sample_3.image != value_node.image:
+                            texture_sample_3.image = value_node.image
+
 def get_shorthand_material_channel_name(material_channel_name):
     '''Returns the short-hand version of the provided material channel name.'''
     match material_channel_name:
