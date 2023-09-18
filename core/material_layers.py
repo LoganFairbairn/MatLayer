@@ -950,10 +950,10 @@ def replace_material_channel_node(material_channel_name, node_type):
             original_node_location = value_node.location
 
             match projection_node.node_tree.name:
-                case 'ML_UVProjection':
-                    layer_group_node.nodes.remove(value_node)
                 case 'ML_TriplanarProjection':
                     delete_triplanar_blending_nodes(material_channel_name)
+                case _:
+                    layer_group_node.nodes.remove(value_node)
 
             new_node = layer_group_node.nodes.new('ShaderNodeGroup')
             new_node.name = "{0}_VALUE_1".format(material_channel_name)
