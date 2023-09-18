@@ -544,12 +544,12 @@ def draw_layer_blur_settings(layout):
         row = column_1.row()
 
         if blender_addon_utils.get_node_active(blur_node):
-            row.operator("matlayer.toggle_layer_blur", text="", icon='CHECKBOX_HLT')
+            row.operator("matlayer.toggle_layer_blur", text="", icon='CHECKBOX_HLT', depress=True)
             row = column_2.row()
             row.enabled = True
 
         else:
-            row.operator("matlayer.toggle_layer_blur", text="", icon='CHECKBOX_DEHLT')
+            row.operator("matlayer.toggle_layer_blur", text="", icon='CHECKBOX_DEHLT', depress=False)
             row = column_2.row()
             row.enabled = False
 
