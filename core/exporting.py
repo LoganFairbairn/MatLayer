@@ -13,6 +13,11 @@ from .. import preferences
 
 #----------------------------- CHANNEL PACKING / IMAGE EDITING FUNCTIONS -----------------------------#
 
+
+def format_baked_material_channel_name(material_name, material_channel_name):
+    '''Properly formats the baked material channel name.'''
+    return "ML_{0}_{1}".format(material_name, material_channel_name.capitalize())
+
 def enumerate_color_channel(color_channel):
     '''Returns an interger value for the provided color channel.'''
     match color_channel:
@@ -96,6 +101,7 @@ def channel_pack(input_textures, input_packing, output_packing, image_name_forma
     packed_image.filepath = "{0}/{1}.{2}".format(export_path, image_name, file_format.lower())
     packed_image.pixels.foreach_set(output_pixels)
     packed_image.save()
+    blender_addon_utils.save_image(packed_image, file_format, 'EXPORT_TEXTURE')
 
     return packed_image
 
@@ -113,7 +119,7 @@ def invert_image(image, invert_r = False, invert_g = False, invert_b = False, in
         pixels[3::4] = 1 - pixels[3::4]
     image.pixels.foreach_set(pixels)
 
-def channel_pack_textures():
+def channel_pack_textures(material_name):
     '''Creates channel packed textures using pre-baked textures.'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
 
@@ -122,7 +128,8 @@ def channel_pack_textures():
     # Cycle through all defined export textures and channel pack them.
     for export_texture in addon_preferences.export_textures:
 
-        # Get the baked images that will be used in channel packing based on the defined input texture.
+        # Compile an array of baked images that will be used in channel packing based on the defined input texture...
+        # ... and perform image alterations to select channels (normal / roughness / smoothness).
         input_images = []
         for key in export_texture.input_textures.__annotations__.keys():
             texture_channel = getattr(export_texture.input_textures, key)
@@ -148,12 +155,9 @@ def channel_pack_textures():
                     image = bpy.data.images.get(meshmap_name)
                     input_images.append(image)
 
-                case 'ALPHA':
-                    image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
-                    input_images.append(None)
-
                 case 'ROUGHNESS':
-                    image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
+                    image_name = format_baked_material_channel_name(material_name, texture_channel)
+                    image = bpy.data.images.get(image_name)
                     input_images.append(image)
 
                     # Convert (invert) roughness to a smoothness map based on settings.
@@ -161,7 +165,8 @@ def channel_pack_textures():
                         invert_image(image, True, True, True, False)
 
                 case 'NORMAL':
-                    image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
+                    image_name = format_baked_material_channel_name(material_name, texture_channel)
+                    image = bpy.data.images.get(image_name)
                     input_images.append(image)
 
                     # Invert normal map G values if exporting for DirectX based on settings.
@@ -172,8 +177,8 @@ def channel_pack_textures():
                     input_images.append(None)
 
                 case _:
-                    # Get required baked images for packing using their temp name.
-                    image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
+                    image_name = format_baked_material_channel_name(material_name, texture_channel)
+                    image = bpy.data.images.get(image_name)
                     input_images.append(image)
 
         # Don't attempt to pack an image if there are no baked images.
@@ -200,56 +205,12 @@ def channel_pack_textures():
             file_format=export_texture.image_format
         )
 
-    # Delete temporary baked input textures, they are no longer needed because they are packed into new textures now.
-    for key in export_texture.input_textures.__annotations__.keys():
-        texture_channel = getattr(export_texture.input_textures, key)
-        match texture_channel:
-            case 'AMBIENT_OCCLUSION':
-                meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'AMBIENT_OCCLUSION')
-                image = bpy.data.images.get(meshmap_name)
-                input_images.append(image)
-
-            case 'CURVATURE':
-                meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'CURVATURE')
-                image = bpy.data.images.get(meshmap_name)
-                input_images.append(image)
-
-            case 'THICKNESS':
-                meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'THICKNESS')
-                image = bpy.data.images.get(meshmap_name)
-                input_images.append(image)
-
-            case 'BASE_NORMALS':
-                meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'NORMAL')
-                image = bpy.data.images.get(meshmap_name)
-                input_images.append(image)
-
-            case 'ALPHA':
-                input_images.append(None)       # Not implemented, append None for now.
-
-            case 'NONE':
-                input_images.append(None)
-
-            case 'ROUGHNESS':
-                image = bpy.data.images.get("ML_{0}".format(texture_channel))
-                input_images.append(image)
-
-                # Convert (invert) roughness to a smoothness map based on settings.
-                if addon_preferences.roughness_mode == 'SMOOTHNESS':
-                    invert_image(image, True, True, True, False)
-
-            case 'NORMAL':
-                image = bpy.data.images.get("ML_{0}".format(texture_channel))
-                input_images.append(image)
-
-                # Invert normal map G values if exporting for DirectX based on settings.
-                if addon_preferences.normal_map_mode == 'DIRECTX':
-                    invert_image(image, False, True, False, False)
-
-            case _:
-                # Get required baked images for packing using their temp name.
-                image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
-                input_images.append(image)
+    # Delete temp material channel bake images, they are no longer needed because they are packed into new textures now.
+    for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
+        temp_material_channel_image_name = format_baked_material_channel_name(material_name, material_channel_name)
+        temp_material_channel_image = bpy.data.images.get(temp_material_channel_image_name)
+        if temp_material_channel_image:
+            bpy.data.images.remove(temp_material_channel_image)
 
 
 #----------------------------- EXPORTING FUNCTIONS -----------------------------#
@@ -647,7 +608,7 @@ def bake_material_channel(material_channel_name, self):
     blender_addon_utils.force_save_all_textures()                       # Force save all textures (unsaved textures will not bake properly).
 
     # Create a new image to bake to.
-    image_name = "{0}_{1}".format(bpy.context.active_object.active_material.name, material_channel_name.capitalize())
+    image_name = format_baked_material_channel_name(bpy.context.active_object.active_material.name, material_channel_name)
     export_image = blender_addon_utils.create_data_image(image_name, 
                                                          tss.get_texture_width(),
                                                          tss.get_texture_height(),
@@ -684,8 +645,7 @@ def bake_export_texture(export_texture_name, self):
         bake_image_name = bake_material_channel(export_texture_name, self)
         return bake_image_name
     else:
-        # TODO: Implement this...
-        #mesh_map_baking.bake_mesh_map(export_texture_name, self)
+        debug_logging.log("Skipping baking mesh map - " + export_texture_name)
         return ""
 
 def add_bake_texture_nodes():
@@ -723,8 +683,8 @@ def remove_bake_texture_nodes():
 
 class MATLAYER_OT_export(Operator):
     bl_idname = "matlayer.export"
-    bl_label = "Batch Export"
-    bl_description = "Bakes all checked and active material channels to textures in succession, applies channel packing, then saves all baked images to a texture folder"
+    bl_label = "Export"
+    bl_description = "Bakes material channels to textures then channel packs based on export settings and finally saves all export textures folder"
 
     _timer = None
     _total_materials_to_bake = 0
@@ -766,6 +726,7 @@ class MATLAYER_OT_export(Operator):
                     if bpy.context.active_object.active_material_index + 1 < self._total_materials_to_bake:
                         debug_logging.log("Completed baking texture set for material: {0}".format(bpy.context.active_object.active_material.name))
                         material_layers.show_layer()
+                        channel_pack_textures(bpy.context.active_object.active_material.name)
 
                         bpy.context.active_object.active_material_index += 1
                         while blender_addon_utils.verify_addon_material(bpy.context.active_object.active_material) == False and bpy.context.active_object.active_material_index + 1 < self._total_materials_to_bake:
@@ -776,6 +737,8 @@ class MATLAYER_OT_export(Operator):
                         self._texture_channel_index = -1
 
                     else:
+                        material_layers.show_layer()
+                        channel_pack_textures(bpy.context.active_object.active_material.name)
                         self.finish(context)
                         return {'FINISHED'}
                 
@@ -827,13 +790,14 @@ class MATLAYER_OT_export(Operator):
         return {'RUNNING_MODAL'}
 
     def cancel(self, context):
-        # Remove the timer if it exists.
+        # Remove the timer.
         if self._timer:
             wm = context.window_manager
             wm.event_timer_remove(self._timer)
 
-        remove_bake_texture_nodes()
         bpy.context.scene.render.engine = self._original_render_engine_name
+        remove_bake_texture_nodes()
+        material_layers.refresh_layer_stack()
         self.report({'INFO'}, "Exporting textures was manually cancelled.")
 
     def finish(self, context):
@@ -844,10 +808,8 @@ class MATLAYER_OT_export(Operator):
 
         bpy.context.scene.render.engine = self._original_render_engine_name
         remove_bake_texture_nodes()
-        material_layers.show_layer()
-        #channel_pack_textures()
+        material_layers.refresh_layer_stack()
         self.report({'INFO'}, "Exporting textures finished successfully.")
-
 
 class MATLAYER_OT_set_export_template(Operator):
     bl_idname = "matlayer.set_export_template"
