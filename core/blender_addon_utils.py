@@ -27,7 +27,8 @@ def verify_material_operation_context(self=None, display_message=True, check_act
     
     # Check for an active object.
     if check_active_object:
-        if getattr(bpy.context, "active_object", None):
+        attribute_exists = getattr(bpy.context, "active_object", None)
+        if attribute_exists:
             if not bpy.context.active_object:
                 if display_message:
                     if self == None:
