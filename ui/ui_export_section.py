@@ -26,6 +26,7 @@ def draw_export_section_ui(self, context):
     first_column.scale_x = 0.1
     second_column = split.column()
     
+    # Export mode.
     row = first_column.row()
     row.scale_y = SCALE_Y
     row.label(text="Export Template")
@@ -33,6 +34,13 @@ def draw_export_section_ui(self, context):
     row.scale_y = SCALE_Y
     row.prop(addon_preferences, "export_template_name", text="")
     row.menu("MATLAYER_MT_export_template_menu", text="Load Template", icon='FILE_TICK')
+
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.label(text="Export Mode")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(addon_preferences, "export_mode", text="")
 
     # Saving export templates will be implemented in the future.
     #row.operator("matlayer.save_export_template", text="", icon='FILE_NEW')
@@ -101,38 +109,23 @@ def draw_export_section_ui(self, context):
     second_column = split.column()
 
     row = first_column.row()
-    row.scale_y = SCALE_Y
     row.label(text="Normal Map Mode")
     row = second_column.row(align=True)
-    row.scale_y = SCALE_Y
     row.prop_enum(addon_preferences, "normal_map_mode", 'OPEN_GL')
     row.prop_enum(addon_preferences, "normal_map_mode", 'DIRECTX')
 
     row = first_column.row()
-    row.scale_y = SCALE_Y
     row.label(text="Roughness Mode")
     row = second_column.row(align=True)
-    row.scale_y = SCALE_Y
     row.prop_enum(addon_preferences, "roughness_mode", 'ROUGHNESS')
     row.prop_enum(addon_preferences, "roughness_mode", 'SMOOTHNESS')
 
     row = first_column.row()
-    row.scale_y = SCALE_Y
     row.label(text="Padding")
     row = second_column.row()
-    row.scale_y = SCALE_Y
     row.prop(addon_preferences, "padding", text="")
 
     row = first_column.row()
-    row.scale_y = SCALE_Y
     row.label(text="Delete Unpacked Images")
     row = second_column.row()
-    row.scale_y = SCALE_Y
     row.prop(addon_preferences, "delete_unpacked_images", text="")
-
-    row = first_column.row()
-    row.scale_y = SCALE_Y
-    row.label(text="Bake Single Texture Set")
-    row = second_column.row()
-    row.scale_y = SCALE_Y
-    row.prop(addon_preferences, "bake_single_texture_set", text="")

@@ -1,7 +1,9 @@
+# This module contains functions for registering changes of properties and context within Blender to trigger updates of properties in this add-on.
+
 import bpy
 from ..core import material_layers
 from ..core import layer_masks
-from . import mesh_map_baking
+from ..core import mesh_map_baking
 from ..core import debug_logging
 
 def sub_to_active_object_name(active_object):
@@ -24,7 +26,11 @@ def sub_to_active_material_index(active_object):
 def on_active_material_changed():
     '''Update properties when the active material is changed.'''
     material_layers.refresh_layer_stack("Active material changed.")
-    sub_to_active_material_name()
+
+    active_object_attibute = getattr(bpy.context.view_layer.objects, "active", None)
+    if active_object_attibute:
+        active_object = bpy.context.view_layer.objects.active
+        sub_to_active_material_name(active_object)
 
 def on_active_material_index_changed():
     '''Reads material nodes into the user interface when the active material index is changed.'''

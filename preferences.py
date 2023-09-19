@@ -54,6 +54,12 @@ TEXTURE_EXPORT_FORMAT = [
     ("EXR", "exr", "Exports the selected material channel in open exr texture format")
 ]
 
+EXPORT_MODE = [
+    ("ONLY_ACTIVE_MATERIAL", "Only Active Material", "Export only the active material to a texture set"),
+    ("EXPORT_ALL_MATERIALS", "Export All Materials", "Exports every object on the active material as it's own texture set"),
+    ("SINGLE_TEXTURE_SET", "Single Texture Set", "Bakes all materials in all texture slots on the active object to 1 texture set. Separating the final material into separate smaller materials assigned to different parts of the mesh and then baking them to a single texture set can be efficient for workflow, and can reduce shader compilation time while editing")
+]
+
 class MATLAYER_pack_textures(PropertyGroup):
     r_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name='R Texture')
     g_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name='G Texture')
@@ -216,7 +222,7 @@ class AddonPreferences(AddonPreferences):
     delete_unpacked_images: BoolProperty(name="Delete Unpacked Images", default=True, description="Deletes unpacked image textures after packing")
     roughness_mode: EnumProperty(name="Roughness Mode", items=ROUGHNESS_MODE, default='ROUGHNESS')
     normal_map_mode: EnumProperty(name="Normal Map Mode", items=NORMAL_MAP_MODE, default='OPEN_GL')
-    bake_single_texture_set: BoolProperty(name="Bake Single Texture Set", description="Bakes all materials in all texture slots on the active object to 1 texture set. Separating the final material into separate smaller materials assigned to different parts of the mesh and then baking them to a single texture set can be efficient for workflow, and can reduce shader compilation time while editing", default=False)
+    export_mode: EnumProperty(name="Export Active Material", items=EXPORT_MODE, description="Exports only the active material using the defined export settings", default='ONLY_ACTIVE_MATERIAL')
 
     #----------------------------- DRAWING -----------------------------#
     def draw(self, context):

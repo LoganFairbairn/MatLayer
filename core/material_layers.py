@@ -40,6 +40,12 @@ MATERIAL_CHANNEL_LIST = (
 
 def update_layer_index(self, context):
     '''Updates properties and user interface when a new layer is selected.'''
+
+    # Check that the active object attribute exists within the current Blender context.
+    active_object_attribute = getattr(bpy.context, "active_object", None)
+    if active_object_attribute == None:
+        return
+    
     show_layer()
     layer_masks.refresh_mask_slots()
 
@@ -585,6 +591,9 @@ def count_layers(material=None):
     
     # Count the active material, since no material was specified to have it's layers counted.
     else:
+        active_object_attribute = getattr(bpy.context, "active_object", None)
+        if active_object_attribute == None:
+            return 0
         if not bpy.context.active_object:
             return 0
         if not bpy.context.active_object.active_material:
