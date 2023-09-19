@@ -28,7 +28,7 @@ def verify_material_operation_context(self=None, display_message=True, check_act
     # Check for an active object.
     if check_active_object:
         if getattr(bpy.context, "active_object", None):
-            if bpy.context.active_object:
+            if not bpy.context.active_object:
                 if display_message:
                     if self == None:
                         debug_logging.log("No active object.")
@@ -426,3 +426,11 @@ def force_save_all_textures():
     for image in bpy.data.images:
         if image.filepath != '' and image.is_dirty and image.has_data:
             image.save()
+
+def verify_material(material):
+    '''Verifies the specified material is created with this add-on.'''
+    if material:
+        bsdf_node = material.node_tree.nodes.get('MATLAYER_BSDF')
+        if bsdf_node:
+            return True
+    return False
