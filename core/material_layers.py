@@ -1065,18 +1065,15 @@ def refresh_layer_stack(reason=""):
     if selected_layer_index > len(layers) - 1 or selected_layer_index < 0:
         bpy.context.scene.matlayer_layer_stack.selected_layer_index = 0
 
-    if reason:
+    if reason != "":
         debug_logging.log("Refreshed layer stack due to: " + reason)
-    else:
-        debug_logging.log("Refreshed layer stack.")
 
 def isolate_material_channel(material_channel_name):
     '''Isolates the specified material channel by linking only the specified material channel output to the material channel output / emission node.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    
     active_node_tree = bpy.context.active_object.active_material.node_tree
+    last_layer_index = count_layers(bpy.context.active_object.active_material) - 1
 
-    layer_node = get_material_layer_node('LAYER', selected_layer_index)
+    layer_node = get_material_layer_node('LAYER', last_layer_index)
     emission_node = active_node_tree.nodes.get('EMISSION')
     material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
 
@@ -1089,6 +1086,10 @@ def isolate_material_channel(material_channel_name):
 
 def show_layer():
     '''Removes material channel or mask isolation if they are applied.'''
+    active_object_attribute = getattr(bpy.context, "active_object", None)
+    if not active_object_attribute:
+        return
+    
     if bpy.context.active_object:
         if bpy.context.active_object.active_material:
             active_node_tree = bpy.context.active_object.active_material.node_tree

@@ -341,13 +341,15 @@ def get_layer_image_path(image_name, file_format='PNG'):
     return "{0}/{1}.{2}".format(export_path, image_name, file_format.lower())
 
 def save_image(image, file_format='PNG', type='LAYER_IMAGE'):
-    '''Saves the provided image to the default or defined location for the provided asset type.'''
+    '''Saves the provided image to the default or defined location for the provided asset type. Valid types include: LAYER_IMAGE, EXPORT_TEXTURE'''
 
     match type:
         case 'LAYER_IMAGE':
             export_path = os.path.join(bpy.path.abspath("//"), "LayerImages")
         case 'EXPORT_TEXTURE':
             export_path = os.path.join(bpy.path.abspath("//"), "Textures")
+        case _:
+            debug_logging.log("Invalid image type passed to save_image.")
 
     if os.path.exists(export_path) == False:
         os.mkdir(export_path)
@@ -358,10 +360,12 @@ def save_image(image, file_format='PNG', type='LAYER_IMAGE'):
 
 def verify_addon_material(material):
     '''Verifies the material is created with this add-on.'''
-    if material.node_tree.nodes.get('MATLAYER_BSDF') != None:
-        return True
-    else:
-        return False
+    if material:
+        if material.node_tree.nodes.get('MATLAYER_BSDF') != None:
+            return True
+        else:
+            return False
+    return False
     
 def set_snapping(snapping_mode, snap_on=True):
     '''Sets ideal snapping settings for the specified mode.'''
@@ -427,11 +431,3 @@ def force_save_all_textures():
     for image in bpy.data.images:
         if image.filepath != '' and image.is_dirty and image.has_data:
             image.save()
-
-def verify_material(material):
-    '''Verifies the specified material is created with this add-on.'''
-    if material:
-        bsdf_node = material.node_tree.nodes.get('MATLAYER_BSDF')
-        if bsdf_node:
-            return True
-    return False

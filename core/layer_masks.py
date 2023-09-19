@@ -505,8 +505,6 @@ def refresh_mask_slots():
     for i in range(0, mask_count):
         add_mask_slot()
 
-    debug_logging.log("Refreshed mask slots.")
-
 def relink_image_mask_projection():
     '''Relinks projection nodes based on the projection mode for image masks.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index

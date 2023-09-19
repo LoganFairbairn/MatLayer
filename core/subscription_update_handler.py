@@ -25,7 +25,7 @@ def sub_to_active_material_index(active_object):
 
 def on_active_material_changed():
     '''Update properties when the active material is changed.'''
-    material_layers.refresh_layer_stack("Active material changed.")
+    material_layers.refresh_layer_stack()
 
     active_object_attibute = getattr(bpy.context.view_layer.objects, "active", None)
     if active_object_attibute:
@@ -35,7 +35,7 @@ def on_active_material_changed():
 def on_active_material_index_changed():
     '''Reads material nodes into the user interface when the active material index is changed.'''
     bpy.context.scene.matlayer_layer_stack.selected_layer_index = 0
-    material_layers.refresh_layer_stack("Active material index changed.")
+    material_layers.refresh_layer_stack()
 
     active_object = bpy.context.view_layer.objects.active
     if active_object:
@@ -92,8 +92,6 @@ def on_active_object_changed():
     
     if active_object:
         if active_object.type == 'MESH':
-
-            debug_logging.log("Changed active object.")
             sub_to_active_object_name(active_object)
 
             if active_object.active_material:

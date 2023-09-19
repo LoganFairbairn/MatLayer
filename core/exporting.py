@@ -637,12 +637,12 @@ def bake_material_channel(material_channel_name, self):
 
     if material_channel_name not in material_layers.MATERIAL_CHANNEL_LIST:
         debug_logging.log("Invalid material channel name provided to bake_material_channel.")
-        return None
+        return ""
     
     # Skip baking for material channels that are toggled off in the texture set settings.
     if not tss.get_material_channel_active(material_channel_name):
-        debug_logging.log("Skipped baking for globally disabled material channel {channel_name}.".format(channel_name=material_channel_name))
-        return None
+        debug_logging.log("Skipped baking for globally disabled material channel: {channel_name}.".format(channel_name=material_channel_name))
+        return ""
 
     blender_addon_utils.force_save_all_textures()                       # Force save all textures (unsaved textures will not bake properly).
 
@@ -658,10 +658,11 @@ def bake_material_channel(material_channel_name, self):
 
     # Add the baking image to the preset baking texture node (included in the default material setup).
     material_nodes = bpy.context.active_object.active_material.node_tree.nodes
-    image_node = material_nodes.get('BAKE_TEXTURE')
+    image_node = material_nodes.get('BAKE_IMAGE')
     image_node.image = export_image
     image_node.select = True
     material_nodes.active = image_node
+    blender_addon_utils.set_texture_paint_image(export_image)
 
     material_layers.isolate_material_channel(material_channel_name)     # Isolate the material channel.
 
@@ -675,18 +676,46 @@ def bake_material_channel(material_channel_name, self):
     else:
         bpy.ops.object.bake('INVOKE_DEFAULT', type='EMIT')
 
-    return export_image
+    return export_image.name
 
 def bake_export_texture(export_texture_name, self):
     '''Bakes the specified export texture (material channel, or mesh map).'''
     if export_texture_name in material_layers.MATERIAL_CHANNEL_LIST:
-        bake_image = bake_material_channel(export_texture_name, self)
-        return bake_image
+        bake_image_name = bake_material_channel(export_texture_name, self)
+        return bake_image_name
     else:
-        # TODO: 
-        print("Placeholder... baking export mesh map...")
+        # TODO: Implement this...
         #mesh_map_baking.bake_mesh_map(export_texture_name, self)
-        return None
+        return ""
+
+def add_bake_texture_nodes():
+    '''Adds a bake texture node to all materials in all material slots on the active object.'''
+
+    # Adding a placeholder image to the bake image nodes stops Blender from throwing annoying 'no active image' warnings when baking'.
+    placeholder_image = blender_addon_utils.create_data_image("ML_Placeholder", image_width=32, image_height=32)
+
+    active_object = bpy.context.active_object
+    for material_slot in active_object.material_slots:
+        if material_slot.material:
+            bake_texture_node = material_slot.material.node_tree.nodes.new('ShaderNodeTexImage')
+            bake_texture_node.name = 'BAKE_IMAGE'
+            bake_texture_node.label = bake_texture_node.name
+            bake_texture_node.image = placeholder_image
+            bake_texture_node.select = True
+            material_slot.material.node_tree.nodes.active = bake_texture_node
+
+def remove_bake_texture_nodes():
+    '''Removes image texture nodes for baking from all materials in all material slots on the active object.'''
+    placeholder_image = bpy.data.images.get('ML_Placeholder')
+    if placeholder_image:
+        bpy.data.images.remove(placeholder_image)
+
+    active_object = bpy.context.active_object
+    for material_slot in active_object.material_slots:
+        if material_slot.material:
+            bake_texture_node = material_slot.material.node_tree.nodes.get('BAKE_IMAGE')
+            if bake_texture_node:
+                material_slot.material.node_tree.nodes.remove(bake_texture_node)
 
 
 #----------------------------- EXPORT OPERATORS -----------------------------#
@@ -698,14 +727,12 @@ class MATLAYER_OT_export(Operator):
     bl_description = "Bakes all checked and active material channels to textures in succession, applies channel packing, then saves all baked images to a texture folder"
 
     _timer = None
-    _active_object = None
-    _materials_baked = 0
     _total_materials_to_bake = 0
-    _baked_texture_count = 0
+    _texture_channel_index = -1
     _texture_channels_to_bake = []
     _mesh_map_channels_to_bake = []
-    _original_render_engine = None
-    _bake_image = None
+    _original_render_engine_name = ""
+    _bake_image_name = ""
 
     # Users must have an object selected to call this operator.
     @ classmethod
@@ -718,27 +745,35 @@ class MATLAYER_OT_export(Operator):
             return {'CANCELLED'}
         
         if event.type == 'TIMER':
+
+            # Detect when baking is finished...
             if not bpy.app.is_job_running('OBJECT_BAKE'):
 
-                # Pack the baked image in the blend files data.
-                if self._bake_image != None:
-                    self._bake_image.pack()
-                    debug_logging.log("Completed baking and pack for (texture channel - active material): {0} - {1}".format(self._bake_image.name, self._active_object.active_material.name))
+                # If an image was baked, pack it in the blend files data.
+                bake_image = bpy.data.images.get(self._bake_image_name)
+                if bake_image != None:
+                    bake_image.pack()
+                    debug_logging.log("Baked - (texture channel - active material): {0} - {1}".format(self._bake_image_name, bpy.context.active_object.active_material.name))
                 
                 # Start baking the next material channel.
-                if self._baked_texture_count < len(self._texture_channels_to_bake) - 1:
-                    self._baked_texture_count += 1
-                    self._bake_image = bake_export_texture(self._texture_channels_to_bake[self._baked_texture_count], self)
+                self._bake_image_name = ""
+                if self._texture_channel_index < len(self._texture_channels_to_bake) - 1:
+                    self._texture_channel_index += 1
+                    self._bake_image_name = bake_export_texture(self._texture_channels_to_bake[self._texture_channel_index], self)
 
                 else:
                     # If all of the textures are baked for the active material, move to baking the next material.
-                    if self._materials_baked < self._total_materials_to_bake - 1:
-                        debug_logging.log("Completed baking texture set for material: {0}".format(self._active_object.active_material.name))
-                        self._materials_baked += 1
-                        self._active_object = self._active_object.material_slots[self._materials_baked]
-                        self._texture_channels_to_bake = get_texture_channel_bake_list()
-                        self._baked_texture_count = 0
-                        self._bake_image = bake_export_texture(self._texture_channels_to_bake[self._baked_texture_count], self)
+                    if bpy.context.active_object.active_material_index + 1 < self._total_materials_to_bake:
+                        debug_logging.log("Completed baking texture set for material: {0}".format(bpy.context.active_object.active_material.name))
+                        material_layers.show_layer()
+
+                        bpy.context.active_object.active_material_index += 1
+                        while blender_addon_utils.verify_addon_material(bpy.context.active_object.active_material) == False and bpy.context.active_object.active_material_index + 1 < self._total_materials_to_bake:
+                            debug_logging.log("Skipped exporting texture set for invalid material (not created with this add-on): {0}".format(bpy.context.active_object.active_material.name))
+                            bpy.context.active_object.active_material_index += 1
+
+                        material_layers.refresh_layer_stack()
+                        self._texture_channel_index = -1
 
                     else:
                         self.finish(context)
@@ -751,25 +786,25 @@ class MATLAYER_OT_export(Operator):
         if blender_addon_utils.verify_bake_object(self, check_active_material=True) == False:
             return {'FINISHED'}
         
-        self._active_object = bpy.context.active_object
-        
         # Get the number of materials to bake and export.
         addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
         match addon_preferences.export_mode:
             case 'ONLY_ACTIVE_MATERIAL':
-                debug_logging.log("Exporting only the active material.")
+                debug_logging.log("Starting exporting for only the active material...")
                 self._total_materials_to_bake = 1
+
             case 'EXPORT_ALL_MATERIALS':
-                debug_logging.log("Exporting all materials as individual texture sets.")
-                self._total_materials_to_bake = len(self._active_object.material_slots)
-                self._active_object.active_material_slot = 0
+                debug_logging.log("Starting exporting for all materials as individual texture sets...")
+                self._total_materials_to_bake = len(bpy.context.active_object.material_slots)
+                bpy.context.active_object.active_material_index = 0
+
             case 'SINGLE_TEXTURE_SET':
-                debug_logging.log("Exporting all materials to a single texture set.")
-                self._total_materials_to_bake = len(self._active_object.material_slots)
-                self._active_object.active_material_slot = 0
+                debug_logging.log("Starting exporting for all materials to a single texture set...")
+                self._total_materials_to_bake = len(bpy.context.active_object.material_slots)
+                bpy.context.active_object.active_material_index = 0
         
         # Compile a list of material channels that require baking based on settings.
-        self._texture_channels_to_bake = get_texture_channel_bake_list()                    
+        self._texture_channels_to_bake = get_texture_channel_bake_list()
 
         # If there are no texture channels to back, channel pack and finish.
         if len(self._texture_channels_to_bake) <= 0:
@@ -777,42 +812,42 @@ class MATLAYER_OT_export(Operator):
             self.report({'INFO'}, "Exporting textures finished successfully.")
             return {'FINISHED'}
         
-        # Remember the original render engine so we can reset it after baking and start exporting the first texture.
-        self._original_render_engine = bpy.context.scene.render.engine                      
-        self._bake_image = bake_export_texture(self._texture_channels_to_bake[0], self)
+        # Add texture nodes to bake to.
+        add_bake_texture_nodes()
+
+        # Remember the original render engine so we can reset it after baking.
+        self._original_render_engine_name = bpy.context.scene.render.engine
 
         # Add a timer to provide periodic timer events.
         wm = context.window_manager
         self._timer = wm.event_timer_add(0.5, window=context.window)
         wm.modal_handler_add(self)
 
+        # Baking will start automatically when the timer hits the first event.
         return {'RUNNING_MODAL'}
 
     def cancel(self, context):
-        # Remove the timer if it exists, it's no longer needed.
+        # Remove the timer if it exists.
         if self._timer:
             wm = context.window_manager
             wm.event_timer_remove(self._timer)
 
-        # Reset the render engine.
-        bpy.context.scene.render.engine = self._original_render_engine
-
+        remove_bake_texture_nodes()
+        bpy.context.scene.render.engine = self._original_render_engine_name
         self.report({'INFO'}, "Exporting textures was manually cancelled.")
 
     def finish(self, context):
         # Remove the timer.
-        wm = context.window_manager
-        wm.event_timer_remove(self._timer)
+        if self._timer:
+            wm = context.window_manager
+            wm.event_timer_remove(self._timer)
 
-        # De-isolate material channels.
+        bpy.context.scene.render.engine = self._original_render_engine_name
+        remove_bake_texture_nodes()
         material_layers.show_layer()
-
-        # Reset the render engine.
-        bpy.context.scene.render.engine = self._original_render_engine
-
         #channel_pack_textures()
-
         self.report({'INFO'}, "Exporting textures finished successfully.")
+
 
 class MATLAYER_OT_set_export_template(Operator):
     bl_idname = "matlayer.set_export_template"
