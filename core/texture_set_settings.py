@@ -2,8 +2,9 @@
 
 import bpy
 from bpy.types import PropertyGroup, Operator
-from bpy.props import BoolProperty, StringProperty, PointerProperty, FloatVectorProperty, EnumProperty
+from bpy.props import BoolProperty, StringProperty, EnumProperty
 from ..core import blender_addon_utils
+from .. import preferences
 
 # Available texture resolutions for texture sets.
 TEXTURE_SET_RESOLUTIONS = [
@@ -22,9 +23,6 @@ def update_match_image_resolution(self, context):
         texture_set_settings.image_height = texture_set_settings.image_width
 
 def update_image_width(self, context):
-    if context.scene.matlayer_texture_set_settings.auto_update_properties == False:
-        return
-
     texture_set_settings = context.scene.matlayer_texture_set_settings
     if texture_set_settings.match_image_resolution:
         if texture_set_settings.image_height != texture_set_settings.image_width:
