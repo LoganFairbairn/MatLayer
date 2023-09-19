@@ -64,6 +64,9 @@ def update_layer_index(self, context):
 
 def sync_triplanar_samples():
     '''Syncs triplanar texture samples to match the first texture sample (only if triplanar projection is being used).'''
+    if blender_addon_utils.verify_material_operation_context(display_message=False) == False:
+        return
+
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
     if projection_node:
@@ -1058,6 +1061,23 @@ def refresh_layer_stack(reason=""):
     else:
         debug_logging.log("Refreshed layer stack.")
 
+def isolate_material_channel(material_channel_name):
+    '''Isolates the specified material channel by linking only the specified material channel output to the material channel output / emission node.'''
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    
+    active_node_tree = bpy.context.active_object.active_material.node_tree
+
+    layer_node = get_material_layer_node('LAYER', selected_layer_index)
+    emission_node = active_node_tree.nodes.get('EMISSION')
+    material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
+
+    # Unlink the emission node.
+    blender_addon_utils.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
+
+    # Connect the selected material channel.
+    active_node_tree.links.new(layer_node.outputs.get(material_channel_name.capitalize()), emission_node.inputs[0])
+    active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
+
 def show_layer():
     '''Removes material channel or mask isolation if they are applied.'''
     if bpy.context.active_object:
@@ -1382,20 +1402,8 @@ class MATLAYER_OT_isolate_material_channel(Operator):
         return context.active_object
 
     def execute(self, context):
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
         selected_material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
-        active_node_tree = context.active_object.active_material.node_tree
-
-        layer_node = get_material_layer_node('LAYER', selected_layer_index)
-        emission_node = active_node_tree.nodes.get('EMISSION')
-        material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
-
-        # Unlink the emission node.
-        blender_addon_utils.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
-
-        # Connect the selected material channel.
-        active_node_tree.links.new(layer_node.outputs.get(selected_material_channel.capitalize()), emission_node.inputs[0])
-        active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
+        isolate_material_channel(selected_material_channel)
         return {'FINISHED'}
 
 class MATLAYER_OT_toggle_image_alpha_blending(Operator):

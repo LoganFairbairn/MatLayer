@@ -22,29 +22,41 @@ def set_valid_material_shading_mode(context):
             if context.space_data.shading.type != 'MATERIAL' and context.space_data.shading.type != 'RENDERED':
                 context.space_data.shading.type = 'MATERIAL'
 
-def verify_material_operation_context(self, display_message=True, check_active_object=True, check_mesh=True, check_active_material=True):
+def verify_material_operation_context(self=None, display_message=True, check_active_object=True, check_mesh=True, check_active_material=True):
     '''Runs checks to verify that a material editing operation can be ran without errors. Returns True if the all conditions are correct for a material editing operation to be ran.'''
     
     # Check for an active object.
-    if check_active_object and not bpy.context.active_object:
-        if display_message:
-            debug_logging.log_status("No active object.", self, 'ERROR')
-        return False
+    if check_active_object:
+        if getattr(bpy.context, "active_object", None):
+            if bpy.context.active_object:
+                if display_message:
+                    if self == None:
+                        debug_logging.log("No active object.")
+                    else:
+                        debug_logging.log_status("No active object.", self, 'ERROR')
+                return False
+        else:
+            return False
     
     # Check the active object is a mesh.
     if check_mesh and bpy.context.active_object.type != 'MESH':
         if display_message:
-            debug_logging.log_status("Selected object must be a mesh.", self, 'ERROR')
+            if self == None:
+                debug_logging.log("Selected object must be a mesh.")
+            else:
+                debug_logging.log_status("Selected object must be a mesh.", self, 'ERROR')
         return False
     
     # Check for an active material.
     if check_active_material and not bpy.context.active_object.active_material:
         if display_message:
-            debug_logging.log_status("No active material.", self, 'ERROR')
+            if self == None:
+                debug_logging.log("No active material.")
+            else:
+                debug_logging.log_status("No active material.", self, 'ERROR')
         return False
     
-    # No context issues found, return true.
-    return True
+    return True     # No context issues found, return true.
 
 def get_blend_assets_path():
     '''Returns the asset path for the blend file.'''
@@ -327,9 +339,15 @@ def get_layer_image_path(image_name, file_format='PNG'):
         os.mkdir(export_path)
     return "{0}/{1}.{2}".format(export_path, image_name, file_format.lower())
 
-def save_image(image, file_format='PNG'):
+def save_image(image, file_format='PNG', type='LAYER_IMAGE'):
     '''Saves the provided image to the default or defined location for the provided asset type.'''
-    export_path = os.path.join(bpy.path.abspath("//"), "LayerImages")
+
+    match type:
+        case 'LAYER_IMAGE':
+            export_path = os.path.join(bpy.path.abspath("//"), "LayerImages")
+        case 'EXPORT_TEXTURE':
+            export_path = os.path.join(bpy.path.abspath("//"), "Textures")
+
     if os.path.exists(export_path) == False:
         os.mkdir(export_path)
 
@@ -366,3 +384,45 @@ def select_only(select_object):
         obj.select_set(False)
     select_object.select_set(True)
     bpy.context.view_layer.objects.active = select_object
+
+def verify_bake_object(self, check_active_material=False):
+    '''Verifies the active object can have mesh maps or textures baked for it.'''
+    active_object = bpy.context.active_object
+    
+    # Verify there is a selected object.
+    if len(bpy.context.selected_objects) <= 0:
+        debug_logging.log_status("No valid selected objects. Select an object before baking / exporting.", self)
+        return False
+
+    # Verify the active object exists.
+    if active_object == None:
+        debug_logging.log_status("No valid active object. Select an object before baking / exporting.", self)
+        return False
+    
+    # Verify the active object has an active material to bake to.
+    if check_active_material:
+        if active_object.active_material == None:
+            debug_logging.log_status("No valid material on the active object to bake for.", self)
+            return False
+
+    # Make sure the active object is a Mesh.
+    if active_object.type != 'MESH':
+        debug_logging.log_status("Selected object must be a mesh for baking / exporting.", self)
+        return False
+
+    # Make sure the active object has a UV map.
+    if active_object.data.uv_layers.active == None:
+        debug_logging.log_status("Selected object has no active UV layer / map. Add a UV layer / map to your object and unwrap it.", self)
+        return False
+    
+    # Check to see if the (low poly) selected active object is hidden.
+    if active_object.hide_get():
+        debug_logging.log_status("Selected object is hidden. Unhide the selected object.", self)
+        return False
+    return True
+
+def force_save_all_textures():
+    '''Force saves all texture in the blend file.'''
+    for image in bpy.data.images:
+        if image.filepath != '' and image.is_dirty and image.has_data:
+            image.save()

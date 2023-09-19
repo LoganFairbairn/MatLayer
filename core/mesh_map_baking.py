@@ -133,36 +133,6 @@ def get_meshmap_image(mesh_name, mesh_map_type):
     mesh_map_name = get_meshmap_name(mesh_name, mesh_map_type)
     return bpy.data.images.get(mesh_map_name)
 
-def verify_bake_object(self):
-    '''Verifies the active object can have mesh maps or textures baked for it.'''
-    active_object = bpy.context.active_object
-    
-    # Verify there is a selected object.
-    if len(bpy.context.selected_objects) <= 0:
-        self.report({'ERROR'}, "No valid selected objects. Select an object before baking / exporting.")
-        return False
-
-    # Verify the active object exists.
-    if active_object == None:
-        self.report({'ERROR'}, "No valid active object. Select an object before baking / exporting.")
-        return False
-
-    # Make sure the active object is a Mesh.
-    if active_object.type != 'MESH':
-        self.report({'ERROR'}, "Selected object must be a mesh for baking / exporting.")
-        return False
-
-    # Make sure the active object has a UV map.
-    if active_object.data.uv_layers.active == None:
-        self.report({'ERROR'}, "Selected object has no active UV layer / map. Add a UV layer / map to your object and unwrap it.")
-        return False
-    
-    # Check to see if the (low poly) selected active object is hidden.
-    if active_object.hide_get():
-        self.report({'ERROR'}, "Selected object is hidden. Unhide the selected object.")
-        return False
-    return True
-
 def create_bake_image(mesh_map_type):
     '''Creates a new image in Blender's data to bake to.'''
 
@@ -375,7 +345,7 @@ class MATLAYER_OT_bake_mesh_map(Operator):
         return {'PASS_THROUGH'}
 
     def execute(self, context):
-        if verify_bake_object(self) == False:
+        if blender_addon_utils.verify_bake_object(self) == False:
             return {'FINISHED'}
 
         # Make the low poly selected active object unhiden, selectable and visible.
@@ -581,7 +551,7 @@ class MATLAYER_OT_batch_bake(Operator):
         return {'PASS_THROUGH'}
 
     def execute(self, context):
-        if verify_bake_object(self) == False:
+        if blender_addon_utils.verify_bake_object(self) == False:
             return {'FINISHED'}
         
         self._mesh_maps_to_bake.clear()

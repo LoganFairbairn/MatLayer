@@ -26,7 +26,6 @@ ROUGHNESS_MODE = [
 EXPORT_CHANNELS = [
     ("COLOR", "Color", "Color"),
     ("SUBSURFACE", "Subsurface", "Subsurface"),
-    ("SUBSURFACE_COLOR", "Subsurface Color", "Subsurface Color"),
     ("METALLIC", "Metallic", "Metallic"),
     ("SPECULAR", "Specular", "Specular"),
     ("ROUGHNESS", "Roughness", "Roughness"),
@@ -37,7 +36,7 @@ EXPORT_CHANNELS = [
     ("CURVATURE", "Curvature", "Curvature"),
     ("THICKNESS", "Thickness", "Thickness"),
     ("BASE_NORMALS", "Base Normals", "Base Normals"),
-    ("OPACITY", "Opacity", "Opacity"),
+    ("ALPHA", "Alpha", "Alpha"),
     ("NONE", "None", "None")
 ]
 

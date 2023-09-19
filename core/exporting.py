@@ -1,498 +1,426 @@
 import os
 import numpy
 import bpy
-from bpy.types import Operator, PropertyGroup, Menu
-from bpy.props import BoolProperty, StringProperty, IntProperty
-from . import mesh_map_baking
-from ..core import texture_set_settings
+from bpy.types import Operator, Menu
+from bpy.props import StringProperty, IntProperty
+from ..core import mesh_map_baking
+from ..core import texture_set_settings as tss
+from ..core import debug_logging
+from ..core import blender_addon_utils
+from ..core import material_layers
 from .. import preferences
 
 
-#----------------------------- EXPORT SETTINGS -----------------------------#
-
-
-class MATLAYER_exporting_settings(PropertyGroup):
-    export_folder: StringProperty(default="", description="Path to folder location where exported texture are saved. If empty, an export folder will be created next to your .blend file and exported textures will be automatically saved there.", name="Export Folder Path")
-    export_base_color: BoolProperty(default=True, name="Export Base Color", description="Include the base color in batch exporting")
-    export_subsurface: BoolProperty(default=False, name="Export Subsurface", description="Include the subsurface in batch exporting")
-    export_subsurface_color: BoolProperty(default=False, name="Export Subsurface Color", description="Include the subsurface color in batch exporting")
-    export_metallic: BoolProperty(default=True, name="Export Metallic", description="Include the metallic in batch exporting")
-    export_specular: BoolProperty(default=False, name="Export Specular", description="Include the specular in batch exporting")
-    export_roughness: BoolProperty(default=True, name="Export Roughness", description="Include the roughness in batch exporting")
-    export_normals: BoolProperty(default=True, name="Export Normals", description="Include the normals in batch exporting")
-    export_height: BoolProperty(default=False, name="Export Height", description="Include the height in batch exporting")
-    export_emission: BoolProperty(default=False, name="Export Emission", description="Include the emission in batch exporting")
-    export_ambient_occlusion: BoolProperty(default=False, name="Export Ambient Occlusion", description="Exports the ambient occlusion mesh map")
-
-
-#----------------------------- EXPORT FUNCTIONS -----------------------------#
-
-
 def set_export_template(export_template_name):
-        addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-        export_textures = addon_preferences.export_textures
-        export_textures.clear()
-        addon_preferences.export_template_name = export_template_name
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    export_textures = addon_preferences.export_textures
+    export_textures.clear()
+    addon_preferences.export_template_name = export_template_name
 
-        match export_template_name:
-            case 'PBR Metallic Roughness':
-                addon_preferences.roughness_mode = 'ROUGHNESS'
-                addon_preferences.normal_map_mode = 'OPEN_GL'
+    match export_template_name:
+        case 'PBR Metallic Roughness':
+            addon_preferences.roughness_mode = 'ROUGHNESS'
+            addon_preferences.normal_map_mode = 'OPEN_GL'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "/MaterialName_Color"
-                new_channel.input_textures.r_texture = 'COLOR'
-                new_channel.input_textures.g_texture = 'COLOR'
-                new_channel.input_textures.b_texture = 'COLOR'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "/MaterialName_Color"
+            new_channel.input_textures.r_texture = 'COLOR'
+            new_channel.input_textures.g_texture = 'COLOR'
+            new_channel.input_textures.b_texture = 'COLOR'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "/MaterialName_Metallic"
-                new_channel.input_textures.r_texture = 'METALLIC'
-                new_channel.input_textures.g_texture = 'METALLIC'
-                new_channel.input_textures.b_texture = 'METALLIC'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "/MaterialName_Metallic"
+            new_channel.input_textures.r_texture = 'METALLIC'
+            new_channel.input_textures.g_texture = 'METALLIC'
+            new_channel.input_textures.b_texture = 'METALLIC'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "/MaterialName_Roughness"
-                new_channel.input_textures.r_texture = 'ROUGHNESS'
-                new_channel.input_textures.g_texture = 'ROUGHNESS'
-                new_channel.input_textures.b_texture = 'ROUGHNESS'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "/MaterialName_Roughness"
+            new_channel.input_textures.r_texture = 'ROUGHNESS'
+            new_channel.input_textures.g_texture = 'ROUGHNESS'
+            new_channel.input_textures.b_texture = 'ROUGHNESS'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "/MaterialName_Normal"
-                new_channel.input_textures.r_texture = 'NORMAL'
-                new_channel.input_textures.g_texture = 'NORMAL'
-                new_channel.input_textures.b_texture = 'NORMAL'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "/MaterialName_Normal"
+            new_channel.input_textures.r_texture = 'NORMAL'
+            new_channel.input_textures.g_texture = 'NORMAL'
+            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "/MaterialName_Emission"
-                new_channel.input_textures.r_texture = 'EMISSION'
-                new_channel.input_textures.g_texture = 'EMISSION'
-                new_channel.input_textures.b_texture = 'EMISSION'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "/MaterialName_Emission"
+            new_channel.input_textures.r_texture = 'EMISSION'
+            new_channel.input_textures.g_texture = 'EMISSION'
+            new_channel.input_textures.b_texture = 'EMISSION'
+            new_channel.input_textures.a_texture = 'NONE'
 
-            case 'PBR Specular Glossiness':
-                addon_preferences.roughness_mode = 'ROUGHNESS'
-                addon_preferences.normal_map_mode = 'OPEN_GL'
+        case 'PBR Specular Glossiness':
+            addon_preferences.roughness_mode = 'ROUGHNESS'
+            addon_preferences.normal_map_mode = 'OPEN_GL'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "/MaterialName_Color"
-                new_channel.input_textures.r_texture = 'COLOR'
-                new_channel.input_textures.g_texture = 'COLOR'
-                new_channel.input_textures.b_texture = 'COLOR'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "/MaterialName_Color"
+            new_channel.input_textures.r_texture = 'COLOR'
+            new_channel.input_textures.g_texture = 'COLOR'
+            new_channel.input_textures.b_texture = 'COLOR'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "/MaterialName_Specular"
-                new_channel.input_textures.r_texture = 'SPECULAR'
-                new_channel.input_textures.g_texture = 'SPECULAR'
-                new_channel.input_textures.b_texture = 'SPECULAR'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "/MaterialName_Specular"
+            new_channel.input_textures.r_texture = 'SPECULAR'
+            new_channel.input_textures.g_texture = 'SPECULAR'
+            new_channel.input_textures.b_texture = 'SPECULAR'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "/MaterialName_Glossiness"
-                new_channel.input_textures.r_texture = 'ROUGHNESS'
-                new_channel.input_textures.g_texture = 'ROUGHNESS'
-                new_channel.input_textures.b_texture = 'ROUGHNESS'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "/MaterialName_Glossiness"
+            new_channel.input_textures.r_texture = 'ROUGHNESS'
+            new_channel.input_textures.g_texture = 'ROUGHNESS'
+            new_channel.input_textures.b_texture = 'ROUGHNESS'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "/MaterialName_Normal"
-                new_channel.input_textures.r_texture = 'NORMAL'
-                new_channel.input_textures.g_texture = 'NORMAL'
-                new_channel.input_textures.b_texture = 'NORMAL'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "/MaterialName_Normal"
+            new_channel.input_textures.r_texture = 'NORMAL'
+            new_channel.input_textures.g_texture = 'NORMAL'
+            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "/MaterialName_Emission"
-                new_channel.input_textures.r_texture = 'EMISSION'
-                new_channel.input_textures.g_texture = 'EMISSION'
-                new_channel.input_textures.b_texture = 'EMISSION'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "/MaterialName_Emission"
+            new_channel.input_textures.r_texture = 'EMISSION'
+            new_channel.input_textures.g_texture = 'EMISSION'
+            new_channel.input_textures.b_texture = 'EMISSION'
+            new_channel.input_textures.a_texture = 'NONE'
 
-            case 'Unity URP Metallic':
-                addon_preferences.normal_map_mode = 'OPEN_GL'
-                addon_preferences.roughness_mode = 'SMOOTHNESS'
+        case 'Unity URP Metallic':
+            addon_preferences.normal_map_mode = 'OPEN_GL'
+            addon_preferences.roughness_mode = 'SMOOTHNESS'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_C"
-                new_channel.input_textures.r_texture = 'COLOR'
-                new_channel.input_textures.g_texture = 'COLOR'
-                new_channel.input_textures.b_texture = 'COLOR'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_C"
+            new_channel.input_textures.r_texture = 'COLOR'
+            new_channel.input_textures.g_texture = 'COLOR'
+            new_channel.input_textures.b_texture = 'COLOR'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_MS"
-                new_channel.input_textures.r_texture = 'METALLIC'
-                new_channel.input_textures.g_texture = 'METALLIC'
-                new_channel.input_textures.b_texture = 'METALLIC'
-                new_channel.input_textures.a_texture = 'ROUGHNESS'
-                new_channel.input_rgba_channels.a_color_channel = 'R'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_MS"
+            new_channel.input_textures.r_texture = 'METALLIC'
+            new_channel.input_textures.g_texture = 'METALLIC'
+            new_channel.input_textures.b_texture = 'METALLIC'
+            new_channel.input_textures.a_texture = 'ROUGHNESS'
+            new_channel.input_rgba_channels.a_color_channel = 'R'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_N"
-                new_channel.input_textures.r_texture = 'NORMAL'
-                new_channel.input_textures.g_texture = 'NORMAL'
-                new_channel.input_textures.b_texture = 'NORMAL'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_N"
+            new_channel.input_textures.r_texture = 'NORMAL'
+            new_channel.input_textures.g_texture = 'NORMAL'
+            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_E"
-                new_channel.input_textures.r_texture = 'EMISSION'
-                new_channel.input_textures.g_texture = 'EMISSION'
-                new_channel.input_textures.b_texture = 'EMISSION'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_E"
+            new_channel.input_textures.r_texture = 'EMISSION'
+            new_channel.input_textures.g_texture = 'EMISSION'
+            new_channel.input_textures.b_texture = 'EMISSION'
+            new_channel.input_textures.a_texture = 'NONE'
 
-            case 'Unity URP Specular':
-                addon_preferences.normal_map_mode = 'OPEN_GL'
-                addon_preferences.roughness_mode = 'SMOOTHNESS'
+        case 'Unity URP Specular':
+            addon_preferences.normal_map_mode = 'OPEN_GL'
+            addon_preferences.roughness_mode = 'SMOOTHNESS'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_C"
-                new_channel.input_textures.r_texture = 'COLOR'
-                new_channel.input_textures.g_texture = 'COLOR'
-                new_channel.input_textures.b_texture = 'COLOR'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_C"
+            new_channel.input_textures.r_texture = 'COLOR'
+            new_channel.input_textures.g_texture = 'COLOR'
+            new_channel.input_textures.b_texture = 'COLOR'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_MG"
-                new_channel.input_textures.r_texture = 'SPECULAR'
-                new_channel.input_textures.g_texture = 'SPECULAR'
-                new_channel.input_textures.b_texture = 'SPECULAR'
-                new_channel.input_textures.a_texture = 'ROUGHNESS'
-                new_channel.input_rgba_channels.a_color_channel = 'R'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_MG"
+            new_channel.input_textures.r_texture = 'SPECULAR'
+            new_channel.input_textures.g_texture = 'SPECULAR'
+            new_channel.input_textures.b_texture = 'SPECULAR'
+            new_channel.input_textures.a_texture = 'ROUGHNESS'
+            new_channel.input_rgba_channels.a_color_channel = 'R'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_N"
-                new_channel.input_textures.r_texture = 'NORMAL'
-                new_channel.input_textures.g_texture = 'NORMAL'
-                new_channel.input_textures.b_texture = 'NORMAL'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_N"
+            new_channel.input_textures.r_texture = 'NORMAL'
+            new_channel.input_textures.g_texture = 'NORMAL'
+            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_E"
-                new_channel.input_textures.r_texture = 'EMISSION'
-                new_channel.input_textures.g_texture = 'EMISSION'
-                new_channel.input_textures.b_texture = 'EMISSION'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_E"
+            new_channel.input_textures.r_texture = 'EMISSION'
+            new_channel.input_textures.g_texture = 'EMISSION'
+            new_channel.input_textures.b_texture = 'EMISSION'
+            new_channel.input_textures.a_texture = 'NONE'
 
-            case 'Unity HDRP Metallic':
-                addon_preferences.normal_map_mode = 'OPEN_GL'
-                addon_preferences.roughness_mode = 'SMOOTHNESS'
+        case 'Unity HDRP Metallic':
+            addon_preferences.normal_map_mode = 'OPEN_GL'
+            addon_preferences.roughness_mode = 'SMOOTHNESS'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_C"
-                new_channel.input_textures.r_texture = 'COLOR'
-                new_channel.input_textures.g_texture = 'COLOR'
-                new_channel.input_textures.b_texture = 'COLOR'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_C"
+            new_channel.input_textures.r_texture = 'COLOR'
+            new_channel.input_textures.g_texture = 'COLOR'
+            new_channel.input_textures.b_texture = 'COLOR'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_MAG"
-                new_channel.input_textures.r_texture = 'METALLIC'
-                new_channel.input_textures.g_texture = 'AMBIENT_OCCLUSION'
-                new_channel.input_textures.b_texture = 'NONE'
-                new_channel.input_textures.a_texture = 'ROUGHNESS'
-                new_channel.input_rgba_channels.a_color_channel = 'R'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_MAG"
+            new_channel.input_textures.r_texture = 'METALLIC'
+            new_channel.input_textures.g_texture = 'AMBIENT_OCCLUSION'
+            new_channel.input_textures.b_texture = 'NONE'
+            new_channel.input_textures.a_texture = 'ROUGHNESS'
+            new_channel.input_rgba_channels.a_color_channel = 'R'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_N"
-                new_channel.input_textures.r_texture = 'NORMAL'
-                new_channel.input_textures.g_texture = 'NORMAL'
-                new_channel.input_textures.b_texture = 'NORMAL'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_N"
+            new_channel.input_textures.r_texture = 'NORMAL'
+            new_channel.input_textures.g_texture = 'NORMAL'
+            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_E"
-                new_channel.input_textures.r_texture = 'EMISSION'
-                new_channel.input_textures.g_texture = 'EMISSION'
-                new_channel.input_textures.b_texture = 'EMISSION'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_E"
+            new_channel.input_textures.r_texture = 'EMISSION'
+            new_channel.input_textures.g_texture = 'EMISSION'
+            new_channel.input_textures.b_texture = 'EMISSION'
+            new_channel.input_textures.a_texture = 'NONE'
 
-            case 'Unity HDRP Specular':
-                addon_preferences.normal_map_mode = 'OPEN_GL'
-                addon_preferences.roughness_mode = 'SMOOTHNESS'
+        case 'Unity HDRP Specular':
+            addon_preferences.normal_map_mode = 'OPEN_GL'
+            addon_preferences.roughness_mode = 'SMOOTHNESS'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_C"
-                new_channel.input_textures.r_texture = 'COLOR'
-                new_channel.input_textures.g_texture = 'COLOR'
-                new_channel.input_textures.b_texture = 'COLOR'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_C"
+            new_channel.input_textures.r_texture = 'COLOR'
+            new_channel.input_textures.g_texture = 'COLOR'
+            new_channel.input_textures.b_texture = 'COLOR'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_S"
-                new_channel.input_textures.r_texture = 'SPECULAR'
-                new_channel.input_textures.g_texture = 'SPECULAR'
-                new_channel.input_textures.b_texture = 'SPECULAR'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_S"
+            new_channel.input_textures.r_texture = 'SPECULAR'
+            new_channel.input_textures.g_texture = 'SPECULAR'
+            new_channel.input_textures.b_texture = 'SPECULAR'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_MAG"
-                new_channel.input_textures.r_texture = 'METALLIC'
-                new_channel.input_textures.g_texture = 'AMBIENT_OCCLUSION'
-                new_channel.input_textures.b_texture = 'NONE'
-                new_channel.input_textures.a_texture = 'ROUGHNESS'
-                new_channel.input_rgba_channels.a_color_channel = 'R'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_MAG"
+            new_channel.input_textures.r_texture = 'METALLIC'
+            new_channel.input_textures.g_texture = 'AMBIENT_OCCLUSION'
+            new_channel.input_textures.b_texture = 'NONE'
+            new_channel.input_textures.a_texture = 'ROUGHNESS'
+            new_channel.input_rgba_channels.a_color_channel = 'R'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_N"
-                new_channel.input_textures.r_texture = 'NORMAL'
-                new_channel.input_textures.g_texture = 'NORMAL'
-                new_channel.input_textures.b_texture = 'NORMAL'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_N"
+            new_channel.input_textures.r_texture = 'NORMAL'
+            new_channel.input_textures.g_texture = 'NORMAL'
+            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_E"
-                new_channel.input_textures.r_texture = 'EMISSION'
-                new_channel.input_textures.g_texture = 'EMISSION'
-                new_channel.input_textures.b_texture = 'EMISSION'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_E"
+            new_channel.input_textures.r_texture = 'EMISSION'
+            new_channel.input_textures.g_texture = 'EMISSION'
+            new_channel.input_textures.b_texture = 'EMISSION'
+            new_channel.input_textures.a_texture = 'NONE'
 
-            case 'Unreal Engine 4':
-                addon_preferences.roughness_mode = 'ROUGHNESS'
-                addon_preferences.normal_map_mode = 'DIRECTX'
+        case 'Unreal Engine 4':
+            addon_preferences.roughness_mode = 'ROUGHNESS'
+            addon_preferences.normal_map_mode = 'DIRECTX'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_C"
-                new_channel.input_textures.r_texture = 'COLOR'
-                new_channel.input_textures.g_texture = 'COLOR'
-                new_channel.input_textures.b_texture = 'COLOR'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_C"
+            new_channel.input_textures.r_texture = 'COLOR'
+            new_channel.input_textures.g_texture = 'COLOR'
+            new_channel.input_textures.b_texture = 'COLOR'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_SS"
-                new_channel.input_textures.r_texture = 'SUBSURFACE'
-                new_channel.input_textures.g_texture = 'SUBSURFACE'
-                new_channel.input_textures.b_texture = 'SUBSURFACE'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_SS"
+            new_channel.input_textures.r_texture = 'SUBSURFACE'
+            new_channel.input_textures.g_texture = 'SUBSURFACE'
+            new_channel.input_textures.b_texture = 'SUBSURFACE'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_SSC"
-                new_channel.input_textures.r_texture = 'SUBSURFACE_COLOR'
-                new_channel.input_textures.g_texture = 'SUBSURFACE_COLOR'
-                new_channel.input_textures.b_texture = 'SUBSURFACE_COLOR'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_ORM"
+            new_channel.input_textures.r_texture = 'AMBIENT_OCCLUSION'
+            new_channel.input_textures.g_texture = 'ROUGHNESS'
+            new_channel.input_textures.b_texture = 'METALLIC'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_ORM"
-                new_channel.input_textures.r_texture = 'AMBIENT_OCCLUSION'
-                new_channel.input_textures.g_texture = 'ROUGHNESS'
-                new_channel.input_textures.b_texture = 'METALLIC'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_NDX"
+            new_channel.input_textures.r_texture = 'NORMAL'
+            new_channel.input_textures.g_texture = 'NORMAL'
+            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_NDX"
-                new_channel.input_textures.r_texture = 'NORMAL'
-                new_channel.input_textures.g_texture = 'NORMAL'
-                new_channel.input_textures.b_texture = 'NORMAL'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_E"
+            new_channel.input_textures.r_texture = 'EMISSION'
+            new_channel.input_textures.g_texture = 'EMISSION'
+            new_channel.input_textures.b_texture = 'EMISSION'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_E"
-                new_channel.input_textures.r_texture = 'EMISSION'
-                new_channel.input_textures.g_texture = 'EMISSION'
-                new_channel.input_textures.b_texture = 'EMISSION'
-                new_channel.input_textures.a_texture = 'NONE'
+        case 'Unreal Engine 4 Subsurface (Packed)':
+            addon_preferences.roughness_mode = 'ROUGHNESS'
+            addon_preferences.normal_map_mode = 'DIRECTX'
 
-            case 'Unreal Engine 4 Subsurface (Packed)':
-                addon_preferences.roughness_mode = 'ROUGHNESS'
-                addon_preferences.normal_map_mode = 'DIRECTX'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_C"
+            new_channel.input_textures.r_texture = 'COLOR'
+            new_channel.input_textures.g_texture = 'COLOR'
+            new_channel.input_textures.b_texture = 'COLOR'
+            new_channel.input_textures.a_texture = 'SUBSURFACE'
+            new_channel.input_rgba_channels.a_color_channel = 'R'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_C"
-                new_channel.input_textures.r_texture = 'COLOR'
-                new_channel.input_textures.g_texture = 'COLOR'
-                new_channel.input_textures.b_texture = 'COLOR'
-                new_channel.input_textures.a_texture = 'SUBSURFACE'
-                new_channel.input_rgba_channels.a_color_channel = 'R'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_ORM"
+            new_channel.input_textures.r_texture = 'AMBIENT_OCCLUSION'
+            new_channel.input_textures.g_texture = 'ROUGHNESS'
+            new_channel.input_textures.b_texture = 'METALLIC'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_ORM"
-                new_channel.input_textures.r_texture = 'AMBIENT_OCCLUSION'
-                new_channel.input_textures.g_texture = 'ROUGHNESS'
-                new_channel.input_textures.b_texture = 'METALLIC'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_NDX"
+            new_channel.input_textures.r_texture = 'NORMAL'
+            new_channel.input_textures.g_texture = 'NORMAL'
+            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_NDX"
-                new_channel.input_textures.r_texture = 'NORMAL'
-                new_channel.input_textures.g_texture = 'NORMAL'
-                new_channel.input_textures.b_texture = 'NORMAL'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_E"
+            new_channel.input_textures.r_texture = 'EMISSION'
+            new_channel.input_textures.g_texture = 'EMISSION'
+            new_channel.input_textures.b_texture = 'EMISSION'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_E"
-                new_channel.input_textures.r_texture = 'EMISSION'
-                new_channel.input_textures.g_texture = 'EMISSION'
-                new_channel.input_textures.b_texture = 'EMISSION'
-                new_channel.input_textures.a_texture = 'NONE'
+        case 'CryEngine':
+            addon_preferences.roughness_mode = 'ROUGHNESS'
+            addon_preferences.normal_map_mode = 'DIRECTX'
 
-            case 'CryEngine':
-                addon_preferences.roughness_mode = 'ROUGHNESS'
-                addon_preferences.normal_map_mode = 'DIRECTX'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_C"
+            new_channel.input_textures.r_texture = 'COLOR'
+            new_channel.input_textures.g_texture = 'COLOR'
+            new_channel.input_textures.b_texture = 'COLOR'
+            new_channel.input_textures.a_texture = 'ALPHA'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_C"
-                new_channel.input_textures.r_texture = 'COLOR'
-                new_channel.input_textures.g_texture = 'COLOR'
-                new_channel.input_textures.b_texture = 'COLOR'
-                new_channel.input_textures.a_texture = 'OPACITY'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_S"
+            new_channel.input_textures.r_texture = 'SPECULAR'
+            new_channel.input_textures.g_texture = 'SPECULAR'
+            new_channel.input_textures.b_texture = 'SPECULAR'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_S"
-                new_channel.input_textures.r_texture = 'SPECULAR'
-                new_channel.input_textures.g_texture = 'SPECULAR'
-                new_channel.input_textures.b_texture = 'SPECULAR'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_NDXO"
+            new_channel.input_textures.r_texture = 'NORMAL'
+            new_channel.input_textures.g_texture = 'NORMAL'
+            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.a_texture = 'AMBIENT_OCCLUSION'
+            new_channel.input_rgba_channels.a_color_channel = 'R'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_NDXO"
-                new_channel.input_textures.r_texture = 'NORMAL'
-                new_channel.input_textures.g_texture = 'NORMAL'
-                new_channel.input_textures.b_texture = 'NORMAL'
-                new_channel.input_textures.a_texture = 'AMBIENT_OCCLUSION'
-                new_channel.input_rgba_channels.a_color_channel = 'R'
+        case 'Mesh Maps':
+            addon_preferences.normal_map_mode = 'OPEN_GL'
 
-            case 'Mesh Maps':
-                addon_preferences.normal_map_mode = 'OPEN_GL'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_AmbientOcclusion"
+            new_channel.input_textures.r_texture = 'AMBIENT_OCCLUSION'
+            new_channel.input_textures.g_texture = 'AMBIENT_OCCLUSION'
+            new_channel.input_textures.b_texture = 'AMBIENT_OCCLUSION'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_AmbientOcclusion"
-                new_channel.input_textures.r_texture = 'AMBIENT_OCCLUSION'
-                new_channel.input_textures.g_texture = 'AMBIENT_OCCLUSION'
-                new_channel.input_textures.b_texture = 'AMBIENT_OCCLUSION'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_Curvature"
+            new_channel.input_textures.r_texture = 'CURVATURE'
+            new_channel.input_textures.g_texture = 'CURVATURE'
+            new_channel.input_textures.b_texture = 'CURVATURE'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_Curvature"
-                new_channel.input_textures.r_texture = 'CURVATURE'
-                new_channel.input_textures.g_texture = 'CURVATURE'
-                new_channel.input_textures.b_texture = 'CURVATURE'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_Thickness"
+            new_channel.input_textures.r_texture = 'THICKNESS'
+            new_channel.input_textures.g_texture = 'THICKNESS'
+            new_channel.input_textures.b_texture = 'THICKNESS'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_Thickness"
-                new_channel.input_textures.r_texture = 'THICKNESS'
-                new_channel.input_textures.g_texture = 'THICKNESS'
-                new_channel.input_textures.b_texture = 'THICKNESS'
-                new_channel.input_textures.a_texture = 'NONE'
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_BaseNormals"
+            new_channel.input_textures.r_texture = 'BASE_NORMALS'
+            new_channel.input_textures.g_texture = 'BASE_NORMALS'
+            new_channel.input_textures.b_texture = 'BASE_NORMALS'
+            new_channel.input_textures.a_texture = 'NONE'
 
-                new_channel = export_textures.add()
-                new_channel.name_format = "T_/MaterialName_BaseNormals"
-                new_channel.input_textures.r_texture = 'BASE_NORMALS'
-                new_channel.input_textures.g_texture = 'BASE_NORMALS'
-                new_channel.input_textures.b_texture = 'BASE_NORMALS'
-                new_channel.input_textures.a_texture = 'NONE'
-
-def bake_material_channel(material_channel_name, export_image_name, thirty_two_bit, self, context):
+def bake_material_channel(material_channel_name, self):
     '''Bakes the defined material channel to an image texture (stores it in Blender's data). Returns true if baking was successful.'''
 
-    # Verify the selected object can be baked from.
-    if mesh_map_baking.verify_bake_object(self) == False:
-        return
+    if material_channel_name not in material_layers.MATERIAL_CHANNEL_LIST:
+        debug_logging.log("Invalid material channel name provided to bake_material_channel.")
+        return None
     
-    # Verify the material can be baked from.
-    if matlayer_materials.verify_material(context) == False:
-        return
-    
-    # Ensure there is a material on the active object.
-    if bpy.context.active_object.active_material == None:
-        self.report({'INFO'}, "Selected object doesn't have an active material.")
-        return
-    
-    # Force save all textures (unsaved texture will not bake to textures properly).
-    for image in bpy.data.images:
-        if image.filepath != '' and image.is_dirty and image.has_data:
-            image.save()
+    # Skip baking for material channels that are toggled off in the texture set settings.
+    if not tss.get_material_channel_active(material_channel_name):
+        debug_logging.log("Skipped baking for globally disabled material channel {channel_name}.".format(channel_name=material_channel_name))
+        return None
 
-    # Isolate the material channel.
-    if material_channel_name != 'NORMAL':
-        material_channels.isolate_material_channel(True, material_channel_name, context)
+    blender_addon_utils.force_save_all_textures()                       # Force save all textures (unsaved textures will not bake properly).
 
     # Create a new image to bake to.
-    export_image = internal_utils.create_image(export_image_name,
-                                               texture_set_settings.get_texture_width(),
-                                               texture_set_settings.get_texture_height(),
-                                               False,
-                                               thirty_two_bit)
+    image_name = "{0}_{1}".format(bpy.context.active_object.active_material.name, material_channel_name.capitalize())
+    export_image = blender_addon_utils.create_data_image(image_name, 
+                                                         tss.get_texture_width(),
+                                                         tss.get_texture_height(),
+                                                         alpha_channel=False,
+                                                         thirty_two_bit=True,
+                                                         data=False,
+                                                         delete_existing=True)
 
-    # Create a temporary image texture node to bake to.
-    material_nodes = context.active_object.active_material.node_tree.nodes
-    image_node = material_nodes.new('ShaderNodeTexImage')
+    # Add the baking image to the preset baking texture node (included in the default material setup).
+    material_nodes = bpy.context.active_object.active_material.node_tree.nodes
+    image_node = material_nodes.get('BAKE_TEXTURE')
     image_node.image = export_image
     image_node.select = True
     material_nodes.active = image_node
 
-    # Cache the render engine so we can reset it after baking with Cycles.
-    original_render_engine = bpy.context.scene.render.engine
+    material_layers.isolate_material_channel(material_channel_name)     # Isolate the material channel.
+
+    # Set baking settings required for baking material channels.
     bpy.context.scene.render.engine = 'CYCLES'
     bpy.context.scene.render.bake.use_selected_to_active = False
+
+    # Start baking.
     if material_channel_name == 'NORMAL':
-        bpy.ops.object.bake(type='NORMAL')
+        bpy.ops.object.bake('INVOKE_DEFAULT', type='NORMAL')
     else:
-        bpy.ops.object.bake(type='EMIT')
-
-    # Reset the render engine.
-    bpy.context.scene.render.engine = original_render_engine
-
-    # Delete the image texture node, it's no longer needed.
-    material_nodes.remove(image_node)
-
-    # De-isolate the material channel.
-    if material_channel_name != 'NORMAL':
-        material_channels.isolate_material_channel(False, material_channel_name, context)
-
-    logging.log("Baked the {channel_name} material channel to an image texture.".format(channel_name=material_channel_name))
+        bpy.ops.object.bake('INVOKE_DEFAULT', type='EMIT')
 
     return export_image
 
-def bake_export_textures(self, context):
-    '''Bakes all textures based on the list of defined textures to export.'''
+def get_texture_channel_bake_list():
+    '''Returns a list of material channels required to be baked as defined in the texture export settings.'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-
-    # Create a list of textures to bake based on the list of defined textures to export.
     material_channels_to_bake = []
     for export_texture in addon_preferences.export_textures:
         for key in export_texture.input_textures.__annotations__.keys():
             input_texture_channel = getattr(export_texture.input_textures, key)
             if input_texture_channel not in material_channels_to_bake:
-                material_channels_to_bake.append(input_texture_channel)
-    logging.log("Baking channels: " + str(material_channels_to_bake))
-
-    # Bake a texture for each material channel that requires baking.
-    for material_channel_name in material_channels_to_bake:
-
-        # Skip baking for mesh maps and some other specific types.
-        match material_channel_name:
-            case 'AMBIENT_OCCLUSION':
-                continue
-            case 'CURVATURE':
-                continue
-            case 'THICKNESS':
-                continue
-            case 'BASE_NORMALS':
-                continue
-            case 'OPACITY':
-                continue
-            case 'NONE':
-                continue
-
-        # Skip baking for material channels that are toggled off in the texture set settings.
-        texture_set_settings = context.scene.matlayer_texture_set_settings
-        material_channel_enabled = getattr(texture_set_settings.global_material_channel_toggles, material_channel_name.lower() + "_channel_toggle")
-        if not material_channel_enabled:
-            logging.log("Skipped baking for disabled material channel {channel_name}.".format(channel_name=material_channel_name))
-            continue
-
-        # Bake material channel to a texture (always bake material channels to 32-bit images).
-        temp_material_channel_image_name = "ML_{channel_name}".format(channel_name=material_channel_name)
-        bake_material_channel(material_channel_name, temp_material_channel_image_name, True, self, context)
-
-    return True
+                if input_texture_channel != 'NONE':
+                    material_channels_to_bake.append(input_texture_channel)
+    debug_logging.log("Baking channels: {0}".format(material_channels_to_bake))
+    return material_channels_to_bake
 
 def format_export_image_name(texture_name_format):
     '''Properly formats the name for an export image based on the selected texture export template and the provided material channel.'''
@@ -604,10 +532,6 @@ def invert_image(image, invert_r = False, invert_g = False, invert_b = False, in
         pixels[3::4] = 1 - pixels[3::4]
     image.pixels.foreach_set(pixels)
 
-def delete_unpacked_images():
-    '''Deletes all textures that were packed into images.'''
-    print("Placeholder...")
-
 def channel_pack_textures():
     '''Creates channel packed textures using pre-baked textures.'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
@@ -641,8 +565,8 @@ def channel_pack_textures():
                     image = bpy.data.images.get(meshmap_name)
                     input_images.append(image)
 
-                case 'OPACITY':
-                    input_images.append(None)       # Not implemented, append None for now.
+                case 'ALPHA':
+                    input_images.append(None)       # TODO: Implement this.
 
                 case 'NONE':
                     input_images.append(None)
@@ -716,7 +640,7 @@ def channel_pack_textures():
                 image = bpy.data.images.get(meshmap_name)
                 input_images.append(image)
 
-            case 'OPACITY':
+            case 'ALPHA':
                 input_images.append(None)       # Not implemented, append None for now.
 
             case 'NONE':
@@ -743,32 +667,106 @@ def channel_pack_textures():
                 image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
                 input_images.append(image)
 
+def bake_export_texture(export_texture_name, self):
+    '''Bakes the specified export texture (material channel, or mesh map).'''
+    if export_texture_name in material_layers.MATERIAL_CHANNEL_LIST:
+        bake_image = bake_material_channel(export_texture_name, self)
+        return bake_image
+    else:
+        print("Placeholder... baking export mesh map...")
+        #mesh_map_baking.bake_mesh_map(export_texture_name, self)
+        return None
+
 #----------------------------- EXPORT OPERATORS -----------------------------#
 
 
 class MATLAYER_OT_export(Operator):
     bl_idname = "matlayer.export"
     bl_label = "Batch Export"
-    bl_description = "Bakes all checked and active material channels to textures in succession and saves all baked images to a texture folder. Note that this function (especially on slower computers, or when using a CPU for rendering) can take a few minutes"
+    bl_description = "Bakes all checked and active material channels to textures in succession, applies channel packing, then saves all baked images to a texture folder"
 
+    _timer = None
+    _baked_channel_count = 0
+    _texture_channels_to_bake = []
+    _mesh_map_channels_to_bake = []
+    _original_render_engine = None
+    _bake_image = None
+
+    # Users must have an object selected to call this operator.
     @ classmethod
     def poll(cls, context):
         return context.active_object
     
-    def execute(self, context):
-        # Verify the selected object can be baked from.
-        if mesh_map_baking.verify_bake_object(self) == False:
-            return {'FINISHED'}
+    def modal(self, context, event):
+        if event.type in {'ESC'}:
+            self.cancel(context)
+            return {'CANCELLED'}
         
-        # Verify the material can be baked from.
-        if matlayer_materials.verify_material(context) == False:
-            return {'FINISHED'}
-        
-        bake_export_textures(self, context)
-        channel_pack_textures()
+        if event.type == 'TIMER':
+            if not bpy.app.is_job_running('OBJECT_BAKE'):
 
-        self.report({'INFO'}, "Finished exporting textures, more information can be found in the Blender console (On Windows: Window -> Toggle System Console).")
-        return {'FINISHED'}
+                # Pack the baked image in the blend files data.
+                if self._bake_image != None:
+                    self._bake_image.pack()
+
+                # All of the texture channels are baked, end the operation.
+                if self._baked_channel_count < len(self._texture_channels_to_bake) - 1:
+                    self._baked_channel_count += 1
+                    self._bake_image = bake_export_texture(self._texture_channels_to_bake[self._baked_channel_count], self)
+
+                # Start baking the next material channel.
+                else:
+                    self.finish(context)
+                    return {'FINISHED'}
+                
+        return {'RUNNING_MODAL'}
+
+    def execute(self, context):
+        # Verify the object can be baked to.
+        if blender_addon_utils.verify_bake_object(self, check_active_material=True) == False:
+            return {'FINISHED'}
+        
+        self._texture_channels_to_bake = get_texture_channel_bake_list()        # Compile a list of material channels that require baking based on settings.
+
+        # If there are no texture channels to back, channel pack and finish.
+        if len(self._texture_channels_to_bake) <= 0:
+            channel_pack_textures()
+            self.report({'INFO'}, "Exporting textures finished successfully.")
+            return {'FINISHED'}
+        
+        self._original_render_engine = bpy.context.scene.render.engine          # Remember the original render engine so we can reset it after baking.
+        self._bake_image = bake_export_texture(self._texture_channels_to_bake[0], self)            # Start baking the first export texture.
+
+        # Add a timer to provide periodic timer events.
+        wm = context.window_manager
+        self._timer = wm.event_timer_add(0.5, window=context.window)
+        wm.modal_handler_add(self)
+
+        return {'RUNNING_MODAL'}
+
+    def cancel(self, context):
+        # Remove the timer if it exists, it's no longer needed.
+        if self._timer:
+            wm = context.window_manager
+            wm.event_timer_remove(self._timer)
+
+        # Reset the render engine.
+        bpy.context.scene.render.engine = self._original_render_engine
+
+        self.report({'INFO'}, "Exporting textures was manually cancelled.")
+
+    def finish(self, context):
+        # Remove the timer.
+        wm = context.window_manager
+        wm.event_timer_remove(self._timer)
+
+        # Reset the render engine.
+        bpy.context.scene.render.engine = self._original_render_engine
+
+        # TODO: Channel pack exported textures.
+        #channel_pack_textures()
+
+        self.report({'INFO'}, "Exporting textures finished successfully.")
 
 class MATLAYER_OT_set_export_template(Operator):
     bl_idname = "matlayer.set_export_template"
