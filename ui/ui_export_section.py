@@ -28,7 +28,7 @@ def draw_export_section_ui(self, context):
     
     row = first_column.row()
     row.scale_y = SCALE_Y
-    row.label(text="Export Template:")
+    row.label(text="Export Template")
     row = second_column.row(align=True)
     row.scale_y = SCALE_Y
     row.prop(addon_preferences, "export_template_name", text="")
@@ -102,7 +102,7 @@ def draw_export_section_ui(self, context):
 
     row = first_column.row()
     row.scale_y = SCALE_Y
-    row.label(text="Normal Map Mode: ")
+    row.label(text="Normal Map Mode")
     row = second_column.row(align=True)
     row.scale_y = SCALE_Y
     row.prop_enum(addon_preferences, "normal_map_mode", 'OPEN_GL')
@@ -110,7 +110,7 @@ def draw_export_section_ui(self, context):
 
     row = first_column.row()
     row.scale_y = SCALE_Y
-    row.label(text="Roughness Mode: ")
+    row.label(text="Roughness Mode")
     row = second_column.row(align=True)
     row.scale_y = SCALE_Y
     row.prop_enum(addon_preferences, "roughness_mode", 'ROUGHNESS')
@@ -118,14 +118,21 @@ def draw_export_section_ui(self, context):
 
     row = first_column.row()
     row.scale_y = SCALE_Y
-    row.label(text="Padding: ")
+    row.label(text="Padding")
     row = second_column.row()
     row.scale_y = SCALE_Y
     row.prop(addon_preferences, "padding", text="")
 
     row = first_column.row()
     row.scale_y = SCALE_Y
-    row.label(text="Delete Unpacked Images: ")
+    row.label(text="Delete Unpacked Images")
     row = second_column.row()
     row.scale_y = SCALE_Y
     row.prop(addon_preferences, "delete_unpacked_images", text="")
+
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.label(text="Bake Single Texture Set")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(addon_preferences, "bake_single_texture_set", text="")

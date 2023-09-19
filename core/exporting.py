@@ -490,12 +490,13 @@ def channel_pack(input_textures, input_packing, output_packing, image_name_forma
 
     # Create image using the packed pixels.
     image_name = format_export_image_name(image_name_format)
-    packed_image = internal_utils.create_image(image_name,
-                                            image_width=w,
-                                            image_height=h,
-                                            alpha_channel=has_alpha,
-                                            thirty_two_bit=use_thirty_two_bit,
-                                            data=True)
+    packed_image = blender_addon_utils.create_data_image(image_name,
+                                                         image_width=w,
+                                                         image_height=h,
+                                                         alpha_channel=has_alpha,
+                                                         thirty_two_bit=use_thirty_two_bit,
+                                                         data=True,
+                                                         delete_existing=True)
     packed_image.file_format = file_format
     packed_image.filepath = "{0}/{1}.{2}".format(export_path, image_name, file_format.lower())
     packed_image.pixels.foreach_set(output_pixels)
@@ -536,6 +537,8 @@ def channel_pack_textures():
     '''Creates channel packed textures using pre-baked textures.'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
 
+    active_object = bpy.context.active_object
+
     # Cycle through all defined export textures and channel pack them.
     for export_texture in addon_preferences.export_textures:
 
@@ -546,29 +549,27 @@ def channel_pack_textures():
 
             match texture_channel:
                 case 'AMBIENT_OCCLUSION':
-                    meshmap_name = mesh_map_baking.get_meshmap_name('AMBIENT_OCCLUSION')
+                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'AMBIENT_OCCLUSION')
                     image = bpy.data.images.get(meshmap_name)
                     input_images.append(image)
 
                 case 'CURVATURE':
-                    meshmap_name = mesh_map_baking.get_meshmap_name('CURVATURE')
+                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'CURVATURE')
                     image = bpy.data.images.get(meshmap_name)
                     input_images.append(image)
 
                 case 'THICKNESS':
-                    meshmap_name = mesh_map_baking.get_meshmap_name('THICKNESS')
+                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'THICKNESS')
                     image = bpy.data.images.get(meshmap_name)
                     input_images.append(image)
 
                 case 'BASE_NORMALS':
-                    meshmap_name = mesh_map_baking.get_meshmap_name('NORMAL')
+                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'NORMAL')
                     image = bpy.data.images.get(meshmap_name)
                     input_images.append(image)
 
                 case 'ALPHA':
-                    input_images.append(None)       # TODO: Implement this.
-
-                case 'NONE':
+                    image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
                     input_images.append(None)
 
                 case 'ROUGHNESS':
@@ -586,6 +587,9 @@ def channel_pack_textures():
                     # Invert normal map G values if exporting for DirectX based on settings.
                     if addon_preferences.normal_map_mode == 'DIRECTX':
                         invert_image(image, False, True, False, False)
+
+                case 'NONE':
+                    input_images.append(None)
 
                 case _:
                     # Get required baked images for packing using their temp name.
@@ -621,22 +625,22 @@ def channel_pack_textures():
         texture_channel = getattr(export_texture.input_textures, key)
         match texture_channel:
             case 'AMBIENT_OCCLUSION':
-                meshmap_name = mesh_map_baking.get_meshmap_name('AMBIENT_OCCLUSION')
+                meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'AMBIENT_OCCLUSION')
                 image = bpy.data.images.get(meshmap_name)
                 input_images.append(image)
 
             case 'CURVATURE':
-                meshmap_name = mesh_map_baking.get_meshmap_name('CURVATURE')
+                meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'CURVATURE')
                 image = bpy.data.images.get(meshmap_name)
                 input_images.append(image)
 
             case 'THICKNESS':
-                meshmap_name = mesh_map_baking.get_meshmap_name('THICKNESS')
+                meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'THICKNESS')
                 image = bpy.data.images.get(meshmap_name)
                 input_images.append(image)
 
             case 'BASE_NORMALS':
-                meshmap_name = mesh_map_baking.get_meshmap_name('NORMAL')
+                meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'NORMAL')
                 image = bpy.data.images.get(meshmap_name)
                 input_images.append(image)
 
@@ -647,7 +651,7 @@ def channel_pack_textures():
                 input_images.append(None)
 
             case 'ROUGHNESS':
-                image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
+                image = bpy.data.images.get("ML_{0}".format(texture_channel))
                 input_images.append(image)
 
                 # Convert (invert) roughness to a smoothness map based on settings.
@@ -655,7 +659,7 @@ def channel_pack_textures():
                     invert_image(image, True, True, True, False)
 
             case 'NORMAL':
-                image = bpy.data.images.get("ML_{material_channel}".format(material_channel=texture_channel))
+                image = bpy.data.images.get("ML_{0}".format(texture_channel))
                 input_images.append(image)
 
                 # Invert normal map G values if exporting for DirectX based on settings.
@@ -673,6 +677,7 @@ def bake_export_texture(export_texture_name, self):
         bake_image = bake_material_channel(export_texture_name, self)
         return bake_image
     else:
+        # TODO: 
         print("Placeholder... baking export mesh map...")
         #mesh_map_baking.bake_mesh_map(export_texture_name, self)
         return None
@@ -760,11 +765,13 @@ class MATLAYER_OT_export(Operator):
         wm = context.window_manager
         wm.event_timer_remove(self._timer)
 
+        # De-isolate material channels.
+        material_layers.show_layer()
+
         # Reset the render engine.
         bpy.context.scene.render.engine = self._original_render_engine
 
-        # TODO: Channel pack exported textures.
-        #channel_pack_textures()
+        channel_pack_textures()
 
         self.report({'INFO'}, "Exporting textures finished successfully.")
 

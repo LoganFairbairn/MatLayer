@@ -216,6 +216,7 @@ class AddonPreferences(AddonPreferences):
     delete_unpacked_images: BoolProperty(name="Delete Unpacked Images", default=True, description="Deletes unpacked image textures after packing")
     roughness_mode: EnumProperty(name="Roughness Mode", items=ROUGHNESS_MODE, default='ROUGHNESS')
     normal_map_mode: EnumProperty(name="Normal Map Mode", items=NORMAL_MAP_MODE, default='OPEN_GL')
+    bake_single_texture_set: BoolProperty(name="Bake Single Texture Set", description="Bakes all materials in all texture slots on the active object to 1 texture set. Separating the final material into separate smaller materials assigned to different parts of the mesh and then baking them to a single texture set can be efficient for workflow, and can reduce shader compilation time while editing", default=False)
 
     #----------------------------- DRAWING -----------------------------#
     def draw(self, context):
