@@ -866,7 +866,7 @@ class MATLAYER_OT_set_mask_projection_uv(Operator):
 
     def execute(self, context):
         set_mask_projection_mode('UV')
-        relink_mask_projection()
+        relink_image_mask_projection()
         return {'FINISHED'}
 
 class MATLAYER_OT_set_mask_projection_triplanar(Operator):
@@ -882,7 +882,7 @@ class MATLAYER_OT_set_mask_projection_triplanar(Operator):
 
     def execute(self, context):
         set_mask_projection_mode('TRIPLANAR')
-        relink_mask_projection()
+        relink_image_mask_projection()
         return {'FINISHED'}
 
 class MATLAYER_OT_set_mask_output_channel(Operator):

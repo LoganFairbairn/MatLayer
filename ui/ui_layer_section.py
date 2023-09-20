@@ -394,9 +394,10 @@ def draw_mask_channel(layout, selected_layer_index, selected_mask_index):
 
     mask_filter_node = layer_masks.get_mask_node("FILTER", selected_layer_index, selected_mask_index)
     if mask_filter_node:
-        menu_label = mask_filter_node.inputs[0].links[0].from_socket.name
-        row = second_column.row()
-        row.menu("MATLAYER_MT_mask_channel_sub_menu", text=menu_label)
+        if len(mask_filter_node.inputs[0].links) > 0:
+            menu_label = mask_filter_node.inputs[0].links[0].from_socket.name
+            row = second_column.row()
+            row.menu("MATLAYER_MT_mask_channel_sub_menu", text=menu_label)
 
 def draw_mask_textures(layout, mask_node):
     '''Draws all non-mesh map textures used in the mask.'''
