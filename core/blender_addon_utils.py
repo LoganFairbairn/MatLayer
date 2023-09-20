@@ -431,3 +431,35 @@ def force_save_all_textures():
     for image in bpy.data.images:
         if image.filepath != '' and image.is_dirty and image.has_data:
             image.save()
+
+def add_object_to_collection(collection_name, obj, color_tag='COLOR_01', unlink_from_other_collections=False):
+    '''Adds the provided object to a scene collection. Creates a new collection if one doesn't exist.'''
+
+    # Create the collection if it does not exist.
+    collection = bpy.data.collections.get(collection_name)
+    if not collection:
+        collection = bpy.data.collections.new(collection_name)
+        collection.color_tag = color_tag
+        bpy.context.scene.collection.children.link(collection)
+
+    # Unlink the object from all other collections.
+    if unlink_from_other_collections:
+        for c in bpy.data.collections:
+            if c.objects.get(obj.name):
+                c.objects.unlink(obj)
+
+    # Add the object to the collection.
+    collection.objects.link(obj)
+
+    return collection
+
+def get_unique_object_name(object_name, start_id_number=1):
+    '''Returns an object name with the lowest number that doesn't exist within the blend file.'''
+    id_number = start_id_number
+    unique_name = "{0}_{1}".format(object_name, id_number)
+    obj = bpy.data.objects.get(unique_name)
+    while obj:
+        id_number += 1
+        unique_name = "{0}_{1}".format(object_name, id_number)
+        obj = bpy.data.objects.get(unique_name)
+    return unique_name

@@ -353,10 +353,11 @@ def add_material_layer(layer_type, self):
         case 'DECAL':
 
             # Create a new empty to use as a decal object.
-            decal_object = bpy.data.objects.new("Empty", None)
-            bpy.context.scene.collection.objects.link(decal_object)
+            unique_decal_name = blender_addon_utils.get_unique_object_name("Decal", start_id_number=1)
+            decal_object = bpy.data.objects.new(unique_decal_name, None)
             decal_object.empty_display_type = 'CUBE'
             decal_object.scale[2] = 0.1
+            blender_addon_utils.add_object_to_collection("Decals", decal_object, color_tag='COLOR_03', unlink_from_other_collections=True)
 
             # Add the new decal object to the decal coordinate node.
             decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', new_layer_slot_index)
@@ -1108,7 +1109,9 @@ def toggle_image_alpha_blending(material_channel_name):
     else:
         image_alpha_node.mute = True
 
+
 #----------------------------- OPERATORS -----------------------------#
+
 
 class MATLAYER_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''
