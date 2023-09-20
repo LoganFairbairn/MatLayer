@@ -130,9 +130,9 @@ def get_shorthand_material_channel_name(material_channel_name):
         case 'ALPHA':
             return 'ALPHA'
 
-def format_layer_group_node_name(active_material_name, layer_index):
+def format_layer_group_node_name(material_name, layer_index):
     '''Properly formats the layer group node names for this add-on.'''
-    return "{0}_{1}".format(active_material_name, layer_index)
+    return "{0}_{1}".format(material_name, layer_index)
 
 def get_layer_node_tree(layer_index):
     '''Returns the node group for the specified layer (from Blender data) if it exists'''

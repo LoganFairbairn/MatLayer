@@ -195,7 +195,7 @@ class MATLAYER_OT_merge_materials(Operator):
                 for i in range(0, layer_count):
                     
                     # Duplicate the layer node tree and add a new layer group node to the tree.
-                    merge_layer_node = merge_material.node_tree.nodes.get(i)
+                    merge_layer_node = merge_material.node_tree.nodes.get(str(i))
                     if merge_layer_node:
                         if merge_layer_node.node_tree:
                             duplicated_node_tree = blender_addon_utils.duplicate_node_group(merge_layer_node.node_tree.name)
