@@ -625,14 +625,32 @@ class MATLAYER_OT_add_layer_mask_menu(Operator):
     # Draws the properties in the popup.
     def draw(self, context):
         layout = self.layout
-        split = layout.split()
-        col = split.column(align=True)
-        col.scale_y = 1.4
-        col.operator("matlayer.add_empty_layer_mask", text="Empty")
-        col.operator("matlayer.add_black_layer_mask", text="Black")
-        col.operator("matlayer.add_white_layer_mask", text="White")
-        col.operator("matlayer.add_edge_wear_mask", text="Edge Wear")
-        col.operator("matlayer.add_decal_mask", text="Decal Mask")
+        row = layout.row(align=True)
+        image_mask_column = row.column(align=True)
+        image_mask_column.scale_y = 1.4
+        image_mask_column.operator("matlayer.add_empty_layer_mask", text="Empty")
+        image_mask_column.operator("matlayer.add_black_layer_mask", text="Black")
+        image_mask_column.operator("matlayer.add_white_layer_mask", text="White")
+
+        row = layout.row(align=True)
+        effect_mask_column = row.column(align=True)
+        effect_mask_column.scale_y = 1.4
+        effect_mask_column.operator("matlayer.add_edge_wear_mask", text="Edge Wear")
+
+        row = layout.row(align=True)
+        decal_mask_column = row.column(align=True)
+        decal_mask_column.scale_y = 1.4
+        decal_mask_column.operator("matlayer.add_decal_mask", text="Decal Mask")
+
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
+        if projection_node:
+            match projection_node.node_tree.name:
+                case 'ML_DecalProjection':
+                    image_mask_column.enabled = False
+
+                case _:
+                    decal_mask_column.enabled = False
 
 class MATLAYER_OT_add_material_filter_menu(Operator):
     bl_label = ""
