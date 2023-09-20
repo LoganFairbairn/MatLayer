@@ -237,6 +237,7 @@ class MATLAYER_OT_merge_materials(Operator):
                         layer_masks.link_mask_nodes(new_layer_slot_index)
                         layer_masks.organize_mask_nodes()
 
+            bpy.context.scene.matlayer_merge_material = None
             debug_logging.log_status("Merged materials.", self, type='INFO')
 
         else:
