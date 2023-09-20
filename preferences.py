@@ -91,27 +91,6 @@ class AddonPreferences(AddonPreferences):
         description="Saves all imported textures to the 'Layers' folder. This helps provided a constant external folder for saving images used in layers which helps keep your files consistent."
     )
 
-    layer_texture_folder_path: StringProperty(
-        name="Layer Textures Folder",
-        default="",
-        description="Folder path where layer textures are saved. If this is blank, all layer textures will be saved to a 'Layer' folder next to the saved blend file.",
-        subtype='FILE_PATH',
-    )
-
-    mesh_map_texture_folder_path: StringProperty(
-        name="Mesh Map Textures Folder",
-        default="",
-        description="Folder path where baked mesh maps are saved. If this is blank, all mesh maps will be saved to a 'MeshMaps' folder next to the saved blend file.",
-        subtype='FILE_PATH',
-    )
-
-    exported_textures_folder_path: StringProperty(
-        name="Exported Textures Folder",
-        default="",
-        description="Folder path where exported textures are saved. If this is blank all exported textures will be saved to a 'Textures' folder next to the saved blend file.",
-        subtype='FILE_PATH',
-    )
-
     #----------------------------- DEBUGGING -----------------------------#
 
     logging: BoolProperty(
