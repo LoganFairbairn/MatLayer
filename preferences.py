@@ -91,12 +91,6 @@ class AddonPreferences(AddonPreferences):
         description="Saves all imported textures to the 'Layers' folder. This helps provided a constant external folder for saving images used in layers which helps keep your files consistent."
     )
 
-    auto_delete_unused_images: BoolProperty(
-        name="Delete Unused Images on Export",
-        default=True,
-        description="Deletes all images not used within a layer or mask when textures are exported. This helps avoid unused images taking up memory, but could delete textures you intend to use in extremely rare cases."
-    )
-
     layer_texture_folder_path: StringProperty(
         name="Layer Textures Folder",
         default="",
@@ -219,7 +213,6 @@ class AddonPreferences(AddonPreferences):
     export_template_name: StringProperty(name="Export Template Name", default="Unreal Engine 4 (Metallic, Packed)")
     padding: IntProperty(name="Padding", default=16)
     export_textures: CollectionProperty(type=MATLAYER_texture_export_settings)
-    delete_unpacked_images: BoolProperty(name="Delete Unpacked Images", default=True, description="Deletes unpacked image textures after packing")
     roughness_mode: EnumProperty(name="Roughness Mode", items=ROUGHNESS_MODE, default='ROUGHNESS')
     normal_map_mode: EnumProperty(name="Normal Map Mode", items=NORMAL_MAP_MODE, default='OPEN_GL')
     export_mode: EnumProperty(name="Export Active Material", items=EXPORT_MODE, description="Exports only the active material using the defined export settings", default='ONLY_ACTIVE_MATERIAL')

@@ -124,8 +124,3 @@ def draw_export_section_ui(self, context):
     row.label(text="Padding")
     row = second_column.row()
     row.prop(addon_preferences, "padding", text="")
-
-    row = first_column.row()
-    row.label(text="Delete Unpacked Images")
-    row = second_column.row()
-    row.prop(addon_preferences, "delete_unpacked_images", text="")
