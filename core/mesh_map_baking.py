@@ -8,7 +8,6 @@ from ..core import material_layers
 from ..core import blender_addon_utils
 from ..core import debug_logging
 from .. import preferences
-import re
 
 MESH_MAP_MATERIAL_NAMES = (
     "BakeNormals",
