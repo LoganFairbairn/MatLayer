@@ -426,20 +426,9 @@ def draw_mask_filters(layout, selected_layer_index, selected_mask_index):
     '''Draws all properties for filters applied to the selected mask.'''
     mask_filter_node = layer_masks.get_mask_node('FILTER', selected_layer_index, selected_mask_index)
     if mask_filter_node:
-        split = layout.split(factor=0.25)
-        first_column = split.column()
-        second_column = split.column()
+        layout.template_color_ramp(mask_filter_node, "color_ramp", expand=True)
 
-        row = first_column.row()
-        row.label(text="Filter")
-
-        row = second_column.row()
-        row.prop(mask_filter_node, "mute", text="Filter", icon='FILTER', toggle=True, invert_checkbox=True)
-        if not mask_filter_node.mute:
-            row = layout.row()
-            layout.template_color_ramp(mask_filter_node, "color_ramp", expand=True)
-
-def draw_mask_group_node_properties(layout, mask_node, selected_layer_index, selected_mask_index):
+def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_index):
     '''Draws group node properties for the selected mask.'''
     split = layout.split(factor=0.25)
     first_column = split.column()
@@ -521,7 +510,7 @@ def draw_masks(layout):
         draw_mask_channel(layout, selected_layer_index, selected_mask_index)
         draw_mask_textures(layout, mask_node)
         draw_mask_filters(layout, selected_layer_index, selected_mask_index)
-        draw_mask_group_node_properties(layout, mask_node, selected_layer_index, selected_mask_index)
+        draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_index)
         draw_mask_projection(layout)
         draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index)
 
@@ -636,21 +625,6 @@ class MATLAYER_OT_add_layer_mask_menu(Operator):
         effect_mask_column = row.column(align=True)
         effect_mask_column.scale_y = 1.4
         effect_mask_column.operator("matlayer.add_edge_wear_mask", text="Edge Wear")
-
-        row = layout.row(align=True)
-        decal_mask_column = row.column(align=True)
-        decal_mask_column.scale_y = 1.4
-        decal_mask_column.operator("matlayer.add_decal_mask", text="Decal Mask")
-
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-        projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
-        if projection_node:
-            match projection_node.node_tree.name:
-                case 'ML_DecalProjection':
-                    image_mask_column.enabled = False
-
-                case _:
-                    decal_mask_column.enabled = False
 
 class MATLAYER_OT_add_material_filter_menu(Operator):
     bl_label = ""

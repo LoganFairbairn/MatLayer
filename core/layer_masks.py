@@ -287,26 +287,6 @@ def add_layer_mask(type, self):
             material_layers.apply_mesh_maps()
             debug_logging.log("Added edge wear mask.")
 
-        case 'DECAL':
-            default_node_group = blender_addon_utils.append_group_node("ML_DecalMask", never_auto_delete=True)
-            default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
-
-            new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
-            new_mask_group_node.node_tree = default_node_group
-            new_mask_group_node.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
-            new_mask_group_node.label = "Decal Mask"
-            
-            reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
-            organize_mask_nodes()
-            link_mask_nodes(selected_layer_index)
-
-            # Add the decal object to the mask coordinate node.
-            layer_coordinate_node = material_layers.get_material_layer_node('DECAL_COORDINATES', selected_layer_index)
-            decal_coordinate_node = get_mask_node('COORDINATES', selected_layer_index, new_mask_slot_index)
-            decal_coordinate_node.object = layer_coordinate_node.object
-
-            debug_logging.log("Added decal layer mask.")
-
 def duplicate_mask(self, mask_index=-1):
     '''Duplicates the mask at the provided mask index.'''
     if blender_addon_utils.verify_material_operation_context(self) == False:
