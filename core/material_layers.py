@@ -59,14 +59,18 @@ def update_layer_index(self, context):
                 blender_addon_utils.set_texture_paint_image(value_node.image)
 
     # Apply snapping mode based on the layer type.
-    projection_node = get_material_layer_node('PROJECTION', selected_layer_index, selected_material_channel)
-    match projection_node.node_tree.name:
-        case 'ML_UVProjection':
-            blender_addon_utils.set_snapping('DEFAULT', snap_on=False)
-        case 'ML_TriplanarProjection':
-            blender_addon_utils.set_snapping('DEFAULT', snap_on=False)
-        case 'ML_DecalProjection':
-            blender_addon_utils.set_snapping('DECAL', snap_on=True)
+    active_object = bpy.context.active_object
+    if active_object:
+        if active_object.active_material:
+            projection_node = get_material_layer_node('PROJECTION', selected_layer_index, selected_material_channel)
+            if projection_node:
+                match projection_node.node_tree.name:
+                    case 'ML_UVProjection':
+                        blender_addon_utils.set_snapping('DEFAULT', snap_on=False)
+                    case 'ML_TriplanarProjection':
+                        blender_addon_utils.set_snapping('DEFAULT', snap_on=False)
+                    case 'ML_DecalProjection':
+                        blender_addon_utils.set_snapping('DECAL', snap_on=True)
 
 def sync_triplanar_samples():
     '''Syncs triplanar texture samples to match the first texture sample (only if triplanar projection is being used).'''
