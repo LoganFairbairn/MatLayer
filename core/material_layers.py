@@ -1317,7 +1317,7 @@ class MATLAYER_OT_toggle_material_channel_blur(Operator):
             BLUR_node.inputs.get(blur_toggle_property_name).default_value = 1
 
         return {'FINISHED'}
-    
+
 class MATLAYER_OT_toggle_hide_layer(Operator):
     bl_idname = "matlayer.toggle_hide_layer"
     bl_label = "Toggle Hide Layer"
@@ -1371,7 +1371,7 @@ class MATLAYER_OT_set_layer_projection_triplanar(Operator):
     def execute(self, context):
         set_layer_projection('TRIPLANAR', self)
         return {'FINISHED'}
-    
+
 class MATLAYER_OT_change_material_channel_value_node(Operator):
     bl_idname = "matlayer.change_material_channel_value_node"
     bl_label = "Change Material Channel Node"
@@ -1422,7 +1422,7 @@ class MATLAYER_OT_toggle_triplanar_flip_correction(Operator):
 class MATLAYER_OT_isolate_material_channel(Operator):
     bl_idname = "matlayer.isolate_material_channel"
     bl_label = "Isolate Material Channel"
-    bl_description = "Isolates the selected material channel"
+    bl_description = "Isolates the selected material channel. Select a material layer to de-isolate"
     bl_options = {'REGISTER', 'UNDO'}
 
     # Disable when there is no active object.

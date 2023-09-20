@@ -961,7 +961,7 @@ class MATLAYER_OT_toggle_mask_blur(Operator):
 class MATLAYER_OT_isolate_mask(Operator):
     bl_label = "Isolate Mask"
     bl_idname = "matlayer.isolate_mask"
-    bl_description = "Isolate Mask"
+    bl_description = "Isolates the specified mask. Select a material layer to de-isolate"
     bl_options = {'REGISTER', 'UNDO'}
 
     mask_index: IntProperty(default=-1)
