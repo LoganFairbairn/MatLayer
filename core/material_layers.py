@@ -1509,3 +1509,18 @@ class MATLAYER_OT_toggle_material_channel_filter(Operator):
             layer_node_tree.links.new(filter_node.outputs[0], mix_node.inputs[7])
 
         return {'FINISHED'}
+
+class MATLAYER_OT_set_material_channel_output_channel(Operator):
+    bl_idname = "matlayer.set_material_channel_output_channel"
+    bl_label = "Set Material Channel Output Channel"
+    bl_description = "Sets the material channel to use the specified output channel"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    channel_name: StringProperty(default='COLOR')
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        return {'FINISHED'}

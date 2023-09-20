@@ -136,44 +136,42 @@ def draw_layer_material_channel_toggles(layout):
 
 def draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_layer_index, material_channel_name):
     '''Draws the value node type to the UI.'''
-    split = layout.split(factor=0.25)
-    first_column = split.column()
-    second_column = split.column()
-    
-    row = first_column.row()
-    row.label(text="Value")
-    row = second_column.row(align=True)
-    row.context_pointer_set("mix_node", mix_node)
+
     match value_node.bl_static_type:
         case 'GROUP':
+            row = layout.row(align=True)
+            row.context_pointer_set("mix_node", mix_node)
             row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text="", icon='NODETREE')
             row.prop(value_node, "node_tree", text="")
 
         case 'TEX_IMAGE':
+            split = layout.split(factor=0.825)
+            first_column = split.column()
+            second_column = split.column()
+
+            row = first_column.row(align=True)
+            row.context_pointer_set("mix_node", mix_node)
             row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text="", icon='IMAGE_DATA')
             row.prop(value_node, "image", text="")
             row.context_pointer_set("node_tree", layer_node_tree)
             row.context_pointer_set("node", value_node)
+            row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+
+            row = second_column.row(align=True)
             mix_image_alpha_node = material_layers.get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
             if mix_image_alpha_node.mute:
                 operator = row.operator("matlayer.toggle_image_alpha_blending", text="", icon='IMAGE_ALPHA')
             else:
                 operator = row.operator("matlayer.toggle_image_alpha_blending", text="", icon='IMAGE_ALPHA', depress=True)
             operator.material_channel_name = material_channel_name
-            row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+            row.context_pointer_set("mix_node", mix_node)
+            row.menu("MATLAYER_MT_material_channel_output_sub_menu", text="C")
 
 def draw_material_channel_filter_node(layout, material_channel_name, selected_layer_index):
     '''Draws the material channel filter toggle and group node used to filter the material channel.'''
     filter_node = material_layers.get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
     if filter_node:
-        split = layout.split(factor=0.25)
-        first_column = split.column()
-        second_column = split.column()
-
-        row = first_column.row()
-        row.label(text="Filter")
-
-        split = second_column.split(align=True, factor=0.1)
+        split = layout.split(align=True, factor=0.08)
         row = split.column(align=True)
 
         if blender_addon_utils.get_node_active(filter_node) == True:
@@ -212,17 +210,14 @@ def draw_material_channel_filter_properties(layout, selected_layer_index, materi
 
 def draw_group_node_properties(layout, value_node):
     '''Draws properties for the provided value node.'''
-    split = layout.split(factor=0.25)
-    first_column = split.column()
-    second_column = split.column()
-
     match value_node.bl_static_type:
         case 'GROUP':
             for i in range(0, len(value_node.inputs)):
-                row = first_column.row()
-                row.label(text=value_node.inputs[i].name)
-                row = second_column.row()
-                row.prop(value_node.inputs[i], "default_value", text="")
+                row = layout.row()
+                if value_node.inputs[i].name == 'Color':
+                    row.prop(value_node.inputs[i], "default_value", text="")
+                else:
+                    row.prop(value_node.inputs[i], "default_value", text=value_node.inputs[i].name)
 
 def draw_material_channel_properties(layout):
     '''Draws properties for all active material channels on selected material layer.'''
@@ -756,4 +751,21 @@ class MaskChannelSubMenu(Menu):
         operator = layout.operator("matlayer.set_mask_output_channel", text="Green")
         operator.channel_name = 'GREEN'
         operator = layout.operator("matlayer.set_mask_output_channel", text="Blue")
+        operator.channel_name = 'BLUE'
+
+class MaterialChannelOutputSubMenu(Menu):
+    bl_idname = "MATLAYER_MT_material_channel_output_sub_menu"
+    bl_label = "Material Channel Output Sub Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        operator = layout.operator("matlayer.set_material_channel_output_channel", text="Color")
+        operator.channel_name = 'COLOR'
+        operator = layout.operator("matlayer.set_material_channel_output_channel", text="Alpha")
+        operator.channel_name = 'ALPHA'
+        operator = layout.operator("matlayer.set_material_channel_output_channel", text="Red")
+        operator.channel_name = 'RED'
+        operator = layout.operator("matlayer.set_material_channel_output_channel", text="Green")
+        operator.channel_name = 'GREEN'
+        operator = layout.operator("matlayer.set_material_channel_output_channel", text="Blue")
         operator.channel_name = 'BLUE'
