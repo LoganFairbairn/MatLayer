@@ -30,7 +30,8 @@ def on_active_material_changed():
     active_object_attibute = getattr(bpy.context.view_layer.objects, "active", None)
     if active_object_attibute:
         active_object = bpy.context.view_layer.objects.active
-        sub_to_active_material_name(active_object)
+        if active_object:
+            sub_to_active_material_name(active_object)
 
 def on_active_material_index_changed():
     '''Reads material nodes into the user interface when the active material index is changed.'''
