@@ -422,12 +422,6 @@ def draw_mask_textures(layout, mask_node):
             row.context_pointer_set("node", node)
             row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
-def draw_mask_filters(layout, selected_layer_index, selected_mask_index):
-    '''Draws all properties for filters applied to the selected mask.'''
-    mask_filter_node = layer_masks.get_mask_node('FILTER', selected_layer_index, selected_mask_index)
-    if mask_filter_node:
-        layout.template_color_ramp(mask_filter_node, "color_ramp", expand=True)
-
 def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_index):
     '''Draws group node properties for the selected mask.'''
     split = layout.split(factor=0.25)
@@ -458,6 +452,23 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
                 row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.prop(mask_node.inputs[i], "default_value", text="")
+
+    # Draw mask blur properties.
+    blur_node = layer_masks.get_mask_node('BLUR', selected_layer_index, selected_mask_index)
+    if blur_node:
+        row = first_column.row(align=True)
+        row.label(text="Blur")
+        row = second_column.row(align=True)
+        if blender_addon_utils.get_node_active(blur_node) == True:
+            row.operator("matlayer.toggle_mask_blur", text="", icon='FILTER', depress=True)
+        else:
+            row.operator("matlayer.toggle_mask_blur", text="", icon='FILTER')
+        row.prop(blur_node.inputs.get('Blur Amount'), "default_value", text="", slider=True)
+
+    # Draw mask color ramp properties.
+    mask_filter_node = layer_masks.get_mask_node('FILTER', selected_layer_index, selected_mask_index)
+    if mask_filter_node:
+        layout.template_color_ramp(mask_filter_node, "color_ramp", expand=True)
 
 def draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index):
     '''Draws mesh maps for the selected mask.'''
@@ -509,7 +520,6 @@ def draw_masks(layout):
 
         draw_mask_channel(layout, selected_layer_index, selected_mask_index)
         draw_mask_textures(layout, mask_node)
-        draw_mask_filters(layout, selected_layer_index, selected_mask_index)
         draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_index)
         draw_mask_projection(layout)
         draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index)
