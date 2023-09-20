@@ -60,6 +60,14 @@ EXPORT_MODE = [
     ("SINGLE_TEXTURE_SET", "Single Texture Set", "Bakes all materials in all texture slots on the active object to 1 texture set. Separating the final material into separate smaller materials assigned to different parts of the mesh and then baking them to a single texture set can be efficient for workflow, and can reduce shader compilation time while editing")
 ]
 
+MESH_MAP_BAKING_QUALITY = [
+    ("TEST_QUALITY", "Test Quality", "Test quality sampling, ideal for quickly testing the output of mesh map bakes. Not recommended for use in production"),
+    ("LOW_QUALITY", "Low Quality", "Low quality sampling"),
+    ("RECOMMENDED_QUALITY", "Recommended Quality", "Recommended quality sampling, ideal for most use cases"),
+    ("HIGH_QUALITY", "High Quality", "High quality sampling, for more accurate mesh map data"),
+    ("INSANE_QUALITY", "Insane Quality", "Very high sampling, for hyper accurate mesh map data output, not recommended for standard use. Render times are usually long")
+]
+
 class MATLAYER_pack_textures(PropertyGroup):
     r_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name='R Texture')
     g_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name='G Texture')
@@ -103,7 +111,7 @@ class AddonPreferences(AddonPreferences):
 
     output_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS,name="Output Height",description="Image size for the baked texure map result(s)", default='TWOK', update=update_bake_width)
     output_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Output Height", description="Image size for the baked texure map result(s)", default='TWOK')
-
+    mesh_map_quality: EnumProperty(items=MESH_MAP_BAKING_QUALITY, name="Mesh Map Quality", description="Bake quality", default='RECOMMENDED_QUALITY')
     bake_normals: BoolProperty(name="Bake Normal", description="Toggle for baking normal maps for baking as part of the batch baking operator", default=True)
     bake_ambient_occlusion: BoolProperty(name="Bake Ambient Occlusion", description="Toggle for baking ambient occlusion as part of the batch baking operator", default=True)
     bake_curvature: BoolProperty(name="Bake Curvature", description="Toggle for baking curvature as part of the batch baking operator", default=True)
@@ -112,7 +120,7 @@ class AddonPreferences(AddonPreferences):
 
     occlusion_samples: IntProperty(
         name="Occlusion Samples", 
-        description="Number of rays to trace for occlusion shader evaluation. Higher values help slightly with quality occlusion quality", 
+        description="Number of rays to trace for occlusion shader evaluation. Higher values slightly increase occlusion quality at the cost of increased bake time", 
         default=64, 
         min=1, 
         max=128, 

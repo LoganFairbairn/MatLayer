@@ -6,8 +6,6 @@ from ..core import mesh_map_baking
 from .. import preferences
 
 def draw_mesh_map_operators(layout, mesh_map_type):
-    operator = layout.operator("matlayer.bake_mesh_map", text="", icon='RENDER_STILL')
-    operator.mesh_map_type = mesh_map_type
     if mesh_map_type != 'NORMALS':
         operator = layout.operator("matlayer.preview_mesh_map", text="", icon='MATERIAL_DATA')
         operator.mesh_map_type = mesh_map_type
@@ -89,6 +87,11 @@ def draw_general_settings(layout, addon_preferences, baking_settings):
     row.label(text="Render Device: ")
     row = second_column.row()
     row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
+
+    row = first_column.row()
+    row.label(text="Mesh Map Quality: ")
+    row = second_column.row()
+    row.prop(addon_preferences, "mesh_map_quality", text="")
 
     row = first_column.row()
     row.label(text="Cage Extrusion: ")
@@ -223,7 +226,7 @@ def draw_baking_section_ui(self, context):
     # Draw bake button.
     row = layout.row()
     row.scale_y = 2.0
-    row.operator("matlayer.batch_bake")
+    row.operator("matlayer.batch_bake", text="Bake")
     row.operator("matlayer.open_bake_folder", text="", icon='FILE_FOLDER')
 
     draw_mesh_map_status(layout, addon_preferences)

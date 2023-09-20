@@ -43,58 +43,54 @@ def update_bake_width(self, context):
         if addon_preferences.output_height != addon_preferences.output_width:
             addon_preferences.output_height = addon_preferences.output_width
 
-def update_meshmap_names(previous_name):
-    '''Updates the meshmap names using old names to the name of the active object (called after an object name change).'''
-    print("Placeholder...")
-    '''
-    for meshmap_type in BAKE_TYPES:
-        meshmap_name = format_meshmap_name(previous_name, meshmap_type)
-        meshmap_image = bpy.data.images.get(meshmap_name)
-        if meshmap_image:
-            meshmap_image.name = format_meshmap_name(bpy.context.active_object.name, meshmap_type)
-    '''
-
 def update_occlusion_samples(self, context):
     '''Updates the occlusion samples setting in the active material'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     node = get_meshmap_node('AMBIENT_OCCLUSION')
-    node.samples = addon_preferences.occlusion_samples
+    if node:
+        node.samples = addon_preferences.occlusion_samples
 
 def update_occlusion_distance(self, context):
     '''Updates the occlusion distance setting in the active material'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     node = get_meshmap_node('AMBIENT_OCCLUSION')
-    node.inputs.get('Distance').default_value = addon_preferences.occlusion_distance
+    if node:
+        node.inputs.get('Distance').default_value = addon_preferences.occlusion_distance
 
 def update_occlusion_contrast(self, context):
     '''Updates the occlusion contrast setting in the active material'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     node = get_meshmap_node('CONTRAST')
-    node.inputs.get('Contrast').default_value = addon_preferences.occlusion_contrast
+    if node:
+        node.inputs.get('Contrast').default_value = addon_preferences.occlusion_contrast
 
 def update_curvature_bevel_radius(self, context):
     '''Updates the bevel radius setting in the active material'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     node = get_meshmap_node('BEVEL')
-    node.inputs.get('Radius').default_value = addon_preferences.curvature_bevel_radius
+    if node:
+        node.inputs.get('Radius').default_value = addon_preferences.curvature_bevel_radius
 
 def update_curvature_bevel_samples(self, context):
     '''Updates the curvature bevel samples setting in the active material'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     node = get_meshmap_node('BEVEL')
-    node.samples = addon_preferences.curvature_bevel_samples
+    if node:
+        node.samples = addon_preferences.curvature_bevel_samples
 
 def update_curvature_edge_intensity(self, context):
     '''Updates the curvature edge intensity setting in the active material'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     node = get_meshmap_node('EDGE_INTENSITY')
-    node.inputs[1].default_value = addon_preferences.curvature_edge_intensity
+    if node:
+        node.inputs[1].default_value = addon_preferences.curvature_edge_intensity
 
 def update_curvature_occlusion_masking(self, context):
     '''Updates the curvature occlusion masking setting in the active material'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     node = get_meshmap_node('AMBIENT_OCCLUSION_MASKING')
-    node.inputs[1].default_value = addon_preferences.curvature_occlusion_masking
+    if node:
+        node.inputs[1].default_value = addon_preferences.curvature_occlusion_masking
 
 #----------------------------- HELPER FUNCTIONS -----------------------------#
 
@@ -181,6 +177,35 @@ def create_bake_image(mesh_map_type):
 
     return mesh_map_image
 
+def apply_baking_settings():
+    '''Applies baking settings to existing node setups before baking.'''
+    update_occlusion_samples(None, None)
+    update_occlusion_distance(None, None)
+    update_occlusion_contrast(None, None)
+    update_curvature_bevel_radius(None, None)
+    update_curvature_bevel_samples(None, None)
+    update_curvature_edge_intensity(None, None)
+    update_curvature_occlusion_masking(None, None)
+
+def apply_mesh_map_quality():
+    '''Applies mesh map quality settings.'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    match addon_preferences.mesh_map_quality:
+        case 'TEST_QUALITY':
+            bpy.context.scene.cycles.samples = 1
+
+        case 'LOW_QUALITY':
+            bpy.context.scene.cycles.samples = 32
+
+        case 'RECOMMENDED_QUALITY':
+            bpy.context.scene.cycles.samples = 64
+
+        case 'HIGH_QUALITY':
+            bpy.context.scene.cycles.samples = 128
+
+        case 'INSANE_QUALITY':
+            bpy.context.scene.cycles.samples = 256
+
 def bake_mesh_map(mesh_map_type, self):
     '''Applies a premade baking material to the active object and starts baking. Returns true if baking was successful.'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
@@ -216,6 +241,9 @@ def bake_mesh_map(mesh_map_type, self):
 
     self._temp_bake_material_name = temp_bake_material.name
 
+    # Apply baking settings to the baking material setup.
+    apply_baking_settings()
+
     # Create and assign an image to bake the mesh map to.
     new_bake_image = create_bake_image(mesh_map_type)
     self._mesh_map_image_index = bpy.data.images.find(new_bake_image.name)
@@ -237,7 +265,7 @@ def bake_mesh_map(mesh_map_type, self):
         for material_slot in bpy.context.object.material_slots:
             material_slot.material = temp_bake_material
     else:
-        active_object.materials.append(temp_bake_material)
+        active_object.data.materials.append(temp_bake_material)
 
     # If a high poly object is specified...
     high_poly_object = baking_settings.high_poly_object
@@ -247,7 +275,7 @@ def bake_mesh_map(mesh_map_type, self):
             for material_slot in high_poly_object.material_slots:
                 material_slot.material = temp_bake_material
         else:
-            high_poly_object.materials.append(temp_bake_material)
+            high_poly_object.data.materials.append(temp_bake_material)
 
         # Select the low poly and high poly objects in the correct order.
         bpy.ops.object.select_all(action='DESELECT')
@@ -260,6 +288,9 @@ def bake_mesh_map(mesh_map_type, self):
 
     else:
         bpy.context.scene.render.bake.use_selected_to_active = False
+
+    # Apply mesh map quality settings.
+    apply_mesh_map_quality()
 
     # Trigger the baking process.
     match mesh_map_type:
@@ -309,193 +340,6 @@ def get_batch_bake_mesh_maps():
 class MATLAYER_baking_settings(bpy.types.PropertyGroup):
     match_bake_resolution: BoolProperty(name="Match Bake Resoltion", description="When toggled on, the bake resolution's width and height will be synced", default=True, update=update_match_bake_resolution)
     high_poly_object: PointerProperty(type=bpy.types.Object, name="High Poly Object", description="The high poly object (must be a mesh) from which mesh detail will be baked to texture maps. The high poly mesh should generally be overlapped by your low poly mesh before starting baking. You do not need to provide a high poly mesh for baking texture maps")
-
-class MATLAYER_OT_bake_mesh_map(Operator):
-    bl_idname = "matlayer.bake_mesh_map"
-    bl_label = "Bake Mesh Map"
-    bl_description = "Bakes the specified mesh map for the active (selected) object"
-
-    mesh_map_type: StringProperty(default='AMBIENT_OCCLUSION')
-
-    _timer = None
-    _temp_bake_material = None
-    _mesh_map_image = None
-    _mesh_map_group_node = None
-    _original_materials = []
-    _original_render_engine = None
-
-    # Users must have an object selected to call this operator.
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def modal(self, context, event):
-        # If a user presses escape, mesh map baking will cancel.
-        if event.type in {'ESC'}:
-            self.cancel(context)
-            return {'CANCELLED'}
-        
-        if event.type == 'TIMER':
-            if self._mesh_map_image.is_dirty:
-                self._mesh_map_image.pack()
-                self.finish(context)
-                return {'FINISHED'}
-        
-        return {'PASS_THROUGH'}
-
-    def execute(self, context):
-        if blender_addon_utils.verify_bake_object(self) == False:
-            return {'FINISHED'}
-
-        # Make the low poly selected active object unhiden, selectable and visible.
-        active_object = bpy.context.active_object
-        active_object.hide_set(False)
-        active_object.hide_render = False
-        active_object.hide_select = False
-
-        # Make the high poly mesh unhidden, selectable and visible.
-        high_poly_object = bpy.context.scene.matlayer_baking_settings.high_poly_object
-        if high_poly_object:
-            high_poly_object.hide_set(False)
-            high_poly_object.hide_render = False
-            high_poly_object.hide_select = False
-    
-        # Append a premade material setup for baking the specified mesh map type.
-        match self.mesh_map_type:
-            case 'AMBIENT_OCCLUSION':
-                self._temp_bake_material = blender_addon_utils.append_material('BakeAmbientOcclusion')
-                self._mesh_map_group_node = bpy.data.node_groups.get("ML_AmbientOcclusion")
-
-            case 'CURVATURE':
-                self._temp_bake_material = blender_addon_utils.append_material('BakeCurvature')
-                self._mesh_map_group_node = bpy.data.node_groups.get("ML_Curvature")
-
-            case 'THICKNESS':
-                self._temp_bake_material = blender_addon_utils.append_material('BakeThickness')
-                self._mesh_map_group_node = bpy.data.node_groups.get("ML_Thickness")
-
-            case 'NORMALS':
-                self._temp_bake_material = blender_addon_utils.append_material('BakeNormals')
-
-            case 'WORLD_SPACE_NORMALS':
-                self._temp_bake_material = blender_addon_utils.append_material('BakeWorldSpaceNormals')
-                self._mesh_map_group_node = bpy.data.node_groups.get("ML_WorldSpaceNormals")
-
-        # Cache original materials applied to the active object so the materials can be re-applied after baking.
-        self._original_materials.clear()
-        active_object_material_slots = bpy.context.active_object.material_slots
-        if len(active_object_material_slots) > 0:
-            for x in active_object_material_slots:
-                self._original_materials.append(x.material)
-                x.material = self._temp_bake_material
-        else:
-            bpy.context.object.data.materials.append(self._temp_bake_material)
-
-        # Create and assign an image to bake the mesh map to.
-        self._mesh_map_image = create_bake_image(self.mesh_map_type)
-        bake_image_node = self._temp_bake_material.node_tree.nodes.get("BAKE_IMAGE")
-        if bake_image_node:
-            bake_image_node.image = self._mesh_map_image
-            for node in self._temp_bake_material.node_tree.nodes:
-                node.select = False
-            bake_image_node.select = True
-            self._temp_bake_material.node_tree.nodes.active = bake_image_node
-            context.scene.tool_settings.image_paint.canvas = self._mesh_map_image
-        else:
-            self.report({'ERROR'}, "Error: Image node not found in premade mesh map baking material setup.")
-            return {'FINISHED'}
-
-        # Apply bake settings and bake the material to a texture.
-        baking_settings = bpy.context.scene.matlayer_baking_settings
-        match baking_settings.output_quality:
-            case 'LOW_QUALITY':
-                bpy.data.scenes["Scene"].cycles.samples = 1
-
-            case 'RECOMMENDED_QUALITY':
-                bpy.data.scenes["Scene"].cycles.samples = 64
-
-            case 'HIGH_QUALITY':
-                bpy.data.scenes["Scene"].cycles.samples = 128
-
-        # Remember the render engine so we can reset it after baking.
-        self._original_render_engine = bpy.context.scene.render.engine
-
-        # Start baking the mesh map.
-        self.report({'INFO'}, "Starting mesh map baking, press escape (ESC) to cancel.")
-        bpy.context.scene.render.engine = 'CYCLES'
-        match self.mesh_map_type:
-            case 'NORMALS':
-                if baking_settings.high_poly_object != None:
-                    bpy.context.scene.render.bake.use_selected_to_active = True
-                    bpy.context.scene.render.bake.cage_extrusion = baking_settings.cage_extrusion
-                    
-                    # Select the low poly and high poly objects.
-                    active_object = bpy.context.active_object
-                    bpy.ops.object.select_all(action='DESELECT')
-                    baking_settings.high_poly_object.select_set(True)
-                    active_object.select_set(True)
-                    bpy.context.scene.render.bake.use_selected_to_active = True
-                else:
-                    bpy.context.scene.render.bake.use_selected_to_active = False
-                bpy.ops.object.bake('INVOKE_DEFAULT', type='NORMAL')
-
-            case _:
-                bpy.context.scene.render.bake.use_selected_to_active = False
-                bpy.ops.object.bake('INVOKE_DEFAULT', type='EMIT')
-
-        # Add a timer to provide periodic timer events.
-        wm = context.window_manager
-        self._timer = wm.event_timer_add(0.5, window=context.window)
-        wm.modal_handler_add(self)
-
-        return {'RUNNING_MODAL'}
-
-    def cancel(self, context):
-        # Remove the timer if it exists, it's no longer needed.
-        if self._timer:
-            wm = context.window_manager
-            wm.event_timer_remove(self._timer)
-
-        # Re-apply the materials that were originally on the object and delete the temporary bake material.
-        for i in range(0, len(bpy.context.object.material_slots)):
-            bpy.context.object.material_slots[i].material = self._original_materials[i]
-
-        # Remove the temporary baking material and the mesh map group node.
-        bpy.data.materials.remove(self._temp_bake_material)
-        if self._mesh_map_group_node:
-            bpy.data.node_groups.remove(self._mesh_map_group_node)
-
-        # Reset the render engine.
-        bpy.context.scene.render.engine = self._original_render_engine
-
-        self.report({'INFO'}, "Baking mesh map was manually cancelled.")
-
-    def finish(self, context):
-        # Remove the timer.
-        wm = context.window_manager
-        wm.event_timer_remove(self._timer)
-
-        # High the high poly object, there's no need for it to be visible anymore.
-        high_poly_object = bpy.context.scene.matlayer_baking_settings.high_poly_object
-        if high_poly_object:
-            high_poly_object.hide_set(True)
-
-        # Re-apply the materials that were originally on the object.
-        if len(self._original_materials) > 0:
-            for i in range(0, len(self._original_materials)):
-                bpy.context.object.material_slots[i].material = self._original_materials[i]
-
-        # Remove the temporary baking material and the mesh map group node.
-        bpy.data.materials.remove(self._temp_bake_material)
-        if self._mesh_map_group_node:
-            bpy.data.node_groups.remove(self._mesh_map_group_node)
-
-        # Reset the render engine.
-        bpy.context.scene.render.engine = self._original_render_engine
-
-        material_layers.apply_mesh_maps()
-
-        self.report({'INFO'}, "Baking mesh map completed.")
 
 class MATLAYER_OT_batch_bake(Operator):
     bl_idname = "matlayer.batch_bake"
