@@ -1469,15 +1469,41 @@ class MATLAYER_OT_toggle_material_channel_filter(Operator):
         layer_node_tree = get_layer_node_tree(selected_layer_index)
         filter_node = get_material_layer_node('FILTER', selected_layer_index, self.material_channel_name)
         mix_node = get_material_layer_node('MIX', selected_layer_index, self.material_channel_name)
-        group_output_node = get_material_layer_node('OUTPUT', selected_layer_index)
+        projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
+
         if blender_addon_utils.get_node_active(filter_node) == True:
             blender_addon_utils.set_node_active(filter_node, False)
             blender_addon_utils.unlink_node(filter_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
-            layer_node_tree.links.new(mix_node.outputs[2], group_output_node.inputs.get(self.material_channel_name.capitalize()))
+
+            if projection_node:
+                match projection_node.node_tree.name:
+                    case 'ML_TriplanarProjection':
+                        triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, self.material_channel_name)
+                        if triplanar_blend_node:
+                            layer_node_tree.links.new(triplanar_blend_node.outputs[0], mix_node.inputs[7])
+
+                    case _:
+                        value_node = get_material_layer_node('VALUE', selected_layer_index, self.material_channel_name)
+                        if value_node:
+                            layer_node_tree.links.new(value_node.outputs[0], mix_node.inputs[7])
+
             
+
         else:
             blender_addon_utils.set_node_active(filter_node, True)
-            layer_node_tree.links.new(mix_node.outputs[2], filter_node.inputs[0])
-            layer_node_tree.links.new(filter_node.outputs[0], group_output_node.inputs.get(self.material_channel_name.capitalize()))
+
+            if projection_node:
+                match projection_node.node_tree.name:
+                    case 'ML_TriplanarProjection':
+                        triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, self.material_channel_name)
+                        if triplanar_blend_node:
+                            layer_node_tree.links.new(triplanar_blend_node.outputs[0], filter_node.inputs[0])
+
+                    case _:
+                        value_node = get_material_layer_node('VALUE', selected_layer_index, self.material_channel_name)
+                        if value_node:
+                            layer_node_tree.links.new(value_node.outputs[0], filter_node.inputs[0])
+
+            layer_node_tree.links.new(filter_node.outputs[0], mix_node.inputs[7])
 
         return {'FINISHED'}
