@@ -15,12 +15,16 @@ def draw_texture_set_section_ui(self, context):
 
     #----------------------------- TEXTURE SET SETTINGS -----------------------------#
 
-    row = layout.row()
-    row.scale_y = SCALE_Y
+    split = layout.split(factor=0.3)
+    first_column = split.column()
+    second_column = split.column()
 
-    col = row.split()
-    col.label(text="Texture Size: ")
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.label(text="Texture Size: ")
     
+    row = second_column.row()
+    row.scale_y = SCALE_Y
     col = row.split()
     col.prop(texture_set_settings, "image_width", text="")
 
@@ -34,8 +38,11 @@ def draw_texture_set_section_ui(self, context):
     if texture_set_settings.match_image_resolution:
         col.enabled = False
     col.prop(texture_set_settings, "image_height", text="")
-    
-    row = layout.row()
+
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.label(text="Thirty Two Bit Depth: ")
+    row = second_column.row()
     row.scale_y = SCALE_Y
     row.prop(texture_set_settings, "thirty_two_bit")
 
