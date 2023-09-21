@@ -531,7 +531,9 @@ def relink_image_mask_projection():
                     texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=i + 1)
                     if texture_node:
                         mask_node.node_tree.links.new(blur_node.outputs[i], texture_node.inputs[0])
+                        mask_node.node_tree.links.new(texture_node.outputs[0], triplanar_blend_node.inputs[i])
                 mask_node.node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
+                mask_node.node_tree.links.new(triplanar_blend_node.outputs.get('Color'), mask_filter_node.inputs[0])
             
             else:
                 for i in range(0, 3):
