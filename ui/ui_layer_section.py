@@ -399,55 +399,55 @@ def draw_mask_channel(layout, selected_layer_index, selected_mask_index):
             row = second_column.row()
             row.menu("MATLAYER_MT_mask_channel_sub_menu", text=menu_label)
 
-def draw_mask_textures(layout, mask_node):
-    '''Draws all non-mesh map textures used in the mask.'''
-    for node in mask_node.node_tree.nodes:
-        if node.bl_static_type == 'TEX_IMAGE' and node.name not in mesh_map_baking.MESH_MAP_TYPES:
-            split = layout.split(factor=0.25)
-            first_column = split.column()
-            second_column = split.column()
-
-            row = first_column.row()
-            texture_display_name = node.label.replace('_', ' ')
-            texture_display_name = re.sub(r'\b[a-z]', lambda m: m.group().upper(), texture_display_name.capitalize())
-            row.label(text=texture_display_name)
-
-            row = second_column.row(align=True)
-            row.prop(node, "image", text="")
-            row.context_pointer_set("node_tree", mask_node.node_tree)
-            row.context_pointer_set("node", node)
-            row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
-
 def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_index):
     '''Draws group node properties for the selected mask.'''
     split = layout.split(factor=0.25)
     first_column = split.column()
     second_column = split.column()
 
+    # Draw primary mask texture property ('TEXTURE_1').
+    mask_texture_node = layer_masks.get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=1)
+    if mask_texture_node:
+        row = first_column.row()
+        texture_display_name = mask_texture_node.label.replace('_', ' ')
+        texture_display_name = re.sub(r'\b[a-z]', lambda m: m.group().upper(), texture_display_name.capitalize())
+        row.label(text=texture_display_name)
+
+        row = second_column.row(align=True)
+        row.prop(mask_texture_node, "image", text="")
+        row.context_pointer_set("node_tree", mask_node.node_tree)
+        row.context_pointer_set("node", mask_texture_node)
+        row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+
+    # Draw custom mask texture properties if any exist.
+    for node in mask_node.node_tree.nodes:
+        if node.bl_static_type == 'TEX_IMAGE' and node.name not in mesh_map_baking.MESH_MAP_TYPES:
+            if not node.name.startswith('TEXTURE_'):
+                split = layout.split(factor=0.25)
+                first_column = split.column()
+                second_column = split.column()
+
+                row = first_column.row()
+                texture_display_name = node.label.replace('_', ' ')
+                texture_display_name = re.sub(r'\b[a-z]', lambda m: m.group().upper(), texture_display_name.capitalize())
+                row.label(text=texture_display_name)
+
+                row = second_column.row(align=True)
+                row.prop(node, "image", text="")
+                row.context_pointer_set("node_tree", mask_node.node_tree)
+                row.context_pointer_set("node", node)
+                row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+
+    # Draw mask group node input properties.
     for i in range(0, len(mask_node.inputs)):
         if mask_node.inputs[i].name != 'Mix':
+            row = first_column.row()
+            row.scale_y = DEFAULT_UI_SCALE_Y
+            row.label(text=mask_node.inputs[i].name)
 
-            if mask_node.inputs[i].name == 'Blur Amount':
-                row = first_column.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.label(text="Blur")
-                row = second_column.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                blur_node = layer_masks.get_mask_node('BLUR', selected_layer_index, selected_mask_index)
-                if blender_addon_utils.get_node_active(blur_node):
-                    row.operator("matlayer.toggle_mask_blur", depress=True, text="", icon='CHECKBOX_HLT')
-                else:
-                    row.operator("matlayer.toggle_mask_blur", text="", icon='CHECKBOX_DEHLT')
-                row.prop(mask_node.inputs[i], "default_value", text=mask_node.inputs[i].name)
-
-            else:
-                row = first_column.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.label(text=mask_node.inputs[i].name)
-
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(mask_node.inputs[i], "default_value", text="")
+            row = layout.row()
+            row.scale_y = DEFAULT_UI_SCALE_Y
+            row.prop(mask_node.inputs[i], "default_value", text="")
 
     # Draw mask blur properties.
     blur_node = layer_masks.get_mask_node('BLUR', selected_layer_index, selected_mask_index)
@@ -515,7 +515,6 @@ def draw_masks(layout):
         row.label(text="MASK PROPERTIES")
 
         draw_mask_channel(layout, selected_layer_index, selected_mask_index)
-        draw_mask_textures(layout, mask_node)
         draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_index)
         draw_mask_projection(layout)
         draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index)
