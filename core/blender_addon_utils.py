@@ -185,7 +185,7 @@ def append_group_node(node_group_name, keep_link=False, return_unique=False, app
 
         # Throw an error if the node group doesn't exist and can't be appended.
         else:
-            debug_logging.log_status("{0} does not exist and has failed to append from the blend asset file.".format(node_group_name))
+            debug_logging.log("{0} does not exist and has failed to append from the blend asset file.".format(node_group_name))
             return None
 
     # Returning a duplicated version of an existing node group (rather than appending a new one) can be beneficial to help avoid appending duplicated of sub node groups.

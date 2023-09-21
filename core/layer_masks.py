@@ -586,7 +586,7 @@ def set_mask_projection_mode(projection_mode):
             projection_node.node_tree = blender_addon_utils.append_group_node('ML_UVProjection')
             blur_node = get_mask_node('BLUR', selected_layer_index, selected_mask_index)
             if blur_node:
-                blur_node.node_tree = blender_addon_utils.append_group_node('ML_Blur')
+                blur_node.node_tree = blender_addon_utils.append_group_node('ML_NoiseBlur')
 
         case 'TRIPLANAR':
             mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
