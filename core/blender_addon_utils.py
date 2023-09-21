@@ -90,8 +90,6 @@ def append_default_node_groups():
     append_group_node("ML_TriplanarBlend", never_auto_delete=True)
     append_group_node("ML_ImageMask", never_auto_delete=True)
     append_group_node("ML_EdgeWear", never_auto_delete=True)
-    append_group_node("ML_SharpenedImage", never_auto_delete=True)
-    append_group_node("ML_BlurredImage", never_auto_delete=True)
     append_group_node("ML_NoiseBlur", never_auto_delete=True)
     append_group_node("ML_NormalAndHeightMix", never_auto_delete=True)
     append_group_node("ML_AdjustNormalIntensity", never_auto_delete=True)
