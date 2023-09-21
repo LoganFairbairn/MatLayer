@@ -522,24 +522,25 @@ def relink_image_mask_projection():
             mask_node.node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
             mask_node.node_tree.links.new(projection_node.outputs[1], blur_node.inputs[1])
             mask_node.node_tree.links.new(projection_node.outputs[2], blur_node.inputs[2])
+            
+            mask_filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
+            triplanar_blend_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
 
             if blender_addon_utils.get_node_active(blur_node):
                 for i in range(0, 3):
                     texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=i + 1)
                     if texture_node:
                         mask_node.node_tree.links.new(blur_node.outputs[i], texture_node.inputs[0])
+                mask_node.node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
             
             else:
-                triplanar_blend_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
-
                 for i in range(0, 3):
                     texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=i + 1)
                     if texture_node:
                         mask_node.node_tree.links.new(projection_node.outputs[i], texture_node.inputs[0])
                         mask_node.node_tree.links.new(texture_node.outputs[0], triplanar_blend_node.inputs[i])
                 mask_node.node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
-
-                mask_filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
+                
                 if mask_filter_node:
                     blender_addon_utils.unlink_node(mask_filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
                     mask_node.node_tree.links.new(triplanar_blend_node.outputs[0], mask_filter_node.inputs[0])
