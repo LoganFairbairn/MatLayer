@@ -993,7 +993,7 @@ def apply_material_channel_projection(material_channel_name, projection_method, 
                 mix_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
                 mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
                 opacity_node = get_material_layer_node('OPACITY', selected_layer_index, material_channel_name)
-                layer_node_tree.links.new(triplanar_blend_node.outputs.get('Blend'), mix_node.inputs[7])
+                layer_node_tree.links.new(triplanar_blend_node.outputs.get('Color'), mix_node.inputs[7])
                 layer_node_tree.links.new(triplanar_blend_node.outputs.get('Alpha'), mix_image_alpha_node.inputs[1])
                 layer_node_tree.links.new(mix_image_alpha_node.outputs[0], opacity_node.inputs[3])
 
