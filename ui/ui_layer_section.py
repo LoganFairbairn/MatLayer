@@ -165,7 +165,9 @@ def draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_laye
                 operator = row.operator("matlayer.toggle_image_alpha_blending", text="", icon='IMAGE_ALPHA', depress=True)
             operator.material_channel_name = material_channel_name
             row.context_pointer_set("mix_node", mix_node)
-            row.menu("MATLAYER_MT_material_channel_output_sub_menu", text="C")
+            output_channel_name = material_layers.get_material_channel_output_channel(material_channel_name)
+            if len(output_channel_name) > 0:
+                row.menu("MATLAYER_MT_material_channel_output_sub_menu", text=output_channel_name[0])
 
 def draw_material_channel_filter_node(layout, material_channel_name, selected_layer_index):
     '''Draws the material channel filter toggle and group node used to filter the material channel.'''
@@ -758,14 +760,21 @@ class MaterialChannelOutputSubMenu(Menu):
     bl_label = "Material Channel Output Sub Menu"
 
     def draw(self, context):
+        material_channel_name = context.mix_node.name.replace('_MIX', '')
+
         layout = self.layout
         operator = layout.operator("matlayer.set_material_channel_output_channel", text="Color")
-        operator.channel_name = 'COLOR'
+        operator.output_channel_name = 'COLOR'
+        operator.material_channel_name = material_channel_name
         operator = layout.operator("matlayer.set_material_channel_output_channel", text="Alpha")
-        operator.channel_name = 'ALPHA'
+        operator.output_channel_name = 'ALPHA'
+        operator.material_channel_name = material_channel_name
         operator = layout.operator("matlayer.set_material_channel_output_channel", text="Red")
-        operator.channel_name = 'RED'
+        operator.output_channel_name = 'RED'
+        operator.material_channel_name = material_channel_name
         operator = layout.operator("matlayer.set_material_channel_output_channel", text="Green")
-        operator.channel_name = 'GREEN'
+        operator.output_channel_name = 'GREEN'
+        operator.material_channel_name = material_channel_name
         operator = layout.operator("matlayer.set_material_channel_output_channel", text="Blue")
-        operator.channel_name = 'BLUE'
+        operator.output_channel_name = 'BLUE'
+        operator.material_channel_name = material_channel_name

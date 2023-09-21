@@ -252,6 +252,12 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
                 return node_tree.nodes.get('DECAL_COORDINATES')
             return None
 
+        case 'SEPARATE':
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get("SEPARATE_{0}".format(material_channel_name))
+            return None
+
         case _:
             debug_logging.log("Invalid material node name passed to get_material_layer_node.")
             return None
@@ -1127,6 +1133,65 @@ def toggle_image_alpha_blending(material_channel_name):
     else:
         image_alpha_node.mute = True
 
+def get_material_channel_output_channel(material_channel_name):
+    '''Returns the output channel for the specified material channel.'''
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    filter_node = get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
+
+    color_input_node = None
+    if blender_addon_utils.get_node_active(filter_node):
+        color_input_node = filter_node
+    else:
+        color_input_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
+    if len(color_input_node.inputs[0].links) > 0:
+        return color_input_node.inputs[7].links[0].from_socket.name
+    
+    return None
+
+def set_material_channel_output_channel(material_channel_name, output_channel_name):
+    '''Sets the output channel for the specified material channel.'''
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    layer_node_tree = get_layer_node_tree(selected_layer_index)
+    separate_color_node = get_material_layer_node('SEPARATE', selected_layer_index, material_channel_name)
+    projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
+    filter_node = get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
+
+    color_output_node = None
+    match projection_node.node_tree.name:
+        case 'ML_TriplanarProjection':
+            color_output_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, material_channel_name)
+        case _:
+            color_output_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
+
+    color_input_node = None
+    if blender_addon_utils.get_node_active(color_input_node):
+        color_input_node = filter_node
+    else:
+        color_input_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
+
+    # Disconnect nodes.
+    blender_addon_utils.unlink_node(color_output_node, layer_node_tree, unlink_inputs=False, unlink_outputs=True)
+    blender_addon_utils.unlink_node(separate_color_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
+
+    match output_channel_name:
+        case 'COLOR':
+            layer_node_tree.links.new(color_output_node.outputs[0], color_input_node.inputs[7])
+
+        case 'ALPHA':
+            layer_node_tree.links.new(color_output_node.outputs[1], color_input_node.inputs[7])
+
+        case 'RED':
+            layer_node_tree.links.new(color_output_node.outputs[0], separate_color_node.inputs[0])
+            layer_node_tree.links.new(separate_color_node.outputs[0], color_input_node.inputs[7])
+
+        case 'GREEN':
+            layer_node_tree.links.new(color_output_node.outputs[0], separate_color_node.inputs[0])
+            layer_node_tree.links.new(separate_color_node.outputs[1], color_input_node.inputs[7])
+
+        case 'BLUE':
+            layer_node_tree.links.new(color_output_node.outputs[0], separate_color_node.inputs[0])
+            layer_node_tree.links.new(separate_color_node.outputs[2], color_input_node.inputs[7])
+
 
 #----------------------------- OPERATORS -----------------------------#
 
@@ -1516,11 +1581,13 @@ class MATLAYER_OT_set_material_channel_output_channel(Operator):
     bl_description = "Sets the material channel to use the specified output channel"
     bl_options = {'REGISTER', 'UNDO'}
 
-    channel_name: StringProperty(default='COLOR')
+    output_channel_name: StringProperty(default='COLOR')
+    material_channel_name: StringProperty(default='COLOR')
 
     @ classmethod
     def poll(cls, context):
         return context.active_object
 
     def execute(self, context):
+        set_material_channel_output_channel(self.material_channel_name, self.output_channel_name)
         return {'FINISHED'}
