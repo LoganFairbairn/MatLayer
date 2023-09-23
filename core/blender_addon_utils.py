@@ -307,7 +307,7 @@ def get_node_active(node):
         return False
     else:
         return True
-    
+
 def unlink_node(node, node_tree, unlink_inputs=True, unlink_outputs=True):
     '''Unlinks the given nodes input and / or outputs.'''
 
