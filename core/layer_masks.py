@@ -532,6 +532,7 @@ def relink_image_mask_projection():
                     if texture_node:
                         mask_node.node_tree.links.new(blur_node.outputs[i], texture_node.inputs[0])
                         mask_node.node_tree.links.new(texture_node.outputs[0], triplanar_blend_node.inputs[i])
+                        mask_node.node_tree.links.new(texture_node.outputs[1], triplanar_blend_node.inputs[i + 3])
                 mask_node.node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
                 mask_node.node_tree.links.new(triplanar_blend_node.outputs.get('Color'), mask_filter_node.inputs[0])
             
@@ -541,6 +542,7 @@ def relink_image_mask_projection():
                     if texture_node:
                         mask_node.node_tree.links.new(projection_node.outputs[i], texture_node.inputs[0])
                         mask_node.node_tree.links.new(texture_node.outputs[0], triplanar_blend_node.inputs[i])
+                        mask_node.node_tree.links.new(texture_node.outputs[1], triplanar_blend_node.inputs[i + 3])
                 mask_node.node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
                 
                 if mask_filter_node:
@@ -630,6 +632,17 @@ def set_mask_projection_mode(projection_mode):
                 if blur_node:
                     blur_node.node_tree = blender_addon_utils.append_group_node('ML_TriplanarBlur')
 
+def get_mask_output_channel():
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+    filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
+
+    output_channel = ''
+    if filter_node:
+        output_channel = filter_node.inputs[0].links[0].from_socket.name.upper()
+
+    return output_channel
+
 def set_mask_output_channel(output_channel):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
@@ -637,30 +650,39 @@ def set_mask_output_channel(output_channel):
     mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
     mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
     mask_filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
+    mask_projection_node = get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
     separate_color_node = mask_node.node_tree.nodes.get('SEPARATE_COLOR')
 
+    # Find the main mask output node based on the mask projection.
+    output_node = None
+    match mask_projection_node.node_tree.name:
+        case 'ML_TriplanarProjection':
+            output_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
+        case _:
+            output_node = mask_texture_node
+
     # Disconnect the mask nodes.
-    blender_addon_utils.unlink_node(mask_texture_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
+    blender_addon_utils.unlink_node(output_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
     blender_addon_utils.unlink_node(separate_color_node, mask_node.node_tree, unlink_inputs=True, unlink_outputs=True)
 
     # Connect the specified channel to the mask filter.
     match output_channel:
         case 'COLOR':
-            mask_node.node_tree.links.new(mask_texture_node.outputs[0], mask_filter_node.inputs[0])
+            mask_node.node_tree.links.new(output_node.outputs[0], mask_filter_node.inputs[0])
 
         case 'ALPHA':
-            mask_node.node_tree.links.new(mask_texture_node.outputs[1], mask_filter_node.inputs[0])
+            mask_node.node_tree.links.new(output_node.outputs[1], mask_filter_node.inputs[0])
 
         case 'RED':
-            mask_node.node_tree.links.new(mask_texture_node.outputs[0], separate_color_node.inputs[0])
+            mask_node.node_tree.links.new(output_node.outputs[0], separate_color_node.inputs[0])
             mask_node.node_tree.links.new(separate_color_node.outputs[0], mask_filter_node.inputs[0])
 
         case 'GREEN':
-            mask_node.node_tree.links.new(mask_texture_node.outputs[0], separate_color_node.inputs[0])
+            mask_node.node_tree.links.new(output_node.outputs[0], separate_color_node.inputs[0])
             mask_node.node_tree.links.new(separate_color_node.outputs[1], mask_filter_node.inputs[0])
 
         case 'BLUE':
-            mask_node.node_tree.links.new(mask_texture_node.outputs[0], separate_color_node.inputs[0])
+            mask_node.node_tree.links.new(output_node.outputs[0], separate_color_node.inputs[0])
             mask_node.node_tree.links.new(separate_color_node.outputs[2], mask_filter_node.inputs[0])
 
 #----------------------------- OPERATORS -----------------------------#
@@ -868,8 +890,10 @@ class MATLAYER_OT_set_mask_projection_uv(Operator):
         return context.active_object
 
     def execute(self, context):
+        output_channel = get_mask_output_channel()
         set_mask_projection_mode('UV')
         relink_image_mask_projection()
+        set_mask_output_channel(output_channel)
         return {'FINISHED'}
 
 class MATLAYER_OT_set_mask_projection_triplanar(Operator):
@@ -884,8 +908,10 @@ class MATLAYER_OT_set_mask_projection_triplanar(Operator):
         return context.active_object
 
     def execute(self, context):
+        output_channel = get_mask_output_channel()
         set_mask_projection_mode('TRIPLANAR')
         relink_image_mask_projection()
+        set_mask_output_channel(output_channel)
         return {'FINISHED'}
 
 class MATLAYER_OT_set_mask_output_channel(Operator):
