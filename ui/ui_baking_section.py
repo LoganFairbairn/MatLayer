@@ -181,9 +181,9 @@ def draw_mesh_map_settings(layout, addon_preferences):
     row.prop(addon_preferences, "occlusion_distance", slider=True, text="")
 
     row = first_column.row()
-    row.label(text="Occlusion Contrast")
+    row.label(text="Occlusion Intensity")
     row = second_column.row()
-    row.prop(addon_preferences, "occlusion_contrast", slider=True, text="")
+    row.prop(addon_preferences, "occlusion_intensity", slider=True, text="")
 
     row = first_column.row()
     row.label(text="Curvature Bevel Radius")
@@ -194,6 +194,11 @@ def draw_mesh_map_settings(layout, addon_preferences):
     row.label(text="Curvature Bevel Samples")
     row = second_column.row()
     row.prop(addon_preferences, "curvature_bevel_samples", slider=True, text="")
+
+    row = first_column.row()
+    row.label(text="Curvature Bevel Contrast")
+    row = second_column.row()
+    row.prop(addon_preferences, "curvature_bevel_contrast", slider=True, text="")
 
     row = first_column.row()
     row.label(text="Curvature Edge Intensity")

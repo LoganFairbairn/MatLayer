@@ -3,7 +3,7 @@
 import bpy
 from bpy.types import AddonPreferences, PropertyGroup
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty, FloatProperty, PointerProperty, CollectionProperty
-from .core.mesh_map_baking import update_bake_width, update_occlusion_samples, update_occlusion_distance, update_occlusion_contrast, update_curvature_bevel_radius, update_curvature_bevel_samples, update_curvature_edge_intensity, update_curvature_occlusion_masking
+from .core.mesh_map_baking import update_bake_width, update_occlusion_samples, update_occlusion_distance, update_occlusion_intensity, update_curvature_bevel_radius, update_curvature_bevel_samples, update_curvature_bevel_contrast, update_curvature_edge_intensity, update_curvature_occlusion_masking
 from .core.texture_set_settings import TEXTURE_SET_RESOLUTIONS
 
 ADDON_NAME = __package__
@@ -120,7 +120,7 @@ class AddonPreferences(AddonPreferences):
 
     occlusion_samples: IntProperty(
         name="Occlusion Samples", 
-        description="Number of rays to trace for occlusion shader evaluation. Higher values slightly increase occlusion quality at the cost of increased bake time", 
+        description="Number of rays to trace for occlusion shader evaluation. Higher values slightly increase occlusion quality at the cost of increased bake time. In most cases the default value is ideal", 
         default=64, 
         min=1, 
         max=128, 
@@ -129,38 +129,47 @@ class AddonPreferences(AddonPreferences):
     
     occlusion_distance: FloatProperty(
         name="Occlusion Distance", 
-        description="Occlusion distance between polygons. Lower values results in less occlusion",
+        description="Occlusion distance between polygons. Lower values results in less occlusion. In most cases the default value is ideal",
         default=1.0,
         min=0.1,
         max=1.0,
         update=update_occlusion_distance
     )
 
-    occlusion_contrast: FloatProperty(
+    occlusion_intensity: FloatProperty(
         name="Occlusion Contrast",
-        description="Occlusion contrast. Higher values result in more intense differences between white and black pixel values in the occlusion map output",
-        default=0.333,
+        description="Occlusion contrast. Higher values result in more intense occlusion shadows",
+        default=2.0,
         min=0.1,
-        max=2.0,
-        update=update_occlusion_contrast
+        max=10.0,
+        update=update_occlusion_intensity
     )
 
     curvature_bevel_radius: FloatProperty(
         name="Curvature Bevel Radius",
         description="The radius of the bevel baked into the curvature map output",
-        default=5.0,
+        default=0.1,
         min=0.0,
-        max=10.0,
+        max=1.0,
         update=update_curvature_bevel_radius
     )
 
     curvature_bevel_samples: IntProperty(
         name="Curvature Bevel Samples",
-        description = "The number of rays to trace per shader evaluation for the marked bevel baked into the curvature map output. Increasing the bevel samples results in a sharper more defined bevel",
+        description="The number of rays to trace per shader evaluation for the marked bevel baked into the curvature map output. Increasing the bevel samples results in a sharper more defined bevel",
         default=6,
         min=2,
         max=16,
         update=update_curvature_bevel_samples
+    )
+
+    curvature_bevel_contrast: FloatProperty(
+        name="Curvature Bevel Contrast",
+        description="The contrast for the sharp edge highlights added to the curvature mesh map",
+        default=1.0,
+        min=0,
+        max=3,
+        update=update_curvature_bevel_contrast
     )
 
     curvature_edge_intensity: FloatProperty(
@@ -168,16 +177,16 @@ class AddonPreferences(AddonPreferences):
         description="Intensity of the edges baked into the curvature map output",
         default=5.0,
         min=0.0,
-        max=10.0,
+        max=20.0,
         update=update_curvature_edge_intensity
     )
 
     curvature_occlusion_masking: FloatProperty(
         name="Curvature Occlusion Masking",
         description="The intensity of the occlusion masking applied to the curvature bevel. Higher masking values results in bevels being less prominant in areas with tight geometry",
-        default=0.75,
+        default=10.0,
         min=0.0,
-        max=2.0,
+        max=50.0,
         update=update_curvature_occlusion_masking
     )
 

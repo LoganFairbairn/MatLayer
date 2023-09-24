@@ -57,12 +57,12 @@ def update_occlusion_distance(self, context):
     if node:
         node.inputs.get('Distance').default_value = addon_preferences.occlusion_distance
 
-def update_occlusion_contrast(self, context):
+def update_occlusion_intensity(self, context):
     '''Updates the occlusion contrast setting in the active material'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-    node = get_meshmap_node('CONTRAST')
+    node = get_meshmap_node('AMBIENT_OCCLUSION_INTENSITY')
     if node:
-        node.inputs.get('Contrast').default_value = addon_preferences.occlusion_contrast
+        node.inputs[1].default_value = addon_preferences.occlusion_intensity
 
 def update_curvature_bevel_radius(self, context):
     '''Updates the bevel radius setting in the active material'''
@@ -72,11 +72,18 @@ def update_curvature_bevel_radius(self, context):
         node.inputs.get('Radius').default_value = addon_preferences.curvature_bevel_radius
 
 def update_curvature_bevel_samples(self, context):
-    '''Updates the curvature bevel samples setting in the active material'''
+    '''Updates the curvature bevel samples setting in the active material.'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     node = get_meshmap_node('BEVEL')
     if node:
         node.samples = addon_preferences.curvature_bevel_samples
+
+def update_curvature_bevel_contrast(self, context):
+    '''Updates the curvature bevel contrast setting in the active material.'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    node = get_meshmap_node('BEVEL_CONTRAST')
+    if node:
+        node.inputs.get('Contrast').default_value = addon_preferences.curvature_bevel_contrast
 
 def update_curvature_edge_intensity(self, context):
     '''Updates the curvature edge intensity setting in the active material'''
@@ -88,7 +95,7 @@ def update_curvature_edge_intensity(self, context):
 def update_curvature_occlusion_masking(self, context):
     '''Updates the curvature occlusion masking setting in the active material'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-    node = get_meshmap_node('AMBIENT_OCCLUSION_MASKING')
+    node = get_meshmap_node('AMBIENT_OCCLUSION_BEVEL_MASKING')
     if node:
         node.inputs[1].default_value = addon_preferences.curvature_occlusion_masking
 
@@ -181,9 +188,10 @@ def apply_baking_settings():
     '''Applies baking settings to existing node setups before baking.'''
     update_occlusion_samples(None, None)
     update_occlusion_distance(None, None)
-    update_occlusion_contrast(None, None)
+    update_occlusion_intensity(None, None)
     update_curvature_bevel_radius(None, None)
     update_curvature_bevel_samples(None, None)
+    update_curvature_bevel_contrast(None, None)
     update_curvature_edge_intensity(None, None)
     update_curvature_occlusion_masking(None, None)
 
