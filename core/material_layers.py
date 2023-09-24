@@ -36,14 +36,6 @@ MATERIAL_CHANNEL_LIST = (
     'ALPHA'
 )
 
-OUTPUT_CHANNELS = [
-    'COLOR',
-    'ALPHA',
-    'RED',
-    'GREEN',
-    'BLUE'
-]
-
 #----------------------------- UPDATING PROPERTIES -----------------------------#
 
 def update_layer_index(self, context):
@@ -193,6 +185,12 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
             if node_tree:
                 return node_tree.nodes.get("TRIPLANAR_BLEND_{0}".format(material_channel_name))
             return None
+
+        case 'FIX_NORMAL_ROTATION':
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get("FIX_NORMAL_ROTATION")
+            return None      
 
         case 'MIX_IMAGE_ALPHA':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
@@ -652,6 +650,24 @@ def organize_layer_group_nodes():
             position_x -= 500
     debug_logging.log("Organized layer group nodes.")
 
+def refresh_layer_stack(reason=""):
+    '''Clears, and then reads the active material, to sync the number of layers in the user interface with the number of layers that exist within the material node tree.'''
+    layers = bpy.context.scene.matlayer_layers
+
+    layers.clear()
+
+    layer_count = count_layers()
+    for layer in range(0, layer_count):
+        add_material_layer_slot()
+
+    # Reset the layer index if it's out of range.
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    if selected_layer_index > len(layers) - 1 or selected_layer_index < 0:
+        bpy.context.scene.matlayer_layer_stack.selected_layer_index = 0
+
+    if reason != "":
+        debug_logging.log("Refreshed layer stack due to: " + reason)
+
 def link_layer_group_nodes(self):
     '''Connects all layer group nodes to other existing group nodes, and the principled BSDF shader.'''
     # Note: This function may be able to be optimized by only diconnecting nodes that must be disconnected, potentially reducing re-compile time for shaders.
@@ -659,7 +675,6 @@ def link_layer_group_nodes(self):
     if blender_addon_utils.verify_material_operation_context(self) == False:
         return
 
-    texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
     active_material = bpy.context.active_object.active_material
     node_tree = active_material.node_tree
 
@@ -783,50 +798,39 @@ def apply_mesh_maps():
                         mesh_map_node.image = mesh_map_baking.get_meshmap_image(bpy.context.active_object.name, mesh_map_type)
     debug_logging.log("Applied baked mesh maps.")
 
-def relink_layer_projection(relink_material_channel_name="", delink_layer_projection_nodes=True):
+def relink_material_channel(relink_material_channel_name="", original_output_channel='', unlink_projection=False):
     '''Relinks the projection / blurring nodes and then links them to material channels based on the current projection node tree being used. If no material channel is specified to have it's projection relinked, relink them all.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layer_node_tree = get_layer_node_tree(selected_layer_index)
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
     blur_node = get_material_layer_node('BLUR', selected_layer_index)
 
-    # Disconnect the projection and blur nodes.
-    if delink_layer_projection_nodes:
+    # Relink the projection node and blur node based on the layers projection mode.
+    if unlink_projection:
         blender_addon_utils.unlink_node(projection_node, layer_node_tree, unlink_inputs=False, unlink_outputs=True)
         blender_addon_utils.unlink_node(blur_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
+        match projection_node.node_tree.name:
+            case 'ML_UVProjection':
+                layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
 
-    # Relink the projection node and blur node.
-    match projection_node.node_tree.name:
-        case 'ML_UVProjection':
-            layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
+            case "ML_TriplanarProjection":
+                layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
+                layer_node_tree.links.new(projection_node.outputs[1], blur_node.inputs[1])
+                layer_node_tree.links.new(projection_node.outputs[2], blur_node.inputs[2])
 
-        case "ML_TriplanarProjection":
-            layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
-            layer_node_tree.links.new(projection_node.outputs[1], blur_node.inputs[1])
-            layer_node_tree.links.new(projection_node.outputs[2], blur_node.inputs[2])
+            case 'ML_DecalProjection':
+                layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
+                layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
 
-        case 'ML_DecalProjection':
-            layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
-            layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
-
-    # Relink projection for all material channels if no channel is specified.
+    # Relink projection for all material channels unless a specific material channel is specified.
     for material_channel_name in MATERIAL_CHANNEL_LIST:
-
         if relink_material_channel_name == "" or relink_material_channel_name == material_channel_name:
+
             # Remember the original output channel of the material channel so it can be properly set after relinking projection.
-            original_output_channel = get_material_channel_output_channel(material_channel_name)
+            if original_output_channel == '':
+                original_output_channel = get_material_channel_output_channel(material_channel_name)
 
             match projection_node.node_tree.name:
-                case 'ML_UVProjection':
-                    value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
-                    mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
-                    if value_node.bl_static_type == 'TEX_IMAGE':
-                        if blender_addon_utils.get_node_active(blur_node):
-                            layer_node_tree.links.new(blur_node.outputs.get(material_channel_name.capitalize()), value_node.inputs[0])
-                        else:
-                            layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
-                            layer_node_tree.links.new(value_node.outputs.get('Alpha'), mix_image_alpha_node.inputs[1])
-
                 case 'ML_TriplanarProjection':
                     for i in range(0, 3):
                         # Link projection / blur nodes to the image textures.
@@ -852,7 +856,7 @@ def relink_layer_projection(relink_material_channel_name="", delink_layer_projec
                         else:
                             break
 
-                case 'ML_DecalProjection':
+                case _:
                     value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
                     mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
                     if value_node.bl_static_type == 'TEX_IMAGE':
@@ -862,7 +866,6 @@ def relink_layer_projection(relink_material_channel_name="", delink_layer_projec
                             layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
                             layer_node_tree.links.new(value_node.outputs.get('Alpha'), mix_image_alpha_node.inputs[1])
 
-            # Relink to the correct output channel.
             set_material_channel_output_channel(material_channel_name, original_output_channel)
 
 def set_layer_projection_nodes(projection_method):
@@ -936,7 +939,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                     texture_sample_node.image = original_image
 
                 # Link the texture to projection / blur and mix layer nodes.
-                relink_layer_projection(material_channel_name, delink_layer_projection_nodes=False)
+                relink_material_channel(material_channel_name)
 
             case 'DECAL':
                 # Remember original location and image of the texture node.
@@ -958,7 +961,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                     texture_node.image = original_image
 
                 # Link the texture to projection / blur and mix layer nodes.
-                relink_layer_projection(material_channel_name, delink_layer_projection_nodes=False)
+                relink_material_channel(material_channel_name)
 
             case 'TRIPLANAR':
                 # Remember the old image and location.
@@ -998,7 +1001,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                 triplanar_blend_node.location = (location_x, location_y)
 
                 # Connect texture sample and blending nodes for material channels.
-                relink_layer_projection(material_channel_name, delink_layer_projection_nodes=False)
+                relink_material_channel(material_channel_name)
 
 def replace_material_channel_node(material_channel_name, node_type):
     '''Replaces the existing material channel node with a new node of the given type. Valid node types include: 'GROUP', 'TEXTURE'.'''
@@ -1072,23 +1075,125 @@ def set_layer_projection(projection_mode, self):
 
                 debug_logging.log("Changed layer projection to 'TRIPLANAR'.")
 
-def refresh_layer_stack(reason=""):
-    '''Clears, and then reads the active material, to sync the number of layers in the user interface with the number of layers that exist within the material node tree.'''
-    layers = bpy.context.scene.matlayer_layers
-
-    layers.clear()
-
-    layer_count = count_layers()
-    for layer in range(0, layer_count):
-        add_material_layer_slot()
-
-    # Reset the layer index if it's out of range.
+def get_material_channel_output_channel(material_channel_name):
+    '''Returns the output channel for the specified material channel.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    if selected_layer_index > len(layers) - 1 or selected_layer_index < 0:
-        bpy.context.scene.matlayer_layer_stack.selected_layer_index = 0
+    filter_node = get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
 
-    if reason != "":
-        debug_logging.log("Refreshed layer stack due to: " + reason)
+    output_channel = ''
+
+    color_input_node = None
+    if blender_addon_utils.get_node_active(filter_node):
+        color_input_node = filter_node
+        if len(color_input_node.inputs[0].links) > 0:
+            output_channel = color_input_node.inputs[0].links[0].from_socket.name.upper()
+    else:
+        color_input_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
+        if len(color_input_node.inputs[7].links) > 0:
+            output_channel = color_input_node.inputs[7].links[0].from_socket.name.upper()
+    
+    if output_channel == 'ALPHA':
+        value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
+        if value_node.bl_static_type != 'TEX_IMAGE':
+            output_channel = 'COLOR'
+
+    return output_channel
+
+def set_material_channel_output_channel(material_channel_name, output_channel_name):
+    '''Links the specified output channel for the specified material channel.'''
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    layer_node_tree = get_layer_node_tree(selected_layer_index)
+    separate_color_node = get_material_layer_node('SEPARATE', selected_layer_index, material_channel_name)
+    projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
+    filter_node = get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
+    value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
+    mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
+    mix_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
+    fix_normal_rotation_node = get_material_layer_node('FIX_NORMAL_ROTATION', selected_layer_index, material_channel_name)
+
+    # Determine the node the main material channel output value is coming from.
+    output_node = None
+    match projection_node.node_tree.name:
+        case 'ML_TriplanarProjection':
+            if value_node.bl_static_type == 'TEX_IMAGE':
+                output_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, material_channel_name)
+            else:
+                output_node = value_node
+        case _:
+            output_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
+
+    # Determine the input node for the main material channel value.
+    input_node = None
+    input_socket = -1
+    connect_filter_node = False
+    if blender_addon_utils.get_node_active(filter_node):
+        input_node = filter_node
+        input_socket = 0
+        connect_filter_node = True
+
+    else:
+        input_node = mix_node
+        input_socket = 7
+
+    # Unlink nodes to ensure only the correct nodes will be linked after this function is complete.
+    blender_addon_utils.unlink_node(output_node, layer_node_tree, unlink_inputs=False, unlink_outputs=True)
+    blender_addon_utils.unlink_node(separate_color_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
+
+    # Determine the output socket that should be used, and if a channel separator is required.
+    connect_channel_separator = False
+    output_socket = 0
+    match output_channel_name:
+        case 'ALPHA':
+            if output_node.bl_static_type == 'TEX_IMAGE':
+                output_socket = 1
+            else:
+                output_socket = 0
+
+        case 'RED':
+            output_socket = 0
+            connect_channel_separator = True
+
+        case 'GREEN':
+            output_socket = 1
+            connect_channel_separator = True
+
+        case 'BLUE':
+            output_socket = 2
+            connect_channel_separator = True
+
+        case _:
+            output_socket = 0
+
+    # Always link the output node alpha to the mix image alpha node.
+    if value_node.bl_static_type == 'TEX_IMAGE':
+        layer_node_tree.links.new(output_node.outputs[1], mix_image_alpha_node.inputs[1])
+
+    # Link to a normal rotation fix node for non-triplanar normal material channels.
+    if material_channel_name == 'NORMAL' and projection_node.node_tree.name != 'ML_TriplanarProjection':
+        layer_node_tree.links.new(projection_node.outputs.get('Rotation'), fix_normal_rotation_node.inputs.get('Rotation'))
+
+        if connect_channel_separator:
+            layer_node_tree.links.new(output_node.outputs[0], fix_normal_rotation_node.inputs[0])
+            layer_node_tree.links.new(fix_normal_rotation_node.outputs[0], separate_color_node.inputs[0])
+            layer_node_tree.links.new(separate_color_node.outputs[output_socket], input_node.inputs[input_socket])
+
+        else:
+            layer_node_tree.links.new(output_node.outputs[output_socket], fix_normal_rotation_node.inputs[0])
+            layer_node_tree.links.new(fix_normal_rotation_node.outputs[0], input_node.inputs[input_socket])
+
+    else:
+        # Link the the channel separator node for red, green or blue channels.
+        if connect_channel_separator:
+            layer_node_tree.links.new(output_node.outputs[0], separate_color_node.inputs[0])
+            layer_node_tree.links.new(separate_color_node.outputs[output_socket], input_node.inputs[input_socket])
+        else:
+            layer_node_tree.links.new(output_node.outputs[output_socket], input_node.inputs[input_socket])
+
+        blender_addon_utils.unlink_node(fix_normal_rotation_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
+
+    # Link the filter node if it's enabled in this material channel.
+    if connect_filter_node:
+        layer_node_tree.links.new(input_node.outputs[0], mix_node.inputs[7])
 
 def isolate_material_channel(material_channel_name):
     '''Isolates the specified material channel by linking only the specified material channel output to the material channel output / emission node.'''
@@ -1130,94 +1235,6 @@ def toggle_image_alpha_blending(material_channel_name):
     else:
         image_alpha_node.mute = True
 
-def get_material_channel_output_channel(material_channel_name):
-    '''Returns the output channel for the specified material channel.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    filter_node = get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
-
-    output_channel = ''
-
-    color_input_node = None
-    if blender_addon_utils.get_node_active(filter_node):
-        color_input_node = filter_node
-        if len(color_input_node.inputs[0].links) > 0:
-            output_channel = color_input_node.inputs[0].links[0].from_socket.name.upper()
-    else:
-        color_input_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
-        if len(color_input_node.inputs[7].links) > 0:
-            output_channel = color_input_node.inputs[7].links[0].from_socket.name.upper()
-    
-    if output_channel == 'ALPHA':
-        value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
-        if value_node.bl_static_type != 'TEX_IMAGE':
-            output_channel = 'COLOR'
-
-    return output_channel
-
-def set_material_channel_output_channel(material_channel_name, output_channel_name):
-    '''Sets the output channel for the specified material channel.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    layer_node_tree = get_layer_node_tree(selected_layer_index)
-    separate_color_node = get_material_layer_node('SEPARATE', selected_layer_index, material_channel_name)
-    projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
-    filter_node = get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
-    value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
-    mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
-    mix_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
-
-    # Determine the node the main material channel value is coming from.
-    color_output_node = None
-    match projection_node.node_tree.name:
-        case 'ML_TriplanarProjection':
-            if value_node.bl_static_type == 'TEX_IMAGE':
-                color_output_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, material_channel_name)
-            else:
-                color_output_node = value_node
-        case _:
-            color_output_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
-
-    # Disconnect nodes.
-    blender_addon_utils.unlink_node(color_output_node, layer_node_tree, unlink_inputs=False, unlink_outputs=True)
-    blender_addon_utils.unlink_node(separate_color_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
-    layer_node_tree.links.new(color_output_node.outputs[1], mix_image_alpha_node.inputs[1])
-
-    match output_channel_name:
-        case 'ALPHA':
-            if blender_addon_utils.get_node_active(filter_node):
-                layer_node_tree.links.new(color_output_node.outputs[1], filter_node.inputs[0])
-            else:
-                layer_node_tree.links.new(color_output_node.outputs[1], mix_node.inputs[7])
-
-        case 'RED':
-            layer_node_tree.links.new(color_output_node.outputs[0], separate_color_node.inputs[0])
-
-            if blender_addon_utils.get_node_active(filter_node):
-                layer_node_tree.links.new(separate_color_node.outputs[0], filter_node.inputs[0])
-            else:
-                layer_node_tree.links.new(separate_color_node.outputs[0], mix_node.inputs[7])
-
-        case 'GREEN':
-            layer_node_tree.links.new(color_output_node.outputs[0], separate_color_node.inputs[0])
-
-            if blender_addon_utils.get_node_active(filter_node):
-                layer_node_tree.links.new(separate_color_node.outputs[1], filter_node.inputs[0])
-            else:
-                layer_node_tree.links.new(separate_color_node.outputs[1], mix_node.inputs[7])
-
-        case 'BLUE':
-            layer_node_tree.links.new(color_output_node.outputs[0], separate_color_node.inputs[0])
-
-            if blender_addon_utils.get_node_active(filter_node):
-                layer_node_tree.links.new(separate_color_node.outputs[2], filter_node.inputs[0])
-            else:
-                layer_node_tree.links.new(separate_color_node.outputs[2], mix_node.inputs[7])
-
-        # For all other channels, link the first output of the color node with the mix node input.
-        case _:
-            if blender_addon_utils.get_node_active(filter_node):
-                layer_node_tree.links.new(color_output_node.outputs[0], filter_node.inputs[0])
-            else:
-                layer_node_tree.links.new(color_output_node.outputs[0], mix_node.inputs[7])
 
 #----------------------------- OPERATORS -----------------------------#
 
@@ -1383,7 +1400,7 @@ class MATLAYER_OT_toggle_layer_blur(Operator):
             # Connect the blur node to all material channels.
             else:
                 blender_addon_utils.set_node_active(blur_node, True)
-        relink_layer_projection()
+        relink_material_channel(unlink_projection=True)
         return {'FINISHED'}
 
 class MATLAYER_OT_toggle_material_channel_blur(Operator):
@@ -1557,47 +1574,20 @@ class MATLAYER_OT_toggle_material_channel_filter(Operator):
         return context.active_object
 
     def execute(self, context):
-        # Mark the material channel filter node on / off and relink the material nodes accordingly.
         selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-        layer_node_tree = get_layer_node_tree(selected_layer_index)
         filter_node = get_material_layer_node('FILTER', selected_layer_index, self.material_channel_name)
-        mix_node = get_material_layer_node('MIX', selected_layer_index, self.material_channel_name)
-        projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
 
+        output_channel = get_material_channel_output_channel(self.material_channel_name)
+
+        # Toggle the active state for the filter node.
         if blender_addon_utils.get_node_active(filter_node) == True:
             blender_addon_utils.set_node_active(filter_node, False)
-            blender_addon_utils.unlink_node(filter_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
-
-            if projection_node:
-                match projection_node.node_tree.name:
-                    case 'ML_TriplanarProjection':
-                        triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, self.material_channel_name)
-                        if triplanar_blend_node:
-                            layer_node_tree.links.new(triplanar_blend_node.outputs[0], mix_node.inputs[7])
-
-                    case _:
-                        value_node = get_material_layer_node('VALUE', selected_layer_index, self.material_channel_name)
-                        if value_node:
-                            layer_node_tree.links.new(value_node.outputs[0], mix_node.inputs[7])
-
-            
 
         else:
             blender_addon_utils.set_node_active(filter_node, True)
 
-            if projection_node:
-                match projection_node.node_tree.name:
-                    case 'ML_TriplanarProjection':
-                        triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, self.material_channel_name)
-                        if triplanar_blend_node:
-                            layer_node_tree.links.new(triplanar_blend_node.outputs[0], filter_node.inputs[0])
-
-                    case _:
-                        value_node = get_material_layer_node('VALUE', selected_layer_index, self.material_channel_name)
-                        if value_node:
-                            layer_node_tree.links.new(value_node.outputs[0], filter_node.inputs[0])
-
-            layer_node_tree.links.new(filter_node.outputs[0], mix_node.inputs[7])
+        # Trigger a relink of the material layer.
+        relink_material_channel(relink_material_channel_name=self.material_channel_name, original_output_channel=output_channel)
 
         return {'FINISHED'}
 
