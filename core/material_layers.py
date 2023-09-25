@@ -1221,11 +1221,12 @@ def show_layer():
         if bpy.context.active_object.active_material:
             active_node_tree = bpy.context.active_object.active_material.node_tree
             emission_node = active_node_tree.nodes.get('EMISSION')
-            if len(emission_node.outputs[0].links) != 0:
-                blender_addon_utils.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
-                material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
-                principled_bsdf = active_node_tree.nodes.get('MATLAYER_BSDF')
-                active_node_tree.links.new(principled_bsdf.outputs[0], material_output.inputs[0])
+            if emission_node:
+                if len(emission_node.outputs[0].links) != 0:
+                    blender_addon_utils.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
+                    material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
+                    principled_bsdf = active_node_tree.nodes.get('MATLAYER_BSDF')
+                    active_node_tree.links.new(principled_bsdf.outputs[0], material_output.inputs[0])
 
 def toggle_image_alpha_blending(material_channel_name):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
