@@ -17,7 +17,7 @@ def check_blend_saved():
 class MATLAYER_panel_properties(bpy.types.PropertyGroup):
     sections: bpy.props.EnumProperty(
         items=[('SECTION_TEXTURE_SET', "TEXTURE SET", "This section contains settings for the materials textures."),
-               ('SECTION_BAKE_MESH_MAPS', "BAKE MESH MAPS", "This section contains operations to quickly bake mesh map textures for your models. Baking mesh maps transfer 3D data such as shadows, curvature, sharp edges and extra detail from higher polycount objects to image textures. Baked mesh map textures can be used as textures in layers in many different ways to make the texturing process faster. One example of where baked mesh maps could be used is to mask dirt by using the baked ambient occlusion as a mask."),
+               ('SECTION_MESH_MAPS', "MESH MAPS", "This section contains operations to quickly bake mesh map textures for your models. Baking mesh maps transfer 3D data such as shadows, curvature, sharp edges and extra detail from higher polycount objects to image textures. Baked mesh map textures can be used as textures in layers in many different ways to make the texturing process faster. One example of where baked mesh maps could be used is to mask dirt by using the baked ambient occlusion as a mask."),
                ('SECTION_LAYERS', "LAYERS", "This section contains a layer stack for the selected object's active material. In this section you can add, edit and blend multiple materials together."),
                ('SECTION_EXPORT', "EXPORT", "This section contains operations to quickly export textures made with MatLayer."),
                ('SECTION_SETTINGS', "SETTINGS", "This section contains general add-on settings for this add-on.")],
@@ -41,7 +41,7 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
                 case 'SECTION_TEXTURE_SET':
                     ui_texture_set_section.draw_texture_set_section_ui(self, context)
 
-                case 'SECTION_BAKE_MESH_MAPS':
+                case 'SECTION_MESH_MAPS':
                     ui_baking_section.draw_baking_section_ui(self, context)
                 
                 case "SECTION_LAYERS":
