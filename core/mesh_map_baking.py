@@ -401,14 +401,23 @@ class MATLAYER_OT_batch_bake(Operator):
             return {'CANCELLED'}
         
         if event.type == 'TIMER':
-            # Check if the object is still baking.
+            # If a mesh map isn't actively baking, move to the next mesh map, or end the function.
             if not bpy.app.is_job_running('OBJECT_BAKE'):
+
+                # Pack baked mesh map images.
                 mesh_map_type = self._mesh_maps_to_bake[self._baked_mesh_map_count]
+                mesh_map_name = get_meshmap_name(bpy.context.active_object.name, mesh_map_type)
+                mesh_map_image = bpy.data.images.get(mesh_map_name)
+                if mesh_map_image:
+                    mesh_map_image.pack()
+
+                # Log mesh map baking completion.
                 mesh_map_type = mesh_map_type.replace('_', ' ')
                 mesh_map_type = blender_addon_utils.capitalize_by_space(mesh_map_type)
                 debug_logging.log("Finished baking: {0}".format(mesh_map_type))
                 self._baked_mesh_map_count += 1
 
+                # Remove temporary bake materials and node groups.
                 temp_bake_material = bpy.data.materials.get(self._temp_bake_material_name)
                 if temp_bake_material:
                     bpy.data.materials.remove(temp_bake_material)
@@ -432,6 +441,7 @@ class MATLAYER_OT_batch_bake(Operator):
                 else:
                     self.finish(context)
                     return {'FINISHED'}
+                
         return {'PASS_THROUGH'}
 
     def execute(self, context):
