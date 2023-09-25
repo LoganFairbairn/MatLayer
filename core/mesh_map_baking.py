@@ -537,7 +537,7 @@ class MATLAYER_OT_preview_mesh_map(Operator):
 
         # If there is no material slots on the selected object, add one.
         if len(active_object.material_slots) <= 0:
-            active_object.materials.append(mesh_map_material)
+            active_object.data.materials.append(mesh_map_material)
 
         # If the object has material slots, assign the new color grid material to all material slots for all selected objects.
         else:
