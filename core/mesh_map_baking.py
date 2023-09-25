@@ -343,6 +343,20 @@ def get_batch_bake_mesh_maps():
 
     return mesh_maps_to_bake
 
+def remove_mesh_map_baking_assets():
+    '''Removes all mesh map baking materials and nodes if they exist.'''
+    # Remove all mesh map materials.
+    for mesh_map_material_name in MESH_MAP_MATERIAL_NAMES:
+        mesh_map_material = bpy.data.materials.get(mesh_map_material_name)
+        if mesh_map_material:
+            bpy.data.materials.remove(mesh_map_material)
+
+    # Remove all mesh map group nodes.
+    for group_node_name in MESH_MAP_GROUP_NAMES:
+        mesh_map_group_node = bpy.data.node_groups.get(group_node_name)
+        if mesh_map_group_node:
+            bpy.data.node_groups.remove(mesh_map_group_node)
+
 #----------------------------- OPERATORS AND PROPERTIES -----------------------------#
 
 class MATLAYER_baking_settings(bpy.types.PropertyGroup):
@@ -404,6 +418,9 @@ class MATLAYER_OT_batch_bake(Operator):
     def execute(self, context):
         if blender_addon_utils.verify_bake_object(self) == False:
             return {'FINISHED'}
+        
+        # Remove lingering mesh map assets if they exist.
+        remove_mesh_map_baking_assets()
         
         self._mesh_maps_to_bake.clear()
         self._mesh_maps_to_bake = get_batch_bake_mesh_maps()    # Get a list of mesh maps to bake.
@@ -517,6 +534,9 @@ class MATLAYER_OT_preview_mesh_map(Operator):
         if blender_addon_utils.verify_material_operation_context(self, check_active_material=False) == False:
             return {'FINISHED'}
 
+        # Make sure there are no lingering existing mesh map assets.
+        remove_mesh_map_baking_assets()
+
         match self.mesh_map_type:
             case 'AMBIENT_OCCLUSION':
                 mesh_map_material = blender_addon_utils.append_material('BakeAmbientOcclusion')
@@ -561,19 +581,7 @@ class MATLAYER_OT_disable_mesh_map_preview(Operator):
         return context.active_object
 
     def execute(self, context):
-
-        # Remove all mesh map materials.
-        for mesh_map_material_name in MESH_MAP_MATERIAL_NAMES:
-            mesh_map_material = bpy.data.materials.get(mesh_map_material_name)
-            if mesh_map_material:
-                bpy.data.materials.remove(mesh_map_material)
-
-        # Remove all mesh map group nodes.
-        for group_node_name in MESH_MAP_GROUP_NAMES:
-            mesh_map_group_node = bpy.data.node_groups.get(group_node_name)
-            if mesh_map_group_node:
-                bpy.data.node_groups.remove(mesh_map_group_node)
-
+        remove_mesh_map_baking_assets()
         bpy.context.space_data.shading.type = 'MATERIAL'
         bpy.context.scene.render.engine = 'BLENDER_EEVEE'
         return {'FINISHED'}
