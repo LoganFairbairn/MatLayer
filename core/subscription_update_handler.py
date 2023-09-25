@@ -14,14 +14,16 @@ def sub_to_active_object_name(active_object):
 
 def sub_to_active_material_name(active_object):
     '''Re-subscribes to the active materials name.'''
-    bpy.types.Scene.previous_active_material_name = active_object.active_material.name
-    bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_sub_owner)
-    bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_name_sub_owner, notify=on_active_material_name_changed, args=())
+    if active_object.active_material:
+        bpy.types.Scene.previous_active_material_name = active_object.active_material.name
+        bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_sub_owner)
+        bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_name_sub_owner, notify=on_active_material_name_changed, args=())
 
 def sub_to_active_material_index(active_object):
     '''Re-subscribe to the active material index.'''
-    bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_index_sub_owner)
-    bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material_index", False), owner=bpy.types.Scene.active_material_index_sub_owner, notify=on_active_material_index_changed, args=())
+    if active_object.active_material:
+        bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_index_sub_owner)
+        bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material_index", False), owner=bpy.types.Scene.active_material_index_sub_owner, notify=on_active_material_index_changed, args=())
 
 def on_active_material_changed():
     '''Update properties when the active material is changed.'''
@@ -32,6 +34,7 @@ def on_active_material_changed():
         active_object = bpy.context.view_layer.objects.active
         if active_object:
             sub_to_active_material_name(active_object)
+            sub_to_active_material_index(active_object)
 
 def on_active_material_index_changed():
     '''Reads material nodes into the user interface when the active material index is changed.'''
@@ -44,6 +47,7 @@ def on_active_material_index_changed():
             if active_object.active_material:
                 bpy.types.Scene.previous_active_material_name = active_object.active_material.name
                 sub_to_active_material_name(active_object)
+                sub_to_active_material_index(active_object)
             else:
                 bpy.types.Scene.previous_active_material_name = ""
 
@@ -94,7 +98,5 @@ def on_active_object_changed():
     if active_object:
         if active_object.type == 'MESH':
             sub_to_active_object_name(active_object)
-
-            if active_object.active_material:
-                sub_to_active_material_index(active_object)
-                sub_to_active_material_name(active_object)
+            sub_to_active_material_index(active_object)
+            sub_to_active_material_name(active_object)

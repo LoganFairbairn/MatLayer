@@ -203,15 +203,19 @@ def load_handler(dummy):
     if active_object:
         bpy.types.Scene.previous_active_material_name = active_object.name
 
+    # Create objects to manage subscription updating.
+    bpy.types.Scene.matlayer_object_selection_updater = object()
+    bpy.types.Scene.active_object_name_sub_owner = object()
+    bpy.types.Scene.active_material_index_sub_owner = object()
+    bpy.types.Scene.active_material_name_sub_owner = object()
+
     # Subscribe to the active object to get notifications when it's changed.
     subscribe_to = bpy.types.LayerObjects, "active"
-    bpy.types.Scene.matlayer_object_selection_updater = object()
     bpy.msgbus.subscribe_rna(key=subscribe_to, owner=bpy.types.Scene.matlayer_object_selection_updater, args=(), notify=on_active_object_changed)
 
     # Subscribe to the active objects name to get notifications when it's changed.
     active_object = bpy.context.view_layer.objects.active
     bpy.types.Scene.previous_object_name = active_object.name
-    bpy.types.Scene.active_object_name_sub_owner = object()
     bpy.msgbus.clear_by_owner(bpy.types.Scene.active_object_name_sub_owner)
     if active_object:
         if active_object.type == 'MESH':
@@ -220,13 +224,11 @@ def load_handler(dummy):
             if active_object.active_material:
 
                 # Subscribe to the active material index to get notifications when it's changed.
-                bpy.types.Scene.active_material_index_sub_owner = object()
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_index_sub_owner)
                 bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material_index", False), owner=bpy.types.Scene.active_material_index_sub_owner, notify=on_active_material_index_changed, args=())
 
                 # Subscribe to the active material name to get notifications when it's changed.
                 bpy.types.Scene.previous_active_material_name = active_object.active_material.name
-                bpy.types.Scene.active_material_name_sub_owner = object()
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_sub_owner)
                 bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_name_sub_owner, notify=on_active_material_name_changed, args=())
 
@@ -269,6 +271,12 @@ def register():
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
+
+    # Empty objects that manage subscription updating.
+    bpy.types.Scene.matlayer_object_selection_updater = None
+    bpy.types.Scene.active_object_name_sub_owner = None
+    bpy.types.Scene.active_material_index_sub_owner = None
+    bpy.types.Scene.active_material_name_sub_owner = None
 
 if __name__ == "__main__":
     register()
