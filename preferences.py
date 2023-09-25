@@ -101,10 +101,16 @@ class AddonPreferences(AddonPreferences):
 
     #----------------------------- DEBUGGING -----------------------------#
 
-    logging: BoolProperty(
-        name="Debug Logging",
+    log_main_operations: BoolProperty(
+        name="Log Main Operations",
         default=True,
-        description="Prints debugging info for functions this add-on runs in Blenders terminal."
+        description="When enabled, debug info for main functions ran by this add-on will be printed to Blenders terminal"
+    )
+
+    log_sub_operations: BoolProperty(
+        name="Log Sub Processes",
+        default=True,
+        description="When enabled, debug info for secondary / smaller functions ran by this add-on will be printed to Blenders terminal"
     )
 
     #----------------------------- MESH MAP BAKING PROPERTIES -----------------------------#
@@ -216,4 +222,5 @@ class AddonPreferences(AddonPreferences):
     #----------------------------- DRAWING -----------------------------#
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, "logging")
+        layout.prop(self, "log_main_operations")
+        layout.prop(self, "log_sub_operations")
