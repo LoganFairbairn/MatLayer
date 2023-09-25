@@ -650,12 +650,14 @@ def organize_layer_group_nodes():
             position_x -= 500
     debug_logging.log("Organized layer group nodes.")
 
-def refresh_layer_stack(reason=""):
+def refresh_layer_stack(reason="", scene=None):
     '''Clears, and then reads the active material, to sync the number of layers in the user interface with the number of layers that exist within the material node tree.'''
-    layers = bpy.context.scene.matlayer_layers
-
+    if scene:
+        layers = scene.matlayer_layers
+    else:
+        layers = bpy.context.scene.matlayer_layers
+        
     layers.clear()
-
     layer_count = count_layers()
     for layer in range(0, layer_count):
         add_material_layer_slot()
@@ -666,7 +668,7 @@ def refresh_layer_stack(reason=""):
         bpy.context.scene.matlayer_layer_stack.selected_layer_index = 0
 
     if reason != "":
-        debug_logging.log("Refreshed layer stack due to: " + reason)
+        debug_logging.log("Refreshed layer stack due to: " + reason, sub_process=True)
 
 def link_layer_group_nodes(self):
     '''Connects all layer group nodes to other existing group nodes, and the principled BSDF shader.'''

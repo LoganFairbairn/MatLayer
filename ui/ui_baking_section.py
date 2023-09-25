@@ -41,13 +41,9 @@ def draw_mesh_map_status(layout, addon_preferences):
         draw_mesh_map_operators(row, mesh_map_type)
 
     # Draw the disable preview button.
-    active_object = bpy.context.active_object
-    if active_object:
-        if active_object.active_material:
-            if active_object.active_material.name in mesh_map_baking.MESH_MAP_MATERIAL_NAMES:
-                row = layout.row()
-                row.scale_y = 1.4
-                row.operator("matlayer.disable_mesh_map_preview", text="Disable Mesh Map Preview")
+    row = layout.row()
+    row.scale_y = 1.4
+    row.operator("matlayer.disable_mesh_map_preview", text="Disable Mesh Map Preview")
 
 def draw_general_settings(layout, addon_preferences, baking_settings):
     '''Draws general settings for mesh map baking.'''

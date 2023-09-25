@@ -5,6 +5,7 @@ from bpy.utils import resource_path
 import numpy as np
 import random
 import os
+import re
 from pathlib import Path
 from ..core import texture_set_settings as tss
 from ..core import debug_logging
@@ -463,3 +464,7 @@ def get_unique_object_name(object_name, start_id_number=1):
         unique_name = "{0}_{1}".format(object_name, id_number)
         obj = bpy.data.objects.get(unique_name)
     return unique_name
+
+def capitalize_by_space(string):
+    '''Capitalizes all words separated by a space in the provided string.'''
+    return re.sub(r'\b[a-z]', lambda m: m.group().upper(), string.capitalize())

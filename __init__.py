@@ -17,7 +17,7 @@
 
 import bpy
 import bpy.utils.previews       # Imported for loading layer texture previews as icons.
-from bpy.props import PointerProperty, CollectionProperty, EnumProperty, StringProperty
+from bpy.props import PointerProperty, CollectionProperty, EnumProperty, StringProperty, BoolProperty
 from bpy.app.handlers import persistent
 
 # Preferences
@@ -182,9 +182,11 @@ classes = (
 
 @persistent
 def active_material_change_handler(scene, depsgraph):
+    triggered_active_material_callback = False
     for update in depsgraph.updates:
-        if "Material" in update.id.name:
-            on_active_material_changed()
+        if "Material" in update.id.name and triggered_active_material_callback == False:
+            on_active_material_changed(scene)
+            triggered_active_material_callback = True
 
         # If there is a shader change, and triplanar projection is being used for the selected layer, sync all texture samples.
         if "Shader Nodetree" in update.id.name:
@@ -260,8 +262,10 @@ def register():
     bpy.types.Scene.matlayer_baking_settings = PointerProperty(type=MATLAYER_baking_settings)
 
     # Subscription Update Handling Properties
+    bpy.types.Scene.pause_auto_updates = BoolProperty(default=False)
     bpy.types.Scene.previous_active_material_name = StringProperty(default="")
     bpy.types.Scene.previous_object_name = StringProperty(default="")
+    bpy.types.Scene.baking_mesh_maps = BoolProperty(default=False)
 
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     export_textures = addon_preferences.export_textures

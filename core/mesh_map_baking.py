@@ -26,7 +26,9 @@ MESH_MAP_GROUP_NAMES = (
 
 MESH_MAP_TYPES = ("NORMALS", "AMBIENT_OCCLUSION", "CURVATURE", "THICKNESS", "WORLD_SPACE_NORMALS")
 
+
 #----------------------------- UPDATING FUNCTIONS -----------------------------#
+
 
 def update_match_bake_resolution(self, context):
     '''Match the height to the width.'''
@@ -99,7 +101,9 @@ def update_curvature_occlusion_masking(self, context):
     if node:
         node.inputs[1].default_value = addon_preferences.curvature_occlusion_masking
 
+
 #----------------------------- HELPER FUNCTIONS -----------------------------#
+
 
 def get_meshmap_node(node_type):
     '''Returns a node found within a mesh map material setup if it exists.'''
@@ -306,6 +310,12 @@ def bake_mesh_map(mesh_map_type, self):
             bpy.ops.object.bake('INVOKE_DEFAULT', type='NORMAL')
         case _:
             bpy.ops.object.bake('INVOKE_DEFAULT', type='EMIT')
+
+    # Print debug info...
+    mesh_map_type = mesh_map_type.replace('_', ' ')
+    mesh_map_type = blender_addon_utils.capitalize_by_space(mesh_map_type)
+    debug_logging.log("Starting baking: {0}".format(mesh_map_type))
+
     return True
 
 def delete_meshmap(meshmap_type, self):
@@ -357,7 +367,9 @@ def remove_mesh_map_baking_assets():
         if mesh_map_group_node:
             bpy.data.node_groups.remove(mesh_map_group_node)
 
+
 #----------------------------- OPERATORS AND PROPERTIES -----------------------------#
+
 
 class MATLAYER_baking_settings(bpy.types.PropertyGroup):
     match_bake_resolution: BoolProperty(name="Match Bake Resoltion", description="When toggled on, the bake resolution's width and height will be synced", default=True, update=update_match_bake_resolution)
@@ -391,7 +403,10 @@ class MATLAYER_OT_batch_bake(Operator):
         if event.type == 'TIMER':
             # Check if the object is still baking.
             if not bpy.app.is_job_running('OBJECT_BAKE'):
-                debug_logging.log("Finished baking {0}.".format(self._mesh_maps_to_bake[self._baked_mesh_map_count]))
+                mesh_map_type = self._mesh_maps_to_bake[self._baked_mesh_map_count]
+                mesh_map_type = mesh_map_type.replace('_', ' ')
+                mesh_map_type = blender_addon_utils.capitalize_by_space(mesh_map_type)
+                debug_logging.log("Finished baking: {0}".format(mesh_map_type))
                 self._baked_mesh_map_count += 1
 
                 temp_bake_material = bpy.data.materials.get(self._temp_bake_material_name)
@@ -404,8 +419,12 @@ class MATLAYER_OT_batch_bake(Operator):
 
                 # Bake the next mesh map.
                 if self._baked_mesh_map_count < len(self._mesh_maps_to_bake):
-                    baked_successfully = bake_mesh_map(self._mesh_maps_to_bake[self._baked_mesh_map_count], self)
+                    mesh_map_type = self._mesh_maps_to_bake[self._baked_mesh_map_count]
+                    baked_successfully = bake_mesh_map(mesh_map_type, self)
+
+                    # If there is an error with baking a mesh map, finish the operation.
                     if baked_successfully == False:
+                        debug_logging.log("Baking error.")
                         self.finish(context)
                         return {'FINISHED'}
 
@@ -421,7 +440,13 @@ class MATLAYER_OT_batch_bake(Operator):
         
         # Remove lingering mesh map assets if they exist.
         remove_mesh_map_baking_assets()
-        
+
+        # To avoid errors from users clicking the bake mesh maps button multiple times, mark the start / end of baking.
+        if bpy.context.scene.baking_mesh_maps == True:
+            return {'FINISHED'}
+        bpy.context.scene.baking_mesh_maps = True
+        bpy.context.scene.pause_auto_updates = True
+        debug_logging.log("Starting mesh map baking...", sub_process=False)
         self._mesh_maps_to_bake.clear()
         self._mesh_maps_to_bake = get_batch_bake_mesh_maps()    # Get a list of mesh maps to bake.
 
@@ -476,12 +501,17 @@ class MATLAYER_OT_batch_bake(Operator):
         # Reset the render engine.
         bpy.context.scene.render.engine = self._original_render_engine
 
+        # Unpause auto updates, unmark baking mesh maps toggle.
+        bpy.context.scene.pause_auto_updates = False
+        bpy.context.scene.baking_mesh_maps = False
+
         debug_logging.log_status("Baking mesh map was manually cancelled.", self, 'INFO')
 
     def finish(self, context):
         # Remove the timer.
-        wm = context.window_manager
-        wm.event_timer_remove(self._timer)
+        if self._timer:
+            wm = context.window_manager
+            wm.event_timer_remove(self._timer)
 
         # High the high poly object, there's no need for it to be visible anymore.
         high_poly_object = bpy.context.scene.matlayer_baking_settings.high_poly_object
@@ -496,9 +526,14 @@ class MATLAYER_OT_batch_bake(Operator):
 
         # Reset the render engine.
         bpy.context.scene.render.engine = self._original_render_engine
-        
-        debug_logging.log_status("Baking mesh map completed.", self, 'INFO')
+        debug_logging.log_status("Baking mesh map(s) completed.", self, 'INFO')
+
+        # Apply mesh maps to the existing material.
         material_layers.apply_mesh_maps()
+
+        # Unpause auto updates, mark baking mesh maps as complete.
+        bpy.context.scene.pause_auto_updates = False
+        bpy.context.scene.baking_mesh_maps = False
 
 class MATLAYER_OT_open_bake_folder(Operator):
     bl_idname = "matlayer.open_bake_folder"
@@ -584,6 +619,7 @@ class MATLAYER_OT_disable_mesh_map_preview(Operator):
         remove_mesh_map_baking_assets()
         bpy.context.space_data.shading.type = 'MATERIAL'
         bpy.context.scene.render.engine = 'BLENDER_EEVEE'
+        debug_logging.log_status("Disabled mesh map preview.", self, type='INFO')
         return {'FINISHED'}
 
 class MATLAYER_OT_delete_mesh_map(Operator):
