@@ -412,8 +412,6 @@ def add_material_layer(layer_type, self):
 def duplicate_layer(original_layer_index, self):
     '''Duplicates the material layer at the provided layer index.'''
 
-    refresh_layer_stack("Duplicated material layer.")
-
     if blender_addon_utils.verify_material_operation_context(self) == False:
         return
 
@@ -467,9 +465,7 @@ def delete_layer(self):
     '''Deletes the selected layer'''
     if blender_addon_utils.verify_material_operation_context(self) == False:
         return {'FINISHED'}
-
-    refresh_layer_stack("Deleted material layer.")
-
+    
     layers = bpy.context.scene.matlayer_layers
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     active_material = bpy.context.active_object.active_material
@@ -515,14 +511,13 @@ def move_layer(direction, self):
     if blender_addon_utils.verify_material_operation_context(self) == False:
         return
     
-    refresh_layer_stack("Moved material layer.")
-
     match direction:
         case 'UP':
             # Swap the layer index for all layer nodes in this layer with the layer above it (if one exists).
             layers = bpy.context.scene.matlayer_layers
+            layer_count = len(layers)
             selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-            if selected_layer_index < len(layers) - 1:
+            if selected_layer_index < layer_count:
                 layer_node = get_material_layer_node('LAYER', selected_layer_index)
                 if layer_node:
                     layer_node.name += "~"
@@ -588,7 +583,7 @@ def move_layer(direction, self):
 
                 below_layer_mask_count = layer_masks.count_masks(selected_layer_index - 1)
                 for i in range(0, below_layer_mask_count):
-                    mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i)
+                    mask_node = layer_masks.get_mask_node('MASK', selected_layer_index - 1, i)
                     mask_node.name = layer_masks.format_mask_name(selected_layer_index, i)
                     mask_node.node_tree.name = mask_node.name
 
