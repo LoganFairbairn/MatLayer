@@ -445,7 +445,7 @@ def duplicate_layer(original_layer_index, self):
                 duplicated_node_tree = blender_addon_utils.duplicate_node_group(original_mask_node.node_tree.name)
                 if duplicated_node_tree:
                     new_mask_slot_index = layer_masks.add_mask_slot()
-                    duplicated_mask_name = layer_masks.format_mask_name(bpy.context.active_object.active_material.name, new_layer_slot_index, new_mask_slot_index) + "~"
+                    duplicated_mask_name = layer_masks.format_mask_name(new_layer_slot_index, new_mask_slot_index, bpy.context.active_object.active_material.name) + "~"
                     duplicated_node_tree.name = duplicated_mask_name
                     new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
                     new_mask_group_node.node_tree = duplicated_node_tree
