@@ -184,6 +184,8 @@ classes = (
 
 @persistent
 def active_material_change_handler(scene, depsgraph):
+
+    # Variable to ensure the active material callback is only called once per depsgraph update.
     triggered_active_material_callback = False
     for update in depsgraph.updates:
         if "Material" in update.id.name and triggered_active_material_callback == False:

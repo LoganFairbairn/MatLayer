@@ -41,15 +41,22 @@ def sub_to_active_material_index(active_object):
 
 def on_active_material_changed(scene):
     '''Update properties when the active material is changed.'''
+
+    # Avoid running auto updates during operations that require them to be paused (i.e mesh map baking, exporting textures).
     if bpy.context.scene.pause_auto_updates == False:
-        debug_logging.log("Active material was changed...", sub_process=True)
+
+        # Ensure the active object attribute exists within this context (causes exception crashes otherwise).
         active_object_attibute = getattr(bpy.context.view_layer.objects, "active", None)
         if active_object_attibute:
             active_object = bpy.context.view_layer.objects.active
             if active_object:
-                sub_to_active_material_index(active_object)
-                sub_to_active_material_name(active_object)
-                material_layers.refresh_layer_stack(reason="Active material changed.", scene=scene)
+
+                # Only trigger the active material callback if the active material is different from the previous material.
+                if bpy.context.scene.previous_active_material_name != active_object.name:
+                    debug_logging.log("Active material change detected, updating properties...", sub_process=True)
+                    sub_to_active_material_index(active_object)
+                    sub_to_active_material_name(active_object)
+                    material_layers.refresh_layer_stack(reason="Active material changed.", scene=scene)
 
 def on_active_material_index_changed():
     '''Reads material nodes into the user interface when the active material index is changed.'''
