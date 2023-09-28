@@ -141,23 +141,25 @@ def create_bake_image(mesh_map_type):
     # Use the object's name and bake type to define the bake image name.
     mesh_map_name = get_meshmap_name(bpy.context.active_object.name, mesh_map_type)
 
+    # Specific mesh maps require higher image color bit depth to be able to store optimal amounts of mesh information.
+    if mesh_map_type == 'NORMALS' or mesh_map_type == 'CURVATURE':
+        high_bit_depth = True
+    else:
+        high_bit_depth = False
+
     # Create a new image in Blender's data, delete existing bake image if it exists.
-    image = bpy.data.images.get(mesh_map_name)
-    if image != None:
-        bpy.data.images.remove(image)
-    image = bpy.ops.image.new(name=mesh_map_name,
-                              width=output_size[0],
-                              height=output_size[1],
-                              color=(0.0, 0.0, 0.0, 1.0),
-                              alpha=False,
-                              generated_type='BLANK',
-                              float=False,
-                              use_stereo_3d=False,
-                              tiled=False)
+    mesh_map_image = blender_addon_utils.create_image(
+        new_image_name=mesh_map_name,
+        image_width=output_size[0],
+        image_height=output_size[1],
+        base_color=(0.0, 0.0, 0.0, 1.0),
+        alpha_channel=False,
+        thirty_two_bit=high_bit_depth,
+        add_unique_id=False,
+        delete_existing=True
+    )
 
-    mesh_map_image = bpy.data.images[mesh_map_name]
     mesh_map_image.colorspace_settings.name = 'Non-Color'
-
     return mesh_map_image
 
 def apply_baking_settings():
