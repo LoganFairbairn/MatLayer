@@ -1006,42 +1006,6 @@ class MATLAYER_OT_set_mask_output_channel(Operator):
         set_mask_output_channel(self.channel_name)
         return {'FINISHED'}
 
-class MATLAYER_OT_toggle_mask_blur(Operator):
-    bl_label = "Toggle Mask Blur"
-    bl_idname = "matlayer.toggle_mask_blur"
-    bl_description = "Toggles blurring for the selected mask"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    # Disable when there is no active object.
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def execute(self, context):
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-        selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
-        blur_node = get_mask_node('BLUR', selected_layer_index, selected_mask_index)
-        if blur_node:
-            if blender_addon_utils.get_node_active(blur_node):
-                blender_addon_utils.set_node_active(blur_node, False)
-            else:
-                blender_addon_utils.set_node_active(blur_node, True)
-
-        # Relink mask projection nodes based on mask type.
-        mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
-        coordinate_node = get_mask_node('COORDINATES', selected_layer_index, selected_mask_index)
-        decal_offset_node = get_mask_node('DECAL_OFFSET', selected_layer_index, selected_mask_index)
-        if decal_offset_node:
-            blender_addon_utils.unlink_node(decal_offset_node, mask_node.node_tree, unlink_inputs=True, unlink_outputs=False)
-            if blur_node:
-                if blender_addon_utils.get_node_active(blur_node):
-                    mask_node.node_tree.links.new(blur_node.outputs[0], decal_offset_node.inputs[0])
-                else:
-                    mask_node.node_tree.links.new(coordinate_node.outputs.get('Object'), decal_offset_node.inputs[0])
-        else:
-            relink_image_mask_projection()
-        return {'FINISHED'}
-
 class MATLAYER_OT_isolate_mask(Operator):
     bl_label = "Isolate Mask"
     bl_idname = "matlayer.isolate_mask"
