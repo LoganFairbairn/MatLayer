@@ -404,7 +404,7 @@ def draw_mask_channel(layout, selected_layer_index, selected_mask_index):
 
 def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_index):
     '''Draws group node properties for the selected mask.'''
-    split = layout.split(factor=0.25)
+    split = layout.split(factor=0.4)
     first_column = split.column()
     second_column = split.column()
 
@@ -426,10 +426,6 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
     for node in mask_node.node_tree.nodes:
         if node.bl_static_type == 'TEX_IMAGE' and node.name not in mesh_map_baking.MESH_MAP_TYPES:
             if not node.name.startswith('TEXTURE_'):
-                split = layout.split(factor=0.25)
-                first_column = split.column()
-                second_column = split.column()
-
                 row = first_column.row()
                 texture_display_name = node.label.replace('_', ' ')
                 texture_display_name = blender_addon_utils.capitalize_by_space(texture_display_name)
@@ -476,8 +472,10 @@ def draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index):
             mesh_map_display_name = blender_addon_utils.capitalize_by_space(mesh_map_display_name)
             row.label(text=mesh_map_display_name)
 
+            # Users should never be able to edit mesh maps, mesh maps are applied automatically when a mask requires them.
             row = second_column.row(align=True)
-            row.prop(mesh_map_texture_node, "image", text="")
+            row.enabled = False
+            row.prop(mesh_map_texture_node.image, "name", text="")
 
 def draw_masks(layout):
     row = layout.row(align=True)
