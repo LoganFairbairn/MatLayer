@@ -325,6 +325,7 @@ def draw_mask_projection(layout):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
     mask_projection_node = layer_masks.get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
+    mask_id_name = layer_masks.get_mask_id_name(selected_layer_index, selected_mask_index)
     if mask_projection_node:
         match mask_projection_node.node_tree.name:
             case 'ML_UVProjection':
@@ -332,9 +333,10 @@ def draw_mask_projection(layout):
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.label(text="MASK PROJECTION")
 
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.menu('MATLAYER_MT_mask_projection_sub_menu', text="UV Projection")
+                if mask_id_name == 'IMAGE_MASK':
+                    row = layout.row()
+                    row.scale_y = DEFAULT_UI_SCALE_Y
+                    row.menu('MATLAYER_MT_mask_projection_sub_menu', text="UV Projection")
 
                 split = layout.split()
                 col = split.column()
@@ -356,9 +358,10 @@ def draw_mask_projection(layout):
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.label(text="MASK PROJECTION")
 
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.menu('MATLAYER_MT_mask_projection_sub_menu', text="Triplanar Projection")
+                if mask_id_name == 'IMAGE_MASK':
+                    row = layout.row()
+                    row.scale_y = DEFAULT_UI_SCALE_Y
+                    row.menu('MATLAYER_MT_mask_projection_sub_menu', text="Triplanar Projection")
 
                 split = layout.split()
                 col = split.column()
@@ -382,7 +385,6 @@ def draw_mask_projection(layout):
                 row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.prop(mask_projection_node.inputs.get('Blending'), "default_value", text="Blending")
-                #row.menu("MATLAYER_MT_triplanar_projection_sub_menu", text="", icon='DOWNARROW_HLT')
 
 def draw_mask_channel(layout, selected_layer_index, selected_mask_index):
     '''Draws the mask channel and sub menu to change the mask channel used.'''

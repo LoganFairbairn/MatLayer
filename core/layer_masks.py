@@ -29,6 +29,23 @@ def get_mask_node_tree(layer_index, mask_index, active_material_name=""):
     mask_node_tree_name = format_mask_name(layer_index, mask_index, active_material_name)
     return bpy.data.node_groups.get(mask_node_tree_name)
 
+def get_mask_id_name(layer_index, mask_index):
+    '''Returns the ID name of the mask if one exists (ID name exists on a value node stored in the masks node tree).'''
+    if bpy.context.active_object == None:
+        return ""
+    
+    active_material = bpy.context.active_object.active_material
+    if active_material == None:
+        return ""
+    
+    mask_group_node_name = format_mask_name(layer_index, mask_index)
+    node_tree = bpy.data.node_groups.get(mask_group_node_name)
+    if node_tree:
+        id_node = node_tree.nodes.get('ID_NODE')
+        if id_node:
+            return id_node.label
+    return ""
+
 def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed=False):
     if bpy.context.active_object == None:
         return None
