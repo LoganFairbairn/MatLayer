@@ -8,7 +8,6 @@ from ..core import mesh_map_baking
 from ..core import blender_addon_utils
 from ..core import texture_set_settings as tss
 from ..ui import ui_section_tabs
-import re
 
 DEFAULT_UI_SCALE_Y = 1
 
@@ -391,11 +390,11 @@ def draw_mask_channel(layout, selected_layer_index, selected_mask_index):
     first_column = split.column()
     second_column = split.column()
 
-    row = first_column.row()
-    row.label(text="Channel")
-
     mask_filter_node = layer_masks.get_mask_node("FILTER", selected_layer_index, selected_mask_index)
     if mask_filter_node:
+        row = first_column.row()
+        row.label(text="Channel")
+
         if len(mask_filter_node.inputs[0].links) > 0:
             menu_label = mask_filter_node.inputs[0].links[0].from_socket.name
             row = second_column.row()
@@ -412,7 +411,7 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
     if mask_texture_node:
         row = first_column.row()
         texture_display_name = mask_texture_node.label.replace('_', ' ')
-        texture_display_name = re.sub(r'\b[a-z]', lambda m: m.group().upper(), texture_display_name.capitalize())
+        texture_display_name = blender_addon_utils.capitalize_by_space(texture_display_name)
         row.label(text=texture_display_name)
 
         row = second_column.row(align=True)
@@ -421,7 +420,7 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
         row.context_pointer_set("node", mask_texture_node)
         row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
-    # Draw custom mask texture properties if any exist.
+    # Draw custom mask texture properties (if any exist).
     for node in mask_node.node_tree.nodes:
         if node.bl_static_type == 'TEX_IMAGE' and node.name not in mesh_map_baking.MESH_MAP_TYPES:
             if not node.name.startswith('TEXTURE_'):
@@ -431,7 +430,7 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
 
                 row = first_column.row()
                 texture_display_name = node.label.replace('_', ' ')
-                texture_display_name = re.sub(r'\b[a-z]', lambda m: m.group().upper(), texture_display_name.capitalize())
+                texture_display_name = blender_addon_utils.capitalize_by_space(texture_display_name)
                 row.label(text=texture_display_name)
 
                 row = second_column.row(align=True)
@@ -443,15 +442,11 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
     # Draw mask group node input properties.
     for i in range(0, len(mask_node.inputs)):
         if mask_node.inputs[i].name != 'Mix':
-            row = first_column.row()
-            row.scale_y = DEFAULT_UI_SCALE_Y
-            row.label(text=mask_node.inputs[i].name)
-
             row = layout.row()
             row.scale_y = DEFAULT_UI_SCALE_Y
-            row.prop(mask_node.inputs[i], "default_value", text="")
+            row.prop(mask_node.inputs[i], "default_value", text=mask_node.inputs[i].name)
 
-    # Draw mask blur properties.
+    # Draw properties for blur nodes (if a blur node exists within the mask group nodes).
     blur_node = layer_masks.get_mask_node('BLUR', selected_layer_index, selected_mask_index)
     if blur_node:
         row = first_column.row(align=True)
@@ -488,7 +483,7 @@ def draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index):
 
             row = first_column.row()
             mesh_map_display_name = mesh_map_texture_node.label.replace('_', ' ')
-            mesh_map_display_name = re.sub(r'\b[a-z]', lambda m: m.group().upper(), mesh_map_display_name.capitalize())
+            mesh_map_display_name = blender_addon_utils.capitalize_by_space(mesh_map_display_name)
             row.label(text=mesh_map_display_name)
 
             row = second_column.row(align=True)
@@ -622,16 +617,18 @@ class MATLAYER_OT_add_layer_mask_menu(Operator):
     def draw(self, context):
         layout = self.layout
         row = layout.row(align=True)
-        image_mask_column = row.column(align=True)
-        image_mask_column.scale_y = 1.4
-        image_mask_column.operator("matlayer.add_empty_layer_mask", text="Empty")
-        image_mask_column.operator("matlayer.add_black_layer_mask", text="Black")
-        image_mask_column.operator("matlayer.add_white_layer_mask", text="White")
+        col = row.column(align=True)
+        col.scale_y = 1.4
+        col.operator("matlayer.add_empty_layer_mask", text="Empty")
+        col.operator("matlayer.add_black_layer_mask", text="Black")
+        col.operator("matlayer.add_white_layer_mask", text="White")
+        col.operator("matlayer.add_linear_gradient_mask", text="Linear Gradient")
 
         row = layout.row(align=True)
-        effect_mask_column = row.column(align=True)
-        effect_mask_column.scale_y = 1.4
-        effect_mask_column.operator("matlayer.add_edge_wear_mask", text="Edge Wear")
+        col = row.column(align=True)
+        col.scale_y = 1.4
+        col.operator("matlayer.add_grunge_mask", text="Grunge")
+        col.operator("matlayer.add_edge_wear_mask", text="Edge Wear")
 
 class MATLAYER_OT_add_material_filter_menu(Operator):
     bl_label = ""

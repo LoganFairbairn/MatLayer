@@ -272,6 +272,43 @@ def add_layer_mask(type, self):
             bpy.context.scene.tool_settings.image_paint.canvas = new_image
             debug_logging.log("Added white layer mask.")
 
+        case 'LINEAR_GRADIENT':
+            default_node_group = blender_addon_utils.append_group_node("ML_LinearGradient", never_auto_delete=True)
+            default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
+
+            new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+            new_mask_group_node.node_tree = default_node_group
+            new_mask_group_node.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
+            new_mask_group_node.label = "Linear Gradient"
+    
+            reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
+            organize_mask_nodes()
+            link_mask_nodes(selected_layer_index)
+            debug_logging.log("Added a linear gradient mask.")
+
+        case 'GRUNGE':
+            default_node_group = blender_addon_utils.append_group_node("ML_Grunge", never_auto_delete=True)
+            default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
+
+            new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+            new_mask_group_node.node_tree = default_node_group
+            new_mask_group_node.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
+            new_mask_group_node.label = "Grunge"
+    
+            reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
+            organize_mask_nodes()
+            link_mask_nodes(selected_layer_index)
+            material_layers.apply_mesh_maps()
+
+            # Add a default grunge texture to the mask.
+            default_grunge_texture = blender_addon_utils.append_image('DefaultGrunge')
+            for i in range(0, 3):
+                texture_sample_node = get_mask_node('TEXTURE', selected_layer_index, new_mask_slot_index, node_number=i + 1)
+                if texture_sample_node:
+                    texture_sample_node.image = default_grunge_texture
+
+            debug_logging.log("Added a grunge mask.") 
+
         case 'EDGE_WEAR':
             default_node_group = blender_addon_utils.append_group_node("ML_EdgeWear", never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
@@ -285,6 +322,14 @@ def add_layer_mask(type, self):
             organize_mask_nodes()
             link_mask_nodes(selected_layer_index)
             material_layers.apply_mesh_maps()
+
+            # Add a default edge wear texture to the mask.
+            default_grunge_texture = blender_addon_utils.append_image('DefaultGrunge')
+            for i in range(0, 3):
+                texture_sample_node = get_mask_node('TEXTURE', selected_layer_index, new_mask_slot_index, node_number=i + 1)
+                if texture_sample_node:
+                    texture_sample_node.image = default_grunge_texture
+                    
             debug_logging.log("Added edge wear mask.")
 
 def duplicate_mask(self, mask_index=-1):
@@ -786,6 +831,36 @@ class MATLAYER_OT_add_white_layer_mask(Operator):
 
     def execute(self, context):
         add_layer_mask('WHITE', self)
+        return {'FINISHED'}
+
+class MATLAYER_OT_add_linear_gradient_mask(Operator):
+    bl_label = "Add Linear Gradient Mask"
+    bl_idname = "matlayer.add_linear_gradient_mask"
+    bl_description = "Adds a non-destructive linear gradient mask to the selected material layer"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        add_layer_mask('LINEAR_GRADIENT', self)
+        return {'FINISHED'}
+
+class MATLAYER_OT_add_grunge_mask(Operator):
+    bl_label = "Add Grunge Mask"
+    bl_idname = "matlayer.add_grunge_mask"
+    bl_description = "Adds a mask that simulates grunge / dirt to the selected material layer"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        add_layer_mask('GRUNGE', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_add_edge_wear_mask(Operator):
