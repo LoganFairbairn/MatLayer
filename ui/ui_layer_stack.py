@@ -34,12 +34,13 @@ class MATLAYER_UL_layer_list(bpy.types.UIList):
             row = layout.row()
             row.ui_units_x = 1
             projection_node = material_layers.get_material_layer_node('PROJECTION', item_index)
-            match projection_node.node_tree.name:
-                case 'ML_DecalProjection':
-                    row.label(text="", icon='FONT_DATA')
+            if projection_node:
+                match projection_node.node_tree.name:
+                    case 'ML_DecalProjection':
+                        row.label(text="", icon='FONT_DATA')
 
-                case _:
-                    row.label(text="", icon='MATERIAL_DATA')
+                    case _:
+                        row.label(text="", icon='MATERIAL_DATA')
 
             # Draw the layer name.
             if layer_node:
