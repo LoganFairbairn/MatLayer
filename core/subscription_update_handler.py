@@ -52,11 +52,16 @@ def on_active_material_changed(scene):
             if active_object:
 
                 # Only trigger the active material callback if the active material is different from the previous material.
-                if bpy.context.scene.previous_active_material_name != active_object.name:
+                active_material_name = ''
+                if active_object.active_material:
+                    active_material_name = active_object.active_material.name
+
+                if bpy.types.Scene.previous_active_material_name != active_material_name or active_material_name == '':
                     debug_logging.log("Active material change detected, updating properties...", sub_process=True)
                     sub_to_active_material_index(active_object)
                     sub_to_active_material_name(active_object)
                     material_layers.refresh_layer_stack(reason="Active material changed.", scene=scene)
+                    bpy.types.Scene.previous_active_material_name = active_material_name
 
 def on_active_material_index_changed():
     '''Reads material nodes into the user interface when the active material index is changed.'''
