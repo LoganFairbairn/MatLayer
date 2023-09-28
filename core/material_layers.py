@@ -302,8 +302,6 @@ def add_material_layer_slot():
 def add_material_layer(layer_type, self):
     '''Adds a material layer to the active materials layer stack.'''
 
-    refresh_layer_stack("Added material layer.")
-
     blender_addon_utils.append_default_node_groups()        # Append all required node groups first to avoid node group duplication from re-appending.
 
     if blender_addon_utils.verify_material_operation_context(self, check_active_material=False) == False:
@@ -533,8 +531,6 @@ def move_layer(direction, self):
                 layer_node.name = str(selected_layer_index + 1)
                 layer_node.node_tree.name = layer_node.node_tree.name.split('_')[0] + "_" + str(selected_layer_index + 1)
 
-                bpy.context.scene.matlayer_layer_stack.selected_layer_index = selected_layer_index + 1
-
                 # Swap the layer index for all mask nodes in this layer with the layer above it.
                 selected_layer_mask_count = layer_masks.count_masks(selected_layer_index)
                 for i in range(0, selected_layer_mask_count):
@@ -544,7 +540,7 @@ def move_layer(direction, self):
 
                 above_layer_mask_count = layer_masks.count_masks(selected_layer_index + 1)
                 for i in range(0, above_layer_mask_count):
-                    mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i)
+                    mask_node = layer_masks.get_mask_node('MASK', selected_layer_index + 1, i)
                     mask_node.name = layer_masks.format_mask_name(selected_layer_index, i)
                     mask_node.node_tree.name = mask_node.name
 
@@ -552,6 +548,8 @@ def move_layer(direction, self):
                     mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i, get_changed=True)
                     mask_node.name = layer_masks.format_mask_name(selected_layer_index + 1, i)
                     mask_node.node_tree.name = mask_node.name
+
+                bpy.context.scene.matlayer_layer_stack.selected_layer_index = selected_layer_index + 1
 
             else:
                 debug_logging.log("Can't move layer up, no layers exist above the selected layer.")
@@ -572,8 +570,6 @@ def move_layer(direction, self):
                 layer_node.name = str(selected_layer_index - 1)
                 layer_node.node_tree.name = layer_node.node_tree.name.split('_')[0] + "_" + str(selected_layer_index - 1)
 
-                bpy.context.scene.matlayer_layer_stack.selected_layer_index = selected_layer_index - 1
-
                 # Swap the layer index for all mask nodes in this layer with the layer below it.
                 selected_layer_mask_count = layer_masks.count_masks(selected_layer_index)
                 for i in range(0, selected_layer_mask_count):
@@ -591,6 +587,8 @@ def move_layer(direction, self):
                     mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i, get_changed=True)
                     mask_node.name = layer_masks.format_mask_name(selected_layer_index - 1, i)
                     mask_node.node_tree.name = mask_node.name
+
+                bpy.context.scene.matlayer_layer_stack.selected_layer_index = selected_layer_index - 1
 
             else:
                 debug_logging.log("Can't move layer down, no layers exist below the selected layer.")
