@@ -1288,7 +1288,7 @@ class MATLAYER_OT_add_paint_material_layer(Operator):
 class MATLAYER_OT_add_decal_material_layer(Operator):
     bl_idname = "matlayer.add_decal_material_layer"
     bl_label = "Add Decal Material Layer"
-    bl_description = ""
+    bl_description = "Adds a non-destructive layer designed specifically for placing decals (stickers / text). Control the position of the decal using the layers associated decal (empty) object"
     bl_options = {'REGISTER', 'UNDO'}
 
     # Disable when there is no active object.
