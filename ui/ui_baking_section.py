@@ -182,32 +182,9 @@ def draw_mesh_map_settings(layout, addon_preferences):
     row.prop(addon_preferences, "occlusion_intensity", slider=True, text="")
 
     row = first_column.row()
-    row.label(text="Curvature Bevel Radius")
+    row.label(text="Local Occlusion")
     row = second_column.row()
-    row.prop(addon_preferences, "curvature_bevel_radius", slider=True, text="")
-
-    row = first_column.row()
-    row.label(text="Curvature Bevel Samples")
-    row = second_column.row()
-    row.prop(addon_preferences, "curvature_bevel_samples", slider=True, text="")
-
-    row = first_column.row()
-    row.label(text="Curvature Bevel Contrast")
-    row = second_column.row()
-    row.prop(addon_preferences, "curvature_bevel_contrast", slider=True, text="")
-
-    row = first_column.row()
-    row.label(text="Curvature Edge Intensity")
-    row = second_column.row()
-    row.prop(addon_preferences, "curvature_edge_intensity", slider=True, text="")
-
-    row = first_column.row()
-    row.label(text="Curvature Occlusion Masking")
-    row = second_column.row()
-    row.prop(addon_preferences, "curvature_occlusion_masking", slider=True, text="")
-
-    row = layout.row()
-    row.prop(addon_preferences, "local_occlusion", text="Local Occlusion")
+    row.prop(addon_preferences, "local_occlusion", text="")
 
 def draw_baking_section_ui(self, context):
     '''Draws the baking section user interface'''
