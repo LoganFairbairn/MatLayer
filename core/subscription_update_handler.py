@@ -95,7 +95,7 @@ def on_active_material_name_changed():
                 layer_node_tree.name = material_layers.format_layer_group_node_name(active_material.name, i)
 
             # Rename all mask group nodes related to the renamed material.
-            mask_count = layer_masks.count_masks(i)
+            mask_count = layer_masks.count_masks(i, material_name=previous_material_name)
             for c in range(0, mask_count):
                 mask_node_tree = bpy.data.node_groups.get("{0}_{1}_{2}".format(previous_material_name, i, c))
                 if mask_node_tree:

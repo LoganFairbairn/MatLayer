@@ -16,11 +16,11 @@ def update_selected_mask_index(self, context):
         blender_addon_utils.set_texture_paint_image(mask_texture_node.image)
     debug_logging.log("Updated selected mask index.")
 
-def format_mask_name(layer_index, mask_index, active_material_name=""):
+def format_mask_name(layer_index, mask_index, material_name=""):
     '''Returns a properly formatted name for a mask node created with this add-on.'''
-    if active_material_name == "":
-        active_material_name = bpy.context.active_object.active_material.name
-    return "{0}_{1}_{2}".format(active_material_name, str(layer_index), str(mask_index))
+    if material_name == "":
+        material_name = bpy.context.active_object.active_material.name
+    return "{0}_{1}_{2}".format(material_name, str(layer_index), str(mask_index))
 
 def get_mask_node_tree(layer_index, mask_index, active_material_name=""):
     '''Returns the mask node tree / node group at the provided layer and mask index.'''
@@ -152,19 +152,22 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
                 return node_tree.nodes.get('WORLD_SPACE_NORMALS')
             return None
 
-def count_masks(layer_index, material=None):
-    '''Counts the total number of masks by applied to the layer with the specified index by reading the material node tree.'''
-    if material:
-        mask_count = 0
-        while material.node_tree.nodes.get(format_mask_name(layer_index, mask_count)):
-            mask_count += 1
-        return mask_count
+def count_masks(layer_index, material_name=""):
+    '''Counts the total number of masks for the specified material by applied to the specified layer by counting existing material node groups in the blend data.'''
+    mask_count = 0
 
-    else:
-        mask_count = 0
-        while get_mask_node('MASK', layer_index, mask_count):
+    # If a specific material name is provided, count for the material name.
+    if material_name != "":
+        while bpy.data.node_groups.get(format_mask_name(layer_index, mask_count, material_name)):
             mask_count += 1
-        return mask_count
+    else:
+        active_object = bpy.context.active_object
+        if active_object:
+            if active_object.active_material:
+                while bpy.data.node_groups.get(format_mask_name(layer_index, mask_count, active_object.active_material.name)):
+                    mask_count += 1
+
+    return mask_count
 
 def add_mask_slot():
     '''Adds a new mask slot to the mask stack.'''
