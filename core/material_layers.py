@@ -347,7 +347,7 @@ def add_material_layer(layer_type, self):
             default_layer_node_group = blender_addon_utils.append_group_node("ML_DecalLayer", return_unique=True, never_auto_delete=True)
             debug_logging.log("Added decal layer.")
 
-    default_layer_node_group.name = format_layer_group_node_name(active_material.name, str(new_layer_slot_index))
+    default_layer_node_group.name = format_layer_group_node_name(active_material.name, str(new_layer_slot_index)) + "~"
     new_layer_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
     new_layer_group_node.node_tree = default_layer_node_group
     new_layer_group_node.name = str(new_layer_slot_index) + "~"
@@ -357,6 +357,7 @@ def add_material_layer(layer_type, self):
     organize_layer_group_nodes()
     link_layer_group_nodes(self)
     layer_masks.organize_mask_nodes()
+    layer_masks.refresh_mask_slots()
 
     # For specific layer types, perform additional setup steps.
     match layer_type:
@@ -752,14 +753,21 @@ def reindex_layer_nodes(change_made, affected_layer_index):
     '''Reindexes layer group nodes to keep them properly indexed. This should be called after a change is made that effects the layer stack order such as adding, duplicating, deleting, or moving a material layer on the layer stack.'''
     match change_made:
         case 'ADDED_LAYER':
-            # Increase the layer index for all layer group nodes and their node trees that exist above the affected layer.
-            total_layers = count_layers()
-            for i in range(total_layers, affected_layer_index, -1):
+            # Increase the layer index for all layer group nodes, their node trees, and their masks that exist above the affected layer.
+            layer_count = len(bpy.context.scene.matlayer_layers)
+            for i in range(layer_count, affected_layer_index, -1):
                 layer_node = get_material_layer_node('LAYER', i - 1)
                 if layer_node:
                     layer_node.name = str(int(layer_node.name) + 1)
                     split_node_tree_name = layer_node.node_tree.name.split('_')
                     layer_node.node_tree.name = "{0}_{1}".format(split_node_tree_name[0], str(int(split_node_tree_name[1]) + 1))
+
+                    layer_mask_count = layer_masks.count_masks(i - 1)
+                    for c in range(layer_mask_count, 0, -1):
+                        mask_node = layer_masks.get_mask_node('MASK', i - 1, c - 1)
+                        if mask_node:
+                            mask_node.name = layer_masks.format_mask_name(i, c - 1)
+                            mask_node.node_tree.name = mask_node.name
 
             new_layer_node = get_material_layer_node('LAYER', affected_layer_index, get_changed=True)
             if new_layer_node:
@@ -768,13 +776,20 @@ def reindex_layer_nodes(change_made, affected_layer_index):
                 new_layer_node.node_tree.name = "{0}_{1}".format(split_node_tree_name[0], str(affected_layer_index))
 
         case 'DELETED_LAYER':
-            # Reduce the layer index for all layer group nodes and their nodes trees that exist above the affected layer.
+            # Reduce the layer index for all layer group nodes, their nodes trees, and their masks that exist above the affected layer.
             layer_count = len(bpy.context.scene.matlayer_layers)
-            for i in range(layer_count, affected_layer_index + 1, -1):
-                layer_node = get_material_layer_node('LAYER', i - 1)
+            for i in range(affected_layer_index + 1, layer_count):
+                layer_node = get_material_layer_node('LAYER', i)
                 layer_node.name = str(int(layer_node.name) - 1)
                 split_node_tree_name = layer_node.node_tree.name.split('_')
                 layer_node.node_tree.name = "{0}_{1}".format(split_node_tree_name[0], str(int(split_node_tree_name[1]) - 1))
+
+                layer_mask_count = layer_masks.count_masks(i)
+                for c in range(0, layer_mask_count):
+                    mask_node = layer_masks.get_mask_node('MASK', i, c)
+                    if mask_node:
+                        mask_node.name = layer_masks.format_mask_name(i - 1, c)
+                        mask_node.node_tree.name = mask_node.name
 
     debug_logging.log("Re-indexed material layers.")
 
