@@ -584,6 +584,7 @@ def relink_image_mask_projection():
                 mask_node.node_tree.links.new(mask_filter_node.outputs[0], mix_node.inputs[7])
 
         case "ML_TriplanarProjection":
+            # Always connect the projection node to the blur node.
             mask_node.node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
             mask_node.node_tree.links.new(projection_node.outputs[1], blur_node.inputs[1])
             mask_node.node_tree.links.new(projection_node.outputs[2], blur_node.inputs[2])
@@ -599,7 +600,9 @@ def relink_image_mask_projection():
                         mask_node.node_tree.links.new(texture_node.outputs[0], triplanar_blend_node.inputs[i])
                         mask_node.node_tree.links.new(texture_node.outputs[1], triplanar_blend_node.inputs[i + 3])
                 mask_node.node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
-                mask_node.node_tree.links.new(triplanar_blend_node.outputs.get('Color'), mask_filter_node.inputs[0])
+
+                if mask_filter_node:
+                    mask_node.node_tree.links.new(triplanar_blend_node.outputs.get('Color'), mask_filter_node.inputs[0])
             
             else:
                 for i in range(0, 3):
@@ -615,10 +618,11 @@ def relink_image_mask_projection():
                     mask_node.node_tree.links.new(triplanar_blend_node.outputs[0], mask_filter_node.inputs[0])
 
             # Unlink and re-link the mask filter node to trigger a re-compile of the material.
-            blender_addon_utils.unlink_node(mask_filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
-            mix_node = get_mask_node('MASK_MIX', selected_layer_index, selected_mask_index)
-            if mix_node:
-                mask_node.node_tree.links.new(mask_filter_node.outputs[0], mix_node.inputs[7])
+            if mask_filter_node:
+                blender_addon_utils.unlink_node(mask_filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
+                mix_node = get_mask_node('MASK_MIX', selected_layer_index, selected_mask_index)
+                if mix_node:
+                    mask_node.node_tree.links.new(mask_filter_node.outputs[0], mix_node.inputs[7])
 
 def set_mask_projection_mode(projection_mode):
     '''Sets the projection mode of the mask. Only image masks can have their projection mode swapped.'''
@@ -1054,5 +1058,38 @@ class MATLAYER_OT_isolate_mask(Operator):
 
         active_node_tree.links.new(mask_node.outputs[0], emission_node.inputs[0])
         active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
+
+        return {'FINISHED'}
+
+class MATLAYER_OT_toggle_mask_blur(Operator):
+    bl_label = "Toggle Mask Blur"
+    bl_idname = "matlayer.toggle_mask_blur"
+    bl_description = "Toggles blurring for masks. Keep mask blur disabled when blurring is not beind used for improved shader compilation speed and viewport performance"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    mask_index: IntProperty(default=-1)
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        if blender_addon_utils.verify_material_operation_context(self) == False:
+            return
+        
+        # Toggle the blur node active state.
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+        blur_node = get_mask_node('BLUR', selected_layer_index, selected_mask_index)
+        if blur_node:
+            if blender_addon_utils.get_node_active(blur_node):
+                blender_addon_utils.set_node_active(blur_node, False)
+            else:
+                blender_addon_utils.set_node_active(blur_node, True)
+
+            # Relink projection.
+            relink_image_mask_projection()
+        else:
+            debug_logging.log("Error: Toggling mask blur failed, blur node not found.")
 
         return {'FINISHED'}

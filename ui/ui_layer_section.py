@@ -444,6 +444,22 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
             row.scale_y = DEFAULT_UI_SCALE_Y
             row.prop(mask_node.inputs[i], "default_value", text=mask_node.inputs[i].name)
 
+    # Draw blurring properties.
+    blur_node = layer_masks.get_mask_node('BLUR', selected_layer_index, selected_mask_index)
+    if blur_node:
+        split = layout.split(factor=0.085)
+        first_column = split.column()
+        second_column = split.column()
+
+        row = first_column.row()
+        if blender_addon_utils.get_node_active(blur_node):
+            row.operator("matlayer.toggle_mask_blur", text="", icon='CHECKBOX_HLT', depress=True)
+        else:
+            row.operator("matlayer.toggle_mask_blur", text="", icon='CHECKBOX_DEHLT')
+
+        row = second_column.row()
+        row.prop(blur_node.inputs.get('Blur Amount'), "default_value", text="Blur", slider=True)
+
     # Draw mask color ramp properties.
     mask_filter_node = layer_masks.get_mask_node('FILTER', selected_layer_index, selected_mask_index)
     if mask_filter_node:
