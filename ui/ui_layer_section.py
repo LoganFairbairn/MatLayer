@@ -215,7 +215,7 @@ def draw_group_node_properties(layout, value_node):
         case 'GROUP':
             for i in range(0, len(value_node.inputs)):
                 row = layout.row()
-                if value_node.inputs[i].name == 'Color':
+                if value_node.inputs[i].name == 'Color' or value_node.inputs[i].name == 'Normal':
                     row.prop(value_node.inputs[i], "default_value", text="")
                 else:
                     row.prop(value_node.inputs[i], "default_value", text=value_node.inputs[i].name)
