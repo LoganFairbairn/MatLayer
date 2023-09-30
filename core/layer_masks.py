@@ -591,27 +591,10 @@ def relink_image_mask_projection():
     blender_addon_utils.unlink_node(projection_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
     blender_addon_utils.unlink_node(blur_node, mask_node.node_tree, unlink_inputs=True, unlink_outputs=True)
 
+    original_output_channel = get_mask_output_channel()
+
     # Link mask nodes based on the mask projection mode.
     match projection_node.node_tree.name:
-        case 'ML_UVProjection':
-            mask_node.node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
-
-            texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
-            if blender_addon_utils.get_node_active(blur_node):
-                mask_node.node_tree.links.new(blur_node.outputs[0], texture_node.inputs[0])
-
-            else:
-                mask_node.node_tree.links.new(projection_node.outputs[0], texture_node.inputs[0])
-
-            mask_filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
-            mask_node.node_tree.links.new(texture_node.outputs[0], mask_filter_node.inputs[0])
-
-            # Unlink and re-link the mask filter node to trigger a re-compile of the material.
-            blender_addon_utils.unlink_node(mask_filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
-            mix_node = get_mask_node('MASK_MIX', selected_layer_index, selected_mask_index)
-            if mix_node:
-                mask_node.node_tree.links.new(mask_filter_node.outputs[0], mix_node.inputs[7])
-
         case "ML_TriplanarProjection":
             # Always connect the projection node to the blur node.
             mask_node.node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
@@ -652,6 +635,44 @@ def relink_image_mask_projection():
                 mix_node = get_mask_node('MASK_MIX', selected_layer_index, selected_mask_index)
                 if mix_node:
                     mask_node.node_tree.links.new(mask_filter_node.outputs[0], mix_node.inputs[7])
+
+        case "ML_UVProjection":
+            mask_node.node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
+
+            texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
+            if blender_addon_utils.get_node_active(blur_node):
+                mask_node.node_tree.links.new(blur_node.outputs[0], texture_node.inputs[0])
+
+            else:
+                mask_node.node_tree.links.new(projection_node.outputs[0], texture_node.inputs[0])
+
+            mask_filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
+            mask_node.node_tree.links.new(texture_node.outputs[0], mask_filter_node.inputs[0])
+
+            # Unlink and re-link the mask filter node to trigger a re-compile of the material.
+            blender_addon_utils.unlink_node(mask_filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
+            mix_node = get_mask_node('MASK_MIX', selected_layer_index, selected_mask_index)
+            if mix_node:
+                mask_node.node_tree.links.new(mask_filter_node.outputs[0], mix_node.inputs[7])
+
+        case "ML_DecalProjection":
+            mask_node.node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
+
+            texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
+            if blender_addon_utils.get_node_active(blur_node):
+                mask_node.node_tree.links.new(blur_node.outputs[0], texture_node.inputs[0])
+
+            else:
+                mask_node.node_tree.links.new(projection_node.outputs[0], texture_node.inputs[0])
+
+            mask_filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
+            mask_node.node_tree.links.new(texture_node.outputs[0], mask_filter_node.inputs[0])
+
+            linear_mask_blend_node = mask_node.node_tree.nodes.get('LINEAR_MASK_BLEND')
+            mask_node.node_tree.links.new(mask_filter_node.outputs[0], linear_mask_blend_node.inputs[0])
+            mask_node.node_tree.links.new(projection_node.outputs[1], linear_mask_blend_node.inputs[1])
+
+    set_mask_output_channel(original_output_channel)
 
 def set_mask_projection_mode(projection_mode):
     '''Sets the projection mode of the mask. Only image masks can have their projection mode swapped.'''
