@@ -388,7 +388,7 @@ def draw_mask_projection(layout):
 
 def draw_mask_channel(layout, selected_layer_index, selected_mask_index):
     '''Draws the mask channel and sub menu to change the mask channel used.'''
-    split = layout.split(factor=0.25)
+    split = layout.split(factor=0.4)
     first_column = split.column()
     second_column = split.column()
 
