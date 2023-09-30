@@ -160,6 +160,7 @@ def create_bake_image(mesh_map_type):
     )
 
     mesh_map_image.colorspace_settings.name = 'Non-Color'
+    mesh_map_image.use_fake_user = True
     return mesh_map_image
 
 def apply_baking_settings():
