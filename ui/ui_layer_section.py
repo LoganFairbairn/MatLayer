@@ -466,7 +466,7 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
         layout.template_color_ramp(mask_filter_node, "color_ramp", expand=True)
 
 def draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index):
-    '''Draws mesh maps for the selected mask.'''
+    '''Draws un-editable mesh maps used in the selected mask.'''
     drew_title = False
     for mesh_map_name in mesh_map_baking.MESH_MAP_TYPES:
         mesh_map_texture_node = layer_masks.get_mask_node(mesh_map_name, selected_layer_index, selected_mask_index)
@@ -491,7 +491,10 @@ def draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index):
             # Users should never be able to edit mesh maps, mesh maps are applied automatically when a mask requires them.
             row = second_column.row(align=True)
             row.enabled = False
-            row.prop(mesh_map_texture_node.image, "name", text="")
+            if mesh_map_texture_node.image:
+                row.prop(mesh_map_texture_node.image, "name", text="")
+            else:
+                row.label(text="Not Baked")
 
 def draw_masks(layout):
     row = layout.row(align=True)
