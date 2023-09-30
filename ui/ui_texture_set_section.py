@@ -62,7 +62,7 @@ def draw_texture_set_section_ui(self, context):
                         operator = row.operator("matlayer.toggle_texture_set_material_channel", text=material_channel_name.capitalize())
                     operator.material_channel_name = material_channel_name
             else:
-                layout.label(text="Active material isn't created with this add-on.")
+                layout.label(text="Active material isn't created with this add-on, or the format isn't valid.")
         else:
             layout.label(text="No active material.")
     else:
