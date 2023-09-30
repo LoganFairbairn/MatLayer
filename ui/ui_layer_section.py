@@ -452,13 +452,15 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
         second_column = split.column()
 
         row = first_column.row()
+        blur_value_row = second_column.row()
         if blender_addon_utils.get_node_active(blur_node):
             row.operator("matlayer.toggle_mask_blur", text="", icon='CHECKBOX_HLT', depress=True)
+            blur_value_row.enabled = True
         else:
             row.operator("matlayer.toggle_mask_blur", text="", icon='CHECKBOX_DEHLT')
+            blur_value_row.enabled = False
 
-        row = second_column.row()
-        row.prop(blur_node.inputs.get('Blur Amount'), "default_value", text="Blur", slider=True)
+        blur_value_row.prop(blur_node.inputs.get('Blur Amount'), "default_value", text="Blur", slider=True)
 
     # Draw mask color ramp properties.
     mask_filter_node = layer_masks.get_mask_node('FILTER', selected_layer_index, selected_mask_index)
