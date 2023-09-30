@@ -32,11 +32,14 @@ def draw_mesh_map_status(layout, addon_preferences):
         row.label(text=mesh_map_label)
 
         row = second_column.row()
-        mesh_map_name = mesh_map_baking.get_meshmap_name(bpy.context.active_object.name, mesh_map_type)
-        if bpy.data.images.get(mesh_map_name):
-            row.label(text=mesh_map_name)
+        if bpy.context.active_object:
+            mesh_map_name = mesh_map_baking.get_meshmap_name(bpy.context.active_object.name, mesh_map_type)
+            if bpy.data.images.get(mesh_map_name):
+                row.label(text=mesh_map_name)
+            else:
+                row.label(text=null_meshmap_text)
         else:
-            row.label(text=null_meshmap_text)
+            row.label(text="No Active Object")
 
         draw_mesh_map_operators(row, mesh_map_type)
 
@@ -55,24 +58,6 @@ def draw_general_settings(layout, addon_preferences, baking_settings):
     split = layout.split(factor=0.25)
     first_column = split.column()
     second_column = split.column()
-
-    row = first_column.row()
-    row.label(text="Bake Size: ")
-
-    row = second_column.row()
-    col = row.split()
-    col.prop(addon_preferences, "output_width", text="")
-
-    col = row.split()
-    if baking_settings.match_bake_resolution:
-        col.prop(baking_settings, "match_bake_resolution", text="", icon="LOCKED")
-    else:
-        col.prop(baking_settings, "match_bake_resolution", text="", icon="UNLOCKED")
-
-    col = row.split()
-    if baking_settings.match_bake_resolution:
-        col.enabled = False
-    col.prop(addon_preferences, "output_height", text="")
 
     row = first_column.row()
     row.label(text="High Poly Object: ")

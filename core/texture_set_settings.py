@@ -4,7 +4,6 @@ import bpy
 from bpy.types import PropertyGroup, Operator
 from bpy.props import BoolProperty, StringProperty, EnumProperty
 from ..core import blender_addon_utils
-from .. import preferences
 
 # Available texture resolutions for texture sets.
 TEXTURE_SET_RESOLUTIONS = [

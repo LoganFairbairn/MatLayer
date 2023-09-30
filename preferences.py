@@ -3,7 +3,7 @@
 import bpy
 from bpy.types import AddonPreferences, PropertyGroup
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty, FloatProperty, PointerProperty, CollectionProperty
-from .core.mesh_map_baking import update_bake_width, update_occlusion_samples, update_occlusion_distance, update_occlusion_intensity, update_local_occlusion
+from .core.mesh_map_baking import update_occlusion_samples, update_occlusion_distance, update_occlusion_intensity, update_local_occlusion
 from .core.texture_set_settings import TEXTURE_SET_RESOLUTIONS
 
 ADDON_NAME = __package__
@@ -115,8 +115,6 @@ class AddonPreferences(AddonPreferences):
 
     #----------------------------- MESH MAP BAKING PROPERTIES -----------------------------#
 
-    output_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS,name="Output Height",description="Image size for the baked texure map result(s)", default='TWOK', update=update_bake_width)
-    output_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Output Height", description="Image size for the baked texure map result(s)", default='TWOK')
     mesh_map_quality: EnumProperty(items=MESH_MAP_BAKING_QUALITY, name="Mesh Map Quality", description="Bake quality", default='RECOMMENDED_QUALITY')
     bake_normals: BoolProperty(name="Bake Normal", description="Toggle for baking normal maps for baking as part of the batch baking operator", default=True)
     bake_ambient_occlusion: BoolProperty(name="Bake Ambient Occlusion", description="Toggle for baking ambient occlusion as part of the batch baking operator", default=True)

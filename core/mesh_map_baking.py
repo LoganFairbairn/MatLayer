@@ -7,6 +7,7 @@ from bpy.props import BoolProperty, StringProperty, PointerProperty
 from ..core import material_layers
 from ..core import blender_addon_utils
 from ..core import debug_logging
+from ..core import texture_set_settings as tss
 from .. import preferences
 
 MESH_MAP_MATERIAL_NAMES = (
@@ -29,21 +30,6 @@ MESH_MAP_TYPES = ("NORMALS", "AMBIENT_OCCLUSION", "CURVATURE", "THICKNESS", "WOR
 
 #----------------------------- UPDATING FUNCTIONS -----------------------------#
 
-
-def update_match_bake_resolution(self, context):
-    '''Match the height to the width.'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-    baking_settings = context.scene.matlayer_baking_settings
-    if baking_settings.match_bake_resolution:
-        addon_preferences.output_height = addon_preferences.output_width
-
-def update_bake_width(self, context):
-    '''Match the height to the width of the bake output'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-    baking_settings = context.scene.matlayer_baking_settings
-    if baking_settings.match_bake_resolution:
-        if addon_preferences.output_height != addon_preferences.output_width:
-            addon_preferences.output_height = addon_preferences.output_width
 
 def update_occlusion_samples(self, context):
     '''Updates the occlusion samples setting in the active material'''
@@ -114,30 +100,6 @@ def get_meshmap_image(mesh_name, mesh_map_type):
 def create_bake_image(mesh_map_type):
     '''Creates a new image in Blender's data to bake to.'''
 
-    # Define the baking size based on settings.
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-    match addon_preferences.output_width:
-        case 'FIVE_TWELVE':
-            output_width = 512
-        case 'ONEK':
-            output_width = 1024
-        case 'TWOK':
-            output_width = 2048
-        case 'FOURK':
-            output_width = 4096
-
-    match addon_preferences.output_height:
-        case 'FIVE_TWELVE':
-            output_height = 512
-        case 'ONEK':
-            output_height = 1024
-        case 'TWOK':
-            output_height = 2048
-        case 'FOURK':
-            output_height = 4096
-
-    output_size = [output_width, output_height]
-
     # Use the object's name and bake type to define the bake image name.
     mesh_map_name = get_meshmap_name(bpy.context.active_object.name, mesh_map_type)
 
@@ -150,8 +112,8 @@ def create_bake_image(mesh_map_type):
     # Create a new image in Blender's data, delete existing bake image if it exists.
     mesh_map_image = blender_addon_utils.create_image(
         new_image_name=mesh_map_name,
-        image_width=output_size[0],
-        image_height=output_size[1],
+        image_width=tss.get_texture_width(),
+        image_height=tss.get_texture_height(),
         base_color=(0.0, 0.0, 0.0, 1.0),
         alpha_channel=False,
         thirty_two_bit=high_bit_depth,
@@ -343,7 +305,6 @@ def remove_mesh_map_baking_assets():
 
 
 class MATLAYER_baking_settings(bpy.types.PropertyGroup):
-    match_bake_resolution: BoolProperty(name="Match Bake Resoltion", description="When toggled on, the bake resolution's width and height will be synced", default=True, update=update_match_bake_resolution)
     high_poly_object: PointerProperty(type=bpy.types.Object, name="High Poly Object", description="The high poly object (must be a mesh) from which mesh detail will be baked to texture maps. The high poly mesh should generally be overlapped by your low poly mesh before starting baking. You do not need to provide a high poly mesh for baking texture maps")
 
 class MATLAYER_OT_batch_bake(Operator):
