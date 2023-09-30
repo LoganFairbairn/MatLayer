@@ -634,6 +634,16 @@ class MATLAYER_OT_add_layer_mask_menu(Operator):
         col.operator("matlayer.add_linear_gradient_mask", text="Linear Gradient")
 
         row = layout.row(align=True)
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        layer_projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
+        if layer_projection_node:
+            if layer_projection_node.node_tree.name != 'ML_DecalProjection':
+                row.enabled = False
+        col = row.column(align=True)
+        col.scale_y = 1.4
+        col.operator("matlayer.add_decal_mask", text="Decal")
+
+        row = layout.row(align=True)
         col = row.column(align=True)
         col.scale_y = 1.4
         col.operator("matlayer.add_grunge_mask", text="Grunge")

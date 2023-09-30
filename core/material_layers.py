@@ -128,7 +128,6 @@ def sync_triplanar_samples():
                     if texture_sample_3.image != texture_sample_1.image:
                         texture_sample_3.image = texture_sample_1.image
 
-
 def get_shorthand_material_channel_name(material_channel_name):
     '''Returns the short-hand version of the provided material channel name.'''
     match material_channel_name:
@@ -424,8 +423,12 @@ def add_material_layer(layer_type, self):
                     blender_addon_utils.set_texture_paint_image(default_decal_image)
                     blender_addon_utils.save_image(default_decal_image)
 
-            # Use image alpha blending by default for this layer.
-            toggle_image_alpha_blending('COLOR')
+            # Add an image mask to the decal layer by default.
+            layer_masks.add_layer_mask('DECAL', self)
+            mask_texture_node = layer_masks.get_mask_node('TEXTURE', new_layer_slot_index, 0)
+            if mask_texture_node:
+                mask_texture_node.image = default_decal_image
+            layer_masks.set_mask_output_channel('ALPHA')
             
             blender_addon_utils.set_snapping('DECAL', snap_on=True)
 

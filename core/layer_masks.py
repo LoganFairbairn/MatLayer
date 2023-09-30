@@ -89,6 +89,13 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
                 return node_tree.nodes.get('COORDINATES')
             return None
 
+        case 'DECAL_COORDINATES':
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
+            node_tree = bpy.data.node_groups.get(mask_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('DECAL_COORDINATES')
+            return None
+
         case 'DECAL_OFFSET':
             mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
@@ -305,6 +312,28 @@ def add_layer_mask(type, self):
             organize_mask_nodes()
             link_mask_nodes(selected_layer_index)
             debug_logging.log("Added a linear gradient mask.")
+
+        case 'DECAL':
+            default_node_group = blender_addon_utils.append_group_node("ML_DecalMask", never_auto_delete=True)
+            default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
+
+            new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+            new_mask_group_node.node_tree = default_node_group
+            new_mask_group_node.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
+            new_mask_group_node.label = "Decal Mask"
+            
+            reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
+            organize_mask_nodes()
+            link_mask_nodes(selected_layer_index)
+
+            # Add the decal object from the layer decal projection to the mask projection.
+            decal_coordinates_node = material_layers.get_material_layer_node('DECAL_COORDINATES', selected_layer_index)
+            if decal_coordinates_node:
+                mask_coordinates_node = get_mask_node('DECAL_COORDINATES', selected_layer_index, new_mask_slot_index)
+                if mask_coordinates_node:
+                    mask_coordinates_node.object = decal_coordinates_node.object
+
+            debug_logging.log("Added a decal mask.")
 
         case 'GRUNGE':
             default_node_group = blender_addon_utils.append_group_node("ML_Grunge", never_auto_delete=True)
