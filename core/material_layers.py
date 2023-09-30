@@ -89,6 +89,7 @@ def sync_triplanar_samples():
     if blender_addon_utils.verify_material_operation_context(display_message=False) == False:
         return
 
+    # Sync triplanar texture samples for all material channels.
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
     if projection_node:
@@ -107,6 +108,26 @@ def sync_triplanar_samples():
                         if texture_sample_3:
                             if texture_sample_3.image != value_node.image:
                                 texture_sample_3.image = value_node.image
+
+    # Sync triplanar texture samples for masks.
+    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+    mask_projection_node = layer_masks.get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
+    if mask_projection_node:
+        if mask_projection_node.node_tree.name == 'ML_TriplanarProjection':
+            texture_sample_1 = layer_masks.get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=1)
+            if texture_sample_1:
+                texture_sample_2 = layer_masks.get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=2)
+                texture_sample_3 = layer_masks.get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=3)
+
+                # Run additional checks to avoid accidentally triggering shader re-compiling by changing the image to the same image.
+                if texture_sample_2:
+                    if texture_sample_2.image != texture_sample_1.image:
+                        texture_sample_2.image = texture_sample_1.image
+                
+                if texture_sample_3:
+                    if texture_sample_3.image != texture_sample_1.image:
+                        texture_sample_3.image = texture_sample_1.image
+
 
 def get_shorthand_material_channel_name(material_channel_name):
     '''Returns the short-hand version of the provided material channel name.'''
