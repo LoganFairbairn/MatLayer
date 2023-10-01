@@ -171,7 +171,7 @@ class AddonPreferences(AddonPreferences):
     export_textures: CollectionProperty(type=MATLAYER_texture_export_settings)
     roughness_mode: EnumProperty(name="Roughness Mode", items=ROUGHNESS_MODE, default='ROUGHNESS')
     normal_map_mode: EnumProperty(name="Normal Map Mode", items=NORMAL_MAP_MODE, default='OPEN_GL')
-    export_mode: EnumProperty(name="Export Active Material", items=EXPORT_MODE, description="Exports only the active material using the defined export settings", default='ONLY_ACTIVE_MATERIAL')
+    export_mode: EnumProperty(name="Export Active Material", items=EXPORT_MODE, description="Exports only the active material using the defined export settings", default='SINGLE_TEXTURE_SET')
 
     #----------------------------- DRAWING -----------------------------#
     def draw(self, context):
