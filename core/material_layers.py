@@ -322,39 +322,35 @@ def add_material_layer_slot():
 def add_material_layer(layer_type, self):
     '''Adds a material layer to the active materials layer stack.'''
 
-    blender_addon_utils.append_default_node_groups()        # Append all required node groups first to avoid node group duplication from re-appending.
+    # Append group nodes to help avoid node group duplication from appending.
+    blender_addon_utils.append_default_node_groups()        
 
+    # Verify standard context is correct.
     if blender_addon_utils.verify_material_operation_context(self, check_active_material=False) == False:
         return
 
-    active_object = bpy.context.active_object
-    active_material = bpy.context.active_object.active_material
-
-    if blender_addon_utils.verify_addon_material(active_material) == False:
-        debug_logging.log_status("Can't add layer, active material is not created with this add-on, or it's format is invalid.", self, type='ERROR')
-        return
-
     # If there are no material slots, or no material in the active material slot, make a new MatLayer material by appending the default material setup.
+    active_object = bpy.context.active_object
     if len(active_object.material_slots) == 0:
         new_material = blender_addon_utils.append_material("DefaultMatLayerMaterial")
-        new_material.name = active_object.name
+        new_material_name = blender_addon_utils.get_unique_material_name(active_object.name)
+        new_material.name = new_material_name
         active_object.data.materials.append(new_material)
         active_object.active_material_index = 0
 
+    # If material slots exist on the object, but the active material slot is empty, add a new material.
     elif active_object.material_slots[active_object.active_material_index].material == None:
         new_material = blender_addon_utils.append_material("DefaultMatLayerMaterial")
-
-        # Get a unique name for the new material.
-        material_variation_id = 0
-        new_material_name = active_object.name
-        material = bpy.data.materials.get(new_material_name)
-        while material:
-            material_variation_id += 1
-            new_material_name = active_object.name + str(material_variation_id)
-            material = bpy.data.materials.get(new_material_name)
-
+        new_material_name = blender_addon_utils.get_unique_material_name(active_object.name)
         new_material.name = new_material_name
         active_object.material_slots[active_object.active_material_index].material = new_material
+
+    # If material slots exist on the object, but the active material isn't properly formatted to work with this add-on, display an error.
+    else:
+        active_material = bpy.context.active_object.active_material
+        if blender_addon_utils.verify_addon_material(active_material) == False:
+            debug_logging.log_status("Can't add layer, active material is not created with this add-on, or it's format is invalid.", self, type='ERROR')
+            return
 
     new_layer_slot_index = add_material_layer_slot()
 
@@ -372,6 +368,7 @@ def add_material_layer(layer_type, self):
             default_layer_node_group = blender_addon_utils.append_group_node("ML_DecalLayer", return_unique=True, never_auto_delete=True)
             debug_logging.log("Added decal layer.")
 
+    active_material = bpy.context.active_object.active_material
     default_layer_node_group.name = format_layer_group_node_name(active_material.name, str(new_layer_slot_index)) + "~"
     new_layer_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
     new_layer_group_node.node_tree = default_layer_node_group

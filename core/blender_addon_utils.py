@@ -455,7 +455,7 @@ def add_object_to_collection(collection_name, obj, color_tag='COLOR_01', unlink_
     return collection
 
 def get_unique_object_name(object_name, start_id_number=1):
-    '''Returns an object name with the lowest number that doesn't exist within the blend file.'''
+    '''Returns an object name with the lowest ID number that doesn't exist within the blend file.'''
     id_number = start_id_number
     unique_name = "{0}_{1}".format(object_name, id_number)
     obj = bpy.data.objects.get(unique_name)
@@ -468,3 +468,12 @@ def get_unique_object_name(object_name, start_id_number=1):
 def capitalize_by_space(string):
     '''Capitalizes all words separated by a space in the provided string.'''
     return re.sub(r'\b[a-z]', lambda m: m.group().upper(), string.capitalize())
+
+def get_unique_material_name(material_name):
+    '''Returns a material name with the lowest ID number that doesn't exist within the blend file.'''
+    name = material_name
+    variation_number = 1
+    while bpy.data.materials.get(name) != None:
+        name = material_name + str(variation_number)
+        variation_number += 1
+    return name
