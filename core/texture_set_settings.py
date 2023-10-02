@@ -74,8 +74,8 @@ def get_material_channel_active(material_channel_name):
         return True
 
 class MATLAYER_texture_set_settings(PropertyGroup):
-    image_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Width", description="Image width in pixels for the new image.", default='TWOK', update=update_image_width)
-    image_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Height", description="Image height in pixels for the new image.", default='TWOK')
+    image_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Width", description="Image width in pixels for all images created with this add-on", default='TWOK', update=update_image_width)
+    image_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Height", description="Image height in pixels for all images created with this add-on", default='TWOK')
     layer_folder: StringProperty(default="", description="Path to folder location where layer images are saved", name="Image Layer Folder Path")
     match_image_resolution: BoolProperty(name="Match Image Resolution", description="When toggled on, the image width and height will be matched", default=True, update=update_match_image_resolution)
     thirty_two_bit: BoolProperty(name="32 Bit Color", description="When toggled on, images created using this add-on will be created with 32 bit color depth. 32-bit images will take up more memory, but will have significantly less color banding in gradients. On monitors (generally older or cheap ones) that don't support this color depth there will be no visual difference", default=True)

@@ -310,7 +310,7 @@ class MATLAYER_baking_settings(bpy.types.PropertyGroup):
 class MATLAYER_OT_batch_bake(Operator):
     bl_idname = "matlayer.batch_bake"
     bl_label = "Batch Bake"
-    bl_description = "Bakes all checked mesh texture maps in succession. Note that this function can take a few minutes, especially on slower computers, or when using CPU for rendering"
+    bl_description = "Bakes all checked mesh texture maps in succession. Note that this function can take a few minutes, especially on slower computers, or when using CPU for rendering. Textures are created at the defined texture set resolution"
 
     _timer = None
     _temp_bake_material_name = ""
