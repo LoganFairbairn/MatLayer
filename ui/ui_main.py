@@ -2,7 +2,7 @@
 
 import bpy
 from . import ui_layer_section
-from . import ui_baking_section
+from . import ui_mesh_map_section
 from . import ui_export_section
 from . import ui_texture_set_section
 from . import ui_utils_section
@@ -42,7 +42,7 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
                     ui_texture_set_section.draw_texture_set_section_ui(self, context)
 
                 case 'SECTION_MESH_MAPS':
-                    ui_baking_section.draw_baking_section_ui(self, context)
+                    ui_mesh_map_section.draw_baking_section_ui(self, context)
                 
                 case "SECTION_LAYERS":
                     ui_layer_section.draw_layers_section_ui(self, context) 
