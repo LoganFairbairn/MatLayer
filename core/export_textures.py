@@ -570,6 +570,28 @@ def set_export_template(export_template_name):
             new_channel.input_textures.a_texture = 'AMBIENT_OCCLUSION'
             new_channel.input_rgba_channels.a_color_channel = 'R'
 
+        case 'Painted Model':
+            addon_preferences.roughness_mode = 'ROUGHNESS'
+            addon_preferences.normal_map_mode = 'OPEN_GL'
+
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_C"
+            new_channel.input_textures.r_texture = 'COLOR'
+            new_channel.input_textures.g_texture = 'COLOR'
+            new_channel.input_textures.b_texture = 'COLOR'
+            new_channel.input_textures.a_texture = 'ALPHA'
+
+        case 'Unlit Painted Model':
+            addon_preferences.roughness_mode = 'ROUGHNESS'
+            addon_preferences.normal_map_mode = 'OPEN_GL'
+
+            new_channel = export_textures.add()
+            new_channel.name_format = "T_/MaterialName_C"
+            new_channel.input_textures.r_texture = 'EMISSION'
+            new_channel.input_textures.g_texture = 'EMISSION'
+            new_channel.input_textures.b_texture = 'EMISSION'
+            new_channel.input_textures.a_texture = 'ALPHA'
+
         case 'Mesh Maps':
             addon_preferences.normal_map_mode = 'OPEN_GL'
 
@@ -950,6 +972,14 @@ class ExportTemplateMenu(Menu):
         op.export_template_name = template_name 
 
         template_name = 'CryEngine'
+        op = layout.operator("matlayer.set_export_template", text=template_name)
+        op.export_template_name = template_name
+
+        template_name = 'Painted Model'
+        op = layout.operator("matlayer.set_export_template", text=template_name)
+        op.export_template_name = template_name 
+
+        template_name = 'Unlit Painted Model'
         op = layout.operator("matlayer.set_export_template", text=template_name)
         op.export_template_name = template_name 
 
