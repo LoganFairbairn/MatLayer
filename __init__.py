@@ -190,7 +190,6 @@ def depsgraph_change_handler(scene, depsgraph):
     # Variable to ensure the active material callback is only called once per depsgraph update.
     triggered_active_material_callback = False
     for update in depsgraph.updates:
-        print("Depsgraph Update ID name: " + str(update.id.name))
 
         # Refresh the layer stack when the active object is updated.
         if triggered_active_material_callback == False:
