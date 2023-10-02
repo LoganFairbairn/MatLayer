@@ -7,7 +7,6 @@ from bpy_extras.io_utils import ImportHelper        # For importing images.
 from ..core import texture_set_settings as tss
 from ..core import debug_logging
 from ..core import blender_addon_utils
-from ..core import material_layers
 import random
 import os                                           # For saving layer images.
 
@@ -53,6 +52,7 @@ class MATLAYER_OT_add_texture_node_image(Operator):
 
     node_tree_name: StringProperty(default="")
     node_name: StringProperty(default="")
+    material_channel_name: StringProperty(default="")
 
     def execute(self, context):
         node_group = bpy.data.node_groups.get(self.node_tree_name)
@@ -78,7 +78,11 @@ class MATLAYER_OT_add_texture_node_image(Operator):
         image_width = tss.get_texture_width()
         image_height = tss.get_texture_height()
         new_image = blender_addon_utils.create_image(image_name, image_width, image_height, alpha_channel=True, thirty_two_bit=True)
-        
+    
+        # If a material channel is defined, set the color space.
+        if self.material_channel_name != "":
+            set_image_colorspace_by_material_channel(new_image, self.material_channel_name)
+
         # Save the new image to a folder. This allows users to easily edit their image in a 2D image editor later.
         image = bpy.data.images[image_name]
         if image:
@@ -97,7 +101,7 @@ class MATLAYER_OT_import_texture_node_image(Operator, ImportHelper):
 
     node_tree_name: StringProperty(default="")
     node_name: StringProperty(default="")
-    material_channel_name: StringProperty(default="COLOR")
+    material_channel_name: StringProperty(default="")
 
     filter_glob: bpy.props.StringProperty(
         default='*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.bmp;*.exr',

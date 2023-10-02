@@ -678,13 +678,17 @@ class ImageUtilitySubMenu(Menu):
     def draw(self, context):
         layout = self.layout
         if context.node and context.node_tree:
+            material_channel_name = context.node.name.split('_')[0]
+
             operator = layout.operator("matlayer.add_texture_node_image", icon="ADD", text="Add New Image")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
+            operator.material_channel_name = material_channel_name
 
             operator = layout.operator("matlayer.import_texture_node_image", icon="IMPORT", text="Import Image")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
+            operator.material_channel_name = material_channel_name
 
             operator = layout.operator("matlayer.edit_texture_node_image_externally", icon="TPAINT_HLT", text="Edit Image Externally")
             operator.node_tree_name = context.node_tree.name
