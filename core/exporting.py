@@ -47,7 +47,6 @@ def channel_pack(input_textures, input_packing, output_packing, image_name_forma
             source_pixels = numpy.empty(w * h * 4, dtype=numpy.float32)
             output_pixels = numpy.ones(w * h * 4, dtype=numpy.float32)
 
-
     # Cycle through and pack RGBA channels.
     for channel_index in range(0, 4):
         image = input_textures[channel_index]
@@ -173,6 +172,15 @@ def channel_pack_textures(material_name):
                     if addon_preferences.normal_map_mode == 'DIRECTX':
                         invert_image(image, False, True, False, False)
 
+                case 'NORMAL_HEIGHT':
+                    image_name = format_baked_material_channel_name(material_name, 'NORMAL')
+                    image = bpy.data.images.get(image_name)
+                    input_images.append(image)
+
+                    # Invert normal map G values if exporting for DirectX based on settings.
+                    if addon_preferences.normal_map_mode == 'DIRECTX':
+                        invert_image(image, False, True, False, False)
+
                 case 'NONE':
                     input_images.append(None)
 
@@ -274,9 +282,9 @@ def set_export_template(export_template_name):
 
             new_channel = export_textures.add()
             new_channel.name_format = "/MaterialName_Normal"
-            new_channel.input_textures.r_texture = 'NORMAL'
-            new_channel.input_textures.g_texture = 'NORMAL'
-            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'NONE'
 
             new_channel = export_textures.add()
@@ -313,9 +321,9 @@ def set_export_template(export_template_name):
 
             new_channel = export_textures.add()
             new_channel.name_format = "/MaterialName_Normal"
-            new_channel.input_textures.r_texture = 'NORMAL'
-            new_channel.input_textures.g_texture = 'NORMAL'
-            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'NONE'
 
             new_channel = export_textures.add()
@@ -346,9 +354,9 @@ def set_export_template(export_template_name):
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_N"
-            new_channel.input_textures.r_texture = 'NORMAL'
-            new_channel.input_textures.g_texture = 'NORMAL'
-            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'NONE'
 
             new_channel = export_textures.add()
@@ -379,9 +387,9 @@ def set_export_template(export_template_name):
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_N"
-            new_channel.input_textures.r_texture = 'NORMAL'
-            new_channel.input_textures.g_texture = 'NORMAL'
-            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'NONE'
 
             new_channel = export_textures.add()
@@ -412,9 +420,9 @@ def set_export_template(export_template_name):
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_N"
-            new_channel.input_textures.r_texture = 'NORMAL'
-            new_channel.input_textures.g_texture = 'NORMAL'
-            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'NONE'
 
             new_channel = export_textures.add()
@@ -452,9 +460,9 @@ def set_export_template(export_template_name):
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_N"
-            new_channel.input_textures.r_texture = 'NORMAL'
-            new_channel.input_textures.g_texture = 'NORMAL'
-            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'NONE'
 
             new_channel = export_textures.add()
@@ -491,9 +499,9 @@ def set_export_template(export_template_name):
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_NDX"
-            new_channel.input_textures.r_texture = 'NORMAL'
-            new_channel.input_textures.g_texture = 'NORMAL'
-            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'NONE'
 
             new_channel = export_textures.add()
@@ -524,9 +532,9 @@ def set_export_template(export_template_name):
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_NDX"
-            new_channel.input_textures.r_texture = 'NORMAL'
-            new_channel.input_textures.g_texture = 'NORMAL'
-            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'NONE'
 
             new_channel = export_textures.add()
@@ -556,9 +564,9 @@ def set_export_template(export_template_name):
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_NDXO"
-            new_channel.input_textures.r_texture = 'NORMAL'
-            new_channel.input_textures.g_texture = 'NORMAL'
-            new_channel.input_textures.b_texture = 'NORMAL'
+            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
+            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'AMBIENT_OCCLUSION'
             new_channel.input_rgba_channels.a_color_channel = 'R'
 
@@ -596,27 +604,37 @@ def set_export_template(export_template_name):
 def bake_material_channel(material_channel_name, single_texture_set=False):
     '''Bakes the defined material channel to an image texture (stores it in Blender's data). Returns true if baking was successful.'''
 
-    if material_channel_name not in material_layers.MATERIAL_CHANNEL_LIST:
-        debug_logging.log("Invalid material channel name provided to bake_material_channel.")
-        return ""
-    
-    # Skip baking for material channels that are toggled off in the texture set settings.
-    if not tss.get_material_channel_active(material_channel_name):
-        debug_logging.log("Skipped baking for globally disabled material channel: {channel_name}.".format(channel_name=material_channel_name))
-        return ""
+    # We can always bake for the normal + height channel.
+    if material_channel_name != 'NORMAL_HEIGHT':
+
+        # Ensure the material channel name provided is valid to bake.
+        if material_channel_name not in material_layers.MATERIAL_CHANNEL_LIST:
+            debug_logging.log("Can't bake invalid material channel: {0}".format(material_channel_name))
+            return ""
+
+        # Skip baking for material channels that are toggled off in the texture set settings.
+        if not tss.get_material_channel_active(material_channel_name):
+            debug_logging.log("Skipped baking for globally disabled material channel: {channel_name}.".format(channel_name=material_channel_name))
+            return ""
 
     # Force save all textures (unsaved textures will not bake properly).
     blender_addon_utils.force_save_all_textures()
 
     # Define a background color for new bake textures.
     background_color = (0.0, 0.0, 0.0, 1.0)
-    if material_channel_name == 'NORMAL':
+    if material_channel_name == 'NORMAL' or material_channel_name == 'NORMAL_HEIGHT':
         background_color = (0.735337, 0.735337, 1.0, 1.0)
+
+    # Normal + height material channel combines height information into the normal map.
+    # Convert the name used in exported textures for the normal + height material channel to normal.
+    export_channel_name = material_channel_name
+    if material_channel_name == 'NORMAL_HEIGHT':
+        export_channel_name = 'NORMAL'
 
     # For baking multiple materials to a texture set
     if single_texture_set:
         material_name = bpy.context.active_object.material_slots[0].material.name
-        image_name = format_baked_material_channel_name(material_name, material_channel_name)
+        image_name = format_baked_material_channel_name(material_name, export_channel_name)
         export_image = bpy.data.images.get(image_name)
         if not export_image:
             export_image = blender_addon_utils.create_image(
@@ -633,7 +651,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
 
     # For baking individual materials to textures, create new images to bake to.
     else:
-        image_name = format_baked_material_channel_name(bpy.context.active_object.active_material.name, material_channel_name)
+        image_name = format_baked_material_channel_name(bpy.context.active_object.active_material.name, export_channel_name)
         export_image = blender_addon_utils.create_image(
             new_image_name=image_name,
             image_width=tss.get_texture_width(),
@@ -654,26 +672,20 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     material_nodes.active = image_node
     blender_addon_utils.set_texture_paint_image(export_image)
 
-    # Isolate the material channel.
-    material_layers.isolate_material_channel(material_channel_name)
-
     # Set baking settings required for baking material channels.
     bpy.context.scene.render.engine = 'CYCLES'
     bpy.context.scene.render.bake.use_selected_to_active = False
 
-    # Always bake with emission textures.
-    bpy.ops.object.bake('INVOKE_DEFAULT', type='EMIT')
+    # Bake normals directly from the principled BSDF shader when baking normal + height mixes.
+    if material_channel_name == 'NORMAL_HEIGHT':
+        bpy.ops.object.bake('INVOKE_DEFAULT', type='NORMAL')
+
+    # Isolate when baking single material channels.
+    else:
+        material_layers.isolate_material_channel(material_channel_name)
+        bpy.ops.object.bake('INVOKE_DEFAULT', type='EMIT')
 
     return export_image.name
-
-def bake_export_texture(export_texture_name, self, single_texture_set=False):
-    '''Bakes the specified export texture (material channel, or mesh map).'''
-    if export_texture_name in material_layers.MATERIAL_CHANNEL_LIST:
-        bake_image_name = bake_material_channel(export_texture_name, single_texture_set)
-        return bake_image_name
-    else:
-        debug_logging.log("Skipping baking mesh map - " + export_texture_name)
-        return ""
 
 def add_bake_texture_nodes():
     '''Adds a bake texture node to all materials in all material slots on the active object.'''
@@ -748,9 +760,9 @@ class MATLAYER_OT_export(Operator):
                 if self._texture_channel_index < len(self._texture_channels_to_bake) - 1:
                     self._texture_channel_index += 1
                     if addon_preferences.export_mode == 'SINGLE_TEXTURE_SET':
-                        self._bake_image_name = bake_export_texture(self._texture_channels_to_bake[self._texture_channel_index], self, single_texture_set=True)
+                        self._bake_image_name = bake_material_channel(self._texture_channels_to_bake[self._texture_channel_index], single_texture_set=True)
                     else:
-                        self._bake_image_name = bake_export_texture(self._texture_channels_to_bake[self._texture_channel_index], self, single_texture_set=False)
+                        self._bake_image_name = bake_material_channel(self._texture_channels_to_bake[self._texture_channel_index], single_texture_set=False)
 
                 else:
                     # If all of the textures are baked for the active material, move to baking the next material.

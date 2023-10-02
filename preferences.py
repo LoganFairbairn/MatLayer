@@ -4,7 +4,6 @@ import bpy
 from bpy.types import AddonPreferences, PropertyGroup
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty, FloatProperty, PointerProperty, CollectionProperty
 from .core.mesh_map_baking import update_occlusion_samples, update_occlusion_distance, update_occlusion_intensity, update_local_occlusion
-from .core.texture_set_settings import TEXTURE_SET_RESOLUTIONS
 
 ADDON_NAME = __package__
 
@@ -32,6 +31,7 @@ EXPORT_CHANNELS = [
     ("EMISSION", "Emission", "Emission"),
     ("NORMAL", "Normal", "Normal"),
     ("HEIGHT", "Height", "Height"),
+    ("NORMAL_HEIGHT", "Normal + Height", "Normal + Height"),
     ("AMBIENT_OCCLUSION", "Ambient Occlusion", "Ambient Occlusion"),
     ("CURVATURE", "Curvature", "Curvature"),
     ("THICKNESS", "Thickness", "Thickness"),

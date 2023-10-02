@@ -1233,15 +1233,15 @@ def isolate_material_channel(material_channel_name):
     '''Isolates the specified material channel by linking only the specified material channel output to the material channel output / emission node.'''
     active_node_tree = bpy.context.active_object.active_material.node_tree
     last_layer_index = count_layers(bpy.context.active_object.active_material) - 1
-
-    layer_node = get_material_layer_node('LAYER', last_layer_index)
+    
     emission_node = active_node_tree.nodes.get('EMISSION')
     material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
 
-    # Unlink the emission node.
+    # Unlink the emission node (ensures nothing else is connected to it).
     blender_addon_utils.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
 
-    # Connect the selected material channel.
+    # Connect the specified material channel.
+    layer_node = get_material_layer_node('LAYER', last_layer_index)
     active_node_tree.links.new(layer_node.outputs.get(material_channel_name.capitalize()), emission_node.inputs[0])
     active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
 
