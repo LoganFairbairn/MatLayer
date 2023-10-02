@@ -55,6 +55,8 @@ from .ui.ui_layer_stack import MATLAYER_UL_layer_list
 # Subscription Update Handler
 from .core.subscription_update_handler import on_active_material_changed, on_active_object_changed, on_active_object_name_changed, on_active_material_index_changed, on_active_material_name_changed
 
+from .core import debug_logging
+
 bl_info = {
     "name": "MatLayer",
     "author": "Logan Fairbairn (Ryver)",
@@ -183,31 +185,34 @@ classes = (
 )
 
 @persistent
-def active_material_change_handler(scene, depsgraph):
+def depsgraph_change_handler(scene, depsgraph):
 
     # Variable to ensure the active material callback is only called once per depsgraph update.
     triggered_active_material_callback = False
     for update in depsgraph.updates:
-        if "Material" in update.id.name and triggered_active_material_callback == False:
-            on_active_material_changed(scene)
-            triggered_active_material_callback = True
+        print("Depsgraph Update ID name: " + str(update.id.name))
 
-        # If there is a shader change, and triplanar projection is being used for the selected layer, sync all texture samples.
-        if "Shader Nodetree" in update.id.name:
+        # Refresh the layer stack when the active object is updated.
+        if triggered_active_material_callback == False:
+            active_object_attibute = getattr(bpy.context.view_layer.objects, "active", None)
+            if active_object_attibute:
+                active_object = bpy.context.view_layer.objects.active
+                if active_object:
+                    if update.id.name == active_object.name:
+                        on_active_material_changed(scene)
+                        triggered_active_material_callback = True
+
+        # If there is a shader nodetree change, and triplanar projection is being used for the selected layer, sync all texture samples.
+        if update.id.name == "Shader Nodetree":
             sync_triplanar_samples()
 
 # Mark load handlers as persistent so they are not freed when loading a new blend file.
 @persistent
 def load_handler(dummy):
 
-    # Add an app handler to update properties when the active material is changed.
+    # Add an app handler to run updates for add-on properties when properties on the active object are changed.
     bpy.app.handlers.depsgraph_update_post.clear()
-    bpy.app.handlers.depsgraph_update_post.append(active_material_change_handler)
-
-    # Remember the active objects name.
-    active_object = bpy.context.view_layer.objects.active
-    if active_object:
-        bpy.types.Scene.previous_active_material_name = active_object.name
+    bpy.app.handlers.depsgraph_update_post.append(depsgraph_change_handler)
 
     # Create objects to manage subscription updating.
     bpy.types.Scene.matlayer_object_selection_updater = object()
@@ -219,26 +224,32 @@ def load_handler(dummy):
     subscribe_to = bpy.types.LayerObjects, "active"
     bpy.msgbus.subscribe_rna(key=subscribe_to, owner=bpy.types.Scene.matlayer_object_selection_updater, args=(), notify=on_active_object_changed)
 
-    # Subscribe to the active objects name to get notifications when it's changed.
+    # Update the reference to the active material name, so it can be used to identify when properties need to be updated later.
     active_object = bpy.context.view_layer.objects.active
-    bpy.types.Scene.previous_object_name = active_object.name
-    bpy.msgbus.clear_by_owner(bpy.types.Scene.active_object_name_sub_owner)
     if active_object:
-        if active_object.type == 'MESH':
-            bpy.msgbus.subscribe_rna(key=active_object.path_resolve("name", False), owner=bpy.types.Scene.active_object_name_sub_owner, notify=on_active_object_name_changed, args=())
+        if active_object.active_material != None:
+            bpy.types.Scene.previous_active_material_name = active_object.active_material.name
+        else:
+            bpy.types.Scene.previous_active_material_name = ""
 
+        # Subscribe to the active objects name to get notifications when it's changed.
+        bpy.types.Scene.previous_object_name = active_object.name
+        bpy.msgbus.clear_by_owner(bpy.types.Scene.active_object_name_sub_owner)
+        bpy.msgbus.subscribe_rna(key=active_object.path_resolve("name", False), owner=bpy.types.Scene.active_object_name_sub_owner, notify=on_active_object_name_changed, args=())
+
+        # If the active object has material slots, subscribe to the material index to get notifications when it's changed.
+        if len(active_object.material_slots) > 0:
+            bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_index_sub_owner)
+            bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material_index", False), owner=bpy.types.Scene.active_material_index_sub_owner, notify=on_active_material_index_changed, args=())
+
+            # If there is an active material, subscribe to it's name to get notifications when it's changed.
             if active_object.active_material:
-
-                # Subscribe to the active material index to get notifications when it's changed.
-                bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_index_sub_owner)
-                bpy.msgbus.subscribe_rna(key=active_object.path_resolve("active_material_index", False), owner=bpy.types.Scene.active_material_index_sub_owner, notify=on_active_material_index_changed, args=())
-
-                # Subscribe to the active material name to get notifications when it's changed.
                 bpy.types.Scene.previous_active_material_name = active_object.active_material.name
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_sub_owner)
                 bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_name_sub_owner, notify=on_active_material_name_changed, args=())
 
-                refresh_layer_stack()   # Refresh layer stack on blender file load.
+        # Refresh layer stack on blender file load if an active object is selected.
+        refresh_layer_stack()
 
 # Run startup functions when a new blend file is loaded.
 bpy.app.handlers.load_post.append(load_handler)

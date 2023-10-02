@@ -14,7 +14,6 @@ def update_selected_mask_index(self, context):
     mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
     if mask_texture_node:
         blender_addon_utils.set_texture_paint_image(mask_texture_node.image)
-    debug_logging.log("Updated selected mask index.")
 
 def format_mask_name(layer_index, mask_index, material_name=""):
     '''Returns a properly formatted name for a mask node created with this add-on.'''
@@ -824,7 +823,7 @@ class MATLAYER_UL_mask_list(bpy.types.UIList):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             row = layout.row(align=True)
 
-            # Hidden Icon
+            # Hidden Toggle
             row = layout.row(align=True)
             row.ui_units_x = 1
             if item.hidden == True:
@@ -833,7 +832,7 @@ class MATLAYER_UL_mask_list(bpy.types.UIList):
             elif item.hidden == False:
                 row.prop(item, "hidden", text="", emboss=False, icon='HIDE_OFF')
 
-            # Isolate Icon
+            # Isolate Mask
             row = layout.row(align=True)
             row.ui_units_x = 1
             masks = bpy.context.scene.matlayer_masks
@@ -841,7 +840,7 @@ class MATLAYER_UL_mask_list(bpy.types.UIList):
             operator = row.operator("matlayer.isolate_mask", text="", icon='MOD_MASK', emboss=False)
             operator.mask_index = item_index
 
-            # Layer Name
+            # Mask Name
             selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
             mask_node = get_mask_node('MASK', selected_layer_index, item_index)
             if mask_node:
@@ -849,7 +848,7 @@ class MATLAYER_UL_mask_list(bpy.types.UIList):
                 row.ui_units_x = 3
                 row.prop(mask_node, "label", text="", emboss=False)
 
-            # Layer opacity and blending mode (for the selected material channel).
+            # Mask opacity and blending mode.
             mask_mix_node = get_mask_node('MASK_MIX', selected_layer_index, item_index)
             if mask_mix_node:
                 row = layout.row(align=True)
