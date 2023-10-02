@@ -14,6 +14,8 @@ def log(message, sub_process=False):
 
 def log_status(message, self, type='ERROR'):
     '''Prints the given message to Blender's console window and displays the message in Blender's status bar.'''
+    if type == 'ERROR':
+        message = "Error: {0}".format(message)
     log(message)
     self.report({type}, message)
 
