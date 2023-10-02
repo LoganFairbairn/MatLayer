@@ -328,6 +328,12 @@ def add_material_layer(layer_type, self):
         return
 
     active_object = bpy.context.active_object
+    active_material = bpy.context.active_object.active_material
+
+    if blender_addon_utils.verify_addon_material(active_material) == False:
+        debug_logging.log_status("Can't add layer, active material is not created with this add-on, or it's format is invalid.", self, type='ERROR')
+        return
+
     # If there are no material slots, or no material in the active material slot, make a new MatLayer material by appending the default material setup.
     if len(active_object.material_slots) == 0:
         new_material = blender_addon_utils.append_material("DefaultMatLayerMaterial")
@@ -353,7 +359,6 @@ def add_material_layer(layer_type, self):
     new_layer_slot_index = add_material_layer_slot()
 
     # Add a material layer group node based on the specified layer type.
-    active_material = bpy.context.active_object.active_material
     match layer_type:
         case 'DEFAULT':
             default_layer_node_group = blender_addon_utils.append_group_node("ML_DefaultLayer", return_unique=True, never_auto_delete=True)
