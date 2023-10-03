@@ -97,11 +97,11 @@ def get_meshmap_image(mesh_name, mesh_map_type):
     mesh_map_name = get_meshmap_name(mesh_name, mesh_map_type)
     return bpy.data.images.get(mesh_map_name)
 
-def create_bake_image(mesh_map_type):
+def create_bake_image(mesh_map_type, object_name):
     '''Creates a new image in Blender's data to bake to.'''
 
     # Use the object's name and bake type to define the bake image name.
-    mesh_map_name = get_meshmap_name(bpy.context.active_object.name, mesh_map_type)
+    mesh_map_name = get_meshmap_name(object_name, mesh_map_type)
 
     # Specific mesh maps require higher image color bit depth to be able to store optimal amounts of mesh information.
     if mesh_map_type == 'NORMALS' or mesh_map_type == 'CURVATURE':
@@ -151,7 +151,7 @@ def apply_mesh_map_quality():
         case 'INSANE_QUALITY':
             bpy.context.scene.cycles.samples = 256
 
-def bake_mesh_map(mesh_map_type, self):
+def bake_mesh_map(mesh_map_type, object_name, self):
     '''Applies a premade baking material to the active object and starts baking. Returns true if baking was successful.'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     baking_settings = bpy.context.scene.matlayer_baking_settings
@@ -190,7 +190,7 @@ def bake_mesh_map(mesh_map_type, self):
     apply_baking_settings()
 
     # Create and assign an image to bake the mesh map to.
-    new_bake_image = create_bake_image(mesh_map_type)
+    new_bake_image = create_bake_image(mesh_map_type, object_name)
     self._mesh_map_image_index = bpy.data.images.find(new_bake_image.name)
     bake_image_node = temp_bake_material.node_tree.nodes.get("BAKE_IMAGE")
     if bake_image_node:
@@ -314,6 +314,25 @@ def remove_triangulate_modifiers():
         if triangulate_modifier:
             high_poly_object.modifiers.remove(triangulate_modifier)
 
+def delete_temp_bake_object():
+    '''Selects the original low poly object, and delete duplicate bake object if one exists.'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    if addon_preferences.averaged_normals:
+        duplicate_object = bpy.context.active_object
+        original_object_name = duplicate_object.name.split('_')[0]
+        original_object = bpy.data.objects.get(original_object_name)
+
+        if original_object:
+            original_object.hide_render = False
+            original_object.hide_viewport = False
+            blender_addon_utils.select_only(original_object)
+        
+        if duplicate_object:
+            bpy.data.objects.remove(duplicate_object)
+
+        debug_logging.log("Removed temporary bake object.", sub_process=True)
+        
+
 #----------------------------- OPERATORS AND PROPERTIES -----------------------------#
 
 
@@ -333,6 +352,7 @@ class MATLAYER_OT_batch_bake(Operator):
     _baked_mesh_map_count = 0
     _original_material_names = []
     _original_render_engine = None
+    _bake_object_name = ""
 
     # Users must have an object selected to call this operator.
     @ classmethod
@@ -374,7 +394,7 @@ class MATLAYER_OT_batch_bake(Operator):
                 # Bake the next mesh map.
                 if self._baked_mesh_map_count < len(self._mesh_maps_to_bake):
                     mesh_map_type = self._mesh_maps_to_bake[self._baked_mesh_map_count]
-                    baked_successfully = bake_mesh_map(mesh_map_type, self)
+                    baked_successfully = bake_mesh_map(mesh_map_type, self._bake_object_name, self)
 
                     # If there is an error with baking a mesh map, finish the operation.
                     if baked_successfully == False:
@@ -410,16 +430,28 @@ class MATLAYER_OT_batch_bake(Operator):
 
         # Apply averaged normals to the low poly object if averaged normals is enabled in the settings.
         addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-        active_object = bpy.context.active_object
+        low_poly_object = bpy.context.active_object
         if addon_preferences.averaged_normals:
-            blender_addon_utils.select_only(active_object)
+
+            # Preserve the original shading, sharp edges and bevel weights by creating a duplicate of the active object and baking to that object.
+            self._bake_object_name = low_poly_object.name
+            duplicate_obj = low_poly_object.copy()
+            duplicate_obj.data = low_poly_object.data.copy()
+            duplicate_obj.name = low_poly_object.name + "_BakeObject"
+            bpy.context.collection.objects.link(duplicate_obj)
+
+            low_poly_object.hide_render = True
+            low_poly_object.hide_viewport = True
+
+            blender_addon_utils.select_only(duplicate_obj)
+            low_poly_object = duplicate_obj
 
             # Clear all bevel weights.
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
             if bpy.context.active_object.data.has_bevel_weight_edge:
                 bpy.ops.mesh.customdata_bevel_weight_edge_clear()
 
-            # Apply autosmooth.
+            # Apply auto smooth.
             bpy.ops.object.shade_smooth()
             bpy.context.object.data.use_auto_smooth = True
             bpy.context.object.data.auto_smooth_angle = 3.14159
@@ -430,42 +462,45 @@ class MATLAYER_OT_batch_bake(Operator):
             bpy.ops.mesh.mark_sharp(clear=True)
             
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-            #mesh = active_object.data
-            #for f in mesh.polygons:
-            #    f.use_smooth = True
+
             debug_logging.log("Applied average normals (shade smooth) to the low poly object.", sub_process=True)
 
-        # Make the low poly selected active object unhiden, selectable and visible.
-        active_object.hide_set(False)
-        active_object.hide_render = False
-        active_object.hide_select = False
+        else:
+            self._bake_object_name = low_poly_object.name
+
+        # Ensure the low poly selected active object unhiden, selectable and visible.
+        low_poly_object.hide_set(False)
+        low_poly_object.hide_render = False
 
         # Make the high poly mesh unhidden, selectable and visible.
         high_poly_object = bpy.context.scene.matlayer_baking_settings.high_poly_object
         if high_poly_object:
             high_poly_object.hide_set(False)
             high_poly_object.hide_render = False
-            high_poly_object.hide_select = False
+            high_poly_object.hide_viewport = False
 
         # Triangulate the high and low poly objects.
         if addon_preferences.triangulate:
-            blender_addon_utils.add_modifier(active_object, 'TRIANGULATE', modifier_name='TRIANGULATE', only_one=True)
+            blender_addon_utils.add_modifier(low_poly_object, 'TRIANGULATE', modifier_name='TRIANGULATE', only_one=True)
             if high_poly_object:
                 blender_addon_utils.add_modifier(high_poly_object, 'TRIANGULATE', modifier_name='TRIANGULATE', only_one=True)
             debug_logging.log("Applied triangulation to both the high and low poly objects.", sub_process=True)
 
         # Cache original materials applied to the active object so the materials can be re-applied after baking.
         self._original_material_names.clear()
-        active_object_material_slots = bpy.context.active_object.material_slots
-        if len(active_object_material_slots) > 0:
-            for x in active_object_material_slots:
+        low_poly_obj_material_slots = bpy.context.active_object.material_slots
+        if len(low_poly_obj_material_slots) > 0:
+            for x in low_poly_obj_material_slots:
                 if x.material:
                     self._original_material_names.append(x.material.name)
                 else:
                     self._original_material_names.append("")
 
-        self._original_render_engine = bpy.context.scene.render.engine          # Remember the render engine so we can reset it after baking.        
-        baked_successfully = bake_mesh_map(self._mesh_maps_to_bake[0], self)    # Start baking the mesh map.
+        # Remember the render engine so we can reset it after baking.
+        self._original_render_engine = bpy.context.scene.render.engine
+
+        # Start baking the mesh map.
+        baked_successfully = bake_mesh_map(self._mesh_maps_to_bake[0], self._bake_object_name, self)    
         if baked_successfully == False:
             self.finish(context)
             return {'FINISHED'}
@@ -491,6 +526,7 @@ class MATLAYER_OT_batch_bake(Operator):
 
         # Remove triangulate modifiers from the low and high poly objects.
         remove_triangulate_modifiers()
+        delete_temp_bake_object()
 
         # Reset the render engine.
         bpy.context.scene.render.engine = self._original_render_engine
@@ -520,6 +556,7 @@ class MATLAYER_OT_batch_bake(Operator):
 
         # Remove triangulate modifiers from the low and high poly objects.
         remove_triangulate_modifiers()
+        delete_temp_bake_object()
 
         # Reset the render engine.
         bpy.context.scene.render.engine = self._original_render_engine
