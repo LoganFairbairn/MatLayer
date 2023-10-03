@@ -3,6 +3,7 @@
 import bpy
 from .import ui_section_tabs
 from ..core import mesh_map_baking
+from ..core import blender_addon_utils
 from .. import preferences
 
 def draw_mesh_map_operators(layout, mesh_map_type):
@@ -16,7 +17,7 @@ def draw_mesh_map_status(layout, addon_preferences):
     '''Draws status and operators for each mesh map type.'''
     layout.label(text="MESH MAPS")
 
-    split = layout.split(factor=0.3)
+    split = layout.split(factor=0.5)
     first_column = split.column()
     second_column = split.column()
 
@@ -24,7 +25,7 @@ def draw_mesh_map_status(layout, addon_preferences):
 
     for mesh_map_type in mesh_map_baking.MESH_MAP_TYPES:
         mesh_map_label = mesh_map_type.replace('_', ' ')
-        mesh_map_label = mesh_map_label.capitalize()
+        mesh_map_label = blender_addon_utils.capitalize_by_space(mesh_map_label)
 
         bake_checkbox_property_name = "bake_{0}".format(mesh_map_type.lower())
         row = first_column.row()
