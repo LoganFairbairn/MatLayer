@@ -115,12 +115,54 @@ class AddonPreferences(AddonPreferences):
 
     #----------------------------- MESH MAP BAKING PROPERTIES -----------------------------#
 
-    mesh_map_quality: EnumProperty(items=MESH_MAP_BAKING_QUALITY, name="Mesh Map Quality", description="Bake quality", default='RECOMMENDED_QUALITY')
-    bake_normals: BoolProperty(name="Bake Normal", description="Toggle for baking normal maps for baking as part of the batch baking operator", default=True)
-    bake_ambient_occlusion: BoolProperty(name="Bake Ambient Occlusion", description="Toggle for baking ambient occlusion as part of the batch baking operator", default=True)
-    bake_curvature: BoolProperty(name="Bake Curvature", description="Toggle for baking curvature as part of the batch baking operator", default=True)
-    bake_thickness: BoolProperty(name="Bake Thickness", description="Toggle for baking thickness as part of the batch baking operator", default=True)
-    bake_world_space_normals: BoolProperty(name="Bake World Space Normals", description="Toggle for baking world space normals as part of the batch baking operator", default=True)
+    mesh_map_quality: EnumProperty(
+        items=MESH_MAP_BAKING_QUALITY, 
+        name="Mesh Map Quality", 
+        description="Bake quality", 
+        default='RECOMMENDED_QUALITY'
+    )
+    
+    triangulate: BoolProperty(
+        name="Triangulate", 
+        description="Adds a triangulation modifier to both the low and high poly objects before baking mesh maps. Triangulate modifiers are removed after baking. Triangulating your models before baking results in more consistent baking quality", 
+        default=True
+    )
+    
+    averaged_normals: BoolProperty(
+        name="Average Normals", 
+        description="Ignores normals on the low poly object, use average (shade smooth) normals instead for baking. This result produces less seams in normals maps, but causes slightly skewed normal map data for floating normal map details. Using averaged normals for baking generally results in better quality meshes",
+        default=True
+    )
+
+    bake_normals: BoolProperty(
+        name="Bake Normal", 
+        description="Toggle for baking normal maps for baking as part of the batch baking operator", 
+        default=True
+    )
+
+    bake_ambient_occlusion: BoolProperty(
+        name="Bake Ambient Occlusion", 
+        description="Toggle for baking ambient occlusion as part of the batch baking operator", 
+        default=True
+    )
+
+    bake_curvature: BoolProperty(
+        name="Bake Curvature", 
+        description="Toggle for baking curvature as part of the batch baking operator", 
+        default=True
+    )
+
+    bake_thickness: BoolProperty(
+        name="Bake Thickness", 
+        description="Toggle for baking thickness as part of the batch baking operator", 
+        default=True
+    )
+
+    bake_world_space_normals: BoolProperty(
+        name="Bake World Space Normals", 
+        description="Toggle for baking world space normals as part of the batch baking operator", 
+        default=True
+    )
 
     occlusion_samples: IntProperty(
         name="Occlusion Samples", 

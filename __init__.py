@@ -279,7 +279,6 @@ def register():
     bpy.types.Scene.pause_auto_updates = BoolProperty(default=False)
     bpy.types.Scene.previous_active_material_name = StringProperty(default="")
     bpy.types.Scene.previous_object_name = StringProperty(default="")
-    bpy.types.Scene.baking_mesh_maps = BoolProperty(default=False)
 
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     export_textures = addon_preferences.export_textures

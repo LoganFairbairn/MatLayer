@@ -300,6 +300,19 @@ def remove_mesh_map_baking_assets():
         if mesh_map_group_node:
             bpy.data.node_groups.remove(mesh_map_group_node)
 
+def remove_triangulate_modifiers():
+    '''Removes the triangulate modifiess from the low and high poly objects.'''
+    active_object = bpy.context.active_object
+    if active_object:
+        triangulate_modifier = active_object.modifiers.get('TRIANGULATE')
+        if triangulate_modifier:
+            active_object.modifiers.remove(triangulate_modifier)
+
+    high_poly_object = bpy.context.scene.matlayer_baking_settings.high_poly_object
+    if high_poly_object:
+        triangulate_modifier = high_poly_object.modifiers.get('TRIANGULATE')
+        if triangulate_modifier:
+            high_poly_object.modifiers.remove(triangulate_modifier)
 
 #----------------------------- OPERATORS AND PROPERTIES -----------------------------#
 
@@ -383,17 +396,46 @@ class MATLAYER_OT_batch_bake(Operator):
         # Remove lingering mesh map assets if they exist.
         remove_mesh_map_baking_assets()
 
-        # To avoid errors from users clicking the bake mesh maps button multiple times, mark the start / end of baking.
-        if bpy.context.scene.baking_mesh_maps == True:
+        # To avoid errors don't start baking if there is already a bake job running.
+        if bpy.app.is_job_running('OBJECT_BAKE') == True:
+            debug_logging.log_status("Bake job already in process, cancel or wait until the bake is finished before starting another.", self)
             return {'FINISHED'}
-        bpy.context.scene.baking_mesh_maps = True
+        
         bpy.context.scene.pause_auto_updates = True
         debug_logging.log("Starting mesh map baking...", sub_process=False)
+
+        # Ensure this operator runs in object mode.
         self._mesh_maps_to_bake.clear()
         self._mesh_maps_to_bake = get_batch_bake_mesh_maps()    # Get a list of mesh maps to bake.
 
-        # Make the low poly selected active object unhiden, selectable and visible.
+        # Apply averaged normals to the low poly object if averaged normals is enabled in the settings.
+        addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
         active_object = bpy.context.active_object
+        if addon_preferences.averaged_normals:
+            blender_addon_utils.select_only(active_object)
+
+            # Clear all bevel weights.
+            bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+            if bpy.context.active_object.data.has_bevel_weight_edge:
+                bpy.ops.mesh.customdata_bevel_weight_edge_clear()
+
+            # Apply autosmooth.
+            bpy.ops.object.shade_smooth()
+            bpy.context.object.data.use_auto_smooth = True
+            bpy.context.object.data.auto_smooth_angle = 3.14159
+
+            # Clear all bevel weights and sharpening.
+            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+            bpy.ops.mesh.select_all(action='SELECT')
+            bpy.ops.mesh.mark_sharp(clear=True)
+            
+            bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+            #mesh = active_object.data
+            #for f in mesh.polygons:
+            #    f.use_smooth = True
+            debug_logging.log("Applied average normals (shade smooth) to the low poly object.", sub_process=True)
+
+        # Make the low poly selected active object unhiden, selectable and visible.
         active_object.hide_set(False)
         active_object.hide_render = False
         active_object.hide_select = False
@@ -404,6 +446,13 @@ class MATLAYER_OT_batch_bake(Operator):
             high_poly_object.hide_set(False)
             high_poly_object.hide_render = False
             high_poly_object.hide_select = False
+
+        # Triangulate the high and low poly objects.
+        if addon_preferences.triangulate:
+            blender_addon_utils.add_modifier(active_object, 'TRIANGULATE', modifier_name='TRIANGULATE', only_one=True)
+            if high_poly_object:
+                blender_addon_utils.add_modifier(high_poly_object, 'TRIANGULATE', modifier_name='TRIANGULATE', only_one=True)
+            debug_logging.log("Applied triangulation to both the high and low poly objects.", sub_process=True)
 
         # Cache original materials applied to the active object so the materials can be re-applied after baking.
         self._original_material_names.clear()
@@ -440,12 +489,14 @@ class MATLAYER_OT_batch_bake(Operator):
             if material:
                 bpy.context.object.material_slots[i].material = material
 
+        # Remove triangulate modifiers from the low and high poly objects.
+        remove_triangulate_modifiers()
+
         # Reset the render engine.
         bpy.context.scene.render.engine = self._original_render_engine
 
         # Unpause auto updates, unmark baking mesh maps toggle.
         bpy.context.scene.pause_auto_updates = False
-        bpy.context.scene.baking_mesh_maps = False
 
         debug_logging.log_status("Baking mesh map was manually cancelled.", self, 'INFO')
 
@@ -467,6 +518,9 @@ class MATLAYER_OT_batch_bake(Operator):
             if material:
                 bpy.context.object.material_slots[i].material = material
 
+        # Remove triangulate modifiers from the low and high poly objects.
+        remove_triangulate_modifiers()
+
         # Reset the render engine.
         bpy.context.scene.render.engine = self._original_render_engine
         debug_logging.log_status("Baking mesh map(s) completed.", self, 'INFO')
@@ -476,7 +530,6 @@ class MATLAYER_OT_batch_bake(Operator):
 
         # Unpause auto updates, mark baking mesh maps as complete.
         bpy.context.scene.pause_auto_updates = False
-        bpy.context.scene.baking_mesh_maps = False
 
 class MATLAYER_OT_open_bake_folder(Operator):
     bl_idname = "matlayer.open_bake_folder"

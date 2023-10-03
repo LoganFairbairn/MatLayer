@@ -825,6 +825,11 @@ class MATLAYER_OT_export(Operator):
         if blender_addon_utils.verify_bake_object(self, check_active_material=True) == False:
             return {'FINISHED'}
         
+        # To avoid errors don't start baking if there is already a bake job running.
+        if bpy.app.is_job_running('OBJECT_BAKE') == True:
+            debug_logging.log_status("Bake job already in process, cancel or wait until the bake is finished before starting another.", self)
+            return {'FINISHED'}
+
         # Get the number of materials to bake and export.
         addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
         match addon_preferences.export_mode:

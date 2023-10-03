@@ -477,3 +477,19 @@ def get_unique_material_name(material_name):
         name = material_name + str(variation_number)
         variation_number += 1
     return name
+
+def add_modifier(obj, new_modifier_type, modifier_name, only_one=False):
+    '''Adds a modifer to the specified object, but provides additional checks.'''
+
+    # Check if there is already a modifier of the specified type, if one exists, don't add the modifier.
+    if only_one == True:
+        for modifier in obj.modifiers:
+            if modifier.type == new_modifier_type:
+                return
+            
+        new_modifier = obj.modifiers.new(modifier_name, new_modifier_type)
+        return new_modifier
+
+    else:
+        new_modifier = obj.modifiers.new(modifier_name, new_modifier_type)
+        return new_modifier

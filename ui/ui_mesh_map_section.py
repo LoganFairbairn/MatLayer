@@ -60,24 +60,34 @@ def draw_general_settings(layout, addon_preferences, baking_settings):
     second_column = split.column()
 
     row = first_column.row()
-    row.label(text="High Poly Object: ")
+    row.label(text="High Poly Object ")
     row = second_column.row()
     row.prop(baking_settings, "high_poly_object", text="", slider=True)
 
     row = first_column.row()
-    row.label(text="Render Device: ")
+    row.label(text="Render Device ")
     row = second_column.row()
     row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
 
     row = first_column.row()
-    row.label(text="Mesh Map Quality: ")
+    row.label(text="Mesh Map Quality ")
     row = second_column.row()
     row.prop(addon_preferences, "mesh_map_quality", text="")
 
     row = first_column.row()
-    row.label(text="Cage Extrusion: ")
+    row.label(text="Cage Extrusion ")
     row = second_column.row()
     row.prop(addon_preferences, "cage_extrusion", text="")
+
+    row = first_column.row()
+    row.label(text="Triangulate")
+    row = second_column.row()
+    row.prop(addon_preferences, "triangulate", text="")
+
+    row = first_column.row()
+    row.label(text="Averaged Normals")
+    row = second_column.row()
+    row.prop(addon_preferences, "averaged_normals", text="")
 
 def draw_curvature_settings(layout, addon_preferences):
     layout.separator()
