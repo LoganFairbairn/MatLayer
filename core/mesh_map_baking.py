@@ -3,7 +3,7 @@
 import os
 import bpy
 from bpy.types import Operator
-from bpy.props import BoolProperty, StringProperty, PointerProperty
+from bpy.props import StringProperty, PointerProperty
 from ..core import material_layers
 from ..core import blender_addon_utils
 from ..core import debug_logging
