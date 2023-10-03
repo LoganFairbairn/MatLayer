@@ -459,6 +459,7 @@ class MATLAYER_OT_batch_bake(Operator):
         high_poly_object = bpy.context.scene.matlayer_baking_settings.high_poly_object
         if high_poly_object:
             high_poly_object.hide_set(True)
+            high_poly_object.hide_render = True
 
         # Re-apply the materials that were originally on the object.
         for i in range(0, len(self._original_material_names)):
