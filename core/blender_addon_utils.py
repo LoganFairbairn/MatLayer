@@ -229,6 +229,17 @@ def append_image(image_name):
         return image
     return image
 
+def append_world(world_name):
+    '''Appends the specified world from this add-ons blend asset file.'''
+    world = bpy.data.worlds.get(world_name)
+    if world == None:
+        blend_assets_path = get_blend_assets_path()
+        with bpy.data.libraries.load(blend_assets_path, link=False) as (data_from, data_to):
+            data_to.worlds = [world_name]
+        world = bpy.data.worlds.get(world_name)
+        return world
+    return world
+
 def get_node_by_bl_static_type(nodes, bl_static_type):
     '''Finds and returns a node by it's bl_static_type.'''
     # When using a different language, default nodes must be accessed using their type because their default name translates.
@@ -493,3 +504,4 @@ def add_modifier(obj, new_modifier_type, modifier_name, only_one=False):
     else:
         new_modifier = obj.modifiers.new(modifier_name, new_modifier_type)
         return new_modifier
+    

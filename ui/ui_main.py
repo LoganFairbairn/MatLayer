@@ -20,7 +20,7 @@ class MATLAYER_panel_properties(bpy.types.PropertyGroup):
                ('SECTION_MESH_MAPS', "MESH MAPS", "This section contains operations to quickly bake mesh map textures for your models. Baking mesh maps transfer 3D data such as shadows, curvature, sharp edges and extra detail from higher polycount objects to image textures. Baked mesh map textures can be used as textures in layers in many different ways to make the texturing process faster. One example of where baked mesh maps could be used is to mask dirt by using the baked ambient occlusion as a mask."),
                ('SECTION_LAYERS', "LAYERS", "This section contains a layer stack for the selected object's active material. In this section you can add, edit and blend multiple materials together."),
                ('SECTION_EXPORT', "EXPORT", "This section contains operations to quickly export textures made with MatLayer."),
-               ('SECTION_SETTINGS', "SETTINGS", "This section contains general add-on settings for this add-on.")],
+               ('SECTION_VIEWPORT_SETTINGS', "VIEWPORT", "This section contains select viewport render settings to help preview materials")],
         name="MatLayer Sections",
         description="Current matlayer category",
         default='SECTION_LAYERS'
@@ -53,7 +53,7 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
                 case 'SECTION_UTILS':
                     ui_utils_section.draw_ui_utils_section(self, context)
 
-                case 'SECTION_SETTINGS':
+                case 'SECTION_VIEWPORT_SETTINGS':
                     ui_settings_section.draw_ui_settings_section(self, context)
 
         else:

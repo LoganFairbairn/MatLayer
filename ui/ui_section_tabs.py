@@ -13,7 +13,7 @@ def draw_section_tabs(self, context):
     row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS")
     row.prop_enum(panel_properties, "sections", 'SECTION_LAYERS')
     row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT')
-    row.prop_enum(panel_properties, "sections", 'SECTION_SETTINGS', text="", icon='SETTINGS')
+    row.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS')
     row.menu("MATLAYER_MT_utility_sub_menu", text="", icon='TOOL_SETTINGS')
 
 class UtilitySubMenu(Menu):
@@ -25,3 +25,4 @@ class UtilitySubMenu(Menu):
 
         layout.operator("matlayer.append_workspace", text="Append Workspace")
         layout.operator("matlayer.append_basic_brushes", text="Append Basic Brushes")
+        layout.operator("matlayer.append_hdri_world", text="Append HDRI World")

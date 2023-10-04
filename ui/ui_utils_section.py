@@ -13,3 +13,7 @@ def draw_ui_utils_section(self, context):
     row = layout.row()
     row.scale_y = scale_y
     row.operator("matlayer.append_basic_brushes", icon='BRUSH_DATA')
+    
+    row = layout.row()
+    row.scale_y = scale_y
+    row.operator("matlayer.append_hdri_world")

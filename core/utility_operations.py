@@ -6,6 +6,7 @@ from bpy.types import Operator
 from bpy.utils import resource_path
 from pathlib import Path
 from ..core import debug_logging
+from ..core import blender_addon_utils
 from ..preferences import ADDON_NAME
 
 class MATLAYER_OT_set_decal_layer_snapping(Operator):
@@ -98,4 +99,14 @@ class MATLAYER_OT_append_basic_brushes(Operator):
 
         self.report({'INFO'}, "Appended basic brushes. Check the brush presets to see them (Texture Paint Mode -> Tool (3D view sidebar) -> Brushes)")
 
+        return {'FINISHED'}
+
+class MATLAYER_OT_append_hdri_world(Operator):
+    bl_idname = "matlayer.append_hdri_world"
+    bl_label = "Append HDRI World"
+    bl_description = "Appends a world environment setup for HDRI lighting."
+
+    def execute(self, context):
+        blender_addon_utils.append_world('HDRIWorld')
+        bpy.context.scene.world = bpy.data.worlds['HDRIWorld']
         return {'FINISHED'}
