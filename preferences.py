@@ -68,6 +68,12 @@ MESH_MAP_BAKING_QUALITY = [
     ("INSANE_QUALITY", "Insane Quality", "Very high sampling, for hyper accurate mesh map data output, not recommended for standard use. Render times are usually long")
 ]
 
+MESH_MAP_CAGE_MODE = [
+    ("NO_CAGE", "No Cage", "No cage will be used when baking mesh maps"),
+    ("AUTO_CAGE", "Auto Cage", "A cage will be extruded from the mesh automatically"),
+    ("MANUAL_CAGE", "Manual Cage", "Insert a manually created cage to be used when baking mesh maps")
+]
+
 class MATLAYER_pack_textures(PropertyGroup):
     r_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name='R Texture')
     g_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name='G Texture')
@@ -121,7 +127,15 @@ class AddonPreferences(AddonPreferences):
         description="Bake quality", 
         default='RECOMMENDED_QUALITY'
     )
-    
+
+    cage_upscale: FloatProperty(
+        name="Cage Upscale",
+        description="Upscales a duplicate of the low poly mesh by the specified amount to use as a cage for mesh map baking", 
+        default=0.01, 
+        min=0.0,
+        max=0.1
+    )
+
     triangulate: BoolProperty(
         name="Triangulate", 
         description="Adds a triangulation modifier to both the low and high poly objects before baking mesh maps. Triangulate modifiers are removed after baking. Triangulating your models before baking results in more consistent baking quality", 
@@ -198,13 +212,6 @@ class AddonPreferences(AddonPreferences):
         update=update_local_occlusion
     )
 
-    cage_extrusion: FloatProperty(
-        name="Cage Extrusion",
-        description="Infaltes the active object by the specified amount for baking. This helps matching to points nearer to the outside of the selected object meshes", 
-        default=0.111, 
-        min=0.0,
-        max=1.0
-    )
 
     #----------------------------- TEXTURE EXPORTING PROPERTIES -----------------------------#
 
