@@ -5,7 +5,6 @@ from . import ui_layer_section
 from . import ui_mesh_map_section
 from . import ui_export_section
 from . import ui_texture_set_section
-from . import ui_utils_section
 from . import ui_settings_section
 
 def check_blend_saved():
