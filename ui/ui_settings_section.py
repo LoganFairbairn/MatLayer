@@ -44,7 +44,6 @@ def draw_ui_settings_section(self, context):
                 row = first_column.row()
                 row.scale_y = scale_y
                 row.label(text="Background Color")
-
                 row = second_column.row()
                 row.scale_y = scale_y
                 row.prop(hdri_node.inputs[0], "default_value", text="")
@@ -52,10 +51,23 @@ def draw_ui_settings_section(self, context):
                 row = first_column.row()
                 row.scale_y = scale_y
                 row.label(text="Environment Rotation")
-
                 row = second_column.row()
                 row.scale_y = scale_y
-                row.prop(hdri_node.inputs[1], "default_value", text="", index=2, slider=True)
+                row.prop(hdri_node.inputs.get('Environment Rotation'), "default_value", text="", index=2, slider=True)
+
+                row = first_column.row()
+                row.scale_y = scale_y
+                row.label(text="Environment Blur")
+                row = second_column.row()
+                row.scale_y = scale_y
+                row.prop(hdri_node.inputs.get('Environment Blur'), "default_value", text="", slider=True)
+
+                row = first_column.row()
+                row.scale_y = scale_y
+                row.label(text="Environment Exposure")
+                row = second_column.row()
+                row.scale_y = scale_y
+                row.prop(hdri_node.inputs.get('Environment Exposure'), "default_value", text="", slider=True)
 
     # EEVEE Settings
     if bpy.context.scene.render.engine == 'BLENDER_EEVEE':
