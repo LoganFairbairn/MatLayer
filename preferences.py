@@ -148,12 +148,6 @@ class AddonPreferences(AddonPreferences):
         description="Adds a triangulation modifier to both the low and high poly objects before baking mesh maps. Triangulate modifiers are removed after baking. Triangulating your models before baking results in more consistent baking quality", 
         default=True
     )
-    
-    averaged_normals: BoolProperty(
-        name="Average Normals", 
-        description="Ignores normals on the low poly object, use average (shade smooth) normals instead for baking. This result produces less seams in normals maps, but causes slightly skewed normal map data for floating normal map details. Using averaged normals for baking generally results in better quality meshes",
-        default=True
-    )
 
     bake_normals: BoolProperty(
         name="Bake Normal", 

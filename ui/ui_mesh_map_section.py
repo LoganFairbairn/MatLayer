@@ -109,11 +109,6 @@ def draw_general_settings(layout, addon_preferences, baking_settings):
     row = second_column.row()
     row.prop(addon_preferences, "triangulate", text="")
 
-    row = first_column.row()
-    row.label(text="Averaged Normals")
-    row = second_column.row()
-    row.prop(addon_preferences, "averaged_normals", text="")
-
 def draw_curvature_settings(layout, addon_preferences):
     layout.separator()
     layout.label(text="CURVATURE")
