@@ -252,18 +252,6 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
                 return node_tree.nodes.get(filter_node_name)
             return None
         
-        case 'OUTPUT':
-            node_tree = bpy.data.node_groups.get(layer_group_node_name)
-            if node_tree:
-                return node_tree.nodes.get('Group Output')
-            return None
-        
-        case 'INPUT':
-            node_tree = bpy.data.node_groups.get(layer_group_node_name)
-            if node_tree:
-                return node_tree.nodes.get('Group Input')
-            return None
-        
         case 'COORDINATES':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
@@ -283,7 +271,19 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
             if node_tree:
                 return node_tree.nodes.get("SEPARATE_{0}".format(material_channel_name))
             return None
-
+        
+        case 'GROUP_INPUT':
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get("GROUP_INPUT")
+            return None
+        
+        case 'GROUP_OUTPUT':
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get("GROUP_OUTPUT")
+            return None
+        
         case _:
             debug_logging.log("Invalid material node name passed to get_material_layer_node.")
             return None
@@ -1067,7 +1067,10 @@ def replace_material_channel_node(material_channel_name, node_type):
 
             # Link the new group node.
             mix_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
-            layer_group_node.links.new(new_node.outputs[0], mix_node.inputs[7])
+            if mix_node.bl_static_type == 'GROUP':
+                layer_group_node.links.new(new_node.outputs[0], mix_node.inputs[2])
+            else:
+                layer_group_node.links.new(new_node.outputs[0], mix_node.inputs[7])
 
         case 'TEXTURE':
             # Apply projection to texture nodes based on the projection node tree name.
@@ -1117,17 +1120,27 @@ def get_material_channel_output_channel(material_channel_name):
     filter_node = get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
 
     output_channel = ''
-
     color_input_node = None
+
+    # If the filter node is active, check the connected input in it for the current output channel.
     if blender_addon_utils.get_node_active(filter_node):
         color_input_node = filter_node
         if len(color_input_node.inputs[0].links) > 0:
             output_channel = color_input_node.inputs[0].links[0].from_socket.name.upper()
+
+    # If the filter node isn't active, check the connected input for the mix node for the current output channel.
     else:
         color_input_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
-        if len(color_input_node.inputs[7].links) > 0:
-            output_channel = color_input_node.inputs[7].links[0].from_socket.name.upper()
-    
+
+        if color_input_node.bl_static_type == 'MIX':
+            if len(color_input_node.inputs[7].links) > 0:
+                output_channel = color_input_node.inputs[7].links[0].from_socket.name.upper()
+
+        if color_input_node.bl_static_type == 'GROUP':
+            if len(color_input_node.inputs[2].links) > 0:
+                output_channel = color_input_node.inputs[2].links[0].from_socket.name.upper()
+
+    # If the set output channel is alpha, but the material value node isn't an image (and thus can't have an alpha channel), return color instead to avoid errors.
     if output_channel == 'ALPHA':
         value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
         if value_node.bl_static_type != 'TEX_IMAGE':
@@ -1135,28 +1148,30 @@ def get_material_channel_output_channel(material_channel_name):
 
     return output_channel
 
-def set_material_channel_output_channel(material_channel_name, output_channel_name):
+def set_material_channel_output_channel(material_channel_name, output_channel_name, layer_index=-1):
     '''Links the specified output channel for the specified material channel.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    layer_node_tree = get_layer_node_tree(selected_layer_index)
-    separate_color_node = get_material_layer_node('SEPARATE', selected_layer_index, material_channel_name)
-    projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
-    filter_node = get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
-    value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
-    mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
-    mix_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
-    fix_normal_rotation_node = get_material_layer_node('FIX_NORMAL_ROTATION', selected_layer_index, material_channel_name)
+    if layer_index == -1:
+        layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+
+    layer_node_tree = get_layer_node_tree(layer_index)
+    separate_color_node = get_material_layer_node('SEPARATE', layer_index, material_channel_name)
+    projection_node = get_material_layer_node('PROJECTION', layer_index)
+    filter_node = get_material_layer_node('FILTER', layer_index, material_channel_name)
+    value_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
+    mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', layer_index, material_channel_name)
+    mix_node = get_material_layer_node('MIX', layer_index, material_channel_name)
+    fix_normal_rotation_node = get_material_layer_node('FIX_NORMAL_ROTATION', layer_index, material_channel_name)
 
     # Determine the node the main material channel output value is coming from.
     output_node = None
     match projection_node.node_tree.name:
         case 'ML_TriplanarProjection':
             if value_node.bl_static_type == 'TEX_IMAGE':
-                output_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, material_channel_name)
+                output_node = get_material_layer_node('TRIPLANAR_BLEND', layer_index, material_channel_name)
             else:
                 output_node = value_node
         case _:
-            output_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
+            output_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
 
     # Determine the input node for the main material channel value.
     input_node = None
@@ -1169,7 +1184,10 @@ def set_material_channel_output_channel(material_channel_name, output_channel_na
 
     else:
         input_node = mix_node
-        input_socket = 7
+        if mix_node.bl_static_type == 'GROUP':
+            input_socket = 2
+        else:
+            input_socket = 7
 
     # Unlink nodes to ensure only the correct nodes will be linked after this function is complete.
     blender_addon_utils.unlink_node(output_node, layer_node_tree, unlink_inputs=False, unlink_outputs=True)
@@ -1225,11 +1243,14 @@ def set_material_channel_output_channel(material_channel_name, output_channel_na
         else:
             layer_node_tree.links.new(output_node.outputs[output_socket], input_node.inputs[input_socket])
 
-        blender_addon_utils.unlink_node(fix_normal_rotation_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
+        #blender_addon_utils.unlink_node(fix_normal_rotation_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
 
     # Link the filter node if it's enabled in this material channel.
     if connect_filter_node:
-        layer_node_tree.links.new(input_node.outputs[0], mix_node.inputs[7])
+        if mix_node.bl_static_type == 'GROUP':
+            layer_node_tree.links.new(input_node.outputs[0], mix_node.inputs[2])
+        else:
+            layer_node_tree.links.new(input_node.outputs[0], mix_node.inputs[7])
 
 def isolate_material_channel(material_channel_name):
     '''Isolates the specified material channel by linking only the specified material channel output to the material channel output / emission node.'''
@@ -1271,6 +1292,82 @@ def toggle_image_alpha_blending(material_channel_name):
         image_alpha_node.mute = False
     else:
         image_alpha_node.mute = True
+
+def get_layer_blending_mode(layer_index, material_channel_name=''):
+    '''Returns the current blending mode for the layer at the specified index.'''
+    # If there is no specified material channel, use the current selected on from the layer stack.
+    if material_channel_name == '':
+        material_channel_name = bpy.context.scene.matlayer_layer_stack.selected_material_channel
+
+    mix_node = get_material_layer_node('MIX', layer_index, material_channel_name)
+    match mix_node.bl_static_type:
+        case 'MIX':
+            return mix_node.blend_type
+        
+        case 'GROUP':
+            if mix_node.node_tree.name == 'ML_WhiteoutNormalMapMix':
+                return 'NORMAL_MAP_COMBINE'
+            
+            if mix_node.node_tree.name == 'ML_ReorientedNormalMapMix':
+                return 'NORMAL_MAP_DETAIL'
+    return 'ERROR'
+
+def set_layer_blending_mode(layer_index, blending_mode, material_channel_name='COLOR'):
+    '''Sets the blending mode for the layer at the specified index.'''
+    layer_node_tree = get_layer_node_tree(layer_index)
+    original_mix_node = get_material_layer_node('MIX', layer_index, material_channel_name)
+    original_output_channel = get_material_channel_output_channel(material_channel_name)
+
+    # Ensure the mix not is a group node and apply the layer blending modes.
+    mix_node = original_mix_node
+    if blending_mode == 'NORMAL_MAP_COMBINE' or blending_mode == 'NORMAL_MAP_DETAIL':
+        if original_mix_node.bl_static_type != 'GROUP':
+            original_location = original_mix_node.location
+            layer_node_tree.nodes.remove(original_mix_node)
+            mix_node = layer_node_tree.nodes.new('ShaderNodeGroup')
+            mix_node.location = (original_location[0], original_location[1])
+            mix_node.name = "{0}_MIX".format(material_channel_name)
+            mix_node.label = mix_node.name
+            mix_node.width = 300
+        else:
+            mix_node = original_mix_node
+
+        if blending_mode == 'NORMAL_MAP_COMBINE':
+            mix_node.node_tree = blender_addon_utils.append_group_node('ML_WhiteoutNormalMapMix')
+        elif blending_mode == 'NORMAL_MAP_DETAIL':
+            mix_node.node_tree = blender_addon_utils.append_group_node('ML_ReorientedNormalMapMix')
+
+    # Ensure the mix node type isn't a group node and then apply the layer blending value.
+    else:
+        if original_mix_node.bl_static_type != 'MIX':
+            original_location = original_mix_node.location
+            layer_node_tree.nodes.remove(original_mix_node)
+
+            mix_node = layer_node_tree.nodes.new('ShaderNodeMix')
+            mix_node.location = (original_location[0], original_location[1])
+            mix_node.name = "{0}_MIX".format(material_channel_name)
+            mix_node.label = mix_node.name
+            mix_node.data_type = 'RGBA'
+            mix_node.width = 300
+        
+        mix_node.blend_type = blending_mode
+
+    # Relink the layer mix node with the layer opacity and previous layer values.
+    opacity_node = get_material_layer_node('OPACITY', layer_index, material_channel_name)
+    layer_node_tree.links.new(opacity_node.outputs[0], mix_node.inputs[0])
+
+    group_input = get_material_layer_node('GROUP_INPUT', layer_index)
+    channel_input_name = material_channel_name.capitalize() + "Mix"
+    group_output = get_material_layer_node('GROUP_OUTPUT', layer_index)
+    if mix_node.bl_static_type == 'GROUP':
+        layer_node_tree.links.new(mix_node.outputs[0], group_output.inputs.get(material_channel_name.capitalize()))
+        layer_node_tree.links.new(group_input.outputs.get(channel_input_name), mix_node.inputs[1])
+    else:
+        layer_node_tree.links.new(mix_node.outputs[2], group_output.inputs.get(material_channel_name.capitalize()))
+        layer_node_tree.links.new(group_input.outputs.get(channel_input_name), mix_node.inputs[6])
+
+    # Relink the material channel of this layer based on the original material output channel.
+    set_material_channel_output_channel(material_channel_name, original_output_channel, layer_index)
 
 
 #----------------------------- OPERATORS -----------------------------#
@@ -1643,4 +1740,22 @@ class MATLAYER_OT_set_material_channel_output_channel(Operator):
 
     def execute(self, context):
         set_material_channel_output_channel(self.material_channel_name, self.output_channel_name)
+        return {'FINISHED'}
+    
+class MATLAYER_OT_set_layer_blending_mode(Operator):
+    bl_idname = "matlayer.set_layer_blending_mode"
+    bl_label = "Set Layer Blending Mode"
+    bl_description = "Sets the blending mode for the layer at the specified index"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    layer_index: IntProperty(default=-1)
+    blending_mode: StringProperty(default='MIX')
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
+        set_layer_blending_mode(self.layer_index, self.blending_mode, material_channel)
         return {'FINISHED'}
