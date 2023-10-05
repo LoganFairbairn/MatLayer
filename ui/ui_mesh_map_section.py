@@ -76,9 +76,9 @@ def draw_general_settings(layout, addon_preferences, baking_settings):
     row.prop(addon_preferences, "mesh_map_quality", text="")
 
     row = first_column.row()
-    row.label(text="Margin")
+    row.label(text="Anti-Aliasing")
     row = second_column.row()
-    row.prop(bpy.context.scene.render.bake, "margin", text="")
+    row.prop(addon_preferences, "mesh_map_anti_aliasing", text="")
 
     row = first_column.row()
     row.label(text="Cage Mode")
@@ -103,6 +103,11 @@ def draw_general_settings(layout, addon_preferences, baking_settings):
             row.label(text="Cage")
             row = second_column.row()
             row.prop(bpy.context.scene.render.bake, "cage_object", text="")
+
+    row = first_column.row()
+    row.label(text="Margin")
+    row = second_column.row()
+    row.prop(bpy.context.scene.render.bake, "margin", text="")
 
     row = first_column.row()
     row.label(text="Triangulate")

@@ -74,6 +74,12 @@ MESH_MAP_CAGE_MODE = [
     ("MANUAL_CAGE", "Manual Cage", "Insert a manually created cage to be used when baking mesh maps. For some objects that have small crevaces where cage mesh normals would intersect if extruded defining a manual cage object will produce the best results")
 ]
 
+MESH_MAP_ANTI_ALIASING = [
+    ("1X", "1x", "No anti aliasing will be applied to output mesh map textures"),
+    ("2X", "2x", "Mesh maps will be rendered at 2x scale and then scaled down to effectively apply anti-aliasing"),
+    ("4X", "4x", "Mesh maps will be rendered at 4x scale and then scaled down to effectively apply anti-aliasing")
+]
+
 class MATLAYER_pack_textures(PropertyGroup):
     r_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name='R Texture')
     g_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name='G Texture')
@@ -120,6 +126,13 @@ class AddonPreferences(AddonPreferences):
     )
 
     #----------------------------- MESH MAP BAKING PROPERTIES -----------------------------#
+
+    mesh_map_anti_aliasing: EnumProperty(
+        items=MESH_MAP_ANTI_ALIASING,
+        name="Anti Aliasing",
+        description="Anti Aliasing",
+        default='1X'
+    )
 
     mesh_map_quality: EnumProperty(
         items=MESH_MAP_BAKING_QUALITY, 
