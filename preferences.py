@@ -69,9 +69,9 @@ MESH_MAP_BAKING_QUALITY = [
 ]
 
 MESH_MAP_CAGE_MODE = [
-    ("NO_CAGE", "No Cage", "No cage will be used when baking mesh maps"),
-    ("AUTO_CAGE", "Auto Cage", "A cage will be extruded from the mesh automatically"),
-    ("MANUAL_CAGE", "Manual Cage", "Insert a manually created cage to be used when baking mesh maps")
+    ("NO_CAGE", "No Cage", "No cage will be used when baking mesh maps. This can in rare cases produce better results than using a cage"),
+    ("AUTO_CAGE", "Auto Cage", "A cage object will be automatically created by duplicating the low poly object and scaling it slightly by the defined amount using a complex solidify modifier. This produces good quality baking results in most cases"),
+    ("MANUAL_CAGE", "Manual Cage", "Insert a manually created cage to be used when baking mesh maps. For some objects that have small crevaces where cage mesh normals would intersect if extruded defining a manual cage object will produce the best results")
 ]
 
 class MATLAYER_pack_textures(PropertyGroup):
@@ -124,8 +124,15 @@ class AddonPreferences(AddonPreferences):
     mesh_map_quality: EnumProperty(
         items=MESH_MAP_BAKING_QUALITY, 
         name="Mesh Map Quality", 
-        description="Bake quality", 
+        description="Bake quality",
         default='RECOMMENDED_QUALITY'
+    )
+
+    cage_mode: EnumProperty(
+        items=MESH_MAP_CAGE_MODE,
+        name="Cage Mode",
+        description="Mode to define if a cage is used for mesh map baking, and if the cage is created automatically, or manually defined",
+        default='AUTO_CAGE'
     )
 
     cage_upscale: FloatProperty(

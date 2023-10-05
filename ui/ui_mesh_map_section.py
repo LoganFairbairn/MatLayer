@@ -81,14 +81,28 @@ def draw_general_settings(layout, addon_preferences, baking_settings):
     row.prop(bpy.context.scene.render.bake, "margin", text="")
 
     row = first_column.row()
-    row.label(text="Cage")
+    row.label(text="Cage Mode")
     row = second_column.row()
-    row.prop(bpy.context.scene.render.bake, "cage_object", text="")
+    row.prop(addon_preferences, "cage_mode", text="")
 
-    row = first_column.row()
-    row.label(text="Cage Upscale")
-    row = second_column.row()
-    row.prop(addon_preferences, "cage_upscale", text="")
+    match addon_preferences.cage_mode:
+        case 'NO_CAGE':
+            row = first_column.row()
+            row.label(text="Cage Extrusion")
+            row = second_column.row()
+            row.prop(bpy.context.scene.render.bake, "cage_extrusion", text="")
+
+        case 'AUTO_CAGE':
+            row = first_column.row()
+            row.label(text="Cage Upscale")
+            row = second_column.row()
+            row.prop(addon_preferences, "cage_upscale", text="")
+
+        case 'MANUAL_CAGE':
+            row = first_column.row()
+            row.label(text="Cage")
+            row = second_column.row()
+            row.prop(bpy.context.scene.render.bake, "cage_object", text="")
 
     row = first_column.row()
     row.label(text="Triangulate")
