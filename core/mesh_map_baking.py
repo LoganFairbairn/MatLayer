@@ -316,13 +316,13 @@ def remove_triangulate_modifiers():
     '''Removes the triangulate modifiess from the low and high poly objects.'''
     active_object = bpy.context.active_object
     if active_object:
-        triangulate_modifier = active_object.modifiers.get('TRIANGULATE')
+        triangulate_modifier = active_object.modifiers.get('BAKE_TRIANGULATE')
         if triangulate_modifier:
             active_object.modifiers.remove(triangulate_modifier)
 
     high_poly_object = bpy.context.scene.matlayer_baking_settings.high_poly_object
     if high_poly_object:
-        triangulate_modifier = high_poly_object.modifiers.get('TRIANGULATE')
+        triangulate_modifier = high_poly_object.modifiers.get('BAKE_TRIANGULATE')
         if triangulate_modifier:
             high_poly_object.modifiers.remove(triangulate_modifier)
 
@@ -434,6 +434,8 @@ class MATLAYER_OT_batch_bake(Operator):
         addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
         bpy.context.scene.pause_auto_updates = True
         debug_logging.log("Starting mesh map baking...", sub_process=False)
+
+        # Ensure we start this operation in object mode.
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         # Get a list of mesh maps to bake.
@@ -446,6 +448,7 @@ class MATLAYER_OT_batch_bake(Operator):
         # Adjust settings based on the defined cage mode.
         low_poly_object = bpy.context.active_object
         match addon_preferences.cage_mode:
+
             # No cage object will be used.
             case 'NO_CAGE':
                 bpy.context.scene.render.bake.use_cage = False
@@ -458,6 +461,8 @@ class MATLAYER_OT_batch_bake(Operator):
                     auto_cage_object.data = low_poly_object.data.copy()
                     auto_cage_object.name = low_poly_object.name + "_Cage"
                     bpy.context.collection.objects.link(auto_cage_object)
+                    bpy.context.scene.render.bake.cage_object = auto_cage_object
+
                     blender_addon_utils.select_only(auto_cage_object)
                     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
                     bpy.ops.mesh.select_all(action='SELECT')
@@ -473,19 +478,32 @@ class MATLAYER_OT_batch_bake(Operator):
                         snap=False
                     )
 
+                    # Triangulate the automatically created cage object.
+                    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+                    if addon_preferences.triangulate:
+                        blender_addon_utils.add_modifier(auto_cage_object, new_modifier_type='TRIANGULATE', modifier_name='BAKE_TRIANGULATE', only_one=True)
+                        bpy.ops.object.modifier_apply(modifier="BAKE_TRIANGULATE", report=True)
+
+                    # Hide the auto cage object, it doesn't need to be visible for baking.
                     auto_cage_object.hide_set(True)
                     auto_cage_object.hide_render = True
-                    auto_cage_object.hide_viewport = True
-                    bpy.context.scene.render.bake.cage_object = auto_cage_object
-                    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
                     blender_addon_utils.select_only(low_poly_object)
 
-            # The cage is manually defined by the user, just check one was provided.
+            # The cage is manually defined by the user, check one was provided.
             case 'MANUAL_CAGE':
                 bpy.context.scene.render.bake.use_cage = True
                 if bpy.context.scene.render.bake.cage_object == None:
                     debug_logging.log_status("No cage object was provided. Please use no cage, auto cage mode, or define a cage object before baking", self, type='INFO')
                     return {'FINISHED'}
+                
+                else:
+                    # Triangulate the manually created cage object.
+                    if addon_preferences.triangulate:
+                        cage_object = bpy.context.scene.render.bake.cage_object
+                        blender_addon_utils.add_modifier(cage_object, new_modifier_type='TRIANGULATE', modifier_name='BAKE_TRIANGULATE', only_one=True)
+                        blender_addon_utils.select_only(cage_object)
+                        bpy.ops.object.modifier_apply(modifier="BAKE_TRIANGULATE", report=False)
+                        blender_addon_utils.select_only(low_poly_object)
 
         # Ensure the low poly selected active object unhiden, selectable and visible.
         low_poly_object.hide_set(False)
@@ -496,18 +514,15 @@ class MATLAYER_OT_batch_bake(Operator):
         if high_poly_object:
             high_poly_object.hide_set(False)
             high_poly_object.hide_render = False
-            high_poly_object.hide_viewport = False
 
-        # Triangulate the high, low poly, and cage objects.
+        # Triangulate the high, and low poly objects based on baking settings.
         if addon_preferences.triangulate:
-            blender_addon_utils.add_modifier(low_poly_object, 'TRIANGULATE', modifier_name='TRIANGULATE', only_one=True)
+            blender_addon_utils.add_modifier(low_poly_object, new_modifier_type='TRIANGULATE', modifier_name='BAKE_TRIANGULATE', only_one=True)
 
             if high_poly_object:
-                blender_addon_utils.add_modifier(high_poly_object, 'TRIANGULATE', modifier_name='TRIANGULATE', only_one=True)
-            debug_logging.log("Applied triangulation to both the high and low poly objects.", sub_process=True)
+                blender_addon_utils.add_modifier(high_poly_object, new_modifier_type='TRIANGULATE', modifier_name='BAKE_TRIANGULATE', only_one=True)
 
-            if auto_cage_object:
-                blender_addon_utils.add_modifier(auto_cage_object, 'TRIANGULATE', modifier_name='TRIANGULATE', only_one=True)
+            debug_logging.log("Applied triangulation to all bake objects.", sub_process=True)
 
         # Cache original materials applied to the active object so the materials can be re-applied after baking.
         self._original_material_names.clear()
