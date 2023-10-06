@@ -111,16 +111,15 @@ def create_bake_image(mesh_map_type, object_name):
 
     # For anti-aliasing, mesh maps are baked at a higher resolution and then scaled down (which effectively applies anti-aliasing).
     # Define the anti-aliasing multiplier based on mesh map settings.
-    if mesh_map_type == 'NORMALS':
-        addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-        anti_aliasing_multiplier = 1
-        match addon_preferences.normal_map_anti_aliasing:
-            case '1X':
-                anti_aliasing_multiplier = 1
-            case '2X':
-                anti_aliasing_multiplier = 2
-            case '4X':
-                anti_aliasing_multiplier = 4
+    anti_aliasing_multiplier = 1
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    match getattr(addon_preferences.mesh_map_anti_aliasing, mesh_map_type.lower() + "_anti_aliasing", '1X'):
+        case '1X':
+            anti_aliasing_multiplier = 1
+        case '2X':
+            anti_aliasing_multiplier = 2
+        case '4X':
+            anti_aliasing_multiplier = 4
 
     # Create a new image in Blender's data, delete existing bake image if it exists.
     mesh_map_image = blender_addon_utils.create_image(
@@ -151,6 +150,12 @@ def apply_mesh_map_quality():
     match addon_preferences.mesh_map_quality:
         case 'TEST_QUALITY':
             bpy.context.scene.cycles.samples = 1
+
+        case 'EXTREMELY_LOW_QUALITY':
+            bpy.context.scene.cycles.samples = 8
+
+        case 'VERY_LOW_QUALITY':
+            bpy.context.scene.cycles.samples = 16
 
         case 'LOW_QUALITY':
             bpy.context.scene.cycles.samples = 32
@@ -378,14 +383,13 @@ class MATLAYER_OT_batch_bake(Operator):
                 if mesh_map_image:
                     mesh_map_image.pack()
 
-                    # Scale baked normal maps down to apply anti-aliasing.
-                    if mesh_map_type == 'NORMALS':
-                        addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-                        match addon_preferences.normal_map_anti_aliasing:
-                            case '2X':
-                                mesh_map_image.scale(int(mesh_map_image.size[0] * 0.5), int(mesh_map_image.size[1] * 0.5))
-                            case '4X':                            
-                                mesh_map_image.scale(int(mesh_map_image.size[0] * 0.25), int(mesh_map_image.size[1] * 0.25))
+                    # Scale baked textures down to apply anti-aliasing.
+                    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+                    match getattr(addon_preferences.mesh_map_anti_aliasing, mesh_map_type.lower() + "_anti_aliasing", '1X'):
+                        case '2X':
+                            mesh_map_image.scale(int(mesh_map_image.size[0] * 0.5), int(mesh_map_image.size[1] * 0.5))
+                        case '4X':                            
+                            mesh_map_image.scale(int(mesh_map_image.size[0] * 0.25), int(mesh_map_image.size[1] * 0.25))
 
                 # Log mesh map baking completion.
                 mesh_map_type = mesh_map_type.replace('_', ' ')

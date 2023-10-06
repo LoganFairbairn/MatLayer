@@ -61,11 +61,13 @@ EXPORT_MODE = [
 ]
 
 MESH_MAP_BAKING_QUALITY = [
-    ("TEST_QUALITY", "Test Quality", "Test quality sampling, ideal for quickly testing the output of mesh map bakes. Not recommended for use in production"),
-    ("LOW_QUALITY", "Low Quality", "Low quality sampling"),
-    ("RECOMMENDED_QUALITY", "Recommended Quality", "Recommended quality sampling, ideal for most use cases"),
-    ("HIGH_QUALITY", "High Quality", "High quality sampling, for more accurate mesh map data"),
-    ("INSANE_QUALITY", "Insane Quality", "Very high sampling, for hyper accurate mesh map data output, not recommended for standard use. Render times are usually long")
+    ("TEST_QUALITY", "Test Quality", "Test quality sampling, ideal for quickly testing the output of mesh map bakes. Not recommended for use in production (1 sample)"),
+    ("EXTREMELY_LOW_QUALITY", "Extremely Low Quality", "Low quality sampling (8 samples)"),
+    ("VERY_LOW_QUALITY", "Very Low Quality", "Low quality sampling (16 samples)"),
+    ("LOW_QUALITY", "Low Quality", "Low quality sampling (32 samples)"),
+    ("RECOMMENDED_QUALITY", "Recommended Quality", "Recommended quality sampling, ideal for most use cases (64 samples)"),
+    ("HIGH_QUALITY", "High Quality", "High quality sampling, for more accurate mesh map data (128 samples)"),
+    ("INSANE_QUALITY", "Insane Quality", "Very high sampling, for hyper accurate mesh map data output, not recommended for standard use. Render times are usually long (256 samples)")
 ]
 
 MESH_MAP_CAGE_MODE = [
@@ -100,6 +102,13 @@ class MATLAYER_texture_export_settings(PropertyGroup):
     image_format: EnumProperty(items=TEXTURE_EXPORT_FORMAT, default='PNG')
     bit_depth: EnumProperty(items=BIT_DEPTH, default='EIGHT')
 
+class MATLAYER_mesh_map_anti_aliasing(PropertyGroup):
+    normals_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="Normal Map Anti Aliasing", description="Anti aliasing for output normal maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='1X')
+    ambient_occlusion_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="Ambient Occlusion Anti Aliasing", description="Anti aliasing for output ambient occlusion maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='1X')
+    curvature_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="Curvature Anti Aliasing", description="Anti aliasing for output curvature maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='1X')
+    thickness_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="Thickness Anti Aliasing", description="Anti aliasing for output thickness maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='1X')
+    world_space_normals_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="World Space Normals Anti Aliasing", description="Anti aliasing for output world space normal maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='1X')
+
 class AddonPreferences(AddonPreferences):
     bl_idname = ADDON_NAME
 
@@ -127,12 +136,7 @@ class AddonPreferences(AddonPreferences):
 
     #----------------------------- MESH MAP BAKING PROPERTIES -----------------------------#
 
-    normal_map_anti_aliasing: EnumProperty(
-        items=MESH_MAP_ANTI_ALIASING,
-        name="Normal Map Anti Aliasing",
-        description="Anti aliasing for output normal maps. Higher values creates softer, less pixelated edges around geometry from the high poly mesh that's baked into the normal map. This value multiplies the initial bake resolution for normal maps before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time",
-        default='1X'
-    )
+    mesh_map_anti_aliasing: PointerProperty(type=MATLAYER_mesh_map_anti_aliasing, name="Mesh Map Anti Aliasing")
 
     mesh_map_quality: EnumProperty(
         items=MESH_MAP_BAKING_QUALITY, 

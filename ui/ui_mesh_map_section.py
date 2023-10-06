@@ -6,18 +6,12 @@ from ..core import mesh_map_baking
 from ..core import blender_addon_utils
 from .. import preferences
 
-def draw_mesh_map_operators(layout, mesh_map_type):
-    if mesh_map_type != 'NORMALS':
-        operator = layout.operator("matlayer.preview_mesh_map", text="", icon='MATERIAL_DATA')
-        operator.mesh_map_type = mesh_map_type
-    operator = layout.operator("matlayer.delete_mesh_map", text="", icon='TRASH')
-    operator.mesh_map_name = mesh_map_type
 
 def draw_mesh_map_status(layout, addon_preferences):
     '''Draws status and operators for each mesh map type.'''
     layout.label(text="MESH MAPS")
 
-    split = layout.split(factor=0.5)
+    split = layout.split(factor=0.4)
     first_column = split.column()
     second_column = split.column()
 
@@ -33,16 +27,27 @@ def draw_mesh_map_status(layout, addon_preferences):
         row.label(text=mesh_map_label)
 
         row = second_column.row()
+        col = row.column()
+
         if bpy.context.active_object:
             mesh_map_name = mesh_map_baking.get_meshmap_name(bpy.context.active_object.name, mesh_map_type)
             if bpy.data.images.get(mesh_map_name):
-                row.label(text=mesh_map_name)
+                col.label(text=mesh_map_name)
             else:
-                row.label(text=null_meshmap_text)
+                col.label(text=null_meshmap_text)
         else:
-            row.label(text="No Active Object")
+            col.label(text="No Active Object")
 
-        draw_mesh_map_operators(row, mesh_map_type)
+        col = row.column()
+        col.scale_x = 0.5
+        col.prop(addon_preferences.mesh_map_anti_aliasing, mesh_map_type.lower() + "_anti_aliasing", text="")
+
+        col = row.column()
+        row = col.row(align=True)
+        operator = row.operator("matlayer.preview_mesh_map", text="", icon='MATERIAL_DATA')
+        operator.mesh_map_type = mesh_map_type
+        operator = row.operator("matlayer.delete_mesh_map", text="", icon='TRASH')
+        operator.mesh_map_name = mesh_map_type
 
     # Draw the disable preview button.
     row = layout.row()
@@ -74,11 +79,6 @@ def draw_general_settings(layout, addon_preferences, baking_settings):
     row.label(text="Mesh Map Quality")
     row = second_column.row()
     row.prop(addon_preferences, "mesh_map_quality", text="")
-
-    row = first_column.row()
-    row.label(text="Normals Anti-Aliasing")
-    row = second_column.row()
-    row.prop(addon_preferences, "normal_map_anti_aliasing", text="")
 
     row = first_column.row()
     row.label(text="Cage Mode")
