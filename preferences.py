@@ -166,6 +166,12 @@ class AddonPreferences(AddonPreferences):
         default=True
     )
 
+    relative_to_bounding_box: BoolProperty(
+        name="Relative to Bounding Box",
+        description="If true, the sampling radius used in mesh map baking will be multiplied by the size of the bounding box",
+        default=True
+    )
+
     bake_normals: BoolProperty(
         name="Bake Normal", 
         description="Toggle for baking normal maps for baking as part of the batch baking operator", 

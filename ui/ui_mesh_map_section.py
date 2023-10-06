@@ -114,6 +114,11 @@ def draw_general_settings(layout, addon_preferences, baking_settings):
     row = second_column.row()
     row.prop(addon_preferences, "triangulate", text="")
 
+    row = first_column.row()
+    row.label(text="Relative to Bounding Box")
+    row = second_column.row()
+    row.prop(addon_preferences, "relative_to_bounding_box", text="")
+
 def draw_curvature_settings(layout, addon_preferences):
     layout.separator()
     layout.label(text="CURVATURE")
