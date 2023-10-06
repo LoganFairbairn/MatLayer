@@ -127,10 +127,10 @@ class AddonPreferences(AddonPreferences):
 
     #----------------------------- MESH MAP BAKING PROPERTIES -----------------------------#
 
-    mesh_map_anti_aliasing: EnumProperty(
+    normal_map_anti_aliasing: EnumProperty(
         items=MESH_MAP_ANTI_ALIASING,
-        name="Anti Aliasing",
-        description="Anti Aliasing",
+        name="Normal Map Anti Aliasing",
+        description="Anti aliasing for output normal maps. Higher values creates softer, less pixelated edges around geometry from the high poly mesh that's baked into the normal map. This value multiplies the initial bake resolution for normal maps before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time",
         default='1X'
     )
 

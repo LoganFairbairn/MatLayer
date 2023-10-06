@@ -56,29 +56,29 @@ def draw_general_settings(layout, addon_preferences, baking_settings):
     row.scale_y = 2
     layout.label(text="GENERAL SETTINGS")
 
-    split = layout.split(factor=0.25)
+    split = layout.split(factor=0.4)
     first_column = split.column()
     second_column = split.column()
 
     row = first_column.row()
-    row.label(text="High Poly Object ")
+    row.label(text="High Poly Object")
     row = second_column.row()
     row.prop(baking_settings, "high_poly_object", text="", slider=True)
 
     row = first_column.row()
-    row.label(text="Render Device ")
+    row.label(text="Render Device")
     row = second_column.row()
     row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
 
     row = first_column.row()
-    row.label(text="Mesh Map Quality ")
+    row.label(text="Mesh Map Quality")
     row = second_column.row()
     row.prop(addon_preferences, "mesh_map_quality", text="")
 
     row = first_column.row()
-    row.label(text="Anti-Aliasing")
+    row.label(text="Normals Anti-Aliasing")
     row = second_column.row()
-    row.prop(addon_preferences, "mesh_map_anti_aliasing", text="")
+    row.prop(addon_preferences, "normal_map_anti_aliasing", text="")
 
     row = first_column.row()
     row.label(text="Cage Mode")
