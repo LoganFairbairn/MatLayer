@@ -3,7 +3,7 @@
 import bpy
 from bpy.types import AddonPreferences, PropertyGroup
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty, FloatProperty, PointerProperty, CollectionProperty
-from .core.mesh_map_baking import update_occlusion_samples, update_occlusion_distance, update_occlusion_intensity, update_local_occlusion
+from .core.mesh_map_baking import update_occlusion_samples, update_occlusion_distance, update_occlusion_intensity, update_local_occlusion, update_bevel_radius, update_bevel_samples
 
 ADDON_NAME = __package__
 
@@ -234,6 +234,26 @@ class AddonPreferences(AddonPreferences):
         description="When off, other objects within the scene will contribute occlusion to the output maps",
         default=True,
         update=update_local_occlusion
+    )
+
+    bevel_radius: FloatProperty(
+        name="Bevel Radius",
+        description="Radius of the sharp edges baked into the curvature map",
+        default=0.005,
+        soft_min=0.001,
+        soft_max=0.01,
+        step=0.1,
+        precision=3,
+        update=update_bevel_radius
+    )
+
+    bevel_samples: IntProperty(
+        name="Bevel Samples",
+        description="Number of rays to trace per shader evaluation for curvature bevel (sharp edges) samples. Higher samples results in sharper edges",
+        default=2,
+        min=2,
+        max=16,
+        update=update_bevel_samples
     )
 
 

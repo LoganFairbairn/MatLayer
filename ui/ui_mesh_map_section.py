@@ -192,6 +192,11 @@ def draw_mesh_map_settings(layout, addon_preferences):
     second_column = split.column()
     
     row = first_column.row()
+    row.label(text="Local Occlusion")
+    row = second_column.row()
+    row.prop(addon_preferences, "local_occlusion", text="")
+
+    row = first_column.row()
     row.label(text="Occlusion Samples")
     row = second_column.row()
     row.prop(addon_preferences, "occlusion_samples", slider=True, text="")
@@ -207,9 +212,14 @@ def draw_mesh_map_settings(layout, addon_preferences):
     row.prop(addon_preferences, "occlusion_intensity", slider=True, text="")
 
     row = first_column.row()
-    row.label(text="Local Occlusion")
+    row.label(text="Bevel Radius")
     row = second_column.row()
-    row.prop(addon_preferences, "local_occlusion", text="")
+    row.prop(addon_preferences, "bevel_radius", text="")
+
+    row = first_column.row()
+    row.label(text="Bevel Samples")
+    row = second_column.row()
+    row.prop(addon_preferences, "bevel_samples", text="")
 
 def draw_baking_section_ui(self, context):
     '''Draws the baking section user interface'''

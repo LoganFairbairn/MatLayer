@@ -57,7 +57,19 @@ def update_local_occlusion(self, context):
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     node = get_meshmap_node('AMBIENT_OCCLUSION')
     if node:
-        node. only_local = addon_preferences.local_occlusion
+        node.only_local = addon_preferences.local_occlusion
+
+def update_bevel_radius(self, context):
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    node = get_meshmap_node('BEVEL')
+    if node:
+        node.inputs[0].default_value = addon_preferences.bevel_radius
+
+def update_bevel_samples(self, context):
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    node = get_meshmap_node('BEVEL')
+    if node:
+        node.samples = addon_preferences.bevel_samples
 
 
 #----------------------------- HELPER FUNCTIONS -----------------------------#
@@ -143,6 +155,8 @@ def apply_baking_settings():
     update_occlusion_distance(None, None)
     update_occlusion_intensity(None, None)
     update_local_occlusion(None, None)
+    update_bevel_radius(None, None)
+    update_bevel_samples(None, None)
 
 def apply_mesh_map_quality():
     '''Applies mesh map quality settings.'''
