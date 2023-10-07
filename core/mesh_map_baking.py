@@ -698,6 +698,9 @@ class MATLAYER_OT_preview_mesh_map(Operator):
         bpy.context.space_data.shading.type = 'RENDERED'
         bpy.context.scene.render.engine = 'CYCLES'
 
+        # Apply baking settings to the new material.
+        apply_baking_settings()
+
         return {'FINISHED'}
 
 class MATLAYER_OT_disable_mesh_map_preview(Operator):
