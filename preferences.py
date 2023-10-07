@@ -193,13 +193,13 @@ class AddonPreferences(AddonPreferences):
     bake_thickness: BoolProperty(
         name="Bake Thickness", 
         description="Toggle for baking thickness as part of the batch baking operator", 
-        default=True
+        default=False
     )
 
     bake_world_space_normals: BoolProperty(
         name="Bake World Space Normals", 
         description="Toggle for baking world space normals as part of the batch baking operator", 
-        default=True
+        default=False
     )
 
     occlusion_samples: IntProperty(
