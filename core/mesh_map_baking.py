@@ -1,6 +1,7 @@
 # This file contains baking operators and settings for common mesh map bake types.
 
 import os
+import time
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, PointerProperty
@@ -389,6 +390,7 @@ class MATLAYER_OT_batch_bake(Operator):
     _baked_mesh_map_count = 0
     _original_material_names = []
     _original_render_engine = None
+    _start_bake_time = 0
 
     # Users must have an object selected to call this operator.
     @ classmethod
@@ -478,6 +480,9 @@ class MATLAYER_OT_batch_bake(Operator):
         addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
         bpy.context.scene.pause_auto_updates = True
         debug_logging.log("Starting mesh map baking...", sub_process=False)
+
+        # Record the starting time before baking.
+        self._start_bake_time = time.time()
 
         # Ensure we start this operation in object mode.
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
@@ -645,13 +650,17 @@ class MATLAYER_OT_batch_bake(Operator):
 
         # Reset the render engine.
         bpy.context.scene.render.engine = self._original_render_engine
-        debug_logging.log_status("Baking mesh map(s) completed.", self, 'INFO')
 
         # Apply mesh maps to the existing material.
         material_layers.apply_mesh_maps()
 
         # Unpause auto updates, mark baking mesh maps as complete.
         bpy.context.scene.pause_auto_updates = False
+
+        # Log the end of baking mesh maps.
+        end_bake_time = time.time()
+        total_bake_time = end_bake_time - self._start_bake_time
+        debug_logging.log_status("Baking mesh map(s) completed, total bake time: {0} seconds.".format(round(total_bake_time), 1), self, 'INFO')
 
 class MATLAYER_OT_open_bake_folder(Operator):
     bl_idname = "matlayer.open_bake_folder"
