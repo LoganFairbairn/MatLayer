@@ -63,7 +63,12 @@ def update_bevel_radius(self, context):
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     node = get_meshmap_node('BEVEL')
     if node:
-        node.inputs[0].default_value = addon_preferences.bevel_radius
+        active_object = bpy.context.active_object
+        if addon_preferences.relative_to_bounding_box:
+            bounding_box_multiplier = (active_object.dimensions[0] + active_object.dimensions[1] + active_object.dimensions[2]) / 3
+            node.inputs[0].default_value = addon_preferences.bevel_radius * bounding_box_multiplier
+        else:
+            node.inputs[0].default_value = addon_preferences.bevel_radius
 
 def update_bevel_samples(self, context):
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
