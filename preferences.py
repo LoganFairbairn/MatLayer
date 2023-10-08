@@ -84,6 +84,7 @@ MESH_MAP_ANTI_ALIASING = [
 
 MESH_MAP_UPSCALE_MULTIPLIER = [
     ("NO_UPSCALE", "No Upscale", "All mesh maps will be baked at the pixel resolution defined in this materials texture set"),
+    ("1_75X", "1.75 Upscale", "All mesh maps will be baked at 0.75 of the pixel resolution defined in this materials texture set and then upscaled to match the texture set resolution"),
     ("2X", "2x Upscale", "All mesh maps will be baked at half of the pixel resolution defined in this materials texture set and then upscaled to match the texture set resolution"),
     ("4X", "4x Upscale", "All mesh maps will be baked at a quarter of the pixel resolution defined in this materials texture set and then upscaled to match the texture set resolution"),
     ("8X", "8x Upscale", "All mesh maps will be baked at 1 eighth of the pixel resolution defined in this materials texture set and then upscaled to match the texture set resolution")
@@ -149,7 +150,7 @@ class AddonPreferences(AddonPreferences):
         items=MESH_MAP_UPSCALE_MULTIPLIER,
         name="Mesh Map Upscale Multiplier",
         description="Bakes the mesh map at a smaller resolution, then upscales the mesh map image to match the texture set resolution. Baking at a lower resolution and upscaling allows mesh maps to bake much faster, but with lower quality and accuracy, however a small amount of blurring caused by upscaling mesh map images can result in better mesh maps in some cases",
-        default='2X'
+        default='1_75X'
     )
 
     mesh_map_quality: EnumProperty(

@@ -143,6 +143,8 @@ def create_bake_image(mesh_map_type, object_name):
     match addon_preferences.mesh_map_upscaling_multiplier:
         case 'NO_UPSCALE':
             upscale_multiplier = 1.0
+        case '1_75X':
+            upscale_multiplier = 0.75
         case '2X':
             upscale_multiplier = 0.5
         case '4X':
@@ -151,8 +153,8 @@ def create_bake_image(mesh_map_type, object_name):
             upscale_multiplier = 0.125
 
     # Create a new image in Blender's data, delete existing bake image if it exists.
-    new_image_width = int(tss.get_texture_width() * anti_aliasing_multiplier * upscale_multiplier)
-    new_image_height = int(tss.get_texture_height() * anti_aliasing_multiplier * upscale_multiplier)
+    new_image_width = int(round(tss.get_texture_width() * anti_aliasing_multiplier * upscale_multiplier))
+    new_image_height = int(round(tss.get_texture_height() * anti_aliasing_multiplier * upscale_multiplier))
     mesh_map_image = blender_addon_utils.create_image(
         new_image_name=mesh_map_name,
         image_width=new_image_width,
@@ -424,6 +426,8 @@ class MATLAYER_OT_batch_bake(Operator):
 
                     # Scale baked textures up to match the texture set resolution size.
                     match addon_preferences.mesh_map_upscaling_multiplier:
+                        case '1_75X':
+                            mesh_map_image.scale(int(round(mesh_map_image.size[0] * 1.333333)), int(round(mesh_map_image.size[1] * 1.333333)))
                         case '2X':
                             mesh_map_image.scale(int(mesh_map_image.size[0] * 2), int(mesh_map_image.size[1] * 2))
                         case '4X':
