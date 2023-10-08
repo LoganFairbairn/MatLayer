@@ -84,7 +84,7 @@ MESH_MAP_ANTI_ALIASING = [
 
 MESH_MAP_UPSCALE_MULTIPLIER = [
     ("NO_UPSCALE", "No Upscale", "All mesh maps will be baked at the pixel resolution defined in this materials texture set"),
-    ("1_75X", "1.75 Upscale", "All mesh maps will be baked at 0.75 of the pixel resolution defined in this materials texture set and then upscaled to match the texture set resolution"),
+    ("1_75X", "1.75x Upscale", "All mesh maps will be baked at 0.75 of the pixel resolution defined in this materials texture set and then upscaled to match the texture set resolution"),
     ("2X", "2x Upscale", "All mesh maps will be baked at half of the pixel resolution defined in this materials texture set and then upscaled to match the texture set resolution"),
     ("4X", "4x Upscale", "All mesh maps will be baked at a quarter of the pixel resolution defined in this materials texture set and then upscaled to match the texture set resolution"),
     ("8X", "8x Upscale", "All mesh maps will be baked at 1 eighth of the pixel resolution defined in this materials texture set and then upscaled to match the texture set resolution")
