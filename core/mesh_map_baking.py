@@ -138,11 +138,24 @@ def create_bake_image(mesh_map_type, object_name):
         case '4X':
             anti_aliasing_multiplier = 4
 
+    # Set an image pixel resolution multiplier for mesh map upscaling.
+    match addon_preferences.mesh_map_upscaling_multiplier:
+        case 'NO_UPSCALE':
+            upscale_multiplier = 1.0
+        case '2X':
+            upscale_multiplier = 0.5
+        case '4X':
+            upscale_multiplier = 0.25
+        case '8X':
+            upscale_multiplier = 0.125
+
     # Create a new image in Blender's data, delete existing bake image if it exists.
+    new_image_width = int(tss.get_texture_width() * anti_aliasing_multiplier * upscale_multiplier)
+    new_image_height = int(tss.get_texture_height() * anti_aliasing_multiplier * upscale_multiplier)
     mesh_map_image = blender_addon_utils.create_image(
         new_image_name=mesh_map_name,
-        image_width=tss.get_texture_width() * anti_aliasing_multiplier,
-        image_height=tss.get_texture_height() * anti_aliasing_multiplier,
+        image_width=new_image_width,
+        image_height=new_image_height,
         base_color=(0.0, 0.0, 0.0, 1.0),
         alpha_channel=False,
         thirty_two_bit=high_bit_depth,
@@ -409,6 +422,15 @@ class MATLAYER_OT_batch_bake(Operator):
                             mesh_map_image.scale(int(mesh_map_image.size[0] * 0.5), int(mesh_map_image.size[1] * 0.5))
                         case '4X':                            
                             mesh_map_image.scale(int(mesh_map_image.size[0] * 0.25), int(mesh_map_image.size[1] * 0.25))
+
+                    # Scale baked textures up to match the texture set resolution size.
+                    match addon_preferences.mesh_map_upscaling_multiplier:
+                        case '2X':
+                            mesh_map_image.scale(int(mesh_map_image.size[0] * 2), int(mesh_map_image.size[1] * 2))
+                        case '4X':
+                            mesh_map_image.scale(int(mesh_map_image.size[0] * 4), int(mesh_map_image.size[1] * 4))
+                        case '8X':
+                            mesh_map_image.scale(int(mesh_map_image.size[0] * 8), int(mesh_map_image.size[1] * 8))
 
                 # Log mesh map baking completion.
                 mesh_map_type = mesh_map_type.replace('_', ' ')

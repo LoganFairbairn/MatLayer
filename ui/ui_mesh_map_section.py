@@ -76,6 +76,11 @@ def draw_general_settings(layout, addon_preferences, baking_settings):
     row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
 
     row = first_column.row()
+    row.label(text="Upscale")
+    row = second_column.row()
+    row.prop(addon_preferences, "mesh_map_upscaling_multiplier", text="")
+
+    row = first_column.row()
     row.label(text="Mesh Map Quality")
     row = second_column.row()
     row.prop(addon_preferences, "mesh_map_quality", text="")
