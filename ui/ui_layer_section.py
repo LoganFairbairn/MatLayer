@@ -24,24 +24,32 @@ def draw_layers_section_ui(self, context):
     split = layout.split()
 
     column_one = split.column()
-    layer_count = material_layers.count_layers()
-    if layer_count > 0:
-        draw_material_property_tabs(column_one)
-        match bpy.context.scene.matlayer_material_property_tabs:
-            case 'MATERIAL':
-                draw_layer_projection(column_one)
-                draw_layer_material_channel_toggles(column_one)
-                draw_material_channel_properties(column_one)
-                draw_layer_properties(column_one)
+    if bpy.context.active_object == None:
+        row = column_one.row()
+        row.label(text="No active object / selecting hidden object.")
 
-            case 'MASKS':
-                draw_masks(column_one)
+    else:
+        layer_count = material_layers.count_layers()
+        if layer_count > 0:
+            draw_material_property_tabs(column_one)
+            match bpy.context.scene.matlayer_material_property_tabs:
+                case 'MATERIAL':
+                    draw_layer_projection(column_one)
+                    draw_layer_material_channel_toggles(column_one)
+                    draw_material_channel_properties(column_one)
+                    draw_layer_properties(column_one)
+
+                case 'MASKS':
+                    draw_masks(column_one)
 
     column_two = split.column()
-    draw_material_selector(column_two)
-    draw_selected_material_channel(column_two)
-    draw_layer_operations(column_two)
-    draw_layer_stack(column_two)
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
+    if layer_node:
+        draw_material_selector(column_two)
+        draw_selected_material_channel(column_two)
+        draw_layer_operations(column_two)
+        draw_layer_stack(column_two)
 
 def draw_material_selector(layout):
     '''Draws a material selector and layer stack refresh button.'''

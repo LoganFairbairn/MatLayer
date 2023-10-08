@@ -678,14 +678,19 @@ def refresh_layer_stack(reason="", scene=None):
         layers = bpy.context.scene.matlayer_layers
         
     layers.clear()
-    layer_count = count_layers()
-    for layer in range(0, layer_count):
-        add_material_layer_slot()
 
-    # Reset the layer index if it's out of range.
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    if selected_layer_index > len(layers) - 1 or selected_layer_index < 0:
-        bpy.context.scene.matlayer_layer_stack.selected_layer_index = 0
+    # Do not add material slots if there is no active object.
+    if bpy.context.active_object != None:
+
+        # Add a material slot for each material layer detected in the active material.
+        layer_count = count_layers()
+        for layer in range(0, layer_count):
+            add_material_layer_slot()
+
+        # Reset the layer index if it's out of range.
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        if selected_layer_index > len(layers) - 1 or selected_layer_index < 0:
+            bpy.context.scene.matlayer_layer_stack.selected_layer_index = 0
 
     if reason != "":
         debug_logging.log("Refreshed layer stack due to: " + reason, sub_process=True)
