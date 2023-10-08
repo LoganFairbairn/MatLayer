@@ -39,7 +39,7 @@ def draw_mesh_map_status(layout, addon_preferences):
             col.label(text="No Active Object")
 
         col = row.column()
-        col.scale_x = 0.5
+        col.scale_x = 0.7
         col.prop(addon_preferences.mesh_map_anti_aliasing, mesh_map_type.lower() + "_anti_aliasing", text="")
 
         col = row.column()
