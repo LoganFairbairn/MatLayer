@@ -45,11 +45,10 @@ def draw_layers_section_ui(self, context):
     column_two = split.column()
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
-    if layer_node:
-        draw_material_selector(column_two)
-        draw_selected_material_channel(column_two)
-        draw_layer_operations(column_two)
-        draw_layer_stack(column_two)
+    draw_material_selector(column_two)
+    draw_selected_material_channel(column_two)
+    draw_layer_operations(column_two)
+    draw_layer_stack(column_two)
 
 def draw_material_selector(layout):
     '''Draws a material selector and layer stack refresh button.'''

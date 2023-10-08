@@ -80,14 +80,14 @@ def update_bevel_samples(self, context):
 #----------------------------- HELPER FUNCTIONS -----------------------------#
 
 
-def get_meshmap_node(node_type):
+def get_meshmap_node(node_name):
     '''Returns a node found within a mesh map material setup if it exists.'''
     active_object = bpy.context.active_object
     if active_object:
         if active_object.active_material:
-            ao_node = active_object.active_material.node_tree.nodes.get('MESH_MAP')
-            if ao_node:
-                return ao_node.node_tree.nodes.get(node_type)
+            node = active_object.active_material.node_tree.nodes.get('MESH_MAP')
+            if node:
+                return node.node_tree.nodes.get(node_name)
             else:
                 debug_logging.log("Mesh map group node does not exist.")
 
@@ -236,9 +236,6 @@ def bake_mesh_map(mesh_map_type, object_name, self):
 
     self._temp_bake_material_name = temp_bake_material.name
 
-    # Apply baking settings to the baking material setup.
-    apply_baking_settings()
-
     # Create and assign an image to bake the mesh map to.
     new_bake_image = create_bake_image(mesh_map_type, object_name)
     self._mesh_map_image_index = bpy.data.images.find(new_bake_image.name)
@@ -279,12 +276,12 @@ def bake_mesh_map(mesh_map_type, object_name, self):
 
         # Apply high to low poly render settings
         bpy.context.scene.render.bake.use_selected_to_active = True
-        #bpy.context.scene.render.bake.cage_extrusion = addon_preferences.cage_extrusion
 
     else:
         bpy.context.scene.render.bake.use_selected_to_active = False
 
-    # Apply mesh map quality settings.
+    # Apply mesh map quality and baking settings.
+    apply_baking_settings()
     apply_mesh_map_quality()
 
     # Trigger the baking process.

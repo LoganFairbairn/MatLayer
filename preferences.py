@@ -253,7 +253,7 @@ class AddonPreferences(AddonPreferences):
     bevel_radius: FloatProperty(
         name="Bevel Radius",
         description="Radius of the sharp edges baked into the curvature map",
-        default=0.005,
+        default=0.001,
         soft_min=0.001,
         soft_max=0.01,
         step=0.1,
