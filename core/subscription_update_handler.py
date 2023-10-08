@@ -43,8 +43,6 @@ def on_active_material_changed(scene):
     if bpy.context.scene.pause_auto_updates == False:
         active_object = bpy.context.view_layer.objects.active
         if active_object:
-            debug_logging.log("Active material change detected, updating properties...", sub_process=True)
-
             if active_object.active_material:
                 if bpy.types.Scene.previous_active_material_name != active_object.active_material.name:
                     sub_to_active_material_index(active_object)
