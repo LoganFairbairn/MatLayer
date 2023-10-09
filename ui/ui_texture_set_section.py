@@ -10,7 +10,6 @@ def draw_texture_set_section_ui(self, context):
 
     # Draw texture set settings.
     layout = self.layout
-    SCALE_Y = 1.4
     texture_set_settings = context.scene.matlayer_texture_set_settings
 
     #----------------------------- TEXTURE SET SETTINGS -----------------------------#
@@ -20,11 +19,9 @@ def draw_texture_set_section_ui(self, context):
     second_column = split.column()
 
     row = first_column.row()
-    row.scale_y = SCALE_Y
     row.label(text="Texture Size: ")
     
     row = second_column.row()
-    row.scale_y = SCALE_Y
     col = row.split()
     col.prop(texture_set_settings, "image_width", text="")
 
@@ -40,22 +37,25 @@ def draw_texture_set_section_ui(self, context):
     col.prop(texture_set_settings, "image_height", text="")
 
     row = first_column.row()
-    row.scale_y = SCALE_Y
     row.label(text="Thirty Two Bit Depth: ")
     row = second_column.row()
-    row.scale_y = SCALE_Y
     row.prop(texture_set_settings, "thirty_two_bit")
-
-    #----------------------------- GLOBAL MATERIAL CHANNEL TOGGLES -----------------------------#
 
     active_object = bpy.context.active_object
     if active_object:
         if active_object.active_material:
             if blender_addon_utils.verify_addon_material(active_object.active_material):
+                if tss.get_material_channel_active('ALPHA'):
+                    row = first_column.row()
+                    row.label(text="Alpha Clip")
+                    row = second_column.row()
+                    row.prop(active_object.active_material, "alpha_threshold", text="")
+
+                # Draw global material channel toggles.
                 layout.label(text="MATERIAL CHANNELS")
                 for material_channel_name in MATERIAL_CHANNEL_LIST:
                     row = layout.row()
-                    row.scale_y = SCALE_Y
+                    row.scale_y = 1.4
                     if tss.get_material_channel_active(material_channel_name):
                         operator = row.operator("matlayer.toggle_texture_set_material_channel", text=material_channel_name.capitalize(), depress=True)
                     else:
