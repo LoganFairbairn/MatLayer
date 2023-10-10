@@ -4,6 +4,7 @@ import bpy
 from bpy.types import PropertyGroup, Operator
 from bpy.props import BoolProperty, StringProperty, EnumProperty
 from ..core import blender_addon_utils
+from ..core import material_layers
 
 # Available texture resolutions for texture sets.
 TEXTURE_SET_RESOLUTIONS = [
@@ -100,11 +101,22 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
         if channel_toggle_node.mute:
             channel_toggle_node.mute = False
 
+            # Connect the last layer node for the toggled material channel to the principled bsdf.
+            principled_bsdf = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+            total_layers = material_layers.count_layers(active_material)
+            last_layer_node = material_layers.get_material_layer_node('LAYER', total_layers - 1)
+            active_material.node_tree.links.new(last_layer_node.outputs.get(self.material_channel_name.capitalize()), principled_bsdf.inputs.get(self.material_channel_name.capitalize()))
+
             # Toggle on alpha clip to allow transparency.
             if self.material_channel_name == 'ALPHA':
                 active_material.blend_method = 'CLIP'
         else:
             channel_toggle_node.mute = True
+
+            # Disconnect the last layer node for the toggled material channel from the principled bsdf.
+            principled_bsdf = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+            for link in principled_bsdf.inputs.get(self.material_channel_name.capitalize()).links:
+                active_material.node_tree.links.remove(link)
 
             # Toggle off alpha clip for better shader performance.
             if self.material_channel_name == 'ALPHA':

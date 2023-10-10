@@ -736,11 +736,6 @@ def link_layer_group_nodes(self):
             if next_layer_node:
                 if blender_addon_utils.get_node_active(next_layer_node):
                     for material_channel_name in MATERIAL_CHANNEL_LIST:
-
-                        # Only connect active material channels.
-                        if not tss.get_material_channel_active(material_channel_name):
-                            continue
-
                         output_socket_name = material_channel_name.capitalize()
                         input_socket_name = "{0}Mix".format(material_channel_name.capitalize())
                         node_tree.links.new(layer_node.outputs.get(output_socket_name), next_layer_node.inputs.get(input_socket_name))
