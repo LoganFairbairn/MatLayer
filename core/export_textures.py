@@ -16,7 +16,7 @@ from .. import preferences
 
 def format_baked_material_channel_name(material_name, material_channel_name):
     '''Properly formats the baked material channel name.'''
-    return "ML_{0}_{1}".format(material_name, material_channel_name.capitalize())
+    return "ML_{0}_{1}".format(material_name.replace('_', ''), material_channel_name.capitalize())
 
 def enumerate_color_channel(color_channel):
     '''Returns an interger value for the provided color channel.'''
@@ -673,7 +673,9 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
 
     # For baking individual materials to textures, create new images to bake to.
     else:
-        image_name = format_baked_material_channel_name(bpy.context.active_object.active_material.name, export_channel_name)
+        material_name = bpy.context.active_object.active_material.name
+        material_name = material_name.split('_', '')
+        image_name = format_baked_material_channel_name(material_name, export_channel_name)
         export_image = blender_addon_utils.create_image(
             new_image_name=image_name,
             image_width=tss.get_texture_width(),

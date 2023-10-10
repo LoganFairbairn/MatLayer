@@ -94,6 +94,7 @@ def get_meshmap_node(node_name):
 
 def get_meshmap_name(mesh_name, mesh_map_type):
     '''Returns the image file name for the mesh map of the specified type. The mesh name can be an objects name if the object is a mesh type.'''
+    mesh_name = mesh_name.replace('_', '')
     match mesh_map_type:
         case 'AMBIENT_OCCLUSION':
             return "{0}_AO".format(mesh_name)

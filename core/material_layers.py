@@ -333,7 +333,7 @@ def add_material_layer(layer_type, self):
     active_object = bpy.context.active_object
     if len(active_object.material_slots) == 0:
         new_material = blender_addon_utils.append_material("DefaultMatLayerMaterial")
-        new_material_name = blender_addon_utils.get_unique_material_name(active_object.name)
+        new_material_name = blender_addon_utils.get_unique_material_name(active_object.name.replace('_', ''))
         new_material.name = new_material_name
         active_object.data.materials.append(new_material)
         active_object.active_material_index = 0
@@ -341,7 +341,7 @@ def add_material_layer(layer_type, self):
     # If material slots exist on the object, but the active material slot is empty, add a new material.
     elif active_object.material_slots[active_object.active_material_index].material == None:
         new_material = blender_addon_utils.append_material("DefaultMatLayerMaterial")
-        new_material_name = blender_addon_utils.get_unique_material_name(active_object.name)
+        new_material_name = blender_addon_utils.get_unique_material_name(active_object.name.replace('_', ''))
         new_material.name = new_material_name
         active_object.material_slots[active_object.active_material_index].material = new_material
 
