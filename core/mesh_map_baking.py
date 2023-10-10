@@ -522,7 +522,7 @@ class MATLAYER_OT_batch_bake(Operator):
                     bpy.ops.mesh.select_all(action='SELECT')
                     bpy.ops.transform.shrink_fatten(
                         value=addon_preferences.cage_upscale,
-                        use_even_offset=False, 
+                        use_even_offset=True,
                         mirror=True, 
                         use_proportional_edit=False,
                         proportional_edit_falloff='SMOOTH', 
@@ -533,7 +533,6 @@ class MATLAYER_OT_batch_bake(Operator):
                     )
 
                     # Triangulate the automatically created cage object.
-                    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
                     if addon_preferences.triangulate:
                         blender_addon_utils.add_modifier(auto_cage_object, new_modifier_type='TRIANGULATE', modifier_name='BAKE_TRIANGULATE', only_one=True)
                         bpy.ops.object.modifier_apply(modifier="BAKE_TRIANGULATE", report=True)
