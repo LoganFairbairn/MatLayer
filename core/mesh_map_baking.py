@@ -291,6 +291,7 @@ def bake_mesh_map(mesh_map_type, object_name, self):
     # Apply mesh map quality and baking settings.
     apply_baking_settings()
     apply_mesh_map_quality()
+    bpy.context.scene.render.bake.margin = addon_preferences.uv_padding
 
     # Trigger the baking process.
     match mesh_map_type:

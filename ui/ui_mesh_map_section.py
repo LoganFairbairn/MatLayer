@@ -110,14 +110,49 @@ def draw_general_settings(layout, addon_preferences, baking_settings):
             row.prop(bpy.context.scene.render.bake, "cage_object", text="")
 
     row = first_column.row()
-    row.label(text="Margin")
+    row.label(text="UV Padding")
     row = second_column.row()
-    row.prop(bpy.context.scene.render.bake, "margin", text="")
+    row.prop(addon_preferences, "uv_padding", text="")
+
+    row = first_column.row()
+    row.label(text="Occlusion Samples")
+    row = second_column.row()
+    row.prop(addon_preferences, "occlusion_samples", slider=True, text="")
+
+    row = first_column.row()
+    row.label(text="Occlusion Distance")
+    row = second_column.row()
+    row.prop(addon_preferences, "occlusion_distance", slider=True, text="")
+
+    row = first_column.row()
+    row.label(text="Occlusion Intensity")
+    row = second_column.row()
+    row.prop(addon_preferences, "occlusion_intensity", slider=True, text="")
+
+    row = first_column.row()
+    row.label(text="Bevel Radius")
+    row = second_column.row()
+    row.prop(addon_preferences, "bevel_radius", text="")
+
+    row = first_column.row()
+    row.label(text="Bevel Samples")
+    row = second_column.row()
+    row.prop(addon_preferences, "bevel_samples", text="")
+
+    row = first_column.row()
+    row.label(text="Relative to Bounding Box")
+    row = second_column.row()
+    row.prop(addon_preferences, "relative_to_bounding_box", text="")
 
     row = first_column.row()
     row.label(text="Triangulate")
     row = second_column.row()
     row.prop(addon_preferences, "triangulate", text="")
+
+    row = first_column.row()
+    row.label(text="Local Occlusion")
+    row = second_column.row()
+    row.prop(addon_preferences, "local_occlusion", text="")
 
 def draw_curvature_settings(layout, addon_preferences):
     layout.separator()
@@ -181,51 +216,6 @@ def draw_normal_settings(layout):
     row = second_column.row()
     row.prop(bpy.data.scenes["Scene"].render.bake, "max_ray_distance", slider=True)
 
-def draw_mesh_map_settings(layout, addon_preferences):
-    '''Draws settings for individual mesh maps.'''
-    layout.separator()
-
-    layout.label(text="MESH MAP SETTINGS")
-
-    split = layout.split(factor=0.3)
-    first_column = split.column()
-    second_column = split.column()
-    
-    row = first_column.row()
-    row.label(text="Local Occlusion")
-    row = second_column.row()
-    row.prop(addon_preferences, "local_occlusion", text="")
-
-    row = first_column.row()
-    row.label(text="Occlusion Samples")
-    row = second_column.row()
-    row.prop(addon_preferences, "occlusion_samples", slider=True, text="")
-
-    row = first_column.row()
-    row.label(text="Occlusion Distance")
-    row = second_column.row()
-    row.prop(addon_preferences, "occlusion_distance", slider=True, text="")
-
-    row = first_column.row()
-    row.label(text="Occlusion Intensity")
-    row = second_column.row()
-    row.prop(addon_preferences, "occlusion_intensity", slider=True, text="")
-
-    row = first_column.row()
-    row.label(text="Relative to Bounding Box")
-    row = second_column.row()
-    row.prop(addon_preferences, "relative_to_bounding_box", text="")
-
-    row = first_column.row()
-    row.label(text="Bevel Radius")
-    row = second_column.row()
-    row.prop(addon_preferences, "bevel_radius", text="")
-
-    row = first_column.row()
-    row.label(text="Bevel Samples")
-    row = second_column.row()
-    row.prop(addon_preferences, "bevel_samples", text="")
-
 def draw_baking_section_ui(self, context):
     '''Draws the baking section user interface'''
     ui_section_tabs.draw_section_tabs(self, context)
@@ -249,4 +239,3 @@ def draw_baking_section_ui(self, context):
 
     draw_mesh_map_status(layout, addon_preferences)
     draw_general_settings(layout, addon_preferences, baking_settings)
-    draw_mesh_map_settings(layout, addon_preferences)

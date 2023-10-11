@@ -175,6 +175,14 @@ class AddonPreferences(AddonPreferences):
         max=0.1
     )
 
+    uv_padding: IntProperty(
+        name="UV Padding",
+        description="Amount of padding in pixels to extend the baked data out of UV islands. This ensures there is no visible seams between UV splits",
+        default=32,
+        min=4,
+        max=64
+    )
+
     triangulate: BoolProperty(
         name="Triangulate", 
         description="Adds a triangulation modifier to both the low and high poly objects before baking mesh maps. Triangulate modifiers are removed after baking. Triangulating your models before baking results in more consistent baking quality", 
