@@ -585,15 +585,11 @@ def draw_layer_properties(layout):
 
     row = layout.row()
     row.label(text="LAYER PROPERTIES")
+
+    # Draw blur settings.
     draw_layer_blur_settings(layout)
 
-    if tss.get_material_channel_active('EMISSION'):
-        active_object = bpy.context.active_object
-        if active_object:
-            if active_object.active_material:
-                principled_bsdf_node = active_object.active_material.node_tree.nodes.get('MATLAYER_BSDF')
-                row = layout.row()
-                row.prop(principled_bsdf_node.inputs.get('Emission Strength'), "default_value", text="Emission Strength", slider=True)
+
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
