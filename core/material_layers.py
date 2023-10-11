@@ -190,6 +190,9 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
             else:
                 return active_material.node_tree.nodes.get(str(layer_index))
             
+        case 'NORMAL_HEIGHT_MIX':
+            return active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
+        
         case 'GLOBAL':
             global_channel_toggle_node_name = "GLOBAL_{0}_TOGGLE".format(material_channel_name)
             return active_material.node_tree.nodes.get(global_channel_toggle_node_name)

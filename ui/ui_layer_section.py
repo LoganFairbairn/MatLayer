@@ -589,7 +589,10 @@ def draw_layer_properties(layout):
     # Draw blur settings.
     draw_layer_blur_settings(layout)
 
-
+    # Draw base height value.
+    normal_height_mix_node = material_layers.get_material_layer_node('NORMAL_HEIGHT_MIX')
+    row = layout.row()
+    row.prop(normal_height_mix_node.inputs.get('Base Height'), "default_value", text="Base Height", slider=True)
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
