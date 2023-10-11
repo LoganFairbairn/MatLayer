@@ -183,12 +183,6 @@ class AddonPreferences(AddonPreferences):
         max=64
     )
 
-    triangulate: BoolProperty(
-        name="Triangulate", 
-        description="Adds a triangulation modifier to both the low and high poly objects before baking mesh maps. Triangulate modifiers are removed after baking. Triangulating your models before baking results in more consistent baking quality", 
-        default=True
-    )
-
     relative_to_bounding_box: BoolProperty(
         name="Relative to Bounding Box",
         description="If true, the sampling radius and cage upscaling used in mesh map baking will be multiplied by the average size of the active objects bounding box",

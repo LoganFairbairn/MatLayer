@@ -145,11 +145,6 @@ def draw_general_settings(layout, addon_preferences, baking_settings):
     row.prop(addon_preferences, "relative_to_bounding_box", text="")
 
     row = first_column.row()
-    row.label(text="Triangulate")
-    row = second_column.row()
-    row.prop(addon_preferences, "triangulate", text="")
-
-    row = first_column.row()
     row.label(text="Local Occlusion")
     row = second_column.row()
     row.prop(addon_preferences, "local_occlusion", text="")
