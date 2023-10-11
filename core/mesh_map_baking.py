@@ -64,9 +64,8 @@ def update_bevel_radius(self, context):
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     node = get_meshmap_node('BEVEL')
     if node:
-        active_object = bpy.context.active_object
         if addon_preferences.relative_to_bounding_box:
-            bounding_box_multiplier = (active_object.dimensions[0] + active_object.dimensions[1] + active_object.dimensions[2]) / 3
+            bounding_box_multiplier = get_bounding_box_multiplier()
             node.inputs[0].default_value = addon_preferences.bevel_radius * bounding_box_multiplier
         else:
             node.inputs[0].default_value = addon_preferences.bevel_radius
@@ -80,6 +79,11 @@ def update_bevel_samples(self, context):
 
 #----------------------------- HELPER FUNCTIONS -----------------------------#
 
+def get_bounding_box_multiplier():
+    '''Returns the average of the active mesh dimensions to multiply into distance based baking properties.'''
+    active_object = bpy.context.active_object
+    bounding_box_multiplier = (active_object.dimensions[0] + active_object.dimensions[1] + active_object.dimensions[2]) / 3
+    return bounding_box_multiplier
 
 def get_meshmap_node(node_name):
     '''Returns a node found within a mesh map material setup if it exists.'''
@@ -517,11 +521,16 @@ class MATLAYER_OT_batch_bake(Operator):
                     bpy.context.collection.objects.link(auto_cage_object)
                     bpy.context.scene.render.bake.cage_object = auto_cage_object
 
+                    bounding_box_multiplier = 1.0
+                    if addon_preferences.relative_to_bounding_box:
+                        bounding_box_multiplier = get_bounding_box_multiplier()
+                    cage_upscale = addon_preferences.cage_upscale * bounding_box_multiplier
+
                     blender_addon_utils.select_only(auto_cage_object)
                     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
                     bpy.ops.mesh.select_all(action='SELECT')
                     bpy.ops.transform.shrink_fatten(
-                        value=addon_preferences.cage_upscale,
+                        value=cage_upscale,
                         use_even_offset=True,
                         mirror=True, 
                         use_proportional_edit=False,
@@ -533,6 +542,7 @@ class MATLAYER_OT_batch_bake(Operator):
                     )
 
                     # Triangulate the automatically created cage object.
+                    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
                     if addon_preferences.triangulate:
                         blender_addon_utils.add_modifier(auto_cage_object, new_modifier_type='TRIANGULATE', modifier_name='BAKE_TRIANGULATE', only_one=True)
                         bpy.ops.object.modifier_apply(modifier="BAKE_TRIANGULATE", report=True)
