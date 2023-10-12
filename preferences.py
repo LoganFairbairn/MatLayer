@@ -277,7 +277,6 @@ class AddonPreferences(AddonPreferences):
     #----------------------------- TEXTURE EXPORTING PROPERTIES -----------------------------#
 
     export_template_name: StringProperty(name="Export Template Name", default="Unreal Engine 4 (Metallic, Packed)")
-    padding: IntProperty(name="Padding", default=16)
     export_textures: CollectionProperty(type=MATLAYER_texture_export_settings)
     roughness_mode: EnumProperty(name="Roughness Mode", items=ROUGHNESS_MODE, default='ROUGHNESS')
     normal_map_mode: EnumProperty(name="Normal Map Mode", items=NORMAL_MAP_MODE, default='OPEN_GL')

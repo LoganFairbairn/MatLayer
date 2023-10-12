@@ -121,6 +121,6 @@ def draw_export_section_ui(self, context):
     row.prop_enum(addon_preferences, "roughness_mode", 'SMOOTHNESS')
 
     row = first_column.row()
-    row.label(text="Padding")
+    row.label(text="UV Padding")
     row = second_column.row()
-    row.prop(addon_preferences, "padding", text="")
+    row.prop(addon_preferences, "uv_padding", text="")

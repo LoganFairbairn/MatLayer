@@ -866,6 +866,9 @@ class MATLAYER_OT_export(Operator):
         # Remember the original render engine so we can reset it after baking.
         self._original_render_engine_name = bpy.context.scene.render.engine
 
+        # Apply the uv padding (margin) to the bake settings.
+        bpy.context.scene.render.bake.margin = addon_preferences.uv_padding
+
         # Add a timer to provide periodic timer events.
         wm = context.window_manager
         self._timer = wm.event_timer_add(0.5, window=context.window)
