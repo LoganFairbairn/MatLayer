@@ -282,6 +282,13 @@ class AddonPreferences(AddonPreferences):
     normal_map_mode: EnumProperty(name="Normal Map Mode", items=NORMAL_MAP_MODE, default='OPEN_GL')
     export_mode: EnumProperty(name="Export Active Material", items=EXPORT_MODE, description="Exports only the active material using the defined export settings", default='SINGLE_TEXTURE_SET')
 
+    #----------------------------- TEXTURE PROPERTIES -----------------------------#
+
+    thirty_two_bit: BoolProperty(
+        name="32 Bit Color", 
+        description="When toggled on, images created using this add-on will be created with 32 bit color depth. 32-bit images will take up more memory, but will have significantly less color banding in gradients", 
+        default=True)
+
     #----------------------------- DRAWING -----------------------------#
     def draw(self, context):
         layout = self.layout

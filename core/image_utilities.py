@@ -7,6 +7,7 @@ from bpy_extras.io_utils import ImportHelper        # For importing images.
 from ..core import texture_set_settings as tss
 from ..core import debug_logging
 from ..core import blender_addon_utils
+from .. import preferences
 import random
 import os                                           # For saving layer images.
 
@@ -75,9 +76,10 @@ class MATLAYER_OT_add_texture_node_image(Operator):
             image_name = "Image_" + get_random_image_id()
 
         # Create a new image of the texture size defined in the texture set settings.
+        addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
         image_width = tss.get_texture_width()
         image_height = tss.get_texture_height()
-        new_image = blender_addon_utils.create_image(image_name, image_width, image_height, alpha_channel=True, thirty_two_bit=True)
+        new_image = blender_addon_utils.create_image(image_name, image_width, image_height, alpha_channel=True, thirty_two_bit=addon_preferences.thirty_two_bit)
     
         # If a material channel is defined, set the color space.
         if self.material_channel_name != "":

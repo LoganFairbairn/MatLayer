@@ -3,6 +3,7 @@ from .import ui_section_tabs
 from ..core.material_layers import MATERIAL_CHANNEL_LIST
 from ..core import texture_set_settings as tss
 from ..core import blender_addon_utils
+from .. import preferences
 
 def draw_texture_set_section_ui(self, context):
     '''Draws the layer section UI.'''
@@ -38,12 +39,13 @@ def draw_texture_set_section_ui(self, context):
         col.enabled = False
     col.prop(texture_set_settings, "image_height", text="")
 
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     row = first_column.row()
     row.scale_y = 1.4
     row.label(text="Thirty Two Bit Depth: ")
     row = second_column.row()
     row.scale_y = 1.4
-    row.prop(texture_set_settings, "thirty_two_bit")
+    row.prop(addon_preferences, "thirty_two_bit")
 
     active_object = bpy.context.active_object
     if active_object:

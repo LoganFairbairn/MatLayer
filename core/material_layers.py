@@ -4,10 +4,11 @@ import bpy
 from bpy.types import PropertyGroup, Operator
 from bpy.props import IntProperty, EnumProperty, StringProperty
 from ..core import layer_masks
-from . import mesh_map_baking
+from ..core import mesh_map_baking
 from ..core import blender_addon_utils
 from ..core import debug_logging
 from ..core import texture_set_settings as tss
+from .. import preferences
 import random
 
 # List of node types that can be used in the texture slot.
@@ -388,7 +389,9 @@ def add_material_layer(layer_type, self):
     match layer_type:
         case 'PAINT':
             replace_material_channel_node('COLOR', 'TEXTURE')
-            new_image = blender_addon_utils.create_image("Paint", base_color=(0.0, 0.0, 0.0, 0.0), alpha_channel=True, add_unique_id=True)
+            addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+            high_bit_depth = addon_preferences.thirty_two_bit
+            new_image = blender_addon_utils.create_image("Paint", base_color=(0.0, 0.0, 0.0, 0.0), alpha_channel=True, add_unique_id=True, thirty_two_bit=high_bit_depth)
             texture_node = get_material_layer_node('VALUE', new_layer_slot_index, 'COLOR')
             if texture_node:
                 texture_node.image = new_image
