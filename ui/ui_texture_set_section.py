@@ -49,23 +49,6 @@ def draw_texture_set_section_ui(self, context):
     if active_object:
         if active_object.active_material:
             if blender_addon_utils.verify_addon_material(active_object.active_material):
-                if tss.get_material_channel_active('ALPHA'):
-                    row = first_column.row()
-                    row.scale_y = 1.4
-                    row.label(text="Alpha Clip")
-                    row = second_column.row()
-                    row.scale_y = 1.4
-                    row.prop(active_object.active_material, "alpha_threshold", text="")
-
-                # Draw global emission strength.
-                if tss.get_material_channel_active('EMISSION'):
-                    principled_bsdf_node = active_object.active_material.node_tree.nodes.get('MATLAYER_BSDF')
-                    row = first_column.row()
-                    row.scale_y = 1.4
-                    row.label(text="Emission Strength")
-                    row = second_column.row()
-                    row.scale_y = 1.4
-                    row.prop(principled_bsdf_node.inputs.get('Emission Strength'), "default_value", text="Emission Strength", slider=True)
 
                 # Draw global material channel toggles.
                 layout.label(text="MATERIAL CHANNELS")

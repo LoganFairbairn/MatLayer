@@ -38,6 +38,7 @@ def draw_layers_section_ui(self, context):
                     draw_layer_material_channel_toggles(column_one)
                     draw_material_channel_properties(column_one)
                     draw_layer_properties(column_one)
+                    draw_global_material_properties(column_one)
 
                 case 'MASKS':
                     draw_masks(column_one)
@@ -589,10 +590,51 @@ def draw_layer_properties(layout):
     # Draw blur settings.
     draw_layer_blur_settings(layout)
 
-    # Draw base height value.
-    normal_height_mix_node = material_layers.get_material_layer_node('NORMAL_HEIGHT_MIX')
-    row = layout.row()
-    row.prop(normal_height_mix_node.inputs.get('Base Height'), "default_value", text="Base Height", slider=True)
+def draw_global_material_properties(layout):
+    '''Draws properties for the material.'''
+    active_object = bpy.context.active_object
+    if active_object:
+        if active_object.active_material:
+            row = layout.row()
+            row.separator()
+            row.scale_y = 2
+
+            row = layout.row()
+            row.label(text="GLOBAL PROPERTIES")
+
+            split = layout.split(factor=0.4)
+            first_column = split.column()
+            second_column = split.column()
+
+            # Draw the global base height value.
+            normal_height_mix_node = material_layers.get_material_layer_node('NORMAL_HEIGHT_MIX')
+            if normal_height_mix_node:
+                row = first_column.row()
+                row.label(text="Base Height")
+                row = second_column.row()
+                row.prop(normal_height_mix_node.inputs.get('Base Height'), "default_value", text="", slider=True)
+
+            # Draw the global alpha clip value.
+            if tss.get_material_channel_active('ALPHA'):
+                row = first_column.row()
+                row.label(text="Alpha Clip")
+                row = second_column.row()
+                row.prop(active_object.active_material, "alpha_threshold", text="")
+
+            # Draw the global emission strength value.
+            principled_bsdf_node = active_object.active_material.node_tree.nodes.get('MATLAYER_BSDF')
+            if tss.get_material_channel_active('EMISSION'):
+                row = first_column.row()
+                row.label(text="Emission Strength")
+                row = second_column.row()
+                row.prop(principled_bsdf_node.inputs.get('Emission Strength'), "default_value", text="", slider=True)
+
+            # Draw the global subsurface color value.
+            if tss.get_material_channel_active('SUBSURFACE'):
+                row = first_column.row()
+                row.label(text="Subsurface Color")
+                row = second_column.row()
+                row.prop(principled_bsdf_node.inputs.get('Subsurface Color'), "default_value", text="", slider=True)
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
