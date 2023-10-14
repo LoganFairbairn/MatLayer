@@ -831,6 +831,9 @@ class MATLAYER_OT_export(Operator):
         if bpy.app.is_job_running('OBJECT_BAKE') == True:
             debug_logging.log_status("Bake job already in process, cancel or wait until the bake is finished before starting another.", self)
             return {'FINISHED'}
+        
+        # Set the viewport shading mode to 'Material' (helps bake materials slightly faster).
+        bpy.context.space_data.shading.type = 'MATERIAL'
 
         # Get the number of materials to bake and export.
         addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
