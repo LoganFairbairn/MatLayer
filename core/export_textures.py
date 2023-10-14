@@ -674,7 +674,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     # For baking individual materials to textures, create new images to bake to.
     else:
         material_name = bpy.context.active_object.active_material.name
-        material_name = material_name.split('_', '')
+        material_name = material_name.replace('_', '')
         image_name = format_baked_material_channel_name(material_name, export_channel_name)
         export_image = blender_addon_utils.create_image(
             new_image_name=image_name,
