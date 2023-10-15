@@ -68,7 +68,9 @@ def draw_export_section_ui(self, context):
         # Draw texture settings.
         col = first_column.column(align=True)
         col.prop(texture, "name_format", text="")
-        col.prop(texture, "image_format", text="", emboss=True)
+        row = col.row()
+        row.prop(texture, "image_format", text="", emboss=True)
+        row.prop(texture, "colorspace", text="", emboss=True)
         col.prop(texture, "bit_depth", text="", emboss=True)
 
         # Draw channel packing settings.

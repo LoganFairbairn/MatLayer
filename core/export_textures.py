@@ -8,6 +8,7 @@ from ..core import texture_set_settings as tss
 from ..core import debug_logging
 from ..core import blender_addon_utils
 from ..core import material_layers
+from ..core import image_utilities
 from .. import preferences
 
 
@@ -33,7 +34,7 @@ def enumerate_color_channel(color_channel):
         case 'A':
             return 3
 
-def channel_pack(input_textures, input_packing, output_packing, image_name_format, color_bit_depth, file_format):
+def channel_pack(input_textures, input_packing, output_packing, image_name_format, color_bit_depth, file_format, colorspace):
     '''Channel packs the provided images into RGBA channels of a single image. Accepts None.'''
 
     # Create an array of output pixels using the first valid input texture.
@@ -87,7 +88,7 @@ def channel_pack(input_textures, input_packing, output_packing, image_name_forma
     if os.path.exists(export_path) == False:
         os.mkdir(export_path)
 
-    # Create image using the packed pixels.
+    # Create an image using the packed pixels and save them to the disk.
     image_name = format_export_image_name(image_name_format)
     packed_image = blender_addon_utils.create_data_image(image_name,
                                                          image_width=w,
@@ -96,11 +97,20 @@ def channel_pack(input_textures, input_packing, output_packing, image_name_forma
                                                          thirty_two_bit=use_thirty_two_bit,
                                                          data=True,
                                                          delete_existing=True)
+    packed_image.colorspace_settings.name = 'Linear'
     packed_image.file_format = file_format
     packed_image.filepath = "{0}/{1}.{2}".format(export_path, image_name, file_format.lower())
     packed_image.pixels.foreach_set(output_pixels)
     packed_image.save()
-    blender_addon_utils.save_image(packed_image, file_format, 'EXPORT_TEXTURE')
+   
+    # Save the packed image to a folder in the correct color space (note that the image must be saved already before the color space is shifted otherwise the output will be blank).
+    match colorspace:
+        case 'SRGB':
+            saved_colorspace =  'sRGB'
+        case 'NON_COLOR':
+            saved_colorspace =  'Non-Color'
+
+    blender_addon_utils.save_image(packed_image, file_format, 'EXPORT_TEXTURE', colorspace=saved_colorspace)
 
     return packed_image
 
@@ -121,7 +131,6 @@ def invert_image(image, invert_r = False, invert_g = False, invert_b = False, in
 def channel_pack_textures(material_name):
     '''Creates channel packed textures using pre-baked textures.'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-
     active_object = bpy.context.active_object
 
     # Cycle through all defined export textures and channel pack them.
@@ -210,15 +219,16 @@ def channel_pack_textures(material_name):
             output_packing=output_packing_channels,
             image_name_format=export_texture.name_format,
             color_bit_depth=export_texture.bit_depth,
-            file_format=export_texture.image_format
+            file_format=export_texture.image_format,
+            colorspace=export_texture.colorspace
         )
 
     # Delete temp material channel bake images, they are no longer needed because they are packed into new textures now.
-    for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
-        temp_material_channel_image_name = format_baked_material_channel_name(material_name, material_channel_name)
-        temp_material_channel_image = bpy.data.images.get(temp_material_channel_image_name)
-        if temp_material_channel_image:
-            bpy.data.images.remove(temp_material_channel_image)
+    #for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
+    #    temp_material_channel_image_name = format_baked_material_channel_name(material_name, material_channel_name)
+    #    temp_material_channel_image = bpy.data.images.get(temp_material_channel_image_name)
+    #    if temp_material_channel_image:
+    #        bpy.data.images.remove(temp_material_channel_image)
 
 
 #----------------------------- EXPORTING FUNCTIONS -----------------------------#
@@ -265,6 +275,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'COLOR'
             new_channel.input_textures.b_texture = 'COLOR'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'SRGB'
 
             new_channel = export_textures.add()
             new_channel.name_format = "/MaterialName_Metallic"
@@ -272,6 +283,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'METALLIC'
             new_channel.input_textures.b_texture = 'METALLIC'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "/MaterialName_Roughness"
@@ -279,6 +291,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'ROUGHNESS'
             new_channel.input_textures.b_texture = 'ROUGHNESS'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "/MaterialName_Normal"
@@ -286,6 +299,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "/MaterialName_Emission"
@@ -293,6 +307,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'EMISSION'
             new_channel.input_textures.b_texture = 'EMISSION'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
         case 'PBR Specular Glossiness':
             addon_preferences.roughness_mode = 'ROUGHNESS'
@@ -304,6 +319,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'COLOR'
             new_channel.input_textures.b_texture = 'COLOR'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'SRGB'
 
             new_channel = export_textures.add()
             new_channel.name_format = "/MaterialName_Specular"
@@ -311,6 +327,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'SPECULAR'
             new_channel.input_textures.b_texture = 'SPECULAR'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "/MaterialName_Glossiness"
@@ -318,6 +335,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'ROUGHNESS'
             new_channel.input_textures.b_texture = 'ROUGHNESS'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "/MaterialName_Normal"
@@ -325,6 +343,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "/MaterialName_Emission"
@@ -332,6 +351,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'EMISSION'
             new_channel.input_textures.b_texture = 'EMISSION'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'SRGB'
 
         case 'Unity URP Metallic':
             addon_preferences.normal_map_mode = 'OPEN_GL'
@@ -343,6 +363,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'COLOR'
             new_channel.input_textures.b_texture = 'COLOR'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'SRGB'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_MS"
@@ -351,6 +372,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.b_texture = 'METALLIC'
             new_channel.input_textures.a_texture = 'ROUGHNESS'
             new_channel.input_rgba_channels.a_color_channel = 'R'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_N"
@@ -358,6 +380,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_E"
@@ -365,6 +388,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'EMISSION'
             new_channel.input_textures.b_texture = 'EMISSION'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'SRGB'
 
         case 'Unity URP Specular':
             addon_preferences.normal_map_mode = 'OPEN_GL'
@@ -376,6 +400,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'COLOR'
             new_channel.input_textures.b_texture = 'COLOR'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'SRGB'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_MG"
@@ -384,6 +409,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.b_texture = 'SPECULAR'
             new_channel.input_textures.a_texture = 'ROUGHNESS'
             new_channel.input_rgba_channels.a_color_channel = 'R'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_N"
@@ -391,6 +417,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_E"
@@ -398,6 +425,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'EMISSION'
             new_channel.input_textures.b_texture = 'EMISSION'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'SRGB'
 
         case 'Unity HDRP Metallic':
             addon_preferences.normal_map_mode = 'OPEN_GL'
@@ -409,6 +437,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'COLOR'
             new_channel.input_textures.b_texture = 'COLOR'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'SRGB'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_MAG"
@@ -417,6 +446,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.b_texture = 'NONE'
             new_channel.input_textures.a_texture = 'ROUGHNESS'
             new_channel.input_rgba_channels.a_color_channel = 'R'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_N"
@@ -424,6 +454,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_E"
@@ -431,6 +462,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'EMISSION'
             new_channel.input_textures.b_texture = 'EMISSION'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'SRGB'
 
         case 'Unity HDRP Specular':
             addon_preferences.normal_map_mode = 'OPEN_GL'
@@ -442,6 +474,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'COLOR'
             new_channel.input_textures.b_texture = 'COLOR'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'SRGB'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_S"
@@ -449,6 +482,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'SPECULAR'
             new_channel.input_textures.b_texture = 'SPECULAR'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_MAG"
@@ -457,6 +491,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.b_texture = 'NONE'
             new_channel.input_textures.a_texture = 'ROUGHNESS'
             new_channel.input_rgba_channels.a_color_channel = 'R'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_N"
@@ -464,6 +499,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_E"
@@ -471,6 +507,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'EMISSION'
             new_channel.input_textures.b_texture = 'EMISSION'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'SRGB'
 
         case 'Unreal Engine 4':
             addon_preferences.roughness_mode = 'ROUGHNESS'
@@ -482,6 +519,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'COLOR'
             new_channel.input_textures.b_texture = 'COLOR'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'SRGB'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_SS"
@@ -489,6 +527,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'SUBSURFACE'
             new_channel.input_textures.b_texture = 'SUBSURFACE'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_ORM"
@@ -496,6 +535,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'ROUGHNESS'
             new_channel.input_textures.b_texture = 'METALLIC'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_NDX"
@@ -503,6 +543,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_E"
@@ -510,6 +551,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'EMISSION'
             new_channel.input_textures.b_texture = 'EMISSION'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'SRGB'
 
         case 'Unreal Engine 4 Subsurface (Packed)':
             addon_preferences.roughness_mode = 'ROUGHNESS'
@@ -522,6 +564,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.b_texture = 'COLOR'
             new_channel.input_textures.a_texture = 'SUBSURFACE'
             new_channel.input_rgba_channels.a_color_channel = 'R'
+            new_channel.colorspace = 'SRGB'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_ORM"
@@ -529,6 +572,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'ROUGHNESS'
             new_channel.input_textures.b_texture = 'METALLIC'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_NDX"
@@ -536,6 +580,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_E"
@@ -543,6 +588,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'EMISSION'
             new_channel.input_textures.b_texture = 'EMISSION'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'SRGB'
 
         case 'CryEngine':
             addon_preferences.roughness_mode = 'ROUGHNESS'
@@ -554,6 +600,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'COLOR'
             new_channel.input_textures.b_texture = 'COLOR'
             new_channel.input_textures.a_texture = 'ALPHA'
+            new_channel.colorspace = 'SRGB'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_S"
@@ -561,6 +608,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'SPECULAR'
             new_channel.input_textures.b_texture = 'SPECULAR'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'SRGB'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_NDXO"
@@ -569,6 +617,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
             new_channel.input_textures.a_texture = 'AMBIENT_OCCLUSION'
             new_channel.input_rgba_channels.a_color_channel = 'R'
+            new_channel.colorspace = 'NON_COLOR'
 
         case 'Painted Model':
             addon_preferences.roughness_mode = 'ROUGHNESS'
@@ -580,6 +629,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'COLOR'
             new_channel.input_textures.b_texture = 'COLOR'
             new_channel.input_textures.a_texture = 'ALPHA'
+            new_channel.colorspace = 'SRGB'
 
         case 'Unlit Painted Model':
             addon_preferences.roughness_mode = 'ROUGHNESS'
@@ -591,6 +641,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'EMISSION'
             new_channel.input_textures.b_texture = 'EMISSION'
             new_channel.input_textures.a_texture = 'ALPHA'
+            new_channel.colorspace = 'SRGB'
 
         case 'Mesh Maps':
             addon_preferences.normal_map_mode = 'OPEN_GL'
@@ -601,6 +652,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'AMBIENT_OCCLUSION'
             new_channel.input_textures.b_texture = 'AMBIENT_OCCLUSION'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_Curvature"
@@ -608,6 +660,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'CURVATURE'
             new_channel.input_textures.b_texture = 'CURVATURE'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_Thickness"
@@ -615,6 +668,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'THICKNESS'
             new_channel.input_textures.b_texture = 'THICKNESS'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
             new_channel = export_textures.add()
             new_channel.name_format = "T_/MaterialName_BaseNormals"
@@ -622,6 +676,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.g_texture = 'BASE_NORMALS'
             new_channel.input_textures.b_texture = 'BASE_NORMALS'
             new_channel.input_textures.a_texture = 'NONE'
+            new_channel.colorspace = 'NON_COLOR'
 
 def bake_material_channel(material_channel_name, single_texture_set=False):
     '''Bakes the defined material channel to an image texture (stores it in Blender's data). Returns true if baking was successful.'''
@@ -653,9 +708,10 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     if material_channel_name == 'NORMAL_HEIGHT':
         export_channel_name = 'NORMAL'
 
-    # For baking multiple materials to a texture set
+    # For baking multiple materials to a single texture set.
     if single_texture_set:
         material_name = bpy.context.active_object.material_slots[0].material.name
+        material_name = material_name.replace('_', '')
         image_name = format_baked_material_channel_name(material_name, export_channel_name)
         export_image = bpy.data.images.get(image_name)
         if not export_image:
@@ -687,6 +743,9 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
             add_unique_id=False,
             delete_existing=True
         )
+    
+    # Define the correct image colorspace based on the material channel being baked.
+    image_utilities.set_image_colorspace_by_material_channel(export_image, material_channel_name)
 
     # Add the baking image to the preset baking texture node (included in the default material setup).
     material_nodes = bpy.context.active_object.active_material.node_tree.nodes

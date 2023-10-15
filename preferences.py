@@ -90,6 +90,11 @@ MESH_MAP_UPSCALE_MULTIPLIER = [
     ("8X", "8x Upscale", "All mesh maps will be baked at 1 eighth of the pixel resolution defined in this materials texture set and then upscaled to match the texture set resolution")
 ]
 
+IMAGE_COLORSPACE_SETTINGS = [
+    ("SRGB", "sRGB", ""),
+    ("NON_COLOR", "Non-Color", "")
+]
+
 class MATLAYER_pack_textures(PropertyGroup):
     r_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name='R Texture')
     g_texture: EnumProperty(items=EXPORT_CHANNELS, default='COLOR', name='G Texture')
@@ -109,6 +114,7 @@ class MATLAYER_texture_export_settings(PropertyGroup):
     output_rgba_channels: PointerProperty(type=MATLAYER_RGBA_pack_channels, name="Output Pack Channels")
     image_format: EnumProperty(items=TEXTURE_EXPORT_FORMAT, default='PNG')
     bit_depth: EnumProperty(items=BIT_DEPTH, default='EIGHT')
+    colorspace: EnumProperty(items=IMAGE_COLORSPACE_SETTINGS, default='SRGB')
 
 class MATLAYER_mesh_map_anti_aliasing(PropertyGroup):
     normals_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="Normal Map Anti Aliasing", description="Anti aliasing for output normal maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='NO_AA')

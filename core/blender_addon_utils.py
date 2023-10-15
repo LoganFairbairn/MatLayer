@@ -353,7 +353,7 @@ def get_layer_image_path(image_name, file_format='PNG'):
         os.mkdir(export_path)
     return "{0}/{1}.{2}".format(export_path, image_name, file_format.lower())
 
-def save_image(image, file_format='PNG', type='LAYER_IMAGE'):
+def save_image(image, file_format='PNG', type='LAYER_IMAGE', colorspace='sRGB'):
     '''Saves the provided image to the default or defined location for the provided asset type. Valid types include: LAYER_IMAGE, EXPORT_TEXTURE'''
 
     match type:
@@ -367,6 +367,7 @@ def save_image(image, file_format='PNG', type='LAYER_IMAGE'):
     if os.path.exists(export_path) == False:
         os.mkdir(export_path)
 
+    image.colorspace_settings.name = colorspace
     image.file_format = file_format
     image.filepath = "{0}/{1}.{2}".format(export_path, image.name, file_format.lower())
     image.save()
