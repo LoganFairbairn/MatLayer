@@ -49,9 +49,9 @@ PACKING_COLOR_CHANNELS = [
 
 TEXTURE_EXPORT_FORMAT = [
     ("PNG", "png", "Exports the selected material channel in png texture format. This is a non-compressed format, and generally a good default"),
-    ("JPG", "jpg", "Exports the selected material channel in JPG texture format. This is a compressed format, which could be used for textures applied to models that will be shown in a web browser"),
+    ("JPEG", "jpg", "Exports the selected material channel in JPG texture format. This is a compressed format, which could be used for textures applied to models that will be shown in a web browser"),
     ("TARGA", "tga", "Exports the selected material channel in TARGA texture format"),
-    ("EXR", "exr", "Exports the selected material channel in open exr texture format")
+    ("OPEN_EXR", "exr", "Exports the selected material channel in open exr texture format")
 ]
 
 EXPORT_MODE = [

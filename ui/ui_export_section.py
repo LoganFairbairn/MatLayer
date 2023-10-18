@@ -42,12 +42,12 @@ def draw_export_section_ui(self, context):
     row.scale_y = SCALE_Y
     row.prop(addon_preferences, "export_mode", text="")
 
-    # Saving export templates will be implemented in the future.
-    #row.operator("matlayer.save_export_template", text="", icon='FILE_NEW')
-
-    row = layout.row(align=True)
+    row = first_column.row()
     row.scale_y = SCALE_Y
-    row.operator("matlayer.add_export_texture", text="Add Export Texture")
+    row.label(text="Render Device")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
 
     # Split layout into 2 columns.
     split = layout.split(factor=0.4)
@@ -56,11 +56,13 @@ def draw_export_section_ui(self, context):
 
     row = first_column.row()
     row.alignment = 'LEFT'
-    row.label(text="Texture Settings")
+    row.label(text="EXPORT TEXTURE SETTINGS")
 
-    row = second_column.row()
+    row = second_column.row(align=True)
+    row.scale_y = SCALE_Y
     row.alignment = 'RIGHT'
-    row.label(text="Channel Packing")
+    row.operator("matlayer.add_export_texture", text="Add Export Texture")
+    row.operator("matlayer.save_export_template", text="Save Template", icon='FILE_NEW')
 
     # Draw settings for textures that will be exported.
     for i, texture in enumerate(addon_preferences.export_textures):
@@ -68,18 +70,17 @@ def draw_export_section_ui(self, context):
         # Draw texture settings.
         col = first_column.column(align=True)
         col.prop(texture, "name_format", text="")
-        row = col.row()
+        row = col.row(align=True)
         row.prop(texture, "image_format", text="", emboss=True)
         row.prop(texture, "colorspace", text="", emboss=True)
-        col.prop(texture, "bit_depth", text="", emboss=True)
+        row.prop(texture, "bit_depth", text="", emboss=True)
 
         # Draw channel packing settings.
         split = second_column.split(factor=0.2)
         col_1 = split.column(align=True)
         col_1.alignment = 'RIGHT'
         col_1.label(text="In Texture")
-        col_1.label(text="In RGBA")
-        col_1.label(text="Out RGBA")
+        col_1.label(text="In / Out")
 
         col_2 = split.column(align=True)
         split = col_2.split(factor=0.9)
@@ -92,18 +93,11 @@ def draw_export_section_ui(self, context):
         row = col_1.row(align=True)
         for key in texture.input_rgba_channels.__annotations__.keys():
             row.prop(texture.input_rgba_channels, key, text="")
-
-        row = col_1.row(align=True)
-        for key in texture.output_rgba_channels.__annotations__.keys():
             row.prop(texture.output_rgba_channels, key, text="")
 
         col = split.column()
         op = col.operator("matlayer.remove_export_texture", icon='X', text="")
         op.export_texture_index = i
-
-    layout.separator()
-    row = layout.row()
-    row.label(text="Additional Settings")
 
     split = layout.split(factor=0.3)
     first_column = split.column()
@@ -111,18 +105,24 @@ def draw_export_section_ui(self, context):
     second_column = split.column()
 
     row = first_column.row()
+    row.scale_y = SCALE_Y
     row.label(text="Normal Map Mode")
     row = second_column.row(align=True)
+    row.scale_y = SCALE_Y
     row.prop_enum(addon_preferences, "normal_map_mode", 'OPEN_GL')
     row.prop_enum(addon_preferences, "normal_map_mode", 'DIRECTX')
 
     row = first_column.row()
+    row.scale_y = SCALE_Y
     row.label(text="Roughness Mode")
     row = second_column.row(align=True)
+    row.scale_y = SCALE_Y
     row.prop_enum(addon_preferences, "roughness_mode", 'ROUGHNESS')
     row.prop_enum(addon_preferences, "roughness_mode", 'SMOOTHNESS')
 
     row = first_column.row()
+    row.scale_y = SCALE_Y
     row.label(text="UV Padding")
     row = second_column.row()
+    row.scale_y = SCALE_Y
     row.prop(addon_preferences, "uv_padding", text="")

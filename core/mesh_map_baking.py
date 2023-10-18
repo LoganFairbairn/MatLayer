@@ -631,7 +631,7 @@ class MATLAYER_OT_batch_bake(Operator):
         # Unpause auto updates, mark baking mesh maps as complete.
         bpy.context.scene.pause_auto_updates = False
 
-        # Log the end of baking mesh maps.
+        # Log the completion of baking mesh maps.
         end_bake_time = time.time()
         total_bake_time = end_bake_time - self._start_bake_time
         debug_logging.log_status("Baking mesh map(s) completed, total bake time: {0} seconds.".format(round(total_bake_time), 1), self, 'INFO')

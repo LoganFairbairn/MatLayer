@@ -367,9 +367,17 @@ def save_image(image, file_format='PNG', type='LAYER_IMAGE', colorspace='sRGB'):
     if os.path.exists(export_path) == False:
         os.mkdir(export_path)
 
+    match file_format:
+        case 'TARGA':
+            file_extension = 'tga'
+        case 'OPEN_EXR':
+            file_extension = 'exr'
+        case _:
+            file_extension = file_format.lower()
+
     image.colorspace_settings.name = colorspace
     image.file_format = file_format
-    image.filepath = "{0}/{1}.{2}".format(export_path, image.name, file_format.lower())
+    image.filepath = "{0}/{1}.{2}".format(export_path, image.name, file_extension)
     image.save()
 
 def verify_addon_material(material):
