@@ -39,7 +39,7 @@ from .core.material_slots import MATLAYER_OT_add_material_slot, MATLAYER_OT_remo
 from .core.mesh_map_baking import MATLAYER_baking_settings, MATLAYER_OT_batch_bake, MATLAYER_OT_open_bake_folder, MATLAYER_OT_preview_mesh_map, MATLAYER_OT_disable_mesh_map_preview, MATLAYER_OT_delete_mesh_map
 
 # Exporting
-from .core.export_textures import MATLAYER_OT_export, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, ExportTemplateMenu, set_export_template
+from .core.export_textures import MATLAYER_OT_export, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_refresh_export_template_list, MATLAYER_OT_delete_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, MATLAYER_export_template_name, ExportTemplateMenu, read_export_template_names, set_export_template
 
 # Utilities
 from .core.image_utilities import MATLAYER_OT_add_texture_node_image, MATLAYER_OT_import_texture_node_image, MATLAYER_OT_edit_texture_node_image_externally, MATLAY_OT_export_uvs, MATLAYER_OT_reload_texture_node_image, MATLAYER_OT_delete_texture_node_image, MATLAY_OT_image_edit_uvs
@@ -89,8 +89,11 @@ classes = (
     MATLAYER_OT_open_export_folder,
     MATLAYER_OT_set_export_template,
     MATLAYER_OT_save_export_template,
+    MATLAYER_OT_refresh_export_template_list,
+    MATLAYER_OT_delete_export_template,
     MATLAYER_OT_add_export_texture,
     MATLAYER_OT_remove_export_texture,
+    MATLAYER_export_template_name,
     ExportTemplateMenu,
 
     # Material Layers
@@ -249,8 +252,12 @@ def load_handler(dummy):
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_sub_owner)
                 bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_name_sub_owner, notify=on_active_material_name_changed, args=())
 
-        # Refresh layer stack on blender file load if an active object is selected.
         refresh_layer_stack()
+
+    # Read existing export templates into Blender memory, and apply the user set export template if one exists.
+    read_export_template_names()
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    set_export_template(addon_preferences.export_template_name)
 
 # Run startup functions when a new blend file is loaded.
 bpy.app.handlers.load_post.append(load_handler)
@@ -276,16 +283,15 @@ def register():
     # Settings
     bpy.types.Scene.matlayer_texture_set_settings = PointerProperty(type=MATLAYER_texture_set_settings)
     bpy.types.Scene.matlayer_baking_settings = PointerProperty(type=MATLAYER_baking_settings)
+    bpy.types.Scene.matlayer_export_templates = CollectionProperty(type=MATLAYER_export_template_name)
 
     # Subscription Update Handling Properties
     bpy.types.Scene.pause_auto_updates = BoolProperty(default=False)
     bpy.types.Scene.previous_active_material_name = StringProperty(default="")
     bpy.types.Scene.previous_object_name = StringProperty(default="")
 
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-    export_textures = addon_preferences.export_textures
-    if len(export_textures) <= 0:
-        set_export_template('Unreal Engine 4')
+    # Apply a default export template.
+    set_export_template("PBR Metallic Roughness")
 
 def unregister():
     for cls in classes:

@@ -227,7 +227,7 @@ def draw_baking_section_ui(self, context):
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
 
     # Draw bake button.
-    row = layout.row()
+    row = layout.row(align=True)
     row.scale_y = 2.0
     row.operator("matlayer.batch_bake", text="Bake")
     row.operator("matlayer.open_bake_folder", text="", icon='FILE_FOLDER')

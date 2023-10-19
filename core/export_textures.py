@@ -1,8 +1,11 @@
 import os
 import time
 import numpy
+import json
+from pathlib import Path
+from bpy.utils import resource_path
 import bpy
-from bpy.types import Operator, Menu
+from bpy.types import Operator, Menu, PropertyGroup
 from bpy.props import StringProperty, IntProperty
 from ..core import mesh_map_baking
 from ..core import texture_set_settings as tss
@@ -11,6 +14,280 @@ from ..core import blender_addon_utils
 from ..core import material_layers
 from ..core import image_utilities
 from .. import preferences
+
+
+default_input_textures = ["NONE", "NONE", "NONE", "NONE"]
+default_pack_channels = ["R", "G", "B", "A"]
+
+default_output_texture = {
+    "export_name_format": "/MeshName_Color",
+    "export_image_format": "PNG",
+    "export_colorspace": "SRGB",
+    "export_bit_depth": "EIGHT",
+    "input_textures": ["COLOR", "COLOR", "COLOR", "NONE"],
+    "input_pack_channels": ["R", "G", "B", "A"],
+    "output_pack_channels": ["R", "G", "B", "A"]
+}
+
+default_export_template_json = {
+    "name": "Default Export Template",
+    "roughness_map_mode": "ROUGHNESS",
+    "normal_map_mode": "OPEN_GL",
+    "output_textures": [
+        {
+            "export_name_format": "/MeshName_Color",
+            "export_image_format": "PNG",
+            "export_colorspace": "SRGB",
+            "export_bit_depth": "EIGHT",
+            "input_textures": [
+            "COLOR",
+            "COLOR",
+            "COLOR",
+            "NONE"
+            ],
+            "input_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+            ],
+            "output_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+            ]
+        },
+        {
+            "export_name_format": "/MeshName_Metallic",
+            "export_image_format": "PNG",
+            "export_colorspace": "NON_COLOR",
+            "export_bit_depth": "EIGHT",
+            "input_textures": [
+            "METALLIC",
+            "METALLIC",
+            "METALLIC",
+            "NONE"
+            ],
+            "input_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+            ],
+            "output_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+            ]
+        },
+        {
+            "export_name_format": "/MeshName_Roughness",
+            "export_image_format": "PNG",
+            "export_colorspace": "NON_COLOR",
+            "export_bit_depth": "EIGHT",
+            "input_textures": [
+            "ROUGHNESS",
+            "ROUGHNESS",
+            "ROUGHNESS",
+            "NONE"
+            ],
+            "input_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+            ],
+            "output_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+            ]
+        },
+        {
+            "export_name_format": "/MeshName_Normal",
+            "export_image_format": "PNG",
+            "export_colorspace": "NON_COLOR",
+            "export_bit_depth": "EIGHT",
+            "input_textures": [
+            "NORMAL_HEIGHT",
+            "NORMAL_HEIGHT",
+            "NORMAL_HEIGHT",
+            "NONE"
+            ],
+            "input_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+            ],
+            "output_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+            ]
+        },
+        {
+            "export_name_format": "/MeshName_Emission",
+            "export_image_format": "PNG",
+            "export_colorspace": "NON_COLOR",
+            "export_bit_depth": "EIGHT",
+            "input_textures": [
+            "EMISSION",
+            "EMISSION",
+            "EMISSION",
+            "NONE"
+            ],
+            "input_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+            ],
+            "output_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+            ]
+        }
+    ]
+}
+
+default_json_file = {
+  "export_templates": [
+    {
+      "name": "PBR Metallic Roughness",
+      "roughness_map_mode": "ROUGHNESS",
+      "normal_map_mode": "OPEN_GL",
+      "output_textures": [
+        {
+          "export_name_format": "/MeshName_Color",
+          "export_image_format": "PNG",
+          "export_colorspace": "SRGB",
+          "export_bit_depth": "EIGHT",
+          "input_textures": [
+            "COLOR",
+            "COLOR",
+            "COLOR",
+            "NONE"
+          ],
+          "input_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+          ],
+          "output_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+          ]
+        },
+        {
+          "export_name_format": "/MeshName_Metallic",
+          "export_image_format": "PNG",
+          "export_colorspace": "NON_COLOR",
+          "export_bit_depth": "EIGHT",
+          "input_textures": [
+            "METALLIC",
+            "METALLIC",
+            "METALLIC",
+            "NONE"
+          ],
+          "input_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+          ],
+          "output_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+          ]
+        },
+        {
+          "export_name_format": "/MeshName_Roughness",
+          "export_image_format": "PNG",
+          "export_colorspace": "NON_COLOR",
+          "export_bit_depth": "EIGHT",
+          "input_textures": [
+            "ROUGHNESS",
+            "ROUGHNESS",
+            "ROUGHNESS",
+            "NONE"
+          ],
+          "input_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+          ],
+          "output_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+          ]
+        },
+        {
+          "export_name_format": "/MeshName_Normal",
+          "export_image_format": "PNG",
+          "export_colorspace": "NON_COLOR",
+          "export_bit_depth": "EIGHT",
+          "input_textures": [
+            "NORMAL_HEIGHT",
+            "NORMAL_HEIGHT",
+            "NORMAL_HEIGHT",
+            "NONE"
+          ],
+          "input_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+          ],
+          "output_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+          ]
+        },
+        {
+          "export_name_format": "/MeshName_Emission",
+          "export_image_format": "PNG",
+          "export_colorspace": "NON_COLOR",
+          "export_bit_depth": "EIGHT",
+          "input_textures": [
+            "EMISSION",
+            "EMISSION",
+            "EMISSION",
+            "NONE"
+          ],
+          "input_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+          ],
+          "output_pack_channels": [
+            "R",
+            "G",
+            "B",
+            "A"
+          ]
+        }
+      ]
+    }
+  ]
+}
 
 
 #----------------------------- CHANNEL PACKING / IMAGE EDITING FUNCTIONS -----------------------------#
@@ -187,6 +464,11 @@ def channel_pack_textures(texture_set_name):
                     image = bpy.data.images.get(meshmap_name)
                     input_images.append(image)
 
+                case 'WORLD_SPACE_NORMALS':
+                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'WORLD_SPACE_NORMALS')
+                    image = bpy.data.images.get(meshmap_name)
+                    input_images.append(image)
+
                 case 'ROUGHNESS':
                     image_name = format_baked_material_channel_name(texture_set_name, texture_channel)
                     image = bpy.data.images.get(image_name)
@@ -286,6 +568,44 @@ def get_texture_channel_bake_list():
     debug_logging.log("Baking channels: {0}".format(material_channels_to_bake))
     return material_channels_to_bake
 
+def set_export_template(export_template_name):
+    '''Applies the export template settings stored in the specified export template from the export template json file.'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    jdata = read_export_template_data()
+    export_templates = jdata['export_templates']
+    for template in export_templates:
+        if template['name'] == export_template_name:
+            addon_preferences.export_template_name = template['name']
+            addon_preferences.roughness_mode = template['roughness_map_mode']
+            addon_preferences.normal_map_mode = template['normal_map_mode']
+            addon_preferences.export_textures.clear()
+            for texture in template['output_textures']:
+                export_texture = addon_preferences.export_textures.add()
+                export_texture.name_format = texture['export_name_format']
+                export_texture.image_format = texture['export_image_format']
+                export_texture.bit_depth = texture['export_bit_depth']
+                export_texture.colorspace = texture['export_colorspace']
+                export_texture.input_textures.r_texture = texture['input_textures'][0]
+                export_texture.input_textures.g_texture = texture['input_textures'][1]
+                export_texture.input_textures.b_texture = texture['input_textures'][2]
+                export_texture.input_textures.a_texture = texture['input_textures'][3]
+                export_texture.input_rgba_channels.r_color_channel = texture['input_pack_channels'][0]
+                export_texture.input_rgba_channels.g_color_channel = texture['input_pack_channels'][1]
+                export_texture.input_rgba_channels.b_color_channel = texture['input_pack_channels'][2]
+                export_texture.input_rgba_channels.a_color_channel = texture['input_pack_channels'][3]
+                export_texture.output_rgba_channels.r_color_channel = texture['output_pack_channels'][0]
+                export_texture.output_rgba_channels.g_color_channel = texture['output_pack_channels'][1]
+                export_texture.output_rgba_channels.b_color_channel = texture['output_pack_channels'][2]
+                export_texture.output_rgba_channels.a_color_channel = texture['output_pack_channels'][3]
+
+            debug_logging.log("Applied export template: {0}".format(export_template_name))
+            return
+    
+    debug_logging.log("Error export template was not found in the json file and can't be applied")
+    return
+
+# OLD
+'''
 def set_export_template(export_template_name):
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     export_textures = addon_preferences.export_textures
@@ -705,6 +1025,7 @@ def set_export_template(export_template_name):
             new_channel.input_textures.b_texture = 'BASE_NORMALS'
             new_channel.input_textures.a_texture = 'NONE'
             new_channel.colorspace = 'NON_COLOR'
+'''
 
 def bake_material_channel(material_channel_name, single_texture_set=False):
     '''Bakes the defined material channel to an image texture (stores it in Blender's data). Returns true if baking was successful.'''
@@ -817,9 +1138,55 @@ def remove_bake_texture_nodes():
             if bake_texture_node:
                 material_slot.material.node_tree.nodes.remove(bake_texture_node)
 
+def read_export_template_data():
+    '''Reads json data from the export template file. Creates a new export template json file if one does not exist.'''
+    template_folder_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "export_templates")
+    if not os.path.exists(template_folder_path):
+        os.mkdir(template_folder_path)
+
+    # If the export template doesn't exist, create a new default one.
+    templates_json_path = os.path.join(template_folder_path, "export_templates.json")
+    if os.path.exists(templates_json_path):
+        json_file = open(templates_json_path, "r")
+        jdata = json.load(json_file)
+        json_file.close()
+
+    else:
+        with open(templates_json_path,"w") as f:
+            json.dump(default_json_file, f)
+        
+        addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+        addon_preferences.export_template_name = "PBR Metallic Roughness"
+        read_export_template_names()
+
+    return jdata
+
+def save_export_template_data(json_data):
+    '''Saves the specified json data to the export template file.'''
+    templates_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "export_templates" / "export_templates.json")
+    json_file = open(templates_path, "w")
+    json.dump(json_data, json_file)
+    json_file.close()
+    
+def read_export_template_names():
+    '''Reads all of the export template names from the json file into Blender memory (to avoid reading json data in a draw call).'''
+    templates_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "export_templates" / "export_templates.json")
+    json_file = open(templates_path, "r")
+    jdata = json.load(json_file)
+    json_file.close()
+    export_templates = jdata['export_templates']
+    cached_template_names = bpy.context.scene.matlayer_export_templates
+    cached_template_names.clear()
+    for template in export_templates:
+        cached_template = cached_template_names.add()
+        cached_template.name = template['name']
+
 
 #----------------------------- EXPORT OPERATORS -----------------------------#
 
+
+class MATLAYER_export_template_name(PropertyGroup):
+    name: bpy.props.StringProperty()
 
 class MATLAYER_OT_export(Operator):
     bl_idname = "matlayer.export"
@@ -1025,7 +1392,107 @@ class MATLAYER_OT_save_export_template(Operator):
     bl_description = "Saves the current export template. If a template with the same name already exists, it will be overwritten"
     
     def execute(self, context):
-        # TODO: Save the template if it exists.
+        addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
+
+        # Check if the export template json file exists.
+        jdata = read_export_template_data()
+        template_existed = False
+        new_export_template = None
+        export_templates = jdata['export_templates']
+        for template in export_templates:
+            if template['name'] == addon_preferences.export_template_name:
+                new_export_template = template
+                template_existed = True
+
+        # If the active template doesn't exist in the json file, create a new one by duplicating defined default json data for export templates.
+        if template_existed == False:
+            new_export_template = default_export_template_json.copy()
+            output_textures = new_export_template['output_textures']
+            output_textures.clear()
+            for export_texture in addon_preferences.export_textures:
+                output_textures.append(default_output_texture.copy())
+
+        # Overwrite the properties of the export template with the export properties defined in the user interface.
+        new_export_template['name'] = addon_preferences.export_template_name
+        new_export_template['roughness_map_mode'] = addon_preferences.roughness_mode
+        new_export_template['normal_map_mode'] = addon_preferences.normal_map_mode
+
+        for i, export_texture in enumerate(addon_preferences.export_textures):
+            new_export_template['output_textures'][i]['export_name_format'] = export_texture.name_format
+            new_export_template['output_textures'][i]['export_image_format'] = export_texture.image_format
+            new_export_template['output_textures'][i]['export_colorspace'] = export_texture.colorspace
+            new_export_template['output_textures'][i]['export_bit_depth'] = export_texture.bit_depth
+
+            input_textures = default_input_textures.copy()
+            input_textures[0] = export_texture.input_textures.r_texture
+            input_textures[1] = export_texture.input_textures.g_texture
+            input_textures[2] = export_texture.input_textures.b_texture
+            input_textures[3] = export_texture.input_textures.a_texture
+            new_export_template['output_textures'][i]['input_textures'] = input_textures
+
+            input_pack_channels = default_pack_channels.copy()
+            input_pack_channels[0] = export_texture.input_rgba_channels.r_color_channel
+            input_pack_channels[1] = export_texture.input_rgba_channels.g_color_channel
+            input_pack_channels[2] = export_texture.input_rgba_channels.b_color_channel
+            input_pack_channels[3] = export_texture.input_rgba_channels.a_color_channel
+            new_export_template['output_textures'][i]['input_pack_channels'] = input_pack_channels
+
+            output_pack_channels = default_pack_channels.copy()
+            output_pack_channels[0] = export_texture.output_rgba_channels.r_color_channel
+            output_pack_channels[1] = export_texture.output_rgba_channels.g_color_channel
+            output_pack_channels[2] = export_texture.output_rgba_channels.b_color_channel
+            output_pack_channels[3] = export_texture.output_rgba_channels.a_color_channel
+            new_export_template['output_textures'][i]['output_pack_channels'] = output_pack_channels
+
+        # Save the new template to the json file.
+        if template_existed:
+            debug_logging.log_status("Export template settings updated.", self, type='INFO')
+            save_export_template_data(jdata)
+        else:
+            jdata['export_templates'].append(new_export_template)
+            debug_logging.log_status("New custom export template created.", self, type='INFO')
+            save_export_template_data(jdata)
+
+        # Update the cached list of export templates.
+        read_export_template_names()        
+        return {'FINISHED'}
+
+class MATLAYER_OT_delete_export_template(Operator):
+    bl_idname = "matlayer.delete_export_template"
+    bl_label = "Delete Export Template"
+    bl_description = "Deletes the currently selected export template from the json file if it exists"
+    
+    def execute(self, context):
+        addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
+
+        # Read the existing export templates from the json data.
+        jdata = read_export_template_data()
+
+        # Delete the template if it exists in the json data.
+        export_templates = jdata['export_templates']
+        for template in export_templates:
+            if template['name'] == addon_preferences.export_template_name:
+                template_name = template['name']
+                export_templates.remove(template)
+                debug_logging.log_status("Deleted template: {0}".format(template_name), self, type='INFO')
+                break
+        
+        save_export_template_data(jdata)        # Write the changes to the json file.
+        read_export_template_names()            # Update the cached template names.
+
+        # Apply a different export template.
+        if len(export_templates) > 0:
+            set_export_template(export_templates[0]['name'])
+
+        return {'FINISHED'}
+
+class MATLAYER_OT_refresh_export_template_list(Operator):
+    bl_idname = "matlayer.refresh_export_template_list"
+    bl_label = "Refresh Export Template List"
+    bl_description = "Updates the list of export templates by reading the export template json file"
+    
+    def execute(self, context):
+        read_export_template_names()            # Update the cached template names.
         return {'FINISHED'}
 
 class MATLAYER_OT_add_export_texture(Operator):
@@ -1057,56 +1524,10 @@ class ExportTemplateMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-
-        template_name = 'PBR Metallic Roughness'
-        op = layout.operator("matlayer.set_export_template", text=template_name)
-        op.export_template_name = template_name
-
-        template_name = 'PBR Specular Glossiness'
-        op = layout.operator("matlayer.set_export_template", text=template_name)
-        op.export_template_name = template_name
-
-        template_name = 'Unity URP Metallic'
-        op = layout.operator("matlayer.set_export_template", text=template_name)
-        op.export_template_name = template_name
-
-        template_name = 'Unity URP Specular'
-        op = layout.operator("matlayer.set_export_template", text=template_name)
-        op.export_template_name = template_name
-
-        template_name = 'Unity HDRP Metallic'
-        op = layout.operator("matlayer.set_export_template", text=template_name)
-        op.export_template_name = template_name
-
-        template_name = 'Unity HDRP Specular'
-        op = layout.operator("matlayer.set_export_template", text=template_name)
-        op.export_template_name = template_name
-
-        template_name = 'Unreal Engine 4'
-        op = layout.operator("matlayer.set_export_template", text=template_name)
-        op.export_template_name = template_name
-
-        template_name = 'Unreal Engine 4 Subsurface (Packed)'
-        op = layout.operator("matlayer.set_export_template", text=template_name)
-        op.export_template_name = template_name 
-
-        template_name = 'CryEngine'
-        op = layout.operator("matlayer.set_export_template", text=template_name)
-        op.export_template_name = template_name
-
-        template_name = 'Painted Model'
-        op = layout.operator("matlayer.set_export_template", text=template_name)
-        op.export_template_name = template_name 
-
-        template_name = 'Unlit Painted Model'
-        op = layout.operator("matlayer.set_export_template", text=template_name)
-        op.export_template_name = template_name 
-
-        template_name = 'Mesh Maps'
-        op = layout.operator("matlayer.set_export_template", text=template_name)
-        op.export_template_name = template_name 
-
-        # TODO: Draw custom export templates.
+        cached_template_names = bpy.context.scene.matlayer_export_templates
+        for template in cached_template_names:
+            op = layout.operator("matlayer.set_export_template", text=template.name)
+            op.export_template_name = template.name
 
 class MATLAYER_OT_open_export_folder(Operator):
     bl_idname = "matlayer.open_export_folder"

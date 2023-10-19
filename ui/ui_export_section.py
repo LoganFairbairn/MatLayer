@@ -34,6 +34,9 @@ def draw_export_section_ui(self, context):
     row.scale_y = SCALE_Y
     row.prop(addon_preferences, "export_template_name", text="")
     row.menu("MATLAYER_MT_export_template_menu", text="Load Template", icon='FILE_TICK')
+    row.operator("matlayer.save_export_template", text="", icon='FILE_TICK')
+    row.operator("matlayer.refresh_export_template_list", text="", icon='FILE_REFRESH')
+    row.operator("matlayer.delete_export_template", text="", icon='TRASH')
 
     row = first_column.row()
     row.scale_y = SCALE_Y
@@ -49,12 +52,36 @@ def draw_export_section_ui(self, context):
     row.scale_y = SCALE_Y
     row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
 
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.label(text="Normal Map Mode")
+    row = second_column.row(align=True)
+    row.scale_y = SCALE_Y
+    row.prop_enum(addon_preferences, "normal_map_mode", 'OPEN_GL')
+    row.prop_enum(addon_preferences, "normal_map_mode", 'DIRECTX')
+
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.label(text="Roughness Mode")
+    row = second_column.row(align=True)
+    row.scale_y = SCALE_Y
+    row.prop_enum(addon_preferences, "roughness_mode", 'ROUGHNESS')
+    row.prop_enum(addon_preferences, "roughness_mode", 'SMOOTHNESS')
+
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.label(text="UV Padding")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(addon_preferences, "uv_padding", text="")
+
     # Split layout into 2 columns.
     split = layout.split(factor=0.4)
     first_column = split.column()
     second_column = split.column()
 
     row = first_column.row()
+    row.scale_y = SCALE_Y
     row.alignment = 'LEFT'
     row.label(text="EXPORT TEXTURE SETTINGS")
 
@@ -62,7 +89,6 @@ def draw_export_section_ui(self, context):
     row.scale_y = SCALE_Y
     row.alignment = 'RIGHT'
     row.operator("matlayer.add_export_texture", text="Add Export Texture")
-    row.operator("matlayer.save_export_template", text="Save Template", icon='FILE_NEW')
 
     # Draw settings for textures that will be exported.
     for i, texture in enumerate(addon_preferences.export_textures):
@@ -98,31 +124,3 @@ def draw_export_section_ui(self, context):
         col = split.column()
         op = col.operator("matlayer.remove_export_texture", icon='X', text="")
         op.export_texture_index = i
-
-    split = layout.split(factor=0.3)
-    first_column = split.column()
-    first_column.scale_x = 0.1
-    second_column = split.column()
-
-    row = first_column.row()
-    row.scale_y = SCALE_Y
-    row.label(text="Normal Map Mode")
-    row = second_column.row(align=True)
-    row.scale_y = SCALE_Y
-    row.prop_enum(addon_preferences, "normal_map_mode", 'OPEN_GL')
-    row.prop_enum(addon_preferences, "normal_map_mode", 'DIRECTX')
-
-    row = first_column.row()
-    row.scale_y = SCALE_Y
-    row.label(text="Roughness Mode")
-    row = second_column.row(align=True)
-    row.scale_y = SCALE_Y
-    row.prop_enum(addon_preferences, "roughness_mode", 'ROUGHNESS')
-    row.prop_enum(addon_preferences, "roughness_mode", 'SMOOTHNESS')
-
-    row = first_column.row()
-    row.scale_y = SCALE_Y
-    row.label(text="UV Padding")
-    row = second_column.row()
-    row.scale_y = SCALE_Y
-    row.prop(addon_preferences, "uv_padding", text="")

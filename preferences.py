@@ -36,6 +36,7 @@ EXPORT_CHANNELS = [
     ("CURVATURE", "Curvature", "Curvature"),
     ("THICKNESS", "Thickness", "Thickness"),
     ("BASE_NORMALS", "Base Normals", "Base Normals"),
+    ("WORLD_SPACE_NORMALS", "World Space Normals", "World Space Normals"),
     ("ALPHA", "Alpha", "Alpha"),
     ("NONE", "None", "None")
 ]
@@ -109,12 +110,12 @@ class MATLAYER_RGBA_pack_channels(PropertyGroup):
 
 class MATLAYER_texture_export_settings(PropertyGroup):
     name_format: StringProperty(name="Name Format", default="T_/MaterialName_C", description="Name format for the texture. You can add trigger words that will be automatically replaced upon export to name formats including: '/MaterialName', '/MeshName' ")
-    input_textures: PointerProperty(type=MATLAYER_pack_textures, name="Input Textures")
-    input_rgba_channels: PointerProperty(type=MATLAYER_RGBA_pack_channels, name="Input Pack Channels")
-    output_rgba_channels: PointerProperty(type=MATLAYER_RGBA_pack_channels, name="Output Pack Channels")
     image_format: EnumProperty(items=TEXTURE_EXPORT_FORMAT, default='PNG')
     bit_depth: EnumProperty(items=BIT_DEPTH, default='EIGHT')
     colorspace: EnumProperty(items=IMAGE_COLORSPACE_SETTINGS, default='SRGB')
+    input_textures: PointerProperty(type=MATLAYER_pack_textures, name="Input Textures")
+    input_rgba_channels: PointerProperty(type=MATLAYER_RGBA_pack_channels, name="Input Pack Channels")
+    output_rgba_channels: PointerProperty(type=MATLAYER_RGBA_pack_channels, name="Output Pack Channels")
 
 class MATLAYER_mesh_map_anti_aliasing(PropertyGroup):
     normals_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="Normal Map Anti Aliasing", description="Anti aliasing for output normal maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='NO_AA')
@@ -282,7 +283,7 @@ class AddonPreferences(AddonPreferences):
 
     #----------------------------- TEXTURE EXPORTING PROPERTIES -----------------------------#
 
-    export_template_name: StringProperty(name="Export Template Name", default="Unreal Engine 4 (Metallic, Packed)")
+    export_template_name: StringProperty(name="Export Template Name", default="PBR Metallic Roughness")
     export_textures: CollectionProperty(type=MATLAYER_texture_export_settings)
     roughness_mode: EnumProperty(name="Roughness Mode", items=ROUGHNESS_MODE, default='ROUGHNESS')
     normal_map_mode: EnumProperty(name="Normal Map Mode", items=NORMAL_MAP_MODE, default='OPEN_GL')
