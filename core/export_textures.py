@@ -2,6 +2,7 @@ import os
 import time
 import numpy
 import json
+import copy
 from pathlib import Path
 from bpy.utils import resource_path
 import bpy
@@ -16,8 +17,6 @@ from ..core import image_utilities
 from .. import preferences
 
 
-default_input_textures = ["NONE", "NONE", "NONE", "NONE"]
-default_pack_channels = ["R", "G", "B", "A"]
 
 default_output_texture = {
     "export_name_format": "/MeshName_Color",
@@ -604,429 +603,6 @@ def set_export_template(export_template_name):
     debug_logging.log("Error export template was not found in the json file and can't be applied")
     return
 
-# OLD
-'''
-def set_export_template(export_template_name):
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-    export_textures = addon_preferences.export_textures
-    export_textures.clear()
-    addon_preferences.export_template_name = export_template_name
-
-    match export_template_name:
-        case 'PBR Metallic Roughness':
-            addon_preferences.roughness_mode = 'ROUGHNESS'
-            addon_preferences.normal_map_mode = 'OPEN_GL'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "/MeshName_Color"
-            new_channel.input_textures.r_texture = 'COLOR'
-            new_channel.input_textures.g_texture = 'COLOR'
-            new_channel.input_textures.b_texture = 'COLOR'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'SRGB'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "/MeshName_Metallic"
-            new_channel.input_textures.r_texture = 'METALLIC'
-            new_channel.input_textures.g_texture = 'METALLIC'
-            new_channel.input_textures.b_texture = 'METALLIC'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "/MeshName_Roughness"
-            new_channel.input_textures.r_texture = 'ROUGHNESS'
-            new_channel.input_textures.g_texture = 'ROUGHNESS'
-            new_channel.input_textures.b_texture = 'ROUGHNESS'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "/MeshName_Normal"
-            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "/MeshName_Emission"
-            new_channel.input_textures.r_texture = 'EMISSION'
-            new_channel.input_textures.g_texture = 'EMISSION'
-            new_channel.input_textures.b_texture = 'EMISSION'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-        case 'PBR Specular Glossiness':
-            addon_preferences.roughness_mode = 'ROUGHNESS'
-            addon_preferences.normal_map_mode = 'OPEN_GL'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "/MeshName_Color"
-            new_channel.input_textures.r_texture = 'COLOR'
-            new_channel.input_textures.g_texture = 'COLOR'
-            new_channel.input_textures.b_texture = 'COLOR'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'SRGB'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "/MeshName_Specular"
-            new_channel.input_textures.r_texture = 'SPECULAR'
-            new_channel.input_textures.g_texture = 'SPECULAR'
-            new_channel.input_textures.b_texture = 'SPECULAR'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "/MeshName_Glossiness"
-            new_channel.input_textures.r_texture = 'ROUGHNESS'
-            new_channel.input_textures.g_texture = 'ROUGHNESS'
-            new_channel.input_textures.b_texture = 'ROUGHNESS'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "/MeshName_Normal"
-            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "/MeshName_Emission"
-            new_channel.input_textures.r_texture = 'EMISSION'
-            new_channel.input_textures.g_texture = 'EMISSION'
-            new_channel.input_textures.b_texture = 'EMISSION'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'SRGB'
-
-        case 'Unity URP Metallic':
-            addon_preferences.normal_map_mode = 'OPEN_GL'
-            addon_preferences.roughness_mode = 'SMOOTHNESS'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_C"
-            new_channel.input_textures.r_texture = 'COLOR'
-            new_channel.input_textures.g_texture = 'COLOR'
-            new_channel.input_textures.b_texture = 'COLOR'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'SRGB'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_MS"
-            new_channel.input_textures.r_texture = 'METALLIC'
-            new_channel.input_textures.g_texture = 'METALLIC'
-            new_channel.input_textures.b_texture = 'METALLIC'
-            new_channel.input_textures.a_texture = 'ROUGHNESS'
-            new_channel.input_rgba_channels.a_color_channel = 'R'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_N"
-            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_E"
-            new_channel.input_textures.r_texture = 'EMISSION'
-            new_channel.input_textures.g_texture = 'EMISSION'
-            new_channel.input_textures.b_texture = 'EMISSION'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'SRGB'
-
-        case 'Unity URP Specular':
-            addon_preferences.normal_map_mode = 'OPEN_GL'
-            addon_preferences.roughness_mode = 'SMOOTHNESS'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_C"
-            new_channel.input_textures.r_texture = 'COLOR'
-            new_channel.input_textures.g_texture = 'COLOR'
-            new_channel.input_textures.b_texture = 'COLOR'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'SRGB'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_MG"
-            new_channel.input_textures.r_texture = 'SPECULAR'
-            new_channel.input_textures.g_texture = 'SPECULAR'
-            new_channel.input_textures.b_texture = 'SPECULAR'
-            new_channel.input_textures.a_texture = 'ROUGHNESS'
-            new_channel.input_rgba_channels.a_color_channel = 'R'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_N"
-            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_E"
-            new_channel.input_textures.r_texture = 'EMISSION'
-            new_channel.input_textures.g_texture = 'EMISSION'
-            new_channel.input_textures.b_texture = 'EMISSION'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'SRGB'
-
-        case 'Unity HDRP Metallic':
-            addon_preferences.normal_map_mode = 'OPEN_GL'
-            addon_preferences.roughness_mode = 'SMOOTHNESS'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_C"
-            new_channel.input_textures.r_texture = 'COLOR'
-            new_channel.input_textures.g_texture = 'COLOR'
-            new_channel.input_textures.b_texture = 'COLOR'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'SRGB'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_MAG"
-            new_channel.input_textures.r_texture = 'METALLIC'
-            new_channel.input_textures.g_texture = 'AMBIENT_OCCLUSION'
-            new_channel.input_textures.b_texture = 'NONE'
-            new_channel.input_textures.a_texture = 'ROUGHNESS'
-            new_channel.input_rgba_channels.a_color_channel = 'R'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_N"
-            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_E"
-            new_channel.input_textures.r_texture = 'EMISSION'
-            new_channel.input_textures.g_texture = 'EMISSION'
-            new_channel.input_textures.b_texture = 'EMISSION'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'SRGB'
-
-        case 'Unity HDRP Specular':
-            addon_preferences.normal_map_mode = 'OPEN_GL'
-            addon_preferences.roughness_mode = 'SMOOTHNESS'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_C"
-            new_channel.input_textures.r_texture = 'COLOR'
-            new_channel.input_textures.g_texture = 'COLOR'
-            new_channel.input_textures.b_texture = 'COLOR'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'SRGB'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_S"
-            new_channel.input_textures.r_texture = 'SPECULAR'
-            new_channel.input_textures.g_texture = 'SPECULAR'
-            new_channel.input_textures.b_texture = 'SPECULAR'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_MAG"
-            new_channel.input_textures.r_texture = 'METALLIC'
-            new_channel.input_textures.g_texture = 'AMBIENT_OCCLUSION'
-            new_channel.input_textures.b_texture = 'NONE'
-            new_channel.input_textures.a_texture = 'ROUGHNESS'
-            new_channel.input_rgba_channels.a_color_channel = 'R'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_N"
-            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_E"
-            new_channel.input_textures.r_texture = 'EMISSION'
-            new_channel.input_textures.g_texture = 'EMISSION'
-            new_channel.input_textures.b_texture = 'EMISSION'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'SRGB'
-
-        case 'Unreal Engine 4':
-            addon_preferences.roughness_mode = 'ROUGHNESS'
-            addon_preferences.normal_map_mode = 'DIRECTX'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_C"
-            new_channel.input_textures.r_texture = 'COLOR'
-            new_channel.input_textures.g_texture = 'COLOR'
-            new_channel.input_textures.b_texture = 'COLOR'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'SRGB'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_SS"
-            new_channel.input_textures.r_texture = 'SUBSURFACE'
-            new_channel.input_textures.g_texture = 'SUBSURFACE'
-            new_channel.input_textures.b_texture = 'SUBSURFACE'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_ORM"
-            new_channel.input_textures.r_texture = 'AMBIENT_OCCLUSION'
-            new_channel.input_textures.g_texture = 'ROUGHNESS'
-            new_channel.input_textures.b_texture = 'METALLIC'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_NDX"
-            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_E"
-            new_channel.input_textures.r_texture = 'EMISSION'
-            new_channel.input_textures.g_texture = 'EMISSION'
-            new_channel.input_textures.b_texture = 'EMISSION'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'SRGB'
-
-        case 'Unreal Engine 4 Subsurface (Packed)':
-            addon_preferences.roughness_mode = 'ROUGHNESS'
-            addon_preferences.normal_map_mode = 'DIRECTX'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_C"
-            new_channel.input_textures.r_texture = 'COLOR'
-            new_channel.input_textures.g_texture = 'COLOR'
-            new_channel.input_textures.b_texture = 'COLOR'
-            new_channel.input_textures.a_texture = 'SUBSURFACE'
-            new_channel.input_rgba_channels.a_color_channel = 'R'
-            new_channel.colorspace = 'SRGB'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_ORM"
-            new_channel.input_textures.r_texture = 'AMBIENT_OCCLUSION'
-            new_channel.input_textures.g_texture = 'ROUGHNESS'
-            new_channel.input_textures.b_texture = 'METALLIC'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_NDX"
-            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_E"
-            new_channel.input_textures.r_texture = 'EMISSION'
-            new_channel.input_textures.g_texture = 'EMISSION'
-            new_channel.input_textures.b_texture = 'EMISSION'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'SRGB'
-
-        case 'CryEngine':
-            addon_preferences.roughness_mode = 'ROUGHNESS'
-            addon_preferences.normal_map_mode = 'DIRECTX'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_C"
-            new_channel.input_textures.r_texture = 'COLOR'
-            new_channel.input_textures.g_texture = 'COLOR'
-            new_channel.input_textures.b_texture = 'COLOR'
-            new_channel.input_textures.a_texture = 'ALPHA'
-            new_channel.colorspace = 'SRGB'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_S"
-            new_channel.input_textures.r_texture = 'SPECULAR'
-            new_channel.input_textures.g_texture = 'SPECULAR'
-            new_channel.input_textures.b_texture = 'SPECULAR'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'SRGB'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_NDXO"
-            new_channel.input_textures.r_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.g_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.b_texture = 'NORMAL_HEIGHT'
-            new_channel.input_textures.a_texture = 'AMBIENT_OCCLUSION'
-            new_channel.input_rgba_channels.a_color_channel = 'R'
-            new_channel.colorspace = 'NON_COLOR'
-
-        case 'Painted Model':
-            addon_preferences.roughness_mode = 'ROUGHNESS'
-            addon_preferences.normal_map_mode = 'OPEN_GL'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_C"
-            new_channel.input_textures.r_texture = 'COLOR'
-            new_channel.input_textures.g_texture = 'COLOR'
-            new_channel.input_textures.b_texture = 'COLOR'
-            new_channel.input_textures.a_texture = 'ALPHA'
-            new_channel.colorspace = 'SRGB'
-
-        case 'Unlit Painted Model':
-            addon_preferences.roughness_mode = 'ROUGHNESS'
-            addon_preferences.normal_map_mode = 'OPEN_GL'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_C"
-            new_channel.input_textures.r_texture = 'EMISSION'
-            new_channel.input_textures.g_texture = 'EMISSION'
-            new_channel.input_textures.b_texture = 'EMISSION'
-            new_channel.input_textures.a_texture = 'ALPHA'
-            new_channel.colorspace = 'SRGB'
-
-        case 'Mesh Maps':
-            addon_preferences.normal_map_mode = 'OPEN_GL'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_AmbientOcclusion"
-            new_channel.input_textures.r_texture = 'AMBIENT_OCCLUSION'
-            new_channel.input_textures.g_texture = 'AMBIENT_OCCLUSION'
-            new_channel.input_textures.b_texture = 'AMBIENT_OCCLUSION'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_Curvature"
-            new_channel.input_textures.r_texture = 'CURVATURE'
-            new_channel.input_textures.g_texture = 'CURVATURE'
-            new_channel.input_textures.b_texture = 'CURVATURE'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_Thickness"
-            new_channel.input_textures.r_texture = 'THICKNESS'
-            new_channel.input_textures.g_texture = 'THICKNESS'
-            new_channel.input_textures.b_texture = 'THICKNESS'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-
-            new_channel = export_textures.add()
-            new_channel.name_format = "T_/MeshName_BaseNormals"
-            new_channel.input_textures.r_texture = 'BASE_NORMALS'
-            new_channel.input_textures.g_texture = 'BASE_NORMALS'
-            new_channel.input_textures.b_texture = 'BASE_NORMALS'
-            new_channel.input_textures.a_texture = 'NONE'
-            new_channel.colorspace = 'NON_COLOR'
-'''
-
 def bake_material_channel(material_channel_name, single_texture_set=False):
     '''Bakes the defined material channel to an image texture (stores it in Blender's data). Returns true if baking was successful.'''
 
@@ -1406,43 +982,39 @@ class MATLAYER_OT_save_export_template(Operator):
 
         # If the active template doesn't exist in the json file, create a new one by duplicating defined default json data for export templates.
         if template_existed == False:
-            new_export_template = default_export_template_json.copy()
-            output_textures = new_export_template['output_textures']
-            output_textures.clear()
-            for export_texture in addon_preferences.export_textures:
-                output_textures.append(default_output_texture.copy())
+            new_export_template = copy.deepcopy(default_export_template_json)
+
 
         # Overwrite the properties of the export template with the export properties defined in the user interface.
         new_export_template['name'] = addon_preferences.export_template_name
         new_export_template['roughness_map_mode'] = addon_preferences.roughness_mode
         new_export_template['normal_map_mode'] = addon_preferences.normal_map_mode
 
+        output_textures = new_export_template['output_textures']
+        output_textures.clear()
+        for export_texture in addon_preferences.export_textures:
+            output_textures.append(copy.deepcopy(default_output_texture))
+        output_textures = new_export_template['output_textures']
         for i, export_texture in enumerate(addon_preferences.export_textures):
             new_export_template['output_textures'][i]['export_name_format'] = export_texture.name_format
             new_export_template['output_textures'][i]['export_image_format'] = export_texture.image_format
             new_export_template['output_textures'][i]['export_colorspace'] = export_texture.colorspace
             new_export_template['output_textures'][i]['export_bit_depth'] = export_texture.bit_depth
 
-            input_textures = default_input_textures.copy()
-            input_textures[0] = export_texture.input_textures.r_texture
-            input_textures[1] = export_texture.input_textures.g_texture
-            input_textures[2] = export_texture.input_textures.b_texture
-            input_textures[3] = export_texture.input_textures.a_texture
-            new_export_template['output_textures'][i]['input_textures'] = input_textures
+            new_export_template['output_textures'][i]['input_textures'][0] = export_texture.input_textures.r_texture
+            new_export_template['output_textures'][i]['input_textures'][1] = export_texture.input_textures.g_texture
+            new_export_template['output_textures'][i]['input_textures'][2] = export_texture.input_textures.b_texture
+            new_export_template['output_textures'][i]['input_textures'][3] = export_texture.input_textures.a_texture
 
-            input_pack_channels = default_pack_channels.copy()
-            input_pack_channels[0] = export_texture.input_rgba_channels.r_color_channel
-            input_pack_channels[1] = export_texture.input_rgba_channels.g_color_channel
-            input_pack_channels[2] = export_texture.input_rgba_channels.b_color_channel
-            input_pack_channels[3] = export_texture.input_rgba_channels.a_color_channel
-            new_export_template['output_textures'][i]['input_pack_channels'] = input_pack_channels
+            new_export_template['output_textures'][i]['input_pack_channels'][0] = export_texture.input_rgba_channels.r_color_channel
+            new_export_template['output_textures'][i]['input_pack_channels'][1] = export_texture.input_rgba_channels.g_color_channel
+            new_export_template['output_textures'][i]['input_pack_channels'][2] = export_texture.input_rgba_channels.b_color_channel
+            new_export_template['output_textures'][i]['input_pack_channels'][3] = export_texture.input_rgba_channels.a_color_channel
 
-            output_pack_channels = default_pack_channels.copy()
-            output_pack_channels[0] = export_texture.output_rgba_channels.r_color_channel
-            output_pack_channels[1] = export_texture.output_rgba_channels.g_color_channel
-            output_pack_channels[2] = export_texture.output_rgba_channels.b_color_channel
-            output_pack_channels[3] = export_texture.output_rgba_channels.a_color_channel
-            new_export_template['output_textures'][i]['output_pack_channels'] = output_pack_channels
+            new_export_template['output_textures'][i]['output_pack_channels'][0] = export_texture.output_rgba_channels.r_color_channel
+            new_export_template['output_textures'][i]['output_pack_channels'][1] = export_texture.output_rgba_channels.g_color_channel
+            new_export_template['output_textures'][i]['output_pack_channels'][2] = export_texture.output_rgba_channels.b_color_channel
+            new_export_template['output_textures'][i]['output_pack_channels'][3] = export_texture.output_rgba_channels.a_color_channel
 
         # Save the new template to the json file.
         if template_existed:
