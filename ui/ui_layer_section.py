@@ -12,8 +12,9 @@ from ..ui import ui_section_tabs
 DEFAULT_UI_SCALE_Y = 1
 
 MATERIAL_LAYER_PROPERTY_TABS = [
-    ("MATERIAL", "MATERIAL", "Properties for the selected material layer."),
-    ("MASKS", "MASKS", "Properties for masks applied to the selected material layer.")
+    ("LAYER", "LAYER", "Properties for the selected material layer."),
+    ("MASKS", "MASKS", "Properties for masks applied to the selected material layer."),
+    ("GLOBAL", "GLOBAL", "Properties that affect all layers that comprise the active material")
 ]
 
 def draw_layers_section_ui(self, context):
@@ -33,19 +34,19 @@ def draw_layers_section_ui(self, context):
         if layer_count > 0:
             draw_material_property_tabs(column_one)
             match bpy.context.scene.matlayer_material_property_tabs:
-                case 'MATERIAL':
+                case 'LAYER':
                     draw_layer_projection(column_one)
                     draw_layer_material_channel_toggles(column_one)
                     draw_material_channel_properties(column_one)
                     draw_layer_properties(column_one)
-                    draw_global_material_properties(column_one)
 
                 case 'MASKS':
                     draw_masks(column_one)
 
+                case 'GLOBAL':
+                    draw_global_material_properties(column_one)
+
     column_two = split.column()
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
     draw_material_selector(column_two)
     draw_selected_material_channel(column_two)
     draw_layer_operations(column_two)
@@ -108,8 +109,9 @@ def draw_material_property_tabs(layout):
     '''Draws tabs to change between editing the material layer and the masks applied to the material layer.'''
     row = layout.row(align=True)
     row.scale_y = 1.5
-    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MATERIAL')
+    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'LAYER')
     row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MASKS')
+    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'GLOBAL')
     row.menu("MATLAYER_MT_layer_utility_sub_menu", text="", icon='MODIFIER_ON')
 
 def draw_layer_material_channel_toggles(layout):
@@ -623,18 +625,34 @@ def draw_global_material_properties(layout):
 
             # Draw the global emission strength value.
             principled_bsdf_node = active_object.active_material.node_tree.nodes.get('MATLAYER_BSDF')
-            if tss.get_material_channel_active('EMISSION'):
+            if principled_bsdf_node:
                 row = first_column.row()
-                row.label(text="Emission Strength")
+                row.label(text="Clear Coat")
                 row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Emission Strength'), "default_value", text="", slider=True)
+                row.prop(principled_bsdf_node.inputs.get('Clearcoat'), "default_value", text="", slider=True)
 
-            # Draw the global subsurface color value.
-            if tss.get_material_channel_active('SUBSURFACE'):
                 row = first_column.row()
-                row.label(text="Subsurface Color")
+                row.label(text="Clear Coat Roughness")
                 row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Subsurface Color'), "default_value", text="", slider=True)
+                row.prop(principled_bsdf_node.inputs.get('Clearcoat Roughness'), "default_value", text="", slider=True)
+
+                row = first_column.row()
+                row.label(text="IOR")
+                row = second_column.row()
+                row.prop(principled_bsdf_node.inputs.get('IOR'), "default_value", text="", slider=True)
+
+                if tss.get_material_channel_active('EMISSION'):
+                    row = first_column.row()
+                    row.label(text="Emission Strength")
+                    row = second_column.row()
+                    row.prop(principled_bsdf_node.inputs.get('Emission Strength'), "default_value", text="", slider=True)
+
+                # Draw the global subsurface color value.
+                if tss.get_material_channel_active('SUBSURFACE'):
+                    row = first_column.row()
+                    row.label(text="Subsurface Color")
+                    row = second_column.row()
+                    row.prop(principled_bsdf_node.inputs.get('Subsurface Color'), "default_value", text="", slider=True)
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
