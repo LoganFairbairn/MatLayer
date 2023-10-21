@@ -512,8 +512,8 @@ def reindex_masks(change_made, layer_index, affected_mask_index):
         case 'DELETED_MASK':
             # Reduce the layer index for all layer group nodes and their nodes trees that exist above the affected layer.
             mask_count = len(bpy.context.scene.matlayer_masks)
-            for i in range(mask_count, affected_mask_index + 1, -1):
-                mask_node = get_mask_node('MASK', layer_index, i - 1)
+            for i in range(affected_mask_index + 1, mask_count):
+                mask_node = get_mask_node('MASK', layer_index, i)
                 mask_node.name = format_mask_name(layer_index, int(mask_node.name.split('_')[2]) - 1)
                 mask_node.node_tree.name = mask_node.name
             debug_logging.log("Re-indexed mask nodes for after a mask was deleted.")
