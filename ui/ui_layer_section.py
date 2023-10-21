@@ -626,20 +626,51 @@ def draw_global_material_properties(layout):
             # Draw the global emission strength value.
             principled_bsdf_node = active_object.active_material.node_tree.nodes.get('MATLAYER_BSDF')
             if principled_bsdf_node:
-                row = first_column.row()
-                row.label(text="Clear Coat")
-                row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Clearcoat'), "default_value", text="", slider=True)
-
-                row = first_column.row()
-                row.label(text="Clear Coat Roughness")
-                row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Clearcoat Roughness'), "default_value", text="", slider=True)
 
                 row = first_column.row()
                 row.label(text="IOR")
                 row = second_column.row()
                 row.prop(principled_bsdf_node.inputs.get('IOR'), "default_value", text="", slider=True)
+
+                row = first_column.row()
+                row.label(text="Transmission Weight")
+                row = second_column.row()
+                row.prop(principled_bsdf_node.inputs.get('Transmission Weight'), "default_value", text="", slider=True)
+
+                row = first_column.row()
+                row.label(text="Transmission Roughness")
+                row = second_column.row()
+                row.prop(principled_bsdf_node.inputs.get('Transmission Roughness'), "default_value", text="", slider=True)
+
+                row = first_column.row()
+                row.label(text="Anisotropic")
+                row = second_column.row()
+                row.prop(principled_bsdf_node.inputs.get('Anisotropic'), "default_value", text="", slider=True)
+
+                row = first_column.row()
+                row.label(text="Anisotropic Rotation")
+                row = second_column.row()
+                row.prop(principled_bsdf_node.inputs.get('Anisotropic Rotation'), "default_value", text="", slider=True)
+
+                row = first_column.row()
+                row.label(text="Coat Weight")
+                row = second_column.row()
+                row.prop(principled_bsdf_node.inputs.get('Coat Weight'), "default_value", text="", slider=True)
+
+                row = first_column.row()
+                row.label(text="Coat Roughness")
+                row = second_column.row()
+                row.prop(principled_bsdf_node.inputs.get('Coat Roughness'), "default_value", text="", slider=True)
+
+                row = first_column.row()
+                row.label(text="Sheen Weight")
+                row = second_column.row()
+                row.prop(principled_bsdf_node.inputs.get('Sheen Weight'), "default_value", text="", slider=True)
+
+                row = first_column.row()
+                row.label(text="Sheen Tint")
+                row = second_column.row()
+                row.prop(principled_bsdf_node.inputs.get('Sheen Tint'), "default_value", text="", slider=True)
 
                 if tss.get_material_channel_active('EMISSION'):
                     row = first_column.row()
