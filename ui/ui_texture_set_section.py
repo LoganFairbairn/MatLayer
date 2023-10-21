@@ -69,4 +69,6 @@ def draw_texture_set_section_ui(self, context):
             layout.label(text="Add a material layer to see texture set settings.")
     else:
         layout.label(text="No active object.")
+        layout.label(text="Select an object with a MatLayer material applied")
+        layout.label(text="to see texture set settings.")
     
