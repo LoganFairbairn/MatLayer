@@ -66,6 +66,7 @@ def draw_texture_set_section_ui(self, context):
                 layout.label(text="Active material isn't created with this add-on, or the format isn't valid.")
         else:
             layout.label(text="No active material.")
+            layout.label(text="Add a material layer to see texture set settings.")
     else:
         layout.label(text="No active object.")
     
