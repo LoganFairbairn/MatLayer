@@ -434,7 +434,7 @@ def delete_layer_mask(self):
 
     # Remove the mask slot and reset the mask index.
     masks.remove(selected_mask_index)
-    bpy.context.scene.matlayer_mask_stack.selected_index -= 1
+    bpy.context.scene.matlayer_mask_stack.selected_index = max(min(selected_mask_index - 1, len(masks) - 1), 0)
     debug_logging.log("Deleted layer mask.")
 
 def move_mask(direction, self):
