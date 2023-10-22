@@ -348,19 +348,19 @@ def set_texture_paint_image(image):
 
 def get_layer_image_path(image_name, file_format='PNG'):
     '''Returns the image path.'''
-    export_path = os.path.join(bpy.path.abspath("//"), "LayerImages")
+    export_path = os.path.join(bpy.path.abspath("//"), "Raw Textures")
     if os.path.exists(export_path) == False:
         os.mkdir(export_path)
     return "{0}/{1}.{2}".format(export_path, image_name, file_format.lower())
 
-def save_image(image, file_format='PNG', type='LAYER_IMAGE', colorspace='sRGB'):
+def save_image(image, file_format='PNG', type='RAW_TEXTURE', colorspace='sRGB'):
     '''Saves the provided image to the default or defined location for the provided asset type. Valid types include: LAYER_IMAGE, EXPORT_TEXTURE'''
 
     match type:
-        case 'LAYER_IMAGE':
-            export_path = os.path.join(bpy.path.abspath("//"), "LayerImages")
         case 'EXPORT_TEXTURE':
             export_path = os.path.join(bpy.path.abspath("//"), "Textures")
+        case 'RAW_TEXTURE':
+            export_path = os.path.join(bpy.path.abspath("//"), "Raw Textures")
         case _:
             debug_logging.log("Invalid image type passed to save_image.")
 

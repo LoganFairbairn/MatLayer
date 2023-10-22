@@ -1,6 +1,5 @@
 import bpy
 from bpy.types import Operator
-from bpy.props import PointerProperty, StringProperty
 from bpy_extras.io_utils import ImportHelper        # For importing images.
 from ..core import debug_logging                    # For printing / displaying debugging related messages.
 from ..core import image_utilities                  # For access to image related helper functions.
@@ -171,6 +170,10 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                 # Print information about using DirectX normal maps for users if it's detected they are using one.
                 if image_utilities.check_for_directx(file.name):
                     self.report({'INFO'}, "You may have imported a DirectX normal map which will cause your imported normal map to appear inverted. You should use an OpenGL normal map instead or fix the textures name if it's already an OpenGL normal map.")
+
+                # Copy the imported image to a folder next to the blend file (if save imported textures is on in the settings).
+                image_utilities.save_raw_image(image_path, imported_image.name)
+
         return {'FINISHED'}
     
 class MATLAYER_OT_merge_materials(Operator):

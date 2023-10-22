@@ -132,7 +132,7 @@ class AddonPreferences(AddonPreferences):
     save_imported_textures: BoolProperty(
         name="Save Imported Textures", 
         default=True,
-        description="Saves all imported textures to the 'Layers' folder. This helps provided a constant external folder for saving images used in layers which helps keep your files consistent."
+        description="When true, all textures imported through operators in this add-on will be saved to an external folder named 'Raw Textures' next to the blend file. This helps manage texture files used in materials by keeping all of them in a constant location next to the blend file in which they are used."
     )
 
     #----------------------------- DEBUGGING -----------------------------#
@@ -301,3 +301,4 @@ class AddonPreferences(AddonPreferences):
         layout = self.layout
         layout.prop(self, "log_main_operations")
         layout.prop(self, "log_sub_operations")
+        layout.prop(self, "save_imported_textures")

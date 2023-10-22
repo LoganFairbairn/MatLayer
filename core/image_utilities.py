@@ -10,6 +10,7 @@ from ..core import blender_addon_utils
 from .. import preferences
 import random
 import os                                           # For saving layer images.
+import shutil
 
 def get_random_image_id():
     '''Generates a random image id number.'''
@@ -44,6 +45,18 @@ def check_for_directx(filename):
         return True
     else:
         return False
+
+def save_raw_image(original_image_path, original_image_name):
+    '''Saves an imported texture'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    if addon_preferences.save_imported_textures:
+        raw_textures_folder_path = os.path.join(bpy.path.abspath("//"), "Raw Textures")
+        if os.path.exists(raw_textures_folder_path) == False:
+            os.mkdir(raw_textures_folder_path)
+        
+        original_file_format = os.path.splitext(original_image_path)
+        destination_path = "{0}/{1}.{2}".format(raw_textures_folder_path, original_image_name, original_file_format[1])
+        shutil.copyfile(original_image_path, destination_path)
 
 class MATLAYER_OT_add_texture_node_image(Operator):
     bl_idname = "matlayer.add_texture_node_image"
@@ -85,10 +98,12 @@ class MATLAYER_OT_add_texture_node_image(Operator):
         if self.material_channel_name != "":
             set_image_colorspace_by_material_channel(new_image, self.material_channel_name)
 
-        # Save the new image to a folder. This allows users to easily edit their image in a 2D image editor later.
+        # Save the imported image to an external folder next to the blend file.
         image = bpy.data.images[image_name]
         if image:
-            blender_addon_utils.save_image(image, 'PNG')
+            addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+            if addon_preferences.save_imported_textures:
+                blender_addon_utils.save_image(image, file_format='PNG', type='RAW_TEXTURE', colorspace='sRGB')
 
         texture_node.image = new_image                                              # Add the new image to the image node.
         bpy.context.scene.tool_settings.image_paint.canvas = texture_node.image     # Select the new texture for painting.
@@ -147,6 +162,8 @@ class MATLAYER_OT_import_texture_node_image(Operator, ImportHelper):
         if check_for_directx(image_name) and self.material_channel_name == 'NORMAL':
             debug_logging.log_status("You may have imported a DirectX normal map which will cause your imported normal map to appear inverted.", self, type='WARNING')
 
+        # Copy the imported image to a folder next to the blend file (if save imported textures is on in the settings).
+        save_raw_image(self.filepath, image.name)
         return {'FINISHED'}
 
 class MATLAYER_OT_edit_texture_node_image_externally(Operator):
