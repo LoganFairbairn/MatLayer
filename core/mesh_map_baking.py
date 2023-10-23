@@ -214,13 +214,6 @@ def bake_mesh_map(mesh_map_type, object_name, self):
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     baking_settings = bpy.context.scene.matlayer_baking_settings
 
-    bpy.context.scene.render.engine = 'CYCLES'      # Set render engine to Cycles (required for baking).
-
-    # Skip normal map baking if there is no high poly object defined, no normal information can be baked without a high poly object.
-    if mesh_map_type == 'NORMALS' and baking_settings.high_poly_object == None:
-        debug_logging.log("Skipping normal map baking, no high poly object is specified.")
-        return True
-
     # Append a premade material for baking the specified mesh map type.
     match mesh_map_type:
         case 'AMBIENT_OCCLUSION':
@@ -243,6 +236,11 @@ def bake_mesh_map(mesh_map_type, object_name, self):
             self._mesh_map_group_node_name = "ML_WorldSpaceNormals"
 
     self._temp_bake_material_name = temp_bake_material.name
+
+    # Skip normal map baking if there is no high poly object defined, no normal information can be baked without a high poly object.
+    if mesh_map_type == 'NORMALS' and baking_settings.high_poly_object == None:
+        debug_logging.log("Skipping normal map baking, no high poly object is specified.")
+        return True
 
     # Create and assign an image to bake the mesh map to.
     new_bake_image = create_bake_image(mesh_map_type, object_name)
@@ -559,8 +557,9 @@ class MATLAYER_OT_batch_bake(Operator):
                 else:
                     self._original_material_names.append("")
 
-        # Remember the render engine so we can reset it after baking.
+        # Set render engine to Cycles (required for baking) and remember the render engine so we can reset it after baking.
         self._original_render_engine = bpy.context.scene.render.engine
+        bpy.context.scene.render.engine = 'CYCLES'
 
         # Start baking the mesh map.
         baked_successfully = bake_mesh_map(self._mesh_maps_to_bake[0], low_poly_object.name, self)    
