@@ -192,7 +192,7 @@ class AddonPreferences(AddonPreferences):
 
     relative_to_bounding_box: BoolProperty(
         name="Relative to Bounding Box",
-        description="If true, the sampling radius and cage upscaling used in mesh map baking will be multiplied by the average size of the active objects bounding box",
+        description="If true, the sampling radius used in mesh map baking will be multiplied by the average size of the active objects bounding box. This allows the sampling radius to stay roughly correct among varying sizes of objects without the need to manually adjust the property",
         default=True
     )
 

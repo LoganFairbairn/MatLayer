@@ -509,16 +509,11 @@ class MATLAYER_OT_batch_bake(Operator):
                         bpy.context.collection.objects.link(auto_cage_object)
                         bpy.context.scene.render.bake.cage_object = auto_cage_object
 
-                        bounding_box_multiplier = 1.0
-                        if addon_preferences.relative_to_bounding_box:
-                            bounding_box_multiplier = get_bounding_box_multiplier()
-                        cage_upscale = addon_preferences.cage_upscale * bounding_box_multiplier
-
                         blender_addon_utils.select_only(auto_cage_object)
                         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
                         bpy.ops.mesh.select_all(action='SELECT')
                         bpy.ops.transform.shrink_fatten(
-                            value=cage_upscale,
+                            value=addon_preferences.cage_upscale,
                             use_even_offset=True,
                             mirror=True, 
                             use_proportional_edit=False,
