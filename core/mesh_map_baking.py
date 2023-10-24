@@ -490,64 +490,65 @@ class MATLAYER_OT_batch_bake(Operator):
             debug_logging.log_status("No mesh maps checked for baking.", self, type='INFO')
             return {'FINISHED'}
 
-        # Adjust settings based on the defined cage mode.
         low_poly_object = bpy.context.active_object
-        match addon_preferences.cage_mode:
-
-            # No cage object will be used.
-            case 'NO_CAGE':
-                bpy.context.scene.render.bake.use_cage = False
-
-            # A cage object will be automatically created for baking by duplicating the low poly object and scaling it's normals using a complex solidify modifier.
-            case 'AUTO_CAGE':
-                auto_cage_object = None
-                if bpy.context.scene.render.bake.cage_object == None:
-                    auto_cage_object = low_poly_object.copy()
-                    auto_cage_object.data = low_poly_object.data.copy()
-                    auto_cage_object.name = low_poly_object.name + "_Cage"
-                    bpy.context.collection.objects.link(auto_cage_object)
-                    bpy.context.scene.render.bake.cage_object = auto_cage_object
-
-                    bounding_box_multiplier = 1.0
-                    if addon_preferences.relative_to_bounding_box:
-                        bounding_box_multiplier = get_bounding_box_multiplier()
-                    cage_upscale = addon_preferences.cage_upscale * bounding_box_multiplier
-
-                    blender_addon_utils.select_only(auto_cage_object)
-                    bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-                    bpy.ops.mesh.select_all(action='SELECT')
-                    bpy.ops.transform.shrink_fatten(
-                        value=cage_upscale,
-                        use_even_offset=True,
-                        mirror=True, 
-                        use_proportional_edit=False,
-                        proportional_edit_falloff='SMOOTH', 
-                        proportional_size=1, 
-                        use_proportional_connected=False, 
-                        use_proportional_projected=False, 
-                        snap=False
-                    )
-
-                    # Hide the auto cage object, it doesn't need to be visible for baking.
-                    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-                    auto_cage_object.hide_set(True)
-                    auto_cage_object.hide_render = True
-                    blender_addon_utils.select_only(low_poly_object)
-
-            # The cage is manually defined by the user, check one was provided.
-            case 'MANUAL_CAGE':
-                bpy.context.scene.render.bake.use_cage = True
-                if bpy.context.scene.render.bake.cage_object == None:
-                    debug_logging.log_status("No cage object was provided. Please use no cage, auto cage mode, or define a cage object before baking", self, type='INFO')
-                    return {'FINISHED'}
-
-        # Ensure the low poly and high poly are visible for rendering and selected in the correct order for high to low poly baking.
-        low_poly_object.hide_set(False)
-        low_poly_object.hide_render = False
         high_poly_object = bpy.context.scene.matlayer_baking_settings.high_poly_object
+
+        # If a high poly object is specified, adjust settings based on the selected cage mode.
         if high_poly_object:
+            match addon_preferences.cage_mode:
+                case 'NO_CAGE':
+                    bpy.context.scene.render.bake.use_cage = False
+
+                # A cage object will be automatically created for baking by duplicating the low poly object and scaling it's normals using a complex solidify modifier.
+                case 'AUTO_CAGE':
+                    auto_cage_object = None
+                    if bpy.context.scene.render.bake.cage_object == None:
+                        auto_cage_object = low_poly_object.copy()
+                        auto_cage_object.data = low_poly_object.data.copy()
+                        auto_cage_object.name = low_poly_object.name + "_Cage"
+                        bpy.context.collection.objects.link(auto_cage_object)
+                        bpy.context.scene.render.bake.cage_object = auto_cage_object
+
+                        bounding_box_multiplier = 1.0
+                        if addon_preferences.relative_to_bounding_box:
+                            bounding_box_multiplier = get_bounding_box_multiplier()
+                        cage_upscale = addon_preferences.cage_upscale * bounding_box_multiplier
+
+                        blender_addon_utils.select_only(auto_cage_object)
+                        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+                        bpy.ops.mesh.select_all(action='SELECT')
+                        bpy.ops.transform.shrink_fatten(
+                            value=cage_upscale,
+                            use_even_offset=True,
+                            mirror=True, 
+                            use_proportional_edit=False,
+                            proportional_edit_falloff='SMOOTH', 
+                            proportional_size=1, 
+                            use_proportional_connected=False, 
+                            use_proportional_projected=False, 
+                            snap=False
+                        )
+
+                        # Hide the auto cage object, it doesn't need to be visible for baking.
+                        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+                        auto_cage_object.hide_set(True)
+                        auto_cage_object.hide_render = True
+                        blender_addon_utils.select_only(low_poly_object)
+
+                # The cage is manually defined by the user, check one was provided.
+                case 'MANUAL_CAGE':
+                    bpy.context.scene.render.bake.use_cage = True
+                    if bpy.context.scene.render.bake.cage_object == None:
+                        debug_logging.log_status("No cage object was provided. Please use no cage, auto cage mode, or define a cage object before baking", self, type='INFO')
+                        return {'FINISHED'}
+
+            # Ensure the high poly object is visible for rendering.
             high_poly_object.hide_set(False)
             high_poly_object.hide_render = False
+        
+        # Ensure the low poly object is visible for rendering.
+        low_poly_object.hide_set(False)
+        low_poly_object.hide_render = False
 
         # Cache original materials applied to the active object so the materials can be re-applied after baking.
         self._original_material_names.clear()
