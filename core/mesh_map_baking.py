@@ -356,11 +356,13 @@ def remove_mesh_map_baking_assets():
 
 def delete_auto_cage_object():
     '''Deletes the auto cage object created for mesh map baking if one exists.'''
-    low_poly_object = bpy.context.active_object
-    if low_poly_object:
-        cage_object = bpy.data.objects.get(low_poly_object.name + "_Cage")
-        if cage_object:
-            bpy.data.objects.remove(cage_object)
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    if addon_preferences.cage_mode == 'AUTO_CAGE':
+        low_poly_object = bpy.context.active_object
+        if low_poly_object:
+            cage_object = bpy.data.objects.get(low_poly_object.name + "_Cage")
+            if cage_object:
+                bpy.data.objects.remove(cage_object)
 
 
 #----------------------------- OPERATORS AND PROPERTIES -----------------------------#
