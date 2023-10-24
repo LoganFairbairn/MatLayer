@@ -609,7 +609,7 @@ def refresh_mask_slots():
     for i in range(0, mask_count):
         add_mask_slot()
 
-def relink_image_mask_projection():
+def relink_image_mask_projection(original_output_channel):
     '''Relinks projection nodes based on the projection mode for image masks.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
@@ -620,8 +620,6 @@ def relink_image_mask_projection():
     # Disconnect the projection and blur nodes.
     blender_addon_utils.unlink_node(projection_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
     blender_addon_utils.unlink_node(blur_node, mask_node.node_tree, unlink_inputs=True, unlink_outputs=True)
-
-    original_output_channel = get_mask_output_channel()
 
     # Link mask nodes based on the mask projection mode.
     match projection_node.node_tree.name:
@@ -708,6 +706,8 @@ def set_mask_projection_mode(projection_mode):
     '''Sets the projection mode of the mask. Only image masks can have their projection mode swapped.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+
+    original_output_channel = get_mask_output_channel()
     
     match projection_mode:
         case 'UV':
@@ -788,7 +788,9 @@ def get_mask_output_channel():
 
     output_channel = ''
     if filter_node:
-        output_channel = filter_node.inputs[0].links[0].from_socket.name.upper()
+        input_socket = filter_node.inputs[0]
+        link = input_socket.links[0]
+        output_channel = link.from_socket.name.upper()
 
     return output_channel
 
@@ -1136,10 +1138,9 @@ class MATLAYER_OT_set_mask_projection_uv(Operator):
         return context.active_object
 
     def execute(self, context):
-        output_channel = get_mask_output_channel()
+        original_output_channel = get_mask_output_channel()
         set_mask_projection_mode('UV')
-        relink_image_mask_projection()
-        set_mask_output_channel(output_channel)
+        relink_image_mask_projection(original_output_channel)
         return {'FINISHED'}
 
 class MATLAYER_OT_set_mask_projection_triplanar(Operator):
@@ -1154,10 +1155,9 @@ class MATLAYER_OT_set_mask_projection_triplanar(Operator):
         return context.active_object
 
     def execute(self, context):
-        output_channel = get_mask_output_channel()
+        original_output_channel = get_mask_output_channel()
         set_mask_projection_mode('TRIPLANAR')
-        relink_image_mask_projection()
-        set_mask_output_channel(output_channel)
+        relink_image_mask_projection(original_output_channel)
         return {'FINISHED'}
 
 class MATLAYER_OT_set_mask_output_channel(Operator):
@@ -1235,7 +1235,8 @@ class MATLAYER_OT_toggle_mask_blur(Operator):
                 blender_addon_utils.set_node_active(blur_node, True)
 
             # Relink projection.
-            relink_image_mask_projection()
+            original_output_channel = get_mask_output_channel()
+            relink_image_mask_projection(original_output_channel)
         else:
             debug_logging.log("Error: Toggling mask blur failed, blur node not found.")
 
