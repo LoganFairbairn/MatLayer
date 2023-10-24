@@ -501,6 +501,7 @@ class MATLAYER_OT_batch_bake(Operator):
 
                 # A cage object will be automatically created for baking by duplicating the low poly object and scaling it's normals using a complex solidify modifier.
                 case 'AUTO_CAGE':
+                    bpy.context.scene.render.bake.use_cage = True
                     auto_cage_object = None
                     if bpy.context.scene.render.bake.cage_object == None:
                         auto_cage_object = low_poly_object.copy()
@@ -514,7 +515,7 @@ class MATLAYER_OT_batch_bake(Operator):
                         bpy.ops.mesh.select_all(action='SELECT')
                         bpy.ops.transform.shrink_fatten(
                             value=addon_preferences.cage_upscale,
-                            use_even_offset=True,
+                            use_even_offset=False,
                             mirror=True, 
                             use_proportional_edit=False,
                             proportional_edit_falloff='SMOOTH', 
