@@ -747,6 +747,14 @@ class MATLAYER_OT_add_layer_mask_menu(Operator):
         col.operator("matlayer.add_grunge_mask", text="Grunge")
         col.operator("matlayer.add_edge_wear_mask", text="Edge Wear")
 
+        row = layout.row(align=True)
+        col = row.column(align=True)
+        col.scale_y = 1.4
+        col.operator("matlayer.add_ambient_occlusion_mask", text="Ambient Occlusion")
+        col.operator("matlayer.add_curvature_mask", text="Curvature")
+        col.operator("matlayer.add_thickness_mask", text="Thickness")
+        col.operator("matlayer.add_world_space_normals_mask", text="World Space Normals")
+
 class MATLAYER_OT_add_material_filter_menu(Operator):
     bl_label = ""
     bl_idname = "matlayer.add_material_filter_menu"

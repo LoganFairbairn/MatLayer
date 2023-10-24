@@ -59,6 +59,13 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
             if get_changed:
                 mask_node_name += "~"
             return active_material.node_tree.nodes.get(mask_node_name)
+        
+        case 'ID':
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
+            node_tree = bpy.data.node_groups.get(mask_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('ID_NODE')
+            return None
     
         case 'MASK_MIX':
             mask_group_node_name = format_mask_name(layer_index, mask_index)
@@ -379,6 +386,30 @@ def add_layer_mask(type, self):
                     texture_sample_node.image = default_grunge_texture
                     
             debug_logging.log("Added edge wear mask.")
+
+        # Mesh maps masks.
+        case _:
+            mesh_map_mask_name = type.replace('_', ' ')
+            mesh_map_mask_name = blender_addon_utils.capitalize_by_space(mesh_map_mask_name)
+            mesh_map_mask_name = mesh_map_mask_name.replace(' ', '')
+            mesh_map_mask_name = "ML_{0}Mask".format(mesh_map_mask_name)
+            default_node_group = blender_addon_utils.append_group_node(mesh_map_mask_name, never_auto_delete=True)
+            default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
+
+            new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+            new_mask_group_node.node_tree = default_node_group
+            new_mask_group_node.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
+            new_mask_group_node.label = blender_addon_utils.capitalize_by_space("{0} Mask".format(type.replace('_', ' ')))
+            
+            reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
+            organize_mask_nodes()
+            link_mask_nodes(selected_layer_index)
+            material_layers.apply_mesh_maps()
+
+            # For world space normals mask, masking using the blue (z or up) channel is more frequently used, so we'll apply that as the default.
+            if type == 'WORLD_SPACE_NORMALS':
+                set_mask_output_channel('BLUE')
+            debug_logging.log("Added a {0} mesh map mask.".format(type))
 
 def duplicate_mask(self, mask_index=-1):
     '''Duplicates the mask at the provided mask index.'''
@@ -766,18 +797,25 @@ def set_mask_output_channel(output_channel):
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
 
     mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
-    mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
     mask_filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
-    mask_projection_node = get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
     separate_color_node = mask_node.node_tree.nodes.get('SEPARATE_COLOR')
 
-    # Find the main mask output node based on the mask projection.
+    # Find the node outputing the color.
+    # For world space normals, the output node is always the world space normal image texture node.
     output_node = None
-    match mask_projection_node.node_tree.name:
-        case 'ML_TriplanarProjection':
-            output_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
-        case _:
-            output_node = mask_texture_node
+    id_node = get_mask_node('ID', selected_layer_index, selected_mask_index)
+    if id_node.label == 'WORLD_SPACE_NORMALS_MASK':
+        output_node = mask_node.node_tree.nodes.get('WORLD_SPACE_NORMALS')
+
+    # Find the main mask output node based on the mask projection.
+    else:
+        mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
+        mask_projection_node = get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
+        match mask_projection_node.node_tree.name:
+            case 'ML_TriplanarProjection':
+                output_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
+            case _:
+                output_node = mask_texture_node
 
     # Disconnect the mask nodes.
     blender_addon_utils.unlink_node(output_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
@@ -964,6 +1002,66 @@ class MATLAYER_OT_add_decal_mask(Operator):
 
     def execute(self, context):
         add_layer_mask('DECAL', self)
+        return {'FINISHED'}
+
+class MATLAYER_OT_add_ambient_occlusion_mask(Operator):
+    bl_label = "Add Ambient Occlusion Mask"
+    bl_idname = "matlayer.add_ambient_occlusion_mask"
+    bl_description = "Adds an image mask that will auto-fill the image with the ambient occlusion mesh map for the active object if one exists"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        add_layer_mask('AMBIENT_OCCLUSION', self)
+        return {'FINISHED'}
+
+class MATLAYER_OT_add_curvature_mask(Operator):
+    bl_label = "Add Curvature Mask"
+    bl_idname = "matlayer.add_curvature_mask"
+    bl_description = "Adds an image mask that will auto-fill the image with the curvature mesh map for the active object if one exists"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        add_layer_mask('CURVATURE', self)
+        return {'FINISHED'}
+
+class MATLAYER_OT_add_thickness_mask(Operator):
+    bl_label = "Add Thickness Mask"
+    bl_idname = "matlayer.add_thickness_mask"
+    bl_description = "Adds an image mask that will auto-fill the image with the thickness mesh map for the active object if one exists"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        add_layer_mask('THICKNESS', self)
+        return {'FINISHED'}
+
+class MATLAYER_OT_add_world_space_normals_mask(Operator):
+    bl_label = "Add World Space Normals Mask"
+    bl_idname = "matlayer.add_world_space_normals_mask"
+    bl_description = "Adds an image mask that will auto-fill the image with the world space normals mesh map for the active object if one exists"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        add_layer_mask('WORLD_SPACE_NORMALS', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_move_layer_mask_up(Operator):
