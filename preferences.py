@@ -63,12 +63,12 @@ EXPORT_MODE = [
 
 MESH_MAP_BAKING_QUALITY = [
     ("TEST_QUALITY", "Test Quality", "Test quality sampling, ideal for quickly testing the output of mesh map bakes. Not recommended for use in production (1 sample)"),
-    ("EXTREMELY_LOW_QUALITY", "Extremely Low Quality", "Low quality sampling (8 samples)"),
-    ("VERY_LOW_QUALITY", "Very Low Quality", "Low quality sampling (16 samples)"),
-    ("LOW_QUALITY", "Low Quality", "Low quality sampling (32 samples)"),
-    ("RECOMMENDED_QUALITY", "Recommended Quality", "Recommended quality sampling, ideal for most use cases (64 samples)"),
-    ("HIGH_QUALITY", "High Quality", "High quality sampling, for more accurate mesh map data (128 samples)"),
-    ("INSANE_QUALITY", "Insane Quality", "Very high sampling, for hyper accurate mesh map data output, not recommended for standard use. Render times are usually long (256 samples)")
+    ("EXTREMELY_LOW_QUALITY", "Extremely Low Quality", "Extremely low baking quality (8 samples), generally the result is too low quality for use in production"),
+    ("LOW_QUALITY", "Low Quality", "Low baking quality, useful for when you want somewhat accurate mesh map data produced quickly (16 samples)"),
+    ("RECOMMENDED_QUALITY", "Recommended Quality", "Recommended baking quality, ideal for most use cases (32 samples)"),
+    ("HIGH_QUALITY", "High Quality", "High baking quality, useful for when you want slightly more accurate mesh map data (64 samples)"),
+    ("VERY_HIGH_QUALITY", "Very High Quality", "Very high quality sampling, for significantly more accurate mesh map data, not recommended for standard use, baking times will be long (128 samples)"),
+    ("INSANE_QUALITY", "Insane Quality", "Very high sampling, for hyper accurate mesh map data output, not recommended for standard use. Render times are very long (256 samples)")
 ]
 
 MESH_MAP_CAGE_MODE = [
@@ -177,9 +177,11 @@ class AddonPreferences(AddonPreferences):
     cage_upscale: FloatProperty(
         name="Cage Upscale",
         description="Upscales a duplicate of the low poly mesh by the specified amount to use as a cage for mesh map baking", 
-        default=0.01, 
+        default=0.01,
         min=0.0,
-        max=0.1
+        soft_max=0.1,
+        step=0.1,
+        precision=4
     )
 
     uv_padding: IntProperty(
@@ -229,9 +231,9 @@ class AddonPreferences(AddonPreferences):
     occlusion_samples: IntProperty(
         name="Occlusion Samples", 
         description="Number of rays to trace for occlusion shader evaluation. Higher values slightly increase occlusion quality at the cost of increased bake time. In most cases the default value is ideal", 
-        default=64, 
-        min=1, 
-        max=128, 
+        default=16, 
+        min=1,
+        max=128,
         update=update_occlusion_samples
     )
     
@@ -245,9 +247,9 @@ class AddonPreferences(AddonPreferences):
     )
 
     occlusion_intensity: FloatProperty(
-        name="Occlusion Contrast",
-        description="Occlusion contrast. Higher values result in more intense occlusion shadows",
-        default=2.0,
+        name="Occlusion Intensity",
+        description="Intensity of the ambient occlusion, higher values result in more intense occlusion shadows",
+        default=3.0,
         min=0.1,
         max=10.0,
         update=update_occlusion_intensity
@@ -263,11 +265,11 @@ class AddonPreferences(AddonPreferences):
     bevel_radius: FloatProperty(
         name="Bevel Radius",
         description="Radius of the sharp edges baked into the curvature map",
-        default=0.001,
+        default=0.0025,
         soft_min=0.001,
         soft_max=0.01,
         step=0.1,
-        precision=3,
+        precision=4,
         update=update_bevel_radius
     )
 

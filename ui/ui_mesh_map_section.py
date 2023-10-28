@@ -130,14 +130,14 @@ def draw_general_settings(layout, addon_preferences, baking_settings):
     row.prop(addon_preferences, "occlusion_intensity", slider=True, text="")
 
     row = first_column.row()
-    row.label(text="Bevel Radius")
-    row = second_column.row()
-    row.prop(addon_preferences, "bevel_radius", text="")
-
-    row = first_column.row()
     row.label(text="Bevel Samples")
     row = second_column.row()
     row.prop(addon_preferences, "bevel_samples", text="")
+
+    row = first_column.row()
+    row.label(text="Bevel Radius")
+    row = second_column.row()
+    row.prop(addon_preferences, "bevel_radius", text="")
 
     row = first_column.row()
     row.label(text="Relative to Bounding Box")

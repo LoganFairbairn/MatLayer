@@ -194,16 +194,16 @@ def apply_mesh_map_quality():
         case 'EXTREMELY_LOW_QUALITY':
             bpy.context.scene.cycles.samples = 8
 
-        case 'VERY_LOW_QUALITY':
+        case 'LOW_QUALITY':
             bpy.context.scene.cycles.samples = 16
 
-        case 'LOW_QUALITY':
+        case 'RECOMMENDED_QUALITY':
             bpy.context.scene.cycles.samples = 32
 
-        case 'RECOMMENDED_QUALITY':
+        case 'HIGH_QUALITY':
             bpy.context.scene.cycles.samples = 64
 
-        case 'HIGH_QUALITY':
+        case 'VERY_HIGH_QUALITY':
             bpy.context.scene.cycles.samples = 128
 
         case 'INSANE_QUALITY':
