@@ -104,7 +104,7 @@ class MATLAYER_OT_append_basic_brushes(Operator):
 class MATLAYER_OT_append_hdri_world(Operator):
     bl_idname = "matlayer.append_hdri_world"
     bl_label = "Append HDRI World"
-    bl_description = "Appends a world environment setup for HDRI lighting."
+    bl_description = "Appends a world environment setup for HDRI lighting"
 
     def execute(self, context):
         blender_addon_utils.append_world('HDRIWorld')
