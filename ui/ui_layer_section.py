@@ -623,6 +623,16 @@ def draw_global_material_properties(layout):
                 row = second_column.row()
                 row.prop(active_object.active_material, "alpha_threshold", text="")
 
+            # Draw base normal map.
+            base_normal_map_node = material_layers.get_material_layer_node('BASE_NORMALS')
+            if base_normal_map_node:
+                row = first_column.row()
+                row.label(text="Base Normal Map")
+                row = second_column.row()
+                row.enabled = False
+                row.prop(base_normal_map_node, "image", text="")
+
+            # Draw base normal intensity.
             base_normals_mix_node = material_layers.get_material_layer_node('BASE_NORMALS_MIX')
             if base_normals_mix_node:
                 row = first_column.row()
