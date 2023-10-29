@@ -623,6 +623,13 @@ def draw_global_material_properties(layout):
                 row = second_column.row()
                 row.prop(active_object.active_material, "alpha_threshold", text="")
 
+            base_normals_mix_node = material_layers.get_material_layer_node('BASE_NORMALS_MIX')
+            if base_normals_mix_node:
+                row = first_column.row()
+                row.label(text="Base Normals")
+                row = second_column.row()
+                row.prop(base_normals_mix_node.inputs.get('Opacity'), "default_value", text="", slider=True)
+
             # Draw the global emission strength value.
             principled_bsdf_node = active_object.active_material.node_tree.nodes.get('MATLAYER_BSDF')
             if principled_bsdf_node:

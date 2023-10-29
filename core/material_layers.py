@@ -194,6 +194,12 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
         case 'NORMAL_HEIGHT_MIX':
             return active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
         
+        case 'BASE_NORMALS':
+            return active_material.node_tree.nodes.get('BASE_NORMALS')
+
+        case 'BASE_NORMALS_MIX':
+            return active_material.node_tree.nodes.get('BASE_NORMALS_MIX')
+        
         case 'GLOBAL':
             global_channel_toggle_node_name = "GLOBAL_{0}_TOGGLE".format(material_channel_name)
             return active_material.node_tree.nodes.get(global_channel_toggle_node_name)
@@ -323,6 +329,13 @@ def add_material_layer_slot():
 
     return bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
+def apply_default_base_normals():
+    '''Applies a default base normal image to materials created with this add-on.'''
+    default_normal_image = blender_addon_utils.append_image('DefaultNormal')
+    base_normals_node = get_material_layer_node('BASE_NORMALS')
+    if base_normals_node:
+        base_normals_node.image = default_normal_image
+
 def add_material_layer(layer_type, self):
     '''Adds a material layer to the active materials layer stack.'''
 
@@ -341,6 +354,7 @@ def add_material_layer(layer_type, self):
         new_material.name = new_material_name
         active_object.data.materials.append(new_material)
         active_object.active_material_index = 0
+        apply_default_base_normals()
 
     # If material slots exist on the object, but the active material slot is empty, add a new material.
     elif active_object.material_slots[active_object.active_material_index].material == None:
@@ -348,6 +362,7 @@ def add_material_layer(layer_type, self):
         new_material_name = blender_addon_utils.get_unique_material_name(active_object.name.replace('_', ''))
         new_material.name = new_material_name
         active_object.material_slots[active_object.active_material_index].material = new_material
+        apply_default_base_normals()
 
     # If material slots exist on the object, but the active material isn't properly formatted to work with this add-on, display an error.
     else:
@@ -748,7 +763,8 @@ def link_layer_group_nodes(self):
 
 
     # Connect the last (non-muted / active) layer node to the principled BSDF.
-    normal_and_height_mix = active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
+    base_normals_mix_node = active_material.node_tree.nodes.get('BASE_NORMALS_MIX')
+    normal_and_height_mix_node = active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
     principled_bsdf = active_material.node_tree.nodes.get('MATLAYER_BSDF')
 
     last_layer_node_index = layer_count - 1
@@ -771,10 +787,10 @@ def link_layer_group_nodes(self):
                         node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), principled_bsdf.inputs.get('Base Color'))
 
                     case 'NORMAL':
-                        node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), normal_and_height_mix.inputs.get(material_channel_name.capitalize()))
+                        node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), base_normals_mix_node.inputs.get('Normal Map 1'))
                 
                     case 'HEIGHT':
-                        node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), normal_and_height_mix.inputs.get(material_channel_name.capitalize()))
+                        node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), normal_and_height_mix_node.inputs.get(material_channel_name.capitalize()))
 
                     case _:
                         node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), principled_bsdf.inputs.get(material_channel_name.capitalize()))
@@ -838,6 +854,13 @@ def apply_mesh_maps():
                 if mesh_map_node:
                     if mesh_map_node.bl_static_type == 'TEX_IMAGE':
                         mesh_map_node.image = mesh_map_baking.get_meshmap_image(bpy.context.active_object.name, mesh_map_type)
+
+    # Apply base normals.
+    base_normals_image = mesh_map_baking.get_meshmap_image(bpy.context.active_object.name, 'NORMALS')
+    base_normals_node = get_material_layer_node('BASE_NORMALS')
+    if base_normals_node:
+        base_normals_node.image = base_normals_image
+
     debug_logging.log("Applied baked mesh maps.")
 
 def relink_material_channel(relink_material_channel_name="", original_output_channel='', unlink_projection=False):
