@@ -152,10 +152,6 @@ def create_bake_image(mesh_map_type, object_name):
             upscale_multiplier = 0.75
         case '2X':
             upscale_multiplier = 0.5
-        case '4X':
-            upscale_multiplier = 0.25
-        case '8X':
-            upscale_multiplier = 0.125
 
     # Create a new image in Blender's data, delete existing bake image if it exists.
     new_image_width = int(round(tss.get_texture_width() * anti_aliasing_multiplier * upscale_multiplier))
@@ -422,10 +418,6 @@ class MATLAYER_OT_batch_bake(Operator):
                             mesh_map_image.scale(int(round(mesh_map_image.size[0] * 1.333333)), int(round(mesh_map_image.size[1] * 1.333333)))
                         case '2X':
                             mesh_map_image.scale(int(mesh_map_image.size[0] * 2), int(mesh_map_image.size[1] * 2))
-                        case '4X':
-                            mesh_map_image.scale(int(mesh_map_image.size[0] * 4), int(mesh_map_image.size[1] * 4))
-                        case '8X':
-                            mesh_map_image.scale(int(mesh_map_image.size[0] * 8), int(mesh_map_image.size[1] * 8))
 
                 # Log mesh map baking completion.
                 mesh_map_type = mesh_map_type.replace('_', ' ')
