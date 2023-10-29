@@ -73,8 +73,8 @@ MESH_MAP_BAKING_QUALITY = [
 
 MESH_MAP_CAGE_MODE = [
     ("NO_CAGE", "No Cage", "No cage will be used when baking mesh maps. This can in rare cases produce better results than using a cage"),
-    ("AUTO_CAGE", "Auto Cage", "A cage object will be automatically created by duplicating the low poly object and scaling it slightly by the defined amount using a complex solidify modifier. This produces good quality baking results in most cases"),
-    ("MANUAL_CAGE", "Manual Cage", "Insert a manually created cage to be used when baking mesh maps. For some objects that have small crevaces where cage mesh normals would intersect if extruded defining a manual cage object will produce the best results")
+    ("AUTO_CAGE", "Auto Cage", "A cage object will be automatically created by duplicating the low poly object and scaling it slightly by the defined amount using a complex solidify modifier. Baking using a cage can cause some skewing of the baked data if the cage extends too much, or missing normal data in areas where the geometry is not covered by the cage. Auto-cage produces good quality baking results in many cases, but in some cases using a manually created cage is required"),
+    ("MANUAL_CAGE", "Manual Cage", "Insert a manually created cage to be used when baking mesh maps. Baking using a cage can cause some skewing of the baked data if the cage extends too much, or missing normal data in areas where the geometry is not covered by the cage. For some objects that have small crevaces where cage mesh normals would intersect if extruded defining a manual cage object will produce the best results")
 ]
 
 MESH_MAP_ANTI_ALIASING = [
