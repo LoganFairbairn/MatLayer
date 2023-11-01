@@ -917,6 +917,7 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                             layer_node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
                             if material_channel_name == 'NORMAL':
                                 layer_node_tree.links.new(projection_node.outputs.get('Rotation'), triplanar_blend_node.inputs.get('Rotation'))
+                                layer_node_tree.links.new(projection_node.outputs.get('SignedGeometryNormals'), triplanar_blend_node.inputs.get('SignedGeometryNormals'))
 
                         # No need to link projection for layers not using image textures.
                         else:
