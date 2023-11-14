@@ -239,9 +239,10 @@ class MATLAY_OT_export_uvs(Operator):
         uv_layout_path = blender_addon_utils.get_layer_image_path(uv_image_name, 'PNG')
         bpy.ops.uv.export_layout(filepath=uv_layout_path, size=(tss.get_texture_width(), tss.get_texture_height()))
 
-        # Reset mode.
+        # Reset mode and log completion.
         bpy.ops.object.mode_set(mode = original_mode)
-        
+        debug_logging.log_status("Exporting UV Layout complete - {0}".format(uv_layout_path), self, type='INFO')
+
         return{'FINISHED'}
 
 class MATLAY_OT_image_edit_uvs(Operator):
