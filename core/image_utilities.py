@@ -47,16 +47,30 @@ def check_for_directx(filename):
         return False
 
 def save_raw_image(original_image_path, original_image_name):
-    '''Saves an imported texture'''
+    '''Saves an imported texture to a folder next to the saved blend file. This can help keep textures used in materials within the blend file in a static location next to the blend file for organizational purposes.'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     if addon_preferences.save_imported_textures:
+
+        debug_logging.log("Attempting to copy the imported texture into the raw textures folder.")
+
+        # Create a raw textures folder if one doesn't already exist.
         raw_textures_folder_path = os.path.join(bpy.path.abspath("//"), "Raw Textures")
         if os.path.exists(raw_textures_folder_path) == False:
             os.mkdir(raw_textures_folder_path)
         
+        # In some cases, the original image name may include the file extension of the image already. 
+        # We'll remove this to avoid saving images with the file extension in the name.
+        original_image_name_extension = os.path.splitext(original_image_name)[1]
+        if original_image_name_extension:
+            original_image_name = original_image_name.replace(original_image_name_extension, '')
+
+        # Save the raw texture in a folder next to the saved blend file if it doesn't exist within that folder.
         original_file_format = os.path.splitext(original_image_path)
-        destination_path = "{0}/{1}.{2}".format(raw_textures_folder_path, original_image_name, original_file_format[1])
-        shutil.copyfile(original_image_path, destination_path)
+        destination_path = "{0}/{1}{2}".format(raw_textures_folder_path, original_image_name, original_file_format[1])
+        if not os.path.exists(destination_path):
+            shutil.copyfile(original_image_path, destination_path)
+            debug_logging.log("Imported image copied to the raw texture folder.")
+        debug_logging.log("Imported image already exists within the raw texture folder.")
 
 class MATLAYER_OT_add_texture_node_image(Operator):
     bl_idname = "matlayer.add_texture_node_image"
