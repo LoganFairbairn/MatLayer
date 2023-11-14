@@ -564,6 +564,15 @@ def get_texture_channel_bake_list():
             if input_texture_channel not in material_channels_to_bake:
                 if input_texture_channel != 'NONE':
                     material_channels_to_bake.append(input_texture_channel)
+
+    # Normal maps and normal / height data bake as blank when baked after other maps, it's unclear why.
+    # As a (perhaps temporary) we'll bake all normal map textures first by moving them to the first elements in the list.
+    if 'NORMAL_HEIGHT' in material_channels_to_bake:
+        material_channels_to_bake.insert(0, material_channels_to_bake.pop(material_channels_to_bake.index('NORMAL_HEIGHT')))
+
+    if 'NORMAL' in material_channels_to_bake:
+        material_channels_to_bake.insert(0, material_channels_to_bake.pop(material_channels_to_bake.index('NORMAL')))
+
     debug_logging.log("Baking channels: {0}".format(material_channels_to_bake))
     return material_channels_to_bake
 
