@@ -384,7 +384,7 @@ def channel_pack(input_textures, input_packing, output_packing, image_name_forma
     # Define the colorspace for the packed image.
     match export_colorspace:
         case 'SRGB':
-            packed_image.colorspace_settings.name = 'Linear'
+            packed_image.colorspace_settings.name = 'Linear Rec.709'
         case 'NON_COLOR':
             packed_image.colorspace_settings.name = 'sRGB'
 
