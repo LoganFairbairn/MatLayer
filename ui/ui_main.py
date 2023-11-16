@@ -6,12 +6,21 @@ from . import ui_mesh_map_section
 from . import ui_export_section
 from . import ui_texture_set_section
 from . import ui_settings_section
+from ..core import export_textures
 
 def check_blend_saved():
     if bpy.path.abspath("//") == "":
         return False
     else:
         return True
+
+def update_main_ui_tabs(self, context):
+    '''Callback function for updating data when the main user interface tab is changed.'''
+
+    # Ideally we'd like to read all the export templates only when the add-on is registered, but this doesn't seem possible due to the cached export templates being stored in add-on preferences.
+    # Update the available export templates when the export tab is selected.
+    if context.scene.matlayer_panel_properties.sections == 'SECTION_EXPORT':
+        export_textures.read_export_template_names()
 
 class MATLAYER_panel_properties(bpy.types.PropertyGroup):
     sections: bpy.props.EnumProperty(
@@ -22,7 +31,8 @@ class MATLAYER_panel_properties(bpy.types.PropertyGroup):
                ('SECTION_VIEWPORT_SETTINGS', "VIEWPORT", "This section contains select viewport render settings to help preview materials")],
         name="MatLayer Sections",
         description="Current matlayer category",
-        default='SECTION_LAYERS'
+        default='SECTION_LAYERS',
+        update=update_main_ui_tabs
     )
 
 class MATLAYER_PT_Panel(bpy.types.Panel):
@@ -48,9 +58,6 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
 
                 case 'SECTION_EXPORT':
                     ui_export_section.draw_export_section_ui(self, context)
-
-                case 'SECTION_UTILS':
-                    ui_utils_section.draw_ui_utils_section(self, context)
 
                 case 'SECTION_VIEWPORT_SETTINGS':
                     ui_settings_section.draw_ui_settings_section(self, context)

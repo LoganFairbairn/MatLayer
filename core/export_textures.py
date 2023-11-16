@@ -763,6 +763,7 @@ def read_export_template_names():
     for template in export_templates:
         cached_template = cached_template_names.add()
         cached_template.name = template['name']
+    debug_logging.log("Updated export templates.")
 
 
 #----------------------------- EXPORT OPERATORS -----------------------------#
