@@ -1253,8 +1253,8 @@ def set_material_channel_output_channel(material_channel_name, output_channel_na
     if value_node.bl_static_type == 'TEX_IMAGE':
         layer_node_tree.links.new(output_node.outputs[1], mix_image_alpha_node.inputs[1])
 
-    # Link to a normal rotation fix node for non-triplanar normal material channels.
-    if material_channel_name == 'NORMAL' and projection_node.node_tree.name != 'ML_TriplanarProjection':
+    # Link to a normal rotation fix node for layers using UV projection.
+    if material_channel_name == 'NORMAL' and projection_node.node_tree.name == 'ML_UVProjection':
         layer_node_tree.links.new(projection_node.outputs.get('Rotation'), fix_normal_rotation_node.inputs.get('Rotation'))
 
         if connect_channel_separator:
@@ -1273,8 +1273,6 @@ def set_material_channel_output_channel(material_channel_name, output_channel_na
             layer_node_tree.links.new(separate_color_node.outputs[output_socket], input_node.inputs[input_socket])
         else:
             layer_node_tree.links.new(output_node.outputs[output_socket], input_node.inputs[input_socket])
-
-        #blender_addon_utils.unlink_node(fix_normal_rotation_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
 
     # Link the filter node if it's enabled in this material channel.
     if connect_filter_node:
