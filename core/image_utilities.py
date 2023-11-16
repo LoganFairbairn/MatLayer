@@ -115,9 +115,7 @@ class MATLAYER_OT_add_texture_node_image(Operator):
         # Save the imported image to an external folder next to the blend file.
         image = bpy.data.images[image_name]
         if image:
-            addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-            if addon_preferences.save_imported_textures:
-                blender_addon_utils.save_image(image, file_format='PNG', type='RAW_TEXTURE', colorspace='sRGB')
+            blender_addon_utils.save_image(image, file_format='PNG', type='RAW_TEXTURE', colorspace='sRGB')
 
         texture_node.image = new_image                                              # Add the new image to the image node.
         bpy.context.scene.tool_settings.image_paint.canvas = texture_node.image     # Select the new texture for painting.
