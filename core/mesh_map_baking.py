@@ -126,12 +126,6 @@ def create_bake_image(mesh_map_type, object_name):
     # Use the object's name and bake type to define the bake image name.
     mesh_map_name = get_meshmap_name(object_name, mesh_map_type)
 
-    # Specific mesh maps require higher image color bit depth to be able to store optimal amounts of mesh information.
-    if mesh_map_type == 'NORMALS' or mesh_map_type == 'CURVATURE':
-        high_bit_depth = True
-    else:
-        high_bit_depth = False
-
     # For anti-aliasing, mesh maps are baked at a higher resolution and then scaled down (which effectively applies anti-aliasing).
     # Define the anti-aliasing multiplier based on mesh map settings.
     anti_aliasing_multiplier = 1
@@ -162,7 +156,7 @@ def create_bake_image(mesh_map_type, object_name):
         image_height=new_image_height,
         base_color=(0.0, 0.0, 0.0, 1.0),
         alpha_channel=False,
-        thirty_two_bit=high_bit_depth,
+        thirty_two_bit=True,
         add_unique_id=False,
         delete_existing=True
     )
