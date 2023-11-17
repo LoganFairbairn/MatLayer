@@ -866,7 +866,7 @@ class MATLAYER_OT_export(Operator):
         
         self._start_bake_time = time.time()                     # Record the starting time before baking.
         bpy.context.scene.pause_auto_updates = True             # Pause auto updates for add-on properties, they don't need to run while exporting textures.
-        bpy.context.space_data.shading.type = 'MATERIAL'        # Set the viewport shading mode to 'Material' (helps bake materials slightly faster).
+        bpy.context.space_data.shading.type = 'MATERIAL'        # Set the viewport shading mode to 'Material' (helps bake materials slightly faster while still being able to preview material changes).
 
         # Compile a list of material channels that require baking based on settings.
         self._texture_channels_to_bake = get_texture_channel_bake_list()

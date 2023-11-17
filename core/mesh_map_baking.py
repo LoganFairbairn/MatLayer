@@ -451,6 +451,9 @@ class MATLAYER_OT_batch_bake(Operator):
         # Remove lingering mesh map assets if they exist.
         remove_mesh_map_baking_assets()
 
+        # Set the viewport shading mode to 'Material' (helps bake materials slightly faster while still being able to preview material changes).
+        bpy.context.space_data.shading.type = 'MATERIAL'
+
         # Verify the active object can be baked to.
         if blender_addon_utils.verify_bake_object(self) == False:
             return {'FINISHED'}
