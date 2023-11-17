@@ -629,7 +629,6 @@ def draw_global_material_properties(layout):
                 row = first_column.row()
                 row.label(text="Base Normal Map")
                 row = second_column.row()
-                row.enabled = False
                 row.prop(base_normal_map_node, "image", text="")
 
             # Draw base normal intensity.
