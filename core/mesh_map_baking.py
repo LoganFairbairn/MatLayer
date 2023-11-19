@@ -580,18 +580,17 @@ class MATLAYER_OT_batch_bake(Operator):
             wm = context.window_manager
             wm.event_timer_remove(self._timer)
 
-        # High the high poly object, there's no need for it to be visible anymore.
+        # High the high poly object, and re-exclude layer collections the high poly object belongs to.
         high_poly_object = bpy.context.scene.matlayer_baking_settings.high_poly_object
         if high_poly_object:
             high_poly_object.hide_set(True)
             high_poly_object.hide_render = True
-
-        # Re-exclude layer collections the high poly object belongs to that were include in the view layer for baking.
-        view_layer_collections = bpy.context.view_layer.layer_collection.children
-        user_collections = high_poly_object.users_collection
-        for i, collection in enumerate(user_collections):
-            layer_collection = view_layer_collections.get(collection.name)
-            layer_collection.exclude = self._exclude_layer_collections[i]
+            
+            view_layer_collections = bpy.context.view_layer.layer_collection.children
+            user_collections = high_poly_object.users_collection
+            for i, collection in enumerate(user_collections):
+                layer_collection = view_layer_collections.get(collection.name)
+                layer_collection.exclude = self._exclude_layer_collections[i]
 
         # Re-apply the materials that were originally on the object and delete the temporary bake material.
         for i in range(0, len(self._original_material_names)):
@@ -615,18 +614,17 @@ class MATLAYER_OT_batch_bake(Operator):
             wm = context.window_manager
             wm.event_timer_remove(self._timer)
 
-        # High the high poly object, there's no need for it to be visible anymore.
+        # High the high poly object, and re-exclude layer collections the high poly object belongs to.
         high_poly_object = bpy.context.scene.matlayer_baking_settings.high_poly_object
         if high_poly_object:
             high_poly_object.hide_set(True)
             high_poly_object.hide_render = True
 
-        # Re-exclude layer collections the high poly object belongs to that were include in the view layer for baking.
-        view_layer_collections = bpy.context.view_layer.layer_collection.children
-        user_collections = high_poly_object.users_collection
-        for i, collection in enumerate(user_collections):
-            layer_collection = view_layer_collections.get(collection.name)
-            layer_collection.exclude = self._exclude_layer_collections[i]
+            view_layer_collections = bpy.context.view_layer.layer_collection.children
+            user_collections = high_poly_object.users_collection
+            for i, collection in enumerate(user_collections):
+                layer_collection = view_layer_collections.get(collection.name)
+                layer_collection.exclude = self._exclude_layer_collections[i]
 
         # Re-apply the materials that were originally on the object.
         for i in range(0, len(self._original_material_names)):
