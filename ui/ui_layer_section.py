@@ -321,11 +321,6 @@ def draw_layer_projection(layout):
                 col.prop(projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
                 col.prop(projection_node.inputs.get('ScaleZ'), "default_value", text="Scale Z")
 
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(projection_node.inputs.get('Blending'), "default_value", text="Blending")
-                row.menu("MATLAYER_MT_triplanar_projection_sub_menu", text="", icon='DOWNARROW_HLT')
-
 def draw_mask_projection(layout):
     '''Draws projection settings for the selected mask.'''
     row = layout.row()
@@ -871,14 +866,6 @@ class LayerUtilitySubMenu(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator("matlayer.import_texture_set", text="Import Texture Set")
-
-class LayerTriplanarProjectionSubMenu(Menu):
-    bl_idname = "MATLAYER_MT_triplanar_projection_sub_menu"
-    bl_label = "Layer Projection Sub Menu"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("matlayer.toggle_triplanar_flip_correction", text="Toggle Triplanar Axis Correction Flip")
 
 class MaskChannelSubMenu(Menu):
     bl_idname = "MATLAYER_MT_mask_channel_sub_menu"
