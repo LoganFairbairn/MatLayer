@@ -325,6 +325,10 @@ def draw_layer_projection(layout):
                 col.prop(projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
                 col.prop(projection_node.inputs.get('ScaleZ'), "default_value", text="Scale Z")
 
+                row = layout.row()
+                row.scale_y = DEFAULT_UI_SCALE_Y
+                row.prop(projection_node.inputs.get('Blending'), "default_value", text="Blending")
+
 def draw_mask_projection(layout):
     '''Draws projection settings for the selected mask.'''
     row = layout.row()
