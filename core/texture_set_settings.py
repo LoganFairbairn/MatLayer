@@ -8,16 +8,17 @@ from ..core import material_layers
 
 # Available texture resolutions for texture sets.
 TEXTURE_SET_RESOLUTIONS = [
-    ("FIVE_TWELVE", "512", ""), 
-    ("ONEK", "1024", ""),
-    ("TWOK", "2048", ""),
-    ("FOURK", "4096", ""),
+    ("THIRTY_TWO", "32", ""),
+    ("SIXTY_FOUR", "64", ""),
+    ("ONE_TWENTY_EIGHT", "128", ""),
+    ("TWO_FIFTY_SIX", "256", ""),
+    ("FIVE_TWELVE", "512", ""),
+    ("ONE_K", "1024", ""),
+    ("TWO_K", "2048", ""),
+    ("FOUR_K", "4096", "")
 ]
 
 def update_match_image_resolution(self, context):
-    if context.scene.matlayer_texture_set_settings.auto_update_properties == False:
-        return
-    
     texture_set_settings = context.scene.matlayer_texture_set_settings
     if texture_set_settings.match_image_resolution:
         texture_set_settings.image_height = texture_set_settings.image_width
@@ -33,13 +34,21 @@ def update_image_width(self, context):
 def get_texture_width():
     '''Returns a numeric value based on the enum for texture width.'''
     match bpy.context.scene.matlayer_texture_set_settings.image_width:
+        case 'THIRTY_TWO':
+            return 32
+        case 'SIXTY_FOUR':
+            return 64
+        case 'ONE_TWENTY_EIGHT':
+            return 128
+        case 'TWO_FIFTY_SIX':
+            return 256
         case 'FIVE_TWELVE':
             return 512
-        case 'ONEK':
+        case 'ONE_K':
             return 1024
-        case 'TWOK':
+        case 'TWO_K':
             return 2048
-        case 'FOURK':
+        case 'FOUR_K':
             return 4096
         case _:
             return 10
@@ -47,13 +56,21 @@ def get_texture_width():
 def get_texture_height():
     '''Returns a numeric value based on the enum for texture height.'''
     match bpy.context.scene.matlayer_texture_set_settings.image_height:
+        case 'THIRTY_TWO':
+            return 32
+        case 'SIXTY_FOUR':
+            return 64
+        case 'ONE_TWENTY_EIGHT':
+            return 128
+        case 'TWO_FIFTY_SIX':
+            return 256
         case 'FIVE_TWELVE':
             return 512
-        case 'ONEK':
+        case 'ONE_K':
             return 1024
-        case 'TWOK':
+        case 'TWO_K':
             return 2048
-        case 'FOURK':
+        case 'FOUR_K':
             return 4096
         case _:
             return 10
@@ -75,8 +92,8 @@ def get_material_channel_active(material_channel_name):
         return True
 
 class MATLAYER_texture_set_settings(PropertyGroup):
-    image_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Width", description="Image width in pixels for all images created with this add-on. Changing this value during through creating a material could result in the pixel resolution between textures used in the material not matching, which will cause exported textures to be blurry", default='TWOK', update=update_image_width)
-    image_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Height", description="Image height in pixels for all images created with this add-on. Changing this value during through creating a material could result in the pixel resolution between textures used in the material not matching, which will cause exported textures to be blurry", default='TWOK')
+    image_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Width", description="Image width in pixels for all images created with this add-on. Changing this value during through creating a material could result in the pixel resolution between textures used in the material not matching, which will cause exported textures to be blurry", default='TWO_K', update=update_image_width)
+    image_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Height", description="Image height in pixels for all images created with this add-on. Changing this value during through creating a material could result in the pixel resolution between textures used in the material not matching, which will cause exported textures to be blurry", default='TWO_K')
     layer_folder: StringProperty(default="", description="Path to folder location where layer images are saved", name="Image Layer Folder Path")
     match_image_resolution: BoolProperty(name="Match Image Resolution", description="When toggled on, the image width and height will be matched", default=True, update=update_match_image_resolution)
 
