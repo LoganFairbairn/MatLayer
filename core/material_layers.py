@@ -993,7 +993,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
     value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, 1)
     
     original_value_node_type = value_node.bl_static_type
-    original_node_location = value_node.location
+    original_node_location = value_node.location.copy()
     
     # Texture nodes are the only nodes that require a specific projection node setup, ignore other node types.
     # If set_texture_node is true, the material channel value node will be replaces with a texture node, regardless of it's original node type.
