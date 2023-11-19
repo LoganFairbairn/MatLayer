@@ -219,7 +219,7 @@ def draw_material_channel_filter_properties(layout, selected_layer_index, materi
                 if node.bl_static_type == 'VALTORGB':
                     layout.template_color_ramp(node, "color_ramp", expand=True)
 
-def draw_group_node_properties(layout, value_node):
+def draw_value_node_properties(layout, value_node):
     '''Draws properties for the provided value node.'''
     match value_node.bl_static_type:
         case 'GROUP':
@@ -229,6 +229,10 @@ def draw_group_node_properties(layout, value_node):
                     row.prop(value_node.inputs[i], "default_value", text="")
                 else:
                     row.prop(value_node.inputs[i], "default_value", text=value_node.inputs[i].name)
+
+        case 'TEX_IMAGE':
+            row = layout.row()
+            row.prop(value_node, "interpolation", text="")
 
 def draw_material_channel_properties(layout):
     '''Draws properties for all active material channels on selected material layer.'''
@@ -258,7 +262,7 @@ def draw_material_channel_properties(layout):
                 row.label(text="• {0}".format(material_channel_name))
                 draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_layer_index, material_channel_name)
                 draw_material_channel_filter_node(layout, material_channel_name, selected_layer_index)
-                draw_group_node_properties(layout, value_node)
+                draw_value_node_properties(layout, value_node)
                 draw_material_channel_filter_properties(layout, selected_layer_index, material_channel_name)
 
 def draw_layer_projection(layout):
@@ -427,6 +431,11 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
         row.context_pointer_set("node", mask_texture_node)
         row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
+        row = first_column.row()
+        row.label(text="Interpolation")
+        row = second_column.row()
+        row.prop(mask_texture_node, "interpolation", text="")
+
     # Draw custom mask texture properties (if any exist).
     for node in mask_node.node_tree.nodes:
         if node.bl_static_type == 'TEX_IMAGE' and node.name not in mesh_map_baking.MESH_MAP_TYPES:
@@ -441,6 +450,11 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
                 row.context_pointer_set("node_tree", mask_node.node_tree)
                 row.context_pointer_set("node", node)
                 row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+
+                row = first_column.row()
+                row.label(text="Interpolation")
+                row = second_column.row()
+                row.prop(node, "interpolation", text="")
 
     # Draw mask group node input properties.
     for i in range(0, len(mask_node.inputs)):

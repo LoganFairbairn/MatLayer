@@ -85,8 +85,8 @@ def update_layer_index(self, context):
                         else:
                             decal_coordinates_node.object.hide_set(True)
 
-def sync_triplanar_samples():
-    '''Syncs triplanar texture samples to match the first texture sample (only if triplanar projection is being used).'''
+def sync_triplanar_settings():
+    '''Syncs triplanar texture settings to match the first texture sample (only if triplanar layer projection is being used).'''
     if blender_addon_utils.verify_material_operation_context(display_message=False) == False:
         return
 
@@ -106,9 +106,16 @@ def sync_triplanar_samples():
                         if texture_sample_2:
                             if texture_sample_2.image != value_node.image:
                                 texture_sample_2.image = value_node.image
+
+                            if texture_sample_2.interpolation != value_node.interpolation:
+                                texture_sample_2.interpolation = value_node.interpolation
+
                         if texture_sample_3:
                             if texture_sample_3.image != value_node.image:
                                 texture_sample_3.image = value_node.image
+
+                            if texture_sample_3.interpolation != value_node.interpolation:
+                                texture_sample_3.interpolation = value_node.interpolation
 
     # Sync triplanar texture samples for masks.
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
@@ -124,10 +131,16 @@ def sync_triplanar_samples():
                 if texture_sample_2:
                     if texture_sample_2.image != texture_sample_1.image:
                         texture_sample_2.image = texture_sample_1.image
-                
+
+                    if texture_sample_2.interpolation != texture_sample_1.interpolation:
+                        texture_sample_2.interpolation = texture_sample_1.interpolation
+
                 if texture_sample_3:
                     if texture_sample_3.image != texture_sample_1.image:
                         texture_sample_3.image = texture_sample_1.image
+
+                    if texture_sample_3.interpolation != texture_sample_1.interpolation:
+                        texture_sample_3.interpolation = texture_sample_1.interpolation
 
 def get_shorthand_material_channel_name(material_channel_name):
     '''Returns the short-hand version of the provided material channel name.'''
@@ -990,6 +1003,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                 # Remember original location and image of the texture node.
                 if original_value_node_type == 'TEX_IMAGE':
                     original_image = value_node.image
+                    original_interpolation = value_node.interpolation
 
                 # Delete triplanar texture nodes if they exist.
                 delete_triplanar_blending_nodes(material_channel_name)
@@ -1004,6 +1018,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
 
                 if original_value_node_type == 'TEX_IMAGE':
                     texture_sample_node.image = original_image
+                    texture_sample_node.interpolation = original_interpolation
 
                 # Link the texture to projection / blur and mix layer nodes.
                 relink_material_channel(material_channel_name)
@@ -1012,6 +1027,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                 # Remember original location and image of the texture node.
                 if original_value_node_type == 'TEX_IMAGE':
                     original_image = value_node.image
+                    original_interpolation = value_node.interpolation
 
                 # Delete triplanar texture nodes if they exist.
                 delete_triplanar_blending_nodes(material_channel_name)
@@ -1026,6 +1042,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                 texture_node.extension = 'CLIP'
                 if original_value_node_type == 'TEX_IMAGE':
                     texture_node.image = original_image
+                    texture_node.interpolation = original_interpolation
 
                 # Link the texture to projection / blur and mix layer nodes.
                 relink_material_channel(material_channel_name)
@@ -1035,6 +1052,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                 original_value_node_type = value_node.bl_static_type
                 if original_value_node_type == 'TEX_IMAGE':
                     original_image = value_node.image
+                    original_interpolation = value_node.interpolation
 
                 # Remove the old value node.
                 layer_node_tree.nodes.remove(value_node)
@@ -1054,6 +1072,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                     location_y -= 50
                     if original_value_node_type == 'TEX_IMAGE':
                         texture_sample_node.image = original_image
+                        texture_sample_node.interpolation = original_interpolation
 
                 # Add a node for blending texture samples.
                 triplanar_blend_node = layer_node_tree.nodes.new('ShaderNodeGroup')
