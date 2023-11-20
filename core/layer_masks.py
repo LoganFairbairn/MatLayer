@@ -189,7 +189,8 @@ def add_mask_slot():
 
     mask_slot = masks.add()
 
-    # Assign a random, unique number to the layer slot. This allows the layer slot array index to be found using the name of the layer slot as a key.
+    # This allows the layer slot array index to be found using the name of the layer slot as a key.
+    # Assign a random, unique number to the layer slot. 
     unique_random_slot_id = str(random.randrange(0, 999999))
     while masks.find(unique_random_slot_id) != -1:
         unique_random_slot_id = str(random.randrange(0, 999999))
@@ -602,12 +603,25 @@ def link_mask_nodes(layer_index):
 
 def refresh_mask_slots():
     '''Refreshes the number of mask slots in the mask stack by counting the number of mask nodes in the active materials node tree.'''
-    masks = bpy.context.scene.matlayer_masks
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    masks.clear()
-    mask_count = count_masks(selected_layer_index)
-    for i in range(0, mask_count):
-        add_mask_slot()
+    active_object = bpy.context.active_object
+    if active_object:
+        masks = bpy.context.scene.matlayer_masks
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        masks.clear()
+        mask_count = count_masks(selected_layer_index)
+        for i in range(0, mask_count):
+
+            # If the group node belongs to the active material (indicated by it's name)...
+            # but isn't being used, it can cause conflicts or errors, and it should not exist, delete it.
+            active_material = active_object.active_material
+            if active_material:
+                mask_node_tree = get_mask_node_tree(selected_layer_index, i)
+                if mask_node_tree.users <= 0:
+                    bpy.data.node_groups.remove(mask_node_tree)
+                    debug_logging.log("Unused layer mask group node was removed.", sub_process=True)
+
+            # If the group node does exist within the active material, add a mask slot in the user interface so users can edit the mask.
+            add_mask_slot()
 
 def relink_image_mask_projection(original_output_channel):
     '''Relinks projection nodes based on the projection mode for image masks.'''
