@@ -451,6 +451,9 @@ class MATLAYER_OT_batch_bake(Operator):
 
     def execute(self, context):
 
+        # Save the blend file to help users avoid losing work if Blender crashes while baking.
+        bpy.ops.wm.save_mainfile()
+
         # Remove lingering mesh map assets if they exist.
         clean_mesh_map_assets()
 
