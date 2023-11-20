@@ -346,16 +346,26 @@ def set_texture_paint_image(image):
     else:
         debug_logging.log("Can't set texture paint image, invalid image provided.")
 
-def get_layer_image_path(image_name, file_format='PNG'):
-    '''Returns the image path.'''
+def get_image_file_extension(file_format):
+    '''Converts the provided Blender file format into a file extension for use in formatting file paths.'''
+    match file_format:
+        case 'TARGA':
+            return 'tga'
+        case 'OPEN_EXR':
+            return 'exr'
+        case _:
+            return file_format.lower()
+
+def get_raw_texture_file_path(image_name, file_format='OPEN_EXR'):
+    '''Returns the file path for where raw textures (which is any image that's used in the texturing process that's NOT a final texture for the object) should be saved.'''
     export_path = os.path.join(bpy.path.abspath("//"), "Raw Textures")
     if os.path.exists(export_path) == False:
         os.mkdir(export_path)
-    return "{0}/{1}.{2}".format(export_path, image_name, file_format.lower())
+    file_extension = get_image_file_extension(file_format)
+    return "{0}/{1}.{2}".format(export_path, image_name, file_extension)
 
 def save_image(image, file_format='PNG', type='RAW_TEXTURE', colorspace='sRGB'):
-    '''Saves the provided image to the default or defined location for the provided asset type. Valid types include: LAYER_IMAGE, EXPORT_TEXTURE'''
-
+    '''Saves the provided image to the default or defined location for the provided asset type. Valid types include: RAW_TEXTURE, EXPORT_TEXTURE'''
     match type:
         case 'EXPORT_TEXTURE':
             export_path = os.path.join(bpy.path.abspath("//"), "Textures")
@@ -367,14 +377,7 @@ def save_image(image, file_format='PNG', type='RAW_TEXTURE', colorspace='sRGB'):
     if os.path.exists(export_path) == False:
         os.mkdir(export_path)
 
-    match file_format:
-        case 'TARGA':
-            file_extension = 'tga'
-        case 'OPEN_EXR':
-            file_extension = 'exr'
-        case _:
-            file_extension = file_format.lower()
-
+    file_extension = get_image_file_extension(file_format)
     image.colorspace_settings.name = colorspace
     image.file_format = file_format
     image.filepath = "{0}/{1}.{2}".format(export_path, image.name, file_extension)

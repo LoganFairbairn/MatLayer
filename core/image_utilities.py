@@ -234,7 +234,7 @@ class MATLAY_OT_export_uvs(Operator):
 
         # Save UV layout to a folder.
         uv_image_name = bpy.context.active_object.name + "_" + "UVLayout"
-        uv_layout_path = blender_addon_utils.get_layer_image_path(uv_image_name, 'PNG')
+        uv_layout_path = blender_addon_utils.get_raw_texture_file_path(uv_image_name, 'PNG')
         bpy.ops.uv.export_layout(filepath=uv_layout_path, size=(tss.get_texture_width(), tss.get_texture_height()))
 
         # Reset mode and log completion.
@@ -265,7 +265,7 @@ class MATLAY_OT_image_edit_uvs(Operator):
 
         # Save UV layout to a folder.
         uv_image_name = bpy.context.active_object.name + "_" + "UVLayout"
-        uv_layout_path = blender_addon_utils.get_layer_image_path(uv_image_name, 'PNG')
+        uv_layout_path = blender_addon_utils.get_raw_texture_file_path(uv_image_name, 'PNG')
         bpy.ops.uv.export_layout(filepath=uv_layout_path, size=(tss.get_texture_width(), tss.get_texture_height()))
 
         # Load the UV layout into Blender's data so it can be exported directly from Blender.

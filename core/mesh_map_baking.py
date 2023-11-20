@@ -161,6 +161,8 @@ def create_bake_image(mesh_map_type, object_name):
         delete_existing=True
     )
 
+    mesh_map_image.filepath = blender_addon_utils.get_raw_texture_file_path(mesh_map_image.name, file_format='OPEN_EXR')
+    mesh_map_image.file_format = 'OPEN_EXR'
     mesh_map_image.colorspace_settings.name = 'Non-Color'
     mesh_map_image.use_fake_user = True
     return mesh_map_image
@@ -330,8 +332,8 @@ def get_batch_bake_mesh_maps():
 
     return mesh_maps_to_bake
 
-def remove_mesh_map_baking_assets():
-    '''Removes all mesh map baking materials and nodes if they exist.'''
+def clean_mesh_map_assets():
+    '''Removes all mesh map baking materials and group nodes if they exist.'''
     # Remove all mesh map materials.
     for mesh_map_material_name in MESH_MAP_MATERIAL_NAMES:
         mesh_map_material = bpy.data.materials.get(mesh_map_material_name)
@@ -392,12 +394,12 @@ class MATLAYER_OT_batch_bake(Operator):
             # If a mesh map isn't actively baking, move to the next mesh map, or end the function.
             if not bpy.app.is_job_running('OBJECT_BAKE'):
 
-                # Pack baked mesh map images.
+                # Pack baked mesh map images into the blend file.
                 mesh_map_type = self._mesh_maps_to_bake[self._baked_mesh_map_count]
                 mesh_map_name = get_meshmap_name(bpy.context.active_object.name, mesh_map_type)
                 mesh_map_image = bpy.data.images.get(mesh_map_name)
                 if mesh_map_image:
-                    mesh_map_image.pack()
+                    mesh_map_image.save()
 
                     # Scale baked textures down to apply anti-aliasing.
                     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
@@ -448,8 +450,9 @@ class MATLAYER_OT_batch_bake(Operator):
         return {'PASS_THROUGH'}
 
     def execute(self, context):
+
         # Remove lingering mesh map assets if they exist.
-        remove_mesh_map_baking_assets()
+        clean_mesh_map_assets()
 
         # Set the viewport shading mode to 'Material' (helps bake materials slightly faster while still being able to preview material changes).
         bpy.context.space_data.shading.type = 'MATERIAL'
@@ -500,7 +503,7 @@ class MATLAYER_OT_batch_bake(Operator):
                 case 'NO_CAGE':
                     bpy.context.scene.render.bake.use_cage = False
 
-                # A cage object will be automatically created for baking by duplicating the low poly object and scaling it's normals using a complex solidify modifier.
+                # A cage object will be automatically created for baking by duplicating the low poly object and scaling it's normals up.
                 case 'AUTO_CAGE':
                     bpy.context.scene.render.bake.use_cage = True
                     auto_cage_object = None
@@ -557,7 +560,7 @@ class MATLAYER_OT_batch_bake(Operator):
                 else:
                     self._original_material_names.append("")
 
-        # Set render engine to Cycles (required for baking) and remember the render engine so we can reset it after baking.
+        # Set render engine to Cycles (required for baking) and remember the original render engine so we can reset it after baking.
         self._original_render_engine = bpy.context.scene.render.engine
         bpy.context.scene.render.engine = 'CYCLES'
 
@@ -694,7 +697,7 @@ class MATLAYER_OT_preview_mesh_map(Operator):
             return {'FINISHED'}
 
         # Make sure there are no lingering existing mesh map assets.
-        remove_mesh_map_baking_assets()
+        clean_mesh_map_assets()
 
         match self.mesh_map_type:
             case 'AMBIENT_OCCLUSION':
@@ -743,7 +746,7 @@ class MATLAYER_OT_disable_mesh_map_preview(Operator):
         return context.active_object
 
     def execute(self, context):
-        remove_mesh_map_baking_assets()
+        clean_mesh_map_assets()
         bpy.context.space_data.shading.type = 'MATERIAL'
         bpy.context.scene.render.engine = 'BLENDER_EEVEE'
         debug_logging.log_status("Disabled mesh map preview.", self, type='INFO')
