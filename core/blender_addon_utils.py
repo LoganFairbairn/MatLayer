@@ -346,6 +346,16 @@ def set_texture_paint_image(image):
     else:
         debug_logging.log("Can't set texture paint image, invalid image provided.")
 
+def get_texture_folder_path(folder='RAW_TEXTURES'):
+    '''Returns the file path for the folder where raw textures used in material editing are stored.'''
+    match folder:
+        case 'EXPORT_TEXTURES':
+            return os.path.join(bpy.path.abspath("//"), "Textures")
+        case 'RAW_TEXTURES':
+            return os.path.join(bpy.path.abspath("//"), "Raw Textures")
+        case _:
+            return ""
+
 def get_image_file_extension(file_format):
     '''Converts the provided Blender file format into a file extension for use in formatting file paths.'''
     match file_format:
@@ -358,7 +368,7 @@ def get_image_file_extension(file_format):
 
 def get_raw_texture_file_path(image_name, file_format='OPEN_EXR'):
     '''Returns the file path for where raw textures (which is any image that's used in the texturing process that's NOT a final texture for the object) should be saved.'''
-    export_path = os.path.join(bpy.path.abspath("//"), "Raw Textures")
+    export_path = get_texture_folder_path(folder='RAW_TEXTURES')
     if os.path.exists(export_path) == False:
         os.mkdir(export_path)
     file_extension = get_image_file_extension(file_format)
@@ -368,9 +378,9 @@ def save_image(image, file_format='PNG', type='RAW_TEXTURE', colorspace='sRGB'):
     '''Saves the provided image to the default or defined location for the provided asset type. Valid types include: RAW_TEXTURE, EXPORT_TEXTURE'''
     match type:
         case 'EXPORT_TEXTURE':
-            export_path = os.path.join(bpy.path.abspath("//"), "Textures")
+            export_path = get_texture_folder_path(folder='EXPORT_TEXTURES')
         case 'RAW_TEXTURE':
-            export_path = os.path.join(bpy.path.abspath("//"), "Raw Textures")
+            export_path = get_texture_folder_path(folder='RAW_TEXTURES')
         case _:
             debug_logging.log("Invalid image type passed to save_image.")
 

@@ -665,10 +665,10 @@ class MATLAYER_OT_batch_bake(Operator):
         total_bake_time = end_bake_time - self._start_bake_time
         debug_logging.log_status("Baking mesh map(s) completed, total bake time: {0} seconds.".format(round(total_bake_time), 1), self, 'INFO')
 
-class MATLAYER_OT_open_bake_folder(Operator):
-    bl_idname = "matlayer.open_bake_folder"
-    bl_label = "Open Bake Folder"
-    bl_description = "Opens the bake folder in your systems file explorer"
+class MATLAYER_OT_open_mesh_map_folder(Operator):
+    bl_idname = "matlayer.open_mesh_map_folder"
+    bl_label = "Open Mesh Map Folder"
+    bl_description = "Opens the folder in your systems file explorer where mesh map images are saved"
 
     # Disable when there is no active object.
     @ classmethod
@@ -676,12 +676,11 @@ class MATLAYER_OT_open_bake_folder(Operator):
         return context.active_object
 
     def execute(self, context):
-        matlayer_image_path = os.path.join(bpy.path.abspath("//"), "Assets")
-        bake_path = os.path.join(matlayer_image_path, "MeshMaps")
-        if os.path.exists(bake_path):
-            os.startfile(bake_path)
+        mesh_map_folder_path = blender_addon_utils.get_texture_folder_path(folder='RAW_TEXTURES')
+        if os.path.exists(mesh_map_folder_path):
+            os.startfile(mesh_map_folder_path)
         else:
-            self.report({'ERROR'}, "Bake folder doesn't exist, bake mesh maps and the bake folder will be automatically created for you.")
+            debug_logging.log_status("Mesh map folder doesn't exist. Bake mesh maps first.", self, type='INFO')
         return {'FINISHED'}
 
 class MATLAYER_OT_preview_mesh_map(Operator):

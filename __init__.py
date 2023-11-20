@@ -36,7 +36,7 @@ from .core.layer_masks import MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_m
 from .core.material_slots import MATLAYER_OT_add_material_slot, MATLAYER_OT_remove_material_slot, MATLAYER_OT_move_material_slot_up, MATLAYER_OT_move_material_slot_down
 
 # Baking
-from .core.mesh_map_baking import MATLAYER_baking_settings, MATLAYER_OT_batch_bake, MATLAYER_OT_open_bake_folder, MATLAYER_OT_preview_mesh_map, MATLAYER_OT_disable_mesh_map_preview, MATLAYER_OT_delete_mesh_map
+from .core.mesh_map_baking import MATLAYER_baking_settings, MATLAYER_OT_batch_bake, MATLAYER_OT_open_mesh_map_folder, MATLAYER_OT_preview_mesh_map, MATLAYER_OT_disable_mesh_map_preview, MATLAYER_OT_delete_mesh_map
 
 # Exporting
 from .core.export_textures import MATLAYER_OT_export, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_refresh_export_template_list, MATLAYER_OT_delete_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, MATLAYER_export_template_name, ExportTemplateMenu, read_export_template_names, set_export_template
@@ -79,7 +79,7 @@ classes = (
     # Mesh Map Baking
     MATLAYER_baking_settings,
     MATLAYER_OT_batch_bake,
-    MATLAYER_OT_open_bake_folder,
+    MATLAYER_OT_open_mesh_map_folder,
     MATLAYER_OT_preview_mesh_map,
     MATLAYER_OT_disable_mesh_map_preview,
     MATLAYER_OT_delete_mesh_map,
