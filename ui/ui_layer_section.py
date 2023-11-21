@@ -162,6 +162,9 @@ def draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_laye
             row.context_pointer_set("mix_node", mix_node)
             row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text="", icon='IMAGE_DATA')
             row.prop(value_node, "image", text="")
+            image = value_node.image
+            if image:
+                row.prop(image, "use_fake_user", text="")
             row.context_pointer_set("node_tree", layer_node_tree)
             row.context_pointer_set("node", value_node)
             row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
@@ -431,6 +434,9 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
 
         row = second_column.row(align=True)
         row.prop(mask_texture_node, "image", text="")
+        image = mask_texture_node.image
+        if image:
+            row.prop(image, "use_fake_user", text="")
         row.context_pointer_set("node_tree", mask_node.node_tree)
         row.context_pointer_set("node", mask_texture_node)
         row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
@@ -451,6 +457,9 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
 
                 row = second_column.row(align=True)
                 row.prop(node, "image", text="")
+                image = mask_node.image
+                if image:
+                    row.prop(image, "use_fake_user", text="")
                 row.context_pointer_set("node_tree", mask_node.node_tree)
                 row.context_pointer_set("node", node)
                 row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
