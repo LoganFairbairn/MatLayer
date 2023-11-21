@@ -169,7 +169,7 @@ class AddonPreferences(AddonPreferences):
         items=MESH_MAP_CAGE_MODE,
         name="Cage Mode",
         description="Mode to define if a cage is used for mesh map baking, and if the cage is created automatically, or manually defined",
-        default='AUTO_CAGE'
+        default='MANUAL_CAGE'
     )
 
     cage_upscale: FloatProperty(
