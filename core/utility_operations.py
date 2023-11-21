@@ -110,3 +110,39 @@ class MATLAYER_OT_append_hdri_world(Operator):
         blender_addon_utils.append_world('HDRIWorld')
         bpy.context.scene.world = bpy.data.worlds['HDRIWorld']
         return {'FINISHED'}
+
+class MATLAYER_OT_remove_unused_raw_textures(Operator):
+    bl_idname = "matlayer.remove_unused_textures"
+    bl_label = "Remove Unused Textures"
+    bl_description = "Removes all unused textures from the blend file, and all textures not used in the external raw texture folder"
+
+    def execute(self, context):
+        external_folder_path = blender_addon_utils.get_texture_folder_path(folder='RAW_TEXTURES')
+
+        # Delete all images externally then internally for all images with no users.
+        for image in bpy.data.images:
+            if image.users <= 0:
+                image_name = image.name
+                if not image.filepath == "":
+                    file_extension = os.path.splitext(image.filepath)[1]
+                    image_path = os.path.join(external_folder_path, image_name + file_extension)
+                    if os.path.exists(image_path):
+                        os.remove(image_path)
+                        debug_logging.log("Deleted unused external image: {0}".format(image_name))
+
+                bpy.data.images.remove(image)
+                debug_logging.log("Deleted unused internal image: {0}".format(image_name))
+
+        # If the image exists externally, but doesn't exist in blend data, delete it.
+        internal_image_names = []
+        for image in bpy.data.images:
+            internal_image_names.append(image.name)
+        external_textures = os.listdir(external_folder_path)
+        for texture_name_and_extension in external_textures:
+            texture_name = os.path.splitext(texture_name_and_extension)[0]
+            if texture_name not in internal_image_names:
+                image_path = os.path.join(external_folder_path, texture_name_and_extension)
+                os.remove(image_path)
+                debug_logging.log("Deleted external image that doesn't exist internally: {0}".format(texture_name))
+
+        return {'FINISHED'}
