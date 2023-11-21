@@ -1303,17 +1303,26 @@ def set_material_channel_output_channel(material_channel_name, output_channel_na
 def isolate_material_channel(material_channel_name):
     '''Isolates the specified material channel by linking only the specified material channel output to the material channel output / emission node.'''
     active_node_tree = bpy.context.active_object.active_material.node_tree
-    last_layer_index = count_layers(bpy.context.active_object.active_material) - 1
-    
     emission_node = active_node_tree.nodes.get('EMISSION')
     material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
 
     # Unlink the emission node (ensures nothing else is connected to it).
     blender_addon_utils.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
 
-    # Connect the specified material channel.
-    layer_node = get_material_layer_node('LAYER', last_layer_index)
-    active_node_tree.links.new(layer_node.outputs.get(material_channel_name.capitalize()), emission_node.inputs[0])
+    # For the normal material channel, connect the normal and height mix to the emission node.
+    if material_channel_name == 'NORMAL':
+        base_normals_mix_node = get_material_layer_node('BASE_NORMALS_MIX')
+        active_node_tree.links.new(base_normals_mix_node.outputs[0], emission_node.inputs[0])
+
+    # For all other material channels connect the specified material channel for the last active material channel.
+    else:
+        total_layers = count_layers(bpy.context.active_object.active_material)
+        for i in range(total_layers, 0, -1):
+            layer_node = get_material_layer_node('LAYER', i - 1)
+            if blender_addon_utils.get_node_active(layer_node):
+                active_node_tree.links.new(layer_node.outputs.get(material_channel_name.capitalize()), emission_node.inputs[0])
+                break
+
     active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
 
 def show_layer():
