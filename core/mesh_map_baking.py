@@ -768,3 +768,84 @@ class MATLAYER_OT_delete_mesh_map(Operator):
     def execute(self, context):
         delete_meshmap(self.mesh_map_name, self)
         return {'FINISHED'}
+
+class MATLAYER_OT_create_baking_cage(Operator):
+    bl_idname = "matlayer.create_baking_cage"
+    bl_label = "Create Baking Cage"
+    bl_description = "Creates a duplicate of the selected object, scaled slightly up to act as a cage object for baking mesh maps"
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+    
+    def execute(self, context):
+        active_object = bpy.context.active_object
+        if active_object:
+
+            # Make a scaled up duplicate of the object to act as the base mesh.
+            cage_object = active_object.copy()
+            cage_mesh = active_object.data.copy()
+            cage_object.data = cage_mesh
+            cage_object.name = active_object.name + "_Cage"
+            bpy.context.collection.objects.link(cage_object)
+            bpy.context.scene.render.bake.cage_object = cage_object
+            blender_addon_utils.select_only(cage_object)
+            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+            bpy.ops.mesh.select_all(action='SELECT')
+            bpy.ops.transform.shrink_fatten(
+                value=0.01,
+                use_even_offset=False,
+                mirror=True,
+                use_proportional_edit=False,
+                proportional_edit_falloff='SMOOTH', 
+                proportional_size=1, 
+                use_proportional_connected=False, 
+                use_proportional_projected=False, 
+                snap=False
+            )
+
+            # Clear all materials on the object, then apply a cage material for previewing a cage object.
+            cage_material = bpy.data.materials.get('CageMaterial')
+            if cage_material:
+                bpy.data.materials.remove(cage_material)
+
+            cage_material = bpy.data.materials.new(name='CageMaterial')
+            cage_material.use_nodes = True
+            cage_material.diffuse_color = (1.0, 0.2, 0.0, 0.4)
+
+            if len(cage_object.material_slots) <= 0:
+                cage_object.data.materials.append(cage_material)
+            else:
+                cage_object.active_material_index = 0
+                for i in range(len(cage_object.material_slots)):
+                    cage_object.material_slot[i].material = cage_material
+
+            # Change viewport shading so users can see the cage better.
+            bpy.context.space_data.shading.color_type = 'MATERIAL'
+            bpy.context.space_data.shading.type = 'SOLID'
+
+        return {'FINISHED'}
+    
+class MATLAYER_OT_delete_baking_cage(Operator):
+    bl_idname = "matlayer.delete_baking_cage"
+    bl_label = "Delete Baking Cage"
+    bl_description = "Deletes the baking cage object associated with the selected object, and the cage material if either exist"
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+    
+    def execute(self, context):
+        active_object = bpy.context.active_object
+        if active_object:
+
+            # Delete the cage object if one exists.
+            cage_object = bpy.data.objects.get(active_object.name + "_Cage")
+            if cage_object:
+                bpy.data.objects.remove(cage_object)
+
+            # Delete the cage material if it exists.
+            cage_material = bpy.data.materials.get('CageMaterial')
+            if cage_material:
+                bpy.data.materials.remove(cage_material)
+        return {'FINISHED'}

@@ -106,8 +106,10 @@ def draw_general_settings(layout, addon_preferences, baking_settings):
         case 'MANUAL_CAGE':
             row = first_column.row()
             row.label(text="Cage")
-            row = second_column.row()
+            row = second_column.row(align=True)
             row.prop(bpy.context.scene.render.bake, "cage_object", text="")
+            row.operator("matlayer.create_baking_cage", text="", icon='ADD')
+            row.operator("matlayer.delete_baking_cage", text="", icon='TRASH')
 
     row = first_column.row()
     row.label(text="UV Padding")
