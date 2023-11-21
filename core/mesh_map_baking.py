@@ -804,26 +804,10 @@ class MATLAYER_OT_create_baking_cage(Operator):
                 snap=False
             )
 
-            # Clear all materials on the object, then apply a cage material for previewing a cage object.
-            cage_material = bpy.data.materials.get('CageMaterial')
-            if cage_material:
-                bpy.data.materials.remove(cage_material)
-
-            cage_material = bpy.data.materials.new(name='CageMaterial')
-            cage_material.use_nodes = True
-            cage_material.diffuse_color = (1.0, 0.2, 0.0, 0.4)
-
-            if len(cage_object.material_slots) <= 0:
-                cage_object.data.materials.append(cage_material)
-            else:
-                cage_object.active_material_index = 0
-                for i in range(len(cage_object.material_slots)):
-                    cage_object.material_slot[i].material = cage_material
-
             # Change viewport shading so users can see the cage better.
             bpy.context.space_data.shading.color_type = 'MATERIAL'
             bpy.context.space_data.shading.type = 'SOLID'
-
+            bpy.context.space_data.overlay.show_retopology = True
         return {'FINISHED'}
     
 class MATLAYER_OT_delete_baking_cage(Operator):
@@ -844,8 +828,4 @@ class MATLAYER_OT_delete_baking_cage(Operator):
             if cage_object:
                 bpy.data.objects.remove(cage_object)
 
-            # Delete the cage material if it exists.
-            cage_material = bpy.data.materials.get('CageMaterial')
-            if cage_material:
-                bpy.data.materials.remove(cage_material)
         return {'FINISHED'}
