@@ -26,6 +26,15 @@ def draw_export_section_ui(self, context):
     first_column.scale_x = 0.1
     second_column = split.column()
     
+    # Export folder.
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.label(text="Export Folder")
+    row = second_column.row(align=True)
+    row.scale_y = SCALE_Y
+    row.prop(addon_preferences, "export_folder", text="")
+    row.operator("matlayer.set_export_folder", text="", icon='FOLDER_REDIRECT')
+
     # Export mode.
     row = first_column.row()
     row.scale_y = SCALE_Y
@@ -37,14 +46,6 @@ def draw_export_section_ui(self, context):
     row.operator("matlayer.save_export_template", text="", icon='FILE_TICK')
     row.operator("matlayer.refresh_export_template_list", text="", icon='FILE_REFRESH')
     row.operator("matlayer.delete_export_template", text="", icon='TRASH')
-
-    row = first_column.row()
-    row.scale_y = SCALE_Y
-    row.label(text="Export Folder")
-    row = second_column.row(align=True)
-    row.scale_y = SCALE_Y
-    row.prop(addon_preferences, "export_folder", text="")
-    row.operator("matlayer.set_export_folder", text="", icon='FOLDER_REDIRECT')
 
     row = first_column.row()
     row.scale_y = SCALE_Y
