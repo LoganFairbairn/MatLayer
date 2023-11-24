@@ -128,7 +128,7 @@ class MATLAYER_mesh_map_anti_aliasing(PropertyGroup):
 class MATLAYER_set_raw_texture_folder(Operator):
     bl_idname = "matlayer.set_raw_texture_folder"
     bl_label = "Set Raw Texture Folder Path"
-    bl_description = "Sets the texture folder path where raw textures are externally saved. A raw texture is any texture used in the material editing process with MatLayer that isn't a completed texture being exported"
+    bl_description = "Opens a file explorer to select the folder path where raw textures are externally saved. A raw texture is any image used in the material editing process inside this add-on that isn't a texture being exported"
     bl_options = {'REGISTER'}
 
     directory: StringProperty()
@@ -155,7 +155,7 @@ class MATLAYER_set_raw_texture_folder(Operator):
 class MATLAYER_set_export_folder(Operator):
     bl_idname = "matlayer.set_export_folder"
     bl_label = "Set Export Folder"
-    bl_description = "Sets the folder where exported textures are saved"
+    bl_description = "Opens a file explorer to select the folder where exported textures are saved"
     bl_options = {'REGISTER'}
 
     directory: StringProperty()
