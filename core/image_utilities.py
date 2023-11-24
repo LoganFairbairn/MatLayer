@@ -47,19 +47,15 @@ def check_for_directx(filename):
         return False
 
 def save_raw_image(original_image_path, original_image_name):
-    '''Saves an imported texture to a folder next to the saved blend file. This can help keep textures used in materials within the blend file in a static location next to the blend file for organizational purposes.'''
+    '''Saves an imported image to a folder where raw, unprocessed textures are stored. This can help keep textures used in materials within the blend file in a static location next to the blend file for organizational purposes.'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     if addon_preferences.save_imported_textures:
 
         debug_logging.log("Attempting to copy the imported texture into the raw textures folder.")
-
-        # Create a raw textures folder if one doesn't already exist.
-        raw_textures_folder_path = os.path.join(bpy.path.abspath("//"), "Raw Textures")
-        if os.path.exists(raw_textures_folder_path) == False:
-            os.mkdir(raw_textures_folder_path)
         
         # In some cases, the original image name may include the file extension of the image already. 
         # We'll remove this to avoid saving images with the file extension in the name.
+        raw_textures_folder_path = blender_addon_utils.get_texture_folder_path(folder='RAW_TEXTURES')
         original_image_name_extension = os.path.splitext(original_image_name)[1]
         if original_image_name_extension:
             original_image_name = original_image_name.replace(original_image_name_extension, '')

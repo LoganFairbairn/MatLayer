@@ -1,9 +1,12 @@
 # This module contains user preference settings for this add-on.
 
+import os
 import bpy
-from bpy.types import AddonPreferences, PropertyGroup
+from bpy_extras.io_utils import ExportHelper
+from bpy.types import AddonPreferences, PropertyGroup, Operator
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty, FloatProperty, PointerProperty, CollectionProperty
 from .core.mesh_map_baking import update_occlusion_samples, update_occlusion_distance, update_occlusion_intensity, update_local_occlusion, update_bevel_radius, update_bevel_samples
+from .core import debug_logging
 
 ADDON_NAME = __package__
 
@@ -121,6 +124,58 @@ class MATLAYER_mesh_map_anti_aliasing(PropertyGroup):
     curvature_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="Curvature Anti Aliasing", description="Anti aliasing for output curvature maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='NO_AA')
     thickness_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="Thickness Anti Aliasing", description="Anti aliasing for output thickness maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='NO_AA')
     world_space_normals_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="World Space Normals Anti Aliasing", description="Anti aliasing for output world space normal maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='NO_AA')
+
+class MATLAYER_set_raw_texture_folder(Operator):
+    bl_idname = "matlayer.set_raw_texture_folder"
+    bl_label = "Set Raw Texture Folder Path"
+    bl_options = {'REGISTER'}
+
+    directory: StringProperty()
+
+    # Filters for only folders.
+    filter_folder: BoolProperty(
+        default=True,
+        options={"HIDDEN"}
+    )
+
+    def execute(self, context):
+        if not os.path.isdir(self.directory):
+            debug_logging.log_status("Invalid directory.", self, type='INFO')
+        else:
+            addon_preferences = bpy.context.preferences.addons[ADDON_NAME].preferences
+            addon_preferences.raw_textures_folder = self.directory
+            debug_logging.log_status("Raw texture folder set to: {0}".format(self.directory), self, type='INFO')
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+class MATLAYER_set_export_folder(Operator):
+    bl_idname = "matlayer.set_export_folder"
+    bl_label = "Set Export Folder"
+    bl_options = {'REGISTER'}
+
+    directory: StringProperty()
+
+    # Filters for only folders.
+    filter_folder: BoolProperty(
+        default=True,
+        options={"HIDDEN"}
+    )
+
+    def execute(self, context):
+        if not os.path.isdir(self.directory):
+            debug_logging.log_status("Invalid directory.", self, type='INFO')
+        else:
+            addon_preferences = bpy.context.preferences.addons[ADDON_NAME].preferences
+            addon_preferences.export_folder = self.directory
+            debug_logging.log_status("Export folder set to: {0}".format(self.directory), self, type='INFO')
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
 
 class AddonPreferences(AddonPreferences):
     bl_idname = ADDON_NAME
@@ -280,6 +335,17 @@ class AddonPreferences(AddonPreferences):
         update=update_bevel_samples
     )
 
+    raw_textures_folder: StringProperty(
+        name="Raw Texture Folder",
+        description="Folder where textures used in materials are saved. If a folder isn't defined, or invalid, exported textures will save to a 'Raw Textures' folder next to the saved blend file",
+        default=""
+    )
+
+    export_folder: StringProperty(
+        name="Export Folder",
+        description="Folder where completed textures are exported to. If a folder isn't defined, or invalid, exported textures will save to a 'Textures' folder next to the saved blend file.",
+        default=""
+    )
 
     #----------------------------- TEXTURE EXPORTING PROPERTIES -----------------------------#
 
@@ -294,7 +360,8 @@ class AddonPreferences(AddonPreferences):
     thirty_two_bit: BoolProperty(
         name="32 Bit Color", 
         description="When toggled on, images created using this add-on will be created with 32 bit color depth. 32-bit images will take up more memory, but will have significantly less color banding in gradients", 
-        default=True)
+        default=True
+    )
 
     #----------------------------- DRAWING -----------------------------#
     def draw(self, context):
@@ -302,3 +369,9 @@ class AddonPreferences(AddonPreferences):
         layout.prop(self, "log_main_operations")
         layout.prop(self, "log_sub_operations")
         layout.prop(self, "save_imported_textures")
+        row = layout.row(align=True)
+        row.prop(self, "raw_textures_folder")
+        row.operator("matlayer.set_raw_texture_folder", text="", icon='FOLDER_REDIRECT')
+        row = layout.row(align=True)
+        row.prop(self, "export_folder")
+        row.operator("matlayer.set_export_folder", text="", icon='FOLDER_REDIRECT')

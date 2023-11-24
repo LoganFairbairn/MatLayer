@@ -346,18 +346,8 @@ def set_texture_paint_image(image):
     else:
         debug_logging.log("Can't set texture paint image, invalid image provided.")
 
-def get_texture_folder_path(folder='RAW_TEXTURES'):
-    '''Returns the file path for the folder where raw textures used in material editing are stored.'''
-    match folder:
-        case 'EXPORT_TEXTURES':
-            return os.path.join(bpy.path.abspath("//"), "Textures")
-        case 'RAW_TEXTURES':
-            return os.path.join(bpy.path.abspath("//"), "Raw Textures")
-        case _:
-            return ""
-
 def get_image_file_extension(file_format):
-    '''Converts the provided Blender file format into a file extension for use in formatting file paths.'''
+    '''Converts the provided Blender file format into a file extension for use in file paths.'''
     match file_format:
         case 'TARGA':
             return 'tga'
@@ -366,26 +356,51 @@ def get_image_file_extension(file_format):
         case _:
             return file_format.lower()
 
+def get_texture_folder_path(folder='RAW_TEXTURES'):
+    '''Returns the file path for the folder where raw textures used in material editing are stored.'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    match folder:
+        case 'EXPORT_TEXTURES':
+            default_path = os.path.join(bpy.path.abspath("//"), "Textures")
+            if addon_preferences.export_folder != "":
+                if os.path.isdir(addon_preferences.export_folder):
+                    return addon_preferences.export_folder
+                else:
+                    debug_logging.log("Export folder is invalid, texture was saved to: {0}".format(default_path), sub_process=False)
+            if os.path.exists(default_path) == False:
+                os.mkdir(default_path)
+            return default_path
+            
+        case 'RAW_TEXTURES':
+            default_path = os.path.join(bpy.path.abspath("//"), "Raw Textures")
+            if addon_preferences.raw_textures_folder != "":
+                if os.path.isdir(addon_preferences.raw_textures_folder):
+                    return addon_preferences.raw_textures_folder
+                else:
+                    debug_logging.log("Raw textures folder is invalid, texture was saved to: {0}".format(default_path), sub_process=False)
+            if os.path.exists(default_path) == False:
+                os.mkdir(default_path)
+            return default_path
+        
+        case _:
+            debug_logging.log("Error: Invalid folder provided to get_texture_folder_path.")
+            return ""
+
 def get_raw_texture_file_path(image_name, file_format='OPEN_EXR'):
-    '''Returns the file path for where raw textures (which is any image that's used in the texturing process that's NOT a final texture for the object) should be saved.'''
+    '''Returns the file path for where raw textures should be saved. Raw textures are categorized as any image used in the material editing process that isn't a final texture.'''
     export_path = get_texture_folder_path(folder='RAW_TEXTURES')
-    if os.path.exists(export_path) == False:
-        os.mkdir(export_path)
     file_extension = get_image_file_extension(file_format)
     return "{0}/{1}.{2}".format(export_path, image_name, file_extension)
 
-def save_image(image, file_format='PNG', type='RAW_TEXTURE', colorspace='sRGB'):
+def save_image(image, file_format='PNG', image_category='RAW_TEXTURE', colorspace='sRGB'):
     '''Saves the provided image to the default or defined location for the provided asset type. Valid types include: RAW_TEXTURE, EXPORT_TEXTURE'''
-    match type:
+    match image_category:
         case 'EXPORT_TEXTURE':
             export_path = get_texture_folder_path(folder='EXPORT_TEXTURES')
         case 'RAW_TEXTURE':
             export_path = get_texture_folder_path(folder='RAW_TEXTURES')
         case _:
-            debug_logging.log("Invalid image type passed to save_image.")
-
-    if os.path.exists(export_path) == False:
-        os.mkdir(export_path)
+            debug_logging.log("Invalid image image category passed to save_image.")
 
     file_extension = get_image_file_extension(file_format)
     image.colorspace_settings.name = colorspace

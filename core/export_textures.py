@@ -16,8 +16,6 @@ from ..core import material_layers
 from ..core import image_utilities
 from .. import preferences
 
-
-
 default_output_texture = {
     "export_name_format": "/MeshName_Color",
     "export_image_format": "PNG",
@@ -364,11 +362,6 @@ def channel_pack(input_textures, input_packing, output_packing, image_name_forma
         case 'THIRTY_TWO':
             use_thirty_two_bit = True
 
-    # Create a folder to save / export packed images to.
-    export_path = os.path.join(bpy.path.abspath("//"), "Textures")
-    if os.path.exists(export_path) == False:
-        os.mkdir(export_path)
-
     # Create an image using the packed pixels and save them to the disk.
     image_name = format_export_image_name(image_name_format)
     packed_image = blender_addon_utils.create_data_image(
@@ -388,14 +381,9 @@ def channel_pack(input_textures, input_packing, output_packing, image_name_forma
         case 'NON_COLOR':
             packed_image.colorspace_settings.name = 'sRGB'
 
-    match file_format:
-        case 'TARGA':
-            file_extension = 'tga'
-        case 'OPEN_EXR':
-            file_extension = 'exr'
-        case _:
-            file_extension = file_format.lower()
-
+    # Define a file format, filepath and then save the channel packed image.
+    file_extension = blender_addon_utils.get_image_file_extension(file_format)
+    export_path = blender_addon_utils.get_texture_folder_path(folder='EXPORT_TEXTURES')
     packed_image.file_format = file_format
     packed_image.filepath = "{0}/{1}.{2}".format(export_path, image_name, file_extension)
     packed_image.pixels.foreach_set(output_pixels)
