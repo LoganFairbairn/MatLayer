@@ -152,6 +152,33 @@ class MATLAYER_set_raw_texture_folder(Operator):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
+class MATLAYER_set_mesh_map_folder(Operator):
+    bl_idname = "matlayer.set_mesh_map_folder"
+    bl_label = "Set Mesh Maps Folder"
+    bl_description = "Opens a file explorer to select the folder where baked mesh maps are externally saved"
+    bl_options = {'REGISTER'}
+
+    directory: StringProperty()
+
+    # Filters for only folders.
+    filter_folder: BoolProperty(
+        default=True,
+        options={"HIDDEN"}
+    )
+
+    def execute(self, context):
+        if not os.path.isdir(self.directory):
+            debug_logging.log_status("Invalid directory.", self, type='INFO')
+        else:
+            addon_preferences = bpy.context.preferences.addons[ADDON_NAME].preferences
+            addon_preferences.mesh_map_folder = self.directory
+            debug_logging.log_status("Export folder set to: {0}".format(self.directory), self, type='INFO')
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
 class MATLAYER_set_export_folder(Operator):
     bl_idname = "matlayer.set_export_folder"
     bl_label = "Set Export Folder"
@@ -339,13 +366,19 @@ class AddonPreferences(AddonPreferences):
 
     raw_textures_folder: StringProperty(
         name="Raw Texture Folder",
-        description="Folder where textures used in materials are saved. If a folder isn't defined, or invalid, exported textures will save to a 'Raw Textures' folder next to the saved blend file",
+        description="Folder where textures used in materials are saved. If a folder isn't defined, or is invalid, exported textures will save to a 'Raw Textures' folder next to the saved blend file",
+        default="Default"
+    )
+
+    mesh_map_folder: StringProperty(
+        name="Mesh Map Folder",
+        description="Folder where baked mesh maps are externally saved. If a folder isn't defined, or is invalid, the mesh maps will save to a 'Mesh Map' folder next to the saved blend file",
         default="Default"
     )
 
     export_folder: StringProperty(
         name="Export Folder",
-        description="Folder where completed textures are exported to. If a folder isn't defined, or invalid, exported textures will save to a 'Textures' folder next to the saved blend file",
+        description="Folder where completed textures are exported to. If a folder isn't defined, or is invalid, exported textures will save to a 'Textures' folder next to the saved blend file",
         default="Default"
     )
 

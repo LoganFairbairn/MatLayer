@@ -21,7 +21,7 @@ from bpy.props import PointerProperty, CollectionProperty, EnumProperty, StringP
 from bpy.app.handlers import persistent
 
 # Preferences
-from .preferences import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MATLAYER_texture_export_settings, MATLAYER_mesh_map_anti_aliasing, MATLAYER_set_export_folder, MATLAYER_set_raw_texture_folder, AddonPreferences
+from .preferences import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MATLAYER_texture_export_settings, MATLAYER_mesh_map_anti_aliasing, MATLAYER_set_export_folder, MATLAYER_set_mesh_map_folder, MATLAYER_set_raw_texture_folder, AddonPreferences
 
 # Texture Set Settings
 from .core.texture_set_settings import MATLAYER_texture_set_settings, MATLAYER_OT_toggle_texture_set_material_channel
@@ -76,6 +76,7 @@ classes = (
     MATLAYER_mesh_map_anti_aliasing,
     MATLAYER_set_raw_texture_folder,
     MATLAYER_set_export_folder,
+    MATLAYER_set_mesh_map_folder,
     AddonPreferences,
 
     # Mesh Map Baking

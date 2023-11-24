@@ -370,6 +370,17 @@ def get_texture_folder_path(folder='RAW_TEXTURES'):
             if os.path.exists(default_path) == False:
                 os.mkdir(default_path)
             return default_path
+        
+        case 'MESH_MAPS':
+            default_path = os.path.join(bpy.path.abspath("//"), "Mesh Maps")
+            if addon_preferences.mesh_map_folder != "Default":
+                if os.path.isdir(addon_preferences.mesh_map_folder):
+                    return addon_preferences.mesh_map_folder
+                else:
+                    debug_logging.log("Mesh map folder is invalid, texture was saved to: {0}".format(default_path), sub_process=False)
+            if os.path.exists(default_path) == False:
+                os.mkdir(default_path)
+            return default_path
             
         case 'RAW_TEXTURES':
             default_path = os.path.join(bpy.path.abspath("//"), "Raw Textures")

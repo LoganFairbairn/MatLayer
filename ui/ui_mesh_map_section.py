@@ -232,6 +232,11 @@ def draw_baking_section_ui(self, context):
     row = layout.row(align=True)
     row.scale_y = 2.0
     row.operator("matlayer.batch_bake", text="Bake")
+
+    row = layout.row(align=True)
+    row.scale_y = 1.4
+    row.prop(addon_preferences, "mesh_map_folder", text="")
+    row.operator("matlayer.set_mesh_map_folder", text="", icon='FOLDER_REDIRECT')
     row.operator("matlayer.open_mesh_map_folder", text="", icon='FILE_FOLDER')
 
     draw_mesh_map_status(layout, addon_preferences)

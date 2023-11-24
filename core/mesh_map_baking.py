@@ -161,7 +161,8 @@ def create_bake_image(mesh_map_type, object_name):
         delete_existing=True
     )
 
-    mesh_map_image.filepath = blender_addon_utils.get_raw_texture_file_path(mesh_map_image.name, file_format='OPEN_EXR')
+    mesh_map_folder = blender_addon_utils.get_texture_folder_path(folder='MESH_MAPS')
+    mesh_map_image.filepath = "{0}/{1}.{2}".format(mesh_map_folder, mesh_map_image.name, 'exr')
     mesh_map_image.file_format = 'OPEN_EXR'
     mesh_map_image.colorspace_settings.name = 'Non-Color'
     mesh_map_image.use_fake_user = True
@@ -668,7 +669,7 @@ class MATLAYER_OT_batch_bake(Operator):
 class MATLAYER_OT_open_mesh_map_folder(Operator):
     bl_idname = "matlayer.open_mesh_map_folder"
     bl_label = "Open Mesh Map Folder"
-    bl_description = "Opens the folder in your systems file explorer where mesh map images are saved"
+    bl_description = "Opens the folder in your systems file explorer where mesh map images will be saved after baking"
 
     # Disable when there is no active object.
     @ classmethod
@@ -676,11 +677,8 @@ class MATLAYER_OT_open_mesh_map_folder(Operator):
         return context.active_object
 
     def execute(self, context):
-        mesh_map_folder_path = blender_addon_utils.get_texture_folder_path(folder='RAW_TEXTURES')
-        if os.path.exists(mesh_map_folder_path):
-            os.startfile(mesh_map_folder_path)
-        else:
-            debug_logging.log_status("Mesh map folder doesn't exist. Bake mesh maps first.", self, type='INFO')
+        mesh_map_folder_path = blender_addon_utils.get_texture_folder_path(folder='MESH_MAPS')
+        os.startfile(mesh_map_folder_path)
         return {'FINISHED'}
 
 class MATLAYER_OT_preview_mesh_map(Operator):
