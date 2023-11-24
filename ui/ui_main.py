@@ -36,7 +36,7 @@ class MATLAYER_panel_properties(bpy.types.PropertyGroup):
     )
 
 class MATLAYER_PT_Panel(bpy.types.Panel):
-    bl_label = "MatLayer 2.0.1"
+    bl_label = "MatLayer 2.0.2"
     bl_idname = "MATLAYER_PT_main_panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
