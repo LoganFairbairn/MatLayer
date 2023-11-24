@@ -40,6 +40,14 @@ def draw_export_section_ui(self, context):
 
     row = first_column.row()
     row.scale_y = SCALE_Y
+    row.label(text="Export Folder")
+    row = second_column.row(align=True)
+    row.scale_y = SCALE_Y
+    row.prop(addon_preferences, "export_folder", text="")
+    row.operator("matlayer.set_export_folder", text="", icon='FOLDER_REDIRECT')
+
+    row = first_column.row()
+    row.scale_y = SCALE_Y
     row.label(text="Export Mode")
     row = second_column.row()
     row.scale_y = SCALE_Y

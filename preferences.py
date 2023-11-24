@@ -345,7 +345,7 @@ class AddonPreferences(AddonPreferences):
 
     export_folder: StringProperty(
         name="Export Folder",
-        description="Folder where completed textures are exported to. If a folder isn't defined, or invalid, exported textures will save to a 'Textures' folder next to the saved blend file.",
+        description="Folder where completed textures are exported to. If a folder isn't defined, or invalid, exported textures will save to a 'Textures' folder next to the saved blend file",
         default=""
     )
 
