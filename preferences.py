@@ -340,13 +340,13 @@ class AddonPreferences(AddonPreferences):
     raw_textures_folder: StringProperty(
         name="Raw Texture Folder",
         description="Folder where textures used in materials are saved. If a folder isn't defined, or invalid, exported textures will save to a 'Raw Textures' folder next to the saved blend file",
-        default=""
+        default="Default"
     )
 
     export_folder: StringProperty(
         name="Export Folder",
         description="Folder where completed textures are exported to. If a folder isn't defined, or invalid, exported textures will save to a 'Textures' folder next to the saved blend file",
-        default=""
+        default="Default"
     )
 
     #----------------------------- TEXTURE EXPORTING PROPERTIES -----------------------------#

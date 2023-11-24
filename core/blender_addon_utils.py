@@ -362,7 +362,7 @@ def get_texture_folder_path(folder='RAW_TEXTURES'):
     match folder:
         case 'EXPORT_TEXTURES':
             default_path = os.path.join(bpy.path.abspath("//"), "Textures")
-            if addon_preferences.export_folder != "":
+            if addon_preferences.export_folder != "Default":
                 if os.path.isdir(addon_preferences.export_folder):
                     return addon_preferences.export_folder
                 else:
@@ -373,7 +373,7 @@ def get_texture_folder_path(folder='RAW_TEXTURES'):
             
         case 'RAW_TEXTURES':
             default_path = os.path.join(bpy.path.abspath("//"), "Raw Textures")
-            if addon_preferences.raw_textures_folder != "":
+            if addon_preferences.raw_textures_folder != "Default":
                 if os.path.isdir(addon_preferences.raw_textures_folder):
                     return addon_preferences.raw_textures_folder
                 else:
