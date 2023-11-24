@@ -12,6 +12,7 @@ def draw_texture_set_section_ui(self, context):
     # Draw texture set settings.
     layout = self.layout
     texture_set_settings = context.scene.matlayer_texture_set_settings
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
 
     #----------------------------- TEXTURE SET SETTINGS -----------------------------#
 
@@ -21,8 +22,15 @@ def draw_texture_set_section_ui(self, context):
 
     row = first_column.row()
     row.scale_y = 1.4
+    row.label(text="Raw Texture Folder: ")
+    row = second_column.row(align=True)
+    row.scale_y = 1.4
+    row.prop(addon_preferences, "raw_textures_folder", text="")
+    row.operator("matlayer.set_raw_texture_folder", text="", icon='FOLDER_REDIRECT')
+
+    row = first_column.row()
+    row.scale_y = 1.4
     row.label(text="Texture Size: ")
-    
     row = second_column.row()
     row.scale_y = 1.4
     col = row.split()
@@ -39,7 +47,7 @@ def draw_texture_set_section_ui(self, context):
         col.enabled = False
     col.prop(texture_set_settings, "image_height", text="")
 
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    
     row = first_column.row()
     row.scale_y = 1.4
     row.label(text="Thirty Two Bit Depth: ")
