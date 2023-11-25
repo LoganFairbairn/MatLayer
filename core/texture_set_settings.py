@@ -140,6 +140,9 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
                 layer_node = material_layers.get_material_layer_node('LAYER', i - 1)
                 if blender_addon_utils.get_node_active(layer_node):
                     match self.material_channel_name:
+                        case 'COLOR':
+                            connect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+                            input_socket = connect_node.inputs.get('Base Color')
                         case 'NORMAL':
                             connect_node = material_layers.get_material_layer_node('BASE_NORMALS_MIX')
                             input_socket = connect_node.inputs.get('Normal Map 1')
@@ -160,6 +163,9 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
         else:
             channel_toggle_node.mute = True
             match self.material_channel_name:
+                case 'COLOR':
+                    disconnect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+                    disconnect_socket = disconnect_node.inputs.get('Base Color')
                 case 'NORMAL':
                     disconnect_node = material_layers.get_material_layer_node('BASE_NORMALS_MIX')
                     disconnect_socket = disconnect_node.inputs.get('Normal Map 1')
