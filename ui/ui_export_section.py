@@ -42,7 +42,7 @@ def draw_export_section_ui(self, context):
     row = second_column.row(align=True)
     row.scale_y = SCALE_Y
     row.prop(addon_preferences, "export_template_name", text="")
-    row.menu("MATLAYER_MT_export_template_menu", text="Load Template", icon='FILE_TICK')
+    row.menu("MATLAYER_MT_export_template_menu", text="Load Template")
     row.operator("matlayer.save_export_template", text="", icon='FILE_TICK')
     row.operator("matlayer.refresh_export_template_list", text="", icon='FILE_REFRESH')
     row.operator("matlayer.delete_export_template", text="", icon='TRASH')
