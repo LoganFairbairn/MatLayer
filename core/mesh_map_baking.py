@@ -394,14 +394,10 @@ class MATLAYER_OT_batch_bake(Operator):
         if event.type == 'TIMER':
             # If a mesh map isn't actively baking, move to the next mesh map, or end the function.
             if not bpy.app.is_job_running('OBJECT_BAKE'):
-
-                # Pack baked mesh map images into the blend file.
                 mesh_map_type = self._mesh_maps_to_bake[self._baked_mesh_map_count]
                 mesh_map_name = get_meshmap_name(bpy.context.active_object.name, mesh_map_type)
                 mesh_map_image = bpy.data.images.get(mesh_map_name)
                 if mesh_map_image:
-                    mesh_map_image.save(quality=0)
-
                     # Scale baked textures down to apply anti-aliasing.
                     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
                     match getattr(addon_preferences.mesh_map_anti_aliasing, mesh_map_type.lower() + "_anti_aliasing", '1X'):
@@ -416,6 +412,9 @@ class MATLAYER_OT_batch_bake(Operator):
                             mesh_map_image.scale(int(round(mesh_map_image.size[0] * 1.333333)), int(round(mesh_map_image.size[1] * 1.333333)))
                         case '2X':
                             mesh_map_image.scale(int(mesh_map_image.size[0] * 2), int(mesh_map_image.size[1] * 2))
+
+                    # Save the mesh map to disk.
+                    mesh_map_image.save(quality=0)
 
                 # Log mesh map baking completion.
                 mesh_map_type = mesh_map_type.replace('_', ' ')
