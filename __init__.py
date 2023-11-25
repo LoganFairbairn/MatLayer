@@ -21,10 +21,10 @@ from bpy.props import PointerProperty, CollectionProperty, EnumProperty, StringP
 from bpy.app.handlers import persistent
 
 # Preferences
-from .preferences import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MATLAYER_texture_export_settings, MATLAYER_mesh_map_anti_aliasing, MATLAYER_set_export_folder, MATLAYER_set_mesh_map_folder, MATLAYER_set_raw_texture_folder, AddonPreferences
+from .preferences import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MATLAYER_texture_export_settings, MATLAYER_mesh_map_anti_aliasing, AddonPreferences
 
 # Texture Set Settings
-from .core.texture_set_settings import MATLAYER_texture_set_settings, MATLAYER_OT_toggle_texture_set_material_channel
+from .core.texture_set_settings import MATLAYER_texture_set_settings, MATLAYER_OT_toggle_texture_set_material_channel, MATLAYER_OT_set_raw_texture_folder, MATLAYER_OT_open_raw_texture_folder
 
 # Material Layers
 from .core.material_layers import MATLAYER_layer_stack, MATLAYER_layers, MATLAYER_OT_add_material_layer, MATLAYER_OT_add_paint_material_layer, MATLAYER_OT_add_decal_material_layer, MATLAYER_OT_delete_layer, MATLAYER_OT_duplicate_layer, MATLAYER_OT_move_material_layer_up, MATLAYER_OT_move_material_layer_down, MATLAYER_OT_toggle_material_channel_preview, MATLAYER_OT_toggle_layer_blur, MATLAYER_OT_toggle_material_channel_blur, MATLAYER_OT_toggle_hide_layer, MATLAYER_OT_set_layer_projection_uv, MATLAYER_OT_set_layer_projection_triplanar, MATLAYER_OT_change_material_channel_value_node, MATLAYER_OT_toggle_triplanar_flip_correction, MATLAYER_OT_isolate_material_channel, MATLAYER_OT_toggle_image_alpha_blending, MATLAYER_OT_toggle_material_channel_filter, MATLAYER_OT_set_material_channel_output_channel, MATLAYER_OT_set_layer_blending_mode, refresh_layer_stack, sync_triplanar_settings
@@ -36,10 +36,10 @@ from .core.layer_masks import MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_m
 from .core.material_slots import MATLAYER_OT_add_material_slot, MATLAYER_OT_remove_material_slot, MATLAYER_OT_move_material_slot_up, MATLAYER_OT_move_material_slot_down
 
 # Baking
-from .core.mesh_map_baking import MATLAYER_baking_settings, MATLAYER_OT_batch_bake, MATLAYER_OT_open_mesh_map_folder, MATLAYER_OT_preview_mesh_map, MATLAYER_OT_disable_mesh_map_preview, MATLAYER_OT_delete_mesh_map, MATLAYER_OT_create_baking_cage, MATLAYER_OT_delete_baking_cage
+from .core.mesh_map_baking import MATLAYER_baking_settings, MATLAYER_OT_batch_bake, MATLAYER_OT_set_mesh_map_folder, MATLAYER_OT_open_mesh_map_folder, MATLAYER_OT_preview_mesh_map, MATLAYER_OT_disable_mesh_map_preview, MATLAYER_OT_delete_mesh_map, MATLAYER_OT_create_baking_cage, MATLAYER_OT_delete_baking_cage
 
 # Exporting
-from .core.export_textures import MATLAYER_OT_export, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_refresh_export_template_list, MATLAYER_OT_delete_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, MATLAYER_export_template_name, ExportTemplateMenu, read_export_template_names, set_export_template
+from .core.export_textures import MATLAYER_OT_export, MATLAYER_OT_set_export_folder, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_refresh_export_template_list, MATLAYER_OT_delete_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, MATLAYER_export_template_name, ExportTemplateMenu, read_export_template_names, set_export_template
 
 # Utilities
 from .core.image_utilities import MATLAYER_OT_add_texture_node_image, MATLAYER_OT_import_texture_node_image, MATLAYER_OT_edit_texture_node_image_externally, MATLAY_OT_export_uvs, MATLAYER_OT_reload_texture_node_image, MATLAYER_OT_delete_texture_node_image, MATLAY_OT_image_edit_uvs
@@ -74,14 +74,12 @@ classes = (
     MATLAYER_RGBA_pack_channels,
     MATLAYER_texture_export_settings,
     MATLAYER_mesh_map_anti_aliasing,
-    MATLAYER_set_raw_texture_folder,
-    MATLAYER_set_export_folder,
-    MATLAYER_set_mesh_map_folder,
     AddonPreferences,
 
     # Mesh Map Baking
     MATLAYER_baking_settings,
     MATLAYER_OT_batch_bake,
+    MATLAYER_OT_set_mesh_map_folder,
     MATLAYER_OT_open_mesh_map_folder,
     MATLAYER_OT_preview_mesh_map,
     MATLAYER_OT_disable_mesh_map_preview,
@@ -91,7 +89,6 @@ classes = (
 
     # Exporting
     MATLAYER_OT_export,
-    MATLAYER_OT_open_export_folder,
     MATLAYER_OT_set_export_template,
     MATLAYER_OT_save_export_template,
     MATLAYER_OT_refresh_export_template_list,
@@ -99,6 +96,8 @@ classes = (
     MATLAYER_OT_add_export_texture,
     MATLAYER_OT_remove_export_texture,
     MATLAYER_export_template_name,
+    MATLAYER_OT_set_export_folder,
+    MATLAYER_OT_open_export_folder,
     ExportTemplateMenu,
 
     # Material Layers
@@ -172,6 +171,8 @@ classes = (
     # Texture Set Settings
     MATLAYER_texture_set_settings,
     MATLAYER_OT_toggle_texture_set_material_channel,
+    MATLAYER_OT_set_raw_texture_folder,
+    MATLAYER_OT_open_raw_texture_folder,
 
     # Utility Operators
     MATLAYER_OT_set_decal_layer_snapping,
@@ -298,6 +299,25 @@ def register():
     bpy.types.Scene.pause_auto_updates = BoolProperty(default=False)
     bpy.types.Scene.previous_active_material_name = StringProperty(default="")
     bpy.types.Scene.previous_object_name = StringProperty(default="")
+
+    # Output Folder Properties
+    bpy.types.Scene.matlayer_raw_textures_folder = StringProperty(
+        name="Raw Texture Folder",
+        description="Folder where textures used in materials are saved. If a folder isn't defined, or is invalid, exported textures will save to a 'Raw Textures' folder next to the saved blend file",
+        default="Default",
+    )
+
+    bpy.types.Scene.matlayer_mesh_map_folder = StringProperty(
+        name="Mesh Map Folder",
+        description="Folder where baked mesh maps are externally saved. If a folder isn't defined, or is invalid, the mesh maps will save to a 'Mesh Map' folder next to the saved blend file",
+        default="Default",
+    )
+
+    bpy.types.Scene.matlayer_export_folder = StringProperty(
+        name="Export Folder",
+        description="Folder where completed textures are exported to. If a folder isn't defined, or is invalid, exported textures will save to a 'Textures' folder next to the saved blend file",
+        default="Default",
+    )
 
     # Apply a default export template.
     set_export_template("PBR Metallic Roughness")

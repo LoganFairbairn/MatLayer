@@ -1,10 +1,12 @@
 # This file contains settings and functions the users texture set.
 
+import os
 import bpy
 from bpy.types import PropertyGroup, Operator
 from bpy.props import BoolProperty, StringProperty, EnumProperty
 from ..core import blender_addon_utils
 from ..core import material_layers
+from ..core import debug_logging
 
 # Available texture resolutions for texture sets.
 TEXTURE_SET_RESOLUTIONS = [
@@ -176,4 +178,45 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
             if self.material_channel_name == 'ALPHA':
                 active_material.blend_method = 'OPAQUE'
 
+        return {'FINISHED'}
+
+class MATLAYER_OT_set_raw_texture_folder(Operator):
+    bl_idname = "matlayer.set_raw_texture_folder"
+    bl_label = "Set Raw Texture Folder Path"
+    bl_description = "Opens a file explorer to select the folder path where raw textures are externally saved. A raw texture is any image used in the material editing process inside this add-on that isn't a texture being exported"
+    bl_options = {'REGISTER'}
+
+    directory: StringProperty()
+
+    # Filters for only folders.
+    filter_folder: BoolProperty(
+        default=True,
+        options={"HIDDEN"}
+    )
+
+    def execute(self, context):
+        if not os.path.isdir(self.directory):
+            debug_logging.log_status("Invalid directory.", self, type='INFO')
+        else:
+            context.scene.matlayer_raw_textures_folder = self.directory
+            debug_logging.log_status("Raw texture folder set to: {0}".format(self.directory), self, type='INFO')
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+    
+class MATLAYER_OT_open_raw_texture_folder(Operator):
+    bl_idname = "matlayer.open_raw_texture_folder"
+    bl_label = "Open Raw Texture Folder"
+    bl_description = "Opens the folder in your systems file explorer where raw textures will be saved. Raw textures are considered any image that's used in the material editing process, that's not a mesh map, or a completed texture being exported"
+
+    # Disable when there is no active object.
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        raw_texture_folder_path = blender_addon_utils.get_texture_folder_path(folder='RAW_TEXTURES')
+        blender_addon_utils.open_folder(raw_texture_folder_path, self)
         return {'FINISHED'}

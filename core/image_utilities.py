@@ -55,14 +55,14 @@ def save_raw_image(original_image_path, original_image_name):
         
         # In some cases, the original image name may include the file extension of the image already. 
         # We'll remove this to avoid saving images with the file extension in the name.
-        raw_textures_folder_path = blender_addon_utils.get_texture_folder_path(folder='RAW_TEXTURES')
+        matlayer_raw_textures_folder_path = blender_addon_utils.get_texture_folder_path(folder='RAW_TEXTURES')
         original_image_name_extension = os.path.splitext(original_image_name)[1]
         if original_image_name_extension:
             original_image_name = original_image_name.replace(original_image_name_extension, '')
 
         # Save the raw texture in a folder next to the saved blend file if it doesn't exist within that folder.
         original_file_format = os.path.splitext(original_image_path)
-        destination_path = "{0}/{1}{2}".format(raw_textures_folder_path, original_image_name, original_file_format[1])
+        destination_path = "{0}/{1}{2}".format(matlayer_raw_textures_folder_path, original_image_name, original_file_format[1])
         if not os.path.exists(destination_path):
             shutil.copyfile(original_image_path, destination_path)
             debug_logging.log("Imported image copied to the raw texture folder.")

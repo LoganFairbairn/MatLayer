@@ -25,8 +25,9 @@ def draw_texture_set_section_ui(self, context):
     row.label(text="Raw Texture Folder: ")
     row = second_column.row(align=True)
     row.scale_y = 1.4
-    row.prop(addon_preferences, "raw_textures_folder", text="")
+    row.prop(bpy.context.scene, "matlayer_raw_textures_folder", text="")
     row.operator("matlayer.set_raw_texture_folder", text="", icon='FOLDER_REDIRECT')
+    row.operator("matlayer.open_raw_texture_folder", text="", icon='FILE_FOLDER')
 
     row = first_column.row()
     row.scale_y = 1.4

@@ -7,7 +7,7 @@ from pathlib import Path
 from bpy.utils import resource_path
 import bpy
 from bpy.types import Operator, Menu, PropertyGroup
-from bpy.props import StringProperty, IntProperty
+from bpy.props import StringProperty, IntProperty, BoolProperty
 from ..core import mesh_map_baking
 from ..core import texture_set_settings as tss
 from ..core import debug_logging
@@ -843,6 +843,13 @@ class MATLAYER_OT_export(Operator):
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
+        # Verify the export folder is valid.
+        export_folder = context.scene.matlayer_export_folder
+        folder_valid = blender_addon_utils.verify_folder(export_folder)
+        if not folder_valid:
+            debug_logging.log_status("Define a valid export folder before exporting, or reset the folder path to 'Default'.", self, type='ERROR')
+            return {'FINISHED'}
+        
         # Verify the object can be baked to.
         if blender_addon_utils.verify_bake_object(self, check_active_material=True) == False:
             return {'FINISHED'}
@@ -1085,17 +1092,31 @@ class MATLAYER_OT_remove_export_texture(Operator):
         addon_preferences.export_textures.remove(self.export_texture_index)
         return {'FINISHED'}
 
-class ExportTemplateMenu(Menu):
-    bl_idname = "MATLAYER_MT_export_template_menu"
-    bl_label = "Export Template Menu"
-    bl_description = "Contains options to set a specific export template"
+class MATLAYER_OT_set_export_folder(Operator):
+    bl_idname = "matlayer.set_export_folder"
+    bl_label = "Set Export Folder"
+    bl_description = "Opens a file explorer to select the folder where exported textures are saved"
+    bl_options = {'REGISTER'}
 
-    def draw(self, context):
-        layout = self.layout
-        cached_template_names = bpy.context.scene.matlayer_export_templates
-        for template in cached_template_names:
-            op = layout.operator("matlayer.set_export_template", text=template.name)
-            op.export_template_name = template.name
+    directory: StringProperty()
+
+    # Filters for only folders.
+    filter_folder: BoolProperty(
+        default=True,
+        options={"HIDDEN"}
+    )
+
+    def execute(self, context):
+        if not os.path.isdir(self.directory):
+            debug_logging.log_status("Invalid directory.", self, type='INFO')
+        else:
+            context.scene.matlayer_export_folder = self.directory
+            debug_logging.log_status("Export folder set to: {0}".format(self.directory), self, type='INFO')
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
 
 class MATLAYER_OT_open_export_folder(Operator):
     bl_idname = "matlayer.open_export_folder"
@@ -1108,9 +1129,18 @@ class MATLAYER_OT_open_export_folder(Operator):
         return context.active_object
 
     def execute(self, context):
-        export_path = os.path.join(bpy.path.abspath("//"), "Textures")
-        if os.path.exists(export_path):
-            os.startfile(export_path)
-        else:
-            self.report({'ERROR'}, "Export folder doesn't exist. Export textures folder will be automatically created for you.")
+        matlayer_export_folder_path = blender_addon_utils.get_texture_folder_path(folder='EXPORT_TEXTURES')
+        blender_addon_utils.open_folder(matlayer_export_folder_path, self)
         return {'FINISHED'}
+    
+class ExportTemplateMenu(Menu):
+    bl_idname = "MATLAYER_MT_export_template_menu"
+    bl_label = "Export Template Menu"
+    bl_description = "Contains options to set a specific export template"
+
+    def draw(self, context):
+        layout = self.layout
+        cached_template_names = bpy.context.scene.matlayer_export_templates
+        for template in cached_template_names:
+            op = layout.operator("matlayer.set_export_template", text=template.name)
+            op.export_template_name = template.name

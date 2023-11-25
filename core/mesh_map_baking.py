@@ -4,7 +4,7 @@ import os
 import time
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty, PointerProperty
+from bpy.props import StringProperty, PointerProperty, BoolProperty
 from ..core import material_layers
 from ..core import blender_addon_utils
 from ..core import debug_logging
@@ -161,8 +161,8 @@ def create_bake_image(mesh_map_type, object_name):
         delete_existing=True
     )
 
-    mesh_map_folder = blender_addon_utils.get_texture_folder_path(folder='MESH_MAPS')
-    mesh_map_image.filepath = "{0}/{1}.{2}".format(mesh_map_folder, mesh_map_image.name, 'png')
+    matlayer_mesh_map_folder = blender_addon_utils.get_texture_folder_path(folder='MESH_MAPS')
+    mesh_map_image.filepath = "{0}/{1}.{2}".format(matlayer_mesh_map_folder, mesh_map_image.name, 'png')
     mesh_map_image.file_format = 'PNG'
     mesh_map_image.colorspace_settings.name = 'Non-Color'
     mesh_map_image.use_fake_user = True
@@ -451,6 +451,13 @@ class MATLAYER_OT_batch_bake(Operator):
 
     def execute(self, context):
 
+        # Verify the mesh map baking folder is valid.
+        matlayer_mesh_map_folder = context.scene.matlayer_mesh_map_folder
+        folder_valid = blender_addon_utils.verify_folder(matlayer_mesh_map_folder)
+        if not folder_valid:
+            debug_logging.log_status("Define a valid mesh map folder before baking, or reset the folder path to 'Default'.", self, type='ERROR')
+            return {'FINISHED'}
+
         # Save the blend file to help users avoid losing work if Blender crashes while baking.
         bpy.ops.wm.save_mainfile()
 
@@ -665,6 +672,32 @@ class MATLAYER_OT_batch_bake(Operator):
         total_bake_time = end_bake_time - self._start_bake_time
         debug_logging.log_status("Baking mesh map(s) completed, total bake time: {0} seconds.".format(round(total_bake_time), 1), self, 'INFO')
 
+class MATLAYER_OT_set_mesh_map_folder(Operator):
+    bl_idname = "matlayer.set_mesh_map_folder"
+    bl_label = "Set Mesh Maps Folder"
+    bl_description = "Opens a file explorer to select the folder where baked mesh maps are externally saved"
+    bl_options = {'REGISTER'}
+
+    directory: StringProperty()
+
+    # Filters for only folders.
+    filter_folder: BoolProperty(
+        default=True,
+        options={"HIDDEN"}
+    )
+
+    def execute(self, context):
+        if not os.path.isdir(self.directory):
+            debug_logging.log_status("Invalid directory.", self, type='INFO')
+        else:
+            context.scene.matlayer_mesh_map_folder = self.directory
+            debug_logging.log_status("Export folder set to: {0}".format(self.directory), self, type='INFO')
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
 class MATLAYER_OT_open_mesh_map_folder(Operator):
     bl_idname = "matlayer.open_mesh_map_folder"
     bl_label = "Open Mesh Map Folder"
@@ -676,8 +709,8 @@ class MATLAYER_OT_open_mesh_map_folder(Operator):
         return context.active_object
 
     def execute(self, context):
-        mesh_map_folder_path = blender_addon_utils.get_texture_folder_path(folder='MESH_MAPS')
-        os.startfile(mesh_map_folder_path)
+        matlayer_mesh_map_folder_path = blender_addon_utils.get_texture_folder_path(folder='MESH_MAPS')
+        blender_addon_utils.open_folder(matlayer_mesh_map_folder_path, self)
         return {'FINISHED'}
 
 class MATLAYER_OT_preview_mesh_map(Operator):

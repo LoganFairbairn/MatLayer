@@ -235,7 +235,7 @@ def draw_baking_section_ui(self, context):
 
     row = layout.row(align=True)
     row.scale_y = 1.4
-    row.prop(addon_preferences, "mesh_map_folder", text="")
+    row.prop(bpy.context.scene, "matlayer_mesh_map_folder", text="")
     row.operator("matlayer.set_mesh_map_folder", text="", icon='FOLDER_REDIRECT')
     row.operator("matlayer.open_mesh_map_folder", text="", icon='FILE_FOLDER')
 

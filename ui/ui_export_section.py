@@ -15,7 +15,6 @@ def draw_export_section_ui(self, context):
     row = layout.row(align=True)
     row.scale_y = 2.0
     row.operator("matlayer.export")
-    row.operator("matlayer.open_export_folder", text="", icon='FILE_FOLDER')
 
     # Draw export texture settings.
     row = layout.row()
@@ -32,8 +31,9 @@ def draw_export_section_ui(self, context):
     row.label(text="Export Folder")
     row = second_column.row(align=True)
     row.scale_y = SCALE_Y
-    row.prop(addon_preferences, "export_folder", text="")
+    row.prop(bpy.context.scene, "matlayer_export_folder", text="")
     row.operator("matlayer.set_export_folder", text="", icon='FOLDER_REDIRECT')
+    row.operator("matlayer.open_export_folder", text="", icon='FILE_FOLDER')
 
     # Export mode.
     row = first_column.row()

@@ -358,44 +358,33 @@ def get_image_file_extension(file_format):
 
 def get_texture_folder_path(folder='RAW_TEXTURES'):
     '''Returns the file path for the folder where raw textures used in material editing are stored.'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     match folder:
         case 'EXPORT_TEXTURES':
+            custom_folder = bpy.context.scene.matlayer_export_folder
             default_path = os.path.join(bpy.path.abspath("//"), "Textures")
-            if addon_preferences.export_folder != "Default":
-                if os.path.isdir(addon_preferences.export_folder):
-                    return addon_preferences.export_folder
-                else:
-                    debug_logging.log("Export folder is invalid, texture was saved to: {0}".format(default_path), sub_process=False)
-            if os.path.exists(default_path) == False:
-                os.mkdir(default_path)
-            return default_path
         
         case 'MESH_MAPS':
+            custom_folder = bpy.context.scene.matlayer_mesh_map_folder
             default_path = os.path.join(bpy.path.abspath("//"), "Mesh Maps")
-            if addon_preferences.mesh_map_folder != "Default":
-                if os.path.isdir(addon_preferences.mesh_map_folder):
-                    return addon_preferences.mesh_map_folder
-                else:
-                    debug_logging.log("Mesh map folder is invalid, texture was saved to: {0}".format(default_path), sub_process=False)
-            if os.path.exists(default_path) == False:
-                os.mkdir(default_path)
-            return default_path
             
         case 'RAW_TEXTURES':
+            custom_folder = bpy.context.scene.matlayer_raw_textures_folder
             default_path = os.path.join(bpy.path.abspath("//"), "Raw Textures")
-            if addon_preferences.raw_textures_folder != "Default":
-                if os.path.isdir(addon_preferences.raw_textures_folder):
-                    return addon_preferences.raw_textures_folder
-                else:
-                    debug_logging.log("Raw textures folder is invalid, texture was saved to: {0}".format(default_path), sub_process=False)
-            if os.path.exists(default_path) == False:
-                os.mkdir(default_path)
-            return default_path
-        
+
         case _:
             debug_logging.log("Error: Invalid folder provided to get_texture_folder_path.")
             return ""
+
+    # Return the custom folder path.
+    if custom_folder != 'Default':
+        if not os.path.isdir(custom_folder):
+            debug_logging.log("Folder is invalid, image was saved to: {0}".format(default_path), sub_process=False)
+        return custom_folder
+
+    # Return the default folder.
+    if os.path.exists(default_path) == False:
+        os.mkdir(default_path)
+    return default_path
 
 def get_raw_texture_file_path(image_name, file_format='OPEN_EXR'):
     '''Returns the file path for where raw textures should be saved. Raw textures are categorized as any image used in the material editing process that isn't a final texture.'''
@@ -553,4 +542,16 @@ def add_modifier(obj, new_modifier_type, modifier_name, only_one=False):
     else:
         new_modifier = obj.modifiers.new(modifier_name, new_modifier_type)
         return new_modifier
-    
+
+def open_folder(folder_path, self):
+    '''Verifies the specified folder path exists and opens the folder in the operating systems file explorer if it does.'''
+    if os.path.isdir(folder_path):
+        os.startfile(folder_path)
+    else:
+        debug_logging.log_status("Folder path is invalid: {0}".format(folder_path), self, type='INFO')
+
+def verify_folder(folder_path):
+    '''Verifies the specified folder path exists, throws an error if it doesn't.'''
+    if not os.path.isdir(folder_path):
+        return False
+    return True
