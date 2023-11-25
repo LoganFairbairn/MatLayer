@@ -92,8 +92,21 @@ def get_material_channel_active(material_channel_name):
         return True
 
 class MATLAYER_texture_set_settings(PropertyGroup):
-    image_width: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Width", description="Image width in pixels for all images created with this add-on. Changing this value during through creating a material could result in the pixel resolution between textures used in the material not matching, which will cause exported textures to be blurry", default='TWO_K', update=update_image_width)
-    image_height: EnumProperty(items=TEXTURE_SET_RESOLUTIONS, name="Image Height", description="Image height in pixels for all images created with this add-on. Changing this value during through creating a material could result in the pixel resolution between textures used in the material not matching, which will cause exported textures to be blurry", default='TWO_K')
+    image_width: EnumProperty(
+        items=TEXTURE_SET_RESOLUTIONS, 
+        name="Image Width", 
+        description="Image width in pixels for all images created with this add-on. Changing this value during through creating a material could result in the pixel resolution between textures used in the material not matching, which will cause exported textures to be blurry", 
+        default='TWO_K', 
+        update=update_image_width
+    )
+
+    image_height: EnumProperty(
+        items=TEXTURE_SET_RESOLUTIONS, 
+        name="Image Height", 
+        description="Image height in pixels for all images created with this add-on. Changing this value during through creating a material could result in the pixel resolution between textures used in the material not matching, which will cause exported textures to be blurry", 
+        default='TWO_K'
+    )
+
     layer_folder: StringProperty(default="", description="Path to folder location where layer images are saved", name="Image Layer Folder Path")
     match_image_resolution: BoolProperty(name="Match Image Resolution", description="When toggled on, the image width and height will be matched", default=True, update=update_match_image_resolution)
 
@@ -114,27 +127,52 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
         blender_addon_utils.verify_material_operation_context(self)
         active_material = bpy.context.active_object.active_material
         channel_toggle_node = active_material.node_tree.nodes.get("GLOBAL_{0}_TOGGLE".format(self.material_channel_name))
+
+        # Toggle material channel on.
         if channel_toggle_node.mute:
             channel_toggle_node.mute = False
 
-            # Connect the last layer node for the toggled material channel to the principled bsdf.
-            principled_bsdf = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+            # Connect the last active layer node for the toggled material channel to the principled bsdf.
             total_layers = material_layers.count_layers(active_material)
-            last_layer_node = material_layers.get_material_layer_node('LAYER', total_layers - 1)
-            active_material.node_tree.links.new(last_layer_node.outputs.get(self.material_channel_name.capitalize()), principled_bsdf.inputs.get(self.material_channel_name.capitalize()))
+            for i in range(total_layers, 0, -1):
+                layer_node = material_layers.get_material_layer_node('LAYER', i - 1)
+                if blender_addon_utils.get_node_active(layer_node):
+                    match self.material_channel_name:
+                        case 'NORMAL':
+                            connect_node = material_layers.get_material_layer_node('BASE_NORMALS_MIX')
+                            input_socket = connect_node.inputs.get('Normal Map 1')
+                        case 'HEIGHT':
+                            connect_node = material_layers.get_material_layer_node('NORMAL_HEIGHT_MIX')
+                            input_socket = connect_node.inputs.get('Height')
+                        case _:
+                            connect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+                            input_socket = connect_node.inputs.get(self.material_channel_name.capitalize())
+                    active_material.node_tree.links.new(layer_node.outputs.get(self.material_channel_name.capitalize()), input_socket)
+                    break
 
             # Toggle on alpha clip to allow transparency.
             if self.material_channel_name == 'ALPHA':
                 active_material.blend_method = 'CLIP'
+        
+        # Toggle material channel off.
         else:
             channel_toggle_node.mute = True
+            match self.material_channel_name:
+                case 'NORMAL':
+                    disconnect_node = material_layers.get_material_layer_node('BASE_NORMALS_MIX')
+                    disconnect_socket = disconnect_node.inputs.get('Normal Map 1')
+                case 'HEIGHT':
+                    disconnect_node = material_layers.get_material_layer_node('NORMAL_HEIGHT_MIX')
+                    disconnect_socket = disconnect_node.inputs.get('Height')
+                case _:
+                    disconnect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+                    disconnect_socket = disconnect_node.inputs.get(self.material_channel_name.capitalize())
 
-            # Disconnect the last layer node for the toggled material channel from the principled bsdf.
-            principled_bsdf = active_material.node_tree.nodes.get('MATLAYER_BSDF')
-            for link in principled_bsdf.inputs.get(self.material_channel_name.capitalize()).links:
+            # Disconnect the toggled material channel from the principled bsdf.
+            for link in disconnect_socket.links:
                 active_material.node_tree.links.remove(link)
 
-            # Toggle off alpha clip for better shader performance.
+            # Toggle off alpha clip for better shader performance when the channel isn't being used.
             if self.material_channel_name == 'ALPHA':
                 active_material.blend_method = 'OPAQUE'
 
