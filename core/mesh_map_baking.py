@@ -162,8 +162,8 @@ def create_bake_image(mesh_map_type, object_name):
     )
 
     mesh_map_folder = blender_addon_utils.get_texture_folder_path(folder='MESH_MAPS')
-    mesh_map_image.filepath = "{0}/{1}.{2}".format(mesh_map_folder, mesh_map_image.name, 'exr')
-    mesh_map_image.file_format = 'OPEN_EXR'
+    mesh_map_image.filepath = "{0}/{1}.{2}".format(mesh_map_folder, mesh_map_image.name, 'png')
+    mesh_map_image.file_format = 'PNG'
     mesh_map_image.colorspace_settings.name = 'Non-Color'
     mesh_map_image.use_fake_user = True
     return mesh_map_image
@@ -400,7 +400,7 @@ class MATLAYER_OT_batch_bake(Operator):
                 mesh_map_name = get_meshmap_name(bpy.context.active_object.name, mesh_map_type)
                 mesh_map_image = bpy.data.images.get(mesh_map_name)
                 if mesh_map_image:
-                    mesh_map_image.save()
+                    mesh_map_image.save(quality=0)
 
                     # Scale baked textures down to apply anti-aliasing.
                     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
