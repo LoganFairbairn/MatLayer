@@ -452,8 +452,8 @@ class MATLAYER_OT_batch_bake(Operator):
     def execute(self, context):
 
         # Verify the mesh map baking folder is valid.
-        matlayer_mesh_map_folder = context.scene.matlayer_mesh_map_folder
-        folder_valid = blender_addon_utils.verify_folder(matlayer_mesh_map_folder)
+        mesh_map_folder = blender_addon_utils.get_texture_folder_path(folder='MESH_MAPS')
+        folder_valid = blender_addon_utils.verify_folder(mesh_map_folder)
         if not folder_valid:
             debug_logging.log_status("Define a valid mesh map folder before baking, or reset the folder path to 'Default'.", self, type='ERROR')
             return {'FINISHED'}

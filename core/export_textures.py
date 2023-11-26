@@ -844,7 +844,7 @@ class MATLAYER_OT_export(Operator):
 
     def execute(self, context):
         # Verify the export folder is valid.
-        export_folder = context.scene.matlayer_export_folder
+        export_folder = blender_addon_utils.get_texture_folder_path(folder='EXPORT_TEXTURES')
         folder_valid = blender_addon_utils.verify_folder(export_folder)
         if not folder_valid:
             debug_logging.log_status("Define a valid export folder before exporting, or reset the folder path to 'Default'.", self, type='ERROR')
