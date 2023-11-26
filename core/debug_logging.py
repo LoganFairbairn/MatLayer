@@ -2,15 +2,26 @@ import bpy
 import datetime
 from .. import preferences
 
-def log(message, sub_process=False):
+def log(message, message_type='INFO', sub_process=False):
     '''Prints the given message to Blender's console window. This function helps log functions called by this add-on for debugging purposes.'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    
+    match message_type:
+        case 'ERROR':
+            error_prefix = "ERROR: "
+        case 'WARNING':
+            error_prefix = "WARNING: "
+        case _:
+            error_prefix = ""
+    
+    logged_message = "[{0}]: {1}{2}".format(datetime.datetime.now(), error_prefix, message)
+    
     if sub_process:
         if addon_preferences.log_sub_operations:
-            print("[{0}]: {1}".format(datetime.datetime.now(), message))
+            print(logged_message)
     else:
         if addon_preferences.log_main_operations:
-            print("[{0}]: {1}".format(datetime.datetime.now(), message))
+            print(logged_message)
 
 def log_status(message, self, type='ERROR'):
     '''Prints the given message to Blender's console window and displays the message in Blender's status bar.'''
