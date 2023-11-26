@@ -661,12 +661,6 @@ class MATLAYER_OT_batch_bake(Operator):
         # Unpause auto updates, mark baking mesh maps as complete.
         bpy.context.scene.pause_auto_updates = False
 
-        # Save all baked mesh maps.
-        for mesh_map_type in MESH_MAP_TYPES:
-            mesh_map_image = get_meshmap_image(low_poly_object.name, mesh_map_type)
-            if mesh_map_image:
-                mesh_map_image.pack()
-
         # Log the completion of baking mesh maps.
         end_bake_time = time.time()
         total_bake_time = end_bake_time - self._start_bake_time
