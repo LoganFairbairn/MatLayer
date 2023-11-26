@@ -63,17 +63,6 @@ def update_layer_index(self, context):
     if active_object:
         if active_object.active_material:
 
-            # Apply snapping mode based on the layer type.
-            projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
-            if projection_node:
-                match projection_node.node_tree.name:
-                    case 'ML_UVProjection':
-                        blender_addon_utils.set_snapping('DEFAULT', snap_on=False)
-                    case 'ML_TriplanarProjection':
-                        blender_addon_utils.set_snapping('DEFAULT', snap_on=False)
-                    case 'ML_DecalProjection':
-                        blender_addon_utils.set_snapping('DECAL', snap_on=True)
-
             # Hide all decal objects excluding the one for this layer (if this layer is a decal layer).
             material_layers = bpy.context.scene.matlayer_layers
             for i in range(0, len(material_layers)):
