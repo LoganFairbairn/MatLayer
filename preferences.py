@@ -141,7 +141,7 @@ class AddonPreferences(AddonPreferences):
 
     image_auto_save_interval: IntProperty(
         name="Image Auto Save Interval",
-        default=10,
+        default=300,
         description="The interval in seconds for saving all images stored in the blend file"
     )
 
