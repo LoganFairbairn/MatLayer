@@ -68,6 +68,25 @@ def save_raw_image(original_image_path, original_image_name):
             debug_logging.log("Imported image copied to the raw texture folder.")
         debug_logging.log("Imported image already exists within the raw texture folder.")
 
+def auto_save_images():
+    '''Auto-saves all images in the blend file that are dirty and have defined paths.'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    if addon_preferences.auto_save_images:
+
+        # To avoid errors with saving and baking textures at the same time, only run auto-save when there is no baking in progress.
+        if not bpy.app.is_job_running('OBJECT_BAKE'):
+            for image in bpy.data.images:
+                if image.is_dirty:
+                    if image.filepath:
+                        image.save()
+            debug_logging.log("Auto saved all images.", message_type='INFO', sub_process=False)
+
+        # Return the time until the auto-save should be called again.
+        return addon_preferences.image_auto_save_interval
+    
+    # Return None to unregister the timer (effecitvely stops image auto saving).
+    return None
+
 class MATLAYER_OT_add_texture_node_image(Operator):
     bl_idname = "matlayer.add_texture_node_image"
     bl_label = "Add Texture Node Image"

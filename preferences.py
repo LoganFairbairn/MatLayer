@@ -1,8 +1,7 @@
 # This module contains user preference settings for this add-on.
 
-import os
 import bpy
-from bpy.types import AddonPreferences, PropertyGroup, Operator
+from bpy.types import AddonPreferences, PropertyGroup
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty, FloatProperty, PointerProperty, CollectionProperty
 from .core.mesh_map_baking import update_occlusion_samples, update_occlusion_distance, update_occlusion_intensity, update_local_occlusion, update_bevel_radius, update_bevel_samples
 
@@ -132,6 +131,18 @@ class AddonPreferences(AddonPreferences):
         name="Save Imported Textures", 
         default=False,
         description="When true, all textures imported through operators in this add-on will be saved to an external folder named 'Raw Textures' next to the blend file. This helps manage texture files used in materials by keeping all of them in a constant location next to the blend file in which they are used."
+    )
+
+    auto_save_images: BoolProperty(
+        name="Auto Save Images",
+        default=False,
+        description="[RESTART BLENDER TO APPLY] If true, all images in the blend file that have defined paths, and require saving will be auto-saved at regular intervals."
+    )
+
+    image_auto_save_interval: IntProperty(
+        name="Image Auto Save Interval",
+        default=10,
+        description="The interval in seconds for saving all images stored in the blend file"
     )
 
     #----------------------------- DEBUGGING -----------------------------#
@@ -303,3 +314,5 @@ class AddonPreferences(AddonPreferences):
         layout.prop(self, "log_main_operations")
         layout.prop(self, "log_sub_operations")
         layout.prop(self, "save_imported_textures")
+        layout.prop(self, "auto_save_images")
+        layout.prop(self, "image_auto_save_interval")

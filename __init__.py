@@ -42,7 +42,7 @@ from .core.mesh_map_baking import MATLAYER_baking_settings, MATLAYER_OT_batch_ba
 from .core.export_textures import MATLAYER_OT_export, MATLAYER_OT_set_export_folder, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_refresh_export_template_list, MATLAYER_OT_delete_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, MATLAYER_export_template_name, ExportTemplateMenu, read_export_template_names, set_export_template
 
 # Utilities
-from .core.image_utilities import MATLAYER_OT_add_texture_node_image, MATLAYER_OT_import_texture_node_image, MATLAYER_OT_edit_texture_node_image_externally, MATLAY_OT_export_uvs, MATLAYER_OT_reload_texture_node_image, MATLAYER_OT_delete_texture_node_image, MATLAY_OT_image_edit_uvs
+from .core.image_utilities import MATLAYER_OT_add_texture_node_image, MATLAYER_OT_import_texture_node_image, MATLAYER_OT_edit_texture_node_image_externally, MATLAY_OT_export_uvs, MATLAYER_OT_reload_texture_node_image, MATLAYER_OT_delete_texture_node_image, MATLAY_OT_image_edit_uvs, auto_save_images
 from .core.layer_utilities import MATLAYER_OT_import_texture_set, MATLAYER_OT_merge_materials
 from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLAYER_OT_append_workspace, MATLAYER_OT_append_basic_brushes, MATLAYER_OT_append_hdri_world, MATLAYER_OT_remove_unused_raw_textures
 
@@ -322,6 +322,10 @@ def register():
     # Apply a default export template.
     set_export_template("PBR Metallic Roughness")
 
+    # Register auto-saving for all images.
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    bpy.app.timers.register(auto_save_images, first_interval=addon_preferences.image_auto_save_interval)
+
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
@@ -331,6 +335,9 @@ def unregister():
     bpy.types.Scene.active_object_name_sub_owner = None
     bpy.types.Scene.active_material_index_sub_owner = None
     bpy.types.Scene.active_material_name_sub_owner = None
+
+    # Unregister image auto saving.
+    bpy.app.timers.unregister(auto_save_images)
 
 if __name__ == "__main__":
     register()
