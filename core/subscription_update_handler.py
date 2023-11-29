@@ -17,7 +17,7 @@ def sub_to_active_object_name(active_object):
     bpy.types.Scene.previous_object_name = active_object.name
     bpy.msgbus.clear_by_owner(bpy.types.Scene.active_object_name_sub_owner)
     bpy.msgbus.subscribe_rna(key=active_object.path_resolve("name", False), owner=bpy.types.Scene.active_object_name_sub_owner, notify=on_active_object_name_changed, args=())
-    debug_logging.log("Re-subscribed to the active objects name.")
+    debug_logging.log("Re-subscribed to the active objects name.", sub_process=True)
 
 def sub_to_active_material_name(active_object):
     '''Re-subscribes to the active materials name.'''
