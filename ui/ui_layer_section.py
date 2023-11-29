@@ -671,14 +671,19 @@ def draw_global_material_properties(layout):
                 row.prop(principled_bsdf_node.inputs.get('IOR'), "default_value", text="", slider=True)
 
                 row = first_column.row()
-                row.label(text="Transmission Weight")
+                row.label(text="Subsurface Radius")
                 row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Transmission Weight'), "default_value", text="", slider=True)
+                row.prop(principled_bsdf_node.inputs.get('Subsurface Radius'), "default_value", text="", slider=True)
 
                 row = first_column.row()
-                row.label(text="Transmission Roughness")
+                row.label(text="Subsurface Scale")
                 row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Transmission Roughness'), "default_value", text="", slider=True)
+                row.prop(principled_bsdf_node.inputs.get('Subsurface Scale'), "default_value", text="", slider=True)
+
+                row = first_column.row()
+                row.label(text="Subsurface Anisotropy")
+                row = second_column.row()
+                row.prop(principled_bsdf_node.inputs.get('Subsurface Anisotropy'), "default_value", text="", slider=True)
 
                 row = first_column.row()
                 row.label(text="Anisotropic")
@@ -691,9 +696,9 @@ def draw_global_material_properties(layout):
                 row.prop(principled_bsdf_node.inputs.get('Anisotropic Rotation'), "default_value", text="", slider=True)
 
                 row = first_column.row()
-                row.label(text="Coat Weight")
+                row.label(text="Transmission Weight")
                 row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Coat Weight'), "default_value", text="", slider=True)
+                row.prop(principled_bsdf_node.inputs.get('Transmission Weight'), "default_value", text="", slider=True)
 
                 row = first_column.row()
                 row.label(text="Coat Roughness")
@@ -701,9 +706,24 @@ def draw_global_material_properties(layout):
                 row.prop(principled_bsdf_node.inputs.get('Coat Roughness'), "default_value", text="", slider=True)
 
                 row = first_column.row()
+                row.label(text="Coat IOR")
+                row = second_column.row()
+                row.prop(principled_bsdf_node.inputs.get('Coat IOR'), "default_value", text="", slider=True)
+
+                row = first_column.row()
+                row.label(text="Coat Tint")
+                row = second_column.row()
+                row.prop(principled_bsdf_node.inputs.get('Coat Tint'), "default_value", text="", slider=True)
+
+                row = first_column.row()
                 row.label(text="Sheen Weight")
                 row = second_column.row()
                 row.prop(principled_bsdf_node.inputs.get('Sheen Weight'), "default_value", text="", slider=True)
+
+                row = first_column.row()
+                row.label(text="Sheen Roughness")
+                row = second_column.row()
+                row.prop(principled_bsdf_node.inputs.get('Sheen Roughness'), "default_value", text="", slider=True)
 
                 row = first_column.row()
                 row.label(text="Sheen Tint")
@@ -715,13 +735,6 @@ def draw_global_material_properties(layout):
                     row.label(text="Emission Strength")
                     row = second_column.row()
                     row.prop(principled_bsdf_node.inputs.get('Emission Strength'), "default_value", text="", slider=True)
-
-                # Draw the global subsurface color value.
-                if tss.get_material_channel_active('SUBSURFACE'):
-                    row = first_column.row()
-                    row.label(text="Subsurface Color")
-                    row = second_column.row()
-                    row.prop(principled_bsdf_node.inputs.get('Subsurface Color'), "default_value", text="", slider=True)
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
