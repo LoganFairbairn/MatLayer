@@ -11,8 +11,6 @@ from ..core import texture_set_settings as tss
 from .. import preferences
 import random
 
-# List of node types that can be used in the texture slot.
-
 MATERIAL_CHANNEL = [
     ("COLOR", "Color", ""), 
     ("SUBSURFACE", "Subsurface", ""),
@@ -22,7 +20,8 @@ MATERIAL_CHANNEL = [
     ("EMISSION", "Emission", ""),
     ("NORMAL", "Normal", ""),
     ("HEIGHT", "Height", ""),
-    ("ALPHA", "Alpha", "")
+    ("ALPHA", "Alpha", ""),
+    ("COAT", "Coat", "")
 ]
 
 MATERIAL_CHANNEL_LIST = (
@@ -34,7 +33,8 @@ MATERIAL_CHANNEL_LIST = (
     'EMISSION',
     'NORMAL',
     'HEIGHT',
-    'ALPHA'
+    'ALPHA',
+    'COAT'
 )
 
 #----------------------------- UPDATING PROPERTIES -----------------------------#
@@ -152,6 +152,8 @@ def get_shorthand_material_channel_name(material_channel_name):
             return 'HEIGHT'
         case 'ALPHA':
             return 'ALPHA'
+        case 'COAT':
+            return 'COAT'
 
 def format_layer_group_node_name(material_name, layer_index):
     '''Properly formats the layer group node names for this add-on.'''

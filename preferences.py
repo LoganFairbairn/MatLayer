@@ -38,6 +38,7 @@ EXPORT_CHANNELS = [
     ("BASE_NORMALS", "Base Normals", "Base Normals"),
     ("WORLD_SPACE_NORMALS", "World Space Normals", "World Space Normals"),
     ("ALPHA", "Alpha", "Alpha"),
+    ("COAT", "Coat", "Coat (a.k.a clear coat)"),
     ("NONE", "None", "None")
 ]
 
