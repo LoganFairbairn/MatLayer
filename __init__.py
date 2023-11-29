@@ -337,7 +337,8 @@ def unregister():
     bpy.types.Scene.active_material_name_sub_owner = None
 
     # Unregister image auto saving.
-    bpy.app.timers.unregister(auto_save_images)
+    if bpy.app.timers.is_registered(auto_save_images):
+        bpy.app.timers.unregister(auto_save_images)
 
 if __name__ == "__main__":
     register()
