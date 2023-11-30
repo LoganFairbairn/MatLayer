@@ -27,7 +27,7 @@ EXPORT_CHANNELS = [
     ("SUBSURFACE", "Subsurface", "Subsurface"),
     ("SUBSURFACE-TINT", "Subsurface Tint", "Subsurface Tint"),
     ("METALLIC", "Metallic", "Metallic"),
-    ("SPECULAR", "Specular", "Specular"),
+    ("SPECULAR", "Specular (IOR Level)", "Specular"),
     ("SPECULAR-TINT", "Specular Tint", "Specular Tint"),
     ("ROUGHNESS", "Roughness", "Roughness"),
     ("EMISSION", "Emission", "Emission"),
