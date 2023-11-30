@@ -128,17 +128,17 @@ def draw_layer_material_channel_toggles(layout):
     row.scale_y = DEFAULT_UI_SCALE_Y
     drawn_toggles = 0
     
+    active_material_channels = []
     for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
+        if tss.get_material_channel_active(material_channel_name):
+            active_material_channels.append(material_channel_name)
 
-        # Do not draw toggles for globally inactive material channels.
-        if not tss.get_material_channel_active(material_channel_name):
-            continue
-
+    for material_channel_name in active_material_channels:
         mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, material_channel_name)
         if mix_node:
             row.prop(mix_node, "mute", text=material_layers.get_shorthand_material_channel_name(material_channel_name), toggle=True, invert_checkbox=True)
             drawn_toggles += 1
-            if drawn_toggles > 4:
+            if drawn_toggles >= min(4, round(len(active_material_channels) / 2)):
                 row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 drawn_toggles = 0
@@ -228,7 +228,7 @@ def draw_value_node_properties(layout, value_node):
         case 'GROUP':
             for i in range(0, len(value_node.inputs)):
                 row = layout.row()
-                if value_node.inputs[i].type == 'RGBA':
+                if value_node.inputs[i].type == 'RGBA' or value_node.inputs[i].type == 'VECTOR':
                     row.prop(value_node.inputs[i], "default_value", text="")
                 else:
                     row.prop(value_node.inputs[i], "default_value", text=value_node.inputs[i].name)
@@ -671,11 +671,6 @@ def draw_global_material_properties(layout):
                 row.prop(principled_bsdf_node.inputs.get('IOR'), "default_value", text="", slider=True)
 
                 row = first_column.row()
-                row.label(text="Subsurface Radius")
-                row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Subsurface Radius'), "default_value", text="", slider=True)
-
-                row = first_column.row()
                 row.label(text="Subsurface Scale")
                 row = second_column.row()
                 row.prop(principled_bsdf_node.inputs.get('Subsurface Scale'), "default_value", text="", slider=True)
@@ -701,34 +696,9 @@ def draw_global_material_properties(layout):
                 row.prop(principled_bsdf_node.inputs.get('Transmission Weight'), "default_value", text="", slider=True)
 
                 row = first_column.row()
-                row.label(text="Coat Roughness")
-                row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Coat Roughness'), "default_value", text="", slider=True)
-
-                row = first_column.row()
                 row.label(text="Coat IOR")
                 row = second_column.row()
                 row.prop(principled_bsdf_node.inputs.get('Coat IOR'), "default_value", text="", slider=True)
-
-                row = first_column.row()
-                row.label(text="Coat Tint")
-                row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Coat Tint'), "default_value", text="", slider=True)
-
-                row = first_column.row()
-                row.label(text="Sheen Weight")
-                row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Sheen Weight'), "default_value", text="", slider=True)
-
-                row = first_column.row()
-                row.label(text="Sheen Roughness")
-                row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Sheen Roughness'), "default_value", text="", slider=True)
-
-                row = first_column.row()
-                row.label(text="Sheen Tint")
-                row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Sheen Tint'), "default_value", text="", slider=True)
 
                 if tss.get_material_channel_active('EMISSION'):
                     row = first_column.row()

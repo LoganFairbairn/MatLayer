@@ -14,28 +14,46 @@ import random
 MATERIAL_CHANNEL = [
     ("COLOR", "Color", ""), 
     ("SUBSURFACE", "Subsurface", ""),
+    ("SUBSURFACE_RADIUS", "Subsurface Radius", ""),
     ("METALLIC", "Metallic", ""),
     ("SPECULAR", "Specular", ""),
+    ("SPECULAR-TINT", "Specular Tint", ""),
     ("ROUGHNESS", "Roughness", ""),
     ("EMISSION", "Emission", ""),
     ("NORMAL", "Normal", ""),
     ("HEIGHT", "Height", ""),
     ("ALPHA", "Alpha", ""),
-    ("COAT", "Coat", "")
+    ("COAT", "Coat", ""),
+    ("COAT-ROUGHNESS", "Coat Roughness", ""),
+    ("COAT-TINT", "Coat Tint", ""),
+    ("COAT-NORMAL", "Coat Normal", ""),
+    ("SHEEN", "Sheen", ""),
+    ("SHEEN-ROUGHNESS", "Sheen Roughness", ""),
+    ("SHEEN-TINT", "Sheen Tint", ""),
+    ("DISPLACEMENT", "Displacement", "Displacement")
 ]
 
-MATERIAL_CHANNEL_LIST = (
+MATERIAL_CHANNEL_LIST = [
     'COLOR',
     'SUBSURFACE',
+    'SUBSURFACE-RADIUS',
     'METALLIC',
     'SPECULAR',
+    'SPECULAR-TINT',
     'ROUGHNESS',
     'EMISSION',
     'NORMAL',
     'HEIGHT',
     'ALPHA',
-    'COAT'
-)
+    'COAT',
+    'COAT-ROUGHNESS',
+    'COAT-TINT',
+    'COAT-NORMAL',
+    'SHEEN',
+    'SHEEN-ROUGHNESS',
+    'SHEEN-TINT',
+    'DISPLACEMENT'
+]
 
 #----------------------------- UPDATING PROPERTIES -----------------------------#
 
@@ -138,10 +156,14 @@ def get_shorthand_material_channel_name(material_channel_name):
             return 'COLOR'
         case 'SUBSURFACE':
             return 'SUBSURF'
+        case 'SUBSURFACE-RADIUS':
+            return 'SS-RADIUS'
         case 'METALLIC':
             return 'METAL'
         case 'SPECULAR':
             return 'SPEC'
+        case 'SPECULAR-TINT':
+            return 'SPEC-TINT'
         case 'ROUGHNESS':
             return 'ROUGH'
         case 'EMISSION':
@@ -154,6 +176,20 @@ def get_shorthand_material_channel_name(material_channel_name):
             return 'ALPHA'
         case 'COAT':
             return 'COAT'
+        case 'COAT-ROUGHNESS':
+            return 'COAT-ROUGH'
+        case 'COAT-TINT':
+            return 'COAT-TINT'
+        case 'COAT-NORMAL':
+            return 'COAT-NORM'
+        case 'SHEEN':
+            return 'SHEEN'
+        case 'SHEEN-ROUGHNESS':
+            return 'SHEEN-ROUGH'
+        case 'SHEEN-TINT':
+            return 'SHEEN-TINT'
+        case 'DISPLACEMENT':
+            return 'DISPLACE'
 
 def format_layer_group_node_name(material_name, layer_index):
     '''Properly formats the layer group node names for this add-on.'''
@@ -726,7 +762,7 @@ def refresh_layer_stack(reason="", scene=None):
 
 def link_layer_group_nodes(self):
     '''Connects all layer group nodes to other existing group nodes, and the principled BSDF shader.'''
-    # Note: This function may be able to be optimized by only diconnecting nodes that must be disconnected, potentially reducing re-compile time for shaders.
+    # TODO: This function may be able to be optimized by only diconnecting nodes that must be disconnected, potentially reducing re-compile time for shaders.
 
     if blender_addon_utils.verify_material_operation_context(self) == False:
         return
@@ -765,10 +801,11 @@ def link_layer_group_nodes(self):
             if next_layer_node:
                 if blender_addon_utils.get_node_active(next_layer_node):
                     for material_channel_name in MATERIAL_CHANNEL_LIST:
-                        output_socket_name = material_channel_name.capitalize()
-                        input_socket_name = "{0}Mix".format(material_channel_name.capitalize())
+                        channel_name = material_channel_name.replace('-', ' ')
+                        channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+                        output_socket_name = channel_name
+                        input_socket_name = "{0} Mix".format(channel_name)
                         node_tree.links.new(layer_node.outputs.get(output_socket_name), next_layer_node.inputs.get(input_socket_name))
-
 
     # Connect the last (non-muted / active) layer node to the principled BSDF.
     base_normals_mix_node = active_material.node_tree.nodes.get('BASE_NORMALS_MIX')
@@ -790,18 +827,21 @@ def link_layer_group_nodes(self):
                 if not tss.get_material_channel_active(material_channel_name):
                     continue
 
+                channel_name = material_channel_name.replace('-', ' ')
+                channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+
                 match material_channel_name:
                     case 'COLOR':
-                        node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), principled_bsdf.inputs.get('Base Color'))
+                        node_tree.links.new(last_layer_node.outputs.get(channel_name), principled_bsdf.inputs.get('Base Color'))
 
                     case 'NORMAL':
-                        node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), base_normals_mix_node.inputs.get('Normal Map 1'))
+                        node_tree.links.new(last_layer_node.outputs.get(channel_name), base_normals_mix_node.inputs.get('Normal Map 1'))
                 
                     case 'HEIGHT':
-                        node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), normal_and_height_mix_node.inputs.get(material_channel_name.capitalize()))
+                        node_tree.links.new(last_layer_node.outputs.get(channel_name), normal_and_height_mix_node.inputs.get(channel_name))
 
                     case _:
-                        node_tree.links.new(last_layer_node.outputs.get(material_channel_name.capitalize()), principled_bsdf.inputs.get(material_channel_name.capitalize()))
+                        node_tree.links.new(last_layer_node.outputs.get(channel_name), principled_bsdf.inputs.get(channel_name))
 
     debug_logging.log("Linked layer group nodes.")
 
@@ -944,24 +984,24 @@ def set_layer_projection_nodes(projection_method):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
     layer_node_tree = get_layer_node_tree(selected_layer_index)
-    BLUR_node = get_material_layer_node('BLUR', selected_layer_index)
+    blur_node = get_material_layer_node('BLUR', selected_layer_index)
     
     match projection_method:
         case 'UV':
             projection_node.node_tree = blender_addon_utils.append_group_node("ML_UVProjection")
-            BLUR_node.node_tree = blender_addon_utils.append_group_node("ML_LayerBlur")
+            blur_node.node_tree = blender_addon_utils.append_group_node("ML_LayerBlur")
 
-            if blender_addon_utils.get_node_active(BLUR_node):
-                layer_node_tree.links.new(projection_node.outputs[0], BLUR_node.inputs[0])
+            if blender_addon_utils.get_node_active(blur_node):
+                layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
 
         case 'TRIPLANAR':
             projection_node.node_tree = blender_addon_utils.append_group_node("ML_TriplanarProjection")
-            BLUR_node.node_tree = blender_addon_utils.append_group_node("ML_TriplanarLayerBlur")
+            blur_node.node_tree = blender_addon_utils.append_group_node("ML_TriplanarLayerBlur")
 
-            if blender_addon_utils.get_node_active(BLUR_node):
-                layer_node_tree.links.new(projection_node.outputs.get('X'), BLUR_node.inputs.get('X'))
-                layer_node_tree.links.new(projection_node.outputs.get('Y'), BLUR_node.inputs.get('Y'))
-                layer_node_tree.links.new(projection_node.outputs.get('Z'), BLUR_node.inputs.get('Z'))
+            if blender_addon_utils.get_node_active(blur_node):
+                layer_node_tree.links.new(projection_node.outputs.get('X'), blur_node.inputs.get('X'))
+                layer_node_tree.links.new(projection_node.outputs.get('Y'), blur_node.inputs.get('Y'))
+                layer_node_tree.links.new(projection_node.outputs.get('Z'), blur_node.inputs.get('Z'))
 
 def delete_triplanar_blending_nodes(material_channel_name):
     '''Deletes nodes used for triplanar texture sampling and blending for the specified material channel.'''
@@ -983,12 +1023,16 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
     layer_node_tree = get_layer_node_tree(selected_layer_index)
     value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, 1)
     
-    original_value_node_type = value_node.bl_static_type
-    original_node_location = value_node.location.copy()
-    
     # Texture nodes are the only nodes that require a specific projection node setup, ignore other node types.
     # If set_texture_node is true, the material channel value node will be replaces with a texture node, regardless of it's original node type.
     if value_node.bl_static_type == 'TEX_IMAGE' or set_texture_node:
+
+        # Remember the original nodes location and type.
+        original_value_node_type = value_node.bl_static_type
+        value_node.parent = None
+        original_node_location = value_node.location.copy()
+
+        # Update the nodes based on the layer projection method.
         match projection_method:
             case 'UV':
                 # Remember original location and image of the texture node.
@@ -999,17 +1043,23 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                 # Delete triplanar texture nodes if they exist.
                 delete_triplanar_blending_nodes(material_channel_name)
 
-                # Replace with a single texture node.
+                # Replace the material channel value nodes with a texture node.
                 texture_sample_node = layer_node_tree.nodes.new('ShaderNodeTexImage')
                 texture_sample_node.name = "{0}_VALUE_{1}".format(material_channel_name, 1)
                 texture_sample_node.label = texture_sample_node.name
                 texture_sample_node.hide = True
                 texture_sample_node.width = 300
+                debug_logging.log("Original Node Location: " + str(original_node_location))
                 texture_sample_node.location = original_node_location
 
                 if original_value_node_type == 'TEX_IMAGE':
                     texture_sample_node.image = original_image
                     texture_sample_node.interpolation = original_interpolation
+
+                # Frame the new nodes.
+                frame_name = material_channel_name.replace('-', ' ')
+                frame = layer_node_tree.nodes.get(frame_name)
+                texture_sample_node.parent = frame
 
                 # Link the texture to projection / blur and mix layer nodes.
                 relink_material_channel(material_channel_name)
@@ -1035,6 +1085,11 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                     texture_node.image = original_image
                     texture_node.interpolation = original_interpolation
 
+                # Frame the new nodes.
+                frame_name = material_channel_name.replace('-', ' ')
+                frame = layer_node_tree.nodes.get(frame_name)
+                texture_sample_node.parent = frame
+
                 # Link the texture to projection / blur and mix layer nodes.
                 relink_material_channel(material_channel_name)
 
@@ -1048,10 +1103,12 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                 # Remove the old value node.
                 layer_node_tree.nodes.remove(value_node)
 
-                # Add 3 required texture samples for triplanar projection.
+                # Add 3 required texture samples for triplanar projection and frame them.
                 texture_sample_nodes = []
                 location_x = original_node_location[0]
                 location_y = original_node_location[1]
+                frame_name = material_channel_name.replace('-', ' ')
+                frame = layer_node_tree.nodes.get(frame_name)
                 for i in range(0, 3):
                     texture_sample_node = layer_node_tree.nodes.new('ShaderNodeTexImage')
                     texture_sample_node.name = "{0}_VALUE_{1}".format(material_channel_name, i + 1)
@@ -1064,6 +1121,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                     if original_value_node_type == 'TEX_IMAGE':
                         texture_sample_node.image = original_image
                         texture_sample_node.interpolation = original_interpolation
+                    texture_sample_node.parent = frame
 
                 # Add a node for blending texture samples.
                 triplanar_blend_node = layer_node_tree.nodes.new('ShaderNodeGroup')
@@ -1076,6 +1134,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                 triplanar_blend_node.width = 300
                 triplanar_blend_node.hide = True
                 triplanar_blend_node.location = (location_x, location_y)
+                triplanar_blend_node.parent = frame
 
                 # Connect texture sample and blending nodes for material channels.
                 relink_material_channel(material_channel_name)
@@ -1089,21 +1148,34 @@ def replace_material_channel_node(material_channel_name, node_type):
 
     match node_type:
         case 'GROUP':
-            original_node_location = value_node.location
+            value_node.parent = None
+            original_node_location = value_node.location.copy()
+            debug_logging.log("Original Node Location: " + str(original_node_location))
 
+            # Remove the old nodes.
             match projection_node.node_tree.name:
                 case 'ML_TriplanarProjection':
                     delete_triplanar_blending_nodes(material_channel_name)
                 case _:
                     layer_group_node.nodes.remove(value_node)
 
+            # Replace the material channel value nodes with a group node.
             new_node = layer_group_node.nodes.new('ShaderNodeGroup')
             new_node.name = "{0}_VALUE_1".format(material_channel_name)
             new_node.label = new_node.name
-            new_node.location = original_node_location
             new_node.width = 300
+            new_node.location = original_node_location
 
-            default_node_tree = bpy.data.node_groups.get("ML_Default{0}".format(material_channel_name.capitalize()))
+            # Frame the new node.
+            frame_name = material_channel_name.replace('-', ' ')
+            frame = layer_group_node.nodes.get(frame_name)
+            new_node.parent = frame
+
+            # Apply the default group node for the specified channel.
+            default_node_tree_name = material_channel_name.replace('-', ' ')
+            default_node_tree_name = blender_addon_utils.capitalize_by_space(default_node_tree_name)
+            default_node_tree_name = "ML_Default{0}".format(default_node_tree_name. replace(' ', ''))
+            default_node_tree = bpy.data.node_groups.get(default_node_tree_name)
             new_node.node_tree = default_node_tree
 
             # Link the new group node.
@@ -1311,7 +1383,9 @@ def isolate_material_channel(material_channel_name):
         for i in range(total_layers, 0, -1):
             layer_node = get_material_layer_node('LAYER', i - 1)
             if blender_addon_utils.get_node_active(layer_node):
-                active_node_tree.links.new(layer_node.outputs.get(material_channel_name.capitalize()), emission_node.inputs[0])
+                channel_name = material_channel_name.replace('-', ' ')
+                channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+                active_node_tree.links.new(layer_node.outputs.get(channel_name), emission_node.inputs[0])
                 break
 
     active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])

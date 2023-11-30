@@ -25,8 +25,10 @@ ROUGHNESS_MODE = [
 EXPORT_CHANNELS = [
     ("COLOR", "Color", "Color"),
     ("SUBSURFACE", "Subsurface", "Subsurface"),
+    ("SUBSURFACE-TINT", "Subsurface Tint", "Subsurface Tint"),
     ("METALLIC", "Metallic", "Metallic"),
     ("SPECULAR", "Specular", "Specular"),
+    ("SPECULAR-TINT", "Specular Tint", "Specular Tint"),
     ("ROUGHNESS", "Roughness", "Roughness"),
     ("EMISSION", "Emission", "Emission"),
     ("NORMAL", "Normal", "Normal"),
@@ -39,6 +41,13 @@ EXPORT_CHANNELS = [
     ("WORLD_SPACE_NORMALS", "World Space Normals", "World Space Normals"),
     ("ALPHA", "Alpha", "Alpha"),
     ("COAT", "Coat", "Coat (a.k.a clear coat)"),
+    ("COAT-ROUGHNESS", "Coat Roughness", "Coat Roughness"),
+    ("COAT-TINT", "Coat Tint", "Coat Tint"),
+    ("COAT-NORMAL", "Coat Normal", "Coat Normal"),
+    ("SHEEN", "Sheen", "Sheen"),
+    ("SHEEN-ROUGHNESS", "Sheen Roughness", "Sheen"),
+    ("SHEEN-TINT", "Sheen Tint", "Sheen Tint"),
+    ("DISPLACEMENT", "Displacement", "Displacement"),
     ("NONE", "None", "None")
 ]
 

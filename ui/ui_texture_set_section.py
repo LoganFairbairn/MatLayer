@@ -63,14 +63,23 @@ def draw_texture_set_section_ui(self, context):
 
                 # Draw global material channel toggles.
                 layout.label(text="MATERIAL CHANNELS")
+                row = layout.row()
+                row.scale_y = 1.4
+                row_count = 0
                 for material_channel_name in MATERIAL_CHANNEL_LIST:
-                    row = layout.row()
-                    row.scale_y = 1.4
+                    channel_name = material_channel_name.replace('-', ' ')
+                    channel_name = blender_addon_utils.capitalize_by_space(channel_name)
                     if tss.get_material_channel_active(material_channel_name):
-                        operator = row.operator("matlayer.toggle_texture_set_material_channel", text=material_channel_name.capitalize(), depress=True)
+                        operator = row.operator("matlayer.toggle_texture_set_material_channel", text=channel_name, depress=True)
                     else:
-                        operator = row.operator("matlayer.toggle_texture_set_material_channel", text=material_channel_name.capitalize())
+                        operator = row.operator("matlayer.toggle_texture_set_material_channel", text=channel_name)
                     operator.material_channel_name = material_channel_name
+
+                    row_count += 1
+                    if row_count >= 2:
+                        row = layout.row()
+                        row.scale_y = 1.4
+                        row_count = 0
             else:
                 layout.label(text="Active material isn't created with this add-on, or the format isn't valid.")
         else:

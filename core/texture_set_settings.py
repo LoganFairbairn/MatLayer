@@ -86,7 +86,8 @@ def get_material_channel_active(material_channel_name):
     if not active_material:
         return
     
-    material_channel_toggle_node = active_material.node_tree.nodes.get("GLOBAL_{0}_TOGGLE".format(material_channel_name))
+    material_channel_toggle_node_name = "GLOBAL_{0}_TOGGLE".format(material_channel_name)
+    material_channel_toggle_node = active_material.node_tree.nodes.get(material_channel_toggle_node_name)
 
     if material_channel_toggle_node.mute:
         return False
@@ -139,6 +140,8 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
             for i in range(total_layers, 0, -1):
                 layer_node = material_layers.get_material_layer_node('LAYER', i - 1)
                 if blender_addon_utils.get_node_active(layer_node):
+                    channel_name = self.material_channel_name.replace('-', ' ')
+                    channel_name = blender_addon_utils.capitalize_by_space(channel_name)
                     match self.material_channel_name:
                         case 'COLOR':
                             connect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
@@ -149,10 +152,16 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
                         case 'HEIGHT':
                             connect_node = material_layers.get_material_layer_node('NORMAL_HEIGHT_MIX')
                             input_socket = connect_node.inputs.get('Height')
+                        case 'SHEEN':
+                            connect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+                            input_socket = connect_node.inputs.get('Sheen Weight')
+                        case 'DISPLACEMENT':
+                            connect_node = active_material.node_tree.nodes.get('MATERIAL_OUTPUT')
+                            input_socket = connect_node.inputs.get('Displacement')
                         case _:
                             connect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
-                            input_socket = connect_node.inputs.get(self.material_channel_name.capitalize())
-                    active_material.node_tree.links.new(layer_node.outputs.get(self.material_channel_name.capitalize()), input_socket)
+                            input_socket = connect_node.inputs.get(channel_name)
+                    active_material.node_tree.links.new(layer_node.outputs.get(channel_name), input_socket)
                     break
 
             # Toggle on alpha clip to allow transparency.
@@ -172,9 +181,17 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
                 case 'HEIGHT':
                     disconnect_node = material_layers.get_material_layer_node('NORMAL_HEIGHT_MIX')
                     disconnect_socket = disconnect_node.inputs.get('Height')
+                case 'SHEEN':
+                    disconnect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+                    disconnect_socket = disconnect_node.inputs.get('Sheen Weight')
+                case 'DISPLACEMENT':
+                    disconnect_node = active_material.node_tree.nodes.get('MATERIAL_OUTPUT')
+                    disconnect_socket = disconnect_node.inputs.get('Displacement')
                 case _:
                     disconnect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
-                    disconnect_socket = disconnect_node.inputs.get(self.material_channel_name.capitalize())
+                    channel_name = self.material_channel_name.replace('-', ' ')
+                    channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+                    disconnect_socket = disconnect_node.inputs.get(channel_name)
 
             # Disconnect the toggled material channel from the principled bsdf.
             for link in disconnect_socket.links:
