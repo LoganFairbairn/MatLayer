@@ -1088,7 +1088,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                 # Frame the new nodes.
                 frame_name = material_channel_name.replace('-', ' ')
                 frame = layer_node_tree.nodes.get(frame_name)
-                texture_sample_node.parent = frame
+                texture_node.parent = frame
 
                 # Link the texture to projection / blur and mix layer nodes.
                 relink_material_channel(material_channel_name)
