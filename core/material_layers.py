@@ -949,7 +949,10 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
 
                         if value_node.bl_static_type == 'TEX_IMAGE':
                             if blender_addon_utils.get_node_active(blur_node):
-                                layer_node_tree.links.new(blur_node.outputs.get(material_channel_name.capitalize() + str(i + 1)), value_node.inputs[0])
+                                channel_name = material_channel_name.replace('-', ' ')
+                                channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+                                blur_output_property_name = "{0} {1}".format(channel_name, str(i + 1))
+                                layer_node_tree.links.new(blur_node.outputs.get(blur_output_property_name), value_node.inputs[0])
                             else:
                                 layer_node_tree.links.new(projection_node.outputs[i], value_node.inputs[0])
                             
