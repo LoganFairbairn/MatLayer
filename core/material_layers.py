@@ -1377,8 +1377,8 @@ def isolate_material_channel(material_channel_name):
         base_normals_mix_node = get_material_layer_node('BASE_NORMALS_MIX')
         active_node_tree.links.new(base_normals_mix_node.outputs[0], emission_node.inputs[0])
 
-    # For all other material channels connect the specified material channel for the last active material channel.
-    else:
+    # For all other material channels (excluding IOR) connect the specified material channel for the last active material channel.
+    elif material_channel_name != 'IOR':
         total_layers = count_layers(bpy.context.active_object.active_material)
         for i in range(total_layers, 0, -1):
             layer_node = get_material_layer_node('LAYER', i - 1)
@@ -1387,7 +1387,7 @@ def isolate_material_channel(material_channel_name):
                 channel_name = blender_addon_utils.capitalize_by_space(channel_name)
                 active_node_tree.links.new(layer_node.outputs.get(channel_name), emission_node.inputs[0])
                 break
-
+    
     active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
 
 def show_layer():

@@ -602,7 +602,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     '''Bakes the defined material channel to an image texture (stores it in Blender's data). Returns true if baking was successful.'''
 
     # We can always bake for the normal + height channel.
-    if material_channel_name != 'NORMAL_HEIGHT':
+    if material_channel_name != 'NORMAL_HEIGHT' and material_channel_name != 'IOR':
 
         # Ensure the material channel name provided is valid to bake.
         if material_channel_name not in material_layers.MATERIAL_CHANNEL_LIST:
@@ -676,6 +676,17 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     # Isolate when baking single material channels.
     else:
         material_layers.isolate_material_channel(material_channel_name)
+
+        # For baking IOR, we'll isolate the emission node, insert a remapped IOR value so IOR is within 0 - 1 range for being packing into a texture, and bake from that.
+        if material_channel_name == 'IOR':
+            active_node_tree = bpy.context.active_object.active_material.node_tree
+            emission_node = active_node_tree.nodes.get('EMISSION')
+            bsdf_node = active_node_tree.nodes.get('MATLAYER_BSDF')
+            ior_value = bsdf_node.inputs.get('IOR').default_value
+            ior_value = max(0, min(4, ior_value))
+            remapped_ior = ior_value / 4
+            emission_node.inputs[0].default_value = (remapped_ior, remapped_ior, remapped_ior, 1.0)
+
         bpy.ops.object.bake('INVOKE_DEFAULT', type='EMIT')
 
     return export_image.name

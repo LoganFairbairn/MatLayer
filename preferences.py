@@ -40,6 +40,7 @@ EXPORT_CHANNELS = [
     ("BASE_NORMALS", "Base Normals", "Base Normals"),
     ("WORLD_SPACE_NORMALS", "World Space Normals", "World Space Normals"),
     ("ALPHA", "Alpha", "Alpha"),
+    ("IOR", "IOR / 4", "Remapped IOR (Index of Refraction / 4). Remap back to standard IOR range by multiplying IOR by 4."),
     ("COAT", "Coat", "Coat (a.k.a clear coat)"),
     ("COAT-ROUGHNESS", "Coat Roughness", "Coat Roughness"),
     ("COAT-TINT", "Coat Tint", "Coat Tint"),
