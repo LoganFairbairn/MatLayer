@@ -286,6 +286,16 @@ default_json_file = {
   ]
 }
 
+# List of material channels that use the emission node to bake and export their values.
+emission_exporting_channels = (
+    'SUBSURFACE-SCALE',
+    'SUBSURFACE-ANISOTROPY',
+    'SPECULAR-ANISOTROPIC',
+    'SPECULAR-ANISOTROPIC-ROTATION',
+    'IOR',
+    'TRANSMISSION-WEIGHT',
+    'COAT-IOR'
+)
 
 #----------------------------- CHANNEL PACKING / IMAGE EDITING FUNCTIONS -----------------------------#
 
@@ -602,7 +612,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     '''Bakes the defined material channel to an image texture (stores it in Blender's data). Returns true if baking was successful.'''
 
     # We can always bake for the normal + height channel.
-    if material_channel_name != 'NORMAL_HEIGHT' and material_channel_name != 'IOR':
+    if material_channel_name != 'NORMAL_HEIGHT' and material_channel_name not in emission_exporting_channels:
 
         # Ensure the material channel name provided is valid to bake.
         if material_channel_name not in material_layers.MATERIAL_CHANNEL_LIST:
@@ -672,20 +682,35 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     # Bake normals directly from the principled BSDF shader when baking normal + height mixes.
     if material_channel_name == 'NORMAL_HEIGHT':
         bpy.ops.object.bake('INVOKE_DEFAULT', type='NORMAL')
-
-    # Isolate when baking single material channels.
+    
     else:
-        material_layers.isolate_material_channel(material_channel_name)
-
-        # For baking IOR, we'll isolate the emission node, insert a remapped IOR value so IOR is within 0 - 1 range for being packing into a texture, and bake from that.
-        if material_channel_name == 'IOR':
+        # For some material channels, we'll isolate and bake from an emission node.
+        if material_channel_name in emission_exporting_channels:
             active_node_tree = bpy.context.active_object.active_material.node_tree
             emission_node = active_node_tree.nodes.get('EMISSION')
             bsdf_node = active_node_tree.nodes.get('MATLAYER_BSDF')
-            ior_value = bsdf_node.inputs.get('IOR').default_value
-            ior_value = max(0, min(4, ior_value))
-            remapped_ior = ior_value / 4
-            emission_node.inputs[0].default_value = (remapped_ior, remapped_ior, remapped_ior, 1.0)
+            material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
+
+            match material_channel_name:
+                case 'IOR':
+                    channel_name = 'IOR'
+                case 'COAT-IOR':
+                    channel_name = 'Coat IOR'
+                case _:
+                    channel_name = material_channel_name.replace('-', ' ')
+                    channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+            export_value = bsdf_node.inputs.get(channel_name).default_value
+            
+            # Remap IOR values to between a 0 and 1 range, so they can be properly stored in a texture.
+            if material_channel_name == 'IOR' or material_channel_name == 'COAT-IOR':
+                export_value = max(0, min(4, export_value))
+                export_value = export_value / 4
+
+            emission_node.inputs[0].default_value = (export_value, export_value, export_value, 1.0)
+            active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
+
+        else:
+            material_layers.isolate_material_channel(material_channel_name)
 
         bpy.ops.object.bake('INVOKE_DEFAULT', type='EMIT')
 

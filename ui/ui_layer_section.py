@@ -683,12 +683,12 @@ def draw_global_material_properties(layout):
                 row = first_column.row()
                 row.label(text="Anisotropic")
                 row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Anisotropic'), "default_value", text="", slider=True)
+                row.prop(principled_bsdf_node.inputs.get('Specular Anisotropic'), "default_value", text="", slider=True)
 
                 row = first_column.row()
                 row.label(text="Anisotropic Rotation")
                 row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Anisotropic Rotation'), "default_value", text="", slider=True)
+                row.prop(principled_bsdf_node.inputs.get('Specular Anisotropic Rotation'), "default_value", text="", slider=True)
 
                 row = first_column.row()
                 row.label(text="Transmission Weight")
