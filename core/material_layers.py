@@ -1678,7 +1678,9 @@ class MATLAYER_OT_toggle_material_channel_blur(Operator):
         selected_layer_index = context.scene.matlayer_layer_stack.selected_layer_index
 
         BLUR_node = get_material_layer_node('BLUR', selected_layer_index)
-        blur_toggle_property_name = "{0}BlurToggle".format(self.material_channel_name.capitalize())
+        channel_name = self.material_channel_name.replace('-', ' ')
+        channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+        blur_toggle_property_name = "{0} Blur Toggle".format(channel_name)
         if BLUR_node.inputs.get(blur_toggle_property_name).default_value == 1:
             BLUR_node.inputs.get(blur_toggle_property_name).default_value = 0
         else:
