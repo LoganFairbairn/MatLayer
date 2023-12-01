@@ -662,49 +662,60 @@ def draw_global_material_properties(layout):
                 row.prop(base_normals_mix_node.inputs.get('Opacity'), "default_value", text="", slider=True)
 
             # Draw the global emission strength value.
-            principled_bsdf_node = active_object.active_material.node_tree.nodes.get('MATLAYER_BSDF')
-            if principled_bsdf_node:
+            bsdf_wrapper_node = active_object.active_material.node_tree.nodes.get('MATLAYER_BSDF')
+            bsdf_node = bsdf_wrapper_node.node_tree.nodes.get('MATLAYER_BSDF')
+            if bsdf_wrapper_node:
 
                 row = first_column.row()
                 row.label(text="IOR")
                 row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('IOR'), "default_value", text="", slider=True)
+                row.prop(bsdf_wrapper_node.inputs.get('IOR'), "default_value", text="", slider=True)
+
+                row = first_column.row()
+                row.label(text="Subsurface Method")
+                row = second_column.row()
+                row.prop(bsdf_node, "subsurface_method", text="", slider=True)
 
                 row = first_column.row()
                 row.label(text="Subsurface Scale")
                 row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Subsurface Scale'), "default_value", text="", slider=True)
+                row.prop(bsdf_wrapper_node.inputs.get('Subsurface Scale'), "default_value", text="", slider=True)
 
                 row = first_column.row()
                 row.label(text="Subsurface Anisotropy")
                 row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Subsurface Anisotropy'), "default_value", text="", slider=True)
+                row.prop(bsdf_wrapper_node.inputs.get('Subsurface Anisotropy'), "default_value", text="", slider=True)
+
+                row = first_column.row()
+                row.label(text="Distribution")
+                row = second_column.row()
+                row.prop(bsdf_node, "distribution", text="", slider=True)
 
                 row = first_column.row()
                 row.label(text="Anisotropic")
                 row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Specular Anisotropic'), "default_value", text="", slider=True)
+                row.prop(bsdf_wrapper_node.inputs.get('Specular Anisotropic'), "default_value", text="", slider=True)
 
                 row = first_column.row()
                 row.label(text="Anisotropic Rotation")
                 row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Specular Anisotropic Rotation'), "default_value", text="", slider=True)
+                row.prop(bsdf_wrapper_node.inputs.get('Specular Anisotropic Rotation'), "default_value", text="", slider=True)
 
                 row = first_column.row()
                 row.label(text="Transmission Weight")
                 row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Transmission Weight'), "default_value", text="", slider=True)
+                row.prop(bsdf_wrapper_node.inputs.get('Transmission Weight'), "default_value", text="", slider=True)
 
                 row = first_column.row()
                 row.label(text="Coat IOR")
                 row = second_column.row()
-                row.prop(principled_bsdf_node.inputs.get('Coat IOR'), "default_value", text="", slider=True)
+                row.prop(bsdf_wrapper_node.inputs.get('Coat IOR'), "default_value", text="", slider=True)
 
                 if tss.get_material_channel_active('EMISSION'):
                     row = first_column.row()
                     row.label(text="Emission Strength")
                     row = second_column.row()
-                    row.prop(principled_bsdf_node.inputs.get('Emission Strength'), "default_value", text="", slider=True)
+                    row.prop(bsdf_wrapper_node.inputs.get('Emission Strength'), "default_value", text="", slider=True)
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
