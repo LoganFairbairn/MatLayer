@@ -131,9 +131,10 @@ def on_active_object_name_changed():
                 mesh_map_image.name = new_mesh_map_name
 
             # Rename the images stored in the raw textures folder.
-            previous_mesh_map_filepath = blender_addon_utils.get_raw_texture_file_path(previous_mesh_map_name, 'OPEN_EXR')
+            mesh_map_folder = blender_addon_utils.get_texture_folder_path(folder='MESH_MAPS')
+            previous_mesh_map_filepath = os.path.join(mesh_map_folder, previous_mesh_map_name + ".png")
             if os.path.exists(previous_mesh_map_filepath):
-                new_mesh_map_filepath = blender_addon_utils.get_raw_texture_file_path(new_mesh_map_name, 'OPEN_EXR')
+                new_mesh_map_filepath = os.path.join(mesh_map_folder, new_mesh_map_name + ".png")
                 os.rename(previous_mesh_map_filepath, new_mesh_map_filepath)
 
         bpy.types.Scene.previous_object_name = bpy.context.view_layer.objects.active.name
