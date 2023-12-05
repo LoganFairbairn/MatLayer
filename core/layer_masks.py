@@ -579,7 +579,7 @@ def organize_mask_nodes():
     layer_count = material_layers.count_layers()
     for i in range(0, layer_count):
         layer_node = material_layers.get_material_layer_node('LAYER', i)
-        position_y = layer_node.location[1] - 600
+        position_y = layer_node.location[1] - 1250
         mask_count = count_masks(i)
         for c in range(mask_count, 0, -1):
             mask_node = get_mask_node('MASK', i, c - 1)
