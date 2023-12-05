@@ -191,6 +191,29 @@ def get_shorthand_material_channel_name(material_channel_name):
         case 'DISPLACEMENT':
             return 'DISPLACE'
 
+def parse_layer_index(layer_group_node_name):
+    '''Return the layers's index by parsing the layer group node name. Returns -1 if there is no active object'''
+    active_object = bpy.context.active_object
+    if active_object:
+        active_material = active_object.active_material
+        if active_material:
+            material_name_length = len(active_material.name)
+            indicies = layer_group_node_name[material_name_length:]
+            indicies = indicies.split('_')
+            return int(indicies[1])
+    return -1
+
+def parse_material_name(layer_group_node_name):
+    '''Returns the layer's associated material name by parsing the layer group node name. Returns -1 if there is no active object, or material.'''
+    active_object = bpy.context.active_object
+    if active_object:
+        active_material = active_object.active_material
+        if active_material:
+            material_name_length = len(active_material.name)
+            material_name = layer_group_node_name[:material_name_length]
+            return material_name
+    return -1
+
 def format_layer_group_node_name(material_name, layer_index):
     '''Properly formats the layer group node names for this add-on.'''
     return "{0}_{1}".format(material_name, layer_index)
@@ -618,10 +641,12 @@ def move_layer(direction, self):
                 if above_layer_node:
                     above_layer_node.name = str(selected_layer_index)
                     if above_layer_node.node_tree:
-                        above_layer_node.node_tree.name = above_layer_node.node_tree.name.split('_')[0] + "_" + str(selected_layer_index)
+                        material_name = parse_material_name(above_layer_node.node_tree.name)
+                        above_layer_node.node_tree.name = format_layer_group_node_name(material_name, selected_layer_index)
 
                 layer_node.name = str(selected_layer_index + 1)
-                layer_node.node_tree.name = layer_node.node_tree.name.split('_')[0] + "_" + str(selected_layer_index + 1)
+                material_name = parse_material_name(layer_node.node_tree.name)
+                layer_node.node_tree.name = format_layer_group_node_name(material_name, selected_layer_index + 1)
 
                 # Swap the layer index for all mask nodes in this layer with the layer above it.
                 selected_layer_mask_count = layer_masks.count_masks(selected_layer_index)
@@ -657,10 +682,12 @@ def move_layer(direction, self):
 
                 below_layer_node = get_material_layer_node('LAYER', selected_layer_index - 1)
                 below_layer_node.name = str(selected_layer_index)
-                below_layer_node.node_tree.name = below_layer_node.node_tree.name.split('_')[0] + "_" + str(selected_layer_index)
+                material_name = parse_material_name(below_layer_node.node_tree.name)
+                below_layer_node.node_tree.name = format_layer_group_node_name(material_name, selected_layer_index)
 
                 layer_node.name = str(selected_layer_index - 1)
-                layer_node.node_tree.name = layer_node.node_tree.name.split('_')[0] + "_" + str(selected_layer_index - 1)
+                material_name = parse_material_name(layer_node.node_tree.name)
+                layer_node.node_tree.name = format_layer_group_node_name(material_name, selected_layer_index - 1)
 
                 # Swap the layer index for all mask nodes in this layer with the layer below it.
                 selected_layer_mask_count = layer_masks.count_masks(selected_layer_index)
@@ -855,9 +882,9 @@ def reindex_layer_nodes(change_made, affected_layer_index):
                 layer_node = get_material_layer_node('LAYER', i - 1)
                 if layer_node:
                     layer_node.name = str(int(layer_node.name) + 1)
-                    split_node_tree_name = layer_node.node_tree.name.split('_')
-                    layer_node.node_tree.name = "{0}_{1}".format(split_node_tree_name[0], str(int(split_node_tree_name[1]) + 1))
-
+                    material_name = parse_material_name(layer_node.node_tree.name)
+                    layer_index = parse_layer_index(layer_node.node_tree.name)
+                    layer_node.node_tree.name = format_layer_group_node_name(material_name, layer_index + 1)
                     layer_mask_count = layer_masks.count_masks(i - 1)
                     for c in range(layer_mask_count, 0, -1):
                         mask_node = layer_masks.get_mask_node('MASK', i - 1, c - 1)
@@ -868,8 +895,8 @@ def reindex_layer_nodes(change_made, affected_layer_index):
             new_layer_node = get_material_layer_node('LAYER', affected_layer_index, get_changed=True)
             if new_layer_node:
                 new_layer_node.name = str(affected_layer_index)
-                split_node_tree_name = new_layer_node.node_tree.name.split('_')
-                new_layer_node.node_tree.name = "{0}_{1}".format(split_node_tree_name[0], str(affected_layer_index))
+                material_name = parse_material_name(new_layer_node.node_tree.name)
+                new_layer_node.node_tree.name = format_layer_group_node_name(material_name, affected_layer_index)
 
         case 'DELETED_LAYER':
             # Reduce the layer index for all layer group nodes, their nodes trees, and their masks that exist above the affected layer.
@@ -877,9 +904,9 @@ def reindex_layer_nodes(change_made, affected_layer_index):
             for i in range(affected_layer_index + 1, layer_count):
                 layer_node = get_material_layer_node('LAYER', i)
                 layer_node.name = str(int(layer_node.name) - 1)
-                split_node_tree_name = layer_node.node_tree.name.split('_')
-                layer_node.node_tree.name = "{0}_{1}".format(split_node_tree_name[0], str(int(split_node_tree_name[1]) - 1))
-
+                material_name = parse_material_name(layer_node.node_tree.name)
+                layer_index = parse_layer_index(layer_node.node_tree.name)
+                layer_node.node_tree.name = format_layer_group_node_name(material_name, layer_index - 1)
                 layer_mask_count = layer_masks.count_masks(i)
                 for c in range(0, layer_mask_count):
                     mask_node = layer_masks.get_mask_node('MASK', i, c)

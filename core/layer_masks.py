@@ -15,6 +15,28 @@ def update_selected_mask_index(self, context):
     if mask_texture_node:
         blender_addon_utils.set_texture_paint_image(mask_texture_node.image)
 
+def parse_mask_layer_index(mask_group_node_name):
+    '''Return the mask's layer index by parsing the mask group node name. Returns -1 if there is no active object.'''
+    active_object = bpy.context.active_object
+    if active_object:
+        active_material = active_object.active_material
+        if active_material:
+            indicies = mask_group_node_name[len(active_object.name):]
+            indicies = indicies.split('_')
+            return int(indicies[1])
+    return -1
+
+def parse_mask_index(mask_group_node_name):
+    '''Return the mask's index by parsing the mask group node name. Returns -1 if there is no active object.'''
+    active_object = bpy.context.active_object
+    if active_object:
+        active_material = active_object.active_material
+        if active_material:
+            indicies = mask_group_node_name[len(active_object.name):]
+            indicies = indicies.split('_')
+            return int(indicies[2])
+    return -1
+
 def format_mask_name(layer_index, mask_index, material_name=""):
     '''Returns a properly formatted name for a mask node created with this add-on.'''
     if material_name == "":
@@ -530,7 +552,8 @@ def reindex_masks(change_made, layer_index, affected_mask_index):
             for i in range(total_masks, affected_mask_index, -1):
                 mask_node = get_mask_node('MASK', layer_index, i - 1)
                 if mask_node:
-                    mask_node_name = format_mask_name(layer_index, int(mask_node.name.split('_')[2]) + 1)
+                    mask_index = parse_mask_index(mask_node.name)
+                    mask_node_name = format_mask_name(layer_index, mask_index + 1)
                     mask_node.name = mask_node_name
                     mask_node.node_tree.name = mask_node_name
 
@@ -546,7 +569,8 @@ def reindex_masks(change_made, layer_index, affected_mask_index):
             mask_count = len(bpy.context.scene.matlayer_masks)
             for i in range(affected_mask_index + 1, mask_count):
                 mask_node = get_mask_node('MASK', layer_index, i)
-                mask_node.name = format_mask_name(layer_index, int(mask_node.name.split('_')[2]) - 1)
+                mask_index = parse_mask_index(mask_node.name)
+                mask_node.name = format_mask_name(layer_index, mask_index - 1)
                 mask_node.node_tree.name = mask_node.name
             debug_logging.log("Re-indexed mask nodes for after a mask was deleted.")
 
