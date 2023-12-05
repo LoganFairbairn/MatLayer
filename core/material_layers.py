@@ -1508,13 +1508,15 @@ def set_layer_blending_mode(layer_index, blending_mode, material_channel_name='C
     layer_node_tree.links.new(opacity_node.outputs[0], mix_node.inputs[0])
 
     group_input = get_material_layer_node('GROUP_INPUT', layer_index)
-    channel_input_name = material_channel_name.capitalize() + "Mix"
+    channel_name = material_channel_name.replace('-', ' ')
+    channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+    channel_input_name = channel_name + " Mix"
     group_output = get_material_layer_node('GROUP_OUTPUT', layer_index)
     if mix_node.bl_static_type == 'GROUP':
-        layer_node_tree.links.new(mix_node.outputs[0], group_output.inputs.get(material_channel_name.capitalize()))
+        layer_node_tree.links.new(mix_node.outputs[0], group_output.inputs.get(channel_name))
         layer_node_tree.links.new(group_input.outputs.get(channel_input_name), mix_node.inputs[1])
     else:
-        layer_node_tree.links.new(mix_node.outputs[2], group_output.inputs.get(material_channel_name.capitalize()))
+        layer_node_tree.links.new(mix_node.outputs[2], group_output.inputs.get(channel_name))
         layer_node_tree.links.new(group_input.outputs.get(channel_input_name), mix_node.inputs[6])
 
     # Relink the material channel of this layer based on the original material output channel.
