@@ -950,6 +950,7 @@ class MATLAYER_OT_export(Operator):
         # Apply baking settings for exporting textures.
         bpy.context.scene.render.bake.margin = addon_preferences.uv_padding
         bpy.context.scene.render.bake.use_selected_to_active = False
+        bpy.context.scene.cycles.samples = 1
 
         # Force save all textures (unsaved textures will be cleared and not bake properly).
         blender_addon_utils.force_save_all_textures()
