@@ -804,8 +804,11 @@ class MATLAYER_OT_disable_mesh_map_preview(Operator):
                 original_material_name = active_object[key]
                 original_material = bpy.data.materials.get(original_material_name)
                 if original_material:
-                    active_object.material_slots[material_index].material = original_material
-                    material_index += 1
+                    if material_index < len(active_object.material_slots):
+                        active_object.material_slots[material_index].material = original_material
+                        material_index += 1
+                    else:
+                        break
                 else:
                     debug_logging.log("Material applied before previewing mesh maps no longer exists: {0}".format(original_material_name))
 
