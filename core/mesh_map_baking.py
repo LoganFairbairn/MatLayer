@@ -724,6 +724,11 @@ class MATLAYER_OT_preview_mesh_map(Operator):
         # Make sure there are no lingering existing mesh map assets.
         clean_mesh_map_assets()
 
+        # Cache the render engine and material mode...
+        # This allows them to be re-applied when the mesh map preview is disabled.
+        bpy.context.scene["original_render_engine"] = bpy.context.scene.render.engine
+        bpy.context.scene["original_viewport_shading_mode"] = bpy.context.space_data.shading.type
+
         # Cache materials that are applied to the active object inside of the object...
         # this allows the materials to be re-applied when the mesh map preview is disabled.
         active_object = bpy.context.active_object
@@ -780,7 +785,7 @@ class MATLAYER_OT_preview_mesh_map(Operator):
 class MATLAYER_OT_disable_mesh_map_preview(Operator):
     bl_idname = "matlayer.disable_mesh_map_preview"
     bl_label = "Disable Mesh Map Preview"
-    bl_description = "Sets the render engine back to EEVEE, and removes all mesh map preview materials on active objects (if any exist)"
+    bl_description = "Reapplies the render engine and active objects materials that were in use before the mesh map preview was toggled on"
 
     @ classmethod
     def poll(cls, context):
@@ -789,10 +794,12 @@ class MATLAYER_OT_disable_mesh_map_preview(Operator):
     def execute(self, context):
         clean_mesh_map_assets()
 
-        # Re-apply original materials.
+        # Re-apply materials and other settings used before the mesh map preview was toggled on...
         active_object = bpy.context.active_object
         material_index = 0
         for key in active_object.keys():
+
+            # Re-apply materials.
             if key.startswith('original_material_name_'):
                 original_material_name = active_object[key]
                 original_material = bpy.data.materials.get(original_material_name)
@@ -801,10 +808,22 @@ class MATLAYER_OT_disable_mesh_map_preview(Operator):
                     material_index += 1
                 else:
                     debug_logging.log("Material applied before previewing mesh maps no longer exists: {0}".format(original_material_name))
-                
-        # Reset the original shading mode.
-        bpy.context.space_data.shading.type = 'MATERIAL'
-        bpy.context.scene.render.engine = 'BLENDER_EEVEE'
+
+        # Delete custom properties for storing the original material names from the object, they are no longer needed.
+        for k in active_object.keys():
+            if k.startswith('original_material_name_'):
+                del k
+
+        # Re-apply the render engine and the viewport shading mode.
+        scene = bpy.context.scene
+        scene_keys = scene.keys()
+        if 'original_render_engine' in scene_keys:
+            bpy.context.scene.render.engine = scene['original_render_engine']
+            del scene['original_render_engine']
+
+        if 'original_viewport_shading_mode' in scene_keys:
+            bpy.context.space_data.shading.type = scene['original_viewport_shading_mode']
+            del scene['original_viewport_shading_mode']
 
         debug_logging.log_status("Disabled mesh map preview.", self, type='INFO')
         return {'FINISHED'}
