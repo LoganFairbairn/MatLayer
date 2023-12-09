@@ -724,6 +724,22 @@ class MATLAYER_OT_preview_mesh_map(Operator):
         # Make sure there are no lingering existing mesh map assets.
         clean_mesh_map_assets()
 
+        # Cache materials that are applied to the active object inside of the object...
+        # this allows the materials to be re-applied when the mesh map preview is disabled.
+        active_object = bpy.context.active_object
+
+        for k in active_object.keys():
+            if k.startswith('original_material_name_'):
+                del k
+
+        if len(active_object.material_slots) > 0:
+            for x, slot in enumerate(active_object.material_slots):
+                if slot.material:
+                    active_object["original_material_name_{0}".format(x)] = slot.material.name
+                else:
+                    active_object["original_material_name_{0}".format(x)] = ""
+
+        # Append a material that will be used to preview the mesh map.
         match self.mesh_map_type:
             case 'AMBIENT_OCCLUSION':
                 mesh_map_material = blender_addon_utils.append_material('BakeAmbientOcclusion')
@@ -772,8 +788,24 @@ class MATLAYER_OT_disable_mesh_map_preview(Operator):
 
     def execute(self, context):
         clean_mesh_map_assets()
+
+        # Re-apply original materials.
+        active_object = bpy.context.active_object
+        material_index = 0
+        for key in active_object.keys():
+            if key.startswith('original_material_name_'):
+                original_material_name = active_object[key]
+                original_material = bpy.data.materials.get(original_material_name)
+                if original_material:
+                    active_object.material_slots[material_index].material = original_material
+                    material_index += 1
+                else:
+                    debug_logging.log("Material applied before previewing mesh maps no longer exists: {0}".format(original_material_name))
+                
+        # Reset the original shading mode.
         bpy.context.space_data.shading.type = 'MATERIAL'
         bpy.context.scene.render.engine = 'BLENDER_EEVEE'
+
         debug_logging.log_status("Disabled mesh map preview.", self, type='INFO')
         return {'FINISHED'}
 
