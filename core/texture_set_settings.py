@@ -157,7 +157,7 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
                             input_socket = connect_node.inputs.get('Sheen Weight')
                         case 'DISPLACEMENT':
                             connect_node = active_material.node_tree.nodes.get('DISPLACEMENT')
-                            input_socket = connect_node.inputs[3]
+                            input_socket = connect_node.inputs[0]
                         case _:
                             connect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
                             input_socket = connect_node.inputs.get(channel_name)
@@ -194,7 +194,7 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
                     disconnect_socket = disconnect_node.inputs.get('Sheen Weight')
                 case 'DISPLACEMENT':
                     disconnect_node = active_material.node_tree.nodes.get('DISPLACEMENT')
-                    disconnect_socket = disconnect_node.inputs[3]
+                    disconnect_socket = disconnect_node.inputs[0]
                 case _:
                     disconnect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
                     channel_name = self.material_channel_name.replace('-', ' ')
