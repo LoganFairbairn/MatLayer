@@ -589,26 +589,27 @@ def draw_layer_blur_settings(layout):
             if tss.get_material_channel_active(material_channel_name):
                 active_material_channels.append(material_channel_name)
 
-        for material_channel_name in active_material_channels:
-            mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, material_channel_name)
-            if mix_node:
-                channel_name = material_channel_name.replace('-', ' ')
-                channel_name = blender_addon_utils.capitalize_by_space(channel_name)
-                blur_toggle_property_name = "{0} Blur Toggle".format(channel_name)
-                shorthand_material_channel_name = material_layers.get_shorthand_material_channel_name(material_channel_name)
+        if blender_addon_utils.get_node_active(blur_node):
+            for material_channel_name in active_material_channels:
+                mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, material_channel_name)
+                if mix_node:
+                    channel_name = material_channel_name.replace('-', ' ')
+                    channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+                    blur_toggle_property_name = "{0} Blur Toggle".format(channel_name)
+                    shorthand_material_channel_name = material_layers.get_shorthand_material_channel_name(material_channel_name)
 
-                if blur_node.inputs.get(blur_toggle_property_name).default_value == 1:
-                    operator = row.operator("matlayer.toggle_material_channel_blur", text=shorthand_material_channel_name, depress=True)
-                    operator.material_channel_name = material_channel_name
-                if blur_node.inputs.get(blur_toggle_property_name).default_value == 0:
-                    operator = row.operator("matlayer.toggle_material_channel_blur", text=shorthand_material_channel_name, depress=False)
-                    operator.material_channel_name = material_channel_name
+                    if blur_node.inputs.get(blur_toggle_property_name).default_value == 1:
+                        operator = row.operator("matlayer.toggle_material_channel_blur", text=shorthand_material_channel_name, depress=True)
+                        operator.material_channel_name = material_channel_name
+                    if blur_node.inputs.get(blur_toggle_property_name).default_value == 0:
+                        operator = row.operator("matlayer.toggle_material_channel_blur", text=shorthand_material_channel_name, depress=False)
+                        operator.material_channel_name = material_channel_name
 
-                drawn_toggles += 1
-                if drawn_toggles >= min(4, round(len(active_material_channels) / 2)):
-                    row = layout.row()
-                    row.scale_y = DEFAULT_UI_SCALE_Y
-                    drawn_toggles = 0
+                    drawn_toggles += 1
+                    if drawn_toggles >= min(4, round(len(active_material_channels) / 2)):
+                        row = layout.row()
+                        row.scale_y = DEFAULT_UI_SCALE_Y
+                        drawn_toggles = 0
 
 def draw_layer_properties(layout):
     '''Draws properties specific to the selected layer such as blurring, or decal properties.'''
