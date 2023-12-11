@@ -156,8 +156,8 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
                             connect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
                             input_socket = connect_node.inputs.get('Sheen Weight')
                         case 'DISPLACEMENT':
-                            connect_node = active_material.node_tree.nodes.get('MATERIAL_OUTPUT')
-                            input_socket = connect_node.inputs.get('Displacement')
+                            connect_node = active_material.node_tree.nodes.get('DISPLACEMENT')
+                            input_socket = connect_node.inputs[3]
                         case _:
                             connect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
                             input_socket = connect_node.inputs.get(channel_name)
@@ -167,6 +167,14 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
             # Toggle on alpha clip to allow transparency.
             if self.material_channel_name == 'ALPHA':
                 active_material.blend_method = 'CLIP'
+
+            # Toggle on displacement in the material settings.
+            if self.material_channel_name == 'DISPLACEMENT':
+                active_material.cycles.displacement_method = 'BOTH'
+
+                displacement_node = material_layers.get_material_layer_node('DISPLACEMENT')
+                material_output_node = material_layers.get_material_layer_node('MATERIAL_OUTPUT')
+                active_material.node_tree.links.new(displacement_node.outputs[0], material_output_node.inputs[2])
         
         # Toggle material channel off.
         else:
@@ -185,8 +193,8 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
                     disconnect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
                     disconnect_socket = disconnect_node.inputs.get('Sheen Weight')
                 case 'DISPLACEMENT':
-                    disconnect_node = active_material.node_tree.nodes.get('MATERIAL_OUTPUT')
-                    disconnect_socket = disconnect_node.inputs.get('Displacement')
+                    disconnect_node = active_material.node_tree.nodes.get('DISPLACEMENT')
+                    disconnect_socket = disconnect_node.inputs[3]
                 case _:
                     disconnect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
                     channel_name = self.material_channel_name.replace('-', ' ')
@@ -200,6 +208,12 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
             # Toggle off alpha clip for better shader performance when the channel isn't being used.
             if self.material_channel_name == 'ALPHA':
                 active_material.blend_method = 'OPAQUE'
+
+            # Toggle off displacement in the material settings.
+            if self.material_channel_name == 'DISPLACEMENT':
+                active_material.cycles.displacement_method = 'BUMP'
+                displacement_node = material_layers.get_material_layer_node('DISPLACEMENT')
+                blender_addon_utils.unlink_node(displacement_node, active_material.node_tree, unlink_inputs=True, unlink_outputs=True)
 
         return {'FINISHED'}
 

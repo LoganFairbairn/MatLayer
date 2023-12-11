@@ -263,6 +263,12 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
         case 'BASE_NORMALS_MIX':
             return active_material.node_tree.nodes.get('BASE_NORMALS_MIX')
         
+        case 'DISPLACEMENT':
+            return active_material.node_tree.nodes.get('DISPLACEMENT')
+        
+        case 'MATERIAL_OUTPUT':
+            return active_material.node_tree.nodes.get('MATERIAL_OUTPUT')
+        
         case 'GLOBAL':
             global_channel_toggle_node_name = "GLOBAL_{0}_TOGGLE".format(material_channel_name)
             return active_material.node_tree.nodes.get(global_channel_toggle_node_name)
