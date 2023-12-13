@@ -1,6 +1,88 @@
 # MatLayer
 
-Download the latest version from the releases - https://github.com/LoganFairbairn/matlayer/releases
+MatLayer is a free and open-source libre add-on that drastically speeds up and simplifies the material editing workflow within Blender by providing a wrapper user interface for the vanilla material nodes.
+
+MatLayer is currently developed by a one-man team. I've put over 2000 hours into development of MatLayer.
+
+Get the latest release for free [here](https://github.com/LoganFairbairn/matlayer/releases).
+
+You can support this add-ons development by...
+- Donating to my PayPal [here]("https://paypal.me/RyverCA?country.x=CA&locale.x=en_US")
+- Starring and following on Github
+- Sharing MatLayer
+
+## Features
+
+- PBR material layer stack user interface.
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/LayeredMaterialBall.png?raw=true)
+
+- One-click mesh map baking for high poly to low poly normals, ambient occlusion, curvature, thickness, and world space normals.
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/MaterialBall_MeshMapBakes.png?raw=true)
+
+- One-click texture exporting for common formats and software.
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/ExportingWithChannelPacking.png?raw=true)
+
+- Appendable workspace ideal for material editing.
+- Fast texture set importing.
+- Triplanar projection.
+- The ability to merge materials with automatic mesh map application (a.k.a smart materials).
+- The ability to export all materials on an object to a single texture set.
+- Full global and per layer texture set control.
+- Integrated default filters for material channels.
+- Multi-masking for material layers.
+- Custom export templates with texture channel packing.
+- Non-destructive decal layers.
+- Auto-corrections for normal map rotations.
+- Better normal map blending using Re-oriented normal map blending.
+- Support for adding custom group nodes to layers.
+- Integrated blurring for textures.
+- Basic brush presets.
+- Automatic image file management options.
+- HDRI setup for rendered view.
+
+## Limitations
+
+- No UDIM support (currently).
+- Usage of only 1 UV map per object is supported (currently).
+- No ID map baking (currently).
+- No material layer folders.
+
+## Tips
+
+- Only edit materials made with MatLayer through the add-on interface. MatLayer materials are created using strict formatting to allow them to be read into the interface properly, editing the nodes manually will cause errors. If you need custom materials or effects, you can add custom group nodes into the material channels through the interface.
+- Most user interface elements have detailed tooltips when you hover your mouse over them.
+
+## FAQ
+
+Q: Why should I use MatLayer over other material solutions?
+- MatLayer is 100% free.
+- You can keep your workflow within Blender.
+- You support free and open-source software.
+- You can mod MatLayer to improve your workflow with Python scripting.
+
+## Platforms
+
+- Windows, Linux
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Download the latest version from the releases - 
 
 ...or use the green code button to download the development version which may have new features and fixes, but can be less stable.
 
@@ -17,6 +99,7 @@ I plan on releasing updates and bug fixes for this add-on at my own speed. If yo
 -----
 
 Features:
+
 - Simple user interface
 ![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/UIExample.png?raw=true)
 
@@ -37,13 +120,13 @@ Features:
 - Custom channel packing
 
 - Decals that bake properly to exported textures
-![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/DecalShowcase.gif?raw=true)
+
 
 - Auto corrections for normal map rotations
-![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/NormalRotationCorrectionShowcase.gif?raw=true)
+
 
 - Triplanar projection with correct normal projection
-![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/TriplanarShowcase.gif?raw=true)
+
 
 - Layers support custom group nodes
 
