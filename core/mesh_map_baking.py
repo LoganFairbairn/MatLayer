@@ -3,8 +3,8 @@
 import os
 import time
 import bpy
-from bpy.types import Operator
-from bpy.props import StringProperty, PointerProperty, BoolProperty
+from bpy.types import Operator, PropertyGroup
+from bpy.props import StringProperty, PointerProperty, BoolProperty, EnumProperty, IntProperty, FloatProperty
 from ..core import material_layers
 from ..core import blender_addon_utils
 from ..core import debug_logging
@@ -26,7 +26,41 @@ MESH_MAP_GROUP_NAMES = (
     "ML_WorldSpaceNormals"
 )
 
-MESH_MAP_TYPES = ("NORMALS", "AMBIENT_OCCLUSION", "CURVATURE", "THICKNESS", "WORLD_SPACE_NORMALS")
+MESH_MAP_TYPES = (
+    "NORMALS", 
+    "AMBIENT_OCCLUSION", 
+    "CURVATURE", 
+    "THICKNESS", 
+    "WORLD_SPACE_NORMALS"
+)
+
+MESH_MAP_ANTI_ALIASING = [
+    ("NO_AA", "No AA", "No anti aliasing will be applied to output mesh map textures"),
+    ("2X", "2xAA", "Mesh maps will be rendered at 2x scale and then scaled down to effectively apply anti-aliasing"),
+    ("4X", "4xAA", "Mesh maps will be rendered at 4x scale and then scaled down to effectively apply anti-aliasing")
+]
+
+MESH_MAP_UPSCALE_MULTIPLIER = [
+    ("NO_UPSCALE", "No Upscale", "All mesh maps will be baked at the pixel resolution defined in this materials texture set"),
+    ("1_75X", "1.75x Upscale", "All mesh maps will be baked at 0.75 of the pixel resolution defined in this materials texture set and then upscaled to match the texture set resolution"),
+    ("2X", "2x Upscale", "All mesh maps will be baked at half of the pixel resolution defined in this materials texture set and then upscaled to match the texture set resolution")
+]
+
+MESH_MAP_BAKING_QUALITY = [
+    ("TEST_QUALITY", "Test Quality", "Test quality sampling, ideal for quickly testing the output of mesh map bakes. Not recommended for use in production (1 sample)"),
+    ("EXTREMELY_LOW_QUALITY", "Extremely Low Quality", "Extremely low baking quality (8 samples), generally the result is too low quality for use in production"),
+    ("LOW_QUALITY", "Low Quality", "Low baking quality, useful for when you want somewhat accurate mesh map data produced quickly (16 samples)"),
+    ("RECOMMENDED_QUALITY", "Recommended Quality", "Recommended baking quality, ideal for most use cases (32 samples)"),
+    ("HIGH_QUALITY", "High Quality", "High baking quality, useful for when you want slightly more accurate mesh map data (64 samples)"),
+    ("VERY_HIGH_QUALITY", "Very High Quality", "Very high quality sampling, for significantly more accurate mesh map data, not recommended for standard use, baking times will be long (128 samples)"),
+    ("INSANE_QUALITY", "Insane Quality", "Very high sampling, for hyper accurate mesh map data output, not recommended for standard use. Render times are very long (256 samples)")
+]
+
+MESH_MAP_CAGE_MODE = [
+    ("NO_CAGE", "No Cage", "No cage will be used when baking mesh maps. This can in rare cases produce better results than using a cage"),
+    ("AUTO_CAGE", "Auto Cage", "A cage object will be automatically created by duplicating the low poly object and scaling it slightly by the defined amount using a complex solidify modifier. Baking using a cage can cause some skewing of the baked data if the cage extends too much, or missing normal data in areas where the geometry is not covered by the cage. Auto-cage produces good quality baking results in many cases, but in some cases using a manually created cage is required"),
+    ("MANUAL_CAGE", "Manual Cage", "Insert a manually created cage to be used when baking mesh maps. Baking using a cage can cause some skewing of the baked data if the cage extends too much, or missing normal data in areas where the geometry is not covered by the cage. For some objects that have small crevaces where cage mesh normals would intersect if extruded defining a manual cage object will produce the best results")
+]
 
 
 #----------------------------- UPDATING FUNCTIONS -----------------------------#
@@ -34,48 +68,65 @@ MESH_MAP_TYPES = ("NORMALS", "AMBIENT_OCCLUSION", "CURVATURE", "THICKNESS", "WOR
 
 def update_occlusion_samples(self, context):
     '''Updates the occlusion samples setting in the active material'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    baking_settings = bpy.context.scene.matlayer_baking_settings
     node = get_meshmap_node('AMBIENT_OCCLUSION')
     if node:
-        node.samples = addon_preferences.occlusion_samples
+        node.samples = baking_settings.occlusion_samples
 
 def update_occlusion_distance(self, context):
     '''Updates the occlusion distance setting in the active material'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    baking_settings = bpy.context.scene.matlayer_baking_settings
     node = get_meshmap_node('AMBIENT_OCCLUSION')
     if node:
-        node.inputs.get('Distance').default_value = addon_preferences.occlusion_distance
+        node.inputs.get('Distance').default_value = baking_settings.occlusion_distance
 
 def update_occlusion_intensity(self, context):
     '''Updates the occlusion contrast setting in the active material.'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    baking_settings = bpy.context.scene.matlayer_baking_settings
     node = get_meshmap_node('AMBIENT_OCCLUSION_INTENSITY')
     if node:
-        node.inputs[1].default_value = addon_preferences.occlusion_intensity
+        node.inputs[1].default_value = baking_settings.occlusion_intensity
 
 def update_local_occlusion(self, context):
     '''Updates the local occlusion setting in the active material.'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    baking_settings = bpy.context.scene.matlayer_baking_settings
     node = get_meshmap_node('AMBIENT_OCCLUSION')
     if node:
-        node.only_local = addon_preferences.local_occlusion
+        node.only_local = baking_settings.local_occlusion
 
 def update_bevel_radius(self, context):
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    baking_settings = bpy.context.scene.matlayer_baking_settings
     node = get_meshmap_node('BEVEL')
     if node:
-        if addon_preferences.relative_to_bounding_box:
+        if baking_settings.relative_to_bounding_box:
             bounding_box_multiplier = get_bounding_box_multiplier()
-            node.inputs[0].default_value = addon_preferences.bevel_radius * bounding_box_multiplier
+            node.inputs[0].default_value = baking_settings.bevel_radius * bounding_box_multiplier
         else:
-            node.inputs[0].default_value = addon_preferences.bevel_radius
+            node.inputs[0].default_value = baking_settings.bevel_radius
 
 def update_bevel_samples(self, context):
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    baking_settings = bpy.context.scene.matlayer_baking_settings
     node = get_meshmap_node('BEVEL')
     if node:
-        node.samples = addon_preferences.bevel_samples
+        node.samples = baking_settings.bevel_samples
 
+def update_thickness_distance(self, context):
+    baking_settings = bpy.context.scene.matlayer_baking_settings
+    node = get_meshmap_node('THICKNESS')
+    if node:
+        node.inputs[1].default_value = baking_settings.thickness_distance
+
+def update_local_thickness(self, context):
+    baking_settings = bpy.context.scene.matlayer_baking_settings
+    node = get_meshmap_node('THICKNESS')
+    if node:
+        node.only_local = baking_settings.local_thickness
+
+def update_thickness_samples(self, context):
+    baking_settings = bpy.context.scene.matlayer_baking_settings
+    node = get_meshmap_node('THICKNESS')
+    if node:
+        node.samples = baking_settings.thickness_samples
 
 #----------------------------- HELPER FUNCTIONS -----------------------------#
 
@@ -119,7 +170,7 @@ def get_meshmap_image(mesh_name, mesh_map_type):
     mesh_map_name = get_meshmap_name(mesh_name, mesh_map_type)
     return bpy.data.images.get(mesh_map_name)
 
-def create_bake_image(mesh_map_type, object_name):
+def create_bake_image(mesh_map_type, object_name, baking_settings):
     '''Creates a new image in Blender's data to bake to.'''
 
     # Use the object's name and bake type to define the bake image name.
@@ -128,8 +179,7 @@ def create_bake_image(mesh_map_type, object_name):
     # For anti-aliasing, mesh maps are baked at a higher resolution and then scaled down (which effectively applies anti-aliasing).
     # Define the anti-aliasing multiplier based on mesh map settings.
     anti_aliasing_multiplier = 1
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-    match getattr(addon_preferences.mesh_map_anti_aliasing, mesh_map_type.lower() + "_anti_aliasing", '1X'):
+    match getattr(baking_settings.mesh_map_anti_aliasing, mesh_map_type.lower() + "_anti_aliasing", '1X'):
         case '1X':
             anti_aliasing_multiplier = 1
         case '2X':
@@ -138,7 +188,7 @@ def create_bake_image(mesh_map_type, object_name):
             anti_aliasing_multiplier = 4
 
     # Set an image pixel resolution multiplier for mesh map upscaling.
-    match addon_preferences.mesh_map_upscaling_multiplier:
+    match baking_settings.mesh_map_upscaling_multiplier:
         case 'NO_UPSCALE':
             upscale_multiplier = 1.0
         case '1_75X':
@@ -169,17 +219,25 @@ def create_bake_image(mesh_map_type, object_name):
 
 def apply_baking_settings():
     '''Applies baking settings to existing node setups before baking.'''
+
+    # Apply occlusion settings.
     update_occlusion_samples(None, None)
     update_occlusion_distance(None, None)
     update_occlusion_intensity(None, None)
     update_local_occlusion(None, None)
+
+    # Apply curvature settings.
     update_bevel_radius(None, None)
     update_bevel_samples(None, None)
 
-def apply_mesh_map_quality():
+    # Apply thickness settings.
+    update_thickness_samples(None, None)
+    update_thickness_distance(None, None)
+    update_local_thickness(None, None)
+
+def apply_mesh_map_quality(baking_settings):
     '''Applies mesh map quality settings.'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-    match addon_preferences.mesh_map_quality:
+    match baking_settings.mesh_map_quality:
         case 'TEST_QUALITY':
             bpy.context.scene.cycles.samples = 1
 
@@ -203,7 +261,6 @@ def apply_mesh_map_quality():
 
 def bake_mesh_map(mesh_map_type, object_name, self):
     '''Applies a premade baking material to the active object and starts baking. Returns true if baking was successful.'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     baking_settings = bpy.context.scene.matlayer_baking_settings
 
     # Append a premade material for baking the specified mesh map type.
@@ -235,7 +292,7 @@ def bake_mesh_map(mesh_map_type, object_name, self):
         return True
 
     # Create and assign an image to bake the mesh map to.
-    new_bake_image = create_bake_image(mesh_map_type, object_name)
+    new_bake_image = create_bake_image(mesh_map_type, object_name, baking_settings)
     self._mesh_map_image_index = bpy.data.images.find(new_bake_image.name)
     bake_image_node = temp_bake_material.node_tree.nodes.get("BAKE_IMAGE")
     if bake_image_node:
@@ -280,8 +337,8 @@ def bake_mesh_map(mesh_map_type, object_name, self):
 
     # Apply mesh map quality and baking settings.
     apply_baking_settings()
-    apply_mesh_map_quality()
-    bpy.context.scene.render.bake.margin = addon_preferences.uv_padding
+    apply_mesh_map_quality(baking_settings)
+    bpy.context.scene.render.bake.margin = baking_settings.uv_padding
 
     # Trigger the baking process.
     match mesh_map_type:
@@ -312,22 +369,22 @@ def delete_meshmap(meshmap_type, self):
 
 def get_batch_bake_mesh_maps():
     '''Returns a list of mesh maps checked for inclusion in the batch baking process.'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    baking_settings = bpy.context.scene.matlayer_baking_settings
     mesh_maps_to_bake = []
 
-    if addon_preferences.bake_ambient_occlusion:
+    if baking_settings.bake_ambient_occlusion:
         mesh_maps_to_bake.append('AMBIENT_OCCLUSION')
 
-    if addon_preferences.bake_curvature:
+    if baking_settings.bake_curvature:
         mesh_maps_to_bake.append('CURVATURE')
 
-    if addon_preferences.bake_thickness:
+    if baking_settings.bake_thickness:
         mesh_maps_to_bake.append('THICKNESS')
 
-    if addon_preferences.bake_normals:
+    if baking_settings.bake_normals:
         mesh_maps_to_bake.append('NORMALS')
 
-    if addon_preferences.bake_world_space_normals:
+    if baking_settings.bake_world_space_normals:
         mesh_maps_to_bake.append('WORLD_SPACE_NORMALS')
 
     return mesh_maps_to_bake
@@ -348,8 +405,8 @@ def clean_mesh_map_assets():
 
 def delete_auto_cage_object():
     '''Deletes the auto cage object created for mesh map baking if one exists.'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-    if addon_preferences.cage_mode == 'AUTO_CAGE':
+    baking_settings = bpy.context.scene.matlayer_baking_settings
+    if baking_settings.cage_mode == 'AUTO_CAGE':
         low_poly_object = bpy.context.active_object
         if low_poly_object:
             cage_object = bpy.data.objects.get(low_poly_object.name + "_Cage")
@@ -360,8 +417,183 @@ def delete_auto_cage_object():
 #----------------------------- OPERATORS AND PROPERTIES -----------------------------#
 
 
+class MATLAYER_mesh_map_anti_aliasing(PropertyGroup):
+    normals_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="Normal Map Anti Aliasing", description="Anti aliasing for output normal maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='NO_AA')
+    ambient_occlusion_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="Ambient Occlusion Anti Aliasing", description="Anti aliasing for output ambient occlusion maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='NO_AA')
+    curvature_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="Curvature Anti Aliasing", description="Anti aliasing for output curvature maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='NO_AA')
+    thickness_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="Thickness Anti Aliasing", description="Anti aliasing for output thickness maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='NO_AA')
+    world_space_normals_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="World Space Normals Anti Aliasing", description="Anti aliasing for output world space normal maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='NO_AA')
+
 class MATLAYER_baking_settings(bpy.types.PropertyGroup):
-    high_poly_object: PointerProperty(type=bpy.types.Object, name="High Poly Object", description="The high poly object (must be a mesh) from which mesh detail will be baked to texture maps. The high poly mesh should generally be overlapped by your low poly mesh before starting baking. You do not need to provide a high poly mesh for baking texture maps")
+    high_poly_object: PointerProperty(
+        type=bpy.types.Object, 
+        name="High Poly Object", 
+        description="The high poly object (must be a mesh) from which mesh detail will be baked to texture maps. The high poly mesh should generally be overlapped by your low poly mesh before starting baking. You do not need to provide a high poly mesh for baking texture maps"
+    )
+
+    mesh_map_anti_aliasing: PointerProperty(
+        type=MATLAYER_mesh_map_anti_aliasing, 
+        name="Mesh Map Anti Aliasing"
+    )
+
+    mesh_map_upscaling_multiplier: EnumProperty(
+        items=MESH_MAP_UPSCALE_MULTIPLIER,
+        name="Mesh Map Upscale Multiplier",
+        description="Bakes the mesh map at a smaller resolution, then upscales the mesh map image to match the texture set resolution. Baking at a lower resolution and upscaling allows mesh maps to bake much faster, but with lower quality and accuracy. A small amount of blurring caused by upscaling mesh map images slightly can result in more useful mesh maps",
+        default='1_75X'
+    )
+
+    mesh_map_quality: EnumProperty(
+        items=MESH_MAP_BAKING_QUALITY, 
+        name="Mesh Map Quality", 
+        description="Bake quality",
+        default='RECOMMENDED_QUALITY'
+    )
+
+    cage_mode: EnumProperty(
+        items=MESH_MAP_CAGE_MODE,
+        name="Cage Mode",
+        description="Mode to define if a cage is used for mesh map baking, and if the cage is created automatically, or manually defined",
+        default='AUTO_CAGE'
+    )
+
+    cage_upscale: FloatProperty(
+        name="Cage Upscale",
+        description="Upscales a duplicate of the low poly mesh by the specified amount to use as a cage for mesh map baking", 
+        default=0.01,
+        min=0.0,
+        soft_max=0.1,
+        step=0.1,
+        precision=4
+    )
+
+    uv_padding: IntProperty(
+        name="UV Padding",
+        description="Amount of padding in pixels to extend the baked data out of UV islands. This ensures there is no visible seams between UV splits",
+        default=32,
+        min=4,
+        max=64
+    )
+
+
+
+    bake_normals: BoolProperty(
+        name="Bake Normal", 
+        description="Toggle for baking normal maps for baking as part of the batch baking operator", 
+        default=True
+    )
+
+    bake_ambient_occlusion: BoolProperty(
+        name="Bake Ambient Occlusion", 
+        description="Toggle for baking ambient occlusion as part of the batch baking operator", 
+        default=True
+    )
+
+    bake_curvature: BoolProperty(
+        name="Bake Curvature", 
+        description="Toggle for baking curvature as part of the batch baking operator", 
+        default=True
+    )
+
+    bake_thickness: BoolProperty(
+        name="Bake Thickness", 
+        description="Toggle for baking thickness as part of the batch baking operator", 
+        default=True
+    )
+
+    bake_world_space_normals: BoolProperty(
+        name="Bake World Space Normals", 
+        description="Toggle for baking world space normals as part of the batch baking operator", 
+        default=True
+    )
+
+    # Ambient Occlusion Settings
+    occlusion_samples: IntProperty(
+        name="Occlusion Samples", 
+        description="Number of rays to trace for the occlusion shader evaluation. Higher values slightly increase occlusion quality at the cost of increased bake time. In most cases the default value is ideal", 
+        default=16, 
+        min=1,
+        max=128,
+        update=update_occlusion_samples
+    )
+    
+    occlusion_distance: FloatProperty(
+        name="Occlusion Distance", 
+        description="Occlusion distance between polygons. Lower values results in less occlusion. In most cases the default value is ideal",
+        default=1.0,
+        min=0.1,
+        max=1.0,
+        update=update_occlusion_distance
+    )
+
+    occlusion_intensity: FloatProperty(
+        name="Occlusion Intensity",
+        description="Intensity of the ambient occlusion, higher values result in more intense occlusion shadows",
+        default=3.0,
+        min=0.1,
+        max=10.0,
+        update=update_occlusion_intensity
+    )
+
+    local_occlusion: BoolProperty(
+        name="Local Occlusion",
+        description="When off, other objects within the scene will contribute to the baked ambient occlusion",
+        default=True,
+        update=update_local_occlusion
+    )
+
+    # Curvature Settings
+    bevel_radius: FloatProperty(
+        name="Bevel Radius",
+        description="Radius of the sharp edges baked into the curvature map",
+        default=0.0025,
+        soft_min=0.001,
+        soft_max=0.01,
+        step=0.1,
+        precision=4,
+        update=update_bevel_radius
+    )
+
+    bevel_samples: IntProperty(
+        name="Bevel Samples",
+        description="Number of rays to trace per shader evaluation for curvature bevel (sharp edges) samples. Higher samples results in sharper edges",
+        default=2,
+        min=2,
+        max=16,
+        update=update_bevel_samples
+    )
+
+    relative_to_bounding_box: BoolProperty(
+        name="Relative to Bounding Box",
+        description="If true, the sampling radius used in curvature mesh map baking will be multiplied by the averaged size of the active objects bounding box. This allows the sampling radius to stay roughly correct among varying sizes of objects without the need to manually adjust the property",
+        default=True
+    )
+
+    # Thickness Settings
+    thickness_samples: IntProperty(
+        name="Thickness Samples", 
+        description="Number of rays to trace for the thickness shader evaluation. Higher values slightly increase thickness quality at the cost of increased bake time. In most cases the default value is ideal", 
+        default=16, 
+        min=1,
+        max=128,
+        update=update_thickness_samples
+    )
+
+    thickness_distance: FloatProperty(
+        name="Thickness Distance",
+        description="Distance for thickness rays.",
+        default=0.1,
+        min=0.0,
+        max=1.0,
+        update=update_thickness_distance
+    )
+
+    local_thickness: BoolProperty(
+        name="Local Thickness",
+        description="When off, other objects within the scene will contribute to the baked thickness",
+        default=True,
+        update=update_local_thickness
+    )
 
 class MATLAYER_OT_batch_bake(Operator):
     bl_idname = "matlayer.batch_bake"
@@ -398,15 +630,15 @@ class MATLAYER_OT_batch_bake(Operator):
                 mesh_map_image = bpy.data.images.get(mesh_map_name)
                 if mesh_map_image:
                     # Scale baked textures down to apply anti-aliasing.
-                    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-                    match getattr(addon_preferences.mesh_map_anti_aliasing, mesh_map_type.lower() + "_anti_aliasing", '1X'):
+                    baking_settings = bpy.context.scene.matlayer_baking_settings
+                    match getattr(baking_settings.mesh_map_anti_aliasing, mesh_map_type.lower() + "_anti_aliasing", '1X'):
                         case '2X':
                             mesh_map_image.scale(int(mesh_map_image.size[0] * 0.5), int(mesh_map_image.size[1] * 0.5))
                         case '4X':                            
                             mesh_map_image.scale(int(mesh_map_image.size[0] * 0.25), int(mesh_map_image.size[1] * 0.25))
 
                     # Scale baked textures up to match the texture set resolution size.
-                    match addon_preferences.mesh_map_upscaling_multiplier:
+                    match baking_settings.mesh_map_upscaling_multiplier:
                         case '1_75X':
                             mesh_map_image.scale(int(round(mesh_map_image.size[0] * 1.333333)), int(round(mesh_map_image.size[1] * 1.333333)))
                         case '2X':
@@ -475,7 +707,6 @@ class MATLAYER_OT_batch_bake(Operator):
             debug_logging.log_status("Bake job already in process, cancel or wait until the bake is finished before starting another.", self)
             return {'FINISHED'}
         
-        addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
         bpy.context.scene.pause_auto_updates = True
         debug_logging.log("Starting mesh map baking...", sub_process=False)
 
@@ -492,8 +723,9 @@ class MATLAYER_OT_batch_bake(Operator):
             debug_logging.log_status("No mesh maps checked for baking.", self, type='INFO')
             return {'FINISHED'}
 
+        baking_settings = bpy.context.scene.matlayer_baking_settings
         low_poly_object = bpy.context.active_object
-        high_poly_object = bpy.context.scene.matlayer_baking_settings.high_poly_object
+        high_poly_object = baking_settings.high_poly_object
 
         # If a high poly object is specified...
         if high_poly_object:
@@ -508,7 +740,7 @@ class MATLAYER_OT_batch_bake(Operator):
                 layer_collection.exclude = False
 
             # Adjust settings based on the selected cage mode.
-            match addon_preferences.cage_mode:
+            match baking_settings.cage_mode:
                 case 'NO_CAGE':
                     bpy.context.scene.render.bake.use_cage = False
 
@@ -527,7 +759,7 @@ class MATLAYER_OT_batch_bake(Operator):
                         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
                         bpy.ops.mesh.select_all(action='SELECT')
                         bpy.ops.transform.shrink_fatten(
-                            value=addon_preferences.cage_upscale,
+                            value=baking_settings.cage_upscale,
                             use_even_offset=False,
                             mirror=True, 
                             use_proportional_edit=False,
