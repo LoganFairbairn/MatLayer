@@ -2,12 +2,12 @@
 
 MatLayer is a free and open-source libre add-on that drastically speeds up and simplifies the material editing workflow within Blender by providing a wrapper user interface for the vanilla material nodes.
 
-Get the latest release for free [here](https://github.com/LoganFairbairn/matlayer/releases).
+[Get the Latest Release](https://github.com/LoganFairbairn/matlayer/releases).
 
 MatLayer is currently developed by a one-man team. I've put over 2000 hours developing MatLayer so there will be a great, free 3D material editing available for all.
 
 If you would like to help support this add-ons development you can...
-- Donate to my PayPal [here](https://paypal.me/RyverCA?country.x=CA&locale.x=en_US)
+- Donate to my [PayPal](https://paypal.me/RyverCA?country.x=CA&locale.x=en_US)
 - Star and follow the repository on Github
 - Share MatLayer
 - Report issues and give suggestions through the Github issues page
