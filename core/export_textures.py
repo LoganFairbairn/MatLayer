@@ -948,7 +948,8 @@ class MATLAYER_OT_export(Operator):
         self._original_render_engine_name = bpy.context.scene.render.engine
 
         # Apply baking settings for exporting textures.
-        bpy.context.scene.render.bake.margin = addon_preferences.uv_padding
+        baking_settings = bpy.context.scene.matlayer_baking_settings
+        bpy.context.scene.render.bake.margin = baking_settings.uv_padding
         bpy.context.scene.render.bake.use_selected_to_active = False
         bpy.context.scene.cycles.samples = 1
 

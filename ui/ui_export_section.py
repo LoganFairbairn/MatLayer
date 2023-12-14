@@ -19,6 +19,7 @@ def draw_export_section_ui(self, context):
     # Draw export texture settings.
     row = layout.row()
     row.separator()
+    baking_settings = bpy.context.scene.matlayer_baking_settings
     addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
     split = layout.split(factor=0.2)
     first_column = split.column()
@@ -82,7 +83,7 @@ def draw_export_section_ui(self, context):
     row.label(text="UV Padding")
     row = second_column.row()
     row.scale_y = SCALE_Y
-    row.prop(addon_preferences, "uv_padding", text="")
+    row.prop(baking_settings, "uv_padding", text="")
 
     # Split layout into 2 columns.
     split = layout.split(factor=0.4)
