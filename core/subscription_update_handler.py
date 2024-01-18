@@ -39,7 +39,7 @@ def sub_to_active_material_index(active_object):
 
 
 def on_active_material_changed(scene):
-    '''Update properties when the active material is changed.'''
+    '''Updates properties when the active material is changed.'''
 
     # Avoid running auto updates during operations that require them to be paused (i.e mesh map baking, exporting textures).
     if bpy.context.scene.pause_auto_updates == False:

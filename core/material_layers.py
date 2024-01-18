@@ -959,7 +959,7 @@ def apply_mesh_maps():
     debug_logging.log("Applied baked mesh maps.")
 
 def relink_material_channel(relink_material_channel_name="", original_output_channel='', unlink_projection=False):
-    '''Relinks the projection / blurring nodes and then links them to material channels based on the current projection node tree being used. If no material channel is specified to have it's projection relinked, relink them all.'''
+    '''Relinks the projection / blurring nodes and then links them to material channels based on the current projection node tree being used. If no material channel is specified to be relinked, all will be relinked.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layer_node_tree = get_layer_node_tree(selected_layer_index)
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
