@@ -533,6 +533,8 @@ def duplicate_layer(original_layer_index, self):
 
     if blender_addon_utils.verify_material_operation_context(self) == False:
         return
+    
+    duplicated_decal_object = None
 
     # Duplicate the node tree and add it to the layer stack.
     layer_node_tree = get_layer_node_tree(original_layer_index)
@@ -553,6 +555,16 @@ def duplicate_layer(original_layer_index, self):
             organize_layer_group_nodes()
             link_layer_group_nodes(self)
             layer_masks.organize_mask_nodes()
+
+            # Duplicate decal objects if the original layer was a decal layer.
+            decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', original_layer_index)
+            if decal_coordinate_node:
+                decal_object = decal_coordinate_node.object
+                if decal_object:
+                    duplicated_decal_object = blender_addon_utils.duplicate_object(decal_object)
+                    new_decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', new_layer_slot_index)
+                    if new_decal_coordinate_node:
+                        new_decal_coordinate_node.object = duplicated_decal_object
 
         # Clear the mask stack from the new layer.
         masks = bpy.context.scene.matlayer_masks
@@ -575,6 +587,11 @@ def duplicate_layer(original_layer_index, self):
 
                     layer_masks.reindex_masks('ADDED_MASK', new_layer_slot_index, affected_mask_index=i)
 
+                    if duplicated_decal_object:
+                        decal_coordinate_node = layer_masks.get_mask_node('DECAL_COORDINATES', new_layer_slot_index, new_mask_slot_index)
+                        if decal_coordinate_node:
+                            decal_coordinate_node.object = duplicated_decal_object
+                            
         layer_masks.link_mask_nodes(new_layer_slot_index)
         layer_masks.organize_mask_nodes()
 

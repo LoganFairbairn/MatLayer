@@ -555,3 +555,50 @@ def verify_folder(folder_path):
     if not os.path.isdir(folder_path):
         return False
     return True
+
+def duplicate_object(original_object, duplicated_object_name=""):
+    '''Duplicates the provided object from blend data and assigns the duplicated object to the original scene collection.'''
+
+    # Duplicate the object in the blend data.
+    duplicated_object = original_object.copy()
+    
+    # If the object has data (meshes contain data, while empty objects do not), copy that too.
+    if duplicated_object.data:
+        duplicated_object.data = original_object.data.copy()
+
+    # Link to the duplicated object to the original scenes collection.
+    collections = original_object.users_collection
+    if len(collections) > 0:
+        collection = collections[0]
+        collection.objects.link(duplicated_object)
+
+    # If a name for the duplicated object isn't defined...
+    if duplicated_object_name == "":
+
+        # Check if the object already has an index applied with a regular expression, if it does increment that number for the duplicated object.
+        match = re.search(r'\d+$', original_object.name)
+        if match:
+            index = int(match.group())
+            original_object_name = original_object.name[:match.start()]
+
+            index += 1
+            duplicated_object_name = "{0}{1}".format(original_object_name, index)
+            while bpy.data.objects.get(duplicated_object_name):
+                index += 1
+                duplicated_object_name = "{0}{1}".format(original_object_name, index)
+
+        # If the original object doesn't have an index applied, add one to the decal object.
+        else:
+            index = 1
+            duplicated_object_name = "{0}_{1}".format(original_object_name, index)
+
+        duplicated_object.name = duplicated_object_name
+    
+    # If a name for the duplicated object is provided, use that. If the name is already taken, throw an error.
+    else:
+        if bpy.data.objects.get(duplicated_object_name):
+            debug_logging.log("Duplicated object name already exists.", message_type='ERROR', sub_process=False)
+        else:
+            duplicated_object.name = duplicated_object_name
+
+    return duplicated_object
