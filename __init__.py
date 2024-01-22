@@ -221,7 +221,7 @@ def depsgraph_change_handler(scene, depsgraph):
             sync_triplanar_settings()
 
             # Relink all material channels for instances when a group node used to represent a material channel is changed.
-            relink_material_channel(relink_material_channel_name="")
+            relink_material_channel(relink_material_channel_name="", unlink_projection=True)
 
 # Mark load handlers as persistent so they are not freed when loading a new blend file.
 @persistent

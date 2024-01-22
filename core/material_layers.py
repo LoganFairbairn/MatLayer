@@ -55,6 +55,18 @@ MATERIAL_CHANNEL_LIST = [
     'DISPLACEMENT'
 ]
 
+TRIPLANAR_PROJECTION_INPUTS = [
+    'LeftRight',
+    'FrontBack',
+    'TopBottom',
+    'UnflippedLeftRight',
+    'UnflippedFrontBack',
+    'UnflippedTopBottom',
+    'AxisMask',
+    'Rotation',
+    'SignedGeometryNormals'
+]
+
 #----------------------------- UPDATING PROPERTIES -----------------------------#
 
 def update_layer_index(self, context):
@@ -964,8 +976,8 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
     layer_node_tree = get_layer_node_tree(selected_layer_index)
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
     blur_node = get_material_layer_node('BLUR', selected_layer_index)
-
-    # Relink the projection and blur nodes based on the layers projection mode.
+    
+    # Unlink and relink projection for blur nodes if requested.
     if unlink_projection:
         blender_addon_utils.unlink_node(projection_node, layer_node_tree, unlink_inputs=False, unlink_outputs=True)
         blender_addon_utils.unlink_node(blur_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
@@ -991,13 +1003,17 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                 original_output_channel = get_material_channel_output_channel(material_channel_name)
 
             match projection_node.node_tree.name:
-                case 'ML_TriplanarProjection':
-                    for i in range(0, 3):
-                        # Link projection / blur nodes to the image textures.
-                        value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=i + 1)
-                        triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, material_channel_name)
 
-                        if value_node.bl_static_type == 'TEX_IMAGE':
+                # Relink a material channel with a triplanar projection setup.
+                case 'ML_TriplanarProjection':
+                    value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=1)
+                    triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, material_channel_name)
+
+                    # Link projection / blur nodes when image textures are used as the material channel value.
+                    if value_node.bl_static_type == 'TEX_IMAGE':
+                        for i in range(0, 3):
+                            value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=i + 1)
+
                             if blender_addon_utils.get_node_active(blur_node):
                                 channel_name = material_channel_name.replace('-', ' ')
                                 channel_name = blender_addon_utils.capitalize_by_space(channel_name)
@@ -1005,21 +1021,23 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                                 layer_node_tree.links.new(blur_node.outputs.get(blur_output_property_name), value_node.inputs[0])
                             else:
                                 layer_node_tree.links.new(projection_node.outputs[i], value_node.inputs[0])
-                            
-                            layer_node_tree.links.new(value_node.outputs.get('Color'), triplanar_blend_node.inputs[i])
-                            layer_node_tree.links.new(value_node.outputs.get('Alpha'), triplanar_blend_node.inputs[i + 3])
 
-                        # Link triplanar blending nodes.
-                        if triplanar_blend_node:
-                            layer_node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
-                            if material_channel_name == 'NORMAL':
-                                layer_node_tree.links.new(projection_node.outputs.get('Rotation'), triplanar_blend_node.inputs.get('Rotation'))
-                                layer_node_tree.links.new(projection_node.outputs.get('SignedGeometryNormals'), triplanar_blend_node.inputs.get('SignedGeometryNormals'))
+                            # Link triplanar blending nodes.
+                            if triplanar_blend_node:
+                                layer_node_tree.links.new(value_node.outputs.get('Color'), triplanar_blend_node.inputs[i])
+                                layer_node_tree.links.new(value_node.outputs.get('Alpha'), triplanar_blend_node.inputs[i + 3])
+                                layer_node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
+                                if material_channel_name == 'NORMAL':
+                                    layer_node_tree.links.new(projection_node.outputs.get('Rotation'), triplanar_blend_node.inputs.get('Rotation'))
+                                    layer_node_tree.links.new(projection_node.outputs.get('SignedGeometryNormals'), triplanar_blend_node.inputs.get('SignedGeometryNormals'))
 
-                        # No need to link projection for layers not using image textures.
-                        else:
-                            break
+                    # Link the triplanar projection for custom group nodes with inputs that having matching names with projection node outputs.
+                    else:
+                        for input in TRIPLANAR_PROJECTION_INPUTS:
+                            if value_node.inputs.get(input) and projection_node.outputs.get(input):
+                                layer_node_tree.links.new(projection_node.outputs.get(input), value_node.inputs.get(input))
 
+                # Relink the material channel projection for all other projection setups.
                 case _:
                     value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
                     mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
@@ -1032,7 +1050,7 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                             layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
                             layer_node_tree.links.new(value_node.outputs.get('Alpha'), mix_image_alpha_node.inputs[1])
 
-                    # Relink for custom user group nodes.
+                    # TODO: Relink for custom user group nodes.
                     if value_node.bl_static_type == 'GROUP':
                         if not value_node.node_tree.name.startswith("ML_Default"):
                             if blender_addon_utils.get_node_active(blur_node):
