@@ -965,7 +965,7 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
     blur_node = get_material_layer_node('BLUR', selected_layer_index)
 
-    # Relink the projection node and blur node based on the layers projection mode.
+    # Relink the projection and blur nodes based on the layers projection mode.
     if unlink_projection:
         blender_addon_utils.unlink_node(projection_node, layer_node_tree, unlink_inputs=False, unlink_outputs=True)
         blender_addon_utils.unlink_node(blur_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
@@ -1023,12 +1023,22 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                 case _:
                     value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
                     mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
+                    
+                    # Relink for image texture nodes.
                     if value_node.bl_static_type == 'TEX_IMAGE':
                         if blender_addon_utils.get_node_active(blur_node):
                             layer_node_tree.links.new(blur_node.outputs.get(material_channel_name.capitalize()), value_node.inputs[0])
                         else:
                             layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
                             layer_node_tree.links.new(value_node.outputs.get('Alpha'), mix_image_alpha_node.inputs[1])
+
+                    # Relink for custom user group nodes.
+                    if value_node.bl_static_type == 'GROUP':
+                        if not value_node.node_tree.name.startswith("ML_Default"):
+                            if blender_addon_utils.get_node_active(blur_node):
+                                layer_node_tree.links.new(blur_node.outputs.get(material_channel_name.capitalize()), value_node.inputs[0])
+                            else:
+                                layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
 
             set_material_channel_output_channel(material_channel_name, original_output_channel)
 
@@ -1102,7 +1112,6 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                 texture_sample_node.label = texture_sample_node.name
                 texture_sample_node.hide = True
                 texture_sample_node.width = 300
-                debug_logging.log("Original Node Location: " + str(original_node_location))
                 texture_sample_node.location = original_node_location
 
                 if original_value_node_type == 'TEX_IMAGE':
@@ -1203,7 +1212,6 @@ def replace_material_channel_node(material_channel_name, node_type):
         case 'GROUP':
             value_node.parent = None
             original_node_location = value_node.location.copy()
-            debug_logging.log("Original Node Location: " + str(original_node_location))
 
             # Remove the old nodes.
             match projection_node.node_tree.name:
