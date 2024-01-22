@@ -1053,7 +1053,7 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                             layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
                             layer_node_tree.links.new(value_node.outputs.get('Alpha'), mix_image_alpha_node.inputs[1])
 
-                    # TODO: Relink for custom user group nodes.
+                    # Relink for custom user group nodes.
                     if value_node.bl_static_type == 'GROUP':
                         if not value_node.node_tree.name.startswith("ML_Default"):
                             if blender_addon_utils.get_node_active(blur_node):

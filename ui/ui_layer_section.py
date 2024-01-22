@@ -272,6 +272,7 @@ def draw_layer_projection(layout):
     '''Draws layer projection settings.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     
+    
     # Draw the projection mode.
     projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
     if projection_node:
@@ -286,11 +287,13 @@ def draw_layer_projection(layout):
                 row.menu('MATLAYER_MT_layer_projection_sub_menu', text="UV Projection")
 
                 # Draw the UV map property.
-                uv_map_node = projection_node.node_tree.nodes.get('UV_MAP')
-                if uv_map_node:
-                    row = layout.row()
-                    row.scale_y = DEFAULT_UI_SCALE_Y
-                    row.prop(uv_map_node, "uv_map", text="UV Map")
+                active_object = bpy.context.active_object
+                if active_object:
+                    if uv_map_node:
+                        uv_map_node = projection_node.node_tree.nodes.get('UV_MAP')
+                        row = layout.row()
+                        row.scale_y = DEFAULT_UI_SCALE_Y
+                        row.prop_search(uv_map_node, "uv_map", active_object.data, "uv_layers", text="UV Map")
 
                 split = layout.split()
                 col = split.column()
