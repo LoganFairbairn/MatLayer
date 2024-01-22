@@ -246,7 +246,7 @@ def get_layer_node_tree(layer_index):
 def get_material_layer_node(layer_node_name, layer_index=0, material_channel_name='COLOR', node_number=1, get_changed=False):
     '''Returns the desired material node if it exists. Supply the material channel name to get nodes specific to material channels.'''
 
-    # This function exists to allow easy access to premade nodes from materials a node tree appended from an asset blend file.
+    # This function exists to allow easy access to premade nodes from a node tree appended from an asset blend file.
     # Using specified names for nodes allows consistent access to specific nodes accross languages in Blender (as Blender's auto translate feature will translate default node names).
     # This function also has the benefit of being able to return nodes in sub-node groups, if required.
 
@@ -285,6 +285,9 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
             global_channel_toggle_node_name = "GLOBAL_{0}_TOGGLE".format(material_channel_name)
             return active_material.node_tree.nodes.get(global_channel_toggle_node_name)
         
+        case 'EXPORT_UV_MAP':
+            return active_material.node_tree.nodes.get('EXPORT_UV_MAP')
+
         case 'PROJECTION':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:

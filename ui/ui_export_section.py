@@ -3,6 +3,7 @@
 import bpy
 from ..ui import ui_section_tabs
 from .. import preferences
+from ..core import material_layers
 
 def draw_export_section_ui(self, context):
     '''Draws user interface for the export section.'''
@@ -84,6 +85,15 @@ def draw_export_section_ui(self, context):
     row = second_column.row()
     row.scale_y = SCALE_Y
     row.prop(baking_settings, "uv_padding", text="")
+
+    
+    export_uv_map_node = material_layers.get_material_layer_node('EXPORT_UV_MAP')
+    row = first_column.row()
+    row.scale_y = SCALE_Y
+    row.label(text="Export UV Map")
+    row = second_column.row()
+    row.scale_y = SCALE_Y
+    row.prop(export_uv_map_node, "uv_map", text="")
 
     # Split layout into 2 columns.
     split = layout.split(factor=0.4)

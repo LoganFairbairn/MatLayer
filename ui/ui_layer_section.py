@@ -285,6 +285,13 @@ def draw_layer_projection(layout):
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.menu('MATLAYER_MT_layer_projection_sub_menu', text="UV Projection")
 
+                # Draw the UV map property.
+                uv_map_node = projection_node.node_tree.nodes.get('UV_MAP')
+                if uv_map_node:
+                    row = layout.row()
+                    row.scale_y = DEFAULT_UI_SCALE_Y
+                    row.prop(uv_map_node, "uv_map", text="UV Map")
+
                 split = layout.split()
                 col = split.column()
                 col.scale_y = DEFAULT_UI_SCALE_Y
