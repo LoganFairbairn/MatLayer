@@ -732,6 +732,11 @@ def add_bake_texture_nodes():
             bake_texture_node.select = True
             material_slot.material.node_tree.nodes.active = bake_texture_node
 
+            # Link the export UV map to the bake texture node.
+            export_uv_map_node = material_layers.get_material_layer_node('EXPORT_UV_MAP')
+            if export_uv_map_node:
+                material_slot.material.node_tree.links.new(export_uv_map_node.outputs[0], bake_texture_node.inputs[0])
+
 def remove_bake_texture_nodes():
     '''Removes image texture nodes for baking from all materials in all material slots on the active object.'''
     placeholder_image = bpy.data.images.get('ML_Placeholder')
