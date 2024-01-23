@@ -27,7 +27,7 @@ from .preferences import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MA
 from .core.texture_set_settings import MATLAYER_texture_set_settings, MATLAYER_OT_toggle_texture_set_material_channel, MATLAYER_OT_set_raw_texture_folder, MATLAYER_OT_open_raw_texture_folder
 
 # Material Layers
-from .core.material_layers import MATLAYER_layer_stack, MATLAYER_layers, MATLAYER_OT_add_material_layer, MATLAYER_OT_add_paint_material_layer, MATLAYER_OT_add_decal_material_layer, MATLAYER_OT_delete_layer, MATLAYER_OT_duplicate_layer, MATLAYER_OT_move_material_layer_up, MATLAYER_OT_move_material_layer_down, MATLAYER_OT_toggle_material_channel_preview, MATLAYER_OT_toggle_layer_blur, MATLAYER_OT_toggle_material_channel_blur, MATLAYER_OT_toggle_hide_layer, MATLAYER_OT_set_layer_projection_uv, MATLAYER_OT_set_layer_projection_triplanar, MATLAYER_OT_change_material_channel_value_node, MATLAYER_OT_toggle_triplanar_flip_correction, MATLAYER_OT_isolate_material_channel, MATLAYER_OT_toggle_image_alpha_blending, MATLAYER_OT_toggle_material_channel_filter, MATLAYER_OT_set_material_channel_output_channel, MATLAYER_OT_set_layer_blending_mode, refresh_layer_stack, sync_triplanar_settings, relink_material_channel
+from .core import material_layers
 
 # Layer Masks
 from .core.layer_masks import MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_mask_list, MATLAYER_OT_move_layer_mask_up, MATLAYER_OT_move_layer_mask_down, MATLAYER_OT_duplicate_layer_mask, MATLAYER_OT_delete_layer_mask, MATLAYER_OT_add_empty_layer_mask, MATLAYER_OT_add_black_layer_mask, MATLAYER_OT_add_white_layer_mask, MATLAYER_OT_add_linear_gradient_mask, MATLAYER_OT_add_decal_mask, MATLAYER_OT_add_ambient_occlusion_mask, MATLAYER_OT_add_curvature_mask, MATLAYER_OT_add_thickness_mask, MATLAYER_OT_add_world_space_normals_mask,  MATLAYER_OT_add_grunge_mask, MATLAYER_OT_add_edge_wear_mask, MATLAYER_OT_add_decal_mask, MATLAYER_OT_set_mask_projection_uv, MATLAYER_OT_set_mask_projection_triplanar, MATLAYER_OT_set_mask_output_channel, MATLAYER_OT_isolate_mask, MATLAYER_OT_toggle_mask_blur
@@ -101,28 +101,28 @@ classes = (
     ExportTemplateMenu,
 
     # Material Layers
-    MATLAYER_layer_stack,
-    MATLAYER_layers,
-    MATLAYER_OT_add_material_layer, 
-    MATLAYER_OT_add_paint_material_layer,
-    MATLAYER_OT_add_decal_material_layer,
-    MATLAYER_OT_delete_layer,
-    MATLAYER_OT_duplicate_layer, 
-    MATLAYER_OT_move_material_layer_up,
-    MATLAYER_OT_move_material_layer_down,
-    MATLAYER_OT_toggle_material_channel_preview,
-    MATLAYER_OT_toggle_layer_blur,
-    MATLAYER_OT_toggle_material_channel_blur,
-    MATLAYER_OT_toggle_hide_layer,
-    MATLAYER_OT_set_layer_projection_uv,
-    MATLAYER_OT_set_layer_projection_triplanar,
-    MATLAYER_OT_change_material_channel_value_node,
-    MATLAYER_OT_toggle_triplanar_flip_correction,
-    MATLAYER_OT_isolate_material_channel,
-    MATLAYER_OT_toggle_image_alpha_blending,
-    MATLAYER_OT_toggle_material_channel_filter,
-    MATLAYER_OT_set_material_channel_output_channel,
-    MATLAYER_OT_set_layer_blending_mode,
+    material_layers.MATLAYER_layer_stack,
+    material_layers.MATLAYER_layers,
+    material_layers.MATLAYER_OT_add_material_layer, 
+    material_layers.MATLAYER_OT_add_paint_material_layer,
+    material_layers.MATLAYER_OT_add_decal_material_layer,
+    material_layers.MATLAYER_OT_delete_layer,
+    material_layers.MATLAYER_OT_duplicate_layer, 
+    material_layers.MATLAYER_OT_move_material_layer_up,
+    material_layers.MATLAYER_OT_move_material_layer_down,
+    material_layers.MATLAYER_OT_toggle_material_channel_preview,
+    material_layers.MATLAYER_OT_toggle_layer_blur,
+    material_layers.MATLAYER_OT_toggle_material_channel_blur,
+    material_layers.MATLAYER_OT_toggle_hide_layer,
+    material_layers.MATLAYER_OT_set_layer_projection_uv,
+    material_layers.MATLAYER_OT_set_layer_projection_triplanar,
+    material_layers.MATLAYER_OT_change_material_channel_value_node,
+    material_layers.MATLAYER_OT_toggle_triplanar_flip_correction,
+    material_layers.MATLAYER_OT_isolate_material_channel,
+    material_layers.MATLAYER_OT_toggle_image_alpha_blending,
+    material_layers.MATLAYER_OT_toggle_material_channel_filter,
+    material_layers.MATLAYER_OT_set_material_channel_output_channel,
+    material_layers.MATLAYER_OT_set_layer_blending_mode,
 
     # Layer Masks
     MATLAYER_mask_stack, 
@@ -216,12 +216,25 @@ def depsgraph_change_handler(scene, depsgraph):
                         on_active_material_changed(scene)
                         triggered_active_material_callback = True
 
-        # Update properties when there is a shader nodetree change (such as changing a group node, or a texture used in a material).
+        # Update properties when there is a shader nodetree change...
         if update.id.name == "Shader Nodetree":
-            sync_triplanar_settings()
 
-            # Relink all material channels for instances when a group node used to represent a material channel is changed.
-            relink_material_channel(relink_material_channel_name="", unlink_projection=True)
+            # When a texture property is updated, sync all texture samples for the layer if it's using triplanar projection.
+            material_layers.sync_triplanar_settings()
+
+            # Group nodes for material channels can become unlinked when a user applies a custom group node.
+            # Search for an relink any unlinked material channels that occur as a result of this change.
+            for material_channel in material_layers.MATERIAL_CHANNEL_LIST:
+                selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+                value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, material_channel)
+                if value_node:
+                    if len(value_node.outputs) > 0:
+                        if len(value_node.outputs[0].links) == 0:
+                            material_layers.relink_material_channel(
+                                relink_material_channel_name=material_channel, 
+                                original_output_channel=material_channel, 
+                                unlink_projection=True
+                            )
 
 # Mark load handlers as persistent so they are not freed when loading a new blend file.
 @persistent
@@ -265,7 +278,7 @@ def load_handler(dummy):
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_sub_owner)
                 bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_name_sub_owner, notify=on_active_material_name_changed, args=())
 
-        refresh_layer_stack()
+        material_layers.refresh_layer_stack()
 
     # Read existing export templates into Blender memory, and apply the user set export template if one exists.
     read_export_template_names()
@@ -284,8 +297,8 @@ def register():
     bpy.types.Scene.matlayer_panel_properties = PointerProperty(type=MATLAYER_panel_properties)
     bpy.types.Scene.matlayer_material_property_tabs = EnumProperty(items=MATERIAL_LAYER_PROPERTY_TABS)
     bpy.types.Scene.matlayer_merge_material = PointerProperty(type=bpy.types.Material)
-    bpy.types.Scene.matlayer_layer_stack = PointerProperty(type=MATLAYER_layer_stack)
-    bpy.types.Scene.matlayer_layers = CollectionProperty(type=MATLAYER_layers)
+    bpy.types.Scene.matlayer_layer_stack = PointerProperty(type=material_layers.MATLAYER_layer_stack)
+    bpy.types.Scene.matlayer_layers = CollectionProperty(type=material_layers.MATLAYER_layers)
     bpy.types.Scene.matlayer_mask_stack = PointerProperty(type=MATLAYER_mask_stack)
     bpy.types.Scene.matlayer_masks = CollectionProperty(type=MATLAYER_masks)
     bpy.types.Scene.matlayer_texture_set_settings = PointerProperty(type=MATLAYER_texture_set_settings)
