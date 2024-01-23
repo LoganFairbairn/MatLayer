@@ -289,8 +289,8 @@ def draw_layer_projection(layout):
                 # Draw the UV map property.
                 active_object = bpy.context.active_object
                 if active_object:
+                    uv_map_node = projection_node.node_tree.nodes.get('UV_MAP')
                     if uv_map_node:
-                        uv_map_node = projection_node.node_tree.nodes.get('UV_MAP')
                         row = layout.row()
                         row.scale_y = DEFAULT_UI_SCALE_Y
                         row.prop_search(uv_map_node, "uv_map", active_object.data, "uv_layers", text="UV Map")
