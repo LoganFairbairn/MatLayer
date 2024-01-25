@@ -323,6 +323,8 @@ def draw_layer_projection(layout):
                         row = second_column.row()
                         row.prop_search(uv_map_node, "uv_map", active_object.data, "uv_layers", text="")
 
+                # In Blender users can edit multiple properties by holding shift and dragging the mouse down over all properties they wish to edit.
+                # Rotation, offset and scale values are draw in columns rather than in rows to allow this.
                 split = layout.split()
                 col = split.column()
                 col.prop(projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
@@ -350,6 +352,8 @@ def draw_layer_projection(layout):
                 row = second_column.row()
                 row.menu('MATLAYER_MT_layer_projection_submenu', text="Triplanar")
 
+                # In Blender users can edit multiple properties by holding shift and dragging the mouse down over all properties they wish to edit.
+                # Rotation, offset and scale values are draw in columns rather than in rows to allow this.
                 split = layout.split()
                 col = split.column()
                 col.scale_y = DEFAULT_UI_SCALE_Y
