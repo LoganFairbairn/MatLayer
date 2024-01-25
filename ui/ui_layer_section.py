@@ -115,7 +115,7 @@ def draw_material_property_tabs(layout):
     row.menu("MATLAYER_MT_layer_utility_sub_menu", text="", icon='MODIFIER_ON')
 
 def draw_layer_material_channel_toggles(layout):
-    '''Draws on / off toggles for individual material channels.'''
+    '''Draws on / off toggles with for individual material channels in the selected material layer.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
     row = layout.row()
@@ -136,12 +136,15 @@ def draw_layer_material_channel_toggles(layout):
     for material_channel_name in active_material_channels:
         mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, material_channel_name)
         if mix_node:
+
+            # Draw material channels with shortened names so they are more condensed in the user interface.
             row.prop(mix_node, "mute", text=material_layers.get_shorthand_material_channel_name(material_channel_name), toggle=True, invert_checkbox=True)
             drawn_toggles += 1
-            if drawn_toggles >= min(4, round(len(active_material_channels) / 2)):
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                drawn_toggles = 0
+            if len(active_material_channels) > 5:
+                if drawn_toggles >= min(4, round(len(active_material_channels) / 2)):
+                    row = layout.row()
+                    row.scale_y = DEFAULT_UI_SCALE_Y
+                    drawn_toggles = 0
 
 def draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_layer_index, material_channel_name):
     '''Draws the value node type to the UI.'''
