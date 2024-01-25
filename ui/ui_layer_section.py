@@ -155,8 +155,8 @@ def draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_laye
 
         case 'TEX_IMAGE':
             split = layout.split(factor=0.825)
-            first_column = split.column()
-            second_column = split.column()
+            first_column = split.column(align=True)
+            second_column = split.column(align=True)
 
             # Draw the image texture property.
             row = first_column.row(align=True)
@@ -167,12 +167,12 @@ def draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_laye
             if image:
                 row.prop(image, "use_fake_user", text="")
 
-            # Draw a sub-menu for editing the image property.
+            # Draw a custom sub-menu for editing the image property.
             row.context_pointer_set("node_tree", layer_node_tree)
             row.context_pointer_set("node", value_node)
             row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
-            # Draw the use image alpha button and the RGBA output channel.
+            # Draw the toggle image alpha button and the RGBA output channel.
             row = second_column.row(align=True)
             mix_image_alpha_node = material_layers.get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
             if mix_image_alpha_node.mute:
