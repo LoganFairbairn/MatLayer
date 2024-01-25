@@ -295,42 +295,44 @@ def draw_layer_projection(layout):
     '''Draws layer projection settings.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     
-    
     # Draw the projection mode.
     projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
     if projection_node:
         match projection_node.node_tree.name:
             case 'ML_UVProjection':
                 row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
                 row.label(text="LAYER PROJECTION")
 
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.menu('MATLAYER_MT_layer_projection_sub_menu', text="UV Projection")
+                # Draw the projection mode submenu.
+                split = layout.split(factor=0.25)
+                first_column = split.column()
+                second_column = split.column()
+
+                row = first_column.row()
+                row.label(text="Projection")
+                row = second_column.row()
+                row.menu('MATLAYER_MT_layer_projection_submenu', text="UV")
 
                 # Draw the UV map property.
                 active_object = bpy.context.active_object
                 if active_object:
                     uv_map_node = projection_node.node_tree.nodes.get('UV_MAP')
                     if uv_map_node:
-                        row = layout.row()
-                        row.scale_y = DEFAULT_UI_SCALE_Y
-                        row.prop_search(uv_map_node, "uv_map", active_object.data, "uv_layers", text="UV Map")
+                        row = first_column.row()
+                        row.label(text="UV Map")
+                        row = second_column.row()
+                        row.prop_search(uv_map_node, "uv_map", active_object.data, "uv_layers", text="")
 
                 split = layout.split()
                 col = split.column()
-                col.scale_y = DEFAULT_UI_SCALE_Y
                 col.prop(projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
                 col.prop(projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
 
                 col = split.column()
-                col.scale_y = DEFAULT_UI_SCALE_Y
                 col.prop(projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
                 col.prop(projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
 
                 row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
                 row.prop(projection_node.inputs.get('Rotation'), "default_value", text="Rotation", slider=True)
 
             case 'ML_TriplanarProjection':
@@ -338,9 +340,15 @@ def draw_layer_projection(layout):
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.label(text="LAYER PROJECTION")
 
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.menu('MATLAYER_MT_layer_projection_sub_menu', text="Triplanar Projection")
+                # Draw the projection mode submenu.
+                split = layout.split(factor=0.25)
+                first_column = split.column()
+                second_column = split.column()
+
+                row = first_column.row()
+                row.label(text="Projection")
+                row = second_column.row()
+                row.menu('MATLAYER_MT_layer_projection_submenu', text="Triplanar")
 
                 split = layout.split()
                 col = split.column()
@@ -886,7 +894,7 @@ class ImageUtilitySubMenu(Menu):
             operator.node_name = context.node.name
 
 class LayerProjectionModeSubMenu(Menu):
-    bl_idname = "MATLAYER_MT_layer_projection_sub_menu"
+    bl_idname = "MATLAYER_MT_layer_projection_submenu"
     bl_label = "Layer Projection Sub Menu"
 
     def draw(self, context):
