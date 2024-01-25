@@ -53,7 +53,7 @@ def draw_layers_section_ui(self, context):
     draw_layer_stack(column_two)
 
 def draw_material_selector(layout):
-    '''Draws a material selector and layer stack refresh button.'''
+    '''Draws a material selector.'''
     active_object = bpy.context.active_object
     if active_object:
         split = layout.split(factor=0.90, align=True)
