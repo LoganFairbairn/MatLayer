@@ -158,6 +158,7 @@ def draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_laye
             first_column = split.column()
             second_column = split.column()
 
+            # Draw the image texture property.
             row = first_column.row(align=True)
             row.context_pointer_set("mix_node", mix_node)
             row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text="", icon='IMAGE_DATA')
@@ -165,10 +166,13 @@ def draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_laye
             image = value_node.image
             if image:
                 row.prop(image, "use_fake_user", text="")
+
+            # Draw a sub-menu for editing the image property.
             row.context_pointer_set("node_tree", layer_node_tree)
             row.context_pointer_set("node", value_node)
             row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
+            # Draw the use image alpha button and the RGBA output channel.
             row = second_column.row(align=True)
             mix_image_alpha_node = material_layers.get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
             if mix_image_alpha_node.mute:
@@ -226,12 +230,31 @@ def draw_value_node_properties(layout, value_node):
     '''Draws properties for the provided value node.'''
     match value_node.bl_static_type:
         case 'GROUP':
+            # Draw input properties for the group node.
             for i in range(0, len(value_node.inputs)):
-                row = layout.row()
+                row = layout.row(align=True)
                 if value_node.inputs[i].type == 'RGBA' or value_node.inputs[i].type == 'VECTOR':
                     row.prop(value_node.inputs[i], "default_value", text="")
                 else:
                     row.prop(value_node.inputs[i], "default_value", text=value_node.inputs[i].name)
+
+            # Draw texture properties stored in custom group nodes.
+            for node in value_node.node_tree.nodes:
+                if node.bl_static_type == 'TEX_IMAGE':
+                    row = layout.row(align=True)
+
+                    split = row.split(factor=0.4)
+                    first_column = split.row()
+                    second_column = split.row(align=True)
+
+                    if node.label == "":
+                        first_column.label(text=node.name)
+                    else:
+                        first_column.label(text=node.label)
+                    second_column.prop(node, "image", text="")
+                    second_column.context_pointer_set("node_tree", value_node.node_tree)
+                    second_column.context_pointer_set("node", node)
+                    second_column.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
         case 'TEX_IMAGE':
             row = layout.row()
