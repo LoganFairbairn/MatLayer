@@ -87,7 +87,8 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
             components = [c.lower() for c in components]
             return components
 
-        # Assign points to all material channel id tags that appear in selected file names. Material channels that appear more than once are assigned a lower point value.
+        # Assign points to all material channel tags that appear in selected file names.
+        # Material channels that appear more than once are assigned a lower point value.
         material_channel_occurance = {}
         for file in self.files:
             tags = split_filename_by_components(file.name)
@@ -124,7 +125,8 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                         selected_material_channel_name = material_channel_name
                         material_channel_occurances_equal = False
                 
-                # If all material channels identified in the files name occur equally throughout all selected filenames, use the material channel that occurs the most in the files name.
+                # If all material channels identified in the files name occur equally throughout all selected filenames,
+                # use the material channel that occurs the most in the files name.
                 # I.E: Selected files: RoughMetal_002_2k_Color, RoughMetal_002_2k_Normal, RoughMetal_002_2k_Metalic, RoughMetal_002_2k_Rough
                 # Roughness material channel file = RoughMetal_002_2k_Rough (because roughness appears twice)
                 selected_material_channel_name = material_channel_names_in_filename[0]
@@ -169,7 +171,7 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
 
                 # Print information about using DirectX normal maps for users if it's detected they are using one.
                 if image_utilities.check_for_directx(file.name):
-                    self.report({'INFO'}, "You may have imported a DirectX normal map which will cause your imported normal map to appear inverted. You should use an OpenGL normal map instead or fix the textures name if it's already an OpenGL normal map.")
+                    self.report({'INFO'}, "DirectX normal map import detected, normals may be inverted. You should use an OpenGL normal map instead.")
 
                 # Copy the imported image to a folder next to the blend file (if save imported textures is on in the settings).
                 image_utilities.save_raw_image(image_path, imported_image.name)
