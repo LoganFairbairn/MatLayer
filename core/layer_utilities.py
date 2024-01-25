@@ -83,12 +83,15 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                 filename = filename.replace(seperator, ' ')
 
             # Return all components split by a space with lowercase characters.
-            components = filename.split(' ')
-            components = [c.lower() for c in components]
+            split_components = filename.split(' ')
+            components = []
+            for c in split_components:
+                if c != '':
+                    components.append(c.lower())
+
             return components
 
-        # Assign points to all material channel tags that appear in selected file names.
-        # Material channels that appear more than once are assigned a lower point value.
+        # Compile a list of all unique tags found accross all user selected image file names.
         material_channel_occurance = {}
         for file in self.files:
             tags = split_filename_by_components(file.name)
@@ -97,6 +100,7 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                     material_channel = MATERIAL_CHANNEL_TAGS[tag]
                     material_channel_occurance[material_channel] = 0
 
+        # Calculate how many times a unique channel tag appears accross all user selected image files.
         for file in self.files:
             tags = split_filename_by_components(file.name)
             for tag in tags:
@@ -105,33 +109,37 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                     if material_channel in material_channel_occurance:
                         material_channel_occurance[material_channel] += 1
 
+        # Cycle through all selected image files and try to identify the correct material channel to import them into.
         selected_image_file = False
         for file in self.files:
-            # Start by assuming the correct material channel is the one that appears the least in the file name.
-            # I.E: Selected files: RoughMetal_002_2k_Color, RoughMetal_002_2k_Normal, RoughMetal_002_2k_Metalic, RoughMetal_002_2k_Rough
-            # Color material channel file = RoughMetal_002_2k_Color (because the 'color' tag appears the least among all selected files).
+
+            # Create a list of tags used in this files name.
             tags = split_filename_by_components(file.name)
-            material_channel_names_in_filename = []
+            channel_tags_in_filename = []
             for tag in tags:
                 if tag in MATERIAL_CHANNEL_TAGS:
-                    material_channel_names_in_filename.append(MATERIAL_CHANNEL_TAGS[tag])
+                    channel_tags_in_filename.append(MATERIAL_CHANNEL_TAGS[tag])
 
-            # Only import files that have a material channel name detected in the file name.
-            if len(material_channel_names_in_filename) > 0:
-                selected_material_channel_name = material_channel_names_in_filename[0]
+            # Don't import files that have no material channel tag detected in it's file name.
+            if len(channel_tags_in_filename) > 0:
+
+                # Start by assuming the correct material channel is the one that appears the least in the file name.
+                # I.E: Selected files: RoughMetal_002_2k_Color, RoughMetal_002_2k_Normal, RoughMetal_002_2k_Metallic, RoughMetal_002_2k_Rough
+                # For the first file in the above example, the correct material channel would be color,
+                # because 'metallic' appears more than once accross all user selected image files.
+                selected_material_channel_name = channel_tags_in_filename[0]
                 material_channel_occurances_equal = True
-                for material_channel_name in material_channel_names_in_filename:
+                for material_channel_name in channel_tags_in_filename:
                     if material_channel_occurance[material_channel_name] < material_channel_occurance[selected_material_channel_name]:
                         selected_material_channel_name = material_channel_name
                         material_channel_occurances_equal = False
                 
                 # If all material channels identified in the files name occur equally throughout all selected filenames,
                 # use the material channel that occurs the most in the files name.
-                # I.E: Selected files: RoughMetal_002_2k_Color, RoughMetal_002_2k_Normal, RoughMetal_002_2k_Metalic, RoughMetal_002_2k_Rough
-                # Roughness material channel file = RoughMetal_002_2k_Rough (because roughness appears twice)
-                selected_material_channel_name = material_channel_names_in_filename[0]
+                # I.E: Selected files: RoughMetal_002_2k_Color, RoughMetal_002_2k_Normal, RoughMetal_002_2k_Metallic, RoughMetal_002_2k_Rough
+                # For the third file in the above example, the correct material channel is 'metallic' because that tag appears twice in the name.
                 if material_channel_occurances_equal:
-                    for material_channel_name in material_channel_names_in_filename:
+                    for material_channel_name in channel_tags_in_filename:
                         if material_channel_occurance[material_channel_name] > material_channel_occurance[selected_material_channel_name]:
                             selected_material_channel_name = material_channel_name
                             
@@ -140,6 +148,9 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                 value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, selected_material_channel_name)
                 if value_node.bl_static_type != 'TEX_IMAGE':
                     material_layers.replace_material_channel_node(selected_material_channel_name, 'TEXTURE')
+
+                # TODO: If the image is detected to be using channel packing, adjust the output of the material channel.
+                
 
                 # Import the image.
                 folder_directory = os.path.split(self.filepath)
