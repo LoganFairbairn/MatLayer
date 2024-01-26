@@ -9,7 +9,7 @@ from ..core import blender_addon_utils              # For extra helpful Blender 
 import os                                           # For saving layer images.
 import re                                           # For splitting strings to identify material channels.
 
-# Dictionary of words / tags that may be in image texture names that could be used to identify material channels.
+# Dictionary of words / tags that may be in image texture names that could be used to identify material channels from image file names.
 MATERIAL_CHANNEL_TAGS = {
     "color": 'COLOR',
     "colour": 'COLOR',
@@ -46,7 +46,34 @@ MATERIAL_CHANNEL_TAGS = {
     "bump": 'HEIGHT',
     "opacity": 'ALPHA',
     "opaque": 'ALPHA',
-    "alpha": 'ALPHA'
+    "alpha": 'ALPHA',
+
+    # RGB channel packing...
+    "ORM": 'CHANNEL_PACKED',
+    "RMO": 'CHANNEL_PACKED',
+
+    # RGBA channel packing, 'X' is used to identify when nothing is packed into a channel.
+    "MOXS": 'CHANNEL_PACKED',
+}
+
+# https://docs.unrealengine.com/4.27/en-US/ProductionPipelines/AssetNaming/
+# With an identifiable material channel format, such as the one used commonly in game engines (T_MyTexture_C_1),
+# we can identify material channels using only the first few letters.
+MATERIAL_CHANNEL_SHORTHAND = {
+    "C": 'COLOR',
+    "M": 'METALLIC',
+    "R": 'ROUGHNESS',
+    "N": 'NORMAL',
+    "NGL": 'NORMAL',
+    "NDX": 'NORMAL',
+    "H": 'HEIGHT',
+    "B": 'HEIGHT',
+    "S": 'SPECULAR',
+    "SS": 'SUBSURFACE',
+    "A": 'ALPHA',
+    "CC": 'COAT',
+    "E": 'EMISSION'
+    #"O": "OCCLUSION",
 }
 
 class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
@@ -112,47 +139,61 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
         # Cycle through all selected image files and try to identify the correct material channel to import them into.
         selected_image_file = False
         for file in self.files:
+            detected_material_channel = 'NONE'
+            
+            # If the image file starts with a 'T_' assume it's using a commonly used Unreal Engine / game engine naming convention.
+            if file.name.startswith('T_'):
+                remove_file_extension = file.name.split('.')[0]
+                short_material_channel = remove_file_extension.split('_')[2]
+                if short_material_channel in MATERIAL_CHANNEL_SHORTHAND:
+                    detected_material_channel = MATERIAL_CHANNEL_SHORTHAND[short_material_channel]
 
-            # Create a list of tags used in this files name.
-            tags = split_filename_by_components(file.name)
-            channel_tags_in_filename = []
-            for tag in tags:
-                if tag in MATERIAL_CHANNEL_TAGS:
-                    channel_tags_in_filename.append(MATERIAL_CHANNEL_TAGS[tag])
+            # For image files that don't start with 'T_' guess the material channel by parsing for tags in the file name that would ID it.
+            else:
 
-            # Don't import files that have no material channel tag detected in it's file name.
-            if len(channel_tags_in_filename) > 0:
+                # Create a list of tags used in this files name.
+                tags = split_filename_by_components(file.name)
+                channel_tags_in_filename = []
+                for tag in tags:
+                    if tag in MATERIAL_CHANNEL_TAGS:
+                        channel_tags_in_filename.append(MATERIAL_CHANNEL_TAGS[tag])
 
-                # Start by assuming the correct material channel is the one that appears the least in the file name.
-                # I.E: Selected files: RoughMetal_002_2k_Color, RoughMetal_002_2k_Normal, RoughMetal_002_2k_Metallic, RoughMetal_002_2k_Rough
-                # For the first file in the above example, the correct material channel would be color,
-                # because 'metallic' appears more than once accross all user selected image files.
-                selected_material_channel_name = channel_tags_in_filename[0]
-                material_channel_occurances_equal = True
-                for material_channel_name in channel_tags_in_filename:
-                    if material_channel_occurance[material_channel_name] < material_channel_occurance[selected_material_channel_name]:
-                        selected_material_channel_name = material_channel_name
-                        material_channel_occurances_equal = False
-                
-                # If all material channels identified in the files name occur equally throughout all selected filenames,
-                # use the material channel that occurs the most in the files name.
-                # I.E: Selected files: RoughMetal_002_2k_Color, RoughMetal_002_2k_Normal, RoughMetal_002_2k_Metallic, RoughMetal_002_2k_Rough
-                # For the third file in the above example, the correct material channel is 'metallic' because that tag appears twice in the name.
-                if material_channel_occurances_equal:
+                # Don't import files that have no material channel tag detected in it's file name.
+                if len(channel_tags_in_filename) > 0:
+
+                    # Start by assuming the correct material channel is the one that appears the least in the file name.
+                    # I.E: Selected files: RoughMetal_002_2k_Color, RoughMetal_002_2k_Normal, RoughMetal_002_2k_Metallic, RoughMetal_002_2k_Rough
+                    # For the first file in the above example, the correct material channel would be color,
+                    # because 'metallic' appears more than once accross all user selected image files.
+                    detected_material_channel = channel_tags_in_filename[0]
+                    material_channel_occurances_equal = True
                     for material_channel_name in channel_tags_in_filename:
-                        if material_channel_occurance[material_channel_name] > material_channel_occurance[selected_material_channel_name]:
-                            selected_material_channel_name = material_channel_name
-                            
-                # Change the material channels node type to a texture node (if it's not using one already).
-                selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-                value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, selected_material_channel_name)
-                if value_node.bl_static_type != 'TEX_IMAGE':
-                    material_layers.replace_material_channel_node(selected_material_channel_name, 'TEXTURE')
+                        if material_channel_occurance[material_channel_name] < material_channel_occurance[detected_material_channel]:
+                            detected_material_channel = material_channel_name
+                            material_channel_occurances_equal = False
+                    
+                    # If all material channels identified in the files name occur equally throughout all selected filenames,
+                    # use the material channel that occurs the most in the files name.
+                    # I.E: Selected files: RoughMetal_002_2k_Color, RoughMetal_002_2k_Normal, RoughMetal_002_2k_Metallic, RoughMetal_002_2k_Rough
+                    # For the third file in the above example, the correct material channel is 'metallic' because that tag appears twice in the name.
+                    if material_channel_occurances_equal:
+                        for material_channel_name in channel_tags_in_filename:
+                            if material_channel_occurance[material_channel_name] > material_channel_occurance[detected_material_channel]:
+                                detected_material_channel = material_channel_name
 
-                # TODO: If the image is detected to be using channel packing, adjust the output of the material channel.
-                
+            # TODO: If the image is detected to be using channel packing, create a list of channels to place the texture into.
+            
+            # TODO: Change all material channels to use texture nodes (if they aren't using one already).
+            selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+            value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, detected_material_channel)
+            if value_node.bl_static_type != 'TEX_IMAGE':
+                material_layers.replace_material_channel_node(detected_material_channel, 'TEXTURE')
 
-                # Import the image.
+            # TODO: If the image is detected to be using channel packing, adjust the output of the material channel.
+            
+
+            # Import the image only if the material channel was detected.
+            if detected_material_channel != 'NONE':
                 folder_directory = os.path.split(self.filepath)
                 image_path = os.path.join(folder_directory[0], file.name)
                 bpy.ops.image.open(filepath=image_path)
@@ -167,25 +208,30 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                 projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
                 match projection_node.node_tree.name:
                     case 'ML_UVProjection':
-                        value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, selected_material_channel_name)
+                        value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, detected_material_channel)
                         if value_node.bl_static_type == 'TEX_IMAGE':
                             value_node.image = imported_image
 
                     case 'ML_TriplanarProjection':
                         for i in range(0, 3):
-                            value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, selected_material_channel_name, node_number=i + 1)
+                            value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, detected_material_channel, node_number=i + 1)
                             if value_node.bl_static_type == 'TEX_IMAGE':
                                 value_node.image = imported_image
 
                 # Update the imported images colorspace based on it's specified material channel.
-                image_utilities.set_image_colorspace_by_material_channel(imported_image, material_channel_name)
+                image_utilities.set_image_colorspace_by_material_channel(imported_image, detected_material_channel)
 
+                # TODO: Only check for DirectX normal maps if selected material channel is normal.
                 # Print information about using DirectX normal maps for users if it's detected they are using one.
                 if image_utilities.check_for_directx(file.name):
                     self.report({'INFO'}, "DirectX normal map import detected, normals may be inverted. You should use an OpenGL normal map instead.")
 
-                # Copy the imported image to a folder next to the blend file (if save imported textures is on in the settings).
+                # Copy the imported image to a folder next to the blend file for file management purposes.
+                # This happens only if 'save imported textures' is on in the add-on preferences.
                 image_utilities.save_raw_image(image_path, imported_image.name)
+
+            else :
+                debug_logging.log("No material channel detected for file: {0}".format(file.name))
 
         return {'FINISHED'}
     
