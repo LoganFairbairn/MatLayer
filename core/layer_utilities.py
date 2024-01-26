@@ -221,10 +221,10 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                 # Update the imported images colorspace based on it's specified material channel.
                 image_utilities.set_image_colorspace_by_material_channel(imported_image, detected_material_channel)
 
-                # TODO: Only check for DirectX normal maps if selected material channel is normal.
-                # Print information about using DirectX normal maps for users if it's detected they are using one.
-                if image_utilities.check_for_directx(file.name):
-                    self.report({'INFO'}, "DirectX normal map import detected, normals may be inverted. You should use an OpenGL normal map instead.")
+                # Print a warning about using DirectX normal maps for users if it's detected they are using one.
+                if detected_material_channel == 'NORMAL':
+                    if image_utilities.check_for_directx(file.name):
+                        self.report({'INFO'}, "DirectX normal map import detected, normals may be inverted. You should use an OpenGL normal map instead.")
 
                 # Copy the imported image to a folder next to the blend file for file management purposes.
                 # This happens only if 'save imported textures' is on in the add-on preferences.
