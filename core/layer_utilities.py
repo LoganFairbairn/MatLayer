@@ -64,7 +64,7 @@ MATERIAL_CHANNEL_TAGS = {
 # https://docs.unrealengine.com/4.27/en-US/ProductionPipelines/AssetNaming/
 # With an identifiable material channel format, such as the one used commonly in game engines (T_MyTexture_C_1),
 # we can identify material channels using only the first few letters.
-MATERIAL_CHANNEL_SHORTHAND = {
+MATERIAL_CHANNEL_ABBREVIATIONS = {
     "c": 'COLOR',
     "m": 'METALLIC',
     "r": 'ROUGHNESS',
@@ -162,9 +162,9 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
             # If the image file starts with a 'T_' assume it's using a commonly used Unreal Engine / game engine naming convention.
             if file.name.startswith('T_'):
                 remove_file_extension = file.name.split('.')[0]
-                short_material_channel = remove_file_extension.split('_')[2]
-                if short_material_channel in MATERIAL_CHANNEL_SHORTHAND:
-                    detected_material_channel = MATERIAL_CHANNEL_SHORTHAND[short_material_channel]
+                channel_abbreviation = remove_file_extension.split('_')[2].lower()
+                if channel_abbreviation in MATERIAL_CHANNEL_ABBREVIATIONS:
+                    detected_material_channel = MATERIAL_CHANNEL_ABBREVIATIONS[channel_abbreviation]
 
             # For image files that don't start with 'T_' guess the material channel by parsing for tags in the file name that would ID it.
             else:
@@ -213,8 +213,8 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                         if tag in MATERIAL_CHANNEL_TAGS:
                             channel_packed_format = tag
                             for i in range(0, len(channel_packed_format)):
-                                if channel_packed_format[i] in MATERIAL_CHANNEL_SHORTHAND:
-                                    packed_channel = MATERIAL_CHANNEL_SHORTHAND[channel_packed_format[i]]
+                                if channel_packed_format[i] in MATERIAL_CHANNEL_ABBREVIATIONS:
+                                    packed_channel = MATERIAL_CHANNEL_ABBREVIATIONS[channel_packed_format[i]]
 
                                     # If the active material isn't using the specular material channel, the material channel abbreviated with 'S'
                                     # is more likely 'Smoothness', instead of 'Specular'. Swap the packed channel to Roughness and invert the filter
