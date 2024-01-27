@@ -6,6 +6,8 @@ from ..core import image_utilities                  # For access to image relate
 from ..core import material_layers                  # For accessing material layer nodes.
 from ..core import layer_masks                      # For editing layer masks.
 from ..core import blender_addon_utils              # For extra helpful Blender utilities.
+from ..core import texture_set_settings as tss      # For access to texture set settings.
+from ..core import export_textures                  # For access to the invert image function.
 import os                                           # For saving layer images.
 import re                                           # For splitting strings to identify material channels.
 
@@ -213,6 +215,30 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                             for i in range(0, len(channel_packed_format)):
                                 if channel_packed_format[i] in MATERIAL_CHANNEL_SHORTHAND:
                                     packed_channel = MATERIAL_CHANNEL_SHORTHAND[channel_packed_format[i]]
+
+                                    # If the active material isn't using the specular material channel, the material channel abbreviated with 'S'
+                                    # is more likely 'Smoothness', instead of 'Specular'. Swap the packed channel to Roughness and invert the filter
+                                    # to convert the smoothness into roughness.
+                                    if packed_channel == 'SPECULAR' and tss.get_material_channel_active('SPECULAR') == False:
+                                        packed_channel == 'ROUGHNESS'
+
+                                        invert_r = False
+                                        invert_g = False
+                                        invert_b = False
+                                        invert_a = False
+                                        match i:
+                                            case 0:
+                                                invert_r = True
+                                            case 1:
+                                                invert_g = True
+                                            case 2:
+                                                invert_b = True
+                                            case 3:
+                                                invert_a = True
+
+                                        export_textures.invert_image(imported_image, invert_r, invert_g, invert_b, invert_a)
+                                        debug_logging.log_status("Channel packed smoothness was detected and inverted into roughness.", self, type='INFO')
+
                                     packed_channels.append(packed_channel)
                 else:
                     packed_channels.append(detected_material_channel)
