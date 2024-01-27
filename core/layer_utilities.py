@@ -49,37 +49,53 @@ MATERIAL_CHANNEL_TAGS = {
     "alpha": 'ALPHA',
 
     # RGB channel packing...
-    "ORM": 'CHANNEL_PACKED',
-    "RMO": 'CHANNEL_PACKED',
+    "orm": 'CHANNEL_PACKED',
+    "rmo": 'CHANNEL_PACKED',
 
     # RGBA channel packing, 'X' is used to identify when nothing is packed into a channel.
-    "MOXS": 'CHANNEL_PACKED',
+    "moxs": 'CHANNEL_PACKED',
+
+    # Note that naming conventions such as 'MyTextureName_RoughnessMetallic' can't be imported automatically
+    # because it's ambiguous for which RGBA channel the values are intended to go into.
 }
 
 # https://docs.unrealengine.com/4.27/en-US/ProductionPipelines/AssetNaming/
 # With an identifiable material channel format, such as the one used commonly in game engines (T_MyTexture_C_1),
 # we can identify material channels using only the first few letters.
 MATERIAL_CHANNEL_SHORTHAND = {
-    "C": 'COLOR',
-    "M": 'METALLIC',
-    "R": 'ROUGHNESS',
-    "N": 'NORMAL',
-    "NGL": 'NORMAL',
-    "NDX": 'NORMAL',
-    "H": 'HEIGHT',
-    "B": 'HEIGHT',
-    "S": 'SPECULAR',
-    "SS": 'SUBSURFACE',
-    "A": 'ALPHA',
-    "CC": 'COAT',
-    "E": 'EMISSION'
+    "c": 'COLOR',
+    "m": 'METALLIC',
+    "r": 'ROUGHNESS',
+    "n": 'NORMAL',
+    "ngl": 'NORMAL',
+    "ndx": 'NORMAL',
+    "h": 'HEIGHT',
+    "b": 'HEIGHT',
+    "s": 'SPECULAR',
+    "ss": 'SUBSURFACE',
+    "a": 'ALPHA',
+    "cc": 'COAT',
+    "e": 'EMISSION',
     #"O": "OCCLUSION",
 }
+
+def get_rgba_channel_from_index(index):
+    match index:
+        case 0:
+            return 'RED'
+        case 1:
+            return 'GREEN'
+        case 2:
+            return 'BLUE'
+        case 3:
+            return 'ALPHA'
+        case _:
+            return 'ERROR'
 
 class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
     bl_idname = "matlayer.import_texture_set"
     bl_label = "Import Texture Set"
-    bl_description = "Imports multiple selected textures into material channels based on file names. This function requires decent texture file naming conventions to work properly"
+    bl_description = "Imports multiple selected textures into material channels based on file names. Images with naming conventions that don't correctly identify the"
     bl_options = {'REGISTER', 'UNDO'}
 
     files: bpy.props.CollectionProperty(
@@ -181,17 +197,6 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                             if material_channel_occurance[material_channel_name] > material_channel_occurance[detected_material_channel]:
                                 detected_material_channel = material_channel_name
 
-            # TODO: If the image is detected to be using channel packing, create a list of channels to place the texture into.
-            
-            # TODO: Change all material channels to use texture nodes (if they aren't using one already).
-            selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-            value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, detected_material_channel)
-            if value_node.bl_static_type != 'TEX_IMAGE':
-                material_layers.replace_material_channel_node(detected_material_channel, 'TEXTURE')
-
-            # TODO: If the image is detected to be using channel packing, adjust the output of the material channel.
-            
-
             # Import the image only if the material channel was detected.
             if detected_material_channel != 'NONE':
                 folder_directory = os.path.split(self.filepath)
@@ -199,24 +204,49 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                 bpy.ops.image.open(filepath=image_path)
                 imported_image = bpy.data.images[file.name]
 
+                # If the image is detected to be using channel packing, create a list of material channels to place the texture into.
+                packed_channels = []
+                if detected_material_channel == 'CHANNEL_PACKED':
+                    for tag in tags:
+                        if tag in MATERIAL_CHANNEL_TAGS:
+                            channel_packed_format = tag
+                            for i in range(0, len(channel_packed_format)):
+                                if channel_packed_format[i] in MATERIAL_CHANNEL_SHORTHAND:
+                                    packed_channel = MATERIAL_CHANNEL_SHORTHAND[channel_packed_format[i]]
+                                    packed_channels.append(packed_channel)
+                else:
+                    packed_channels.append(detected_material_channel)
+
+                # Change all material channels to use texture nodes (if they aren't using one already).
+                for channel in packed_channels:
+                    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+                    value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, channel)
+                    if value_node.bl_static_type != 'TEX_IMAGE':
+                        material_layers.replace_material_channel_node(channel, 'TEXTURE')
+
+                    # Place the image into a material nodes based on texture projection and inferred material channel name.
+                    projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
+                    match projection_node.node_tree.name:
+                        case 'ML_UVProjection':
+                            value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, channel)
+                            if value_node.bl_static_type == 'TEX_IMAGE':
+                                value_node.image = imported_image
+
+                        case 'ML_TriplanarProjection':
+                            for i in range(0, 3):
+                                value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, channel, node_number=i + 1)
+                                if value_node.bl_static_type == 'TEX_IMAGE':
+                                    value_node.image = imported_image
+
+                # If the image is detected to be using channel packing, adjust the output of the material channel.
+                if detected_material_channel == 'CHANNEL_PACKED':
+                    for i in range(0, len(packed_channels)):
+                        material_layers.set_material_channel_output_channel(packed_channels[i], get_rgba_channel_from_index(i), selected_layer_index)
+
                 # Select the first image file in the canvas painting window.
                 if selected_image_file == False:
                     context.scene.tool_settings.image_paint.canvas = imported_image
                     selected_image_file = True
-
-                # Place the image into a material nodes based on texture projection and inferred material channel name.
-                projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
-                match projection_node.node_tree.name:
-                    case 'ML_UVProjection':
-                        value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, detected_material_channel)
-                        if value_node.bl_static_type == 'TEX_IMAGE':
-                            value_node.image = imported_image
-
-                    case 'ML_TriplanarProjection':
-                        for i in range(0, 3):
-                            value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, detected_material_channel, node_number=i + 1)
-                            if value_node.bl_static_type == 'TEX_IMAGE':
-                                value_node.image = imported_image
 
                 # Update the imported images colorspace based on it's specified material channel.
                 image_utilities.set_image_colorspace_by_material_channel(imported_image, detected_material_channel)

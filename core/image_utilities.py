@@ -40,6 +40,9 @@ def set_image_colorspace_by_material_channel(image, material_channel_name):
         case 'SCATTERING':
             image.colorspace_settings.name = 'sRGB'
 
+        case 'CHANNEL_PACKED':
+            image.colorspace_settings.name = 'sRGB'
+
 def check_for_directx(filename):
     if "NormalDX" in filename or "NDX" in filename:
         return True
