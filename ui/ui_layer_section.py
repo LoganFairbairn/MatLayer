@@ -93,11 +93,12 @@ def draw_layer_operations(layout):
     row = layout.row(align=True)
     row.scale_y = 2.0
     row.scale_x = 10
-    row.operator("matlayer.add_material_layer_menu", icon="ADD", text="")
-    row.operator("matlayer.move_material_layer_up", icon="TRIA_UP", text="")
-    row.operator("matlayer.move_material_layer_down", icon="TRIA_DOWN", text="")
-    row.operator("matlayer.duplicate_layer", icon="DUPLICATE", text="")
-    row.operator("matlayer.delete_layer", icon="TRASH", text="")
+    row.operator("matlayer.add_material_layer_menu", icon='ADD', text="")
+    row.operator("matlayer.import_texture_set", icon='IMPORT', text="")
+    row.operator("matlayer.move_material_layer_up", icon='TRIA_UP', text="")
+    row.operator("matlayer.move_material_layer_down", icon='TRIA_DOWN', text="")
+    row.operator("matlayer.duplicate_layer", icon='DUPLICATE', text="")
+    row.operator("matlayer.delete_layer", icon='TRASH', text="")
 
 def draw_layer_stack(layout):
     '''Draws the material layer stack along with it's operators and material channel.'''
@@ -112,7 +113,6 @@ def draw_material_property_tabs(layout):
     row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'LAYER')
     row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MASKS')
     row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'GLOBAL')
-    row.menu("MATLAYER_MT_layer_utility_sub_menu", text="", icon='MODIFIER_ON')
 
 def draw_layer_material_channel_toggles(layout):
     '''Draws on / off toggles with for individual material channels in the selected material layer.'''
@@ -936,14 +936,6 @@ class MaterialChannelValueNodeSubMenu(Menu):
         operator = layout.operator("matlayer.change_material_channel_value_node", text='TEXTURE', icon='IMAGE_DATA')
         operator.material_channel_name = material_channel_name
         operator.node_type = 'TEXTURE'
-
-class LayerUtilitySubMenu(Menu):
-    bl_idname = "MATLAYER_MT_layer_utility_sub_menu"
-    bl_label = "Layer Utility Sub Menu"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("matlayer.import_texture_set", text="Import Texture Set")
 
 class MaskChannelSubMenu(Menu):
     bl_idname = "MATLAYER_MT_mask_channel_sub_menu"

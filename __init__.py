@@ -48,7 +48,7 @@ from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLA
 
 # User Interface
 from .ui.ui_section_tabs import UtilitySubMenu
-from .ui.ui_layer_section import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, MATLAYER_OT_add_material_filter_menu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, LayerUtilitySubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MATERIAL_LAYER_PROPERTY_TABS
+from .ui.ui_layer_section import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, MATLAYER_OT_add_material_filter_menu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MATERIAL_LAYER_PROPERTY_TABS
 from .ui.ui_main import *
 from .ui.ui_layer_stack import MATLAYER_UL_layer_list, LayerBlendingModeSubMenu
 
@@ -192,7 +192,6 @@ classes = (
     LayerProjectionModeSubMenu,
     MaskProjectionModeSubMenu,
     MaterialChannelValueNodeSubMenu,
-    LayerUtilitySubMenu,
     MaskChannelSubMenu,
     MaterialChannelOutputSubMenu,
     MATLAYER_panel_properties,
