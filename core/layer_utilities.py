@@ -55,7 +55,7 @@ MATERIAL_CHANNEL_TAGS = {
     # RGBA channel packing, 'X' is used to identify when nothing is packed into a channel.
     "moxs": 'CHANNEL_PACKED',
 
-    # Note that naming conventions such as 'MyTextureName_RoughnessMetallic' can't be imported automatically
+    # Naming conventions such as 'MyTextureName_RoughnessMetallic' can't be imported automatically
     # because it's ambiguous for which RGBA channel the values are intended to go into.
 }
 
@@ -78,19 +78,6 @@ MATERIAL_CHANNEL_SHORTHAND = {
     "e": 'EMISSION',
     #"O": "OCCLUSION",
 }
-
-def get_rgba_channel_from_index(index):
-    match index:
-        case 0:
-            return 'RED'
-        case 1:
-            return 'GREEN'
-        case 2:
-            return 'BLUE'
-        case 3:
-            return 'ALPHA'
-        case _:
-            return 'ERROR'
 
 class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
     bl_idname = "matlayer.import_texture_set"
@@ -133,6 +120,19 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                     components.append(c.lower())
 
             return components
+
+        def get_rgba_channel_from_index(index):
+            match index:
+                case 0:
+                    return 'RED'
+                case 1:
+                    return 'GREEN'
+                case 2:
+                    return 'BLUE'
+                case 3:
+                    return 'ALPHA'
+                case _:
+                    return 'ERROR'
 
         # Compile a list of all unique tags found accross all user selected image file names.
         material_channel_occurance = {}
