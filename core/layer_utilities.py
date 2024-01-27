@@ -124,7 +124,10 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
             return components
 
         def get_rgba_channel_from_index(index):
+            '''Returns the RGBA channel name for the provided index (i.e 0 = R, 1 = G...).'''
             match index:
+                case -1:
+                    return 'COLOR'
                 case 0:
                     return 'RED'
                 case 1:
@@ -206,8 +209,10 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                 bpy.ops.image.open(filepath=image_path)
                 imported_image = bpy.data.images[file.name]
 
-                # If the image is detected to be using channel packing, create a list of material channels to place the texture into.
+                # Create a list of all material channels that are packed into this image.
+                # For images not using channel packing, this list will have a length of 1.
                 packed_channels = []
+                channel_packed_format = ""
                 if detected_material_channel == 'CHANNEL_PACKED':
                     for tag in tags:
                         if tag in MATERIAL_CHANNEL_TAGS:
@@ -220,7 +225,7 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                                     # is more likely 'Smoothness', instead of 'Specular'. Swap the packed channel to Roughness and invert the filter
                                     # to convert the smoothness into roughness.
                                     if packed_channel == 'SPECULAR' and tss.get_material_channel_active('SPECULAR') == False:
-                                        packed_channel == 'ROUGHNESS'
+                                        packed_channel = 'ROUGHNESS'
 
                                         invert_r = False
                                         invert_g = False
@@ -239,12 +244,13 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                                         export_textures.invert_image(imported_image, invert_r, invert_g, invert_b, invert_a)
                                         debug_logging.log_status("Channel packed smoothness was detected and inverted into roughness.", self, type='INFO')
 
-                                    packed_channels.append(packed_channel)
+                                    packed_channels.append([packed_channel, get_rgba_channel_from_index(i)])
                 else:
-                    packed_channels.append(detected_material_channel)
+                    packed_channels.append([detected_material_channel, -1])
 
-                # Change all material channels to use texture nodes (if they aren't using one already).
-                for channel in packed_channels:
+                # Change all material channels to use texture nodes (if they aren't already).
+                for packed_channel in packed_channels:
+                    channel = packed_channel[0]
                     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
                     value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, channel)
                     if value_node.bl_static_type != 'TEX_IMAGE':
@@ -267,7 +273,9 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                 # If the image is detected to be using channel packing, adjust the output of the material channel.
                 if detected_material_channel == 'CHANNEL_PACKED':
                     for i in range(0, len(packed_channels)):
-                        material_layers.set_material_channel_output_channel(packed_channels[i], get_rgba_channel_from_index(i), selected_layer_index)
+                        channel = packed_channels[i][0]
+                        output_channel = packed_channels[i][1]
+                        material_layers.set_material_channel_output_channel(channel, output_channel, selected_layer_index)
 
                 # Select the first image file in the canvas painting window.
                 if selected_image_file == False:
