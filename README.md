@@ -42,6 +42,7 @@ Cheers!
 - Basic brush presets.
 - Automatic image file management options.
 - HDRI setup for rendered view.
+- Custom atlasing support.
 
 ## Limitations & Issues
 
