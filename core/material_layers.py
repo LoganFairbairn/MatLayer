@@ -1411,6 +1411,7 @@ def set_material_channel_output_channel(material_channel_name, output_channel_na
             connect_channel_separator = True
 
         case _:
+            debug_logging.log("Invalid material output channel provided to set_material_channel_output_channel.", message_type='ERROR', sub_process=False)
             output_socket = 0
 
     # Always link the output node alpha to the mix image alpha node.

@@ -230,9 +230,10 @@ def depsgraph_change_handler(scene, depsgraph):
                 if value_node:
                     if len(value_node.outputs) > 0:
                         if len(value_node.outputs[0].links) == 0:
+                            output_channel = material_layers.get_material_channel_output_channel(material_channel)
                             material_layers.relink_material_channel(
                                 relink_material_channel_name=material_channel, 
-                                original_output_channel=material_channel, 
+                                original_output_channel=output_channel, 
                                 unlink_projection=True
                             )
 
