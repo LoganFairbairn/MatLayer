@@ -84,7 +84,7 @@ MATERIAL_CHANNEL_ABBREVIATIONS = {
 class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
     bl_idname = "matlayer.import_texture_set"
     bl_label = "Import Texture Set"
-    bl_description = "Imports multiple selected textures into material channels based on file names. Images with naming conventions that don't correctly identify the"
+    bl_description = "Imports multiple selected textures into material channels by parsing selected file names. Images with naming conventions that don't accurately identify the material channel they belong to will not import properly"
     bl_options = {'REGISTER', 'UNDO'}
 
     files: bpy.props.CollectionProperty(
