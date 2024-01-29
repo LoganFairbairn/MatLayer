@@ -207,7 +207,14 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                 folder_directory = os.path.split(self.filepath)
                 image_path = os.path.join(folder_directory[0], file.name)
                 bpy.ops.image.open(filepath=image_path)
-                imported_image = bpy.data.images[file.name]
+                imported_image = bpy.data.images.get(file.name)
+                if imported_image == None:
+                    debug_logging.log(
+                        "Import texture set operator failed to locate {0} in the blend data.".format(file.name), 
+                        message_type='ERROR',
+                        sub_process=False
+                    )
+                    continue
 
                 # Create a list of all material channels that are packed into this image.
                 # For images not using channel packing, this list will have a length of 1.
