@@ -22,6 +22,7 @@ MATERIAL_CHANNEL = [
     ("EMISSION", "Emission", ""),
     ("NORMAL", "Normal", ""),
     ("HEIGHT", "Height", ""),
+    ("AMBIENT-OCCLUSION", "Ambient Occlusion", ""),
     ("ALPHA", "Alpha", ""),
     ("COAT", "Coat", ""),
     ("COAT-ROUGHNESS", "Coat Roughness", ""),
@@ -44,6 +45,7 @@ MATERIAL_CHANNEL_LIST = [
     'EMISSION',
     'NORMAL',
     'HEIGHT',
+    'AMBIENT-OCCLUSION',
     'ALPHA',
     'COAT',
     'COAT-ROUGHNESS',
@@ -184,6 +186,8 @@ def get_shorthand_material_channel_name(material_channel_name):
             return 'NORMAL'
         case 'HEIGHT':
             return 'HEIGHT'
+        case 'AMBIENT-OCCLUSION':
+            return 'AO'
         case 'ALPHA':
             return 'ALPHA'
         case 'COAT':
