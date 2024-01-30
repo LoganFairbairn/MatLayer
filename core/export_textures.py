@@ -737,6 +737,12 @@ def add_bake_texture_nodes():
             if export_uv_map_node:
                 material_slot.material.node_tree.links.new(export_uv_map_node.outputs[0], bake_texture_node.inputs[0])
 
+            # Select the export UV map, otherwise Blender will still bake to the original UV map.
+            export_uv_map_name = export_uv_map_node.uv_map
+            export_uv_map_data = active_object.data.uv_layers.get(export_uv_map_name)
+            if export_uv_map_data:
+                export_uv_map_data.active = True
+
 def remove_bake_texture_nodes():
     '''Removes image texture nodes for baking from all materials in all material slots on the active object.'''
     placeholder_image = bpy.data.images.get('ML_Placeholder')
@@ -848,7 +854,7 @@ class MATLAYER_OT_export(Operator):
                         self._bake_image_name = bake_material_channel(self._texture_channels_to_bake[self._texture_channel_index], single_texture_set=False)
 
                 else:
-                    # If all of the textures are baked for the active material, move to baking the next material.
+                    # If all of the textures are baked for the active material...
                     if bpy.context.active_object.active_material_index + 1 < self._total_materials_to_bake:
                         debug_logging.log("Completed baking textures for material: {0}".format(bpy.context.active_object.active_material.name))
 
@@ -856,13 +862,21 @@ class MATLAYER_OT_export(Operator):
                         if addon_preferences.export_mode != 'SINGLE_TEXTURE_SET':
                             channel_pack_textures(bpy.context.active_object.active_material.name)
 
+                        # Move to baking the next material.
                         bpy.context.active_object.active_material_index += 1
                         while blender_addon_utils.verify_addon_material(bpy.context.active_object.active_material) == False and bpy.context.active_object.active_material_index + 1 < self._total_materials_to_bake:
                             debug_logging.log("Skipped exporting texture set for invalid material (not created with this add-on): {0}".format(bpy.context.active_object.active_material.name))
                             bpy.context.active_object.active_material_index += 1
-                        
+
+                        # Reset the texture channel index so all material channels are baked for the next material.
                         self._texture_channel_index = -1
 
+                        # Link the export UV map for the next material.
+                        active_material = bpy.context.active_object.active_material
+                        export_uv_map_node = material_layers.get_material_layer_node('EXPORT_UV_MAP')
+                        bake_texture_node = active_material.node_tree.nodes.get('BAKE_IMAGE')
+                        if export_uv_map_node and bake_texture_node:
+                            active_material.node_tree.links.new(export_uv_map_node.outputs[0], bake_texture_node.inputs[0])
                     else:
                         # Channel pack textures.
                         if addon_preferences.export_mode == 'SINGLE_TEXTURE_SET':
