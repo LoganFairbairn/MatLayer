@@ -470,12 +470,10 @@ class MATLAYER_baking_settings(bpy.types.PropertyGroup):
     uv_padding: IntProperty(
         name="UV Padding",
         description="Amount of padding in pixels to extend the baked data out of UV islands. This ensures there is no visible seams between UV splits",
-        default=32,
+        default=14,
         min=4,
         max=64
     )
-
-
 
     bake_normals: BoolProperty(
         name="Bake Normal", 
