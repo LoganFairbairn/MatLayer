@@ -89,12 +89,13 @@ def draw_export_section_ui(self, context):
     active_object = bpy.context.active_object
     if active_object:
         export_uv_map_node = material_layers.get_material_layer_node('EXPORT_UV_MAP')
-        row = first_column.row()
-        row.scale_y = SCALE_Y
-        row.label(text="Export UV Map")
-        row = second_column.row()
-        row.scale_y = SCALE_Y
-        row.prop_search(export_uv_map_node, "uv_map", active_object.data, "uv_layers", text="")
+        if export_uv_map_node:
+            row = first_column.row()
+            row.scale_y = SCALE_Y
+            row.label(text="Export UV Map")
+            row = second_column.row()
+            row.scale_y = SCALE_Y
+            row.prop_search(export_uv_map_node, "uv_map", active_object.data, "uv_layers", text="")
 
     # Split layout into 2 columns.
     split = layout.split(factor=0.4)
