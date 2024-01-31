@@ -254,6 +254,10 @@ def get_material_layer_node(layer_node_name, layer_index=0, material_channel_nam
     # Using specified names for nodes allows consistent access to specific nodes accross languages in Blender (as Blender's auto translate feature will translate default node names).
     # This function also has the benefit of being able to return nodes in sub-node groups, if required.
 
+    if not getattr(bpy.context, 'active_object'):
+        debug_logging.log("Context has no attribute 'active_object'.")
+        return
+
     if bpy.context.active_object == None:
         return
     

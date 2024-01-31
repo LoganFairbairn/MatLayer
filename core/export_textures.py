@@ -288,7 +288,6 @@ default_json_file = {
 
 # List of material channels that use the emission node to bake and export their values.
 emission_exporting_channels = (
-    'AMBIENT-OCCLUSION',
     'SUBSURFACE-SCALE',
     'SUBSURFACE-ANISOTROPY',
     'SPECULAR-ANISOTROPIC',
