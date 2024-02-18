@@ -835,7 +835,6 @@ def refresh_layer_stack(reason="", scene=None):
 
 def link_layer_group_nodes(self):
     '''Connects all layer group nodes to other existing group nodes, and the principled BSDF shader.'''
-    # TODO: This function may be able to be optimized by only diconnecting nodes that must be disconnected, potentially reducing re-compile time for shaders.
 
     if blender_addon_utils.verify_material_operation_context(self) == False:
         return
@@ -848,7 +847,7 @@ def link_layer_group_nodes(self):
     if layer_count <= 0:
         return
 
-    # Disconnect all layer group nodes (Don't disconnect masks).
+    # Disconnect all layer group nodes (don't disconnect masks).
     for i in range(0, layer_count):
         layer_node = get_material_layer_node('LAYER', i)
         if layer_node:
@@ -874,6 +873,17 @@ def link_layer_group_nodes(self):
             if next_layer_node:
                 if blender_addon_utils.get_node_active(next_layer_node):
                     for material_channel_name in MATERIAL_CHANNEL_LIST:
+
+                        # If the next layers material channel is blending using the 'mix' blending method,
+                        # and the next layer has no mask applied, this layers material channel values will have no
+                        # effect on the material output. We can skip linking these channels so shaders will compile much faster.
+                        mask_node = layer_masks.get_mask_node('MASK', next_layer_index, 0)
+                        if not mask_node:
+                            next_layer_mix_node = get_material_layer_node('MIX', next_layer_index, material_channel_name)
+                            if next_layer_mix_node.bl_static_type == 'MIX':
+                                if next_layer_mix_node.blend_type == 'MIX':
+                                    continue
+
                         channel_name = material_channel_name.replace('-', ' ')
                         channel_name = blender_addon_utils.capitalize_by_space(channel_name)
                         output_socket_name = channel_name
@@ -1974,4 +1984,5 @@ class MATLAYER_OT_set_layer_blending_mode(Operator):
     def execute(self, context):
         material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
         set_layer_blending_mode(self.layer_index, self.blending_mode, material_channel)
+        link_layer_group_nodes(self)
         return {'FINISHED'}

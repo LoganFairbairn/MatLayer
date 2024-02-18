@@ -434,6 +434,8 @@ def add_layer_mask(type, self):
                 set_mask_output_channel('BLUE')
             debug_logging.log("Added a {0} mesh map mask.".format(type))
 
+    material_layers.link_layer_group_nodes(self)
+
 def duplicate_mask(self, mask_index=-1):
     '''Duplicates the mask at the provided mask index.'''
     if blender_addon_utils.verify_material_operation_context(self) == False:
@@ -462,6 +464,7 @@ def duplicate_mask(self, mask_index=-1):
             reindex_masks(change_made='ADDED_MASK', layer_index=selected_layer_index, affected_mask_index=new_mask_slot_index)
             organize_mask_nodes()
             link_mask_nodes(selected_layer_index)
+            material_layers.link_layer_group_nodes(self)
 
         debug_logging.log("Duplicated layer mask.")
 
@@ -485,6 +488,7 @@ def delete_layer_mask(self):
     reindex_masks('DELETED_MASK', selected_layer_index, selected_mask_index)
     organize_mask_nodes()
     link_mask_nodes(selected_layer_index)
+    material_layers.link_layer_group_nodes(self)
 
     # Remove the mask slot and reset the mask index.
     masks.remove(selected_mask_index)
