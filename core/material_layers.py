@@ -882,7 +882,10 @@ def link_layer_group_nodes(self):
                             next_layer_mix_node = get_material_layer_node('MIX', next_layer_index, material_channel_name)
                             if next_layer_mix_node.bl_static_type == 'MIX':
                                 if next_layer_mix_node.blend_type == 'MIX':
-                                    continue
+                                    next_layer_opacity_node = get_material_layer_node('OPACITY', next_layer_index, material_channel_name)
+                                    if next_layer_opacity_node:
+                                        if next_layer_opacity_node.inputs[0].default_value == 1:
+                                            continue
 
                         channel_name = material_channel_name.replace('-', ' ')
                         channel_name = blender_addon_utils.capitalize_by_space(channel_name)
