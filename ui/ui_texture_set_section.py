@@ -113,7 +113,7 @@ class ShaderSubMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        op = layout.operator("matlayer.set_shader", text="Principled BSDF")
-        op.shader = 'ML_BSDF'
-        op = layout.operator("matlayer.set_shader", text="RyShade")
-        op.shader = 'ML_RYSHADE'
+        shaders = bpy.context.scene.matlayer_shaders
+        for shader in shaders:
+            op = layout.operator("matlayer.set_shader", text=shader.name)
+            op.shader = shader.name

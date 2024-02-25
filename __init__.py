@@ -39,7 +39,7 @@ from .core.material_slots import MATLAYER_OT_add_material_slot, MATLAYER_OT_remo
 from .core.mesh_map_baking import MATLAYER_mesh_map_anti_aliasing, MATLAYER_baking_settings, MATLAYER_OT_batch_bake, MATLAYER_OT_set_mesh_map_folder, MATLAYER_OT_open_mesh_map_folder, MATLAYER_OT_preview_mesh_map, MATLAYER_OT_disable_mesh_map_preview, MATLAYER_OT_delete_mesh_map, MATLAYER_OT_create_baking_cage, MATLAYER_OT_delete_baking_cage
 
 # Exporting
-from .core.export_textures import MATLAYER_OT_export, MATLAYER_OT_set_export_folder, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_refresh_export_template_list, MATLAYER_OT_delete_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, MATLAYER_export_template_name, ExportTemplateMenu, read_export_template_names, set_export_template
+from .core.export_textures import MATLAYER_OT_export, MATLAYER_OT_set_export_folder, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_refresh_export_template_list, MATLAYER_OT_delete_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, MATLAYER_export_template_names, ExportTemplateMenu, read_export_template_names, set_export_template
 
 # Utilities
 from .core.image_utilities import MATLAYER_OT_add_texture_node_image, MATLAYER_OT_import_texture_node_image, MATLAYER_OT_edit_texture_node_image_externally, MATLAY_OT_export_uvs, MATLAYER_OT_reload_texture_node_image, MATLAYER_OT_delete_texture_node_image, MATLAY_OT_image_edit_uvs, auto_save_images
@@ -96,12 +96,13 @@ classes = (
     MATLAYER_OT_delete_export_template,
     MATLAYER_OT_add_export_texture,
     MATLAYER_OT_remove_export_texture,
-    MATLAYER_export_template_name,
+    MATLAYER_export_template_names,
     MATLAYER_OT_set_export_folder,
     MATLAYER_OT_open_export_folder,
     ExportTemplateMenu,
 
     # Material Layers
+    material_layers.MATLAYER_shaders,
     material_layers.MATLAYER_layer_stack,
     material_layers.MATLAYER_layers,
     material_layers.MATLAYER_OT_add_material_layer, 
@@ -286,6 +287,9 @@ def load_handler(dummy):
 
         material_layers.refresh_layer_stack()
 
+    # TODO: Read json shader info into Blender memory.
+    material_layers.update_available_shaders()
+
     # Read existing export templates into Blender memory, and apply the user set export template if one exists.
     read_export_template_names()
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
@@ -303,13 +307,14 @@ def register():
     bpy.types.Scene.matlayer_panel_properties = PointerProperty(type=MATLAYER_panel_properties)
     bpy.types.Scene.matlayer_material_property_tabs = EnumProperty(items=MATERIAL_LAYER_PROPERTY_TABS)
     bpy.types.Scene.matlayer_merge_material = PointerProperty(type=bpy.types.Material)
+    bpy.types.Scene.matlayer_shaders = CollectionProperty(type=material_layers.MATLAYER_shaders)
     bpy.types.Scene.matlayer_layer_stack = PointerProperty(type=material_layers.MATLAYER_layer_stack)
     bpy.types.Scene.matlayer_layers = CollectionProperty(type=material_layers.MATLAYER_layers)
     bpy.types.Scene.matlayer_mask_stack = PointerProperty(type=MATLAYER_mask_stack)
     bpy.types.Scene.matlayer_masks = CollectionProperty(type=MATLAYER_masks)
     bpy.types.Scene.matlayer_texture_set_settings = PointerProperty(type=MATLAYER_texture_set_settings)
     bpy.types.Scene.matlayer_baking_settings = PointerProperty(type=MATLAYER_baking_settings)
-    bpy.types.Scene.matlayer_export_templates = CollectionProperty(type=MATLAYER_export_template_name)
+    bpy.types.Scene.matlayer_export_templates = CollectionProperty(type=MATLAYER_export_template_names)
     bpy.types.Scene.matlayer_shader = StringProperty(default='ML_BSDF')
     bpy.types.Scene.pause_auto_updates = BoolProperty(default=False)
     bpy.types.Scene.previous_active_material_name = StringProperty(default="")

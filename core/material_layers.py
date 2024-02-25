@@ -1,6 +1,9 @@
 # This file contains layer properties and functions for updating layer properties.
 
 import bpy
+import json
+from pathlib import Path
+from bpy.utils import resource_path
 from bpy.types import PropertyGroup, Operator
 from bpy.props import IntProperty, EnumProperty, StringProperty
 from ..core import layer_masks
@@ -1609,9 +1612,27 @@ def set_layer_blending_mode(layer_index, blending_mode, material_channel_name='C
     # Relink the material channel of this layer based on the original material output channel.
     set_material_channel_output_channel(material_channel_name, original_output_channel, layer_index)
 
+def update_available_shaders():
+    '''Updates a list of all available shaders defined in the shader info json data.'''
+    templates_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "json_data" / "shader_info.json")
+    json_file = open(templates_path, "r")
+    jdata = json.load(json_file)
+    json_file.close()
+    shaders = jdata['shaders']
+    matlayer_shaders = bpy.context.scene.matlayer_shaders
+    matlayer_shaders.clear()
+    for shader in shaders:
+        cached_template = matlayer_shaders.add()
+        cached_template.name = shader['name']
+    debug_logging.log("Updated available shaders.")
+
 
 #----------------------------- OPERATORS -----------------------------#
 
+
+class MATLAYER_shaders(PropertyGroup):
+    '''Cached list of shaders available for use with this add-on.'''
+    name: bpy.props.StringProperty()
 
 class MATLAYER_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''

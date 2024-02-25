@@ -758,7 +758,7 @@ def remove_bake_texture_nodes():
 
 def read_export_template_data():
     '''Reads json data from the export template file. Creates a new export template json file if one does not exist.'''
-    template_folder_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "export_templates")
+    template_folder_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "json_data")
     if not os.path.exists(template_folder_path):
         os.mkdir(template_folder_path)
 
@@ -781,14 +781,14 @@ def read_export_template_data():
 
 def save_export_template_data(json_data):
     '''Saves the specified json data to the export template file.'''
-    templates_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "export_templates" / "export_templates.json")
+    templates_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "json_data" / "export_templates.json")
     json_file = open(templates_path, "w")
     json.dump(json_data, json_file)
     json_file.close()
     
 def read_export_template_names():
     '''Reads all of the export template names from the json file into Blender memory (to avoid reading json data in a draw call).'''
-    templates_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "export_templates" / "export_templates.json")
+    templates_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "json_data" / "export_templates.json")
     json_file = open(templates_path, "r")
     jdata = json.load(json_file)
     json_file.close()
@@ -804,7 +804,7 @@ def read_export_template_names():
 #----------------------------- EXPORT OPERATORS -----------------------------#
 
 
-class MATLAYER_export_template_name(PropertyGroup):
+class MATLAYER_export_template_names(PropertyGroup):
     name: bpy.props.StringProperty()
 
 class MATLAYER_OT_export(Operator):
@@ -1124,7 +1124,8 @@ class MATLAYER_OT_refresh_export_template_list(Operator):
     bl_description = "Updates the list of export templates by reading the export template json file"
     
     def execute(self, context):
-        read_export_template_names()            # Update the cached template names.
+        # Update the cached template names.
+        read_export_template_names()
         return {'FINISHED'}
 
 class MATLAYER_OT_add_export_texture(Operator):
@@ -1189,7 +1190,7 @@ class MATLAYER_OT_open_export_folder(Operator):
         matlayer_export_folder_path = blender_addon_utils.get_texture_folder_path(folder='EXPORT_TEXTURES')
         blender_addon_utils.open_folder(matlayer_export_folder_path, self)
         return {'FINISHED'}
-    
+
 class ExportTemplateMenu(Menu):
     bl_idname = "MATLAYER_MT_export_template_menu"
     bl_label = "Export Template Menu"
