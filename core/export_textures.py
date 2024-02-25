@@ -688,7 +688,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
         if material_channel_name in emission_exporting_channels:
             active_node_tree = bpy.context.active_object.active_material.node_tree
             emission_node = active_node_tree.nodes.get('EMISSION')
-            bsdf_node = active_node_tree.nodes.get('MATLAYER_BSDF')
+            bsdf_node = active_node_tree.nodes.get('MATLAYER_SHADER')
             material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
 
             match material_channel_name:

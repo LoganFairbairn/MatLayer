@@ -719,8 +719,8 @@ def draw_global_material_properties(layout):
                 row.prop(base_normals_mix_node.inputs.get('Opacity'), "default_value", text="", slider=True)
 
             # Draw the global emission strength value.
-            bsdf_wrapper_node = active_object.active_material.node_tree.nodes.get('MATLAYER_BSDF')
-            bsdf_node = bsdf_wrapper_node.node_tree.nodes.get('MATLAYER_BSDF')
+            bsdf_wrapper_node = active_object.active_material.node_tree.nodes.get('MATLAYER_SHADER')
+            bsdf_node = bsdf_wrapper_node.node_tree.nodes.get('MATLAYER_SHADER')
             if bsdf_wrapper_node:
 
                 row = first_column.row()

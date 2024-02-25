@@ -49,6 +49,7 @@ from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLA
 # User Interface
 from .ui.ui_section_tabs import UtilitySubMenu
 from .ui.ui_layer_section import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, MATLAYER_OT_add_material_filter_menu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MATERIAL_LAYER_PROPERTY_TABS
+from .ui.ui_texture_set_section import ShaderSubMenu
 from .ui.ui_main import *
 from .ui.ui_layer_stack import MATLAYER_UL_layer_list, LayerBlendingModeSubMenu
 
@@ -123,6 +124,7 @@ classes = (
     material_layers.MATLAYER_OT_toggle_material_channel_filter,
     material_layers.MATLAYER_OT_set_material_channel_output_channel,
     material_layers.MATLAYER_OT_set_layer_blending_mode,
+    material_layers.MATLAYER_OT_set_shader,
 
     # Layer Masks
     MATLAYER_mask_stack, 
@@ -194,6 +196,7 @@ classes = (
     MaterialChannelValueNodeSubMenu,
     MaskChannelSubMenu,
     MaterialChannelOutputSubMenu,
+    ShaderSubMenu,
     MATLAYER_panel_properties,
     MATLAYER_PT_Panel
 )
@@ -307,6 +310,7 @@ def register():
     bpy.types.Scene.matlayer_texture_set_settings = PointerProperty(type=MATLAYER_texture_set_settings)
     bpy.types.Scene.matlayer_baking_settings = PointerProperty(type=MATLAYER_baking_settings)
     bpy.types.Scene.matlayer_export_templates = CollectionProperty(type=MATLAYER_export_template_name)
+    bpy.types.Scene.matlayer_shader = StringProperty(default='ML_BSDF')
     bpy.types.Scene.pause_auto_updates = BoolProperty(default=False)
     bpy.types.Scene.previous_active_material_name = StringProperty(default="")
     bpy.types.Scene.previous_object_name = StringProperty(default="")

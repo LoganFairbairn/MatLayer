@@ -69,6 +69,12 @@ TRIPLANAR_PROJECTION_INPUTS = [
     'SignedGeometryNormals'
 ]
 
+# Available shaders in this add-on.
+MATLAYER_SHADERS = [
+    'ML_BSDF',
+    'ML_RYSHADE'
+]
+
 #----------------------------- UPDATING PROPERTIES -----------------------------#
 
 def update_layer_index(self, context):
@@ -441,11 +447,18 @@ def add_material_layer(layer_type, self):
     # Verify standard context is correct.
     if blender_addon_utils.verify_material_operation_context(self, check_active_material=False) == False:
         return
+    
+    shader = bpy.context.scene.matlayer_shader
+    match shader:
+        case 'ML_BSDF':
+            default_material_setup = 'DefaultBSDFMaterial'
+        case 'ML_RYSHADE':
+            default_material_setup = 'DefaultRyShadeMaterial'
 
     # If there are no material slots, or no material in the active material slot, make a new MatLayer material by appending the default material setup.
     active_object = bpy.context.active_object
     if len(active_object.material_slots) == 0:
-        new_material = blender_addon_utils.append_material("DefaultMatLayerMaterial")
+        new_material = blender_addon_utils.append_material(default_material_setup)
         new_material_name = blender_addon_utils.get_unique_material_name(active_object.name.replace('_', ''))
         new_material.name = new_material_name
         active_object.data.materials.append(new_material)
@@ -454,7 +467,7 @@ def add_material_layer(layer_type, self):
 
     # If material slots exist on the object, but the active material slot is empty, add a new material.
     elif active_object.material_slots[active_object.active_material_index].material == None:
-        new_material = blender_addon_utils.append_material("DefaultMatLayerMaterial")
+        new_material = blender_addon_utils.append_material(default_material_setup)
         new_material_name = blender_addon_utils.get_unique_material_name(active_object.name.replace('_', ''))
         new_material.name = new_material_name
         active_object.material_slots[active_object.active_material_index].material = new_material
@@ -466,7 +479,7 @@ def add_material_layer(layer_type, self):
         if blender_addon_utils.verify_addon_material(active_material) == False:
             debug_logging.log_status("Can't add layer, active material is not created with this add-on, or it's format is invalid.", self, type='ERROR')
             return
-        
+    
     new_layer_slot_index = add_material_layer_slot()
 
     # Add a material layer group node based on the specified layer type.
@@ -896,7 +909,7 @@ def link_layer_group_nodes(self):
     # Connect the last (non-muted / active) layer node to the principled BSDF.
     base_normals_mix_node = active_material.node_tree.nodes.get('BASE_NORMALS_MIX')
     normal_and_height_mix_node = active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
-    principled_bsdf = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+    shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
 
     last_layer_node_index = layer_count - 1
     last_layer_node = get_material_layer_node('LAYER', last_layer_node_index)
@@ -918,7 +931,7 @@ def link_layer_group_nodes(self):
 
                 match material_channel_name:
                     case 'COLOR':
-                        node_tree.links.new(last_layer_node.outputs.get(channel_name), principled_bsdf.inputs.get('Base Color'))
+                        node_tree.links.new(last_layer_node.outputs.get(channel_name), shader_node.inputs.get('Base Color'))
 
                     case 'NORMAL':
                         node_tree.links.new(last_layer_node.outputs.get(channel_name), base_normals_mix_node.inputs.get('Normal Map 1'))
@@ -927,7 +940,7 @@ def link_layer_group_nodes(self):
                         node_tree.links.new(last_layer_node.outputs.get(channel_name), normal_and_height_mix_node.inputs.get(channel_name))
 
                     case _:
-                        node_tree.links.new(last_layer_node.outputs.get(channel_name), principled_bsdf.inputs.get(channel_name))
+                        node_tree.links.new(last_layer_node.outputs.get(channel_name), shader_node.inputs.get(channel_name))
 
     debug_logging.log("Linked layer group nodes.")
 
@@ -1507,7 +1520,7 @@ def show_layer():
                 if len(emission_node.outputs[0].links) != 0:
                     blender_addon_utils.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
                     material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
-                    principled_bsdf = active_node_tree.nodes.get('MATLAYER_BSDF')
+                    principled_bsdf = active_node_tree.nodes.get('MATLAYER_SHADER')
                     active_node_tree.links.new(principled_bsdf.outputs[0], material_output.inputs[0])
 
 def toggle_image_alpha_blending(material_channel_name):
@@ -1988,4 +2001,55 @@ class MATLAYER_OT_set_layer_blending_mode(Operator):
         material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
         set_layer_blending_mode(self.layer_index, self.blending_mode, material_channel)
         link_layer_group_nodes(self)
+        return {'FINISHED'}
+
+class MATLAYER_OT_set_shader(Operator):
+    bl_idname = "matlayer.set_shader"
+    bl_label = "Set Shader"
+    bl_description = "Sets the shader to for material layers created with this add-on, and changes the shader used for the active material"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    shader: StringProperty(default='PRINCIPLED_BSDF')
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+
+        if self.shader not in MATLAYER_SHADERS:
+            debug_logging.log("Attempting to set an invalid shader.", message_type='ERROR', sub_process=False)
+            return {'FINISHED'}
+        
+        # Set the shader so new material layers will be created using it.
+        bpy.context.scene.matlayer_shader = self.shader
+
+        # Replace the shader node in the active material.
+        active_object = bpy.context.active_object
+        if active_object:
+            active_material = active_object.active_material
+            if active_material:
+                shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+                if shader_node:
+                    shader_node_tree = blender_addon_utils.append_group_node(self.shader)
+                    if shader_node_tree:
+                        old_node_location = shader_node.location
+                        old_node_width = shader_node.width
+                        active_material.node_tree.nodes.remove(shader_node)
+                        new_shader_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+                        new_shader_node.name = 'MATLAYER_SHADER'
+                        new_shader_node.label = new_shader_node.name
+                        new_shader_node.node_tree = shader_node_tree
+                        new_shader_node.location = old_node_location
+                        new_shader_node.width = old_node_width
+                        
+                        # Link the new shader node.
+                        material_output_node = active_material.node_tree.nodes.get('MATERIAL_OUTPUT')
+                        if material_output_node:
+                            active_material.node_tree.links.new(new_shader_node.outputs[0], material_output_node.inputs[0])
+
+                        normal_height_mix_node = get_material_layer_node('NORMAL_HEIGHT_MIX')
+                        if normal_height_mix_node:
+                            active_material.node_tree.links.new(normal_height_mix_node.outputs[0], new_shader_node.inputs.get('Normal'))
+                        link_layer_group_nodes(self)
         return {'FINISHED'}

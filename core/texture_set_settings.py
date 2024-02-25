@@ -144,7 +144,7 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
                     channel_name = blender_addon_utils.capitalize_by_space(channel_name)
                     match self.material_channel_name:
                         case 'COLOR':
-                            connect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+                            connect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
                             input_socket = connect_node.inputs.get('Base Color')
                         case 'NORMAL':
                             connect_node = material_layers.get_material_layer_node('BASE_NORMALS_MIX')
@@ -153,13 +153,13 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
                             connect_node = material_layers.get_material_layer_node('NORMAL_HEIGHT_MIX')
                             input_socket = connect_node.inputs.get('Height')
                         case 'SHEEN':
-                            connect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+                            connect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
                             input_socket = connect_node.inputs.get('Sheen Weight')
                         case 'DISPLACEMENT':
                             connect_node = active_material.node_tree.nodes.get('DISPLACEMENT')
                             input_socket = connect_node.inputs[0]
                         case _:
-                            connect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+                            connect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
                             input_socket = connect_node.inputs.get(channel_name)
                     active_material.node_tree.links.new(layer_node.outputs.get(channel_name), input_socket)
                     break
@@ -181,7 +181,7 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
             channel_toggle_node.mute = True
             match self.material_channel_name:
                 case 'COLOR':
-                    disconnect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+                    disconnect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
                     disconnect_socket = disconnect_node.inputs.get('Base Color')
                 case 'NORMAL':
                     disconnect_node = material_layers.get_material_layer_node('BASE_NORMALS_MIX')
@@ -190,13 +190,13 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
                     disconnect_node = material_layers.get_material_layer_node('NORMAL_HEIGHT_MIX')
                     disconnect_socket = disconnect_node.inputs.get('Height')
                 case 'SHEEN':
-                    disconnect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+                    disconnect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
                     disconnect_socket = disconnect_node.inputs.get('Sheen Weight')
                 case 'DISPLACEMENT':
                     disconnect_node = active_material.node_tree.nodes.get('DISPLACEMENT')
                     disconnect_socket = disconnect_node.inputs[0]
                 case _:
-                    disconnect_node = active_material.node_tree.nodes.get('MATLAYER_BSDF')
+                    disconnect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
                     channel_name = self.material_channel_name.replace('-', ' ')
                     channel_name = blender_addon_utils.capitalize_by_space(channel_name)
                     disconnect_socket = disconnect_node.inputs.get(channel_name)

@@ -1,4 +1,5 @@
 import bpy
+from bpy.types import Menu
 from .import ui_section_tabs
 from ..core.material_layers import MATERIAL_CHANNEL_LIST
 from ..core import texture_set_settings as tss
@@ -20,6 +21,7 @@ def draw_texture_set_section_ui(self, context):
     first_column = split.column()
     second_column = split.column()
 
+    # Draw the raw texture folder setting.
     row = first_column.row()
     row.scale_y = 1.4
     row.label(text="Raw Texture Folder: ")
@@ -29,6 +31,7 @@ def draw_texture_set_section_ui(self, context):
     row.operator("matlayer.set_raw_texture_folder", text="", icon='FOLDER_REDIRECT')
     row.operator("matlayer.open_raw_texture_folder", text="", icon='FILE_FOLDER')
 
+    # Draw texture size setting.
     row = first_column.row()
     row.scale_y = 1.4
     row.label(text="Texture Size: ")
@@ -47,8 +50,18 @@ def draw_texture_set_section_ui(self, context):
     if texture_set_settings.match_image_resolution:
         col.enabled = False
     col.prop(texture_set_settings, "image_height", text="")
-
     
+    # Draw the shader settings.
+    row = first_column.row()
+    row.scale_y = 1.4
+    row.label(text="Shader: ")
+    row = second_column.row()
+    row.scale_y = 1.4
+    menu_label = bpy.context.scene.matlayer_shader
+    menu_label = menu_label.replace('ML_', '')
+    row.menu("MATLAYER_MT_shader_sub_menu", text=menu_label)
+
+    # Draw 32-bit color depth setting.
     row = first_column.row()
     row.scale_y = 1.4
     row.label(text="Thirty Two Bit Depth: ")
@@ -93,4 +106,14 @@ def draw_texture_set_section_ui(self, context):
         layout.label(text="No active object.")
         layout.label(text="Select an object with a MatLayer material applied")
         layout.label(text="to see texture set settings.")
-    
+
+class ShaderSubMenu(Menu):
+    bl_idname = "MATLAYER_MT_shader_sub_menu"
+    bl_label = "Shader Sub Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        op = layout.operator("matlayer.set_shader", text="Principled BSDF")
+        op.shader = 'ML_BSDF'
+        op = layout.operator("matlayer.set_shader", text="RyShade")
+        op.shader = 'ML_RYSHADE'
