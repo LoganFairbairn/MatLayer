@@ -1,9 +1,6 @@
 # This file contains layer properties and functions for updating layer properties.
 
 import bpy
-import json
-from pathlib import Path
-from bpy.utils import resource_path
 from bpy.types import PropertyGroup, Operator
 from bpy.props import IntProperty, EnumProperty, StringProperty
 from ..core import layer_masks
@@ -1647,27 +1644,9 @@ def set_layer_blending_mode(layer_index, blending_mode, material_channel_name='C
     # Relink the material channel of this layer based on the original material output channel.
     set_material_channel_output_channel(material_channel_name, original_output_channel, layer_index)
 
-def update_available_shaders():
-    '''Updates a list of all available shaders as defined in the shader info json data.'''
-    templates_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "json_data" / "shader_info.json")
-    json_file = open(templates_path, "r")
-    jdata = json.load(json_file)
-    json_file.close()
-    shaders = jdata['shaders']
-    matlayer_shaders = bpy.context.scene.matlayer_shaders
-    matlayer_shaders.clear()
-    for shader in shaders:
-        cached_template = matlayer_shaders.add()
-        cached_template.name = shader['name']
-    debug_logging.log("Updated available shaders.")
-
 
 #----------------------------- OPERATORS -----------------------------#
 
-
-class MATLAYER_shaders(PropertyGroup):
-    '''Cached list of shaders available for use with this add-on.'''
-    name: bpy.props.StringProperty()
 
 class MATLAYER_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''
@@ -2057,54 +2036,4 @@ class MATLAYER_OT_set_layer_blending_mode(Operator):
         material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
         set_layer_blending_mode(self.layer_index, self.blending_mode, material_channel)
         link_layer_group_nodes(self)
-        return {'FINISHED'}
-
-class MATLAYER_OT_set_shader(Operator):
-    bl_idname = "matlayer.set_shader"
-    bl_label = "Set Shader"
-    bl_description = "Sets the shader to for material layers created with this add-on, and changes the shader used for the active material"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    shader: StringProperty(default='PRINCIPLED_BSDF')
-
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def execute(self, context):
-        
-        # Set the shader so new material layers will be created using it.
-        bpy.context.scene.matlayer_shader = self.shader
-
-        # DISABLED
-        # Replace the shader node in the active material.
-        '''
-        active_object = bpy.context.active_object
-        if active_object:
-            active_material = active_object.active_material
-            if active_material:
-                shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
-                if shader_node:
-                    shader_node_tree = blender_addon_utils.append_group_node(self.shader)
-                    if shader_node_tree:
-                        old_node_location = shader_node.location
-                        old_node_width = shader_node.width
-                        active_material.node_tree.nodes.remove(shader_node)
-                        new_shader_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
-                        new_shader_node.name = 'MATLAYER_SHADER'
-                        new_shader_node.label = new_shader_node.name
-                        new_shader_node.node_tree = shader_node_tree
-                        new_shader_node.location = old_node_location
-                        new_shader_node.width = old_node_width
-                        
-                        # Link the new shader node.
-                        material_output_node = active_material.node_tree.nodes.get('MATERIAL_OUTPUT')
-                        if material_output_node:
-                            active_material.node_tree.links.new(new_shader_node.outputs[0], material_output_node.inputs[0])
-
-                        normal_height_mix_node = get_material_layer_node('NORMAL_HEIGHT_MIX')
-                        if normal_height_mix_node:
-                            active_material.node_tree.links.new(normal_height_mix_node.outputs[0], new_shader_node.inputs.get('Normal'))
-                        link_layer_group_nodes(self)
-        '''
         return {'FINISHED'}

@@ -1,5 +1,4 @@
 import bpy
-from bpy.types import Menu
 from .import ui_section_tabs
 from ..core.material_layers import MATERIAL_CHANNEL_LIST
 from ..core import texture_set_settings as tss
@@ -50,16 +49,6 @@ def draw_texture_set_section_ui(self, context):
     if texture_set_settings.match_image_resolution:
         col.enabled = False
     col.prop(texture_set_settings, "image_height", text="")
-    
-    # Draw the shader settings.
-    row = first_column.row()
-    row.scale_y = 1.4
-    row.label(text="Shader: ")
-    row = second_column.row()
-    row.scale_y = 1.4
-    menu_label = bpy.context.scene.matlayer_shader
-    menu_label = menu_label.replace('ML_', '')
-    row.menu("MATLAYER_MT_shader_sub_menu", text=menu_label)
 
     # Draw 32-bit color depth setting.
     row = first_column.row()
@@ -106,14 +95,3 @@ def draw_texture_set_section_ui(self, context):
         layout.label(text="No active object.")
         layout.label(text="Select an object with a MatLayer material applied")
         layout.label(text="to see texture set settings.")
-
-class ShaderSubMenu(Menu):
-    bl_idname = "MATLAYER_MT_shader_sub_menu"
-    bl_label = "Shader Sub Menu"
-
-    def draw(self, context):
-        layout = self.layout
-        shaders = bpy.context.scene.matlayer_shaders
-        for shader in shaders:
-            op = layout.operator("matlayer.set_shader", text=shader.name)
-            op.shader = shader.name

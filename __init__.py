@@ -26,6 +26,9 @@ from .preferences import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MA
 # Texture Set Settings
 from .core.texture_set_settings import MATLAYER_texture_set_settings, MATLAYER_OT_toggle_texture_set_material_channel, MATLAYER_OT_set_raw_texture_folder, MATLAYER_OT_open_raw_texture_folder
 
+# Shaders
+from .core import shaders
+
 # Material Layers
 from .core import material_layers
 
@@ -49,7 +52,7 @@ from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLA
 # User Interface
 from .ui.ui_section_tabs import UtilitySubMenu
 from .ui.ui_layer_section import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, MATLAYER_OT_add_material_filter_menu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MATERIAL_LAYER_PROPERTY_TABS
-from .ui.ui_texture_set_section import ShaderSubMenu
+from .ui.ui_shaders_section import ShaderSubMenu
 from .ui.ui_main import *
 from .ui.ui_layer_stack import MATLAYER_UL_layer_list, LayerBlendingModeSubMenu
 
@@ -101,8 +104,13 @@ classes = (
     MATLAYER_OT_open_export_folder,
     ExportTemplateMenu,
 
+    # Shaders
+    shaders.MATLAYER_shader_name,
+    shaders.MATLAYER_shader_material_channel,
+    shaders.MATLAYER_shader_info,
+    shaders.MATLAYER_OT_set_shader,
+
     # Material Layers
-    material_layers.MATLAYER_shaders,
     material_layers.MATLAYER_layer_stack,
     material_layers.MATLAYER_layers,
     material_layers.MATLAYER_OT_add_material_layer, 
@@ -125,7 +133,6 @@ classes = (
     material_layers.MATLAYER_OT_toggle_material_channel_filter,
     material_layers.MATLAYER_OT_set_material_channel_output_channel,
     material_layers.MATLAYER_OT_set_layer_blending_mode,
-    material_layers.MATLAYER_OT_set_shader,
 
     # Layer Masks
     MATLAYER_mask_stack, 
@@ -185,6 +192,7 @@ classes = (
     MATLAYER_OT_remove_unused_raw_textures,
 
     # User Interface
+    ShaderSubMenu,
     MATLAYER_UL_layer_list,
     LayerBlendingModeSubMenu,
     UtilitySubMenu,
@@ -197,7 +205,6 @@ classes = (
     MaterialChannelValueNodeSubMenu,
     MaskChannelSubMenu,
     MaterialChannelOutputSubMenu,
-    ShaderSubMenu,
     MATLAYER_panel_properties,
     MATLAYER_PT_Panel
 )
@@ -287,8 +294,8 @@ def load_handler(dummy):
 
         material_layers.refresh_layer_stack()
 
-    # TODO: Read json shader info into Blender memory.
-    material_layers.update_available_shaders()
+    # Read json shader info into Blender memory.
+    shaders.set_shader("Principled BSDF (Blender 4x)")
 
     # Read existing export templates into Blender memory, and apply the user set export template if one exists.
     read_export_template_names()
@@ -307,7 +314,10 @@ def register():
     bpy.types.Scene.matlayer_panel_properties = PointerProperty(type=MATLAYER_panel_properties)
     bpy.types.Scene.matlayer_material_property_tabs = EnumProperty(items=MATERIAL_LAYER_PROPERTY_TABS)
     bpy.types.Scene.matlayer_merge_material = PointerProperty(type=bpy.types.Material)
-    bpy.types.Scene.matlayer_shaders = CollectionProperty(type=material_layers.MATLAYER_shaders)
+    
+    bpy.types.Scene.matlayer_shader_list = CollectionProperty(type=shaders.MATLAYER_shader_name)
+    bpy.types.Scene.matlayer_shader_info = PointerProperty(type=shaders.MATLAYER_shader_info)
+
     bpy.types.Scene.matlayer_layer_stack = PointerProperty(type=material_layers.MATLAYER_layer_stack)
     bpy.types.Scene.matlayer_layers = CollectionProperty(type=material_layers.MATLAYER_layers)
     bpy.types.Scene.matlayer_mask_stack = PointerProperty(type=MATLAYER_mask_stack)
@@ -315,7 +325,6 @@ def register():
     bpy.types.Scene.matlayer_texture_set_settings = PointerProperty(type=MATLAYER_texture_set_settings)
     bpy.types.Scene.matlayer_baking_settings = PointerProperty(type=MATLAYER_baking_settings)
     bpy.types.Scene.matlayer_export_templates = CollectionProperty(type=MATLAYER_export_template_names)
-    bpy.types.Scene.matlayer_shader = StringProperty(default='ML_BSDF')
     bpy.types.Scene.pause_auto_updates = BoolProperty(default=False)
     bpy.types.Scene.previous_active_material_name = StringProperty(default="")
     bpy.types.Scene.previous_object_name = StringProperty(default="")

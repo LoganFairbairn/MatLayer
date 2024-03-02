@@ -9,6 +9,7 @@ def draw_section_tabs(self, context):
     # Draw add-on section buttons.
     row = layout.row(align=True)
     row.scale_y = 2.0
+    row.prop_enum(panel_properties, "sections", 'SECTION_SHADER')
     row.prop_enum(panel_properties, "sections", 'SECTION_TEXTURE_SET')
     row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS")
     row.prop_enum(panel_properties, "sections", 'SECTION_LAYERS')
@@ -22,7 +23,6 @@ class UtilitySubMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-
         layout.operator("matlayer.append_workspace", text="Append Workspace")
         layout.operator("matlayer.append_basic_brushes", text="Append Basic Brushes")
         layout.operator("matlayer.append_hdri_world", text="Append HDRI World")
