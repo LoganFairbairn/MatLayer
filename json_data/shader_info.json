@@ -2,11 +2,9 @@
     "shaders": [
       {
         "name": "Principled BSDF (Blender 4x)",
-        "version": "1.0.0",
         "author": "Blender",
         "description": "The standard principled BSDF shader for Blender.",
-        "blend-download-link": "",
-        "asset_name": "ML_BSDF",
+        "group_node_name": "ML_BSDF",
         "shader_material_channels": [
             "BASE-COLOR",
             "METALLIC",
@@ -51,11 +49,9 @@
       },
       {
         "name": "RyShade",
-        "version": "1.0.0",
         "author": "Logan Fairbairn (Ryver)",
-        "description": "The standard principled BSDF shader for Blender.",
-        "blend-download-link": "",
-        "asset_name": "ML_RYSHADE",
+        "description": "A stylized shader for toon and anime characters.",
+        "group_node_name": "ML_RYSHADE",
         "shader_material_channels": [
             "BASE-COLOR",
             "METALLIC",
