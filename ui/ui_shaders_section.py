@@ -51,7 +51,7 @@ def draw_ui_shaders_section(self, context):
     row.prop(shader_info, "group_node_name", text="")
 
     # Draw all the material channels for the selected shader.
-    layout.label(text="Shader Material Channels")
+    layout.label(text="Shader Material Channels:")
     for material_channel in shader_info.material_channels:
         layout.prop(material_channel, "channel_name", text="")
 

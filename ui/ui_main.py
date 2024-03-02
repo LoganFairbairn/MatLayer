@@ -25,7 +25,7 @@ def update_main_ui_tabs(self, context):
 
 class MATLAYER_panel_properties(bpy.types.PropertyGroup):
     sections: bpy.props.EnumProperty(
-        items=[('SECTION_SHADER', "SHADERS", "This section contains settings to change the shader node used for material lighting calculations."),
+        items=[('SECTION_SHADER', "SHADER", "This section contains settings to change the shader node used for material lighting calculations."),
                ('SECTION_TEXTURE_SET', "TEXTURE SET", "This section contains settings for the materials textures."),
                ('SECTION_MESH_MAPS', "MESH MAPS", "This section contains operations to quickly bake mesh map textures for your models. Baking mesh maps transfer 3D data such as shadows, curvature, sharp edges and extra detail from higher polycount objects to image textures. Baked mesh map textures can be used as textures in layers in many different ways to make the texturing process faster. One example of where baked mesh maps could be used is to mask dirt by using the baked ambient occlusion as a mask."),
                ('SECTION_LAYERS', "LAYERS", "This section contains a layer stack for the selected object's active material. In this section you can add, edit and blend multiple materials together."),
