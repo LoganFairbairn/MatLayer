@@ -63,6 +63,7 @@ Q: Why should I use MatLayer over other material solutions?
 - You can keep your workflow within Blender.
 - You support free and open-source software.
 - You can mod MatLayer to improve your workflow with Python scripting.
+- Your privacy is important to you, this add-on has no telemetry.
 
 ## System Requirements
 Supported Platforms: Windows, Linux
