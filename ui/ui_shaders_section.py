@@ -52,8 +52,8 @@ def draw_ui_shaders_section(self, context):
 
     # Draw all the material channels for the selected shader.
     layout.label(text="Shader Material Channels:")
-    for material_channel in shader_info.material_channels:
-        layout.prop(material_channel, "channel_name", text="")
+    for channel in shader_info.material_channels:
+        layout.prop(channel, "name", text="")
 
 class ShaderSubMenu(Menu):
     bl_idname = "MATLAYER_MT_shader_sub_menu"

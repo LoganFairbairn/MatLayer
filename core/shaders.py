@@ -52,7 +52,7 @@ def set_shader(shader_name):
             matlayer_shader_info.material_channels.clear()
             for shader_material_channel in shader_material_channels:
                 channel = matlayer_shader_info.material_channels.add()
-                channel.channel_name = shader_material_channel
+                channel.name = shader_material_channel
 
     # TODO: If the shader wasn't found, apply a default shader instead.
     if not shader_exists:
@@ -64,7 +64,7 @@ class MATLAYER_shader_name(PropertyGroup):
 
 class MATLAYER_shader_material_channel(PropertyGroup):
     '''List of material channels for a specific shader.'''
-    channel_name: StringProperty()
+    name: StringProperty()
 
 class MATLAYER_shader_info(PropertyGroup):
     name: StringProperty()
