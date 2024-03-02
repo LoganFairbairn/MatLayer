@@ -72,13 +72,9 @@ TRIPLANAR_PROJECTION_INPUTS = [
     'SignedGeometryNormals'
 ]
 
-# Available shaders in this add-on.
-MATLAYER_SHADERS = [
-    'ML_BSDF',
-    'ML_RYSHADE'
-]
 
 #----------------------------- UPDATING PROPERTIES -----------------------------#
+
 
 def update_layer_index(self, context):
     '''Updates properties and user interface when a new layer is selected.'''
@@ -909,7 +905,8 @@ def link_layer_group_nodes(self):
                         input_socket_name = "{0} Mix".format(channel_name)
                         node_tree.links.new(layer_node.outputs.get(output_socket_name), next_layer_node.inputs.get(input_socket_name))
 
-    # Connect the last (non-muted / active) layer node to the principled BSDF.
+
+    # TODO: Connect the last (non-muted / active) layer node to the shader node.
     base_normals_mix_node = active_material.node_tree.nodes.get('BASE_NORMALS_MIX')
     normal_and_height_mix_node = active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
     shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
@@ -945,6 +942,44 @@ def link_layer_group_nodes(self):
                     case _:
                         node_tree.links.new(last_layer_node.outputs.get(channel_name), shader_node.inputs.get(channel_name))
 
+
+    '''
+    # Connect the last (non-muted / active) layer node to the principled BSDF.
+    base_normals_mix_node = active_material.node_tree.nodes.get('BASE_NORMALS_MIX')
+    normal_and_height_mix_node = active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
+    shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+
+    last_layer_node_index = layer_count - 1
+    last_layer_node = get_material_layer_node('LAYER', last_layer_node_index)
+    if last_layer_node:
+        while not blender_addon_utils.get_node_active(last_layer_node) and last_layer_node_index >= 0:
+            last_layer_node = get_material_layer_node('LAYER', last_layer_node_index)
+            last_layer_node_index -= 1
+
+    if last_layer_node:
+        if blender_addon_utils.get_node_active(last_layer_node):
+            for material_channel_name in MATERIAL_CHANNEL_LIST:
+
+                # Only connect active material channels.
+                if not tss.get_material_channel_active(material_channel_name):
+                    continue
+
+                channel_name = material_channel_name.replace('-', ' ')
+                channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+
+                match material_channel_name:
+                    case 'COLOR':
+                        node_tree.links.new(last_layer_node.outputs.get(channel_name), shader_node.inputs.get('Base Color'))
+
+                    case 'NORMAL':
+                        node_tree.links.new(last_layer_node.outputs.get(channel_name), base_normals_mix_node.inputs.get('Normal Map 1'))
+                
+                    case 'HEIGHT':
+                        node_tree.links.new(last_layer_node.outputs.get(channel_name), normal_and_height_mix_node.inputs.get(channel_name))
+
+                    case _:
+                        node_tree.links.new(last_layer_node.outputs.get(channel_name), shader_node.inputs.get(channel_name))
+    '''
     debug_logging.log("Linked layer group nodes.")
 
 def reindex_layer_nodes(change_made, affected_layer_index):
@@ -1613,7 +1648,7 @@ def set_layer_blending_mode(layer_index, blending_mode, material_channel_name='C
     set_material_channel_output_channel(material_channel_name, original_output_channel, layer_index)
 
 def update_available_shaders():
-    '''Updates a list of all available shaders defined in the shader info json data.'''
+    '''Updates a list of all available shaders as defined in the shader info json data.'''
     templates_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "json_data" / "shader_info.json")
     json_file = open(templates_path, "r")
     jdata = json.load(json_file)
@@ -2037,15 +2072,13 @@ class MATLAYER_OT_set_shader(Operator):
         return context.active_object
 
     def execute(self, context):
-
-        if self.shader not in MATLAYER_SHADERS:
-            debug_logging.log("Attempting to set an invalid shader.", message_type='ERROR', sub_process=False)
-            return {'FINISHED'}
         
         # Set the shader so new material layers will be created using it.
         bpy.context.scene.matlayer_shader = self.shader
 
+        # DISABLED
         # Replace the shader node in the active material.
+        '''
         active_object = bpy.context.active_object
         if active_object:
             active_material = active_object.active_material
@@ -2073,4 +2106,5 @@ class MATLAYER_OT_set_shader(Operator):
                         if normal_height_mix_node:
                             active_material.node_tree.links.new(normal_height_mix_node.outputs[0], new_shader_node.inputs.get('Normal'))
                         link_layer_group_nodes(self)
+        '''
         return {'FINISHED'}
