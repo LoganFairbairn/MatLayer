@@ -20,11 +20,12 @@ def draw_ui_shaders_section(self, context):
     row = first_column.row()
     row.scale_y = 1.4
     row.label(text="Shader: ")
-    row = second_column.row()
+    row = second_column.row(align=True)
     row.scale_y = 1.4
     menu_label = shader_info.name
     menu_label = menu_label.replace('ML_', '')
-    row.menu("MATLAYER_MT_shader_sub_menu", text=menu_label)
+    row.prop(shader_info, "name", text="")
+    row.menu("MATLAYER_MT_shader_sub_menu", text="Load Shader")
 
     # Draw the shader author.
     row = first_column.row()
