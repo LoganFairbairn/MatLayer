@@ -6,42 +6,18 @@
         "description": "The standard principled BSDF shader for Blender.",
         "group_node_name": "ML_BSDF",
         "shader_material_channels": [
-            "BASE-COLOR",
-            "METALLIC",
-            "ROUGHNESS",
-            "IOR",
-            "AMBIENT-OCCLUSION",
-            "ALPHA",
-            "NORMAL",
-            "HEIGHT",
-            "SUBSURFACE",
-            "SUBSURFACE-RADIUS",
-            "SUBSURFACE-SCALE",
-            "SUBSURFACE-IOR",
-            "SUBSURFACE-ANISOTROPY",
-            "SPECULAR",
-            "SPECULAR-TINT",
-            "SPECULAR-ANISOTROPIC",
-            "SPECULAR-ANISOTROPIC-ROTATION",
-            "SPECULAR-TANGENT",
-            "TRANSMISSION-WEIGHT",
-            "COAT",
-            "COAT-ROUGHNESS",
-            "COAT-IOR",
-            "COAT-TINT",
-            "COAT-NORMAL",
-            "SHEEN-WEIGHT",
-            "SHEEN-ROUGHNESS",
-            "SHEEN-TINT",
-            "EMISSION",
-            "EMISSION-STRENGTH"
-        ],
-        "default_active_channels": [
-            "BASE-COLOR",
-            "METALLIC",
-            "ROUGHNESS",
-            "NORMAL",
-            "HEIGHT"
+            {
+              "name": "BASE-COLOR",
+              "default_active": true,
+              "socket_type": "NodeSocketColor",
+              "socket_default": [0.0, 0.0, 0.0]
+            },
+            {
+              "name": "METALLIC",
+              "default_active": true,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.0
+            }
         ],
         "global_properties": [
             "EMISSION-STRENGTH"
@@ -53,26 +29,18 @@
         "description": "A stylized shader for toon and anime characters.",
         "group_node_name": "ML_RYSHADE",
         "shader_material_channels": [
-            "BASE-COLOR",
-            "METALLIC",
-            "ROUGHNESS",
-            "NORMAL",
-            "HEIGHT",
-            "ALPHA",
-            "SPECULAR-TINT",
-            "SPECULAR",
-            "SUBSURFACE",
-            "SUBSURFACE-TINT"
-        ],
-        "default_active_channels": [
-            "BASE-COLOR",
-            "METALLIC",
-            "ROUGHNESS",
-            "NORMAL",
-            "HEIGHT",
-            "ALPHA",
-            "SUBSURFACE",
-            "SUBSURFACE-TINT"
+          {
+            "name": "BASE-COLOR",
+            "default_active": true,
+            "socket_type": "NodeSocketColor",
+            "socket_default": [0.0, 0.0, 0.0]
+          },
+          {
+            "name": "ROUGHNESS",
+            "default_active": true,
+            "socket_type": "NodeSocketFloat",
+            "socket_default": 0.0
+          }
         ],
         "global_properties": [
             "SUBSURFACE-WRAP"

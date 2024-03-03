@@ -54,7 +54,33 @@ def draw_ui_shaders_section(self, context):
     # Draw all the material channels for the selected shader.
     layout.label(text="Shader Material Channels:")
     for channel in shader_info.material_channels:
-        layout.prop(channel, "name", text="")
+        split = layout.split(factor=0.5)
+        first_column = split.column()
+        second_column = split.column()
+
+        row = first_column.row()
+        if channel.default_active:
+            row.prop(channel, "default_active", text="", toggle=True, icon='CHECKMARK')
+        else:
+            row.prop(channel, "default_active", text="", toggle=True)
+        row.prop(channel, "name", text="")
+
+        row = second_column.row()
+        split = row.split(factor=0.7)
+        first_sub_column = split.column()
+        second_sub_column = split.column()
+
+        row = first_sub_column.row()
+        match channel.socket_type:
+            case 'NodeSocketFloat':
+                row.prop(channel, "socket_float_default", text="")
+            case 'NodeSocketColor':
+                row.prop(channel, "socket_color_default", text="")
+            case 'NodeSocketVector':
+                row.prop(channel, "socket_vector_default", text="")
+        
+        row = second_sub_column.row()
+        row.prop(channel, "socket_type", text="")
 
 class ShaderSubMenu(Menu):
     bl_idname = "MATLAYER_MT_shader_sub_menu"

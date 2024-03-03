@@ -3,11 +3,18 @@
 import bpy
 from bpy.utils import resource_path
 from bpy.types import PropertyGroup, Operator
-from bpy.props import StringProperty, CollectionProperty
+from bpy.props import BoolProperty, StringProperty, CollectionProperty, EnumProperty, FloatProperty, FloatVectorProperty
 import json
 from pathlib import Path
 from ..core import debug_logging
 from .. import preferences
+
+NODE_SOCKET_TYPES = [
+    ("NodeSocketFloat", "Float", "Channel contains greyscale (0 - 1) data."),
+    ("NodeSocketColor", "Color", "Channel contains RGBA data."),
+    ("NodeSocketVector", "Vector", "Channel contains vector data."),
+    #("NodeSocketShader", "Shader", "Channel contains shader data.")
+]
 
 def update_shader_list():
     '''Updates a list of all available shaders as defined in the shader info json data.'''
@@ -52,7 +59,17 @@ def set_shader(shader_name):
             matlayer_shader_info.material_channels.clear()
             for shader_material_channel in shader_material_channels:
                 channel = matlayer_shader_info.material_channels.add()
-                channel.name = shader_material_channel
+                channel.name = shader_material_channel['name']
+                channel.default_active = shader_material_channel['default_active']
+                channel.socket_type = shader_material_channel['socket_type']
+
+                match channel.socket_type:
+                    case 'NodeSocketFloat':
+                        channel.socket_float_default = shader_material_channel['socket_default']
+                    case 'NodeSocketColor':
+                        channel.socket_color_default = shader_material_channel['socket_default']
+                    case 'NodeSocketVector':
+                        channel.socket_vector_default = shader_material_channel['socket_default']
 
     # TODO: If the shader wasn't found, apply a default shader instead.
     if not shader_exists:
@@ -63,8 +80,13 @@ class MATLAYER_shader_name(PropertyGroup):
     name: StringProperty()
 
 class MATLAYER_shader_material_channel(PropertyGroup):
-    '''List of material channels for a specific shader.'''
+    '''Properties for a shader material channel.'''
     name: StringProperty()
+    default_active: BoolProperty()
+    socket_type: EnumProperty(items=NODE_SOCKET_TYPES, default='NodeSocketColor')
+    socket_float_default: FloatProperty()
+    socket_color_default: FloatVectorProperty(subtype='COLOR')
+    socket_vector_default: FloatVectorProperty()
 
 class MATLAYER_shader_info(PropertyGroup):
     name: StringProperty()

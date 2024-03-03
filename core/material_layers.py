@@ -494,6 +494,35 @@ def create_default_material_setup():
 
     return blank_material
 
+def create_default_layer_node(layer_type):
+    '''Creates a default setup for a layer node based on shader material channels.'''
+
+    # Create a default node group for the layer, if one exists already, delete it.
+    default_node_group_name = "ML_DefaultNodeGroup"
+    default_node_group = bpy.data.node_groups.get(default_node_group_name)
+    if default_node_group:
+        bpy.data.node_groups.remove(default_node_group)
+    default_node_group = bpy.data.node_groups.new(default_node_group_name, type='ShaderNodeTree')
+
+    # Add inputs and outputs to the group node for all shader channels.
+    shader_info = bpy.context.scene.matlayer_shader_info
+    for channel in shader_info.material_channels:
+        input_socket = default_node_group.interface.new_socket(
+            name=channel.name, 
+            description=channel.name, 
+            in_out='INPUT', 
+            socket_type='NodeSocketColor'
+        )
+
+        output_socket = default_node_group.interface.new_socket(
+            name=channel.name,
+            description=channel.name,
+            in_out='OUTPUT',
+            socket_type='NodeSocketColor'
+        )
+
+    return default_node_group
+
 def add_material_layer(layer_type, self):
     '''Adds a material layer to the active materials layer stack.'''
 
@@ -526,7 +555,7 @@ def add_material_layer(layer_type, self):
     else:
         active_material = bpy.context.active_object.active_material
         if blender_addon_utils.verify_addon_material(active_material) == False:
-            debug_logging.log_status("Can't add layer, active material is not created with this add-on, or it's format is invalid.", self, type='ERROR')
+            debug_logging.log_status("Can't add layer, active material format is invalid.", self, type='ERROR')
             return
     
     new_layer_slot_index = add_material_layer_slot()
@@ -535,10 +564,12 @@ def add_material_layer(layer_type, self):
     match layer_type:
         case 'DECAL':
             default_layer_node_group = blender_addon_utils.append_group_node("ML_DecalLayer", return_unique=True, never_auto_delete=True)
+            default_node_group = create_default_layer_node(layer_type='DECAL')
             debug_logging.log("Added decal layer.")
 
         case _:
             default_layer_node_group = blender_addon_utils.append_group_node("ML_DefaultLayer", return_unique=True, never_auto_delete=True)
+            default_node_group = create_default_layer_node(layer_type='MATERIAL')
             debug_logging.log("Added material layer.")
 
     active_material = bpy.context.active_object.active_material
