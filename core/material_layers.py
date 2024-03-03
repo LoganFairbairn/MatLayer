@@ -434,6 +434,66 @@ def apply_base_normals():
             default_normal_image = blender_addon_utils.append_image('DefaultNormal')
             base_normals_node.image = default_normal_image
 
+def create_default_material_setup():
+    '''Creates a default material setup for the applied shader.'''
+
+    # Append a blank material setup from the add-on assets blend file.
+    blank_material = blender_addon_utils.append_material('BlankMaterialSetup')
+    if blank_material:
+        blank_node_tree = blank_material.node_tree
+        if blank_node_tree:
+            shader_info = bpy.context.scene.matlayer_shader_info
+            shader_node = blank_node_tree.nodes.get('MATLAYER_SHADER')
+            shader_group_node_name = shader_info.group_node_name
+            shader_group_node = blender_addon_utils.append_group_node(shader_group_node_name)
+            
+            # Replace the shader node in the blank material setup.
+            if shader_group_node:
+                old_node_location = shader_node.location
+                old_node_width = shader_node.width
+                blank_node_tree.nodes.remove(shader_node)
+                new_shader_node = blank_node_tree.nodes.new('ShaderNodeGroup')
+                new_shader_node.name = 'MATLAYER_SHADER'
+                new_shader_node.label = new_shader_node.name
+                new_shader_node.location = old_node_location
+                new_shader_node.width = old_node_width
+                new_shader_node.node_tree = shader_group_node
+
+                # Re-link the main shader node.
+                material_output_node = blank_node_tree.nodes.get('MATERIAL_OUTPUT')
+                if material_output_node:
+                    blank_node_tree.links.new(new_shader_node.outputs[0], material_output_node.inputs[0])
+
+                normal_height_mix_node = get_material_layer_node('NORMAL_HEIGHT_MIX')
+                if normal_height_mix_node:
+                    blank_node_tree.links.new(normal_height_mix_node.outputs[0], new_shader_node.inputs.get('Normal'))
+
+            else:
+                debug_logging.log("Shader group node {0} doesn't exist.".format(shader_group_node_name))
+                return
+
+            # Add global channel toggle nodes for all material channels defined in the shader.
+            channel_toggle_node = blank_node_tree.nodes.get('GLOBAL_CHANNEL_TOGGLE')
+            if channel_toggle_node:
+                node_width = 400
+                node_x = 300
+                node_y = -150
+                node_spacing = 40
+                for channel in shader_info.material_channels:
+                    new_channel_toggle_node = blank_node_tree.nodes.new('ShaderNodeValue')
+                    new_channel_toggle_node.hide = True
+                    new_channel_toggle_node.name = "GLOBAL_{0}_TOGGLE".format(channel.name)
+                    new_channel_toggle_node.label = new_channel_toggle_node.name
+                    new_channel_toggle_node.width = node_width
+                    new_channel_toggle_node.location[0] = node_x
+                    new_channel_toggle_node.location[1] = node_y
+                    node_y -= node_spacing
+    
+    else:
+        debug_logging.log("Missing blank material setup.", message_type='ERROR', sub_process=False)
+
+    return blank_material
+
 def add_material_layer(layer_type, self):
     '''Adds a material layer to the active materials layer stack.'''
 
@@ -443,18 +503,11 @@ def add_material_layer(layer_type, self):
     # Verify standard context is correct.
     if blender_addon_utils.verify_material_operation_context(self, check_active_material=False) == False:
         return
-    
-    shader = bpy.context.scene.matlayer_shader
-    match shader:
-        case 'ML_BSDF':
-            default_material_setup = 'DefaultBSDFMaterial'
-        case 'ML_RYSHADE':
-            default_material_setup = 'DefaultRyShadeMaterial'
 
     # If there are no material slots, or no material in the active material slot, make a new MatLayer material by appending the default material setup.
     active_object = bpy.context.active_object
     if len(active_object.material_slots) == 0:
-        new_material = blender_addon_utils.append_material(default_material_setup)
+        new_material = create_default_material_setup()
         new_material_name = blender_addon_utils.get_unique_material_name(active_object.name.replace('_', ''))
         new_material.name = new_material_name
         active_object.data.materials.append(new_material)
@@ -463,7 +516,7 @@ def add_material_layer(layer_type, self):
 
     # If material slots exist on the object, but the active material slot is empty, add a new material.
     elif active_object.material_slots[active_object.active_material_index].material == None:
-        new_material = blender_addon_utils.append_material(default_material_setup)
+        new_material = create_default_material_setup()
         new_material_name = blender_addon_utils.get_unique_material_name(active_object.name.replace('_', ''))
         new_material.name = new_material_name
         active_object.material_slots[active_object.active_material_index].material = new_material
@@ -478,19 +531,15 @@ def add_material_layer(layer_type, self):
     
     new_layer_slot_index = add_material_layer_slot()
 
-    # Add a material layer group node based on the specified layer type.
+    # TODO: Create a material layer group node based on the specified layer type.
     match layer_type:
-        case 'DEFAULT':
-            default_layer_node_group = blender_addon_utils.append_group_node("ML_DefaultLayer", return_unique=True, never_auto_delete=True)
-            debug_logging.log("Added material layer.")
-
-        case 'PAINT':
-            default_layer_node_group = blender_addon_utils.append_group_node("ML_DefaultLayer", return_unique=True, never_auto_delete=True)
-            debug_logging.log("Added paint layer.")
-
         case 'DECAL':
             default_layer_node_group = blender_addon_utils.append_group_node("ML_DecalLayer", return_unique=True, never_auto_delete=True)
             debug_logging.log("Added decal layer.")
+
+        case _:
+            default_layer_node_group = blender_addon_utils.append_group_node("ML_DefaultLayer", return_unique=True, never_auto_delete=True)
+            debug_logging.log("Added material layer.")
 
     active_material = bpy.context.active_object.active_material
     default_layer_node_group.name = format_layer_group_node_name(active_material.name, str(new_layer_slot_index)) + "~"
@@ -904,41 +953,7 @@ def link_layer_group_nodes(self):
 
 
     # TODO: Connect the last (non-muted / active) layer node to the shader node.
-    base_normals_mix_node = active_material.node_tree.nodes.get('BASE_NORMALS_MIX')
-    normal_and_height_mix_node = active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
-    shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
-
-    last_layer_node_index = layer_count - 1
-    last_layer_node = get_material_layer_node('LAYER', last_layer_node_index)
-    if last_layer_node:
-        while not blender_addon_utils.get_node_active(last_layer_node) and last_layer_node_index >= 0:
-            last_layer_node = get_material_layer_node('LAYER', last_layer_node_index)
-            last_layer_node_index -= 1
-
-    if last_layer_node:
-        if blender_addon_utils.get_node_active(last_layer_node):
-            for material_channel_name in MATERIAL_CHANNEL_LIST:
-
-                # Only connect active material channels.
-                if not tss.get_material_channel_active(material_channel_name):
-                    continue
-
-                channel_name = material_channel_name.replace('-', ' ')
-                channel_name = blender_addon_utils.capitalize_by_space(channel_name)
-
-                match material_channel_name:
-                    case 'COLOR':
-                        node_tree.links.new(last_layer_node.outputs.get(channel_name), shader_node.inputs.get('Base Color'))
-
-                    case 'NORMAL':
-                        node_tree.links.new(last_layer_node.outputs.get(channel_name), base_normals_mix_node.inputs.get('Normal Map 1'))
-                
-                    case 'HEIGHT':
-                        node_tree.links.new(last_layer_node.outputs.get(channel_name), normal_and_height_mix_node.inputs.get(channel_name))
-
-                    case _:
-                        node_tree.links.new(last_layer_node.outputs.get(channel_name), shader_node.inputs.get(channel_name))
-
+    
 
     '''
     # Connect the last (non-muted / active) layer node to the principled BSDF.
