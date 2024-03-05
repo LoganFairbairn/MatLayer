@@ -511,15 +511,180 @@ def create_default_layer_node(layer_type):
             name=channel.name, 
             description=channel.name, 
             in_out='INPUT', 
-            socket_type='NodeSocketColor'
+            socket_type=channel.socket_type
         )
 
         output_socket = default_node_group.interface.new_socket(
             name=channel.name,
             description=channel.name,
             in_out='OUTPUT',
-            socket_type='NodeSocketColor'
+            socket_type=channel.socket_type
         )
+
+        match channel.socket_type:
+            case 'NodeSocketFloat':
+                input_socket.default_value = channel.socket_float_default
+                output_socket.default_value = channel.socket_float_default
+            case 'NodeSocketColor':
+                input_socket.default_value = (channel.socket_color_default[0], channel.socket_color_default[1], channel.socket_color_default[2], 1)
+                output_socket.default_value = (channel.socket_color_default[0], channel.socket_color_default[1], channel.socket_color_default[2], 1)
+            case 'NodeSocketVector':
+                input_socket.default_value = channel.socket_vector_default
+                output_socket.default_value = channel.socket_vector_default
+    
+    # Add a layer mask input.
+    default_node_group.interface.new_socket(
+        name="LayerMask",
+        description="Mask input for the layer",
+        in_out='INPUT',
+        socket_type='NodeSocketFloat'
+    )
+
+    # Add input and output nodes.
+    input_node = default_node_group.nodes.new('NodeGroupInput')
+    input_node.name = 'GROUP_INPUT'
+    input_node.label = input_node.name
+    input_node.location[0] = -3000
+    input_node.location[1] = 0
+    input_node.width = 300
+
+    output_node = default_node_group.nodes.new('NodeGroupOutput')
+    output_node.name = 'GROUP_OUTPUT'
+    output_node.label = output_node.name
+    output_node.location[0] = 0
+    output_node.location[1] = 0
+    output_node.width = 300
+
+    # Add projection nodes.
+    projection_node = default_node_group.nodes.new('ShaderNodeGroup')
+    projection_node.name = 'PROJECTION'
+    projection_node.label = projection_node.name
+    projection_node.location[0] = -3000
+    projection_node.location[1] = -200
+    projection_node.node_tree = blender_addon_utils.append_group_node('ML_UVProjection')
+    projection_node.width = 300
+
+    # TODO: Add nodes for blurring material channels.
+    blur_node = default_node_group.nodes.new('ShaderNodeGroup')
+    blur_node.name = 'BLUR'
+    blur_node.label = blur_node.name
+    blur_node.location[0] = -3000
+    blur_node.location[1] = -500
+    blur_node.width = 300
+
+    # Add framed material channel nodes for values, filtering and mixing.
+    frame_x = -1000
+    frame_y = 0
+    for channel in shader_info.material_channels:
+        channel_frame_node = default_node_group.nodes.new('NodeFrame')
+        channel_frame_node.name = channel.name
+        channel_frame_node.label = channel.name
+
+        value_node = default_node_group.nodes.new('ShaderNodeGroup')
+        value_node.name = "{0}_VALUE_1".format(channel.name)
+        value_node.label = value_node.name
+        value_node.location[0] = -1000
+        value_node.location[1] = -400
+        value_node.parent = channel_frame_node
+        value_node.width = 300
+        value_node.node_tree = blender_addon_utils.append_group_node('ML_DefaultColor')
+
+        image_alpha_node = default_node_group.nodes.new('ShaderNodeMath')
+        image_alpha_node.name = "MIX_{0}_IMAGE_ALPHA".format(channel.name)
+        image_alpha_node.label = image_alpha_node.name
+        image_alpha_node.location[0] = -500
+        image_alpha_node.location[1] = 0
+        image_alpha_node.parent = channel_frame_node
+        image_alpha_node.operation = 'MULTIPLY'
+        image_alpha_node.mute = True
+        image_alpha_node.hide = True
+        image_alpha_node.use_clamp = True
+
+        image_alpha_node_reroute = default_node_group.nodes.new('NodeReroute')
+        image_alpha_node_reroute.name = "MIX_{0}_IMAGE_ALPHA_REROUTE".format(channel.name)
+        image_alpha_node_reroute.label = image_alpha_node_reroute.name
+        image_alpha_node_reroute.location[0] = -1000
+        image_alpha_node_reroute.location[1] = 0
+        image_alpha_node_reroute.parent = channel_frame_node
+
+        opacity_node = default_node_group.nodes.new('ShaderNodeMath')
+        opacity_node.name = "{0}_OPACITY".format(channel.name)
+        opacity_node.label = opacity_node.name
+        opacity_node.location[0] = -300
+        opacity_node.location[1] = 0
+        opacity_node.parent = channel_frame_node
+        opacity_node.width = 250
+        opacity_node.operation = 'MULTIPLY'
+
+        separate_node = default_node_group.nodes.new('ShaderNodeSeparateRGB')
+        separate_node.name = "SEPARATE_{0}".format(channel.name)
+        separate_node.label = separate_node.label
+        separate_node.location[0] = -200
+        separate_node.location[1] = -500
+        separate_node.parent = channel_frame_node
+        
+        filter_node = default_node_group.nodes.new('ShaderNodeGroup')
+        filter_node.name = "{0}_FILTER".format(channel.name)
+        filter_node.label = filter_node.name
+        filter_node.location[0] = 0
+        filter_node.location[1] = -500
+        filter_node.parent = channel_frame_node
+        filter_node.width = 300
+        filter_node.node_tree = blender_addon_utils.append_group_node('ML_DefaultColorFilter')
+
+        mix_node_reroute = default_node_group.nodes.new('NodeReroute')
+        mix_node_reroute.name = "{0}_MIX_REROUTE".format(channel.name)
+        mix_node_reroute.label = mix_node_reroute.name
+        mix_node_reroute.location[0] = -1000
+        mix_node_reroute.location[1] = -177
+        mix_node_reroute.parent = channel_frame_node
+
+        # Change the mix node and it's linking based on the default blend mode.
+        if channel.default_blend_mode == 'NORMAL_MAP_COMBINE' or channel.default_blend_mode == 'NORMAL_MAP_DETAIL':
+            normal_rotation_fix_node = default_node_group.nodes.new('ShaderNodeGroup')
+            normal_rotation_fix_node.name = 'FIX_NORMAL_ROTATION'
+            normal_rotation_fix_node.label = normal_rotation_fix_node.name
+            normal_rotation_fix_node.location[0] = -600
+            normal_rotation_fix_node.location[1] = -500
+            normal_rotation_fix_node.parent = channel_frame_node
+            normal_rotation_fix_node.width = 300
+            normal_rotation_fix_node.node_tree = blender_addon_utils.append_group_node('ML_FixNormalRotation')
+
+            mix_node = default_node_group.nodes.new('ShaderNodeGroup')
+            mix_node.node_tree = blender_addon_utils.append_group_node('ML_ReorientedNormalMapMix')
+            default_node_group.links.new(mix_node_reroute.outputs[0], mix_node.inputs[1])
+            default_node_group.links.new(value_node.outputs[0], mix_node.inputs[2])
+            default_node_group.links.new(mix_node.outputs[0], output_node.inputs.get(channel.name))
+
+        else:
+            mix_node = default_node_group.nodes.new('ShaderNodeMix')
+            mix_node.data_type = 'RGBA'
+            mix_node.clamp_factor = True
+            mix_node.clamp_result = True
+            mix_node.blend_type = channel.default_blend_mode
+            default_node_group.links.new(mix_node_reroute.outputs[0], mix_node.inputs[6])
+            default_node_group.links.new(value_node.outputs[0], mix_node.inputs[7])
+            default_node_group.links.new(mix_node.outputs[2], output_node.inputs.get(channel.name))
+
+        mix_node.name = "{0}_MIX".format(channel.name)
+        mix_node.label = mix_node.name
+        mix_node.location[0] = 500
+        mix_node.location[1] = 0
+        mix_node.parent = channel_frame_node
+
+        # Organize the location of the material channel frame.
+        channel_frame_node.location[0] = frame_x
+        channel_frame_node.location[1] = frame_y
+        frame_y -= 1000
+
+        # Link all default nodes together.
+        default_node_group.links.new(input_node.outputs.get('LayerMask'), image_alpha_node_reroute.inputs[0])
+        default_node_group.links.new(image_alpha_node_reroute.outputs[0], image_alpha_node.inputs[0])
+        default_node_group.links.new(image_alpha_node.outputs[0], opacity_node.inputs[1])
+        default_node_group.links.new(opacity_node.outputs[0], mix_node.inputs[0])
+        
+        default_node_group.links.new(input_node.outputs.get(channel.name), mix_node_reroute.inputs[0])
+        
 
     return default_node_group
 

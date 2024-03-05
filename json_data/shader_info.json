@@ -10,13 +10,36 @@
               "name": "BASE-COLOR",
               "default_active": true,
               "socket_type": "NodeSocketColor",
-              "socket_default": [0.0, 0.0, 0.0]
+              "socket_default": [0.0, 0.0, 0.0],
+              "default_blend_mode": "MIX"
             },
             {
               "name": "METALLIC",
               "default_active": true,
               "socket_type": "NodeSocketFloat",
-              "socket_default": 0.0
+              "socket_default": 0.0,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "ROUGHNESS",
+              "default_active": true,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.5,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "NORMAL",
+              "default_active": true,
+              "socket_type": "NodeSocketVector",
+              "socket_default": [0.5, 0.5, 0.5],
+              "default_blend_mode": "NORMAL_MAP_DETAIL"
+            },
+            {
+              "name": "HEIGHT",
+              "default_active": true,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": [0.5, 0.5, 0.5],
+              "default_blend_mode": "ADD"
             }
         ],
         "global_properties": [
@@ -29,18 +52,34 @@
         "description": "A stylized shader for toon and anime characters.",
         "group_node_name": "ML_RYSHADE",
         "shader_material_channels": [
-          {
-            "name": "BASE-COLOR",
-            "default_active": true,
-            "socket_type": "NodeSocketColor",
-            "socket_default": [0.0, 0.0, 0.0]
-          },
-          {
-            "name": "ROUGHNESS",
-            "default_active": true,
-            "socket_type": "NodeSocketFloat",
-            "socket_default": 0.0
-          }
+            {
+              "name": "BASE-COLOR",
+              "default_active": true,
+              "socket_type": "NodeSocketColor",
+              "socket_default": [0.0, 0.0, 0.0],
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "METALLIC",
+              "default_active": true,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.0,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "ROUGHNESS",
+              "default_active": true,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.5,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "NORMAL",
+              "default_active": true,
+              "socket_type": "NodeSocketVector",
+              "socket_default": [0.5, 0.5, 0.5],
+              "default_blend_mode": "NORMAL_MAP_DETAIL"
+            }
         ],
         "global_properties": [
             "SUBSURFACE-WRAP"

@@ -9,11 +9,41 @@ from pathlib import Path
 from ..core import debug_logging
 from .. import preferences
 
+LAYER_BLEND_MODES = [
+    ('MIX', "Mix", ""),
+    ('DARKEN', "Darken", ""),
+    ('MULTIPLY', "Multiply", ""),
+    ('BURN', "Burn", ""),
+    ('LIGHTEN', "Lighten", ""),
+    ('SCREEN', "Screen", ""),
+    ('DODGE', "Dodge", ""),
+    ('ADD', "Add", ""),
+    ('OVERLAY', "Overlay", ""),
+    ('SOFT_LIGHT', "Soft Light", ""),
+    ('LINEAR_LIGHT', "Linear Light", ""),
+    ('DIFFERENCE', "Difference", ""),
+    ('EXCLUSION', "Exclusion", ""),
+    ('SUBTRACT', "Subtract", ""),
+    ('DIVIDE', "Divide", ""),
+    ('HUE', "Hue", ""),
+    ('SATURATION', "Saturation", ""),
+    ('COLOR', "Color", ""),
+    ('VALUE', "Value", ""),
+    ('NORMAL_MAP_COMBINE', "Normal Map Combine", ""),
+    ('NORMAL_MAP_DETAIL', "Normal Map Detail", "")
+]
+
 NODE_SOCKET_TYPES = [
     ("NodeSocketFloat", "Float", "Channel contains greyscale (0 - 1) data."),
     ("NodeSocketColor", "Color", "Channel contains RGBA data."),
     ("NodeSocketVector", "Vector", "Channel contains vector data."),
     #("NodeSocketShader", "Shader", "Channel contains shader data.")
+]
+
+DEFAULT_CHANNEL_FILTERS = [
+    ("COLOR", "Color", "Default filter group node designed for fitlering RGBA channels."),
+    ("GREYSCALE", "Greyscale", "Default filter group node designed for filtering greyscale channels."),
+    ("NORMAL", "Normal", "Default normal filter group node designed for filtering normal channels.")
 ]
 
 def update_shader_list():
@@ -62,6 +92,7 @@ def set_shader(shader_name):
                 channel.name = shader_material_channel['name']
                 channel.default_active = shader_material_channel['default_active']
                 channel.socket_type = shader_material_channel['socket_type']
+                channel.default_blend_mode = shader_material_channel['default_blend_mode']
 
                 match channel.socket_type:
                     case 'NodeSocketFloat':
@@ -87,6 +118,7 @@ class MATLAYER_shader_material_channel(PropertyGroup):
     socket_float_default: FloatProperty()
     socket_color_default: FloatVectorProperty(subtype='COLOR')
     socket_vector_default: FloatVectorProperty()
+    default_blend_mode: EnumProperty(items=LAYER_BLEND_MODES, default='MIX')
 
 class MATLAYER_shader_info(PropertyGroup):
     name: StringProperty()
