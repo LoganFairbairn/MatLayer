@@ -633,6 +633,7 @@ def create_default_layer_node(layer_type):
         filter_node.parent = channel_frame_node
         filter_node.width = 300
         filter_node.node_tree = blender_addon_utils.append_group_node('ML_DefaultColorFilter')
+        blender_addon_utils.set_node_active(filter_node, active=False)
 
         mix_node_reroute = default_node_group.nodes.new('NodeReroute')
         mix_node_reroute.name = "{0}_MIX_REROUTE".format(channel.name)
