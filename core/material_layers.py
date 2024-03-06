@@ -473,21 +473,19 @@ def create_default_material_setup():
                 return
 
             # Add global channel toggle nodes for all material channels defined in the shader.
-            channel_toggle_node = blank_node_tree.nodes.get('GLOBAL_CHANNEL_TOGGLE')
-            if channel_toggle_node:
-                node_width = 400
-                node_x = 300
-                node_y = -150
-                node_spacing = 40
-                for channel in shader_info.material_channels:
-                    new_channel_toggle_node = blank_node_tree.nodes.new('ShaderNodeValue')
-                    new_channel_toggle_node.hide = True
-                    new_channel_toggle_node.name = "GLOBAL_{0}_TOGGLE".format(channel.name)
-                    new_channel_toggle_node.label = new_channel_toggle_node.name
-                    new_channel_toggle_node.width = node_width
-                    new_channel_toggle_node.location[0] = node_x
-                    new_channel_toggle_node.location[1] = node_y
-                    node_y -= node_spacing
+            node_width = 400
+            node_x = 300
+            node_y = -150
+            node_spacing = 40
+            for channel in shader_info.material_channels:
+                new_channel_toggle_node = blank_node_tree.nodes.new('ShaderNodeValue')
+                new_channel_toggle_node.hide = True
+                new_channel_toggle_node.name = "GLOBAL_{0}_TOGGLE".format(channel.name)
+                new_channel_toggle_node.label = new_channel_toggle_node.name
+                new_channel_toggle_node.width = node_width
+                new_channel_toggle_node.location[0] = node_x
+                new_channel_toggle_node.location[1] = node_y
+                node_y -= node_spacing
     
     else:
         debug_logging.log("Missing blank material setup.", message_type='ERROR', sub_process=False)
