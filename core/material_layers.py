@@ -170,6 +170,8 @@ def get_shorthand_material_channel_name(material_channel_name):
     match material_channel_name:
         case 'COLOR':
             return 'COLOR'
+        case 'BASE-COLOR':
+            return 'COLOR'
         case 'SUBSURFACE':
             return 'SUBSURF'
         case 'SUBSURFACE-RADIUS':
@@ -208,6 +210,8 @@ def get_shorthand_material_channel_name(material_channel_name):
             return 'SHEEN-TINT'
         case 'DISPLACEMENT':
             return 'DISPLACE'
+        case _:
+            return material_channel_name
 
 def parse_layer_index(layer_group_node_name):
     '''Return the layers's index by parsing the layer group node name. Returns -1 if there is no active object'''

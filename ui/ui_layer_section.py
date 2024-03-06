@@ -128,17 +128,19 @@ def draw_layer_material_channel_toggles(layout):
     row.scale_y = DEFAULT_UI_SCALE_Y
     drawn_toggles = 0
     
-    active_material_channels = []
-    for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
-        if tss.get_material_channel_active(material_channel_name):
-            active_material_channels.append(material_channel_name)
+    shader_info = bpy.context.scene.matlayer_shader_info
 
-    for material_channel_name in active_material_channels:
-        mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, material_channel_name)
+    active_material_channels = []
+    for channel in shader_info.material_channels:
+        if tss.get_material_channel_active(channel.name):
+            active_material_channels.append(channel.name)
+
+    for channel_name in active_material_channels:
+        mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, channel_name)
         if mix_node:
 
             # Draw material channels with shortened names so they are more condensed in the user interface.
-            row.prop(mix_node, "mute", text=material_layers.get_shorthand_material_channel_name(material_channel_name), toggle=True, invert_checkbox=True)
+            row.prop(mix_node, "mute", text=material_layers.get_shorthand_material_channel_name(channel_name), toggle=True, invert_checkbox=True)
             drawn_toggles += 1
             if len(active_material_channels) > 5:
                 if drawn_toggles >= min(4, round(len(active_material_channels) / 2)):
@@ -272,15 +274,16 @@ def draw_material_channel_properties(layout):
         return
     
     # Draw properties for all active material channels.
-    for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
+    shader_info = bpy.context.scene.matlayer_shader_info
+    for channel in shader_info.material_channels:
 
         # Do not draw properties for globally inactive material channels.
-        if not tss.get_material_channel_active(material_channel_name):
+        if not tss.get_material_channel_active(channel.name):
             continue
 
         layer_node_tree = material_layers.get_layer_node_tree(selected_layer_index)
-        mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, material_channel_name)
-        value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
+        mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, channel.name)
+        value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, channel.name)
         if value_node:
             
             # Only draw properties for material channels that are active in this layer.
@@ -288,11 +291,11 @@ def draw_material_channel_properties(layout):
                 row = layout.row()
                 row.separator()
                 row = layout.row()
-                row.label(text="• {0}".format(material_channel_name))
-                draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_layer_index, material_channel_name)
-                draw_material_channel_filter_node(layout, material_channel_name, selected_layer_index)
+                row.label(text="• {0}".format(channel.name))
+                draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_layer_index, channel.name)
+                draw_material_channel_filter_node(layout, channel.name, selected_layer_index)
                 draw_value_node_properties(layout, value_node)
-                draw_material_channel_filter_properties(layout, selected_layer_index, material_channel_name)
+                draw_material_channel_filter_properties(layout, selected_layer_index, channel.name)
 
 def draw_layer_projection(layout):
     '''Draws layer projection settings.'''
@@ -633,25 +636,25 @@ def draw_layer_blur_settings(layout):
         drawn_toggles = 0
         
         active_material_channels = []
-        for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
-            if tss.get_material_channel_active(material_channel_name):
-                active_material_channels.append(material_channel_name)
+        shader_info = bpy.context.scene.matlayer_shader_info
+        for channel in shader_info.material_channels:
+            if tss.get_material_channel_active(channel.name):
+                active_material_channels.append(channel.name)
 
         if blender_addon_utils.get_node_active(blur_node):
-            for material_channel_name in active_material_channels:
-                mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, material_channel_name)
+            for channel_name in active_material_channels:
+                mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, channel_name)
                 if mix_node:
-                    channel_name = material_channel_name.replace('-', ' ')
-                    channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+
                     blur_toggle_property_name = "{0} Blur Toggle".format(channel_name)
-                    shorthand_material_channel_name = material_layers.get_shorthand_material_channel_name(material_channel_name)
+                    shorthand_material_channel_name = material_layers.get_shorthand_material_channel_name(channel_name)
 
                     if blur_node.inputs.get(blur_toggle_property_name).default_value == 1:
                         operator = row.operator("matlayer.toggle_material_channel_blur", text=shorthand_material_channel_name, depress=True)
-                        operator.material_channel_name = material_channel_name
+                        operator.material_channel_name = channel_name
                     if blur_node.inputs.get(blur_toggle_property_name).default_value == 0:
                         operator = row.operator("matlayer.toggle_material_channel_blur", text=shorthand_material_channel_name, depress=False)
-                        operator.material_channel_name = material_channel_name
+                        operator.material_channel_name = channel_name
 
                     drawn_toggles += 1
                     if drawn_toggles >= min(4, round(len(active_material_channels) / 2)):
