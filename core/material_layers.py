@@ -727,16 +727,14 @@ def add_material_layer(layer_type, self):
     
     new_layer_slot_index = add_material_layer_slot()
 
-    # TODO: Create a material layer group node based on the specified layer type.
+    # Create a material layer group node based on the specified layer type.
     match layer_type:
         case 'DECAL':
-            default_layer_node_group = blender_addon_utils.append_group_node("ML_DecalLayer", return_unique=True, never_auto_delete=True)
-            default_node_group = create_default_layer_node(layer_type='DECAL')
+            default_layer_node_group = create_default_layer_node(layer_type='DECAL')
             debug_logging.log("Added decal layer.")
 
         case _:
-            default_layer_node_group = blender_addon_utils.append_group_node("ML_DefaultLayer", return_unique=True, never_auto_delete=True)
-            default_node_group = create_default_layer_node(layer_type='MATERIAL')
+            default_layer_node_group = create_default_layer_node(layer_type='MATERIAL')
             debug_logging.log("Added material layer.")
 
     active_material = bpy.context.active_object.active_material
@@ -752,7 +750,8 @@ def add_material_layer(layer_type, self):
     layer_masks.organize_mask_nodes()
     layer_masks.refresh_mask_slots()
 
-    # For specific layer types, perform additional setup steps.
+    # TODO: For specific layer types, perform additional setup steps.
+    '''
     match layer_type:
         case 'PAINT':
             replace_material_channel_node('COLOR', 'TEXTURE')
@@ -806,6 +805,7 @@ def add_material_layer(layer_type, self):
             layer_masks.set_mask_output_channel('ALPHA')
             
             blender_addon_utils.set_snapping('DECAL', snap_on=True)
+    '''
 
 def duplicate_layer(original_layer_index, self):
     '''Duplicates the material layer at the provided layer index.'''
