@@ -612,6 +612,8 @@ def draw_layer_blur_settings(layout):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     blur_node = material_layers.get_material_layer_node('BLUR', selected_layer_index)
 
+    # TODO: Fix blurring!
+    '''
     if blur_node:
         split = layout.row()
         column_1 = split.column()
@@ -661,6 +663,7 @@ def draw_layer_blur_settings(layout):
                         row = layout.row()
                         row.scale_y = DEFAULT_UI_SCALE_Y
                         drawn_toggles = 0
+    '''
 
 def draw_layer_properties(layout):
     '''Draws properties specific to the selected layer such as blurring, or decal properties.'''
