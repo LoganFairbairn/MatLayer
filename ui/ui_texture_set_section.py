@@ -68,18 +68,15 @@ def draw_texture_set_section_ui(self, context):
                 row = layout.row()
                 row.scale_y = 1.4
                 row_count = 0
-                for material_channel_name in MATERIAL_CHANNEL_LIST:
-                    channel_name = material_channel_name.replace('-', ' ')
-                    channel_name = blender_addon_utils.capitalize_by_space(channel_name)
 
-                    if material_channel_name == 'DISPLACEMENT':
-                        channel_name += (' (Cycles only)')
+                shader_info = bpy.context.scene.matlayer_shader_info
+                for channel in shader_info.material_channels:
 
-                    if tss.get_material_channel_active(material_channel_name):
-                        operator = row.operator("matlayer.toggle_texture_set_material_channel", text=channel_name, depress=True)
+                    if tss.get_material_channel_active(channel.name):
+                        operator = row.operator("matlayer.toggle_texture_set_material_channel", text=channel.name, depress=True)
                     else:
-                        operator = row.operator("matlayer.toggle_texture_set_material_channel", text=channel_name)
-                    operator.material_channel_name = material_channel_name
+                        operator = row.operator("matlayer.toggle_texture_set_material_channel", text=channel.name)
+                    operator.material_channel_name = channel.name
 
                     row_count += 1
                     if row_count >= 2:
