@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Logan Fairbairn
+# Copyright (c) 2021-2024 Logan Fairbairn
 # logan-fairbairn@outlook.com
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
