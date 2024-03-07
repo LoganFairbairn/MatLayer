@@ -29,7 +29,7 @@
             },
             {
               "name": "IOR",
-              "default_active": true,
+              "default_active": false,
               "socket_type": "NodeSocketFloat",
               "socket_default": 1.45,
               "default_blend_mode": "MIX"
@@ -43,7 +43,7 @@
             },
             {
               "name": "ALPHA",
-              "default_active": true,
+              "default_active": false,
               "socket_type": "NodeSocketFloat",
               "socket_default": 0.0,
               "default_blend_mode": "MIX"
