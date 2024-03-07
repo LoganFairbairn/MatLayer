@@ -1096,6 +1096,7 @@ def link_layer_group_nodes(self):
     if blender_addon_utils.verify_material_operation_context(self) == False:
         return
 
+    shader_info = bpy.context.scene.matlayer_shader_info
     active_material = bpy.context.active_object.active_material
     node_tree = active_material.node_tree
 
@@ -1129,33 +1130,26 @@ def link_layer_group_nodes(self):
 
             if next_layer_node:
                 if blender_addon_utils.get_node_active(next_layer_node):
-                    for material_channel_name in MATERIAL_CHANNEL_LIST:
+                    for channel in shader_info.material_channels:
 
                         # If the next layers material channel is blending using the 'mix' blending method,
                         # and the next layer has no mask applied, this layers material channel values will have no
                         # effect on the material output. We can skip linking these channels so shaders will compile much faster.
                         mask_node = layer_masks.get_mask_node('MASK', next_layer_index, 0)
                         if not mask_node:
-                            next_layer_mix_node = get_material_layer_node('MIX', next_layer_index, material_channel_name)
+                            next_layer_mix_node = get_material_layer_node('MIX', next_layer_index, channel.name)
                             if next_layer_mix_node.bl_static_type == 'MIX':
                                 if next_layer_mix_node.blend_type == 'MIX':
-                                    next_layer_opacity_node = get_material_layer_node('OPACITY', next_layer_index, material_channel_name)
+                                    next_layer_opacity_node = get_material_layer_node('OPACITY', next_layer_index, channel.name)
                                     if next_layer_opacity_node:
                                         if next_layer_opacity_node.inputs[0].default_value == 1:
                                             continue
 
-                        channel_name = material_channel_name.replace('-', ' ')
-                        channel_name = blender_addon_utils.capitalize_by_space(channel_name)
-                        output_socket_name = channel_name
-                        input_socket_name = "{0} Mix".format(channel_name)
+                        output_socket_name = channel.name
+                        input_socket_name = "{0} Mix".format(channel.name)
                         node_tree.links.new(layer_node.outputs.get(output_socket_name), next_layer_node.inputs.get(input_socket_name))
 
-
-    # TODO: Connect the last (non-muted / active) layer node to the shader node.
-    
-
-    '''
-    # Connect the last (non-muted / active) layer node to the principled BSDF.
+    # TODO: Connect the last (non-muted / active) layer node to the principled BSDF.
     base_normals_mix_node = active_material.node_tree.nodes.get('BASE_NORMALS_MIX')
     normal_and_height_mix_node = active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
     shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
@@ -1169,28 +1163,32 @@ def link_layer_group_nodes(self):
 
     if last_layer_node:
         if blender_addon_utils.get_node_active(last_layer_node):
-            for material_channel_name in MATERIAL_CHANNEL_LIST:
+            
+            for channel in shader_info.material_channels:
 
                 # Only connect active material channels.
-                if not tss.get_material_channel_active(material_channel_name):
+                if not tss.get_material_channel_active(channel.name):
                     continue
-
-                channel_name = material_channel_name.replace('-', ' ')
-                channel_name = blender_addon_utils.capitalize_by_space(channel_name)
-
-                match material_channel_name:
-                    case 'COLOR':
-                        node_tree.links.new(last_layer_node.outputs.get(channel_name), shader_node.inputs.get('Base Color'))
-
+                
+                # Connect normal and height channels differently.
+                match channel.name:
                     case 'NORMAL':
-                        node_tree.links.new(last_layer_node.outputs.get(channel_name), base_normals_mix_node.inputs.get('Normal Map 1'))
+                        output_socket = last_layer_node.outputs.get(channel.name)
+                        input_socket = base_normals_mix_node.inputs.get('Normal Map 1')
+                        if output_socket and input_socket:
+                            node_tree.links.new(output_socket, input_socket)
                 
                     case 'HEIGHT':
-                        node_tree.links.new(last_layer_node.outputs.get(channel_name), normal_and_height_mix_node.inputs.get(channel_name))
+                        output_socket = last_layer_node.outputs.get(channel.name)
+                        input_socket = normal_and_height_mix_node.inputs.get(channel.name)
+                        if output_socket and input_socket:
+                            node_tree.links.new(output_socket, input_socket)
 
                     case _:
-                        node_tree.links.new(last_layer_node.outputs.get(channel_name), shader_node.inputs.get(channel_name))
-    '''
+                        output_socket = last_layer_node.outputs.get(channel.name)
+                        input_socket = shader_node.inputs.get(channel.name)
+                        if output_socket and input_socket:
+                            node_tree.links.new(output_socket, input_socket)
     debug_logging.log("Linked layer group nodes.")
 
 def reindex_layer_nodes(change_made, affected_layer_index):
