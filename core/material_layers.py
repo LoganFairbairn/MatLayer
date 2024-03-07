@@ -490,6 +490,9 @@ def create_default_material_setup():
                 new_channel_toggle_node.location[0] = node_x
                 new_channel_toggle_node.location[1] = node_y
                 node_y -= node_spacing
+
+                if channel.default_active == False:
+                    new_channel_toggle_node.mute = True
     
     else:
         debug_logging.log("Missing blank material setup.", message_type='ERROR', sub_process=False)
