@@ -28,18 +28,172 @@
               "default_blend_mode": "MIX"
             },
             {
+              "name": "IOR",
+              "default_active": true,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 1.45,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "AMBIENT-OCCLUSION",
+              "default_active": true,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.0,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "ALPHA",
+              "default_active": true,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.0,
+              "default_blend_mode": "MIX"
+            },
+            {
               "name": "NORMAL",
               "default_active": true,
-              "socket_type": "NodeSocketVector",
-              "socket_default": [0.5, 0.5, 0.5],
+              "socket_type": "NodeSocketColor",
+              "socket_default": [0.666667, 0.5, 1.0],
               "default_blend_mode": "NORMAL_MAP_DETAIL"
             },
             {
               "name": "HEIGHT",
               "default_active": true,
               "socket_type": "NodeSocketFloat",
-              "socket_default": [0.5, 0.5, 0.5],
+              "socket_default": 0.0,
               "default_blend_mode": "ADD"
+            },
+            {
+              "name": "SUBSURFACE",
+              "default_active": false,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.0,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "SUBSURFACE-RADIUS",
+              "default_active": false,
+              "socket_type": "NodeSocketVector",
+              "socket_default": [1.0, 0.2, 0.1],
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "SUBSURFACE-SCALE",
+              "default_active": false,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.0,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "SUBSURFACE-ANISOTROPY",
+              "default_active": false,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.0,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "SPECULAR",
+              "default_active": false,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.5,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "SPECULAR-TINT",
+              "default_active": false,
+              "socket_type": "NodeSocketColor",
+              "socket_default": [1.0, 1.0, 1.0],
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "SPECULAR-ANISOTROPIC",
+              "default_active": false,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.0,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "SPECULAR-ANISOTROPIC-ROTATION",
+              "default_active": false,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.0,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "SPECULAR-TANGENT",
+              "default_active": false,
+              "socket_type": "NodeSocketVector",
+              "socket_default": [0.0, 0.0, 0.0],
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "TRANSMISSION-WEIGHT",
+              "default_active": false,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.0,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "COAT",
+              "default_active": false,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.0,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "COAT-ROUGHNESS",
+              "default_active": false,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.03,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "COAT-IOR",
+              "default_active": false,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.0,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "COAT-TINT",
+              "default_active": false,
+              "socket_type": "NodeSocketColor",
+              "socket_default": [1.0, 1.0, 1.0],
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "COAT-NORMAL",
+              "default_active": false,
+              "socket_type": "NodeSocketVector",
+              "socket_default": [0.0, 0.0, 0.0],
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "SHEEN-WEIGHT",
+              "default_active": false,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.0,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "SHEEN-ROUGHNESS",
+              "default_active": false,
+              "socket_type": "NodeSocketFloat",
+              "socket_default": 0.5,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "SHEEN-TINT",
+              "default_active": false,
+              "socket_type": "NodeSocketColor",
+              "socket_default": [1.0, 1.0, 1.0],
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "EMISSION",
+              "default_active": false,
+              "socket_type": "NodeSocketColor",
+              "socket_default": [0.0, 0.0, 0.0],
+              "default_blend_mode": "MIX"
             }
         ],
         "global_properties": [
