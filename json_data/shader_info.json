@@ -52,7 +52,7 @@
               "name": "NORMAL",
               "default_active": true,
               "socket_type": "NodeSocketColor",
-              "socket_default": [0.666667, 0.5, 1.0],
+              "socket_default": [0.5, 0.5, 1.0],
               "default_blend_mode": "NORMAL_MAP_DETAIL"
             },
             {
@@ -231,7 +231,7 @@
               "name": "NORMAL",
               "default_active": true,
               "socket_type": "NodeSocketVector",
-              "socket_default": [0.5, 0.5, 0.5],
+              "socket_default": [0.5, 0.5, 1.0],
               "default_blend_mode": "NORMAL_MAP_DETAIL"
             }
         ],
