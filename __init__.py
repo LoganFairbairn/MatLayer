@@ -62,7 +62,7 @@ from .core.subscription_update_handler import on_active_material_changed, on_act
 bl_info = {
     "name": "MatLayer",
     "author": "Logan Fairbairn (Ryver)",
-    "version": (2, 0, 5),
+    "version": (3, 0, 0),
     "blender": (4, 0, 2),
     "location": "View3D > Sidebar > MatLayer",
     "description": "Replaces node based texturing workflow with a layer stack workflow through a custom user interface.",
