@@ -585,6 +585,26 @@ def create_default_layer_node(layer_type):
         channel_frame_node.name = channel.name
         channel_frame_node.label = channel.name
 
+        # TODO: Create default value group nodes for all shader channels.
+        default_value_group_node_name = "ML_Default{0}".format(channel.name)
+        default_value_group_node = bpy.data.node_groups.get(default_value_group_node_name)
+        if default_value_group_node:
+            bpy.data.node_groups.remove(default_value_group_node)
+        default_value_group_node = bpy.data.node_groups.new(default_value_group_node_name, type='ShaderNodeTree')
+        input_socket = default_value_group_node.interface.new_socket(
+            name=channel.name, 
+            description=channel.name,
+            in_out='INPUT',
+            socket_type=channel.socket_type
+        )
+
+        output_socket = default_value_group_node.interface.new_socket(
+            name=channel.name,
+            description=channel.name,
+            in_out='OUTPUT',
+            socket_type=channel.socket_type
+        )
+
         value_node = default_node_group.nodes.new('ShaderNodeGroup')
         value_node.name = "{0}_VALUE_1".format(channel.name)
         value_node.label = value_node.name
@@ -592,7 +612,7 @@ def create_default_layer_node(layer_type):
         value_node.location[1] = -400
         value_node.parent = channel_frame_node
         value_node.width = 300
-        value_node.node_tree = blender_addon_utils.append_group_node('ML_DefaultColor')
+        value_node.node_tree = default_value_group_node
 
         image_alpha_node = default_node_group.nodes.new('ShaderNodeMath')
         image_alpha_node.name = "MIX_{0}_IMAGE_ALPHA".format(channel.name)
@@ -628,6 +648,18 @@ def create_default_layer_node(layer_type):
         separate_node.location[1] = -500
         separate_node.parent = channel_frame_node
         
+
+        # Assign a default group node filter based on the socket type.
+        match channel.socket_type:
+            case 'NodeSocketFloat':
+                default_group_filter = blender_addon_utils.append_group_node('ML_DefaultFloatFilter')
+            case 'NodeSocketColor':
+                default_group_filter = blender_addon_utils.append_group_node('ML_DefaultColorFilter')
+            case 'NodeSocketVector':
+                default_group_filter = blender_addon_utils.append_group_node('ML_DefaultVectorFilter')
+            case 'NodeSocketNormal':
+                default_group_filter = blender_addon_utils.append_group_node('ML_DefaultNormalFilter')
+
         filter_node = default_node_group.nodes.new('ShaderNodeGroup')
         filter_node.name = "{0}_FILTER".format(channel.name)
         filter_node.label = filter_node.name
@@ -635,7 +667,7 @@ def create_default_layer_node(layer_type):
         filter_node.location[1] = -500
         filter_node.parent = channel_frame_node
         filter_node.width = 300
-        filter_node.node_tree = blender_addon_utils.append_group_node('ML_DefaultColorFilter')
+        filter_node.node_tree = default_group_filter
         blender_addon_utils.set_node_active(filter_node, active=False)
 
         mix_node_reroute = default_node_group.nodes.new('NodeReroute')
