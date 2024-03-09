@@ -20,8 +20,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.0,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -30,8 +30,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.5,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -40,8 +40,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 1.45,
-              "socket_default_min": 1.0,
-              "socket_default_max": 1000.0,
+              "socket_min": 1.0,
+              "socket_max": 1000.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -50,8 +50,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.0,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -60,8 +60,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.0,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -70,8 +70,8 @@
               "socket_type": "NodeSocketColor",
               "socket_subtype": "NONE",
               "socket_default": [0.5, 0.5, 1.0],
-              "socket_default_min": [0.0, 0.0, 0.0],
-              "socket_default_max": [1.0, 1.0, 1.0],
+              "socket_min": [0.0, 0.0, 0.0],
+              "socket_max": [1.0, 1.0, 1.0],
               "default_blend_mode": "NORMAL_MAP_DETAIL"
             },
             {
@@ -80,8 +80,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.0,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "ADD"
             },
             {
@@ -90,8 +90,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.0,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -100,8 +100,8 @@
               "socket_type": "NodeSocketVector",
               "socket_subtype": "NONE",
               "socket_default": [1.0, 0.2, 0.1],
-              "socket_default_min": [0.0, 0.0, 0.0],
-              "socket_default_max": [1.0, 1.0, 1.0],
+              "socket_min": [0.0, 0.0, 0.0],
+              "socket_max": [1.0, 1.0, 1.0],
               "default_blend_mode": "MIX"
             },
             {
@@ -110,8 +110,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.0,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -120,8 +120,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.0,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -130,8 +130,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.5,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -140,8 +140,8 @@
               "socket_type": "NodeSocketColor",
               "socket_subtype": "NONE",
               "socket_default": [1.0, 1.0, 1.0],
-              "socket_default_min": [0.0, 0.0, 0.0],
-              "socket_default_max": [1.0, 1.0, 1.0],
+              "socket_min": [0.0, 0.0, 0.0],
+              "socket_max": [1.0, 1.0, 1.0],
               "default_blend_mode": "MIX"
             },
             {
@@ -150,8 +150,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.0,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -160,8 +160,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.0,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -170,8 +170,8 @@
               "socket_type": "NodeSocketVector",
               "socket_subtype": "NONE",
               "socket_default": [0.0, 0.0, 0.0],
-              "socket_default_min": [0.0, 0.0, 0.0],
-              "socket_default_max": [1.0, 1.0, 1.0],
+              "socket_min": [0.0, 0.0, 0.0],
+              "socket_max": [1.0, 1.0, 1.0],
               "default_blend_mode": "MIX"
             },
             {
@@ -180,8 +180,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.0,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -190,8 +190,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.0,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -200,8 +200,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.03,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -210,8 +210,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.0,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -220,8 +220,8 @@
               "socket_type": "NodeSocketColor",
               "socket_subtype": "NONE",
               "socket_default": [1.0, 1.0, 1.0],
-              "socket_default_min": [0.0, 0.0, 0.0],
-              "socket_default_max": [1.0, 1.0, 1.0],
+              "socket_min": [0.0, 0.0, 0.0],
+              "socket_max": [1.0, 1.0, 1.0],
               "default_blend_mode": "MIX"
             },
             {
@@ -230,8 +230,8 @@
               "socket_type": "NodeSocketVector",
               "socket_subtype": "NONE",
               "socket_default": [0.5, 0.5, 1.0],
-              "socket_default_min": [0.0, 0.0, 0.0],
-              "socket_default_max": [1.0, 1.0, 1.0],
+              "socket_min": [0.0, 0.0, 0.0],
+              "socket_max": [1.0, 1.0, 1.0],
               "default_blend_mode": "MIX"
             },
             {
@@ -240,8 +240,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.0,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -250,8 +250,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.5,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -260,8 +260,8 @@
               "socket_type": "NodeSocketColor",
               "socket_subtype": "NONE",
               "socket_default": [1.0, 1.0, 1.0],
-              "socket_default_min": [0.0, 0.0, 0.0],
-              "socket_default_max": [1.0, 1.0, 1.0],
+              "socket_min": [0.0, 0.0, 0.0],
+              "socket_max": [1.0, 1.0, 1.0],
               "default_blend_mode": "MIX"
             },
             {
@@ -270,8 +270,8 @@
               "socket_type": "NodeSocketColor",
               "socket_subtype": "NONE",
               "socket_default": [0.0, 0.0, 0.0],
-              "socket_default_min": [0.0, 0.0, 0.0],
-              "socket_default_max": [1.0, 1.0, 1.0],
+              "socket_min": [0.0, 0.0, 0.0],
+              "socket_max": [1.0, 1.0, 1.0],
               "default_blend_mode": "MIX"
             }
         ],
@@ -291,8 +291,8 @@
               "socket_type": "NodeSocketColor",
               "socket_subtype": "NONE",
               "socket_default": [0.0, 0.0, 0.0],
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -301,8 +301,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.0,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -311,8 +311,8 @@
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
               "socket_default": 0.5,
-              "socket_default_min": 0.0,
-              "socket_default_max": 1.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
               "default_blend_mode": "MIX"
             },
             {
@@ -321,8 +321,8 @@
               "socket_type": "NodeSocketVector",
               "socket_subtype": "NONE",
               "socket_default": [0.5, 0.5, 1.0],
-              "socket_default_min": [0.0, 0.0, 0.0],
-              "socket_default_max": [1.0, 1.0, 1.0],
+              "socket_min": [0.0, 0.0, 0.0],
+              "socket_max": [1.0, 1.0, 1.0],
               "default_blend_mode": "NORMAL_MAP_DETAIL"
             }
         ],

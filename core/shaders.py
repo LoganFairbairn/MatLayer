@@ -105,8 +105,8 @@ def set_shader(shader_name):
                 match channel.socket_type:
                     case 'NodeSocketFloat':
                         channel.socket_float_default = shader_material_channel['socket_default']
-                        channel.socket_float_default_min = shader_material_channel['socket_default_min']
-                        channel.socket_float_default_max = shader_material_channel['socket_default_max']
+                        channel.socket_float_min = shader_material_channel['socket_min']
+                        channel.socket_float_max = shader_material_channel['socket_max']
                     case 'NodeSocketColor':
                         channel.socket_color_default = shader_material_channel['socket_default']
                     case 'NodeSocketVector':
@@ -122,22 +122,82 @@ class MATLAYER_shader_name(PropertyGroup):
 
 class MATLAYER_shader_material_channel(PropertyGroup):
     '''Properties for a shader material channel.'''
-    name: StringProperty()
-    default_active: BoolProperty()
-    socket_type: EnumProperty(items=NODE_SOCKET_TYPES, default='NodeSocketColor')
-    socket_subtype: EnumProperty(items=NODE_SOCKET_SUBTYPES, default='NONE')
-    socket_float_default: FloatProperty()
-    socket_float_default_min: FloatProperty()
-    socket_float_default_max: FloatProperty()
-    socket_color_default: FloatVectorProperty(subtype='COLOR')
-    socket_vector_default: FloatVectorProperty()
-    default_blend_mode: EnumProperty(items=LAYER_BLEND_MODES, default='MIX')
+    default_active: BoolProperty(
+        default=True,
+        name="Default Active",
+        description="Defines if the shader channel is active by default"
+    )
+    name: StringProperty(
+        name="Shader Channel Name",
+        description="The name of the shader channel",
+        default="ERROR"
+    )
+    socket_type: EnumProperty(
+        name="Shader Channel Type",
+        description="Defines the data type for the shader channel",
+        items=NODE_SOCKET_TYPES, 
+        default='NodeSocketColor'
+    )
+    socket_subtype: EnumProperty(
+        name="Shader Channel Subtype",
+        description="Defines the subtype for the shader channel",
+        items=NODE_SOCKET_SUBTYPES, 
+        default='NONE'
+    )
+    socket_float_default: FloatProperty(
+        name="Channel Float Default",
+        description="Defines the default value for the shader channel",
+        default=0.0
+    )
+    socket_float_min: FloatProperty(
+        name="Channel Float Min",
+        description="Defines the minimum value for the float shader channel",
+        default=0.0
+    )
+    socket_float_max: FloatProperty(
+        name="Channel Float Max",
+        description="The maximum value for the float shader channel",
+        default=1.0
+    )
+    socket_color_default: FloatVectorProperty(
+        name="Channel Color Default",
+        description="The shader channels default color value",
+        subtype='COLOR',
+        default=[0.0, 0.0, 0.0]
+    )
+    socket_vector_default: FloatVectorProperty(
+        name="Channel Vector Default",
+        description="The shader channels default vector value",
+        default=[0.0, 0.0, 0.0]
+    )
+    default_blend_mode: EnumProperty(
+        name="Default Blend Mode",
+        description="The default blend mode for the shader channel",
+        default='MIX',
+        items=LAYER_BLEND_MODES
+    )
 
 class MATLAYER_shader_info(PropertyGroup):
-    name: StringProperty()
-    author: StringProperty()
-    description: StringProperty()
-    group_node_name: StringProperty()
+    name: StringProperty(
+        name="Shader Name",
+        description="The name of the shader",
+        default="ERROR"
+    )
+    author: StringProperty(
+        name="Shader Author",
+        description="Defines who created the shader",
+        default=""
+    )
+    description: StringProperty(
+        name="Shader Description",
+        description="Provides a description of what the shader does, and is used for",
+        default=""
+    )
+    group_node_name: StringProperty(
+        name="Shader Group Node Name",
+        description="The name of the group node for this shader. The group node must exist in this blend file, or in the add-ons asset blend file",
+        default=""
+    )
     material_channels: CollectionProperty(type=MATLAYER_shader_material_channel)
 
 class MATLAYER_OT_set_shader(Operator):

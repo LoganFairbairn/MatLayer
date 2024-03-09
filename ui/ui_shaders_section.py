@@ -93,8 +93,8 @@ def draw_ui_shaders_section(self, context):
         match channel.socket_type:
             case 'NodeSocketFloat':
                 row.prop(channel, "socket_float_default", text="")
-                row.prop(channel, "socket_float_default_min", text="")
-                row.prop(channel, "socket_float_default_max", text="")
+                row.prop(channel, "socket_float_min", text="")
+                row.prop(channel, "socket_float_max", text="")
             case 'NodeSocketColor':
                 row.prop(channel, "socket_color_default", text="")
             case 'NodeSocketVector':

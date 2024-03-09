@@ -529,11 +529,11 @@ def create_default_layer_node(layer_type):
         match channel.socket_type:
             case 'NodeSocketFloat':
                 input_socket.default_value = channel.socket_float_default
-                input_socket.min_value = channel.socket_float_default_min
-                input_socket.max_value = channel.socket_float_default_max
+                input_socket.min_value = channel.socket_float_min
+                input_socket.max_value = channel.socket_float_max
                 output_socket.default_value = channel.socket_float_default
-                output_socket.min_value = channel.socket_float_default_min
-                output_socket.max_value = channel.socket_float_default_max
+                output_socket.min_value = channel.socket_float_min
+                output_socket.max_value = channel.socket_float_max
                 input_socket.subtype = channel.socket_subtype
             case 'NodeSocketColor':
                 input_socket.default_value = (channel.socket_color_default[0], channel.socket_color_default[1], channel.socket_color_default[2], 1)
@@ -612,11 +612,11 @@ def create_default_layer_node(layer_type):
         match channel.socket_type:
             case 'NodeSocketFloat':
                 input_socket.default_value = channel.socket_float_default
-                input_socket.min_value = channel.socket_float_default_min
-                input_socket.max_value = channel.socket_float_default_max
+                input_socket.min_value = channel.socket_float_min
+                input_socket.max_value = channel.socket_float_max
                 output_socket.default_value = channel.socket_float_default
-                output_socket.min_value = channel.socket_float_default_min
-                output_socket.max_value = channel.socket_float_default_max
+                output_socket.min_value = channel.socket_float_min
+                output_socket.max_value = channel.socket_float_max
                 input_socket.subtype = channel.socket_subtype
             case 'NodeSocketColor':
                 input_socket.default_value = (channel.socket_color_default[0], channel.socket_color_default[1], channel.socket_color_default[2], 1)
