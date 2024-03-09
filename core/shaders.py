@@ -41,6 +41,12 @@ NODE_SOCKET_TYPES = [
     #("NodeSocketShader", "Shader", "Channel contains shader data.")
 ]
 
+# Valid node socket subtypes for shader channels defined for this add-on.
+NODE_SOCKET_SUBTYPES = [
+    ("NONE", "None", "No socket subtype."),
+    ("FACTOR", "Factor", "Define the socket property as a factor (makes the property a slider in the interface).")
+]
+
 DEFAULT_CHANNEL_FILTERS = [
     ("COLOR", "Color", "Default filter group node designed for fitlering RGBA channels."),
     ("GREYSCALE", "Greyscale", "Default filter group node designed for filtering greyscale channels."),
@@ -93,6 +99,7 @@ def set_shader(shader_name):
                 channel.name = shader_material_channel['name']
                 channel.default_active = shader_material_channel['default_active']
                 channel.socket_type = shader_material_channel['socket_type']
+                channel.socket_subtype = shader_material_channel['socket_subtype']
                 channel.default_blend_mode = shader_material_channel['default_blend_mode']
 
                 match channel.socket_type:
@@ -118,6 +125,7 @@ class MATLAYER_shader_material_channel(PropertyGroup):
     name: StringProperty()
     default_active: BoolProperty()
     socket_type: EnumProperty(items=NODE_SOCKET_TYPES, default='NodeSocketColor')
+    socket_subtype: EnumProperty(items=NODE_SOCKET_SUBTYPES, default='NONE')
     socket_float_default: FloatProperty()
     socket_float_default_min: FloatProperty()
     socket_float_default_max: FloatProperty()

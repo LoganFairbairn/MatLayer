@@ -43,8 +43,35 @@ def draw_ui_shaders_section(self, context):
     row = second_column.row()
     row.prop(shader_info, "group_node_name", text="")
 
-    # Draw all the material channels for the selected shader.
-    layout.label(text="Shader Material Channels:")
+    # Draw all the channels for the selected shader.
+    layout.label(text="Shader Channels:")
+    split = layout.split(factor=0.3)
+    first_column = split.column()
+    second_column = split.column()
+
+    row = first_column.row()
+    row.alignment = 'CENTER'
+    row.label(text="Channel")
+
+    row = second_column.row()
+    split = row.split(factor=0.5)
+    first_sub_column = split.column()
+    second_sub_column = split.column()
+
+    row = first_sub_column.row()
+    row.alignment = 'CENTER'
+    row.label(text="Default, Min, Max")
+
+    row = second_sub_column.row()
+    col = row.column()
+    col.label(text="Type")
+
+    col = row.column()
+    col.label(text="Subtype")
+
+    col = row.column()
+    col.label(text="Blend")
+
     for channel in shader_info.material_channels:
         split = layout.split(factor=0.3)
         first_column = split.column()
@@ -66,6 +93,8 @@ def draw_ui_shaders_section(self, context):
         match channel.socket_type:
             case 'NodeSocketFloat':
                 row.prop(channel, "socket_float_default", text="")
+                row.prop(channel, "socket_float_default_min", text="")
+                row.prop(channel, "socket_float_default_max", text="")
             case 'NodeSocketColor':
                 row.prop(channel, "socket_color_default", text="")
             case 'NodeSocketVector':
@@ -73,6 +102,7 @@ def draw_ui_shaders_section(self, context):
         
         row = second_sub_column.row()
         row.prop(channel, "socket_type", text="")
+        row.prop(channel, "socket_subtype", text="")
         row.prop(channel, "default_blend_mode", text="")
 
 class ShaderSubMenu(Menu):
