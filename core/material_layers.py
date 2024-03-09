@@ -529,7 +529,12 @@ def create_default_layer_node(layer_type):
         match channel.socket_type:
             case 'NodeSocketFloat':
                 input_socket.default_value = channel.socket_float_default
+                input_socket.min_value = channel.socket_float_default_min
+                input_socket.max_value = channel.socket_float_default_max
                 output_socket.default_value = channel.socket_float_default
+                output_socket.min_value = channel.socket_float_default_min
+                output_socket.max_value = channel.socket_float_default_max
+                input_socket.subtype = 'FACTOR'
             case 'NodeSocketColor':
                 input_socket.default_value = (channel.socket_color_default[0], channel.socket_color_default[1], channel.socket_color_default[2], 1)
                 output_socket.default_value = (channel.socket_color_default[0], channel.socket_color_default[1], channel.socket_color_default[2], 1)
@@ -585,7 +590,7 @@ def create_default_layer_node(layer_type):
         channel_frame_node.name = channel.name
         channel_frame_node.label = channel.name
 
-        # TODO: Create default value group nodes for all shader channels.
+        # Create default value group nodes for all shader channels.
         default_value_group_node_name = "ML_Default{0}".format(channel.name)
         default_value_group_node = bpy.data.node_groups.get(default_value_group_node_name)
         if default_value_group_node:
@@ -604,6 +609,21 @@ def create_default_layer_node(layer_type):
             in_out='OUTPUT',
             socket_type=channel.socket_type
         )
+        match channel.socket_type:
+            case 'NodeSocketFloat':
+                input_socket.default_value = channel.socket_float_default
+                input_socket.min_value = channel.socket_float_default_min
+                input_socket.max_value = channel.socket_float_default_max
+                output_socket.default_value = channel.socket_float_default
+                output_socket.min_value = channel.socket_float_default_min
+                output_socket.max_value = channel.socket_float_default_max
+                input_socket.subtype = 'FACTOR'
+            case 'NodeSocketColor':
+                input_socket.default_value = (channel.socket_color_default[0], channel.socket_color_default[1], channel.socket_color_default[2], 1)
+                output_socket.default_value = (channel.socket_color_default[0], channel.socket_color_default[1], channel.socket_color_default[2], 1)
+            case 'NodeSocketVector':
+                input_socket.default_value = channel.socket_vector_default
+                input_socket.default_value = channel.socket_vector_default
 
         value_node = default_node_group.nodes.new('ShaderNodeGroup')
         value_node.name = "{0}_VALUE_1".format(channel.name)

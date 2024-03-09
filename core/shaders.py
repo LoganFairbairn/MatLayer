@@ -33,6 +33,7 @@ LAYER_BLEND_MODES = [
     ('NORMAL_MAP_DETAIL', "Normal Map Detail", "")
 ]
 
+# Valid node socket types for shader channels defined for this add-on.
 NODE_SOCKET_TYPES = [
     ("NodeSocketFloat", "Float", "Channel contains greyscale (0 - 1) data."),
     ("NodeSocketColor", "Color", "Channel contains RGBA data."),
@@ -47,7 +48,7 @@ DEFAULT_CHANNEL_FILTERS = [
 ]
 
 def update_shader_list():
-    '''Updates a list of all available shaders as defined in the shader info json data.'''
+    '''Updates a list of all available shaders for this add-on that are defined in json data.'''
     templates_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "json_data" / "shader_info.json")
     json_file = open(templates_path, "r")
     jdata = json.load(json_file)
@@ -97,6 +98,8 @@ def set_shader(shader_name):
                 match channel.socket_type:
                     case 'NodeSocketFloat':
                         channel.socket_float_default = shader_material_channel['socket_default']
+                        channel.socket_float_default_min = shader_material_channel['socket_default_min']
+                        channel.socket_float_default_max = shader_material_channel['socket_default_max']
                     case 'NodeSocketColor':
                         channel.socket_color_default = shader_material_channel['socket_default']
                     case 'NodeSocketVector':
@@ -116,6 +119,8 @@ class MATLAYER_shader_material_channel(PropertyGroup):
     default_active: BoolProperty()
     socket_type: EnumProperty(items=NODE_SOCKET_TYPES, default='NodeSocketColor')
     socket_float_default: FloatProperty()
+    socket_float_default_min: FloatProperty()
+    socket_float_default_max: FloatProperty()
     socket_color_default: FloatVectorProperty(subtype='COLOR')
     socket_vector_default: FloatVectorProperty()
     default_blend_mode: EnumProperty(items=LAYER_BLEND_MODES, default='MIX')
