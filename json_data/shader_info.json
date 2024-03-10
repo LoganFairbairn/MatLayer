@@ -7,15 +7,15 @@
         "group_node_name": "ML_BSDF",
         "shader_material_channels": [
             {
-              "name": "BASE-COLOR",
+              "name": "Base Color",
               "default_active": true,
               "socket_type": "NodeSocketColor",
               "socket_subtype": "NONE",
-              "socket_default": [0.0, 0.0, 0.0],
+              "socket_default": [0.0, 0.3, 1.0],
               "default_blend_mode": "MIX"
             },
             {
-              "name": "METALLIC",
+              "name": "Metallic",
               "default_active": true,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -25,7 +25,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "ROUGHNESS",
+              "name": "Roughness",
               "default_active": true,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -45,17 +45,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "AMBIENT-OCCLUSION",
-              "default_active": true,
-              "socket_type": "NodeSocketFloat",
-              "socket_subtype": "FACTOR",
-              "socket_default": 0.0,
-              "socket_min": 0.0,
-              "socket_max": 1.0,
-              "default_blend_mode": "MIX"
-            },
-            {
-              "name": "ALPHA",
+              "name": "Ambient Occlusion",
               "default_active": false,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -65,7 +55,17 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "NORMAL",
+              "name": "Alpha",
+              "default_active": false,
+              "socket_type": "NodeSocketFloat",
+              "socket_subtype": "FACTOR",
+              "socket_default": 0.0,
+              "socket_min": 0.0,
+              "socket_max": 1.0,
+              "default_blend_mode": "MIX"
+            },
+            {
+              "name": "Normal",
               "default_active": true,
               "socket_type": "NodeSocketColor",
               "socket_subtype": "NONE",
@@ -75,7 +75,7 @@
               "default_blend_mode": "NORMAL_MAP_DETAIL"
             },
             {
-              "name": "HEIGHT",
+              "name": "Height",
               "default_active": true,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -85,7 +85,7 @@
               "default_blend_mode": "ADD"
             },
             {
-              "name": "SUBSURFACE",
+              "name": "Subsurface",
               "default_active": false,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -95,7 +95,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "SUBSURFACE-RADIUS",
+              "name": "Subsurface Radius",
               "default_active": false,
               "socket_type": "NodeSocketVector",
               "socket_subtype": "NONE",
@@ -105,7 +105,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "SUBSURFACE-SCALE",
+              "name": "Subsurface Scale",
               "default_active": false,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -115,7 +115,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "SUBSURFACE-ANISOTROPY",
+              "name": "Subsurface Anisotropy",
               "default_active": false,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -125,7 +125,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "SPECULAR",
+              "name": "Specular",
               "default_active": false,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -135,7 +135,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "SPECULAR-TINT",
+              "name": "Specular",
               "default_active": false,
               "socket_type": "NodeSocketColor",
               "socket_subtype": "NONE",
@@ -145,7 +145,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "SPECULAR-ANISOTROPIC",
+              "name": "Specular Anisotropic",
               "default_active": false,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -155,7 +155,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "SPECULAR-ANISOTROPIC-ROTATION",
+              "name": "Specular Anisotropic Rotation",
               "default_active": false,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -165,7 +165,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "SPECULAR-TANGENT",
+              "name": "Specular Tangent",
               "default_active": false,
               "socket_type": "NodeSocketVector",
               "socket_subtype": "NONE",
@@ -175,7 +175,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "TRANSMISSION-WEIGHT",
+              "name": "Transmission Weight",
               "default_active": false,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -185,7 +185,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "COAT",
+              "name": "Coat",
               "default_active": false,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -195,7 +195,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "COAT-ROUGHNESS",
+              "name": "Coat Roughness",
               "default_active": false,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -205,7 +205,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "COAT-IOR",
+              "name": "Coat IOR",
               "default_active": false,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -215,7 +215,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "COAT-TINT",
+              "name": "Coat Tint",
               "default_active": false,
               "socket_type": "NodeSocketColor",
               "socket_subtype": "NONE",
@@ -225,7 +225,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "COAT-NORMAL",
+              "name": "Coat Normal",
               "default_active": false,
               "socket_type": "NodeSocketVector",
               "socket_subtype": "NONE",
@@ -235,7 +235,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "SHEEN-WEIGHT",
+              "name": "Sheen Weight",
               "default_active": false,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -245,7 +245,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "SHEEN-ROUGHNESS",
+              "name": "Sheen Roughness",
               "default_active": false,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -255,7 +255,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "SHEEN-TINT",
+              "name": "Sheen Tint",
               "default_active": false,
               "socket_type": "NodeSocketColor",
               "socket_subtype": "NONE",
@@ -265,7 +265,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "EMISSION",
+              "name": "Emission",
               "default_active": false,
               "socket_type": "NodeSocketColor",
               "socket_subtype": "NONE",
@@ -286,7 +286,7 @@
         "group_node_name": "ML_RYSHADE",
         "shader_material_channels": [
             {
-              "name": "BASE-COLOR",
+              "name": "Base Color",
               "default_active": true,
               "socket_type": "NodeSocketColor",
               "socket_subtype": "NONE",
@@ -296,7 +296,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "METALLIC",
+              "name": "Metallic",
               "default_active": true,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -306,7 +306,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "ROUGHNESS",
+              "name": "Roughness",
               "default_active": true,
               "socket_type": "NodeSocketFloat",
               "socket_subtype": "FACTOR",
@@ -316,7 +316,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "NORMAL",
+              "name": "Normal",
               "default_active": true,
               "socket_type": "NodeSocketVector",
               "socket_subtype": "NONE",
