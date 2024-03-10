@@ -25,7 +25,7 @@ Cheers!
 - One-click texture exporting for common formats and software.
 ![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/ExportingWithChannelPacking.png?raw=true)
 
-- Appendable workspace ideal for material editing.
+- Appendable workspace ideal for material editing with MatLayer.
 - Fast texture set importing.
 - Triplanar projection.
 - The ability to merge materials with automatic mesh map application (a.k.a smart materials).
@@ -36,7 +36,7 @@ Cheers!
 - Custom export templates with texture channel packing.
 - Non-destructive decal layers.
 - Auto-corrections for normal map rotations.
-- Better normal map blending using Re-oriented normal map blending.
+- Blending modes for normal maps (re-oriented normal blending among others).
 - Support for adding custom group nodes to layers.
 - Integrated blurring for textures.
 - Basic brush presets.
