@@ -135,7 +135,7 @@
               "default_blend_mode": "MIX"
             },
             {
-              "name": "Specular",
+              "name": "Specular Tint",
               "default_active": false,
               "socket_type": "NodeSocketColor",
               "socket_subtype": "NONE",
