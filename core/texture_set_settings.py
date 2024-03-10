@@ -77,7 +77,7 @@ def get_texture_height():
         case _:
             return 10
 
-def get_material_channel_active(material_channel_name):
+def get_material_channel_active(channel_name):
     '''Returns if the material channel is active in the active materials texture set.'''
     if not bpy.context.active_object:
         return
@@ -85,11 +85,12 @@ def get_material_channel_active(material_channel_name):
     active_material = bpy.context.active_object.active_material
     if not active_material:
         return
-    
-    material_channel_toggle_node_name = "GLOBAL_{0}_TOGGLE".format(material_channel_name)
-    material_channel_toggle_node = active_material.node_tree.nodes.get(material_channel_toggle_node_name)
 
-    if material_channel_toggle_node.mute:
+    static_channel_name = blender_addon_utils.format_static_channel_name(channel_name)
+    channel_toggle_node_name = "GLOBAL_{0}_TOGGLE".format(static_channel_name)
+    channel_toggle_node = active_material.node_tree.nodes.get(channel_toggle_node_name)
+
+    if channel_toggle_node.mute:
         return False
     else:
         return True

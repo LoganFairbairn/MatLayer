@@ -144,8 +144,8 @@ class MATLAYER_UL_layer_list(bpy.types.UIList):
 
                 # Layer opacity and blending mode (for the selected material channel).
                 selected_material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
-                opacity_layer_node = material_layers.get_material_layer_node('OPACITY', item_index, material_channel_name=selected_material_channel.upper())
-                mix_layer_node = material_layers.get_material_layer_node('MIX', item_index, material_channel_name=selected_material_channel.upper())
+                opacity_layer_node = material_layers.get_material_layer_node('OPACITY', item_index, channel_name=selected_material_channel.upper())
+                mix_layer_node = material_layers.get_material_layer_node('MIX', item_index, channel_name=selected_material_channel.upper())
                 if mix_layer_node:
                     row = layout.row(align=True)
                     row.ui_units_x = 5
