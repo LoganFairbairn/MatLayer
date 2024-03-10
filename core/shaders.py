@@ -129,7 +129,7 @@ class MATLAYER_shader_material_channel(PropertyGroup):
     )
     name: StringProperty(
         name="Shader Channel Name",
-        description="The name of the shader channel",
+        description="The name of the shader channel. The channel name should match an input socket in the defined shader group node.",
         default="ERROR"
     )
     socket_type: EnumProperty(
