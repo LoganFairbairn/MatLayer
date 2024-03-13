@@ -1,6 +1,5 @@
 import bpy
 from .import ui_section_tabs
-from ..core.material_layers import MATERIAL_CHANNEL_LIST
 from ..core import texture_set_settings as tss
 from ..core import blender_addon_utils
 from .. import preferences

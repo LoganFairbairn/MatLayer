@@ -527,8 +527,9 @@ def channel_pack_textures(texture_set_name):
         )
 
     # Delete temp material channel bake images, they are no longer needed because they are packed into new textures now.
-    for material_channel_name in material_layers.MATERIAL_CHANNEL_LIST:
-        temp_material_channel_image_name = format_baked_material_channel_name(texture_set_name, material_channel_name)
+    shader_info = bpy.context.scene.matlayer_shader_info
+    for channel in shader_info.material_channels:
+        temp_material_channel_image_name = format_baked_material_channel_name(texture_set_name, channel.name )
         temp_material_channel_image = bpy.data.images.get(temp_material_channel_image_name)
         if temp_material_channel_image:
             bpy.data.images.remove(temp_material_channel_image)
@@ -615,7 +616,8 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     if material_channel_name != 'NORMAL_HEIGHT' and material_channel_name not in emission_exporting_channels:
 
         # Ensure the material channel name provided is valid to bake.
-        if material_channel_name not in material_layers.MATERIAL_CHANNEL_LIST:
+        shader_info = bpy.context.scene.matlayer_shader_info
+        if material_channel_name not in shader_info.material_channels:
             debug_logging.log("Can't bake invalid material channel: {0}".format(material_channel_name))
             return ""
 

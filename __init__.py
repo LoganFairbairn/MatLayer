@@ -234,15 +234,16 @@ def depsgraph_change_handler(scene, depsgraph):
 
             # Group nodes for material channels can become unlinked when a user applies a custom group node.
             # Search for an relink any unlinked material channels that occur as a result of this change.
-            for material_channel in material_layers.MATERIAL_CHANNEL_LIST:
+            shader_info = bpy.context.scene.matlayer_shader_info
+            for channel in shader_info.material_channels:
                 selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-                value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, material_channel)
+                value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, channel.name)
                 if value_node:
                     if len(value_node.outputs) > 0:
                         if len(value_node.outputs[0].links) == 0:
-                            output_channel = material_layers.get_material_channel_output_channel(material_channel)
+                            output_channel = material_layers.get_material_channel_output_channel(channel.name)
                             material_layers.relink_material_channel(
-                                relink_material_channel_name=material_channel, 
+                                relink_material_channel_name=channel.name, 
                                 original_output_channel=output_channel, 
                                 unlink_projection=True
                             )

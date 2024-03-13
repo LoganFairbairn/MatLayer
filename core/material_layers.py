@@ -33,29 +33,6 @@ MATERIAL_CHANNEL = [
     ("DISPLACEMENT", "Displacement", "Displacement")
 ]
 
-MATERIAL_CHANNEL_LIST = [
-    'COLOR',
-    'SUBSURFACE',
-    'SUBSURFACE-RADIUS',
-    'METALLIC',
-    'SPECULAR',
-    'SPECULAR-TINT',
-    'ROUGHNESS',
-    'EMISSION',
-    'NORMAL',
-    'HEIGHT',
-    'AMBIENT-OCCLUSION',
-    'ALPHA',
-    'COAT',
-    'COAT-ROUGHNESS',
-    'COAT-TINT',
-    'COAT-NORMAL',
-    'SHEEN',
-    'SHEEN-ROUGHNESS',
-    'SHEEN-TINT',
-    'DISPLACEMENT'
-]
-
 TRIPLANAR_PROJECTION_INPUTS = [
     'LeftRight',
     'FrontBack',
@@ -117,12 +94,13 @@ def sync_triplanar_settings():
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
     if projection_node:
         if projection_node.node_tree.name == 'ML_TriplanarProjection':
-            for material_channel_name in MATERIAL_CHANNEL_LIST:
-                value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=1)
+            shader_info = bpy.context.scene.matlayer_shader_info
+            for channel in shader_info.material_channels:
+                value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=1)
                 if value_node:
                     if value_node.bl_static_type == 'TEX_IMAGE':
-                        texture_sample_2 = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=2)
-                        texture_sample_3 = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=3)
+                        texture_sample_2 = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=2)
+                        texture_sample_3 = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=3)
                         
                         # Running these additional if checks to avoid accidentally triggering shader re-compiling by changing an image to the same image.
                         if texture_sample_2:
@@ -823,8 +801,9 @@ def add_material_layer(layer_type, self):
             blender_addon_utils.set_texture_paint_image(new_image)
             blender_addon_utils.save_image(new_image)
 
-            for material_channel_name in MATERIAL_CHANNEL_LIST:
-                if material_channel_name != 'COLOR':
+            shader_info = bpy.context.scene.matlayer_shader_info
+            for channel in shader_info.material_channels:
+                if channel.name != 'COLOR':
                     mix_layer_node = get_material_layer_node('MIX', new_layer_slot_index, material_channel_name)
                     if mix_layer_node:
                         mix_layer_node.mute = True
@@ -1338,27 +1317,28 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                 layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
 
     # Relink projection for all material channels unless a specific material channel is specified.
-    for material_channel_name in MATERIAL_CHANNEL_LIST:
-        if relink_material_channel_name == "" or relink_material_channel_name == material_channel_name:
+    shader_info = bpy.context.scene.matlayer_shader_info
+    for channel in shader_info.material_channels:
+        if relink_material_channel_name == "" or relink_material_channel_name == channel.name:
 
             # Remember the original output channel of the material channel so it can be properly set after relinking projection.
             if original_output_channel == '':
-                original_output_channel = get_material_channel_output_channel(material_channel_name)
+                original_output_channel = get_material_channel_output_channel(channel.name)
 
             match projection_node.node_tree.name:
 
                 # Relink a material channel with a triplanar projection setup.
                 case 'ML_TriplanarProjection':
-                    value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=1)
-                    triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, material_channel_name)
+                    value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=1)
+                    triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, channel.name)
 
                     # Link projection / blur nodes when image textures are used as the material channel value.
                     if value_node.bl_static_type == 'TEX_IMAGE':
                         for i in range(0, 3):
-                            value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=i + 1)
+                            value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=i + 1)
 
                             if blender_addon_utils.get_node_active(blur_node):
-                                channel_name = material_channel_name.replace('-', ' ')
+                                channel_name = channel.name.replace('-', ' ')
                                 channel_name = blender_addon_utils.capitalize_by_space(channel_name)
                                 blur_output_property_name = "{0} {1}".format(channel_name, str(i + 1))
                                 layer_node_tree.links.new(blur_node.outputs.get(blur_output_property_name), value_node.inputs[0])
@@ -1370,7 +1350,7 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                                 layer_node_tree.links.new(value_node.outputs.get('Color'), triplanar_blend_node.inputs[i])
                                 layer_node_tree.links.new(value_node.outputs.get('Alpha'), triplanar_blend_node.inputs[i + 3])
                                 layer_node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
-                                if material_channel_name == 'NORMAL':
+                                if channel.name == 'NORMAL':
                                     layer_node_tree.links.new(projection_node.outputs.get('Rotation'), triplanar_blend_node.inputs.get('Rotation'))
                                     layer_node_tree.links.new(projection_node.outputs.get('SignedGeometryNormals'), triplanar_blend_node.inputs.get('SignedGeometryNormals'))
 
@@ -1382,13 +1362,13 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
 
                 # Relink the material channel projection for all other projection setups.
                 case _:
-                    value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
-                    mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
+                    value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name)
+                    mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, channel.name)
                     
                     # Relink for image texture nodes.
                     if value_node.bl_static_type == 'TEX_IMAGE':
                         if blender_addon_utils.get_node_active(blur_node):
-                            layer_node_tree.links.new(blur_node.outputs.get(material_channel_name.capitalize()), value_node.inputs[0])
+                            layer_node_tree.links.new(blur_node.outputs.get(channel.name.capitalize()), value_node.inputs[0])
                         else:
                             layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
                             layer_node_tree.links.new(value_node.outputs.get('Alpha'), mix_image_alpha_node.inputs[1])
@@ -1397,11 +1377,11 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                     if value_node.bl_static_type == 'GROUP':
                         if not value_node.node_tree.name.startswith("ML_Default"):
                             if blender_addon_utils.get_node_active(blur_node):
-                                layer_node_tree.links.new(blur_node.outputs.get(material_channel_name.capitalize()), value_node.inputs[0])
+                                layer_node_tree.links.new(blur_node.outputs.get(channel.name.capitalize()), value_node.inputs[0])
                             else:
                                 layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
 
-            set_material_channel_output_channel(material_channel_name, original_output_channel)
+            set_material_channel_output_channel(channel.name, original_output_channel)
 
 def set_layer_projection_nodes(projection_method):
     '''Changes the layer projection nodes to use the specified layer projection method.'''
@@ -1635,8 +1615,9 @@ def set_layer_projection(projection_mode, self):
             if projection_node.node_tree.name != "ML_UVProjection":
                 set_layer_projection_nodes('UV')
 
-                for material_channel_name in MATERIAL_CHANNEL_LIST:
-                    setup_material_channel_projection_nodes(material_channel_name, 'UV')
+                shader_info = bpy.context.scene.matlayer_shader_info
+                for channel in shader_info.material_channels:
+                    setup_material_channel_projection_nodes(channel.name, 'UV')
 
                 debug_logging.log("Changed layer projection to 'UV'.")
 
@@ -1644,8 +1625,9 @@ def set_layer_projection(projection_mode, self):
             if projection_node.node_tree.name != "ML_TriplanarProjection":
                 set_layer_projection_nodes('TRIPLANAR')
 
-                for material_channel_name in MATERIAL_CHANNEL_LIST:
-                    setup_material_channel_projection_nodes(material_channel_name, 'TRIPLANAR')
+                shader_info = bpy.context.scene.matlayer_shader_info
+                for channel in shader_info.material_channels:
+                    setup_material_channel_projection_nodes(channel.name, 'TRIPLANAR')
 
                 debug_logging.log("Changed layer projection to 'TRIPLANAR'.")
 
