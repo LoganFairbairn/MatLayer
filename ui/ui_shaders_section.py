@@ -105,6 +105,11 @@ def draw_ui_shaders_section(self, context):
         row.prop(channel, "socket_subtype", text="")
         row.prop(channel, "default_blend_mode", text="")
 
+    # Draw global properties for the shader.
+    layout.label(text="Global Properties")
+    for property in shader_info.global_properties:
+        layout.label(text=property.name)
+
 class ShaderSubMenu(Menu):
     bl_idname = "MATLAYER_MT_shader_sub_menu"
     bl_label = "Shader Sub Menu"

@@ -74,7 +74,7 @@ def set_shader(shader_name):
     update_shader_list()
 
     matlayer_shader_list = bpy.context.scene.matlayer_shader_list
-    matlayer_shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.matlayer_shader_info
 
     templates_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "json_data" / "shader_info.json")
     json_file = open(templates_path, "r")
@@ -87,15 +87,15 @@ def set_shader(shader_name):
     for i, shader in enumerate(matlayer_shader_list):
         if shader['name'] == shader_name:
             shader_exists = True
-            matlayer_shader_info.name = shaders[i]['name']
-            matlayer_shader_info.author = shaders[i]['author']
-            matlayer_shader_info.description = shaders[i]['description']
-            matlayer_shader_info.group_node_name = shaders[i]['group_node_name']
+            shader_info.name = shaders[i]['name']
+            shader_info.author = shaders[i]['author']
+            shader_info.description = shaders[i]['description']
+            shader_info.group_node_name = shaders[i]['group_node_name']
 
             shader_material_channels = shaders[i]['shader_material_channels']
-            matlayer_shader_info.material_channels.clear()
+            shader_info.material_channels.clear()
             for shader_material_channel in shader_material_channels:
-                channel = matlayer_shader_info.material_channels.add()
+                channel = shader_info.material_channels.add()
                 channel.name = shader_material_channel['name']
                 channel.default_active = shader_material_channel['default_active']
                 channel.socket_type = shader_material_channel['socket_type']
@@ -111,6 +111,11 @@ def set_shader(shader_name):
                         channel.socket_color_default = shader_material_channel['socket_default']
                     case 'NodeSocketVector':
                         channel.socket_vector_default = shader_material_channel['socket_default']
+
+            global_properties = shaders[i]['global_properties']
+            for property in global_properties:
+                global_property = shader_info.global_properties.add()
+                global_property.name = property
 
     # TODO: If the shader wasn't found, apply a default shader instead.
     if not shader_exists:
@@ -180,6 +185,10 @@ class MATLAYER_shader_material_channel(PropertyGroup):
         items=LAYER_BLEND_MODES
     )
 
+class MATLAYER_shader_global_property(PropertyGroup):
+    '''Global property for a shader.'''
+    name: StringProperty()
+
 class MATLAYER_shader_info(PropertyGroup):
     name: StringProperty(
         name="Shader Name",
@@ -202,6 +211,7 @@ class MATLAYER_shader_info(PropertyGroup):
         default=""
     )
     material_channels: CollectionProperty(type=MATLAYER_shader_material_channel)
+    global_properties: CollectionProperty(type=MATLAYER_shader_global_property)
 
 class MATLAYER_OT_set_shader(Operator):
     bl_idname = "matlayer.set_shader"

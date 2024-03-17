@@ -107,6 +107,7 @@ classes = (
     # Shaders
     shaders.MATLAYER_shader_name,
     shaders.MATLAYER_shader_material_channel,
+    shaders.MATLAYER_shader_global_property,
     shaders.MATLAYER_shader_info,
     shaders.MATLAYER_OT_set_shader,
 

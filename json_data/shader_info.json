@@ -275,8 +275,12 @@
               "default_blend_mode": "MIX"
             }
         ],
+        "export_channels": [
+          "Normal Height Mix"
+        ],
         "global_properties": [
-            "EMISSION-STRENGTH"
+          "Base Height",
+          "Emission Strength"
         ]
       },
       {
@@ -326,8 +330,13 @@
               "default_blend_mode": "NORMAL_MAP_DETAIL"
             }
         ],
+        "export_channels": [
+          "Normal Height Mix"
+        ],
         "global_properties": [
-            "SUBSURFACE-WRAP"
+          "Base Height",
+          "Subsurface Wrap",
+          "Emission Strength"
         ]
       }
     ]
