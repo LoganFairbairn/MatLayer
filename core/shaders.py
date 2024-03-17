@@ -116,6 +116,9 @@ def set_shader(shader_name):
     if not shader_exists:
         debug_logging.log("Shader {0} doesn't exist, applying default shader.".format(shader_name))
 
+    # Set the default channel of the shader to be the first defined channel.
+    bpy.context.scene.matlayer_layer_stack.selected_material_channel = channel.name
+
 class MATLAYER_shader_name(PropertyGroup):
     '''Shader name'''
     name: StringProperty()

@@ -2,36 +2,13 @@
 
 import bpy
 from bpy.types import PropertyGroup, Operator
-from bpy.props import IntProperty, EnumProperty, StringProperty
+from bpy.props import IntProperty, StringProperty
 from ..core import layer_masks
 from ..core import mesh_map_baking
 from ..core import blender_addon_utils
 from ..core import debug_logging
 from ..core import texture_set_settings as tss
 import random
-
-MATERIAL_CHANNEL = [
-    ("COLOR", "Color", ""), 
-    ("SUBSURFACE", "Subsurface", ""),
-    ("SUBSURFACE_RADIUS", "Subsurface Radius", ""),
-    ("METALLIC", "Metallic", ""),
-    ("SPECULAR", "Specular", ""),
-    ("SPECULAR-TINT", "Specular Tint", ""),
-    ("ROUGHNESS", "Roughness", ""),
-    ("EMISSION", "Emission", ""),
-    ("NORMAL", "Normal", ""),
-    ("HEIGHT", "Height", ""),
-    ("AMBIENT-OCCLUSION", "Ambient Occlusion", ""),
-    ("ALPHA", "Alpha", ""),
-    ("COAT", "Coat", ""),
-    ("COAT-ROUGHNESS", "Coat Roughness", ""),
-    ("COAT-TINT", "Coat Tint", ""),
-    ("COAT-NORMAL", "Coat Normal", ""),
-    ("SHEEN", "Sheen", ""),
-    ("SHEEN-ROUGHNESS", "Sheen Roughness", ""),
-    ("SHEEN-TINT", "Sheen Tint", ""),
-    ("DISPLACEMENT", "Displacement", "Displacement")
-]
 
 TRIPLANAR_PROJECTION_INPUTS = [
     'LeftRight',
@@ -1904,7 +1881,7 @@ def set_layer_blending_mode(layer_index, blending_mode, material_channel_name='C
 class MATLAYER_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''
     selected_layer_index: IntProperty(default=-1, description="Selected material layer", update=update_layer_index)
-    selected_material_channel: EnumProperty(items=MATERIAL_CHANNEL, name="Material Channel", description="The currently selected material channel", default='COLOR')
+    selected_material_channel: StringProperty(name="Material Channel", description="The currently selected material channel", default='ERROR')
 
 class MATLAYER_layers(PropertyGroup):
     # Storing properties in the layer slot data can potentially cause many errors and often more code -
@@ -2253,6 +2230,18 @@ class MATLAYER_OT_toggle_material_channel_filter(Operator):
         # Trigger a relink of the material layer.
         relink_material_channel(relink_material_channel_name=self.material_channel_name, original_output_channel=output_channel)
 
+        return {'FINISHED'}
+
+class MATLAYER_OT_set_material_channel(Operator):
+    bl_idname = "matlayer.set_material_channel"
+    bl_label = "Set Material Channel"
+    bl_description = "Sets the material channel being edited in the layer stack"
+
+    channel_name: StringProperty(default="ERROR")
+
+    def execute(self, context):
+        bpy.context.scene.matlayer_layer_stack.selected_material_channel = self.channel_name
+        debug_logging.log("Selected material channel set to: {0}".format(self.channel_name))
         return {'FINISHED'}
 
 class MATLAYER_OT_set_material_channel_output_channel(Operator):

@@ -85,7 +85,8 @@ def draw_selected_material_channel(layout):
     row = layout.row(align=True)
     row.scale_x = 2
     row.scale_y = 1.4
-    row.prop(bpy.context.scene.matlayer_layer_stack, "selected_material_channel", text="")
+    selected_material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
+    row.menu('MATLAYER_MT_material_channel_sub_menu', text=selected_material_channel)
     row.operator("matlayer.isolate_material_channel", text="", icon='MATERIAL')
 
 def draw_layer_operations(layout):
@@ -871,6 +872,17 @@ class MATLAYER_OT_add_material_filter_menu(Operator):
         col.operator("matlayer.add_material_filter_hsv", text="Add HSV")
         col.operator("matlayer.add_material_filter_color_ramp", text="Add Color Ramp")
         col.operator("matlayer.add_material_filter_invert", text="Add Invert")
+
+class MaterialChannelSubMenu(Menu):
+    bl_idname = "MATLAYER_MT_material_channel_sub_menu"
+    bl_label = "Material Channel Sub Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        shader_info = bpy.context.scene.matlayer_shader_info
+        for channel in shader_info.material_channels:
+            operator = layout.operator("matlayer.set_material_channel", text=channel.name)
+            operator.channel_name = channel.name
 
 class ImageUtilitySubMenu(Menu):
     bl_idname = "MATLAYER_MT_image_utility_sub_menu"
