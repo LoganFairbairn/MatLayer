@@ -112,6 +112,13 @@ def set_shader(shader_name):
                     case 'NodeSocketVector':
                         channel.socket_vector_default = shader_material_channel['socket_default']
 
+            shader_info.export_channels.clear()
+            export_channels = shaders[i]['export_channels']
+            for channel in export_channels:
+                export_channel = shader_info.export_channels.add()
+                export_channel.name = channel
+
+            shader_info.global_properties.clear()
             global_properties = shaders[i]['global_properties']
             for property in global_properties:
                 global_property = shader_info.global_properties.add()
@@ -122,7 +129,8 @@ def set_shader(shader_name):
         debug_logging.log("Shader {0} doesn't exist, applying default shader.".format(shader_name))
 
     # Set the default channel of the shader to be the first defined channel.
-    bpy.context.scene.matlayer_layer_stack.selected_material_channel = channel.name
+    if len(shader_info.material_channels) > 0:
+        bpy.context.scene.matlayer_layer_stack.selected_material_channel = shader_info.material_channels[0].name
 
 class MATLAYER_shader_name(PropertyGroup):
     '''Shader name'''
@@ -185,6 +193,10 @@ class MATLAYER_shader_material_channel(PropertyGroup):
         items=LAYER_BLEND_MODES
     )
 
+class MATLAYER_shader_export_channel(PropertyGroup):
+    '''Properties for a shader export channel.'''
+    name: StringProperty()
+
 class MATLAYER_shader_global_property(PropertyGroup):
     '''Global property for a shader.'''
     name: StringProperty()
@@ -211,6 +223,7 @@ class MATLAYER_shader_info(PropertyGroup):
         default=""
     )
     material_channels: CollectionProperty(type=MATLAYER_shader_material_channel)
+    export_channels: CollectionProperty(type=MATLAYER_shader_export_channel)
     global_properties: CollectionProperty(type=MATLAYER_shader_global_property)
 
 class MATLAYER_OT_set_shader(Operator):
