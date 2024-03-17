@@ -43,6 +43,34 @@ def draw_ui_shaders_section(self, context):
     row = second_column.row()
     row.prop(shader_info, "group_node_name", text="")
 
+    # Draw global properties for the shader.
+    layout.label(text="Global Properties:")
+    for property in shader_info.global_properties:
+        split = layout.split(factor=0.5)
+        first_column = split.column()
+        second_column = split.column()
+
+        row = first_column.row()
+        row.prop(property, "name", text="")
+
+        active_object = bpy.context.active_object
+        if active_object: 
+            active_material = active_object.active_material
+            if active_material:
+                matlayer_shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+                if matlayer_shader_node:
+                    shader_property = matlayer_shader_node.inputs.get(property.name)
+                    if shader_property:
+                        row = second_column.row()
+                        row.prop(shader_property, "default_value", text="")
+            else:
+                row = second_column.row()
+                row.label(text="No active material.")
+        else:
+            row = second_column.row()
+            row.label(text="No object selected.")
+        
+
     # Draw all the channels for the selected shader.
     layout.label(text="Shader Channels:")
     split = layout.split(factor=0.3)
@@ -110,12 +138,6 @@ def draw_ui_shaders_section(self, context):
     for channel in shader_info.export_channels:
         row = layout.row()
         row.prop(channel, "name", text="")
-
-    # Draw global properties for the shader.
-    layout.label(text="Global Properties:")
-    for property in shader_info.global_properties:
-        row = layout.row()
-        row.prop(property, "name", text="")
     
 class ShaderSubMenu(Menu):
     bl_idname = "MATLAYER_MT_shader_sub_menu"
