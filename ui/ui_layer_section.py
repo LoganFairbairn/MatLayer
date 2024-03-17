@@ -12,9 +12,8 @@ from ..ui import ui_section_tabs
 DEFAULT_UI_SCALE_Y = 1
 
 MATERIAL_LAYER_PROPERTY_TABS = [
-    ("LAYER", "LAYER", "Properties for the selected material layer."),
-    ("MASKS", "MASKS", "Properties for masks applied to the selected material layer."),
-    ("GLOBAL", "GLOBAL", "Properties that affect all layers that comprise the active material")
+    ("MATERIAL", "MATERIAL", "Properties for the selected material layer."),
+    ("MASKS", "MASKS", "Properties for masks applied to the selected material layer.")
 ]
 
 def draw_layers_section_ui(self, context):
@@ -34,7 +33,7 @@ def draw_layers_section_ui(self, context):
         if layer_count > 0:
             draw_material_property_tabs(column_one)
             match bpy.context.scene.matlayer_material_property_tabs:
-                case 'LAYER':
+                case 'MATERIAL':
                     draw_layer_projection(column_one)
                     draw_layer_material_channel_toggles(column_one)
                     draw_material_channel_properties(column_one)
@@ -42,9 +41,6 @@ def draw_layers_section_ui(self, context):
 
                 case 'MASKS':
                     draw_masks(column_one)
-
-                case 'GLOBAL':
-                    draw_global_material_properties(column_one)
 
     column_two = split.column()
     draw_material_selector(column_two)
@@ -111,9 +107,8 @@ def draw_material_property_tabs(layout):
     '''Draws tabs to change between editing the material layer and the masks applied to the material layer.'''
     row = layout.row(align=True)
     row.scale_y = 1.5
-    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'LAYER')
+    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MATERIAL')
     row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MASKS')
-    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'GLOBAL')
 
 def draw_layer_material_channel_toggles(layout):
     '''Draws on / off toggles with for individual material channels in the selected material layer.'''
@@ -677,109 +672,6 @@ def draw_layer_properties(layout):
 
     # Draw blur settings.
     draw_layer_blur_settings(layout)
-
-def draw_global_material_properties(layout):
-    '''Draws properties for the material.'''
-    active_object = bpy.context.active_object
-    if active_object:
-        if active_object.active_material:
-            row = layout.row()
-            row.separator()
-            row.scale_y = 2
-
-            row = layout.row()
-            row.label(text="GLOBAL PROPERTIES")
-
-            split = layout.split(factor=0.4)
-            first_column = split.column()
-            second_column = split.column()
-
-            # Draw the global base height value.
-            normal_height_mix_node = material_layers.get_material_layer_node('NORMAL_HEIGHT_MIX')
-            if normal_height_mix_node:
-                row = first_column.row()
-                row.label(text="Base Height")
-                row = second_column.row()
-                row.prop(normal_height_mix_node.inputs.get('Base Height'), "default_value", text="", slider=True)
-
-            # Draw the global alpha clip value.
-            if tss.get_material_channel_active('ALPHA'):
-                row = first_column.row()
-                row.label(text="Alpha Clip")
-                row = second_column.row()
-                row.prop(active_object.active_material, "alpha_threshold", text="")
-
-            # Draw base normal map.
-            base_normal_map_node = material_layers.get_material_layer_node('BASE_NORMALS')
-            if base_normal_map_node:
-                row = first_column.row()
-                row.label(text="Base Normal Map")
-                row = second_column.row()
-                row.prop(base_normal_map_node, "image", text="")
-
-            # Draw base normal intensity.
-            base_normals_mix_node = material_layers.get_material_layer_node('BASE_NORMALS_MIX')
-            if base_normals_mix_node:
-                row = first_column.row()
-                row.label(text="Base Normals")
-                row = second_column.row()
-                row.prop(base_normals_mix_node.inputs.get('Opacity'), "default_value", text="", slider=True)
-
-            # Draw the global emission strength value.
-            bsdf_wrapper_node = active_object.active_material.node_tree.nodes.get('MATLAYER_SHADER')
-            bsdf_node = bsdf_wrapper_node.node_tree.nodes.get('MATLAYER_SHADER')
-            if bsdf_wrapper_node:
-
-                row = first_column.row()
-                row.label(text="IOR")
-                row = second_column.row()
-                row.prop(bsdf_wrapper_node.inputs.get('IOR'), "default_value", text="", slider=True)
-
-                row = first_column.row()
-                row.label(text="Subsurface Method")
-                row = second_column.row()
-                row.prop(bsdf_node, "subsurface_method", text="", slider=True)
-
-                row = first_column.row()
-                row.label(text="Subsurface Scale")
-                row = second_column.row()
-                row.prop(bsdf_wrapper_node.inputs.get('Subsurface Scale'), "default_value", text="", slider=True)
-
-                row = first_column.row()
-                row.label(text="Subsurface Anisotropy")
-                row = second_column.row()
-                row.prop(bsdf_wrapper_node.inputs.get('Subsurface Anisotropy'), "default_value", text="", slider=True)
-
-                row = first_column.row()
-                row.label(text="Distribution")
-                row = second_column.row()
-                row.prop(bsdf_node, "distribution", text="", slider=True)
-
-                row = first_column.row()
-                row.label(text="Anisotropic")
-                row = second_column.row()
-                row.prop(bsdf_wrapper_node.inputs.get('Specular Anisotropic'), "default_value", text="", slider=True)
-
-                row = first_column.row()
-                row.label(text="Anisotropic Rotation")
-                row = second_column.row()
-                row.prop(bsdf_wrapper_node.inputs.get('Specular Anisotropic Rotation'), "default_value", text="", slider=True)
-
-                row = first_column.row()
-                row.label(text="Transmission Weight")
-                row = second_column.row()
-                row.prop(bsdf_wrapper_node.inputs.get('Transmission Weight'), "default_value", text="", slider=True)
-
-                row = first_column.row()
-                row.label(text="Coat IOR")
-                row = second_column.row()
-                row.prop(bsdf_wrapper_node.inputs.get('Coat IOR'), "default_value", text="", slider=True)
-
-                if tss.get_material_channel_active('EMISSION'):
-                    row = first_column.row()
-                    row.label(text="Emission Strength")
-                    row = second_column.row()
-                    row.prop(bsdf_wrapper_node.inputs.get('Emission Strength'), "default_value", text="", slider=True)
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
