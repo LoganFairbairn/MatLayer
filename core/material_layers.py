@@ -613,14 +613,17 @@ def create_default_layer_node(layer_type):
         image_alpha_node_reroute.location[1] = 0
         image_alpha_node_reroute.parent = channel_frame_node
 
-        opacity_node = default_node_group.nodes.new('ShaderNodeMath')
+        opacity_node = default_node_group.nodes.new('ShaderNodeMix')
         opacity_node.name = "{0}_OPACITY".format(static_channel_name)
         opacity_node.label = opacity_node.name
         opacity_node.location[0] = -300
         opacity_node.location[1] = 0
         opacity_node.parent = channel_frame_node
         opacity_node.width = 250
-        opacity_node.operation = 'MULTIPLY'
+        opacity_node.data_type = 'FLOAT'
+        opacity_node.inputs[0].default_value = 1.0
+        opacity_node.inputs[2].default_value = 0.0
+        opacity_node.inputs[3].default_value = 1.0
 
         separate_node = default_node_group.nodes.new('ShaderNodeSeparateColor')
         separate_node.name = "SEPARATE_{0}".format(static_channel_name)
@@ -698,7 +701,7 @@ def create_default_layer_node(layer_type):
         # Link all default nodes together.
         default_node_group.links.new(input_node.outputs.get('LayerMask'), image_alpha_node_reroute.inputs[0])
         default_node_group.links.new(image_alpha_node_reroute.outputs[0], image_alpha_node.inputs[0])
-        default_node_group.links.new(image_alpha_node.outputs[0], opacity_node.inputs[1])
+        default_node_group.links.new(image_alpha_node.outputs[0], opacity_node.inputs[3])
         default_node_group.links.new(opacity_node.outputs[0], mix_node.inputs[0])
         default_node_group.links.new(input_node.outputs.get(channel.name), mix_node_reroute.inputs[0])
 
