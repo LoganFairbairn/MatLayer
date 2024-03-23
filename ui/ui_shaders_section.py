@@ -45,6 +45,9 @@ def draw_ui_shaders_section(self, context):
                     if shader_property:
                         row = second_column.row()
                         row.prop(shader_property, "default_value", text="")
+                    else:
+                        row = second_column.row()
+                        row.label(text="Shader Property Invalid")
             else:
                 row = second_column.row()
                 row.label(text="No active material.")
