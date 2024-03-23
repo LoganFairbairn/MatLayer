@@ -785,63 +785,39 @@ def add_material_layer(layer_type, self):
     layer_masks.organize_mask_nodes()
     layer_masks.refresh_mask_slots()
 
-    # TODO: For specific layer types, perform additional setup steps.
-    '''
-    match layer_type:
-        case 'PAINT':
-            replace_material_channel_node('COLOR', 'TEXTURE')
-            addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-            high_bit_depth = addon_preferences.thirty_two_bit
-            new_image = blender_addon_utils.create_image("Paint", base_color=(0.0, 0.0, 0.0, 0.0), alpha_channel=True, add_unique_id=True, thirty_two_bit=high_bit_depth)
-            texture_node = get_material_layer_node('VALUE', new_layer_slot_index, 'COLOR')
-            if texture_node:
-                texture_node.image = new_image
-            blender_addon_utils.set_texture_paint_image(new_image)
-            blender_addon_utils.save_image(new_image)
-
-            shader_info = bpy.context.scene.matlayer_shader_info
-            for channel in shader_info.material_channels:
-                if channel.name != 'COLOR':
-                    mix_layer_node = get_material_layer_node('MIX', new_layer_slot_index, material_channel_name)
-                    if mix_layer_node:
-                        mix_layer_node.mute = True
-
-            # Use image alpha blending by default.
-            toggle_image_alpha_blending('COLOR')
-
-        case 'DECAL':
-
-            # Create a new empty to use as a decal object.
-            unique_decal_name = blender_addon_utils.get_unique_object_name("Decal", start_id_number=1)
-            decal_object = bpy.data.objects.new(unique_decal_name, None)
-            decal_object.empty_display_type = 'CUBE'
-            decal_object.scale[2] = 0.1
-            blender_addon_utils.add_object_to_collection("Decals", decal_object, color_tag='COLOR_03', unlink_from_other_collections=True)
-
-            # Add the new decal object to the decal coordinate node.
-            decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', new_layer_slot_index)
-            if decal_coordinate_node:
-                decal_coordinate_node.object = decal_object
-
-            # Add a default decal to the color material channel.
-            default_decal_image = blender_addon_utils.append_image('DefaultDecal')
-            replace_material_channel_node('COLOR', 'TEXTURE')
-            texture_node = get_material_layer_node('VALUE', new_layer_slot_index, 'COLOR')
-            if texture_node:
-                if texture_node.bl_static_type == 'TEX_IMAGE':
-                    texture_node.image = default_decal_image
-                    blender_addon_utils.set_texture_paint_image(default_decal_image)
-                    blender_addon_utils.save_image(default_decal_image)
-
-            # Add an image mask to the decal layer by default.
-            layer_masks.add_layer_mask('DECAL', self)
-            mask_texture_node = layer_masks.get_mask_node('TEXTURE', new_layer_slot_index, 0)
-            if mask_texture_node:
-                mask_texture_node.image = default_decal_image
-            layer_masks.set_mask_output_channel('ALPHA')
+    # For decal layers types, perform additional setup steps.
+    if layer_type == 'DECAL':
             
-            blender_addon_utils.set_snapping('DECAL', snap_on=True)
-    '''
+        # Create a new empty to use as a decal object.
+        unique_decal_name = blender_addon_utils.get_unique_object_name("Decal", start_id_number=1)
+        decal_object = bpy.data.objects.new(unique_decal_name, None)
+        decal_object.empty_display_type = 'CUBE'
+        decal_object.scale[2] = 0.1
+        blender_addon_utils.add_object_to_collection("Decals", decal_object, color_tag='COLOR_03', unlink_from_other_collections=True)
+
+        # Add the new decal object to the decal coordinate node.
+        decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', new_layer_slot_index)
+        if decal_coordinate_node:
+            decal_coordinate_node.object = decal_object
+
+        # Add a default decal to the color material channel.
+        default_decal_image = blender_addon_utils.append_image('DefaultDecal')
+        replace_material_channel_node('COLOR', 'TEXTURE')
+        texture_node = get_material_layer_node('VALUE', new_layer_slot_index, 'COLOR')
+        if texture_node:
+            if texture_node.bl_static_type == 'TEX_IMAGE':
+                texture_node.image = default_decal_image
+                blender_addon_utils.set_texture_paint_image(default_decal_image)
+                blender_addon_utils.save_image(default_decal_image)
+
+        # Add an image mask to the decal layer by default.
+        layer_masks.add_layer_mask('DECAL', self)
+        mask_texture_node = layer_masks.get_mask_node('TEXTURE', new_layer_slot_index, 0)
+        if mask_texture_node:
+            mask_texture_node.image = default_decal_image
+        layer_masks.set_mask_output_channel('ALPHA')
+        
+        blender_addon_utils.set_snapping('DECAL', snap_on=True)
 
 def duplicate_layer(original_layer_index, self):
     '''Duplicates the material layer at the provided layer index.'''
@@ -1925,21 +1901,6 @@ class MATLAYER_OT_add_material_layer(Operator):
 
     def execute(self, context):
         add_material_layer('DEFAULT', self)
-        return {'FINISHED'}
-
-class MATLAYER_OT_add_paint_material_layer(Operator):
-    bl_idname = "matlayer.add_paint_material_layer"
-    bl_label = "Add Paint Material Layer"
-    bl_description = "Creates a material layer and an image texture that's placed in the materials color channel"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    # Disable when there is no active object.
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def execute(self, context):
-        add_material_layer('PAINT', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_add_decal_material_layer(Operator):

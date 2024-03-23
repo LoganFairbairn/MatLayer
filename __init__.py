@@ -115,8 +115,7 @@ classes = (
     # Material Layers
     material_layers.MATLAYER_layer_stack,
     material_layers.MATLAYER_layers,
-    material_layers.MATLAYER_OT_add_material_layer, 
-    material_layers.MATLAYER_OT_add_paint_material_layer,
+    material_layers.MATLAYER_OT_add_material_layer,
     material_layers.MATLAYER_OT_add_decal_material_layer,
     material_layers.MATLAYER_OT_delete_layer,
     material_layers.MATLAYER_OT_duplicate_layer, 
