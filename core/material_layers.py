@@ -520,14 +520,6 @@ def create_default_layer_node(layer_type):
     projection_node.node_tree = blender_addon_utils.append_group_node('ML_UVProjection')
     projection_node.width = 300
 
-    # TODO: Add nodes for blurring material channels.
-    blur_node = default_node_group.nodes.new('ShaderNodeGroup')
-    blur_node.name = 'BLUR'
-    blur_node.label = blur_node.name
-    blur_node.location[0] = -3000
-    blur_node.location[1] = -1300
-    blur_node.width = 300
-
     # Add framed material channel nodes for values, filtering and mixing.
     frame_x = -1000
     frame_y = 0
