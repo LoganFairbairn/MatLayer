@@ -625,7 +625,7 @@ def link_mask_nodes(layer_index):
     layer_node = material_layers.get_material_layer_node('LAYER', layer_index)
     last_mask_node = get_mask_node('MASK', layer_index, mask_count - 1)
     if last_mask_node and last_mask_node:
-        node_tree.links.new(last_mask_node.outputs[0], layer_node.inputs.get('LayerMask'))
+        node_tree.links.new(last_mask_node.outputs[0], layer_node.inputs.get('Layer Mask'))
 
     debug_logging.log("Re-linked mask nodes.")
 

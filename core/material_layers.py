@@ -496,12 +496,16 @@ def create_default_layer_node(layer_type):
                 output_socket.default_value = channel.socket_vector_default
     
     # Add a layer mask input.
-    default_node_group.interface.new_socket(
-        name="LayerMask",
+    mask_socket = default_node_group.interface.new_socket(
+        name="Layer Mask",
         description="Mask input for the layer",
         in_out='INPUT',
         socket_type='NodeSocketFloat'
     )
+    mask_socket.subtype = 'FACTOR'
+    mask_socket.default_value = 1.0
+    mask_socket.min_value = 0.0
+    mask_socket.max_value = 1.0
 
     # Add input and output nodes.
     input_node = default_node_group.nodes.new('NodeGroupInput')
@@ -713,7 +717,7 @@ def create_default_layer_node(layer_type):
         frame_y -= 1000
 
         # Link all default nodes together.
-        default_node_group.links.new(input_node.outputs.get('LayerMask'), image_alpha_node_reroute.inputs[0])
+        default_node_group.links.new(input_node.outputs.get('Layer Mask'), image_alpha_node_reroute.inputs[0])
         default_node_group.links.new(image_alpha_node_reroute.outputs[0], image_alpha_node.inputs[0])
         default_node_group.links.new(image_alpha_node.outputs[0], opacity_node.inputs[3])
         default_node_group.links.new(opacity_node.outputs[0], mix_node.inputs[0])
@@ -1141,7 +1145,7 @@ def link_layer_group_nodes(self):
         layer_node = get_material_layer_node('LAYER', i)
         if layer_node:
             for input in layer_node.inputs:
-                if input.name != 'LayerMask':
+                if input.name != 'Layer Mask':
                     for link in input.links:
                         node_tree.links.remove(link)
             for output in layer_node.outputs:
