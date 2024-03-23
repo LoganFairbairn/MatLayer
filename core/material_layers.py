@@ -424,10 +424,6 @@ def create_default_material_setup():
                 if material_output_node:
                     blank_node_tree.links.new(new_shader_node.outputs[0], material_output_node.inputs[0])
 
-                normal_height_mix_node = get_material_layer_node('NORMAL_HEIGHT_MIX')
-                if normal_height_mix_node:
-                    blank_node_tree.links.new(normal_height_mix_node.outputs[0], new_shader_node.inputs.get('Normal'))
-
             else:
                 debug_logging.log("Shader group node {0} doesn't exist.".format(shader_group_node_name))
                 return
