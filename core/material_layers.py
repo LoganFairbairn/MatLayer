@@ -2300,3 +2300,16 @@ class MATLAYER_OT_set_layer_blending_mode(Operator):
         set_layer_blending_mode(self.layer_index, self.blending_mode, material_channel)
         link_layer_group_nodes(self)
         return {'FINISHED'}
+
+class MATLAYER_OT_merge_layers(Operator):
+    bl_idname = "matlayer.merge_layers"
+    bl_label = "Merge Layers"
+    bl_description = "Converts all material channels of the selected layer to pixel data, then merges all active material channels of the selected layer with the layer below."
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        return {'FINISHED'}

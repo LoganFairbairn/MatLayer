@@ -136,6 +136,7 @@ classes = (
     material_layers.MATLAYER_OT_set_material_channel,
     material_layers.MATLAYER_OT_set_material_channel_output_channel,
     material_layers.MATLAYER_OT_set_layer_blending_mode,
+    material_layers.MATLAYER_OT_merge_layers,
 
     # Layer Masks
     MATLAYER_mask_stack, 
