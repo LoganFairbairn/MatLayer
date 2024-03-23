@@ -1,9 +1,6 @@
 {
     "shaders": [
       {
-        "name": "Principled BSDF (Blender 4x)",
-        "author": "Blender",
-        "description": "The standard principled BSDF shader for Blender.",
         "group_node_name": "ML_BSDF",
         "shader_material_channels": [
             {
@@ -284,9 +281,6 @@
         ]
       },
       {
-        "name": "RyShade",
-        "author": "Logan Fairbairn (Ryver)",
-        "description": "A stylized shader for toon and anime characters.",
         "group_node_name": "ML_RYSHADE",
         "shader_material_channels": [
             {

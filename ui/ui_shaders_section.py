@@ -22,26 +22,8 @@ def draw_ui_shaders_section(self, context):
     row = second_column.row(align=True)
     menu_label = shader_info.name
     menu_label = menu_label.replace('ML_', '')
-    row.prop(shader_info, "name", text="")
-    row.menu("MATLAYER_MT_shader_sub_menu", text="Load Shader")
-
-    # Draw the shader author.
-    row = first_column.row()
-    row.label(text="Author: ")
-    row = second_column.row()
-    row.prop(shader_info, "author", text="")
-
-    # Draw the shader description.
-    row = first_column.row()
-    row.label(text="Description: ")
-    row = second_column.row()
-    row.prop(shader_info, "description", text="")
-
-    # Draw the name of the group node used for the shader.
-    row = first_column.row()
-    row.label(text="Group Node Name: ")
-    row = second_column.row()
     row.prop(shader_info, "group_node_name", text="")
+    row.menu("MATLAYER_MT_shader_sub_menu", text="Load Shader")
 
     # Draw global properties for the shader.
     layout.label(text="Global Properties:")

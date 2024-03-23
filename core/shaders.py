@@ -64,7 +64,7 @@ def update_shader_list():
     matlayer_shader_list.clear()
     for shader in shaders:
         shader_name = matlayer_shader_list.add()
-        shader_name.name = shader['name']
+        shader_name.name = shader['group_node_name']
     debug_logging.log("Updated shader list.")
 
 def set_shader(shader_name):
@@ -87,9 +87,6 @@ def set_shader(shader_name):
     for i, shader in enumerate(matlayer_shader_list):
         if shader['name'] == shader_name:
             shader_exists = True
-            shader_info.name = shaders[i]['name']
-            shader_info.author = shaders[i]['author']
-            shader_info.description = shaders[i]['description']
             shader_info.group_node_name = shaders[i]['group_node_name']
 
             shader_material_channels = shaders[i]['shader_material_channels']
