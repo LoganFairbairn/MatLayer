@@ -383,17 +383,6 @@ def add_material_layer_slot():
 
     return bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
-def apply_base_normals():
-    '''Applies the base normal map for the active object if one exists, applies a default base normal map if one doesn't.'''
-    base_normals_node = get_material_layer_node('BASE_NORMALS')
-    if base_normals_node:
-        base_normals_image = mesh_map_baking.get_meshmap_image(bpy.context.active_object.name, 'NORMALS')
-        if base_normals_image:
-            base_normals_node.image = base_normals_image
-        else:
-            default_normal_image = blender_addon_utils.append_image('DefaultNormal')
-            base_normals_node.image = default_normal_image
-
 def create_default_material_setup():
     '''Creates a default material setup for the applied shader.'''
 
@@ -743,7 +732,6 @@ def add_material_layer(layer_type, self):
         new_material.name = new_material_name
         active_object.data.materials.append(new_material)
         active_object.active_material_index = 0
-        apply_base_normals()
 
     # If material slots exist on the object, but the active material slot is empty, add a new material.
     elif active_object.material_slots[active_object.active_material_index].material == None:
@@ -751,7 +739,6 @@ def add_material_layer(layer_type, self):
         new_material_name = blender_addon_utils.get_unique_material_name(active_object.name.replace('_', ''))
         new_material.name = new_material_name
         active_object.material_slots[active_object.active_material_index].material = new_material
-        apply_base_normals()
 
     # If material slots exist on the object, but the active material isn't properly formatted to work with this add-on, display an error.
     else:
@@ -1260,9 +1247,6 @@ def apply_mesh_maps():
                 if mesh_map_node:
                     if mesh_map_node.bl_static_type == 'TEX_IMAGE':
                         mesh_map_node.image = mesh_map_baking.get_meshmap_image(bpy.context.active_object.name, mesh_map_type)
-
-    # Apply base normals.
-    apply_base_normals()
 
     debug_logging.log("Applied baked mesh maps.")
 
