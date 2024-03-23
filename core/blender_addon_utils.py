@@ -600,3 +600,8 @@ def duplicate_object(original_object, duplicated_object_name=""):
             duplicated_object.name = duplicated_object_name
 
     return duplicated_object
+
+def safe_node_link(input_socket, output_socket, node_tree):
+    '''Checks that both sockets exist, before linking the sockets together.'''
+    if input_socket and output_socket:
+        node_tree.links.new(output_socket, input_socket)
