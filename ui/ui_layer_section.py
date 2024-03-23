@@ -37,7 +37,6 @@ def draw_layers_section_ui(self, context):
                     draw_layer_projection(column_one)
                     draw_layer_material_channel_toggles(column_one)
                     draw_material_channel_properties(column_one)
-                    draw_layer_properties(column_one)
 
                 case 'MASKS':
                     draw_masks(column_one)
@@ -604,75 +603,6 @@ def draw_masks(layout):
         draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_index)
         draw_mask_projection(layout)
         draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index)
-
-def draw_layer_blur_settings(layout):
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    blur_node = material_layers.get_material_layer_node('BLUR', selected_layer_index)
-
-    # TODO: Fix blurring!
-    '''
-    if blur_node:
-        split = layout.row()
-        column_1 = split.column()
-        column_2 = split.column()
-
-        row = column_1.row()
-        if blender_addon_utils.get_node_active(blur_node):
-            row.operator("matlayer.toggle_layer_blur", text="", icon='CHECKBOX_HLT', depress=True)
-            row = column_2.row()
-            row.enabled = True
-
-        else:
-            row.operator("matlayer.toggle_layer_blur", text="", icon='CHECKBOX_DEHLT', depress=False)
-            row = column_2.row()
-            row.enabled = False
-
-        row.prop(blur_node.inputs.get('Blur Amount'), "default_value", text="Blur Amount")
-
-        # Draw blur toggles for individual material channels that are active.
-        row = layout.row()
-        row.scale_y = DEFAULT_UI_SCALE_Y
-        drawn_toggles = 0
-        
-        active_material_channels = []
-        shader_info = bpy.context.scene.matlayer_shader_info
-        for channel in shader_info.material_channels:
-            if tss.get_material_channel_active(channel.name):
-                active_material_channels.append(channel.name)
-
-        if blender_addon_utils.get_node_active(blur_node):
-            for channel_name in active_material_channels:
-                mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, channel_name)
-                if mix_node:
-
-                    blur_toggle_property_name = "{0} Blur Toggle".format(channel_name)
-                    shorthand_material_channel_name = material_layers.get_shorthand_material_channel_name(channel_name)
-
-                    if blur_node.inputs.get(blur_toggle_property_name).default_value == 1:
-                        operator = row.operator("matlayer.toggle_material_channel_blur", text=shorthand_material_channel_name, depress=True)
-                        operator.material_channel_name = channel_name
-                    if blur_node.inputs.get(blur_toggle_property_name).default_value == 0:
-                        operator = row.operator("matlayer.toggle_material_channel_blur", text=shorthand_material_channel_name, depress=False)
-                        operator.material_channel_name = channel_name
-
-                    drawn_toggles += 1
-                    if drawn_toggles >= min(4, round(len(active_material_channels) / 2)):
-                        row = layout.row()
-                        row.scale_y = DEFAULT_UI_SCALE_Y
-                        drawn_toggles = 0
-    '''
-
-def draw_layer_properties(layout):
-    '''Draws properties specific to the selected layer such as blurring, or decal properties.'''
-    row = layout.row()
-    row.separator()
-    row.scale_y = 2
-
-    row = layout.row()
-    row.label(text="LAYER PROPERTIES")
-
-    # Draw blur settings.
-    draw_layer_blur_settings(layout)
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
