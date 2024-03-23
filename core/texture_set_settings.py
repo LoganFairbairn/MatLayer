@@ -130,91 +130,96 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
     def execute(self, context):
         blender_addon_utils.verify_material_operation_context(self)
         active_material = bpy.context.active_object.active_material
-        channel_toggle_node = active_material.node_tree.nodes.get("GLOBAL_{0}_TOGGLE".format(self.material_channel_name))
+
+        # Get the channel toggle node from the material using the formatted name.
+        formatted_channel_name = self.material_channel_name.replace(' ', '-')
+        formatted_channel_name = formatted_channel_name.upper()
+        channel_toggle_node = active_material.node_tree.nodes.get("GLOBAL_{0}_TOGGLE".format(formatted_channel_name))
 
         # Toggle material channel on.
-        if channel_toggle_node.mute:
-            channel_toggle_node.mute = False
+        if channel_toggle_node:
+            if channel_toggle_node.mute:
+                channel_toggle_node.mute = False
 
-            # Connect the last active layer node for the toggled material channel to the principled bsdf.
-            total_layers = material_layers.count_layers(active_material)
-            for i in range(total_layers, 0, -1):
-                layer_node = material_layers.get_material_layer_node('LAYER', i - 1)
-                if blender_addon_utils.get_node_active(layer_node):
-                    channel_name = self.material_channel_name.replace('-', ' ')
-                    channel_name = blender_addon_utils.capitalize_by_space(channel_name)
-                    match self.material_channel_name:
-                        case 'COLOR':
-                            connect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
-                            input_socket = connect_node.inputs.get('Base Color')
-                        case 'NORMAL':
-                            connect_node = material_layers.get_material_layer_node('BASE_NORMALS_MIX')
-                            input_socket = connect_node.inputs.get('Normal Map 1')
-                        case 'HEIGHT':
-                            connect_node = material_layers.get_material_layer_node('NORMAL_HEIGHT_MIX')
-                            input_socket = connect_node.inputs.get('Height')
-                        case 'SHEEN':
-                            connect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
-                            input_socket = connect_node.inputs.get('Sheen Weight')
-                        case 'DISPLACEMENT':
-                            connect_node = active_material.node_tree.nodes.get('DISPLACEMENT')
-                            input_socket = connect_node.inputs[0]
-                        case _:
-                            connect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
-                            input_socket = connect_node.inputs.get(channel_name)
-                    active_material.node_tree.links.new(layer_node.outputs.get(channel_name), input_socket)
-                    break
+                # Connect the last active layer node for the toggled material channel to the principled bsdf.
+                total_layers = material_layers.count_layers(active_material)
+                for i in range(total_layers, 0, -1):
+                    layer_node = material_layers.get_material_layer_node('LAYER', i - 1)
+                    if blender_addon_utils.get_node_active(layer_node):
+                        channel_name = self.material_channel_name.replace('-', ' ')
+                        channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+                        match self.material_channel_name:
+                            case 'COLOR':
+                                connect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+                                input_socket = connect_node.inputs.get('Base Color')
+                            case 'NORMAL':
+                                connect_node = material_layers.get_material_layer_node('BASE_NORMALS_MIX')
+                                input_socket = connect_node.inputs.get('Normal Map 1')
+                            case 'HEIGHT':
+                                connect_node = material_layers.get_material_layer_node('NORMAL_HEIGHT_MIX')
+                                input_socket = connect_node.inputs.get('Height')
+                            case 'SHEEN':
+                                connect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+                                input_socket = connect_node.inputs.get('Sheen Weight')
+                            case 'DISPLACEMENT':
+                                connect_node = active_material.node_tree.nodes.get('DISPLACEMENT')
+                                input_socket = connect_node.inputs[0]
+                            case _:
+                                connect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+                                input_socket = connect_node.inputs.get(channel_name)
+                        active_material.node_tree.links.new(layer_node.outputs.get(channel_name), input_socket)
+                        break
 
-            # Toggle on alpha clip to allow transparency.
-            if self.material_channel_name == 'ALPHA':
-                active_material.blend_method = 'CLIP'
+                # Toggle on alpha clip to allow transparency.
+                if self.material_channel_name == 'ALPHA':
+                    active_material.blend_method = 'CLIP'
 
-            # Toggle on displacement in the material settings.
-            if self.material_channel_name == 'DISPLACEMENT':
-                active_material.cycles.displacement_method = 'BOTH'
+                # Toggle on displacement in the material settings.
+                if self.material_channel_name == 'DISPLACEMENT':
+                    active_material.cycles.displacement_method = 'BOTH'
 
-                displacement_node = material_layers.get_material_layer_node('DISPLACEMENT')
-                material_output_node = material_layers.get_material_layer_node('MATERIAL_OUTPUT')
-                active_material.node_tree.links.new(displacement_node.outputs[0], material_output_node.inputs[2])
-        
-        # Toggle material channel off.
-        else:
-            channel_toggle_node.mute = True
-            match self.material_channel_name:
-                case 'COLOR':
-                    disconnect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
-                    disconnect_socket = disconnect_node.inputs.get('Base Color')
-                case 'NORMAL':
-                    disconnect_node = material_layers.get_material_layer_node('BASE_NORMALS_MIX')
-                    disconnect_socket = disconnect_node.inputs.get('Normal Map 1')
-                case 'HEIGHT':
-                    disconnect_node = material_layers.get_material_layer_node('NORMAL_HEIGHT_MIX')
-                    disconnect_socket = disconnect_node.inputs.get('Height')
-                case 'SHEEN':
-                    disconnect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
-                    disconnect_socket = disconnect_node.inputs.get('Sheen Weight')
-                case 'DISPLACEMENT':
-                    disconnect_node = active_material.node_tree.nodes.get('DISPLACEMENT')
-                    disconnect_socket = disconnect_node.inputs[0]
-                case _:
-                    disconnect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
-                    channel_name = self.material_channel_name.replace('-', ' ')
-                    channel_name = blender_addon_utils.capitalize_by_space(channel_name)
-                    disconnect_socket = disconnect_node.inputs.get(channel_name)
+                    displacement_node = material_layers.get_material_layer_node('DISPLACEMENT')
+                    material_output_node = material_layers.get_material_layer_node('MATERIAL_OUTPUT')
+                    active_material.node_tree.links.new(displacement_node.outputs[0], material_output_node.inputs[2])
+            
+            # Toggle material channel off.
+            else:
+                channel_toggle_node.mute = True
+                match self.material_channel_name:
+                    case 'COLOR':
+                        disconnect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+                        disconnect_socket = disconnect_node.inputs.get('Base Color')
+                    case 'NORMAL':
+                        disconnect_node = material_layers.get_material_layer_node('BASE_NORMALS_MIX')
+                        disconnect_socket = disconnect_node.inputs.get('Normal Map 1')
+                    case 'HEIGHT':
+                        disconnect_node = material_layers.get_material_layer_node('NORMAL_HEIGHT_MIX')
+                        disconnect_socket = disconnect_node.inputs.get('Height')
+                    case 'SHEEN':
+                        disconnect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+                        disconnect_socket = disconnect_node.inputs.get('Sheen Weight')
+                    case 'DISPLACEMENT':
+                        disconnect_node = active_material.node_tree.nodes.get('DISPLACEMENT')
+                        disconnect_socket = disconnect_node.inputs[0]
+                    case _:
+                        disconnect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+                        channel_name = self.material_channel_name.replace('-', ' ')
+                        channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+                        disconnect_socket = disconnect_node.inputs.get(channel_name)
 
-            # Disconnect the toggled material channel from the principled bsdf.
-            for link in disconnect_socket.links:
-                active_material.node_tree.links.remove(link)
+                # Disconnect the toggled material channel from the principled bsdf.
+                for link in disconnect_socket.links:
+                    active_material.node_tree.links.remove(link)
 
-            # Toggle off alpha clip for better shader performance when the channel isn't being used.
-            if self.material_channel_name == 'ALPHA':
-                active_material.blend_method = 'OPAQUE'
+                # Toggle off alpha clip for better shader performance when the channel isn't being used.
+                if self.material_channel_name == 'ALPHA':
+                    active_material.blend_method = 'OPAQUE'
 
-            # Toggle off displacement in the material settings.
-            if self.material_channel_name == 'DISPLACEMENT':
-                active_material.cycles.displacement_method = 'BUMP'
-                displacement_node = material_layers.get_material_layer_node('DISPLACEMENT')
-                blender_addon_utils.unlink_node(displacement_node, active_material.node_tree, unlink_inputs=True, unlink_outputs=True)
+                # Toggle off displacement in the material settings.
+                if self.material_channel_name == 'DISPLACEMENT':
+                    active_material.cycles.displacement_method = 'BUMP'
+                    displacement_node = material_layers.get_material_layer_node('DISPLACEMENT')
+                    blender_addon_utils.unlink_node(displacement_node, active_material.node_tree, unlink_inputs=True, unlink_outputs=True)
 
         return {'FINISHED'}
 
