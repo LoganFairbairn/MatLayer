@@ -397,7 +397,7 @@ def apply_base_normals():
 def create_default_material_setup():
     '''Creates a default material setup for the applied shader.'''
 
-    # Append a blank material setup from the add-on assets blend file.
+    # Append a blank material template setup from the add-on assets blend file.
     blank_material = blender_addon_utils.append_material('BlankMaterialSetup')
     if blank_material:
         blank_node_tree = blank_material.node_tree
@@ -550,41 +550,41 @@ def create_default_layer_node(layer_type):
         channel_frame_node.name = static_channel_name
         channel_frame_node.label = static_channel_name
 
-        # Create default value group nodes for all shader channels.
+        # Create default value group nodes for all shader channels if a default group node doesn't already exist.
         default_value_group_node_name = "ML_DEFAULT-{0}".format(static_channel_name)
         default_value_group_node = bpy.data.node_groups.get(default_value_group_node_name)
-        if default_value_group_node:
-            bpy.data.node_groups.remove(default_value_group_node)
-        default_value_group_node = bpy.data.node_groups.new(default_value_group_node_name, type='ShaderNodeTree')
-        input_socket = default_value_group_node.interface.new_socket(
-            name=channel.name, 
-            description=channel.name,
-            in_out='INPUT',
-            socket_type=channel.socket_type
-        )
+        if not default_value_group_node:
+            default_value_group_node = bpy.data.node_groups.new(default_value_group_node_name, type='ShaderNodeTree')
+        
+            input_socket = default_value_group_node.interface.new_socket(
+                name=channel.name, 
+                description=channel.name,
+                in_out='INPUT',
+                socket_type=channel.socket_type
+            )
 
-        output_socket = default_value_group_node.interface.new_socket(
-            name=channel.name,
-            description=channel.name,
-            in_out='OUTPUT',
-            socket_type=channel.socket_type
-        )
+            output_socket = default_value_group_node.interface.new_socket(
+                name=channel.name,
+                description=channel.name,
+                in_out='OUTPUT',
+                socket_type=channel.socket_type
+            )
 
-        match channel.socket_type:
-            case 'NodeSocketFloat':
-                input_socket.default_value = channel.socket_float_default
-                input_socket.min_value = channel.socket_float_min
-                input_socket.max_value = channel.socket_float_max
-                output_socket.default_value = channel.socket_float_default
-                output_socket.min_value = channel.socket_float_min
-                output_socket.max_value = channel.socket_float_max
-                input_socket.subtype = channel.socket_subtype
-            case 'NodeSocketColor':
-                input_socket.default_value = (channel.socket_color_default[0], channel.socket_color_default[1], channel.socket_color_default[2], 1)
-                output_socket.default_value = (channel.socket_color_default[0], channel.socket_color_default[1], channel.socket_color_default[2], 1)
-            case 'NodeSocketVector':
-                input_socket.default_value = channel.socket_vector_default
-                input_socket.default_value = channel.socket_vector_default
+            match channel.socket_type:
+                case 'NodeSocketFloat':
+                    input_socket.default_value = channel.socket_float_default
+                    input_socket.min_value = channel.socket_float_min
+                    input_socket.max_value = channel.socket_float_max
+                    output_socket.default_value = channel.socket_float_default
+                    output_socket.min_value = channel.socket_float_min
+                    output_socket.max_value = channel.socket_float_max
+                    input_socket.subtype = channel.socket_subtype
+                case 'NodeSocketColor':
+                    input_socket.default_value = (channel.socket_color_default[0], channel.socket_color_default[1], channel.socket_color_default[2], 1)
+                    output_socket.default_value = (channel.socket_color_default[0], channel.socket_color_default[1], channel.socket_color_default[2], 1)
+                case 'NodeSocketVector':
+                    input_socket.default_value = channel.socket_vector_default
+                    input_socket.default_value = channel.socket_vector_default
 
         value_node = default_node_group.nodes.new('ShaderNodeGroup')
         value_node.name = "{0}_VALUE_1".format(static_channel_name)
