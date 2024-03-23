@@ -586,6 +586,24 @@ def create_default_layer_node(layer_type):
                     input_socket.default_value = channel.socket_vector_default
                     input_socket.default_value = channel.socket_vector_default
 
+            # Add input and output nodes so the input value for the default group node is passed directly through.
+            value_input_node = default_value_group_node.nodes.new('NodeGroupInput')
+            value_input_node.name = 'GROUP_INPUT'
+            value_input_node.label = value_input_node.name
+            value_input_node.location[0] = -1000
+            value_input_node.location[1] = 0 
+            value_input_node.width = 300
+
+            value_output_node = default_value_group_node.nodes.new('NodeGroupOutput')
+            value_output_node.name = 'GROUP_OUTPUT'
+            value_output_node.label = value_output_node.name
+            value_output_node.location[0] = 0
+            value_output_node.location[1] = 0
+            value_output_node.width = 300
+
+            # Link the input and output nodes.
+            default_value_group_node.links.new(value_input_node.outputs[0], value_output_node.inputs[0])
+
         value_node = default_node_group.nodes.new('ShaderNodeGroup')
         value_node.name = "{0}_VALUE_1".format(static_channel_name)
         value_node.label = value_node.name

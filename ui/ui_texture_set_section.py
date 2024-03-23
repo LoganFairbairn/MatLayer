@@ -63,7 +63,7 @@ def draw_texture_set_section_ui(self, context):
             if blender_addon_utils.verify_addon_material(active_object.active_material):
 
                 # Draw global material channel toggles.
-                layout.label(text="MATERIAL CHANNELS")
+                layout.label(text="ACTIVE MATERIAL CHANNELS")
                 row = layout.row()
                 row.scale_y = 1.4
                 row_count = 0
