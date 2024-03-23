@@ -1148,9 +1148,7 @@ def link_layer_group_nodes(self):
                         if output_socket and input_socket:
                             node_tree.links.new(output_socket, input_socket)
 
-    # TODO: Connect the last (non-muted / active) layer node to the principled BSDF.
-    base_normals_mix_node = active_material.node_tree.nodes.get('BASE_NORMALS_MIX')
-    normal_and_height_mix_node = active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
+    # Connect the last (non-muted / active) layer node to the principled BSDF.
     shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
 
     last_layer_node_index = layer_count - 1
@@ -1168,26 +1166,12 @@ def link_layer_group_nodes(self):
                 # Only connect active material channels.
                 if not tss.get_material_channel_active(channel.name):
                     continue
-                
-                # Connect normal and height channels differently.
-                match channel.name:
-                    case 'NORMAL':
-                        output_socket = last_layer_node.outputs.get(channel.name)
-                        input_socket = base_normals_mix_node.inputs.get('Normal Map 1')
-                        if output_socket and input_socket:
-                            node_tree.links.new(output_socket, input_socket)
-                
-                    case 'HEIGHT':
-                        output_socket = last_layer_node.outputs.get(channel.name)
-                        input_socket = normal_and_height_mix_node.inputs.get(channel.name)
-                        if output_socket and input_socket:
-                            node_tree.links.new(output_socket, input_socket)
 
-                    case _:
-                        output_socket = last_layer_node.outputs.get(channel.name)
-                        input_socket = shader_node.inputs.get(channel.name)
-                        if output_socket and input_socket:
-                            node_tree.links.new(output_socket, input_socket)
+                output_socket = last_layer_node.outputs.get(channel.name)
+                input_socket = shader_node.inputs.get(channel.name)
+                if output_socket and input_socket:
+                    node_tree.links.new(output_socket, input_socket)
+    
     debug_logging.log("Linked layer group nodes.")
 
 def reindex_layer_nodes(change_made, affected_layer_index):
