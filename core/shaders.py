@@ -238,3 +238,18 @@ class MATLAYER_OT_set_shader(Operator):
     def execute(self, context):
         set_shader(self.shader_name)
         return {'FINISHED'}
+
+class MATLAYER_OT_save_shader(Operator):
+    bl_idname = "matlayer.save_shader"
+    bl_label = "Save Shader"
+    bl_description = "Saves the shader to json data. If the shader group node already exists in json data, the shader data will be overwritten"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    shader_name: StringProperty(default='ERROR')
+
+    @ classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def execute(self, context):
+        return {'FINISHED'}

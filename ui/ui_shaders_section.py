@@ -24,6 +24,7 @@ def draw_ui_shaders_section(self, context):
     menu_label = menu_label.replace('ML_', '')
     row.prop(shader_info, "group_node_name", text="")
     row.menu("MATLAYER_MT_shader_sub_menu", text="Load Shader")
+    row.operator("matlayer.save_shader", text="", icon='FILE_TICK')
 
     # Draw global properties for the shader.
     layout.label(text="Global Properties:")
