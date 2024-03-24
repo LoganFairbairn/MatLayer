@@ -112,6 +112,7 @@ classes = (
     shaders.MATLAYER_shader_info,
     shaders.MATLAYER_OT_set_shader,
     shaders.MATLAYER_OT_save_shader,
+    shaders.MATLAYER_OT_delete_shader,
 
     # Material Layers
     material_layers.MATLAYER_layer_stack,
