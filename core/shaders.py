@@ -236,39 +236,5 @@ class MATLAYER_OT_set_shader(Operator):
         return context.active_object
 
     def execute(self, context):
-        
-        # Set the shader so new material layers will be created using it.
         set_shader(self.shader_name)
-
-        # DISABLED
-        # Replace the shader node in the active material.
-        '''
-        active_object = bpy.context.active_object
-        if active_object:
-            active_material = active_object.active_material
-            if active_material:
-                shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
-                if shader_node:
-                    shader_node_tree = blender_addon_utils.append_group_node(self.shader)
-                    if shader_node_tree:
-                        old_node_location = shader_node.location
-                        old_node_width = shader_node.width
-                        active_material.node_tree.nodes.remove(shader_node)
-                        new_shader_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
-                        new_shader_node.name = 'MATLAYER_SHADER'
-                        new_shader_node.label = new_shader_node.name
-                        new_shader_node.node_tree = shader_node_tree
-                        new_shader_node.location = old_node_location
-                        new_shader_node.width = old_node_width
-                        
-                        # Link the new shader node.
-                        material_output_node = active_material.node_tree.nodes.get('MATERIAL_OUTPUT')
-                        if material_output_node:
-                            active_material.node_tree.links.new(new_shader_node.outputs[0], material_output_node.inputs[0])
-
-                        normal_height_mix_node = get_material_layer_node('NORMAL_HEIGHT_MIX')
-                        if normal_height_mix_node:
-                            active_material.node_tree.links.new(normal_height_mix_node.outputs[0], new_shader_node.inputs.get('Normal'))
-                        link_layer_group_nodes(self)
-        '''
         return {'FINISHED'}
