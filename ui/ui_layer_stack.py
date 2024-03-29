@@ -101,8 +101,6 @@ class LayerBlendingModeSubMenu(Menu):
 class MATLAYER_UL_layer_list(bpy.types.UIList):
     '''Draws the layer stack.'''
 
-    draw_counter = 0
-
     def draw_item(self, context, layout, data, item, icon, active_data, index):
         self.use_filter_show = False
         self.use_filter_reverse = True
