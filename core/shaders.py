@@ -137,7 +137,7 @@ class MATLAYER_shader_material_channel(PropertyGroup):
     name: StringProperty(
         name="Shader Channel Name",
         description="The name of the shader channel. The channel name should match an input socket in the defined shader group node.",
-        default="ERROR"
+        default="New Shader Channel"
     )
     socket_type: EnumProperty(
         name="Shader Channel Type",
@@ -186,7 +186,9 @@ class MATLAYER_shader_material_channel(PropertyGroup):
 
 class MATLAYER_shader_global_property(PropertyGroup):
     '''Global property for a shader.'''
-    name: StringProperty()
+    name: StringProperty(
+        default='New Global Shader Property'
+    )
 
 class MATLAYER_shader_info(PropertyGroup):
     name: StringProperty(

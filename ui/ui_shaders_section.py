@@ -12,7 +12,7 @@ def draw_ui_shaders_section(self, context):
 
     shader_info = bpy.context.scene.matlayer_shader_info
     layout = self.layout
-    split = layout.split(factor=0.2)
+    split = layout.split(factor=0.25)
     first_column = split.column()
     second_column = split.column()
 
@@ -30,7 +30,7 @@ def draw_ui_shaders_section(self, context):
     row.operator("matlayer.delete_shader", text="", icon='TRASH')
 
     # Draw global properties for the shader.
-    split = layout.split(factor=0.2)
+    split = layout.split(factor=0.25)
     first_column = split.column()
     row.scale_y = 1.4
     second_column = split.column()
@@ -45,8 +45,39 @@ def draw_ui_shaders_section(self, context):
     row = layout.row(align=True)
     row.template_list("MATLAYER_UL_global_shader_property_list", "Global Shader Properties", bpy.context.scene.matlayer_shader_info, "global_properties", bpy.context.scene, "matlayer_selected_global_shader_property_index", sort_reverse=False)
 
+    selected_global_shader_property_index = bpy.context.scene.matlayer_selected_global_shader_property_index
+    global_shader_property = shader_info.global_properties[selected_global_shader_property_index]
+
+    split = layout.split(factor=0.25)
+    first_column = split.column()
+    second_column = split.column()
+
+    row = first_column.row()
+    row.label(text="Property Name")
+    row = second_column.row()
+    row.prop(global_shader_property, "name", text="")
+
+    row = first_column.row()
+    row.label(text="Value")
+    row = second_column.row()
+    active_object = bpy.context.active_object
+    if active_object: 
+        active_material = active_object.active_material
+        if active_material:
+            matlayer_shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+            if matlayer_shader_node:
+                shader_property = matlayer_shader_node.inputs.get(global_shader_property.name)
+                if shader_property:
+                    row.prop(shader_property, "default_value", text="")
+                else:
+                    row.label(text="Shader Property Invalid")
+        else:
+            row.label(text="No active material.")
+    else:
+        row.label(text="No object selected.")
+
     # Draw all the channels for the selected shader.
-    split = layout.split(factor=0.2)
+    split = layout.split(factor=0.25)
     first_column = split.column()
     second_column = split.column()
 
@@ -63,7 +94,7 @@ def draw_ui_shaders_section(self, context):
     row.template_list("MATLAYER_UL_shader_channel_list", "Shader Channels", bpy.context.scene.matlayer_shader_info, "material_channels", bpy.context.scene, "matlayer_selected_shader_index", sort_reverse=False)
 
     # Draw properties for the selected shader channel.
-    split = layout.split(factor=0.2)
+    split = layout.split(factor=0.25)
     first_column = split.column()
     second_column = split.column()
 
@@ -136,28 +167,4 @@ class MATLAYER_UL_global_shader_property_list(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, index):
         self.use_filter_show = False
         self.use_filter_reverse = True
-
-        split = layout.split(factor=0.02)
-        first_column = split.column()
-        second_column = split.column()
-
-        row = first_column.row()
-        row.label(text=" -")
-        row = second_column.row(align=True)
-        row.prop(item, "name", text="")
-
-        active_object = bpy.context.active_object
-        if active_object: 
-            active_material = active_object.active_material
-            if active_material:
-                matlayer_shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
-                if matlayer_shader_node:
-                    shader_property = matlayer_shader_node.inputs.get(item.name)
-                    if shader_property:
-                        row.prop(shader_property, "default_value", text="")
-                    else:
-                        row.label(text="Shader Property Invalid")
-            else:
-                row.label(text="No active material.")
-        else:
-            row.label(text="No object selected.")
+        layout.label(text=item.name)
