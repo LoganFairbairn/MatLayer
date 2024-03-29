@@ -3,10 +3,11 @@
 import bpy
 from bpy.utils import resource_path
 from bpy.types import PropertyGroup, Operator
-from bpy.props import BoolProperty, StringProperty, CollectionProperty, EnumProperty, FloatProperty, FloatVectorProperty
+from bpy.props import BoolProperty, StringProperty, CollectionProperty, EnumProperty, FloatProperty, FloatVectorProperty, PointerProperty
 import json
 from pathlib import Path
 from ..core import debug_logging
+from ..core import blender_addon_utils as bau
 from .. import preferences
 
 LAYER_BLEND_MODES = [
@@ -87,8 +88,22 @@ def set_shader(shader_name):
     for i, shader in enumerate(matlayer_shader_list):
         if shader['name'] == shader_name:
             shader_exists = True
-            shader_info.group_node_name = shaders[i]['group_node_name']
 
+            # Ensure the defined shader group node is in the blend file.
+            shader_nodegroup_name = shaders[i]['group_node_name']
+            shader_nodegroup = bpy.data.node_groups.get(shader_nodegroup_name)
+            if shader_nodegroup:
+                bpy.context.scene.matlayer_shader_group_node = shader_nodegroup
+            else:
+                # If the shader nodetree isn't in the blend file already, attempt to append the nodetree from the add-on assets file.
+                shader_nodegroup = bau.append_group_node(shader_nodegroup_name)
+                if shader_nodegroup:
+                    bpy.context.scene.matlayer_shader_group_node = shader_nodegroup
+                else:
+                    debug_logging.log("Shader nodetree does not exist and cannot be appended from the add-on assets file.")
+                    return
+            
+            shader_info.group_node_name = shaders[i]['group_node_name']
             shader_material_channels = shaders[i]['shader_material_channels']
             shader_info.material_channels.clear()
             for shader_material_channel in shader_material_channels:
@@ -302,4 +317,35 @@ class MATLAYER_OT_delete_global_shader_property(Operator):
         selected_global_shader_property_index = bpy.context.scene.matlayer_selected_global_shader_property_index
         shader_info.global_properties.remove(selected_global_shader_property_index)
         bpy.context.scene.matlayer_selected_global_shader_property_index = min(max(0, selected_global_shader_property_index - 1), len(shader_info.global_properties) - 1)
+        return {'FINISHED'}
+    
+class MATLAYER_OT_create_shader_from_nodetree(Operator):
+    bl_idname = "matlayer.create_shader_from_nodetree"
+    bl_label = "Create Shader From Nodetree"
+    bl_description = "Automatically fills in shader info using the selected group node"
+
+    def execute(self, context):
+        shader_info = bpy.context.scene.matlayer_shader_info
+        shader_group_node = bpy.context.scene.matlayer_shader_group_node
+
+        # Verify the shader group node exists in the blend file.
+        if not shader_group_node:
+            debug_logging.log("Can't create shader from invalid shader group node.")
+            return {'FINISHED'}
+
+        # Clear all shader settings.
+        shader_info.material_channels.clear()
+        shader_info.global_properties.clear()
+
+        # Add a shader channel for all group node inputs.
+        for item in shader_group_node.interface.items_tree:
+            if item.item_type == 'SOCKET':
+                shader_channel = shader_info.material_channels.add()
+                shader_channel.name = item.name
+
+        # Reset shader indicies.
+        bpy.context.scene.matlayer_selected_shader_index = 0
+        bpy.context.scene.matlayer_selected_global_shader_property_index = 0
+
+        debug_logging.log("Created shader from selected group node.", message_type='INFO', sub_process=False)
         return {'FINISHED'}
