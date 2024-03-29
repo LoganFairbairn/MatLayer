@@ -272,9 +272,6 @@
               "default_blend_mode": "MIX"
             }
         ],
-        "export_channels": [
-          "Normal Height Mix"
-        ],
         "global_properties": [
           "Base Height",
           "Emission Strength"
@@ -323,9 +320,6 @@
               "socket_max": [1.0, 1.0, 1.0],
               "default_blend_mode": "NORMAL_MAP_DETAIL"
             }
-        ],
-        "export_channels": [
-          "Normal Height Mix"
         ],
         "global_properties": [
           "Base Height",

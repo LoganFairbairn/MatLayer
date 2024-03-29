@@ -110,14 +110,6 @@ def draw_ui_shaders_section(self, context):
     row.label(text="Default Blend Mode")
     row = second_column.row()
     row.prop(selected_shader_channel, "default_blend_mode", text="")
-
-    '''
-    # Draw export channels for the shader.
-    layout.label(text="Export Channels:")
-    for channel in shader_info.export_channels:
-        row = layout.row()
-        row.prop(channel, "name", text="")
-    '''
     
 class ShaderSubMenu(Menu):
     bl_idname = "MATLAYER_MT_shader_sub_menu"
