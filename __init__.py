@@ -17,7 +17,7 @@
 
 import bpy
 import bpy.utils.previews       # Imported for loading layer texture previews as icons.
-from bpy.props import PointerProperty, CollectionProperty, EnumProperty, StringProperty, BoolProperty
+from bpy.props import PointerProperty, CollectionProperty, EnumProperty, StringProperty, BoolProperty, IntProperty
 from bpy.app.handlers import persistent
 
 # Preferences
@@ -52,7 +52,7 @@ from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLA
 # User Interface
 from .ui.ui_section_tabs import UtilitySubMenu
 from .ui.ui_layer_section import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, MATLAYER_OT_add_material_filter_menu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MATERIAL_LAYER_PROPERTY_TABS
-from .ui.ui_shaders_section import ShaderSubMenu
+from .ui.ui_shaders_section import ShaderSubMenu, MATLAYER_UL_shader_channel_list, MATLAYER_UL_global_shader_property_list
 from .ui.ui_main import *
 from .ui.ui_layer_stack import MATLAYER_UL_layer_list, LayerBlendingModeSubMenu
 
@@ -113,6 +113,10 @@ classes = (
     shaders.MATLAYER_OT_set_shader,
     shaders.MATLAYER_OT_save_shader,
     shaders.MATLAYER_OT_delete_shader,
+    shaders.MATLAYER_OT_add_shader_channel,
+    shaders.MATLAYER_OT_delete_shader_channel,
+    shaders.MATLAYER_OT_add_global_shader_property,
+    shaders.MATLAYER_OT_delete_global_shader_property,
 
     # Material Layers
     material_layers.MATLAYER_layer_stack,
@@ -198,6 +202,8 @@ classes = (
 
     # User Interface
     ShaderSubMenu,
+    MATLAYER_UL_shader_channel_list,
+    MATLAYER_UL_global_shader_property_list,
     MATLAYER_UL_layer_list,
     LayerBlendingModeSubMenu,
     UtilitySubMenu,
@@ -324,6 +330,8 @@ def register():
     
     bpy.types.Scene.matlayer_shader_list = CollectionProperty(type=shaders.MATLAYER_shader_name)
     bpy.types.Scene.matlayer_shader_info = PointerProperty(type=shaders.MATLAYER_shader_info)
+    bpy.types.Scene.matlayer_selected_shader_index = IntProperty()
+    bpy.types.Scene.matlayer_selected_global_shader_property_index = IntProperty()
 
     bpy.types.Scene.matlayer_layer_stack = PointerProperty(type=material_layers.MATLAYER_layer_stack)
     bpy.types.Scene.matlayer_layers = CollectionProperty(type=material_layers.MATLAYER_layers)

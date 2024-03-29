@@ -12,14 +12,16 @@ def draw_ui_shaders_section(self, context):
 
     shader_info = bpy.context.scene.matlayer_shader_info
     layout = self.layout
-    split = layout.split(factor=0.3)
+    split = layout.split(factor=0.2)
     first_column = split.column()
     second_column = split.column()
 
-    # Draw the shader list.
+    # Draw the selected shader, and a list of other available shaders.
     row = first_column.row()
-    row.label(text="Shader: ")
+    row.label(text="Shader")
+    row.scale_y = 1.4
     row = second_column.row(align=True)
+    row.scale_y = 1.4
     menu_label = shader_info.name
     menu_label = menu_label.replace('ML_', '')
     row.prop(shader_info, "group_node_name", text="")
@@ -28,103 +30,94 @@ def draw_ui_shaders_section(self, context):
     row.operator("matlayer.delete_shader", text="", icon='TRASH')
 
     # Draw global properties for the shader.
-    layout.label(text="Global Properties:")
-    for property in shader_info.global_properties:
-        split = layout.split(factor=0.5)
-        first_column = split.column()
-        second_column = split.column()
-
-        row = first_column.row()
-        row.prop(property, "name", text="")
-
-        active_object = bpy.context.active_object
-        if active_object: 
-            active_material = active_object.active_material
-            if active_material:
-                matlayer_shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
-                if matlayer_shader_node:
-                    shader_property = matlayer_shader_node.inputs.get(property.name)
-                    if shader_property:
-                        row = second_column.row()
-                        row.prop(shader_property, "default_value", text="")
-                    else:
-                        row = second_column.row()
-                        row.label(text="Shader Property Invalid")
-            else:
-                row = second_column.row()
-                row.label(text="No active material.")
-        else:
-            row = second_column.row()
-            row.label(text="No object selected.")
-        
+    split = layout.split(factor=0.2)
+    first_column = split.column()
+    row.scale_y = 1.4
+    second_column = split.column()
+    row = first_column.row()
+    row.label(text="Global Shader Properties")
+    row = second_column.row(align=True)
+    row.scale_x = 2
+    row.scale_y = 1.4
+    row.alignment = 'RIGHT'
+    row.operator("matlayer.add_global_shader_property", text="", icon='ADD')
+    row.operator("matlayer.delete_global_shader_property", text="", icon='TRASH')
+    row = layout.row(align=True)
+    row.template_list("MATLAYER_UL_global_shader_property_list", "Global Shader Properties", bpy.context.scene.matlayer_shader_info, "global_properties", bpy.context.scene, "matlayer_selected_global_shader_property_index", sort_reverse=False)
 
     # Draw all the channels for the selected shader.
-    layout.label(text="Shader Channels:")
-    split = layout.split(factor=0.3)
+    split = layout.split(factor=0.2)
     first_column = split.column()
     second_column = split.column()
 
     row = first_column.row()
-    row.alignment = 'CENTER'
-    row.label(text="Channel")
+    row.scale_y = 1.4
+    row.label(text="Shader Channels")
+    row = second_column.row(align=True)
+    row.alignment = 'RIGHT'
+    row.scale_x = 2
+    row.scale_y = 1.4
+    row.operator("matlayer.add_shader_channel", text="", icon='ADD')
+    row.operator("matlayer.delete_shader_channel", text="", icon='TRASH')
+    row = layout.row(align=True)
+    row.template_list("MATLAYER_UL_shader_channel_list", "Shader Channels", bpy.context.scene.matlayer_shader_info, "material_channels", bpy.context.scene, "matlayer_selected_shader_index", sort_reverse=False)
 
+    # Draw properties for the selected shader channel.
+    split = layout.split(factor=0.2)
+    first_column = split.column()
+    second_column = split.column()
+
+    selected_shader_channel_index = bpy.context.scene.matlayer_selected_shader_index
+    selected_shader_channel = shader_info.material_channels[selected_shader_channel_index]
+
+    row = first_column.row()
+    row.label(text="Channel Name")
     row = second_column.row()
-    split = row.split(factor=0.5)
-    first_sub_column = split.column()
-    second_sub_column = split.column()
+    row.prop(selected_shader_channel, "name", text="")
 
-    row = first_sub_column.row()
-    row.alignment = 'CENTER'
-    row.label(text="Default, Min, Max")
+    row = first_column.row()
+    row.label(text="Default Active")
+    row = second_column.row()
+    if selected_shader_channel.default_active:
+        row.prop(selected_shader_channel, "default_active", text="", toggle=True, icon='CHECKMARK')
+    else:
+        row.prop(selected_shader_channel, "default_active", text="", toggle=True)
 
-    row = second_sub_column.row()
-    col = row.column()
-    col.label(text="Type")
+    row = first_column.row()
+    row.label(text="Socket Type")
+    row = second_column.row()
+    row.prop(selected_shader_channel, "socket_type", text="")
 
-    col = row.column()
-    col.label(text="Subtype")
+    row = first_column.row()
+    row.label(text="Socket Sub Type")
+    row = second_column.row()
+    row.prop(selected_shader_channel, "socket_subtype", text="")
 
-    col = row.column()
-    col.label(text="Blend")
+    row = first_column.row()
+    row.label(text="Default")
+    row = second_column.row()
+    match selected_shader_channel.socket_type:
+        case 'NodeSocketFloat':
+            row.prop(selected_shader_channel, "socket_float_default", text="")
+            row.prop(selected_shader_channel, "socket_float_min", text="")
+            row.prop(selected_shader_channel, "socket_float_max", text="")
+        case 'NodeSocketColor':
+            row.prop(selected_shader_channel, "socket_color_default", text="")
+        case 'NodeSocketVector':
+            row.prop(selected_shader_channel, "socket_vector_default", text="")
 
-    for channel in shader_info.material_channels:
-        split = layout.split(factor=0.3)
-        first_column = split.column()
-        second_column = split.column()
+    row = first_column.row()
+    row.label(text="Default Blend Mode")
+    row = second_column.row()
+    row.prop(selected_shader_channel, "default_blend_mode", text="")
 
-        row = first_column.row()
-        if channel.default_active:
-            row.prop(channel, "default_active", text="", toggle=True, icon='CHECKMARK')
-        else:
-            row.prop(channel, "default_active", text="", toggle=True)
-        row.prop(channel, "name", text="")
-
-        row = second_column.row()
-        split = row.split(factor=0.5)
-        first_sub_column = split.column()
-        second_sub_column = split.column()
-
-        row = first_sub_column.row()
-        match channel.socket_type:
-            case 'NodeSocketFloat':
-                row.prop(channel, "socket_float_default", text="")
-                row.prop(channel, "socket_float_min", text="")
-                row.prop(channel, "socket_float_max", text="")
-            case 'NodeSocketColor':
-                row.prop(channel, "socket_color_default", text="")
-            case 'NodeSocketVector':
-                row.prop(channel, "socket_vector_default", text="")
-        
-        row = second_sub_column.row()
-        row.prop(channel, "socket_type", text="")
-        row.prop(channel, "socket_subtype", text="")
-        row.prop(channel, "default_blend_mode", text="")
-
+    '''
     # Draw export channels for the shader.
     layout.label(text="Export Channels:")
     for channel in shader_info.export_channels:
         row = layout.row()
         row.prop(channel, "name", text="")
+    '''
     
 class ShaderSubMenu(Menu):
     bl_idname = "MATLAYER_MT_shader_sub_menu"
@@ -136,3 +129,43 @@ class ShaderSubMenu(Menu):
         for shader in shaders:
             op = layout.operator("matlayer.set_shader", text=shader.name)
             op.shader_name = shader.name
+
+class MATLAYER_UL_shader_channel_list(bpy.types.UIList):
+    '''Draws the shader channel list'''
+
+    def draw_item(self, context, layout, data, item, icon, active_data, index):
+        self.use_filter_show = False
+        self.use_filter_reverse = True
+        layout.label(text=item.name)
+
+class MATLAYER_UL_global_shader_property_list(bpy.types.UIList):
+    '''Draws a list of the global properties for the selected shader.'''
+
+    def draw_item(self, context, layout, data, item, icon, active_data, index):
+        self.use_filter_show = False
+        self.use_filter_reverse = True
+
+        split = layout.split(factor=0.02)
+        first_column = split.column()
+        second_column = split.column()
+
+        row = first_column.row()
+        row.label(text=" -")
+        row = second_column.row(align=True)
+        row.prop(item, "name", text="")
+
+        active_object = bpy.context.active_object
+        if active_object: 
+            active_material = active_object.active_material
+            if active_material:
+                matlayer_shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+                if matlayer_shader_node:
+                    shader_property = matlayer_shader_node.inputs.get(item.name)
+                    if shader_property:
+                        row.prop(shader_property, "default_value", text="")
+                    else:
+                        row.label(text="Shader Property Invalid")
+            else:
+                row.label(text="No active material.")
+        else:
+            row.label(text="No object selected.")

@@ -266,3 +266,49 @@ class MATLAYER_OT_delete_shader(Operator):
 
     def execute(self, context):
         return {'FINISHED'}
+    
+class MATLAYER_OT_add_shader_channel(Operator):
+    bl_idname = "matlayer.add_shader_channel"
+    bl_label = "Add Shader Channel"
+    bl_description = "Adds a shader channel to the shader info"
+
+    def execute(self, context):
+        shader_info = bpy.context.scene.matlayer_shader_info
+        shader_info.material_channels.add()
+        bpy.context.scene.matlayer_selected_shader_index = len(shader_info.material_channels) - 1
+        return {'FINISHED'}
+    
+class MATLAYER_OT_delete_shader_channel(Operator):
+    bl_idname = "matlayer.delete_shader_channel"
+    bl_label = "Delete Shader Channel"
+    bl_description = "Deletes a shader channel from the shader info"
+
+    def execute(self, context):
+        shader_info = bpy.context.scene.matlayer_shader_info
+        selected_shader_index = bpy.context.scene.matlayer_selected_shader_index
+        shader_info.material_channels.remove(selected_shader_index)
+        bpy.context.scene.matlayer_selected_shader_index = min(max(0, selected_shader_index - 1), len(shader_info.material_channels) - 1)
+        return {'FINISHED'}
+    
+class MATLAYER_OT_add_global_shader_property(Operator):
+    bl_idname = "matlayer.add_global_shader_property"
+    bl_label = "Add Global Shader Property"
+    bl_description = "Adds a global shader property to the shader info"
+
+    def execute(self, context):
+        shader_info = bpy.context.scene.matlayer_shader_info
+        shader_info.global_properties.add()
+        bpy.context.scene.matlayer_selected_global_shader_property_index = len(shader_info.global_properties) - 1
+        return {'FINISHED'}
+    
+class MATLAYER_OT_delete_global_shader_property(Operator):
+    bl_idname = "matlayer.delete_global_shader_property"
+    bl_label = "Delete Global Shader Property"
+    bl_description = "Deletes a global shader property to the shader info"
+
+    def execute(self, context):
+        shader_info = bpy.context.scene.matlayer_shader_info
+        selected_global_shader_property_index = bpy.context.scene.matlayer_selected_global_shader_property_index
+        shader_info.global_properties.remove(selected_global_shader_property_index)
+        bpy.context.scene.matlayer_selected_global_shader_property_index = min(max(0, selected_global_shader_property_index - 1), len(shader_info.global_properties) - 1)
+        return {'FINISHED'}
