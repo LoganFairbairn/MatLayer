@@ -339,9 +339,38 @@ class MATLAYER_OT_create_shader_from_nodetree(Operator):
 
         # Add a shader channel for all group node inputs.
         for item in shader_group_node.interface.items_tree:
-            if item.item_type == 'SOCKET':
+            if item.item_type == 'SOCKET' and item.in_out == 'INPUT':
                 shader_channel = shader_info.material_channels.add()
                 shader_channel.name = item.name
+
+                if item.socket_type == '':
+                    shader_channel.socket_type = 'NodeSocketColor'
+                
+                else:
+                    shader_channel.socket_type = item.socket_type
+                    match item.socket_type:
+                        case 'COLOR':
+                            shader_channel.socket_color_default = item.default_value
+
+                        case 'FLOAT':
+                            shader_channel.socket_float_default = item.default_value
+                            shader_channel.socket_float_min = item.min_value
+                            shader_channel.socket_float_max = item.max_value
+                            shader_channel.socket_subtype = item.subtype
+
+                        case 'VECTOR':
+                            shader_channel.socket_vector_default = item.default_value
+                            shader_channel.socket_subtype = item.subtype
+
+                # Guess the ideal default blend mode for the shader channel using the channel name.
+                channel_name = shader_channel.name.upper()
+                match channel_name:
+                    case 'NORMAL':
+                        shader_channel.default_blend_mode = 'NORMAL'
+                    case 'HEIGHT':
+                        shader_channel.default_blend_mode = 'ADD'
+                    case _:
+                        shader_channel.default_blend_mode = 'MIX'
 
         # Reset shader indicies.
         bpy.context.scene.matlayer_selected_shader_index = 0
