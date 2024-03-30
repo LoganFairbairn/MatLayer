@@ -73,10 +73,12 @@ def draw_ui_shaders_section(self, context):
                         row.prop(shader_property, "default_value", text="")
                     else:
                         row.label(text="Shader Property Invalid")
+                else:
+                    row.label(text="No Valid Shader Node")
             else:
-                row.label(text="No active material.")
+                row.label(text="No Active Material")
         else:
-            row.label(text="No object selected.")
+            row.label(text="No Object Selected")
 
     # Draw all the channels for the selected shader.
     split = layout.split(factor=0.25)
