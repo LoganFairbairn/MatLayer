@@ -125,10 +125,11 @@ def draw_ui_shaders_section(self, context):
         row = second_column.row()
         row.prop(selected_shader_channel, "socket_type", text="")
 
-        row = first_column.row()
-        row.label(text="Socket Sub Type")
-        row = second_column.row()
-        row.prop(selected_shader_channel, "socket_subtype", text="")
+        if selected_shader_channel.socket_type != 'NodeSocketColor':
+            row = first_column.row()
+            row.label(text="Socket Sub Type")
+            row = second_column.row()
+            row.prop(selected_shader_channel, "socket_subtype", text="")
 
         row = first_column.row()
         row.label(text="Default")
