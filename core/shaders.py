@@ -343,22 +343,24 @@ class MATLAYER_OT_create_shader_from_nodetree(Operator):
                 shader_channel = shader_info.material_channels.add()
                 shader_channel.name = item.name
 
+                # Some old group nodes don't define the socket type,
+                # assign them a default socket type.
                 if item.socket_type == '':
-                    shader_channel.socket_type = 'NodeSocketColor'
-                
+                    item.socket_type = 'NodeSocketFloat'
+
                 else:
                     shader_channel.socket_type = item.socket_type
-                    match item.socket_type:
-                        case 'COLOR':
-                            shader_channel.socket_color_default = item.default_value
+                    match shader_channel.socket_type:
+                        case 'NodeSocketColor':
+                            shader_channel.socket_color_default = (item.default_value[0], item.default_value[1], item.default_value[2])
 
-                        case 'FLOAT':
+                        case 'NodeSocketFloat':
                             shader_channel.socket_float_default = item.default_value
                             shader_channel.socket_float_min = item.min_value
                             shader_channel.socket_float_max = item.max_value
                             shader_channel.socket_subtype = item.subtype
 
-                        case 'VECTOR':
+                        case 'NodeSocketVector':
                             shader_channel.socket_vector_default = item.default_value
                             shader_channel.socket_subtype = item.subtype
 
@@ -376,5 +378,5 @@ class MATLAYER_OT_create_shader_from_nodetree(Operator):
         bpy.context.scene.matlayer_selected_shader_index = 0
         bpy.context.scene.matlayer_selected_global_shader_property_index = 0
 
-        debug_logging.log("Created shader from selected group node.", message_type='INFO', sub_process=False)
+        debug_logging.log_status("Created shader from selected group node.", self, type='INFO')
         return {'FINISHED'}
