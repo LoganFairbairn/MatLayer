@@ -136,8 +136,19 @@ def draw_ui_shaders_section(self, context):
         row = second_column.row()
         match selected_shader_channel.socket_type:
             case 'NodeSocketFloat':
-                row.prop(selected_shader_channel, "socket_float_default", text="")
+                if selected_shader_channel.socket_subtype == 'FACTOR':
+                    row.prop(selected_shader_channel, "socket_float_default", text="", slider=True)
+                else:
+                    row.prop(selected_shader_channel, "socket_float_default", text="")
+
+                row = first_column.row()
+                row.label(text="Min Value")
+                row = second_column.row()
                 row.prop(selected_shader_channel, "socket_float_min", text="")
+
+                row = first_column.row()
+                row.label(text="Max Value")
+                row = second_column.row()
                 row.prop(selected_shader_channel, "socket_float_max", text="")
             case 'NodeSocketColor':
                 row.prop(selected_shader_channel, "socket_color_default", text="")

@@ -1,6 +1,9 @@
 # This file contains properties and functions for editing shader nodes used for lighting calculations in materials created with this add-on.
 
 import bpy
+import os
+import json
+import copy
 from bpy.utils import resource_path
 from bpy.types import PropertyGroup, Operator
 from bpy.props import BoolProperty, StringProperty, CollectionProperty, EnumProperty, FloatProperty, FloatVectorProperty, PointerProperty
@@ -39,7 +42,6 @@ NODE_SOCKET_TYPES = [
     ("NodeSocketFloat", "Float", "Channel contains greyscale (0 - 1) data."),
     ("NodeSocketColor", "Color", "Channel contains RGBA data."),
     ("NodeSocketVector", "Vector", "Channel contains vector data."),
-    #("NodeSocketShader", "Shader", "Channel contains shader data.")
 ]
 
 # Valid node socket subtypes for shader channels defined for this add-on.
@@ -54,10 +56,33 @@ DEFAULT_CHANNEL_FILTERS = [
     ("NORMAL", "Normal", "Default normal filter group node designed for filtering normal channels.")
 ]
 
+DEFAULT_SHADER_FILE = {
+    "shaders": [
+        {
+            "group_node_name": "ML_BSDF",
+            "material_channels": [
+                {
+                    "name": "Color",
+                    "default_active": True,
+                    "socket_type": "NodeSocketColor",
+                    "socket_subtype": "NONE",
+                    "socket_default": [0, 0, 0],
+                    "socket_min": 0,
+                    "socket_max": 1,
+                    "default_blend_mode": "MIX"
+                }
+            ],
+            "global_properties": [
+                "Emission Strength"
+            ]
+        }
+    ]
+}
+
 def update_shader_list():
     '''Updates a list of all available shaders for this add-on that are defined in json data.'''
-    templates_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "json_data" / "shader_info.json")
-    json_file = open(templates_path, "r")
+    shader_info_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "json_data" / "shader_info.json")
+    json_file = open(shader_info_path, "r")
     jdata = json.load(json_file)
     json_file.close()
     shaders = jdata['shaders']
@@ -104,7 +129,7 @@ def set_shader(shader_name):
                     return
             
             shader_info.group_node_name = shaders[i]['group_node_name']
-            shader_material_channels = shaders[i]['shader_material_channels']
+            shader_material_channels = shaders[i]['material_channels']
             shader_info.material_channels.clear()
             for shader_material_channel in shader_material_channels:
                 channel = shader_info.material_channels.add()
@@ -121,8 +146,12 @@ def set_shader(shader_name):
                         channel.socket_float_max = shader_material_channel['socket_max']
                     case 'NodeSocketColor':
                         channel.socket_color_default = shader_material_channel['socket_default']
+                        channel.socket_float_min = 0
+                        channel.socket_float_max = 1
                     case 'NodeSocketVector':
                         channel.socket_vector_default = shader_material_channel['socket_default']
+                        channel.socket_float_min = 0
+                        channel.socket_float_max = 1
 
             shader_info.global_properties.clear()
             global_properties = shaders[i]['global_properties']
@@ -138,21 +167,44 @@ def set_shader(shader_name):
     if len(shader_info.material_channels) > 0:
         bpy.context.scene.matlayer_layer_stack.selected_material_channel = shader_info.material_channels[0].name
 
+def read_json_shader_data():
+    '''Reads json shader data. Creates a json file if one does not exist.'''
+    # Read shader info json data, and ensure the shader info json file exists.
+    shader_info_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "json_data" / "shader_info.json")
+    if os.path.exists(shader_info_path):        
+        json_file = open(shader_info_path, "r")
+        jdata = json.load(json_file)
+        json_file.close()
+    
+    # If the shader info json file doesn't exist, create a new one.
+    else:
+        with open(shader_info_path, "w") as f:
+            json.dump(DEFAULT_SHADER_FILE, f)
+
+    return jdata
+
+def write_json_shader_data(json_data):
+    '''Writes the provided json data to the shader json data file.'''
+    shader_info_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "json_data" / "shader_info.json")
+    json_file = open(shader_info_path, "w")
+    json.dump(json_data, json_file)
+    json_file.close()
+
 class MATLAYER_shader_name(PropertyGroup):
     '''Shader name'''
     name: StringProperty()
 
 class MATLAYER_shader_material_channel(PropertyGroup):
     '''Properties for a shader material channel.'''
-    default_active: BoolProperty(
-        default=True,
-        name="Default Active",
-        description="Defines if the shader channel is active by default"
-    )
     name: StringProperty(
         name="Shader Channel Name",
         description="The name of the shader channel. The channel name should match an input socket in the defined shader group node.",
         default="New Shader Channel"
+    )
+    default_active: BoolProperty(
+        default=True,
+        name="Default Active",
+        description="Defines if the shader channel is active by default"
     )
     socket_type: EnumProperty(
         name="Shader Channel Type",
@@ -211,16 +263,6 @@ class MATLAYER_shader_info(PropertyGroup):
         description="The name of the shader",
         default="ERROR"
     )
-    author: StringProperty(
-        name="Shader Author",
-        description="Defines who created the shader",
-        default=""
-    )
-    description: StringProperty(
-        name="Shader Description",
-        description="Provides a description of what the shader does, and is used for",
-        default=""
-    )
     group_node_name: StringProperty(
         name="Shader Group Node Name",
         description="The name of the group node for this shader. The group node must exist in this blend file, or in the add-ons asset blend file",
@@ -257,6 +299,65 @@ class MATLAYER_OT_save_shader(Operator):
         return context.active_object
 
     def execute(self, context):
+
+        # Check if the shader exists in json data already.
+        jdata = read_json_shader_data()
+        shader_group_node = bpy.context.scene.matlayer_shader_group_node
+        shader_exists = False
+        for shader in jdata['shaders']:
+            if shader['group_node_name'] == shader_group_node.name:
+                shader_exists = True
+                break
+
+        # If the shader doesn't exist in the json file,
+        # add a new json template by duplicating the default json shader data.
+        if not shader_exists:
+            new_shader_info = copy.deepcopy(DEFAULT_SHADER_FILE['shaders'][0])
+
+        # Overwrite the json data with the shader info from the user interface.
+        shader_info = bpy.context.scene.matlayer_shader_info
+        new_shader_info['group_node_name'] = shader_info.group_node_name
+
+        new_shader_info['global_properties'].clear()
+        for global_property in shader_info.global_properties:
+            new_global_property = copy.deepcopy(DEFAULT_SHADER_FILE['shaders'][0]['global_properties'][0])
+            new_global_property.name = global_property.name
+            new_shader_info['global_properties'].append(new_global_property)
+
+        new_shader_info['material_channels'].clear()
+        for channel in shader_info.material_channels:
+            new_channel = copy.deepcopy(DEFAULT_SHADER_FILE['shaders'][0]['material_channels'][0])
+            new_channel['name'] = channel.name
+            new_channel['default_active'] = channel.default_active
+            new_channel['socket_type'] = channel.socket_type
+            new_channel['socket_subtype'] = channel.socket_subtype
+            match channel.socket_type:
+                case 'NodeSocketFloat':
+                    new_channel['socket_default'] = channel.socket_float_default
+                    new_channel['socket_min'] = channel.socket_float_min
+                    new_channel['socket_max'] = channel.socket_float_max
+                case 'NodeSocketColor':
+                    new_channel['socket_default'] = (channel.socket_color_default[0], channel.socket_color_default[1], channel.socket_color_default[2])
+                    new_channel['socket_min'] = 0
+                    new_channel['socket_max'] = 1
+                case 'NodeSocketVector':
+                    new_channel['socket_default'] = channel.socket_vector_default
+                    new_channel['socket_min'] = 0
+                    new_channel['socket_max'] = 1
+
+            new_channel['default_blend_mode'] = channel.default_blend_mode
+            new_shader_info['material_channels'].append(new_channel)
+
+        # Save the new shader into the json file.
+        if shader_exists:
+            debug_logging.log_status("Existing shader settings saved.", self, type='INFO')
+        else:
+            jdata['shaders'].append(new_shader_info)
+            write_json_shader_data(jdata)
+            debug_logging.log_status("New shader data saved.", self, type='INFO')
+
+        # Update the cached list of shader group node names.
+        update_shader_list()
         return {'FINISHED'}
     
 class MATLAYER_OT_delete_shader(Operator):

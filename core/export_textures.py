@@ -770,7 +770,6 @@ def read_export_template_data():
         json_file = open(templates_json_path, "r")
         jdata = json.load(json_file)
         json_file.close()
-
     else:
         with open(templates_json_path,"w") as f:
             json.dump(default_json_file, f)
@@ -1045,7 +1044,6 @@ class MATLAYER_OT_save_export_template(Operator):
         # If the active template doesn't exist in the json file, create a new one by duplicating defined default json data for export templates.
         if template_existed == False:
             new_export_template = copy.deepcopy(default_export_template_json)
-
 
         # Overwrite the properties of the export template with the export properties defined in the user interface.
         new_export_template['name'] = addon_preferences.export_template_name

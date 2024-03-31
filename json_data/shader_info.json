@@ -2,7 +2,7 @@
     "shaders": [
       {
         "group_node_name": "ML_BSDF",
-        "shader_material_channels": [
+        "material_channels": [
             {
               "name": "Base Color",
               "default_active": true,
@@ -279,7 +279,7 @@
       },
       {
         "group_node_name": "ML_RYSHADE",
-        "shader_material_channels": [
+        "material_channels": [
             {
               "name": "Base Color",
               "default_active": true,
