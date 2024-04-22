@@ -393,7 +393,7 @@ def create_default_material_setup():
         if blank_node_tree:
             shader_info = bpy.context.scene.matlayer_shader_info
             shader_node = blank_node_tree.nodes.get('MATLAYER_SHADER')
-            shader_group_node_name = shader_info.group_node_name
+            shader_group_node_name = shader_info.shader_node_group
             shader_group_node = blender_addon_utils.append_group_node(shader_group_node_name)
             
             # Replace the shader node in the blank material setup.

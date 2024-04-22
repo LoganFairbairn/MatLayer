@@ -327,17 +327,20 @@ def register():
     bpy.types.Scene.matlayer_panel_properties = PointerProperty(type=MATLAYER_panel_properties)
     bpy.types.Scene.matlayer_material_property_tabs = EnumProperty(items=MATERIAL_LAYER_PROPERTY_TABS)
     bpy.types.Scene.matlayer_merge_material = PointerProperty(type=bpy.types.Material)
-    
+
+    # Shader Properties
     bpy.types.Scene.matlayer_shader_list = CollectionProperty(type=shaders.MATLAYER_shader_name)
     bpy.types.Scene.matlayer_shader_info = PointerProperty(type=shaders.MATLAYER_shader_info)
     bpy.types.Scene.matlayer_selected_shader_index = IntProperty()
     bpy.types.Scene.matlayer_selected_global_shader_property_index = IntProperty()
-    bpy.types.Scene.matlayer_shader_group_node = PointerProperty(type=bpy.types.NodeTree)
 
+    # Layer & Mask Properties
     bpy.types.Scene.matlayer_layer_stack = PointerProperty(type=material_layers.MATLAYER_layer_stack)
     bpy.types.Scene.matlayer_layers = CollectionProperty(type=material_layers.MATLAYER_layers)
     bpy.types.Scene.matlayer_mask_stack = PointerProperty(type=MATLAYER_mask_stack)
     bpy.types.Scene.matlayer_masks = CollectionProperty(type=MATLAYER_masks)
+
+    # Other Properties
     bpy.types.Scene.matlayer_texture_set_settings = PointerProperty(type=MATLAYER_texture_set_settings)
     bpy.types.Scene.matlayer_baking_settings = PointerProperty(type=MATLAYER_baking_settings)
     bpy.types.Scene.matlayer_export_templates = CollectionProperty(type=MATLAYER_export_template_names)

@@ -50,6 +50,7 @@ NODE_SOCKET_SUBTYPES = [
     ("FACTOR", "Factor", "Define the socket property as a factor (makes the property a slider in the interface).")
 ]
 
+# TODO: Remove this, it's deprecated!
 DEFAULT_CHANNEL_FILTERS = [
     ("COLOR", "Color", "Default filter group node designed for fitlering RGBA channels."),
     ("GREYSCALE", "Greyscale", "Default filter group node designed for filtering greyscale channels."),
@@ -95,10 +96,7 @@ def update_shader_list():
 
 def set_shader(shader_name):
     '''Sets the shader that will be used in materials created with this add-on.'''
-
-    # Update the list of shaders that are defined in the shader info json file.
     update_shader_list()
-
     matlayer_shader_list = bpy.context.scene.matlayer_shader_list
     shader_info = bpy.context.scene.matlayer_shader_info
 
@@ -108,7 +106,7 @@ def set_shader(shader_name):
     json_file.close()
     shaders = jdata['shaders']
 
-    # Set the shader by caching it's info from the json file into Blender's memory.
+    # Set the shader by caching json info into Blender's memory.
     shader_exists = False
     for i, shader in enumerate(matlayer_shader_list):
         if shader['name'] == shader_name:
@@ -116,14 +114,15 @@ def set_shader(shader_name):
 
             # Ensure the defined shader group node is in the blend file.
             shader_nodegroup_name = shaders[i]['group_node_name']
-            shader_nodegroup = bpy.data.node_groups.get(shader_nodegroup_name)
-            if shader_nodegroup:
-                bpy.context.scene.matlayer_shader_group_node = shader_nodegroup
+            shader_node_group = bpy.data.node_groups.get(shader_nodegroup_name)
+            if shader_node_group:
+                shader_info.shader_node_group = shader_node_group
             else:
                 # If the shader nodetree isn't in the blend file already, attempt to append the nodetree from the add-on assets file.
-                shader_nodegroup = bau.append_group_node(shader_nodegroup_name)
-                if shader_nodegroup:
-                    bpy.context.scene.matlayer_shader_group_node = shader_nodegroup
+                shader_node_group = bau.append_group_node(shader_nodegroup_name)
+                if shader_node_group:
+                    debug_logging.log("Shader node group successfully appended from add-on asset file.")
+                    shader_info.shader_node_group = shader_node_group
                 else:
                     debug_logging.log("Shader nodetree does not exist and cannot be appended from the add-on assets file.")
                     return
@@ -258,15 +257,10 @@ class MATLAYER_shader_global_property(PropertyGroup):
     )
 
 class MATLAYER_shader_info(PropertyGroup):
-    name: StringProperty(
-        name="Shader Name",
-        description="The name of the shader",
-        default="ERROR"
-    )
-    group_node_name: StringProperty(
-        name="Shader Group Node Name",
-        description="The name of the group node for this shader. The group node must exist in this blend file, or in the add-ons asset blend file",
-        default=""
+    shader_node_group: PointerProperty(
+        type=bpy.types.NodeTree,
+        name="Shader Node",
+        description="The group node used as the shader node used when creating materials with this add-on"
     )
     material_channels: CollectionProperty(type=MATLAYER_shader_material_channel)
     global_properties: CollectionProperty(type=MATLAYER_shader_global_property)
