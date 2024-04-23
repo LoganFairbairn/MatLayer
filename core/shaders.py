@@ -50,13 +50,6 @@ NODE_SOCKET_SUBTYPES = [
     ("FACTOR", "Factor", "Define the socket property as a factor (makes the property a slider in the interface).")
 ]
 
-# TODO: Remove this, it's deprecated!
-DEFAULT_CHANNEL_FILTERS = [
-    ("COLOR", "Color", "Default filter group node designed for fitlering RGBA channels."),
-    ("GREYSCALE", "Greyscale", "Default filter group node designed for filtering greyscale channels."),
-    ("NORMAL", "Normal", "Default normal filter group node designed for filtering normal channels.")
-]
-
 DEFAULT_SHADER_FILE = {
     "shaders": [
         {
