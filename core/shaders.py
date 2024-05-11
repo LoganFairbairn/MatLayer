@@ -290,17 +290,21 @@ class MATLAYER_OT_save_shader(Operator):
     bl_label = "Save Shader"
     bl_description = "Saves the shader to json data. If the shader group node already exists in json data, the shader data will be overwritten"
 
-    shader_name: StringProperty(default='ERROR')
-
     @ classmethod
     def poll(cls, context):
         return context.active_object
 
     def execute(self, context):
 
+        # Verify the shader node group is valid.
+        shader_node_group_valid = verify_shader_node_group(self)
+        if shader_node_group_valid == False:
+            return
+
         # Check if the shader exists in json data already.
+        shader_info = bpy.context.scene.matlayer_shader_info
+        shader_group_node = shader_info.shader_node_group
         jdata = read_json_shader_data()
-        shader_group_node = bpy.context.scene.matlayer_shader_group_node
         shader_exists = False
         for shader in jdata['shaders']:
             if shader['group_node_name'] == shader_group_node.name:
@@ -308,18 +312,17 @@ class MATLAYER_OT_save_shader(Operator):
                 break
 
         # If the shader doesn't exist in the json file,
-        # add a new json template by duplicating the default json shader data.
+        # add a new json template by duplicating default json shader data.
         if not shader_exists:
             new_shader_info = copy.deepcopy(DEFAULT_SHADER_FILE['shaders'][0])
 
         # Overwrite the json data with the shader info from the user interface.
-        shader_info = bpy.context.scene.matlayer_shader_info
-        new_shader_info['group_node_name'] = shader_info.group_node_name
+        new_shader_info['group_node_name'] = shader_group_node.name
 
         new_shader_info['global_properties'].clear()
         for global_property in shader_info.global_properties:
             new_global_property = copy.deepcopy(DEFAULT_SHADER_FILE['shaders'][0]['global_properties'][0])
-            new_global_property.name = global_property.name
+            new_global_property = global_property.name
             new_shader_info['global_properties'].append(new_global_property)
 
         new_shader_info['material_channels'].clear()
