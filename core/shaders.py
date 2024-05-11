@@ -366,13 +366,33 @@ class MATLAYER_OT_delete_shader(Operator):
     bl_label = "Delete Shader"
     bl_description = "Deletes the shader from json data"
 
-    shader_name: StringProperty(default='ERROR')
-
     @ classmethod
     def poll(cls, context):
         return context.active_object
 
     def execute(self, context):
+
+        # Read the shader json data.
+        shader_info = bpy.context.scene.matlayer_shader_info
+        jdata = read_json_shader_data()
+
+        # Remove the shader from the json data if it exists.
+        for shader in jdata['shaders']:
+            if shader['group_node_name'] == shader_info.shader_node_group.name:
+                jdata['shaders'].remove(shader)
+                write_json_shader_data(jdata)
+                debug_logging.log_status("Deleted shader: {0}".format(shader_info.shader_node_group.name), self, type='INFO')
+
+                # Clear shader info.
+                shader_info.shader_node_group = None
+                shader_info.global_properties.clear()
+                shader_info.material_channels.clear()
+
+                # Update the shader list.
+                update_shader_list()
+                return {'FINISHED'}
+        
+        debug_logging.log_status("Shader doesn't exist in json data.", self, type='INFO')
         return {'FINISHED'}
     
 class MATLAYER_OT_add_shader_channel(Operator):
