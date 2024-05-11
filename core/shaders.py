@@ -354,7 +354,7 @@ class MATLAYER_OT_save_shader(Operator):
                     new_channel['socket_min'] = 0
                     new_channel['socket_max'] = 1
                 case 'NodeSocketVector':
-                    new_channel['socket_default'] = channel.socket_vector_default
+                    new_channel['socket_default'] = (channel.socket_vector_default[0], channel.socket_vector_default[1], channel.socket_vector_default[2])
                     new_channel['socket_min'] = 0
                     new_channel['socket_max'] = 1
 
