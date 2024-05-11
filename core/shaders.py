@@ -460,10 +460,9 @@ class MATLAYER_OT_create_shader_from_nodetree(Operator):
 
     def execute(self, context):
         shader_info = bpy.context.scene.matlayer_shader_info
-        shader_group_node = bpy.context.scene.matlayer_shader_group_node
 
         # Verify the shader group node exists in the blend file.
-        if not shader_group_node:
+        if not shader_info.shader_node_group:
             debug_logging.log("Can't create shader from invalid shader group node.")
             return {'FINISHED'}
 
@@ -472,7 +471,7 @@ class MATLAYER_OT_create_shader_from_nodetree(Operator):
         shader_info.global_properties.clear()
 
         # Add a shader channel for all group node inputs.
-        for item in shader_group_node.interface.items_tree:
+        for item in shader_info.shader_node_group.interface.items_tree:
             if item.item_type == 'SOCKET' and item.in_out == 'INPUT':
                 shader_channel = shader_info.material_channels.add()
                 shader_channel.name = item.name
@@ -502,7 +501,7 @@ class MATLAYER_OT_create_shader_from_nodetree(Operator):
                 channel_name = shader_channel.name.upper()
                 match channel_name:
                     case 'NORMAL':
-                        shader_channel.default_blend_mode = 'NORMAL'
+                        shader_channel.default_blend_mode = 'NORMAL_MAP_COMBINE'
                     case 'HEIGHT':
                         shader_channel.default_blend_mode = 'ADD'
                     case _:
