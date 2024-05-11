@@ -5,9 +5,10 @@ from bpy.types import PropertyGroup, Operator
 from bpy.props import IntProperty, StringProperty
 from ..core import layer_masks
 from ..core import mesh_map_baking
-from ..core import blender_addon_utils
+from ..core import blender_addon_utils as bau
 from ..core import debug_logging
 from ..core import texture_set_settings as tss
+from ..core import shaders
 import random
 
 TRIPLANAR_PROJECTION_INPUTS = [
@@ -44,7 +45,7 @@ def update_layer_index(self, context):
     if value_node:
         if value_node.bl_static_type == 'TEX_IMAGE':
             if value_node.image != None:
-                blender_addon_utils.set_texture_paint_image(value_node.image)
+                bau.set_texture_paint_image(value_node.image)
     
     active_object = bpy.context.active_object
     if active_object:
@@ -63,7 +64,7 @@ def update_layer_index(self, context):
 
 def sync_triplanar_settings():
     '''Syncs triplanar texture settings to match the first texture sample (only if triplanar layer projection is being used).'''
-    if blender_addon_utils.verify_material_operation_context(display_message=False) == False:
+    if bau.verify_material_operation_context(display_message=False) == False:
         return
 
     # Sync triplanar texture samples for all material channels.
@@ -227,7 +228,7 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
         return
     
     layer_group_node_name = format_layer_group_node_name(active_material.name, layer_index)
-    static_channel_name = blender_addon_utils.format_static_channel_name(channel_name)
+    static_channel_name = bau.format_static_channel_name(channel_name)
 
     match layer_node_name:
         case 'LAYER':
@@ -383,39 +384,32 @@ def add_material_layer_slot():
 
     return bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
-def create_default_material_setup():
-    '''Creates a default material setup for the applied shader.'''
+def create_default_material_setup(self):
+    '''Creates a default material setup using the selected shader group node defined in the add-on shader tab.'''
 
     # Append a blank material template setup from the add-on assets blend file.
-    blank_material = blender_addon_utils.append_material('BlankMaterialSetup')
+    blank_material = bau.append_material('BlankMaterialSetup')
     if blank_material:
         blank_node_tree = blank_material.node_tree
         if blank_node_tree:
             shader_info = bpy.context.scene.matlayer_shader_info
             shader_node = blank_node_tree.nodes.get('MATLAYER_SHADER')
-            shader_group_node_name = shader_info.shader_node_group
-            shader_group_node = blender_addon_utils.append_group_node(shader_group_node_name)
             
             # Replace the shader node in the blank material setup.
-            if shader_group_node:
-                old_node_location = shader_node.location
-                old_node_width = shader_node.width
-                blank_node_tree.nodes.remove(shader_node)
-                new_shader_node = blank_node_tree.nodes.new('ShaderNodeGroup')
-                new_shader_node.name = 'MATLAYER_SHADER'
-                new_shader_node.label = new_shader_node.name
-                new_shader_node.location = old_node_location
-                new_shader_node.width = old_node_width
-                new_shader_node.node_tree = shader_group_node
+            old_node_location = shader_node.location
+            old_node_width = shader_node.width
+            blank_node_tree.nodes.remove(shader_node)
+            new_shader_node = blank_node_tree.nodes.new('ShaderNodeGroup')
+            new_shader_node.name = 'MATLAYER_SHADER'
+            new_shader_node.label = new_shader_node.name
+            new_shader_node.location = old_node_location
+            new_shader_node.width = old_node_width
+            new_shader_node.node_tree = shader_info.shader_node_group
 
-                # Re-link the main shader node.
-                material_output_node = blank_node_tree.nodes.get('MATERIAL_OUTPUT')
-                if material_output_node:
-                    blank_node_tree.links.new(new_shader_node.outputs[0], material_output_node.inputs[0])
-
-            else:
-                debug_logging.log("Shader group node {0} doesn't exist.".format(shader_group_node_name))
-                return
+            # Re-link the main shader node to the material output.
+            material_output_node = blank_node_tree.nodes.get('MATERIAL_OUTPUT')
+            if material_output_node:
+                blank_node_tree.links.new(new_shader_node.outputs[0], material_output_node.inputs[0])
 
             # Add global channel toggle nodes for all material channels defined in the shader.
             node_width = 400
@@ -424,7 +418,7 @@ def create_default_material_setup():
             node_spacing = 40
             for channel in shader_info.material_channels:
                 new_channel_toggle_node = blank_node_tree.nodes.new('ShaderNodeValue')
-                static_channel_name = blender_addon_utils.format_static_channel_name(channel.name)
+                static_channel_name = bau.format_static_channel_name(channel.name)
                 new_channel_toggle_node.name = "GLOBAL_{0}_TOGGLE".format(static_channel_name)
                 new_channel_toggle_node.label = new_channel_toggle_node.name
                 new_channel_toggle_node.width = node_width
@@ -517,14 +511,14 @@ def create_default_layer_node(layer_type):
     projection_node.label = projection_node.name
     projection_node.location[0] = -3000
     projection_node.location[1] = -1000
-    projection_node.node_tree = blender_addon_utils.append_group_node('ML_UVProjection')
+    projection_node.node_tree = bau.append_group_node('ML_UVProjection')
     projection_node.width = 300
 
     # Add framed material channel nodes for values, filtering and mixing.
     frame_x = -1000
     frame_y = 0
     for channel in shader_info.material_channels:
-        static_channel_name = blender_addon_utils.format_static_channel_name(channel.name)
+        static_channel_name = bau.format_static_channel_name(channel.name)
 
         # Add a frame for the material channel.
         channel_frame_node = default_node_group.nodes.new('NodeFrame')
@@ -532,7 +526,7 @@ def create_default_layer_node(layer_type):
         channel_frame_node.label = static_channel_name
 
         # Create default value group nodes for all shader channels if a default group node doesn't already exist.
-        default_value_group_node_name = "ML_DEFAULT-{0}".format(static_channel_name)
+        default_value_group_node_name = "ML_Default{0}".format(channel.name.replace(' ', ''))
         default_value_group_node = bpy.data.node_groups.get(default_value_group_node_name)
         if not default_value_group_node:
             default_value_group_node = bpy.data.node_groups.new(default_value_group_node_name, type='ShaderNodeTree')
@@ -634,13 +628,13 @@ def create_default_layer_node(layer_type):
         # Assign a default group node filter based on the socket type.
         match channel.socket_type:
             case 'NodeSocketFloat':
-                default_group_filter = blender_addon_utils.append_group_node('ML_DefaultFloatFilter')
+                default_group_filter = bau.append_group_node('ML_DefaultFloatFilter')
             case 'NodeSocketColor':
-                default_group_filter = blender_addon_utils.append_group_node('ML_DefaultColorFilter')
+                default_group_filter = bau.append_group_node('ML_DefaultColorFilter')
             case 'NodeSocketVector':
-                default_group_filter = blender_addon_utils.append_group_node('ML_DefaultVectorFilter')
+                default_group_filter = bau.append_group_node('ML_DefaultVectorFilter')
             case 'NodeSocketNormal':
-                default_group_filter = blender_addon_utils.append_group_node('ML_DefaultNormalFilter')
+                default_group_filter = bau.append_group_node('ML_DefaultNormalFilter')
 
         filter_node = default_node_group.nodes.new('ShaderNodeGroup')
         filter_node.name = "{0}_FILTER".format(static_channel_name)
@@ -650,7 +644,7 @@ def create_default_layer_node(layer_type):
         filter_node.parent = channel_frame_node
         filter_node.width = 300
         filter_node.node_tree = default_group_filter
-        blender_addon_utils.set_node_active(filter_node, active=False)
+        bau.set_node_active(filter_node, active=False)
 
         mix_node_reroute = default_node_group.nodes.new('NodeReroute')
         mix_node_reroute.name = "{0}_MIX_REROUTE".format(static_channel_name)
@@ -668,10 +662,10 @@ def create_default_layer_node(layer_type):
             normal_rotation_fix_node.location[1] = -500
             normal_rotation_fix_node.parent = channel_frame_node
             normal_rotation_fix_node.width = 300
-            normal_rotation_fix_node.node_tree = blender_addon_utils.append_group_node('ML_FixNormalRotation')
+            normal_rotation_fix_node.node_tree = bau.append_group_node('ML_FixNormalRotation')
 
             mix_node = default_node_group.nodes.new('ShaderNodeGroup')
-            mix_node.node_tree = blender_addon_utils.append_group_node('ML_ReorientedNormalMapMix')
+            mix_node.node_tree = bau.append_group_node('ML_ReorientedNormalMapMix')
             default_node_group.links.new(mix_node_reroute.outputs[0], mix_node.inputs[1])
             default_node_group.links.new(value_node.outputs[0], mix_node.inputs[2])
             default_node_group.links.new(mix_node.outputs[0], output_node.inputs.get(channel.name))
@@ -710,32 +704,37 @@ def add_material_layer(layer_type, self):
     '''Adds a material layer to the active materials layer stack.'''
 
     # Append group nodes to help avoid node group duplication from appending.
-    blender_addon_utils.append_default_node_groups()        
+    bau.append_default_node_groups()
 
     # Verify standard context is correct.
-    if blender_addon_utils.verify_material_operation_context(self, check_active_material=False) == False:
+    if bau.verify_material_operation_context(self, check_active_material=False) == False:
+        return
+    
+    # Verify the shader group node exists, one must be defined to add material layers.
+    valid_shader_node_group = shaders.verify_shader_node_group(self)
+    if valid_shader_node_group == False:
         return
 
     # If there are no material slots, or no material in the active material slot, make a new MatLayer material by appending the default material setup.
     active_object = bpy.context.active_object
     if len(active_object.material_slots) == 0:
-        new_material = create_default_material_setup()
-        new_material_name = blender_addon_utils.get_unique_material_name(active_object.name.replace('_', ''))
+        new_material = create_default_material_setup(self)
+        new_material_name = bau.get_unique_material_name(active_object.name.replace('_', ''))
         new_material.name = new_material_name
         active_object.data.materials.append(new_material)
         active_object.active_material_index = 0
 
     # If material slots exist on the object, but the active material slot is empty, add a new material.
     elif active_object.material_slots[active_object.active_material_index].material == None:
-        new_material = create_default_material_setup()
-        new_material_name = blender_addon_utils.get_unique_material_name(active_object.name.replace('_', ''))
+        new_material = create_default_material_setup(self)
+        new_material_name = bau.get_unique_material_name(active_object.name.replace('_', ''))
         new_material.name = new_material_name
         active_object.material_slots[active_object.active_material_index].material = new_material
 
     # If material slots exist on the object, but the active material isn't properly formatted to work with this add-on, display an error.
     else:
         active_material = bpy.context.active_object.active_material
-        if blender_addon_utils.verify_addon_material(active_material) == False:
+        if bau.verify_addon_material(active_material) == False:
             debug_logging.log_status("Can't add layer, active material format is invalid.", self, type='ERROR')
             return
     
@@ -768,11 +767,11 @@ def add_material_layer(layer_type, self):
     if layer_type == 'DECAL':
             
         # Create a new empty to use as a decal object.
-        unique_decal_name = blender_addon_utils.get_unique_object_name("Decal", start_id_number=1)
+        unique_decal_name = bau.get_unique_object_name("Decal", start_id_number=1)
         decal_object = bpy.data.objects.new(unique_decal_name, None)
         decal_object.empty_display_type = 'CUBE'
         decal_object.scale[2] = 0.1
-        blender_addon_utils.add_object_to_collection("Decals", decal_object, color_tag='COLOR_03', unlink_from_other_collections=True)
+        bau.add_object_to_collection("Decals", decal_object, color_tag='COLOR_03', unlink_from_other_collections=True)
 
         # Add the new decal object to the decal coordinate node.
         decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', new_layer_slot_index)
@@ -780,14 +779,14 @@ def add_material_layer(layer_type, self):
             decal_coordinate_node.object = decal_object
 
         # Add a default decal to the color material channel.
-        default_decal_image = blender_addon_utils.append_image('DefaultDecal')
+        default_decal_image = bau.append_image('DefaultDecal')
         replace_material_channel_node('COLOR', 'TEXTURE')
         texture_node = get_material_layer_node('VALUE', new_layer_slot_index, 'COLOR')
         if texture_node:
             if texture_node.bl_static_type == 'TEX_IMAGE':
                 texture_node.image = default_decal_image
-                blender_addon_utils.set_texture_paint_image(default_decal_image)
-                blender_addon_utils.save_image(default_decal_image)
+                bau.set_texture_paint_image(default_decal_image)
+                bau.save_image(default_decal_image)
 
         # Add an image mask to the decal layer by default.
         layer_masks.add_layer_mask('DECAL', self)
@@ -796,12 +795,12 @@ def add_material_layer(layer_type, self):
             mask_texture_node.image = default_decal_image
         layer_masks.set_mask_output_channel('ALPHA')
         
-        blender_addon_utils.set_snapping('DECAL', snap_on=True)
+        bau.set_snapping('DECAL', snap_on=True)
 
 def duplicate_layer(original_layer_index, self):
     '''Duplicates the material layer at the provided layer index.'''
 
-    if blender_addon_utils.verify_material_operation_context(self) == False:
+    if bau.verify_material_operation_context(self) == False:
         return
     
     duplicated_decal_object = None
@@ -809,7 +808,7 @@ def duplicate_layer(original_layer_index, self):
     # Duplicate the node tree and add it to the layer stack.
     layer_node_tree = get_layer_node_tree(original_layer_index)
     if layer_node_tree:
-        duplicated_node_tree = blender_addon_utils.duplicate_node_group(layer_node_tree.name)
+        duplicated_node_tree = bau.duplicate_node_group(layer_node_tree.name)
         if duplicated_node_tree:
             active_material = bpy.context.active_object.active_material
 
@@ -831,7 +830,7 @@ def duplicate_layer(original_layer_index, self):
             if decal_coordinate_node:
                 decal_object = decal_coordinate_node.object
                 if decal_object:
-                    duplicated_decal_object = blender_addon_utils.duplicate_object(decal_object)
+                    duplicated_decal_object = bau.duplicate_object(decal_object)
                     new_decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', new_layer_slot_index)
                     if new_decal_coordinate_node:
                         new_decal_coordinate_node.object = duplicated_decal_object
@@ -845,7 +844,7 @@ def duplicate_layer(original_layer_index, self):
         for i in range(0, mask_count):
             original_mask_node = layer_masks.get_mask_node('MASK', original_layer_index, i)
             if original_mask_node:
-                duplicated_node_tree = blender_addon_utils.duplicate_node_group(original_mask_node.node_tree.name)
+                duplicated_node_tree = bau.duplicate_node_group(original_mask_node.node_tree.name)
                 if duplicated_node_tree:
                     new_mask_slot_index = layer_masks.add_mask_slot()
                     duplicated_mask_name = layer_masks.format_mask_name(new_layer_slot_index, new_mask_slot_index, bpy.context.active_object.active_material.name) + "~"
@@ -869,7 +868,7 @@ def duplicate_layer(original_layer_index, self):
 
 def delete_layer(self):
     '''Deletes the selected layer'''
-    if blender_addon_utils.verify_material_operation_context(self) == False:
+    if bau.verify_material_operation_context(self) == False:
         return {'FINISHED'}
     
     layers = bpy.context.scene.matlayer_layers
@@ -914,7 +913,7 @@ def delete_layer(self):
 
 def move_layer(direction, self):
     '''Moves the selected layer up or down on the material layer stack.'''
-    if blender_addon_utils.verify_material_operation_context(self) == False:
+    if bau.verify_material_operation_context(self) == False:
         return
     
     match direction:
@@ -1083,7 +1082,7 @@ def refresh_layer_stack(reason="", scene=None):
 def link_layer_group_nodes(self):
     '''Connects all layer group nodes to other existing group nodes, and the principled BSDF shader.'''
 
-    if blender_addon_utils.verify_material_operation_context(self) == False:
+    if bau.verify_material_operation_context(self) == False:
         return
 
     shader_info = bpy.context.scene.matlayer_shader_info
@@ -1110,16 +1109,16 @@ def link_layer_group_nodes(self):
     # Re-connect all (non-muted / active) layer group nodes.
     for i in range(0, layer_count):
         layer_node = get_material_layer_node('LAYER', i)
-        if blender_addon_utils.get_node_active(layer_node):
+        if bau.get_node_active(layer_node):
             next_layer_index = i + 1
             next_layer_node = get_material_layer_node('LAYER', next_layer_index)
             if next_layer_node:
-                while not blender_addon_utils.get_node_active(next_layer_node) and next_layer_index <= layer_count - 1:
+                while not bau.get_node_active(next_layer_node) and next_layer_index <= layer_count - 1:
                     next_layer_index += 1
                     next_layer_node = get_material_layer_node('LAYER', next_layer_index)
 
             if next_layer_node:
-                if blender_addon_utils.get_node_active(next_layer_node):
+                if bau.get_node_active(next_layer_node):
                     for channel in shader_info.material_channels:
 
                         # If the next layers material channel is blending using the 'mix' blending method,
@@ -1146,12 +1145,12 @@ def link_layer_group_nodes(self):
     last_layer_node_index = layer_count - 1
     last_layer_node = get_material_layer_node('LAYER', last_layer_node_index)
     if last_layer_node:
-        while not blender_addon_utils.get_node_active(last_layer_node) and last_layer_node_index >= 0:
+        while not bau.get_node_active(last_layer_node) and last_layer_node_index >= 0:
             last_layer_node = get_material_layer_node('LAYER', last_layer_node_index)
             last_layer_node_index -= 1
 
     if last_layer_node:
-        if blender_addon_utils.get_node_active(last_layer_node):
+        if bau.get_node_active(last_layer_node):
             
             for channel in shader_info.material_channels:
 
@@ -1235,8 +1234,8 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
     
     # Unlink and relink projection for blur nodes if requested.
     if unlink_projection:
-        blender_addon_utils.unlink_node(projection_node, layer_node_tree, unlink_inputs=False, unlink_outputs=True)
-        blender_addon_utils.unlink_node(blur_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
+        bau.unlink_node(projection_node, layer_node_tree, unlink_inputs=False, unlink_outputs=True)
+        bau.unlink_node(blur_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
         match projection_node.node_tree.name:
             case 'ML_UVProjection':
                 layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
@@ -1271,9 +1270,9 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                         for i in range(0, 3):
                             value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=i + 1)
 
-                            if blender_addon_utils.get_node_active(blur_node):
+                            if bau.get_node_active(blur_node):
                                 channel_name = channel.name.replace('-', ' ')
-                                channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+                                channel_name = bau.capitalize_by_space(channel_name)
                                 blur_output_property_name = "{0} {1}".format(channel_name, str(i + 1))
                                 layer_node_tree.links.new(blur_node.outputs.get(blur_output_property_name), value_node.inputs[0])
                             else:
@@ -1301,7 +1300,7 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                     
                     # Relink for image texture nodes.
                     if value_node.bl_static_type == 'TEX_IMAGE':
-                        if blender_addon_utils.get_node_active(blur_node):
+                        if bau.get_node_active(blur_node):
                             layer_node_tree.links.new(blur_node.outputs.get(channel.name.capitalize()), value_node.inputs[0])
                         else:
                             layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
@@ -1310,7 +1309,7 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                     # Relink for custom user group nodes.
                     if value_node.bl_static_type == 'GROUP':
                         if not value_node.node_tree.name.startswith("ML_Default"):
-                            if blender_addon_utils.get_node_active(blur_node):
+                            if bau.get_node_active(blur_node):
                                 layer_node_tree.links.new(blur_node.outputs.get(channel.name.capitalize()), value_node.inputs[0])
                             else:
                                 layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
@@ -1326,17 +1325,17 @@ def set_layer_projection_nodes(projection_method):
     
     match projection_method:
         case 'UV':
-            projection_node.node_tree = blender_addon_utils.append_group_node("ML_UVProjection")
-            blur_node.node_tree = blender_addon_utils.append_group_node("ML_LayerBlur")
+            projection_node.node_tree = bau.append_group_node("ML_UVProjection")
+            blur_node.node_tree = bau.append_group_node("ML_LayerBlur")
 
-            if blender_addon_utils.get_node_active(blur_node):
+            if bau.get_node_active(blur_node):
                 layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
 
         case 'TRIPLANAR':
-            projection_node.node_tree = blender_addon_utils.append_group_node("ML_TriplanarProjection")
-            blur_node.node_tree = blender_addon_utils.append_group_node("ML_TriplanarLayerBlur")
+            projection_node.node_tree = bau.append_group_node("ML_TriplanarProjection")
+            blur_node.node_tree = bau.append_group_node("ML_TriplanarLayerBlur")
 
-            if blender_addon_utils.get_node_active(blur_node):
+            if bau.get_node_active(blur_node):
                 layer_node_tree.links.new(projection_node.outputs.get('X'), blur_node.inputs.get('X'))
                 layer_node_tree.links.new(projection_node.outputs.get('Y'), blur_node.inputs.get('Y'))
                 layer_node_tree.links.new(projection_node.outputs.get('Z'), blur_node.inputs.get('Z'))
@@ -1463,9 +1462,9 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                 # Add a node for blending texture samples.
                 triplanar_blend_node = layer_node_tree.nodes.new('ShaderNodeGroup')
                 if material_channel_name == 'NORMAL':
-                    triplanar_blend_node.node_tree = blender_addon_utils.append_group_node("ML_TriplanarNormalsBlend")
+                    triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarNormalsBlend")
                 else:
-                    triplanar_blend_node.node_tree = blender_addon_utils.append_group_node("ML_TriplanarBlend")
+                    triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarBlend")
                 triplanar_blend_node.name = "TRIPLANAR_BLEND_{0}".format(material_channel_name)
                 triplanar_blend_node.label = triplanar_blend_node.name
                 triplanar_blend_node.width = 300
@@ -1509,7 +1508,7 @@ def replace_material_channel_node(material_channel_name, node_type):
 
             # Apply the default group node for the specified channel.
             default_node_tree_name = material_channel_name.replace('-', ' ')
-            default_node_tree_name = blender_addon_utils.capitalize_by_space(default_node_tree_name)
+            default_node_tree_name = bau.capitalize_by_space(default_node_tree_name)
             default_node_tree_name = "ML_Default{0}".format(default_node_tree_name. replace(' ', ''))
             default_node_tree = bpy.data.node_groups.get(default_node_tree_name)
             new_node.node_tree = default_node_tree
@@ -1535,7 +1534,7 @@ def replace_material_channel_node(material_channel_name, node_type):
 
 def set_layer_projection(projection_mode, self):
     '''Changes projection nodes for the layer to use the specified projection mode. Valid options include: 'UV', 'TRIPLANAR'.'''
-    if blender_addon_utils.verify_material_operation_context(self) == False:
+    if bau.verify_material_operation_context(self) == False:
         return
 
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
@@ -1574,7 +1573,7 @@ def get_material_channel_output_channel(material_channel_name):
     color_input_node = None
 
     # If the filter node is active, check the connected input in it for the current output channel.
-    if blender_addon_utils.get_node_active(filter_node):
+    if bau.get_node_active(filter_node):
         color_input_node = filter_node
         if len(color_input_node.inputs[0].links) > 0:
             output_channel = color_input_node.inputs[0].links[0].from_socket.name.upper()
@@ -1628,7 +1627,7 @@ def set_material_channel_output_channel(material_channel_name, output_channel_na
     input_node = None
     input_socket = -1
     connect_filter_node = False
-    if blender_addon_utils.get_node_active(filter_node):
+    if bau.get_node_active(filter_node):
         input_node = filter_node
         input_socket = 0
         connect_filter_node = True
@@ -1641,8 +1640,8 @@ def set_material_channel_output_channel(material_channel_name, output_channel_na
             input_socket = 7
 
     # Unlink nodes to ensure only the correct nodes will be linked after this function is complete.
-    blender_addon_utils.unlink_node(output_node, layer_node_tree, unlink_inputs=False, unlink_outputs=True)
-    blender_addon_utils.unlink_node(separate_color_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
+    bau.unlink_node(output_node, layer_node_tree, unlink_inputs=False, unlink_outputs=True)
+    bau.unlink_node(separate_color_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
 
     # Determine the output socket that should be used, and if a channel separator is required.
     connect_channel_separator = False
@@ -1709,7 +1708,7 @@ def isolate_material_channel(material_channel_name):
     material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
 
     # Unlink the emission node (ensures nothing else is connected to it).
-    blender_addon_utils.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
+    bau.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
 
     # For the normal material channel, connect the normal and height mix to the emission node.
     if material_channel_name == 'NORMAL':
@@ -1720,9 +1719,9 @@ def isolate_material_channel(material_channel_name):
     total_layers = count_layers(bpy.context.active_object.active_material)
     for i in range(total_layers, 0, -1):
         layer_node = get_material_layer_node('LAYER', i - 1)
-        if blender_addon_utils.get_node_active(layer_node):
+        if bau.get_node_active(layer_node):
             channel_name = material_channel_name.replace('-', ' ')
-            channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+            channel_name = bau.capitalize_by_space(channel_name)
             active_node_tree.links.new(layer_node.outputs.get(channel_name), emission_node.inputs[0])
             break
     
@@ -1740,7 +1739,7 @@ def show_layer():
             emission_node = active_node_tree.nodes.get('EMISSION')
             if emission_node:
                 if len(emission_node.outputs[0].links) != 0:
-                    blender_addon_utils.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
+                    bau.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
                     material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
                     principled_bsdf = active_node_tree.nodes.get('MATLAYER_SHADER')
                     active_node_tree.links.new(principled_bsdf.outputs[0], material_output.inputs[0])
@@ -1793,9 +1792,9 @@ def set_layer_blending_mode(layer_index, blending_mode, material_channel_name='C
             mix_node = original_mix_node
 
         if blending_mode == 'NORMAL_MAP_COMBINE':
-            mix_node.node_tree = blender_addon_utils.append_group_node('ML_WhiteoutNormalMapMix')
+            mix_node.node_tree = bau.append_group_node('ML_WhiteoutNormalMapMix')
         elif blending_mode == 'NORMAL_MAP_DETAIL':
-            mix_node.node_tree = blender_addon_utils.append_group_node('ML_ReorientedNormalMapMix')
+            mix_node.node_tree = bau.append_group_node('ML_ReorientedNormalMapMix')
 
     # Ensure the mix node type isn't a group node and then apply the layer blending value.
     else:
@@ -1818,7 +1817,7 @@ def set_layer_blending_mode(layer_index, blending_mode, material_channel_name='C
 
     group_input = get_material_layer_node('GROUP_INPUT', layer_index)
     channel_name = material_channel_name.replace('-', ' ')
-    channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+    channel_name = bau.capitalize_by_space(channel_name)
     channel_input_name = channel_name + " Mix"
     group_output = get_material_layer_node('GROUP_OUTPUT', layer_index)
     if mix_node.bl_static_type == 'GROUP':
@@ -1975,12 +1974,12 @@ class MATLAYER_OT_toggle_layer_blur(Operator):
         blur_node = get_material_layer_node('BLUR', selected_layer_index)
         if blur_node:
             # Connect the projection node to all material channels.
-            if blender_addon_utils.get_node_active(blur_node):
-                blender_addon_utils.set_node_active(blur_node, False)
+            if bau.get_node_active(blur_node):
+                bau.set_node_active(blur_node, False)
             
             # Connect the blur node to all material channels.
             else:
-                blender_addon_utils.set_node_active(blur_node, True)
+                bau.set_node_active(blur_node, True)
         relink_material_channel(unlink_projection=True)
         return {'FINISHED'}
 
@@ -2002,7 +2001,7 @@ class MATLAYER_OT_toggle_material_channel_blur(Operator):
 
         BLUR_node = get_material_layer_node('BLUR', selected_layer_index)
         channel_name = self.material_channel_name.replace('-', ' ')
-        channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+        channel_name = bau.capitalize_by_space(channel_name)
         blur_toggle_property_name = "{0} Blur Toggle".format(channel_name)
         if BLUR_node.inputs.get(blur_toggle_property_name).default_value == 1:
             BLUR_node.inputs.get(blur_toggle_property_name).default_value = 0
@@ -2027,10 +2026,10 @@ class MATLAYER_OT_toggle_hide_layer(Operator):
     def execute(self, context):
         layer_node = get_material_layer_node('LAYER', self.layer_index)
 
-        if blender_addon_utils.get_node_active(layer_node):
-            blender_addon_utils.set_node_active(layer_node, False)
+        if bau.get_node_active(layer_node):
+            bau.set_node_active(layer_node, False)
         else:
-            blender_addon_utils.set_node_active(layer_node, True)
+            bau.set_node_active(layer_node, True)
 
         link_layer_group_nodes(self)
         return {'FINISHED'}
@@ -2163,11 +2162,11 @@ class MATLAYER_OT_toggle_material_channel_filter(Operator):
         output_channel = get_material_channel_output_channel(self.material_channel_name)
 
         # Toggle the active state for the filter node.
-        if blender_addon_utils.get_node_active(filter_node) == True:
-            blender_addon_utils.set_node_active(filter_node, False)
+        if bau.get_node_active(filter_node) == True:
+            bau.set_node_active(filter_node, False)
 
         else:
-            blender_addon_utils.set_node_active(filter_node, True)
+            bau.set_node_active(filter_node, True)
 
         # Trigger a relink of the material layer.
         relink_material_channel(relink_material_channel_name=self.material_channel_name, original_output_channel=output_channel)

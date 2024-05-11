@@ -50,6 +50,7 @@ NODE_SOCKET_SUBTYPES = [
     ("FACTOR", "Factor", "Define the socket property as a factor (makes the property a slider in the interface).")
 ]
 
+# Internal backup template for the shader json file.
 DEFAULT_SHADER_FILE = {
     "shaders": [
         {
@@ -111,7 +112,7 @@ def set_shader(shader_name):
             if shader_node_group:
                 shader_info.shader_node_group = shader_node_group
             else:
-                # If the shader nodetree isn't in the blend file already, attempt to append the nodetree from the add-on assets file.
+                # If the shader node group isn't in the blend file already, attempt to append it from the add-on assets file.
                 shader_node_group = bau.append_group_node(shader_nodegroup_name)
                 if shader_node_group:
                     debug_logging.log("Shader node group successfully appended from add-on asset file.")
@@ -181,6 +182,16 @@ def write_json_shader_data(json_data):
     json_file = open(shader_info_path, "w")
     json.dump(json_data, json_file)
     json_file.close()
+
+def verify_shader_node_group(self):
+    '''Returns true if the shader node group exists within the current blend file.'''
+    shader_info = bpy.context.scene.matlayer_shader_info
+    if shader_info.shader_node_group:
+        debug_logging.log("Shader node group is valid.")
+        return True
+    else:
+        debug_logging.log_status("Invalid shader node group. Set the shader node in the shader tab.", self, type='ERROR')
+        return False
 
 class MATLAYER_shader_name(PropertyGroup):
     '''Shader name'''
