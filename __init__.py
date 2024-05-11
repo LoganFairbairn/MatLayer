@@ -110,6 +110,7 @@ classes = (
     shaders.MATLAYER_shader_global_property,
     shaders.MATLAYER_shader_info,
     shaders.MATLAYER_OT_set_shader,
+    shaders.MATLAYER_OT_new_shader,
     shaders.MATLAYER_OT_save_shader,
     shaders.MATLAYER_OT_delete_shader,
     shaders.MATLAYER_OT_add_shader_channel,

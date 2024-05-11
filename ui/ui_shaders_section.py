@@ -27,6 +27,7 @@ def draw_ui_shaders_section(self, context):
     menu_label = menu_label.replace('ML_', '')
     row.prop(shader_info, "shader_node_group", text="")
     row.menu("MATLAYER_MT_shader_sub_menu", text="", icon='FILE')
+    row.operator("matlayer.new_shader", text="", icon='ADD')
     row.operator("matlayer.save_shader", text="", icon='FILE_TICK')
     row.operator("matlayer.create_shader_from_nodetree", text="", icon='NODETREE')
     row.operator("matlayer.delete_shader", text="", icon='TRASH')

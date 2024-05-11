@@ -285,6 +285,18 @@ class MATLAYER_OT_set_shader(Operator):
         set_shader(self.shader_name)
         return {'FINISHED'}
 
+class MATLAYER_OT_new_shader(Operator):
+    bl_idname = "matlayer.new_shader"
+    bl_label = "New Shader"
+    bl_description = "Clears shader data in the shader tab so you can define properties for a new shader"
+
+    def execute(self, context):
+        shader_info = bpy.context.scene.matlayer_shader_info
+        shader_info.shader_node_group = None
+        shader_info.global_properties.clear()
+        shader_info.material_channels.clear()
+        return {'FINISHED'}
+
 class MATLAYER_OT_save_shader(Operator):
     bl_idname = "matlayer.save_shader"
     bl_label = "Save Shader"
