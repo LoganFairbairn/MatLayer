@@ -7,6 +7,7 @@ from ..core import layer_masks
 from ..core import mesh_map_baking
 from ..core import blender_addon_utils
 from ..core import texture_set_settings as tss
+from ..core import shaders
 from ..ui import ui_section_tabs
 
 DEFAULT_UI_SCALE_Y = 1
@@ -27,6 +28,10 @@ def draw_layers_section_ui(self, context):
     if bpy.context.active_object == None:
         row = column_one.row()
         row.label(text="No active object / selecting hidden object.")
+
+    elif not shaders.validate_active_shader():
+        row = column_one.row()
+        row.label(text="Shader is not defined.")
 
     else:
         layer_count = material_layers.count_layers()

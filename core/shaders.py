@@ -193,6 +193,39 @@ def verify_shader_node_group(self):
         debug_logging.log_status("Invalid shader node group. Set the shader node in the shader tab.", self, type='ERROR')
         return False
 
+def validate_active_shader():
+    '''Checks the shader group node name exists within the cached shader list read from json data.'''
+    active_object_attibute = getattr(bpy.context.view_layer.objects, "active", None)
+    if active_object_attibute:
+        active_object = bpy.context.view_layer.objects.active
+        active_material = active_object.active_material
+        if active_material:
+            shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+            if shader_node:
+                shader_list = bpy.context.scene.matlayer_shader_list
+                shader_group_node_name = shader_node.node_tree.name
+
+                if shader_group_node_name in shader_list:
+                    return True
+    return False
+
+def read_shader(active_material):
+    '''Reads the active material for a valid material / shader setup created with this add-on.'''
+    # Check to see if the shader node in the active material contains a valid shader group node.
+    shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+    if shader_node:
+        shader_list = bpy.context.scene.matlayer_shader_list
+        shader_group_node_name = shader_node.node_tree.name
+
+        # If the active material contains a valid shader group node, set that as the shader.
+        if shader_group_node_name in shader_list:
+            set_shader(shader_group_node_name)
+            debug_logging.log(
+                "Shader properties updated to match the valid active material shader.", 
+                message_type='INFO', 
+                sub_process=True
+            )
+
 class MATLAYER_shader_name(PropertyGroup):
     '''Shader name'''
     name: StringProperty()

@@ -7,6 +7,7 @@ from ..core import layer_masks
 from ..core import mesh_map_baking
 from ..core import debug_logging
 from ..core import blender_addon_utils
+from ..core import shaders
 
 
 #----------------------------- SUBSCRIPTIONS -----------------------------#
@@ -51,6 +52,7 @@ def on_active_material_changed(scene):
                     sub_to_active_material_name(active_object)
                     material_layers.refresh_layer_stack(reason="Active material changed.", scene=scene)
                     bpy.types.Scene.previous_active_material_name = active_object.active_material.name
+                    shaders.read_shader(active_object.active_material)
 
             else:
                 if bpy.types.Scene.previous_active_material_name != "":
@@ -76,6 +78,7 @@ def on_active_material_index_changed():
                     sub_to_active_material_index(active_object)
                     sub_to_active_material_name(active_object)
                     bpy.types.Scene.previous_active_material_name = active_object.active_material.name
+                    shaders.read_shader(active_object.active_material)
     
             else:
                 if bpy.types.Scene.previous_active_material_name != "":
@@ -149,4 +152,10 @@ def on_active_object_changed():
             sub_to_active_object_name(active_object)
             sub_to_active_material_index(active_object)
             sub_to_active_material_name(active_object)
+
+            # Read the shader from the active material if one exists.
+            if active_object.active_material:
+                shaders.read_shader(active_object.active_material)
+
+            # Refresh the number of layers in the layer stack.
             material_layers.refresh_layer_stack("Active object changed.")
