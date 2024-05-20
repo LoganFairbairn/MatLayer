@@ -309,9 +309,6 @@ def load_handler(dummy):
 
         material_layers.refresh_layer_stack()
 
-    # Read json shader info into Blender memory and set the selected material channel.
-    shaders.set_shader("ML_BSDF")
-
     # Read existing export templates into Blender memory, and apply the user set export template if one exists.
     read_export_template_names()
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
