@@ -21,36 +21,38 @@ def draw_layers_section_ui(self, context):
     '''Draws the layer section user interface to the add-on side panel.'''
     ui_section_tabs.draw_section_tabs(self, context)
     layout = self.layout
-
     split = layout.split()
 
     column_one = split.column()
     if bpy.context.active_object == None:
-        row = column_one.row()
+        row = layout.row()
+        row.alignment = 'CENTER'
         row.label(text="No active object / selecting hidden object.")
 
-    elif not shaders.validate_active_shader():
-        row = column_one.row()
-        row.label(text="Shader is not defined.")
-
     else:
-        layer_count = material_layers.count_layers()
-        if layer_count > 0:
-            draw_material_property_tabs(column_one)
-            match bpy.context.scene.matlayer_material_property_tabs:
-                case 'MATERIAL':
-                    draw_layer_projection(column_one)
-                    draw_layer_material_channel_toggles(column_one)
-                    draw_material_channel_properties(column_one)
+        if not shaders.validate_active_shader():
+            row = layout.row()
+            row.alignment = 'CENTER'
+            row.label(text="Shader is not defined.")
 
-                case 'MASKS':
-                    draw_masks(column_one)
+        else:
+            layer_count = material_layers.count_layers()
+            if layer_count > 0:
+                draw_material_property_tabs(column_one)
+                match bpy.context.scene.matlayer_material_property_tabs:
+                    case 'MATERIAL':
+                        draw_layer_projection(column_one)
+                        draw_layer_material_channel_toggles(column_one)
+                        draw_material_channel_properties(column_one)
 
-    column_two = split.column()
-    draw_material_selector(column_two)
-    draw_selected_material_channel(column_two)
-    draw_layer_operations(column_two)
-    draw_layer_stack(column_two)
+                    case 'MASKS':
+                        draw_masks(column_one)
+
+            column_two = split.column()
+            draw_material_selector(column_two)
+            draw_selected_material_channel(column_two)
+            draw_layer_operations(column_two)
+            draw_layer_stack(column_two)
 
 def draw_material_selector(layout):
     '''Draws a material selector.'''
