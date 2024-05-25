@@ -50,22 +50,22 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
         if check_blend_saved():
             match panel_properties.sections:
                 case 'SECTION_SHADER':
-                    ui_shaders_section.draw_ui_shaders_section(self, context)
+                    ui_shaders_section.draw_ui_shaders_tab(self, context)
 
                 case 'SECTION_TEXTURE_SET':
-                    ui_texture_set_section.draw_texture_set_section_ui(self, context)
+                    ui_texture_set_section.draw_texture_set_tab_ui(self, context)
 
                 case 'SECTION_MESH_MAPS':
-                    ui_mesh_map_section.draw_baking_section_ui(self, context)
+                    ui_mesh_map_section.draw_baking_tab_ui(self, context)
                 
                 case "SECTION_LAYERS":
-                    ui_layer_section.draw_layers_section_ui(self, context) 
+                    ui_layer_section.draw_layers_tab_ui(self, context)
 
                 case 'SECTION_EXPORT':
-                    ui_export_section.draw_export_section_ui(self, context)
+                    ui_export_section.draw_export_tab_ui(self, context)
 
                 case 'SECTION_VIEWPORT_SETTINGS':
-                    ui_settings_section.draw_ui_settings_section(self, context)
+                    ui_settings_section.draw_ui_settings_tab(self, context)
 
         else:
             layout.label(text="Save your .blend file to use MatLayer.")

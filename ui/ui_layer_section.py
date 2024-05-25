@@ -17,42 +17,61 @@ MATERIAL_LAYER_PROPERTY_TABS = [
     ("MASKS", "MASKS", "Properties for masks applied to the selected material layer.")
 ]
 
-def draw_layers_section_ui(self, context):
+def draw_layers_tab_ui(self, context):
     '''Draws the layer section user interface to the add-on side panel.'''
     ui_section_tabs.draw_section_tabs(self, context)
     layout = self.layout
     split = layout.split()
-
     column_one = split.column()
-    if bpy.context.active_object == None:
+    column_two = split.column()
+
+    # Verify there is an active object.
+    active_object = bpy.context.view_layer.objects.active
+    if active_object == None:
         row = layout.row()
         row.alignment = 'CENTER'
-        row.label(text="No active object / selecting hidden object.")
-
+        row.label(text="No Active Object")
+    
+    # Verify the active object is not hidden.
     else:
-        if not shaders.validate_active_shader():
+        if active_object.hide_get():
             row = layout.row()
             row.alignment = 'CENTER'
-            row.label(text="Shader is not defined.")
+            row.label(text="Active Object Hidden")
 
+        # Verify a valid shader group node is defined.
         else:
-            layer_count = material_layers.count_layers()
-            if layer_count > 0:
-                draw_material_property_tabs(column_one)
-                match bpy.context.scene.matlayer_material_property_tabs:
-                    case 'MATERIAL':
-                        draw_layer_projection(column_one)
-                        draw_layer_material_channel_toggles(column_one)
-                        draw_material_channel_properties(column_one)
+            shader_info = bpy.context.scene.matlayer_shader_info
+            if shader_info.shader_node_group == None:
+                row = layout.row()
+                row.alignment = 'CENTER'
+                row.label(text="Shader Node Group Not Defined")
 
-                    case 'MASKS':
-                        draw_masks(column_one)
+            # Verify a valid shader is defined if there is an active material.
+            else:
+                active_material = active_object.active_material
+                if active_material and shaders.validate_active_shader(active_material) == False:
+                    row = layout.row()
+                    row.alignment = 'CENTER'
+                    row.label(text="Shader Not Defined")
+                
+                # Draw layer section UI.
+                else:
+                    layer_count = material_layers.count_layers()
+                    if layer_count > 0:
+                        draw_material_property_tabs(column_one)
+                        match bpy.context.scene.matlayer_material_property_tabs:
+                            case 'MATERIAL':
+                                draw_layer_projection(column_one)
+                                draw_layer_material_channel_toggles(column_one)
+                                draw_material_channel_properties(column_one)
+                            case 'MASKS':
+                                draw_masks(column_one)
 
-            column_two = split.column()
-            draw_material_selector(column_two)
-            draw_selected_material_channel(column_two)
-            draw_layer_operations(column_two)
-            draw_layer_stack(column_two)
+                    draw_material_selector(column_two)
+                    draw_selected_material_channel(column_two)
+                    draw_layer_operations(column_two)
+                    draw_layer_stack(column_two)
 
 def draw_material_selector(layout):
     '''Draws a material selector.'''

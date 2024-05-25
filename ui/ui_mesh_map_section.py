@@ -184,7 +184,7 @@ def draw_mesh_map_settings(layout, baking_settings):
     row = second_column.row()
     row.prop(baking_settings, "local_thickness", text="")
 
-def draw_baking_section_ui(self, context):
+def draw_baking_tab_ui(self, context):
     '''Draws the baking section user interface'''
     ui_section_tabs.draw_section_tabs(self, context)
 

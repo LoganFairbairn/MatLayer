@@ -5,7 +5,7 @@ from ..ui import ui_section_tabs
 from .. import preferences
 from ..core import material_layers
 
-def draw_export_section_ui(self, context):
+def draw_export_tab_ui(self, context):
     '''Draws user interface for the export section.'''
     layout = self.layout
 

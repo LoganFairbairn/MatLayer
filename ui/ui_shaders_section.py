@@ -4,7 +4,7 @@ import bpy
 from bpy.types import Menu
 from .import ui_section_tabs
 
-def draw_ui_shaders_section(self, context):
+def draw_ui_shaders_tab(self, context):
     '''Draws user interface for the shaders tab.'''
 
     # Draws tabs for all sections in this add-on.

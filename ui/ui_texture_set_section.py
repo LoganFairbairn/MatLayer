@@ -4,7 +4,7 @@ from ..core import texture_set_settings as tss
 from ..core import blender_addon_utils
 from .. import preferences
 
-def draw_texture_set_section_ui(self, context):
+def draw_texture_set_tab_ui(self, context):
     '''Draws the layer section UI.'''
     ui_section_tabs.draw_section_tabs(self, context)
 
