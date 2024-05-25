@@ -146,8 +146,7 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
                 for i in range(total_layers, 0, -1):
                     layer_node = material_layers.get_material_layer_node('LAYER', i - 1)
                     if bau.get_node_active(layer_node):
-                        channel_name = self.material_channel_name.replace('-', ' ')
-                        channel_name = bau.capitalize_by_space(channel_name)
+                        channel_name = self.material_channel_name
                         shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
                         bau.safe_node_link(
                             layer_node.outputs.get(channel_name),
@@ -171,8 +170,7 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
             else:
                 channel_toggle_node.mute = True
                 disconnect_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
-                channel_name = self.material_channel_name.replace('-', ' ')
-                channel_name = bau.capitalize_by_space(channel_name)
+                channel_name = self.material_channel_name
                 disconnect_socket = disconnect_node.inputs.get(channel_name)
 
                 # Disconnect the toggled material channel from the principled bsdf.
