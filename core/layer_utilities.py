@@ -13,7 +13,7 @@ import re                                           # For splitting strings to i
 
 # Dictionary of words / tags that may be in image texture names that could be used to identify material channels from image file names.
 MATERIAL_CHANNEL_TAGS = {
-    "color": 'COLOR',
+    "color": 'Base Color',
     "colour": 'COLOR',
     "couleur": 'COLOR',
     "diffuse": 'COLOR',

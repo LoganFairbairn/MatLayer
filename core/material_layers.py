@@ -1234,24 +1234,10 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layer_node_tree = get_layer_node_tree(selected_layer_index)
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
-    blur_node = get_material_layer_node('BLUR', selected_layer_index)
     
-    # Unlink and relink projection for blur nodes if requested.
+    # Unlink and relink projection for nodes if requested.
     if unlink_projection:
         bau.unlink_node(projection_node, layer_node_tree, unlink_inputs=False, unlink_outputs=True)
-        bau.unlink_node(blur_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
-        match projection_node.node_tree.name:
-            case 'ML_UVProjection':
-                layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
-
-            case "ML_TriplanarProjection":
-                layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
-                layer_node_tree.links.new(projection_node.outputs[1], blur_node.inputs[1])
-                layer_node_tree.links.new(projection_node.outputs[2], blur_node.inputs[2])
-
-            case 'ML_DecalProjection':
-                layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
-                layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
 
     # Relink projection for all material channels unless a specific material channel is specified.
     shader_info = bpy.context.scene.matlayer_shader_info
@@ -1269,18 +1255,11 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                     value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=1)
                     triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, channel.name)
 
-                    # Link projection / blur nodes when image textures are used as the material channel value.
+                    # Link projection nodes when image textures are used as the material channel value.
                     if value_node.bl_static_type == 'TEX_IMAGE':
                         for i in range(0, 3):
                             value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=i + 1)
-
-                            if bau.get_node_active(blur_node):
-                                channel_name = channel.name.replace('-', ' ')
-                                channel_name = bau.capitalize_by_space(channel_name)
-                                blur_output_property_name = "{0} {1}".format(channel_name, str(i + 1))
-                                layer_node_tree.links.new(blur_node.outputs.get(blur_output_property_name), value_node.inputs[0])
-                            else:
-                                layer_node_tree.links.new(projection_node.outputs[i], value_node.inputs[0])
+                            layer_node_tree.links.new(projection_node.outputs[i], value_node.inputs[0])
 
                             # Link triplanar blending nodes.
                             if triplanar_blend_node:
@@ -1304,19 +1283,13 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                     
                     # Relink for image texture nodes.
                     if value_node.bl_static_type == 'TEX_IMAGE':
-                        if bau.get_node_active(blur_node):
-                            layer_node_tree.links.new(blur_node.outputs.get(channel.name.capitalize()), value_node.inputs[0])
-                        else:
-                            layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
-                            layer_node_tree.links.new(value_node.outputs.get('Alpha'), mix_image_alpha_node.inputs[1])
+                        layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
+                        layer_node_tree.links.new(value_node.outputs.get('Alpha'), mix_image_alpha_node.inputs[1])
 
                     # Relink for custom user group nodes.
                     if value_node.bl_static_type == 'GROUP':
                         if not value_node.node_tree.name.startswith("ML_Default"):
-                            if bau.get_node_active(blur_node):
-                                layer_node_tree.links.new(blur_node.outputs.get(channel.name.capitalize()), value_node.inputs[0])
-                            else:
-                                layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
+                            layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
 
             set_material_channel_output_channel(channel.name, original_output_channel)
 
@@ -1324,25 +1297,13 @@ def set_layer_projection_nodes(projection_method):
     '''Changes the layer projection nodes to use the specified layer projection method.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
-    layer_node_tree = get_layer_node_tree(selected_layer_index)
-    blur_node = get_material_layer_node('BLUR', selected_layer_index)
     
     match projection_method:
         case 'UV':
             projection_node.node_tree = bau.append_group_node("ML_UVProjection")
-            blur_node.node_tree = bau.append_group_node("ML_LayerBlur")
-
-            if bau.get_node_active(blur_node):
-                layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
 
         case 'TRIPLANAR':
             projection_node.node_tree = bau.append_group_node("ML_TriplanarProjection")
-            blur_node.node_tree = bau.append_group_node("ML_TriplanarLayerBlur")
-
-            if bau.get_node_active(blur_node):
-                layer_node_tree.links.new(projection_node.outputs.get('X'), blur_node.inputs.get('X'))
-                layer_node_tree.links.new(projection_node.outputs.get('Y'), blur_node.inputs.get('Y'))
-                layer_node_tree.links.new(projection_node.outputs.get('Z'), blur_node.inputs.get('Z'))
 
 def delete_triplanar_blending_nodes(material_channel_name):
     '''Deletes nodes used for triplanar texture sampling and blending for the specified material channel.'''
@@ -1401,7 +1362,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                 frame = layer_node_tree.nodes.get(frame_name)
                 texture_sample_node.parent = frame
 
-                # Link the texture to projection / blur and mix layer nodes.
+                # Link the texture to projection and mix layer nodes.
                 relink_material_channel(material_channel_name)
 
             case 'DECAL':
@@ -1430,7 +1391,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                 frame = layer_node_tree.nodes.get(frame_name)
                 texture_node.parent = frame
 
-                # Link the texture to projection / blur and mix layer nodes.
+                # Link the texture to projection and mix layer nodes.
                 relink_material_channel(material_channel_name)
 
             case 'TRIPLANAR':
@@ -1670,7 +1631,11 @@ def set_material_channel_output_channel(material_channel_name, output_channel_na
             connect_channel_separator = True
 
         case _:
-            debug_logging.log("Invalid material output channel provided to set_material_channel_output_channel.", message_type='ERROR', sub_process=False)
+            debug_logging.log(
+                "Invalid material output channel provided to set_material_channel_output_channel.",
+                message_type='ERROR',
+                sub_process=False
+            )
             output_socket = 0
 
     # Always link the output node alpha to the mix image alpha node.
@@ -1960,58 +1925,6 @@ class MATLAYER_OT_toggle_material_channel_preview(Operator):
         return context.active_object
 
     def execute(self, context):
-        return {'FINISHED'}
-
-class MATLAYER_OT_toggle_layer_blur(Operator):
-    bl_idname = "matlayer.toggle_layer_blur"
-    bl_label = "Toggle Layer Blur"
-    bl_description = "Toggle on / off blurring for the selected layer. Toggle blurring off when not in use to improve shader compilation time and viewport performance"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    # Disable when there is no active object.
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def execute(self, context):
-        selected_layer_index = context.scene.matlayer_layer_stack.selected_layer_index
-        blur_node = get_material_layer_node('BLUR', selected_layer_index)
-        if blur_node:
-            # Connect the projection node to all material channels.
-            if bau.get_node_active(blur_node):
-                bau.set_node_active(blur_node, False)
-            
-            # Connect the blur node to all material channels.
-            else:
-                bau.set_node_active(blur_node, True)
-        relink_material_channel(unlink_projection=True)
-        return {'FINISHED'}
-
-class MATLAYER_OT_toggle_material_channel_blur(Operator):
-    bl_idname = "matlayer.toggle_material_channel_blur"
-    bl_label = "Toggle Material Channel Blur"
-    bl_description = "Toggle on / off a blur filter for the specified material channel"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    material_channel_name: StringProperty(default="COLOR")
-
-    # Disable when there is no active object.
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def execute(self, context):
-        selected_layer_index = context.scene.matlayer_layer_stack.selected_layer_index
-
-        BLUR_node = get_material_layer_node('BLUR', selected_layer_index)
-        channel_name = self.material_channel_name.replace('-', ' ')
-        channel_name = bau.capitalize_by_space(channel_name)
-        blur_toggle_property_name = "{0} Blur Toggle".format(channel_name)
-        if BLUR_node.inputs.get(blur_toggle_property_name).default_value == 1:
-            BLUR_node.inputs.get(blur_toggle_property_name).default_value = 0
-        else:
-            BLUR_node.inputs.get(blur_toggle_property_name).default_value = 1
-
         return {'FINISHED'}
 
 class MATLAYER_OT_toggle_hide_layer(Operator):

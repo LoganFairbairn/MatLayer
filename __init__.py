@@ -129,8 +129,6 @@ classes = (
     material_layers.MATLAYER_OT_move_material_layer_up,
     material_layers.MATLAYER_OT_move_material_layer_down,
     material_layers.MATLAYER_OT_toggle_material_channel_preview,
-    material_layers.MATLAYER_OT_toggle_layer_blur,
-    material_layers.MATLAYER_OT_toggle_material_channel_blur,
     material_layers.MATLAYER_OT_toggle_hide_layer,
     material_layers.MATLAYER_OT_set_layer_projection_uv,
     material_layers.MATLAYER_OT_set_layer_projection_triplanar,
