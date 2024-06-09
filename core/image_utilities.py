@@ -206,6 +206,11 @@ class MATLAYER_OT_edit_texture_node_image_externally(Operator):
     node_name: StringProperty(default="")
 
     def execute(self, context):
+        image_editor_path = bpy.context.preferences.filepaths.image_editor
+        if not image_editor_path:
+            debug_logging.log_status("Image editor path isn't defined.", self, type='ERROR')
+            return {'FINISHED'}
+
         node_group = bpy.data.node_groups.get(self.node_tree_name)
         if not node_group:
             debug_logging.log_status("Provided node group does not exist in Blenders data when attempting to import a texture to a texture node.", self)
