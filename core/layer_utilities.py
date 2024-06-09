@@ -286,7 +286,7 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                     for i in range(0, len(packed_channels)):
                         channel = packed_channels[i][0]
                         output_channel = packed_channels[i][1]
-                        material_layers.set_material_channel_output_channel(channel, output_channel, selected_layer_index)
+                        material_layers.set_material_channel_crgba_output(channel, output_channel, selected_layer_index)
 
                 # Select the first image file in the canvas painting window.
                 if selected_image_file == False:

@@ -12,9 +12,10 @@ from ..core import debug_logging
 from .. import preferences
 
 def format_static_channel_name(channel_name):
-    '''Correctly formats the static name for a shader / material channel.'''
+    '''Formats a static (should not be changed) material channel name.'''
 
-    # 'Static' channel names are used to 
+    # Material channel names that should not be changed, should be formatted with upper case letters and dashes instead of spaces.
+    
     # Static channel names can't use under-scores.
     static_channel_name = channel_name.replace('_', '-')
 

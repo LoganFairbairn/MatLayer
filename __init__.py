@@ -138,7 +138,7 @@ classes = (
     material_layers.MATLAYER_OT_toggle_image_alpha_blending,
     material_layers.MATLAYER_OT_toggle_material_channel_filter,
     material_layers.MATLAYER_OT_set_material_channel,
-    material_layers.MATLAYER_OT_set_material_channel_output_channel,
+    material_layers.MATLAYER_OT_set_matchannel_crgba_output,
     material_layers.MATLAYER_OT_set_layer_blending_mode,
     material_layers.MATLAYER_OT_merge_layers,
 
@@ -252,7 +252,7 @@ def depsgraph_change_handler(scene, depsgraph):
                 if value_node:
                     if len(value_node.outputs) > 0:
                         if len(value_node.outputs[0].links) == 0:
-                            output_channel = material_layers.get_material_channel_output_channel(channel.name)
+                            output_channel = material_layers.get_material_channel_crgba_output(channel.name)
                             material_layers.relink_material_channel(
                                 relink_material_channel_name=channel.name, 
                                 original_output_channel=output_channel, 
