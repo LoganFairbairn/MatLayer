@@ -1318,6 +1318,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layer_node_tree = get_layer_node_tree(selected_layer_index)
     value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, 1)
+    node_channel_name = bau.format_node_channel_name(material_channel_name)
     
     # Texture nodes are the only nodes that require a specific projection node setup, ignore other node types.
     # If set_texture_node is true, the material channel value node will be replaces with a texture node, regardless of it's original node type.
@@ -1341,7 +1342,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
 
                 # Replace the material channel value nodes with a texture node.
                 texture_sample_node = layer_node_tree.nodes.new('ShaderNodeTexImage')
-                texture_sample_node.name = "{0}_VALUE_{1}".format(material_channel_name, 1)
+                texture_sample_node.name = "{0}_VALUE_{1}".format(node_channel_name, 1)
                 texture_sample_node.label = texture_sample_node.name
                 texture_sample_node.hide = True
                 texture_sample_node.width = 300
@@ -1370,7 +1371,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
 
                 # Replace with a single texture node.
                 texture_node = layer_node_tree.nodes.new('ShaderNodeTexImage')
-                texture_node.name = "{0}_VALUE_{1}".format(material_channel_name, 1)
+                texture_node.name = "{0}_VALUE_{1}".format(node_channel_name, 1)
                 texture_node.label = texture_node.name
                 texture_node.hide = True
                 texture_node.width = 300
@@ -1406,7 +1407,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                 frame = layer_node_tree.nodes.get(frame_name)
                 for i in range(0, 3):
                     texture_sample_node = layer_node_tree.nodes.new('ShaderNodeTexImage')
-                    texture_sample_node.name = "{0}_VALUE_{1}".format(material_channel_name, i + 1)
+                    texture_sample_node.name = "{0}_VALUE_{1}".format(node_channel_name, i + 1)
                     texture_sample_node.label = texture_sample_node.name
                     texture_sample_node.hide = True
                     texture_sample_node.width = 300
@@ -1420,11 +1421,11 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
 
                 # Add a node for blending texture samples.
                 triplanar_blend_node = layer_node_tree.nodes.new('ShaderNodeGroup')
-                if material_channel_name == 'NORMAL':
+                if node_channel_name == 'NORMAL':
                     triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarNormalsBlend")
                 else:
                     triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarBlend")
-                triplanar_blend_node.name = "TRIPLANAR_BLEND_{0}".format(material_channel_name)
+                triplanar_blend_node.name = "TRIPLANAR_BLEND_{0}".format(node_channel_name)
                 triplanar_blend_node.label = triplanar_blend_node.name
                 triplanar_blend_node.width = 300
                 triplanar_blend_node.hide = True
