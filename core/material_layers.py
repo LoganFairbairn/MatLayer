@@ -228,7 +228,7 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
         return
     
     layer_group_node_name = format_layer_group_node_name(active_material.name, layer_index)
-    static_channel_name = bau.format_static_channel_name(channel_name)
+    static_channel_name = bau.format_node_channel_name(channel_name)
 
     match layer_node_name:
         case 'LAYER':
@@ -418,7 +418,7 @@ def create_default_material_setup(self):
             node_spacing = 40
             for channel in shader_info.material_channels:
                 new_channel_toggle_node = blank_node_tree.nodes.new('ShaderNodeValue')
-                static_channel_name = bau.format_static_channel_name(channel.name)
+                static_channel_name = bau.format_node_channel_name(channel.name)
                 new_channel_toggle_node.name = "GLOBAL_{0}_TOGGLE".format(static_channel_name)
                 new_channel_toggle_node.label = new_channel_toggle_node.name
                 new_channel_toggle_node.width = node_width
@@ -518,7 +518,7 @@ def create_default_layer_node(layer_type):
     frame_x = -1000
     frame_y = 0
     for channel in shader_info.material_channels:
-        static_channel_name = bau.format_static_channel_name(channel.name)
+        static_channel_name = bau.format_node_channel_name(channel.name)
 
         # Add a frame for the material channel.
         channel_frame_node = default_node_group.nodes.new('NodeFrame')

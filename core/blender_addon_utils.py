@@ -11,21 +11,19 @@ from ..core import texture_set_settings as tss
 from ..core import debug_logging
 from .. import preferences
 
-def format_static_channel_name(channel_name):
-    '''Formats a static (should not be changed) material channel name.'''
+def format_node_channel_name(channel_name):
+    '''Formats the given material channel name to be used as node names and labels in the material node graph (replaces underscores and spaces with dashes and capitalizes the channel name).'''
 
-    # Material channel names that should not be changed, should be formatted with upper case letters and dashes instead of spaces.
-    
-    # Static channel names can't use under-scores.
-    static_channel_name = channel_name.replace('_', '-')
+    # Node channel names can't use under-scores.
+    formatted_channel_name = channel_name.replace('_', '-')
 
-    # Static channel names never use spaces, use dashes instead.
-    static_channel_name = static_channel_name.replace(' ', '-')
+    # Node channel names never use spaces, use dashes instead.
+    formatted_channel_name = formatted_channel_name.replace(' ', '-')
 
-    # Static channel names should be capitalized.
-    static_channel_name = static_channel_name.upper() 
+    # Node channel names should be capitalized.
+    formatted_channel_name = formatted_channel_name.upper()
 
-    return static_channel_name
+    return formatted_channel_name
 
 def set_valid_material_editing_mode():
     '''Verifies texture or object mode is being used. This should be used to avoid attempting to run material editing functions in the wrong mode (Edit Mode, Pose Mode, Weight Paint, etc...) which may throw errors.'''
