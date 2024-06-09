@@ -144,7 +144,7 @@ def draw_layer_material_channel_toggles(layout):
     row.separator()
     row.scale_y = 2
     row = layout.row()
-    row.label(text="CHANNEL TOGGLES")
+    row.label(text="CHANNELS")
 
     row = layout.row()
     row.scale_y = DEFAULT_UI_SCALE_Y
@@ -329,7 +329,7 @@ def draw_layer_projection(layout):
         match projection_node.node_tree.name:
             case 'ML_UVProjection':
                 row = layout.row()
-                row.label(text="LAYER PROJECTION")
+                row.label(text="PROJECTION")
 
                 # Draw the projection mode submenu.
                 split = layout.split(factor=0.25)
@@ -368,7 +368,7 @@ def draw_layer_projection(layout):
             case 'ML_TriplanarProjection':
                 row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
-                row.label(text="LAYER PROJECTION")
+                row.label(text="PROJECTION")
 
                 # Draw the projection mode submenu.
                 split = layout.split(factor=0.25)
