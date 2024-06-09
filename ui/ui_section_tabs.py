@@ -9,10 +9,10 @@ def draw_section_tabs(self, context):
     # Draw add-on section buttons.
     row = layout.row(align=True)
     row.scale_y = 2.0
-    row.prop_enum(panel_properties, "sections", 'SECTION_SHADER')
-    row.prop_enum(panel_properties, "sections", 'SECTION_TEXTURE_SET')
-    row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS")
     row.prop_enum(panel_properties, "sections", 'SECTION_LAYERS')
+    row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS")
+    row.prop_enum(panel_properties, "sections", 'SECTION_TEXTURE_SET')
+    row.prop_enum(panel_properties, "sections", 'SECTION_SHADER')
     row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT')
     row.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS')
     row.menu("MATLAYER_MT_utility_sub_menu", text="", icon='TOOL_SETTINGS')
