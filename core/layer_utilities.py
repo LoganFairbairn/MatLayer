@@ -9,16 +9,17 @@ from ..core import blender_addon_utils              # For extra helpful Blender 
 from ..core import texture_set_settings as tss      # For access to texture set settings.
 from ..core import export_textures                  # For access to the invert image function.
 import os                                           # For saving layer images.
-import re                                           # For splitting strings to identify material channels.
+import re                                           # For splitting strings using regex to identify material channels.
 
+# TODO: Move channel tags to add-on preferences so users can edit them?
 # Dictionary of words / tags that may be in image texture names that could be used to identify material channels from image file names.
 MATERIAL_CHANNEL_TAGS = {
-    "color": 'COLOR',
-    "colour": 'COLOR',
-    "couleur": 'COLOR',
-    "diffuse": 'COLOR',
-    "diff": 'COLOR',
-    "dif": 'COLOR',
+    "color": 'BASE-COLOR',
+    "colour": 'BASE-COLOR',
+    "couleur": 'BASE-COLOR',
+    "diffuse": 'BASE-COLOR',
+    "diff": 'BASE-COLOR',
+    "dif": 'BASE-COLOR',
     "subsurface": 'SUBSURFACE',
     "subsurf": 'SUBSURFACE',
     "ss": 'SUBSURFACE',
@@ -68,7 +69,7 @@ MATERIAL_CHANNEL_TAGS = {
 # With an identifiable material channel format, such as the one used commonly in game engines (T_MyTexture_C_1),
 # we can identify material channels using only the first few letters.
 MATERIAL_CHANNEL_ABBREVIATIONS = {
-    "c": 'COLOR',
+    "c": 'BASE-COLOR',
     "m": 'METALLIC',
     "r": 'ROUGHNESS',
     "n": 'NORMAL',
