@@ -13,7 +13,7 @@ import re                                           # For splitting strings to i
 
 # Dictionary of words / tags that may be in image texture names that could be used to identify material channels from image file names.
 MATERIAL_CHANNEL_TAGS = {
-    "color": 'Base Color',
+    "color": 'COLOR',
     "colour": 'COLOR',
     "couleur": 'COLOR',
     "diffuse": 'COLOR',
@@ -102,8 +102,9 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
     )
 
     def execute(self, context):
-        # Helper function to split the file name into components.
         def split_filename_by_components(filename):
+            '''Helper function to split the file name into components.'''
+
             # Remove file extension.
             filename = os.path.splitext(filename)[0]
 
@@ -206,7 +207,7 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                             if material_channel_occurance[material_channel_name] > material_channel_occurance[detected_material_channel]:
                                 detected_material_channel = material_channel_name
 
-            # Import the image only if the material channel was detected.
+            # Only import the image if a material channel was detected.
             if detected_material_channel != 'NONE':
                 folder_directory = os.path.split(self.filepath)
                 image_path = os.path.join(folder_directory[0], file.name)
@@ -293,19 +294,19 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                     context.scene.tool_settings.image_paint.canvas = imported_image
                     selected_image_file = True
 
-                # Update the imported images colorspace based on it's specified material channel.
+                # Update the imported images colorspace based on it's detected material channel.
                 image_utilities.set_image_colorspace_by_material_channel(imported_image, detected_material_channel)
 
-                # Print a warning about using DirectX normal maps for users if it's detected they are using one.
+                # Print a warning about using DirectX normal maps for users if it's suspected they are using one.
                 if detected_material_channel == 'NORMAL':
                     if image_utilities.check_for_directx(file.name):
-                        self.report({'INFO'}, "DirectX normal map import detected, normals may be inverted. You should use an OpenGL normal map instead.")
+                        self.report({'INFO'}, "DirectX normal map import suspected, normals may be inverted. Use an OpenGL normal map instead.")
 
                 # Copy the imported image to a folder next to the blend file for file management purposes.
                 # This happens only if 'save imported textures' is on in the add-on preferences.
                 image_utilities.save_raw_image(image_path, imported_image.name)
 
-            else :
+            else:
                 debug_logging.log("No material channel detected for file: {0}".format(file.name))
 
         return {'FINISHED'}
