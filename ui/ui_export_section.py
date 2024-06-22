@@ -21,7 +21,7 @@ def draw_export_tab_ui(self, context):
     row = layout.row()
     row.separator()
     baking_settings = bpy.context.scene.matlayer_baking_settings
-    addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
+    texture_export_settings = bpy.context.scene.matlayer_export_settings
     split = layout.split(factor=0.2)
     first_column = split.column()
     first_column.scale_x = 0.1
@@ -43,7 +43,7 @@ def draw_export_tab_ui(self, context):
     row.label(text="Export Template")
     row = second_column.row(align=True)
     row.scale_y = SCALE_Y
-    row.prop(addon_preferences, "export_template_name", text="")
+    row.prop(texture_export_settings, "export_template_name", text="")
     row.menu("MATLAYER_MT_export_template_menu", text="Load Template")
     row.operator("matlayer.save_export_template", text="", icon='FILE_TICK')
     row.operator("matlayer.refresh_export_template_list", text="", icon='FILE_REFRESH')
@@ -54,7 +54,7 @@ def draw_export_tab_ui(self, context):
     row.label(text="Export Mode")
     row = second_column.row()
     row.scale_y = SCALE_Y
-    row.prop(addon_preferences, "export_mode", text="")
+    row.prop(texture_export_settings, "export_mode", text="")
 
     row = first_column.row()
     row.scale_y = SCALE_Y
@@ -68,16 +68,16 @@ def draw_export_tab_ui(self, context):
     row.label(text="Normal Map Mode")
     row = second_column.row(align=True)
     row.scale_y = SCALE_Y
-    row.prop_enum(addon_preferences, "normal_map_mode", 'OPEN_GL')
-    row.prop_enum(addon_preferences, "normal_map_mode", 'DIRECTX')
+    row.prop_enum(texture_export_settings, "normal_map_mode", 'OPEN_GL')
+    row.prop_enum(texture_export_settings, "normal_map_mode", 'DIRECTX')
 
     row = first_column.row()
     row.scale_y = SCALE_Y
     row.label(text="Roughness Mode")
     row = second_column.row(align=True)
     row.scale_y = SCALE_Y
-    row.prop_enum(addon_preferences, "roughness_mode", 'ROUGHNESS')
-    row.prop_enum(addon_preferences, "roughness_mode", 'SMOOTHNESS')
+    row.prop_enum(texture_export_settings, "roughness_mode", 'ROUGHNESS')
+    row.prop_enum(texture_export_settings, "roughness_mode", 'SMOOTHNESS')
 
     row = first_column.row()
     row.scale_y = SCALE_Y
@@ -113,7 +113,7 @@ def draw_export_tab_ui(self, context):
     row.operator("matlayer.add_export_texture", text="Add Export Texture")
 
     # Draw settings for textures that will be exported.
-    for i, texture in enumerate(addon_preferences.export_textures):
+    for i, texture in enumerate(texture_export_settings.export_textures):
 
         # Draw texture settings.
         col = first_column.column(align=True)
@@ -135,9 +135,10 @@ def draw_export_tab_ui(self, context):
         col_1 = split.column(align=True)
 
         row = col_1.row(align=True)
-        for key in texture.input_textures.__annotations__.keys():
-            row.prop(texture.input_textures, key, text="")
-
+        for key in texture.pack_textures.__annotations__.keys():
+            input_channel = getattr(texture.pack_textures, key)
+            row.menu('MATLAYER_MT_export_channel_sub_menu', text=input_channel)
+        
         row = col_1.row(align=True)
         for key in texture.input_rgba_channels.__annotations__.keys():
             row.prop(texture.input_rgba_channels, key, text="")

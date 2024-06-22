@@ -1,3 +1,5 @@
+# This file contains functions and properties related to exporting textures from this add-on.
+
 import os
 import time
 import numpy
@@ -7,21 +9,22 @@ from pathlib import Path
 from bpy.utils import resource_path
 import bpy
 from bpy.types import Operator, Menu, PropertyGroup
-from bpy.props import StringProperty, IntProperty, BoolProperty
+from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty, PointerProperty, CollectionProperty
 from ..core import mesh_map_baking
 from ..core import texture_set_settings as tss
 from ..core import debug_logging
 from ..core import blender_addon_utils
 from ..core import material_layers
 from ..core import image_utilities
-from .. import preferences
+from ..preferences import ADDON_NAME
+
 
 default_output_texture = {
     "export_name_format": "/MeshName_Color",
     "export_image_format": "PNG",
     "export_colorspace": "SRGB",
     "export_bit_depth": "EIGHT",
-    "input_textures": ["COLOR", "COLOR", "COLOR", "NONE"],
+    "pack_textures": ["COLOR", "COLOR", "COLOR", "NONE"],
     "input_pack_channels": ["R", "G", "B", "A"],
     "output_pack_channels": ["R", "G", "B", "A"]
 }
@@ -36,7 +39,7 @@ default_export_template_json = {
             "export_image_format": "PNG",
             "export_colorspace": "SRGB",
             "export_bit_depth": "EIGHT",
-            "input_textures": [
+            "pack_textures": [
             "COLOR",
             "COLOR",
             "COLOR",
@@ -60,7 +63,7 @@ default_export_template_json = {
             "export_image_format": "PNG",
             "export_colorspace": "NON_COLOR",
             "export_bit_depth": "EIGHT",
-            "input_textures": [
+            "pack_textures": [
             "METALLIC",
             "METALLIC",
             "METALLIC",
@@ -84,7 +87,7 @@ default_export_template_json = {
             "export_image_format": "PNG",
             "export_colorspace": "NON_COLOR",
             "export_bit_depth": "EIGHT",
-            "input_textures": [
+            "pack_textures": [
             "ROUGHNESS",
             "ROUGHNESS",
             "ROUGHNESS",
@@ -108,7 +111,7 @@ default_export_template_json = {
             "export_image_format": "PNG",
             "export_colorspace": "NON_COLOR",
             "export_bit_depth": "EIGHT",
-            "input_textures": [
+            "pack_textures": [
             "NORMAL_HEIGHT",
             "NORMAL_HEIGHT",
             "NORMAL_HEIGHT",
@@ -132,7 +135,7 @@ default_export_template_json = {
             "export_image_format": "PNG",
             "export_colorspace": "NON_COLOR",
             "export_bit_depth": "EIGHT",
-            "input_textures": [
+            "pack_textures": [
             "EMISSION",
             "EMISSION",
             "EMISSION",
@@ -166,7 +169,7 @@ default_json_file = {
           "export_image_format": "PNG",
           "export_colorspace": "SRGB",
           "export_bit_depth": "EIGHT",
-          "input_textures": [
+          "pack_textures": [
             "COLOR",
             "COLOR",
             "COLOR",
@@ -190,7 +193,7 @@ default_json_file = {
           "export_image_format": "PNG",
           "export_colorspace": "NON_COLOR",
           "export_bit_depth": "EIGHT",
-          "input_textures": [
+          "pack_textures": [
             "METALLIC",
             "METALLIC",
             "METALLIC",
@@ -214,7 +217,7 @@ default_json_file = {
           "export_image_format": "PNG",
           "export_colorspace": "NON_COLOR",
           "export_bit_depth": "EIGHT",
-          "input_textures": [
+          "pack_textures": [
             "ROUGHNESS",
             "ROUGHNESS",
             "ROUGHNESS",
@@ -238,7 +241,7 @@ default_json_file = {
           "export_image_format": "PNG",
           "export_colorspace": "NON_COLOR",
           "export_bit_depth": "EIGHT",
-          "input_textures": [
+          "pack_textures": [
             "NORMAL_HEIGHT",
             "NORMAL_HEIGHT",
             "NORMAL_HEIGHT",
@@ -262,7 +265,7 @@ default_json_file = {
           "export_image_format": "PNG",
           "export_colorspace": "NON_COLOR",
           "export_bit_depth": "EIGHT",
-          "input_textures": [
+          "pack_textures": [
             "EMISSION",
             "EMISSION",
             "EMISSION",
@@ -286,16 +289,83 @@ default_json_file = {
   ]
 }
 
-# List of material channels that use the emission node to bake and export their values.
-emission_exporting_channels = (
-    'SUBSURFACE-SCALE',
-    'SUBSURFACE-ANISOTROPY',
-    'SPECULAR-ANISOTROPIC',
-    'SPECULAR-ANISOTROPIC-ROTATION',
-    'IOR',
-    'TRANSMISSION-WEIGHT',
-    'COAT-IOR'
-)
+BIT_DEPTH = [
+    ("EIGHT", "8-bit", "8-bit depth is the standard color bit depth for games"),
+    ("THIRTY_TWO", "32-bit", "32-bit uses more memory in RGB channels, but will result in less color banding (not visible on old monitors)")
+]
+
+NORMAL_MAP_MODE = [
+    ("OPEN_GL", "OpenGL", "Normal maps will be exported in Open GL format (same as they are in Blender)"),
+    ("DIRECTX", "DirectX", "Exported normal maps will have their green channel automatically inverted so they export in Direct X format")
+]
+
+ROUGHNESS_MODE = [
+    ("ROUGHNESS", "Roughness", "Roughness will be exported as is."),
+    ("SMOOTHNESS", "Smoothness", "Roughness textures will be converted (inverted) to smoothness textures before exporting / packing. This supports some software which uses smoothness maps (e.g. Unity).")
+]
+
+EXPORT_CHANNELS = [
+    ("COLOR", "Color", "Color"),
+    ("SUBSURFACE", "Subsurface", "Subsurface"),
+    ("SUBSURFACE-TINT", "Subsurface Tint", "Subsurface Tint"),
+    ("SUBSURFACE-RADIUS", "Subsurface Radius", "Subsurface Radius"),
+    ("SUBSURFACE-SCALE", "Subsurface Scale", "Subsurface Scale"),
+    ("SUBSURFACE-ANISOTROPY", "Subsurface Anisotropy", "Subsurface Anisotropy"),
+    ("METALLIC", "Metallic", "Metallic"),
+    ("SPECULAR", "Specular (IOR Level)", "Specular"),
+    ("SPECULAR-TINT", "Specular Tint", "Specular Tint"),
+    ("SPECULAR-ANISOTROPIC", "Specular Anisotropic", "Specular Anisotropic"),
+    ("SPECULAR-ANISOTROPIC-ROTATION", "Specular Anisotropic Rotation", "Specular Anisotropic Rotation"),
+    ("ROUGHNESS", "Roughness", "Roughness"),
+    ("EMISSION", "Emission", "Emission"),
+    ("NORMAL", "Normal", "Normal"),
+    ("HEIGHT", "Height", "Height"),
+    ("NORMAL_HEIGHT", "Normal + Height", "Normal + Height"),
+    ("AMBIENT-OCCLUSION", "Ambient Occlusion", "Ambient Occlusion"),
+    ("CURVATURE", "Curvature", "Curvature"),
+    ("THICKNESS", "Thickness", "Thickness"),
+    ("BASE_NORMALS", "Base Normals", "Base Normals"),
+    ("WORLD_SPACE_NORMALS", "World Space Normals", "World Space Normals"),
+    ("ALPHA", "Alpha", "Alpha"),
+    ("IOR", "IOR / 4", "IOR / 4"),
+    ("TRANSMISSION-WEIGHT", "Transmission Weight", "Transmission Weight"),
+    ("COAT", "Coat", "Coat (a.k.a clear coat)"),
+    ("COAT-ROUGHNESS", "Coat Roughness", "Coat Roughness"),
+    ("COAT-IOR", "Coat IOR / 4", "Coat IOR / 4"),
+    ("COAT-TINT", "Coat Tint", "Coat Tint"),
+    ("COAT-NORMAL", "Coat Normal", "Coat Normal"),
+    ("SHEEN", "Sheen", "Sheen"),
+    ("SHEEN-ROUGHNESS", "Sheen Roughness", "Sheen"),
+    ("SHEEN-TINT", "Sheen Tint", "Sheen Tint"),
+    ("DISPLACEMENT", "Displacement", "Displacement"),
+    ("NONE", "None", "None")
+]
+
+RGBA_PACKING_CHANNELS = [
+    ("R", "R", "Red Channel"),
+    ("G", "G", "Green Channel"),
+    ("B", "B", "Blue Channel"),
+    ("A", "A", "Alpha Channel")
+]
+
+TEXTURE_EXPORT_FORMAT = [
+    ("PNG", "png", "Exports the selected material channel in png texture format. This is a non-compressed format, and generally a good default"),
+    ("JPEG", "jpg", "Exports the selected material channel in JPG texture format. This is a compressed format, which could be used for textures applied to models that will be shown in a web browser"),
+    ("TARGA", "tga", "Exports the selected material channel in TARGA texture format"),
+    ("OPEN_EXR", "exr", "Exports the selected material channel in open exr texture format")
+]
+
+EXPORT_MODE = [
+    ("ONLY_ACTIVE_MATERIAL", "Only Active Material", "Export only the active material to a texture set"),
+    ("EXPORT_ALL_MATERIALS", "Export All Materials", "Exports every object on the active material as it's own texture set"),
+    ("SINGLE_TEXTURE_SET", "Single Texture Set", "Bakes all materials in all texture slots on the active object to 1 texture set. Separating the final material into separate smaller materials assigned to different parts of the mesh and then baking them to a single texture set can be efficient for workflow, and can reduce shader compilation time while editing")
+]
+
+IMAGE_COLORSPACE_SETTINGS = [
+    ("SRGB", "sRGB", ""),
+    ("NON_COLOR", "Non-Color", "")
+]
+
 
 #----------------------------- CHANNEL PACKING / IMAGE EDITING FUNCTIONS -----------------------------#
 
@@ -319,7 +389,7 @@ def enumerate_color_channel(color_channel):
         case 'A':
             return 3
 
-def channel_pack(input_textures, input_packing, output_packing, image_name_format, color_bit_depth, file_format, export_colorspace):
+def channel_pack(pack_textures, input_packing, output_packing, image_name_format, color_bit_depth, file_format, export_colorspace):
     '''Channel packs the provided images into RGBA channels of a single image. Accepts None.'''
 
     # Create an array of output pixels using the first valid input texture.
@@ -327,7 +397,7 @@ def channel_pack(input_textures, input_packing, output_packing, image_name_forma
     output_pixels = None
     source_pixels = None
     for channel_index in range(0, 4):
-        image = input_textures[channel_index]
+        image = pack_textures[channel_index]
         if image:
             w, h = image.size
             source_pixels = numpy.empty(w * h * 4, dtype=numpy.float32)
@@ -335,7 +405,7 @@ def channel_pack(input_textures, input_packing, output_packing, image_name_forma
 
     # Cycle through and pack RGBA channels.
     for channel_index in range(0, 4):
-        image = input_textures[channel_index]
+        image = pack_textures[channel_index]
         if image:
 
             # All packed images must be the same size for packing.
@@ -361,7 +431,7 @@ def channel_pack(input_textures, input_packing, output_packing, image_name_forma
         
     # If an alpha image is provided create an image with alpha.
     has_alpha = False
-    if input_textures[3] != None:
+    if pack_textures[3] != None:
         has_alpha = True
 
     # Translate bit depth to a boolean from an enum.
@@ -428,17 +498,17 @@ def invert_image(image, invert_r = False, invert_g = False, invert_b = False, in
 
 def channel_pack_textures(texture_set_name):
     '''Creates channel packed textures using pre-baked textures.'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    texture_export_settings = bpy.context.scene.matlayer_export_settings
     active_object = bpy.context.active_object
 
     # Cycle through all defined export textures and channel pack them.
-    for export_texture in addon_preferences.export_textures:
+    for export_texture in texture_export_settings.export_textures:
 
         # Compile an array of baked images that will be used in channel packing based on the defined input texture...
         # ... and perform image alterations to select channels (normal / roughness / smoothness).
         input_images = []
-        for key in export_texture.input_textures.__annotations__.keys():
-            texture_channel = getattr(export_texture.input_textures, key)
+        for key in export_texture.pack_textures.__annotations__.keys():
+            texture_channel = getattr(export_texture.pack_textures, key)
 
             match texture_channel:
                 case 'AMBIENT_OCCLUSION':
@@ -472,7 +542,7 @@ def channel_pack_textures(texture_set_name):
                     input_images.append(image)
 
                     # Convert (invert) roughness to a smoothness map based on settings.
-                    if addon_preferences.roughness_mode == 'SMOOTHNESS':
+                    if texture_export_settings.roughness_mode == 'SMOOTHNESS':
                         invert_image(image, True, True, True, False)
 
                 case 'NORMAL':
@@ -481,7 +551,7 @@ def channel_pack_textures(texture_set_name):
                     input_images.append(image)
 
                     # Invert normal map G values if exporting for DirectX based on settings.
-                    if addon_preferences.normal_map_mode == 'DIRECTX':
+                    if texture_export_settings.normal_map_mode == 'DIRECTX':
                         invert_image(image, False, True, False, False)
 
                 case 'NORMAL_HEIGHT':
@@ -490,7 +560,7 @@ def channel_pack_textures(texture_set_name):
                     input_images.append(image)
 
                     # Invert normal map G values if exporting for DirectX based on settings.
-                    if addon_preferences.normal_map_mode == 'DIRECTX':
+                    if texture_export_settings.normal_map_mode == 'DIRECTX':
                         invert_image(image, False, True, False, False)
 
                 case 'NONE':
@@ -517,7 +587,7 @@ def channel_pack_textures(texture_set_name):
 
         # Channel pack baked material channels / textures.
         channel_pack(
-            input_textures=input_images,
+            pack_textures=input_images,
             input_packing=input_packing_channels,
             output_packing=output_packing_channels,
             image_name_format=export_texture.name_format,
@@ -553,11 +623,11 @@ def format_export_image_name(texture_name_format):
 
 def get_texture_channel_bake_list():
     '''Returns a list of material channels required to be baked as defined in the texture export settings.'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    texture_export_settings = bpy.context.scene.matlayer_export_settings
     material_channels_to_bake = []
-    for export_texture in addon_preferences.export_textures:
-        for key in export_texture.input_textures.__annotations__.keys():
-            input_texture_channel = getattr(export_texture.input_textures, key)
+    for export_texture in texture_export_settings.export_textures:
+        for key in export_texture.pack_textures.__annotations__.keys():
+            input_texture_channel = getattr(export_texture.pack_textures, key)
             if input_texture_channel not in material_channels_to_bake:
                 if input_texture_channel != 'NONE':
                     material_channels_to_bake.append(input_texture_channel)
@@ -575,25 +645,26 @@ def get_texture_channel_bake_list():
 
 def set_export_template(export_template_name):
     '''Applies the export template settings stored in the specified export template from the export template json file.'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    # TODO: BPY context isn't available here if this is called on scene load.
+    texture_export_settings = bpy.context.scene.matlayer_export_settings
     jdata = read_export_template_data()
     export_templates = jdata['export_templates']
     for template in export_templates:
         if template['name'] == export_template_name:
-            addon_preferences.export_template_name = template['name']
-            addon_preferences.roughness_mode = template['roughness_map_mode']
-            addon_preferences.normal_map_mode = template['normal_map_mode']
-            addon_preferences.export_textures.clear()
+            texture_export_settings.export_template_name = template['name']
+            texture_export_settings.roughness_mode = template['roughness_map_mode']
+            texture_export_settings.normal_map_mode = template['normal_map_mode']
+            texture_export_settings.export_textures.clear()
             for texture in template['output_textures']:
-                export_texture = addon_preferences.export_textures.add()
+                export_texture = texture_export_settings.export_textures.add()
                 export_texture.name_format = texture['export_name_format']
                 export_texture.image_format = texture['export_image_format']
                 export_texture.bit_depth = texture['export_bit_depth']
                 export_texture.colorspace = texture['export_colorspace']
-                export_texture.input_textures.r_texture = texture['input_textures'][0]
-                export_texture.input_textures.g_texture = texture['input_textures'][1]
-                export_texture.input_textures.b_texture = texture['input_textures'][2]
-                export_texture.input_textures.a_texture = texture['input_textures'][3]
+                export_texture.pack_textures.r_texture = texture['pack_textures'][0]
+                export_texture.pack_textures.g_texture = texture['pack_textures'][1]
+                export_texture.pack_textures.b_texture = texture['pack_textures'][2]
+                export_texture.pack_textures.a_texture = texture['pack_textures'][3]
                 export_texture.input_rgba_channels.r_color_channel = texture['input_pack_channels'][0]
                 export_texture.input_rgba_channels.g_color_channel = texture['input_pack_channels'][1]
                 export_texture.input_rgba_channels.b_color_channel = texture['input_pack_channels'][2]
@@ -613,7 +684,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     '''Bakes the defined material channel to an image texture (stores it in Blender's data). Returns true if baking was successful.'''
 
     # We can always bake for the normal + height channel.
-    if material_channel_name != 'NORMAL_HEIGHT' and material_channel_name not in emission_exporting_channels:
+    if material_channel_name != 'NORMAL_HEIGHT':
 
         # Ensure the material channel name provided is valid to bake.
         shader_info = bpy.context.scene.matlayer_shader_info
@@ -686,6 +757,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
         bpy.ops.object.bake('INVOKE_DEFAULT', type='NORMAL')
     
     else:
+        # TODO: For all channels, isolate and bake from an emission node.
         # For some material channels, we'll isolate and bake from an emission node.
         if material_channel_name in emission_exporting_channels:
             active_node_tree = bpy.context.active_object.active_material.node_tree
@@ -760,7 +832,7 @@ def remove_bake_texture_nodes():
 
 def read_export_template_data():
     '''Reads json data from the export template file. Creates a new export template json file if one does not exist.'''
-    template_folder_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "json_data")
+    template_folder_path = str(Path(resource_path('USER')) / "scripts/addons" / ADDON_NAME / "json_data")
     if not os.path.exists(template_folder_path):
         os.mkdir(template_folder_path)
 
@@ -774,22 +846,22 @@ def read_export_template_data():
         with open(templates_json_path,"w") as f:
             json.dump(default_json_file, f)
         
-        addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-        addon_preferences.export_template_name = "PBR Metallic Roughness"
+        texture_export_settings = bpy.context.scene.matlayer_export_settings
+        texture_export_settings.export_template_name = "PBR Metallic Roughness"
         read_export_template_names()
 
     return jdata
 
 def save_export_template_data(json_data):
     '''Saves the specified json data to the export template file.'''
-    templates_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "json_data" / "export_templates.json")
+    templates_path = str(Path(resource_path('USER')) / "scripts/addons" / ADDON_NAME / "json_data" / "export_templates.json")
     json_file = open(templates_path, "w")
     json.dump(json_data, json_file)
     json_file.close()
     
 def read_export_template_names():
     '''Reads all of the export template names from the json file into Blender memory (to avoid reading json data in a draw call).'''
-    templates_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "json_data" / "export_templates.json")
+    templates_path = str(Path(resource_path('USER')) / "scripts/addons" / ADDON_NAME / "json_data" / "export_templates.json")
     json_file = open(templates_path, "r")
     jdata = json.load(json_file)
     json_file.close()
@@ -805,13 +877,43 @@ def read_export_template_names():
 #----------------------------- EXPORT OPERATORS -----------------------------#
 
 
+class MATLAYER_pack_textures(PropertyGroup):
+    r_texture: StringProperty(default='COLOR', name='R Texture')
+    g_texture: StringProperty(default='COLOR', name='G Texture')
+    b_texture: StringProperty(default='COLOR', name='B Texture')
+    a_texture: StringProperty(default='NONE', name='R Texture')
+
+class MATLAYER_RGBA_pack_channels(PropertyGroup):
+    r_color_channel: EnumProperty(items=RGBA_PACKING_CHANNELS, default='R', name="R")
+    g_color_channel: EnumProperty(items=RGBA_PACKING_CHANNELS, default='G', name="G")
+    b_color_channel: EnumProperty(items=RGBA_PACKING_CHANNELS, default='B', name="B")
+    a_color_channel: EnumProperty(items=RGBA_PACKING_CHANNELS, default='A', name="A")
+
+class MATLAYER_texture_export_settings(PropertyGroup):
+    '''Settings that define how a texture is exported from this add-on.'''
+    name_format: StringProperty(name="Name Format", default="T_/MaterialName_C", description="Name format for the texture. You can add trigger words that will be automatically replaced upon export to name formats including: '/MaterialName', '/MeshName' ")
+    image_format: EnumProperty(items=TEXTURE_EXPORT_FORMAT, default='PNG')
+    bit_depth: EnumProperty(items=BIT_DEPTH, default='EIGHT')
+    colorspace: EnumProperty(items=IMAGE_COLORSPACE_SETTINGS, default='SRGB')
+    pack_textures: PointerProperty(type=MATLAYER_pack_textures, name="Pack Textures")
+    input_rgba_channels: PointerProperty(type=MATLAYER_RGBA_pack_channels, name="Input Pack Channels")
+    output_rgba_channels: PointerProperty(type=MATLAYER_RGBA_pack_channels, name="Output Pack Channels")
+
+class MATLAYER_texture_set_export_settings(PropertyGroup):
+    '''Settings that define how textures are exported from this add-on.'''
+    export_template_name: StringProperty(name="Export Template Name", default="PBR Metallic Roughness")
+    export_textures: CollectionProperty(type=MATLAYER_texture_export_settings)
+    roughness_mode: EnumProperty(name="Roughness Mode", items=ROUGHNESS_MODE, default='ROUGHNESS')
+    normal_map_mode: EnumProperty(name="Normal Map Mode", items=NORMAL_MAP_MODE, default='OPEN_GL')
+    export_mode: EnumProperty(name="Export Active Material", items=EXPORT_MODE, description="Exports only the active material using the defined export settings", default='SINGLE_TEXTURE_SET')
+
 class MATLAYER_export_template_names(PropertyGroup):
     name: bpy.props.StringProperty()
 
 class MATLAYER_OT_export(Operator):
     bl_idname = "matlayer.export"
     bl_label = "Export"
-    bl_description = "Bakes material channels to textures then channel packs based on export settings and finally saves all export textures folder"
+    bl_description = "Bakes material channels to textures, packs RGBA channels then saves all textures to the defined folder"
 
     _timer = None
     _total_materials_to_bake = 0
@@ -845,11 +947,11 @@ class MATLAYER_OT_export(Operator):
                         debug_logging.log("Baked - (texture channel - active material): {0} - {1}".format(self._bake_image_name, bpy.context.active_object.active_material.name))
                 
                 # Start baking the next material channel.
-                addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
+                texture_export_settings = bpy.context.scene.matlayer_export_settings
                 if self._texture_channel_index < len(self._texture_channels_to_bake) - 1:
                     self._texture_channel_index += 1
                     self._bake_image_name = ""
-                    if addon_preferences.export_mode == 'SINGLE_TEXTURE_SET':
+                    if texture_export_settings.export_mode == 'SINGLE_TEXTURE_SET':
                         self._bake_image_name = bake_material_channel(self._texture_channels_to_bake[self._texture_channel_index], single_texture_set=True)
                     else:
                         self._bake_image_name = bake_material_channel(self._texture_channels_to_bake[self._texture_channel_index], single_texture_set=False)
@@ -860,7 +962,7 @@ class MATLAYER_OT_export(Operator):
                         debug_logging.log("Completed baking textures for material: {0}".format(bpy.context.active_object.active_material.name))
 
                         # Channel pack baked textures after baking each material unless we are baking to a single texture set.
-                        if addon_preferences.export_mode != 'SINGLE_TEXTURE_SET':
+                        if texture_export_settings.export_mode != 'SINGLE_TEXTURE_SET':
                             channel_pack_textures(bpy.context.active_object.active_material.name)
 
                         # Move to baking the next material.
@@ -880,7 +982,7 @@ class MATLAYER_OT_export(Operator):
                             active_material.node_tree.links.new(export_uv_map_node.outputs[0], bake_texture_node.inputs[0])
                     else:
                         # Channel pack textures.
-                        if addon_preferences.export_mode == 'SINGLE_TEXTURE_SET':
+                        if texture_export_settings.export_mode == 'SINGLE_TEXTURE_SET':
                             channel_pack_textures(bpy.context.active_object.name)
                         else:
                             channel_pack_textures(bpy.context.active_object.active_material.name)
@@ -923,8 +1025,8 @@ class MATLAYER_OT_export(Operator):
         self._texture_channels_to_bake = get_texture_channel_bake_list()
 
         # Get the number of materials to bake and export.
-        addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
-        match addon_preferences.export_mode:
+        texture_export_settings = bpy.context.scene.matlayer_export_settings
+        match texture_export_settings.export_mode:
             case 'ONLY_ACTIVE_MATERIAL':
                 debug_logging.log("Starting exporting for only the active material...")
                 self._total_materials_to_bake = 1
@@ -1029,7 +1131,7 @@ class MATLAYER_OT_save_export_template(Operator):
     bl_description = "Saves the current export template. If a template with the same name already exists, it will be overwritten"
     
     def execute(self, context):
-        addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
+        texture_export_settings = bpy.context.scene.matlayer_export_settings
 
         # Check if the export template json file exists.
         jdata = read_export_template_data()
@@ -1037,7 +1139,7 @@ class MATLAYER_OT_save_export_template(Operator):
         new_export_template = None
         export_templates = jdata['export_templates']
         for template in export_templates:
-            if template['name'] == addon_preferences.export_template_name:
+            if template['name'] == texture_export_settings.export_template_name:
                 new_export_template = template
                 template_existed = True
 
@@ -1046,25 +1148,25 @@ class MATLAYER_OT_save_export_template(Operator):
             new_export_template = copy.deepcopy(default_export_template_json)
 
         # Overwrite the properties of the export template with the export properties defined in the user interface.
-        new_export_template['name'] = addon_preferences.export_template_name
-        new_export_template['roughness_map_mode'] = addon_preferences.roughness_mode
-        new_export_template['normal_map_mode'] = addon_preferences.normal_map_mode
+        new_export_template['name'] = texture_export_settings.export_template_name
+        new_export_template['roughness_map_mode'] = texture_export_settings.roughness_mode
+        new_export_template['normal_map_mode'] = texture_export_settings.normal_map_mode
 
         output_textures = new_export_template['output_textures']
         output_textures.clear()
-        for export_texture in addon_preferences.export_textures:
+        for export_texture in texture_export_settings.export_textures:
             output_textures.append(copy.deepcopy(default_output_texture))
         output_textures = new_export_template['output_textures']
-        for i, export_texture in enumerate(addon_preferences.export_textures):
+        for i, export_texture in enumerate(texture_export_settings.export_textures):
             new_export_template['output_textures'][i]['export_name_format'] = export_texture.name_format
             new_export_template['output_textures'][i]['export_image_format'] = export_texture.image_format
             new_export_template['output_textures'][i]['export_colorspace'] = export_texture.colorspace
             new_export_template['output_textures'][i]['export_bit_depth'] = export_texture.bit_depth
 
-            new_export_template['output_textures'][i]['input_textures'][0] = export_texture.input_textures.r_texture
-            new_export_template['output_textures'][i]['input_textures'][1] = export_texture.input_textures.g_texture
-            new_export_template['output_textures'][i]['input_textures'][2] = export_texture.input_textures.b_texture
-            new_export_template['output_textures'][i]['input_textures'][3] = export_texture.input_textures.a_texture
+            new_export_template['output_textures'][i]['pack_textures'][0] = export_texture.pack_textures.r_texture
+            new_export_template['output_textures'][i]['pack_textures'][1] = export_texture.pack_textures.g_texture
+            new_export_template['output_textures'][i]['pack_textures'][2] = export_texture.pack_textures.b_texture
+            new_export_template['output_textures'][i]['pack_textures'][3] = export_texture.pack_textures.a_texture
 
             new_export_template['output_textures'][i]['input_pack_channels'][0] = export_texture.input_rgba_channels.r_color_channel
             new_export_template['output_textures'][i]['input_pack_channels'][1] = export_texture.input_rgba_channels.g_color_channel
@@ -1095,7 +1197,7 @@ class MATLAYER_OT_delete_export_template(Operator):
     bl_description = "Deletes the currently selected export template from the json file if it exists"
     
     def execute(self, context):
-        addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
+        texture_export_settings = bpy.context.scene.matlayer_export_settings
 
         # Read the existing export templates from the json data.
         jdata = read_export_template_data()
@@ -1103,7 +1205,7 @@ class MATLAYER_OT_delete_export_template(Operator):
         # Delete the template if it exists in the json data.
         export_templates = jdata['export_templates']
         for template in export_templates:
-            if template['name'] == addon_preferences.export_template_name:
+            if template['name'] == texture_export_settings.export_template_name:
                 template_name = template['name']
                 export_templates.remove(template)
                 debug_logging.log_status("Deleted template: {0}".format(template_name), self, type='INFO')
@@ -1134,8 +1236,8 @@ class MATLAYER_OT_add_export_texture(Operator):
     bl_description = "Adds an additional texture to the export texture list"
     
     def execute(self, context):
-        addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
-        addon_preferences.export_textures.add()
+        texture_export_settings = bpy.context.scene.matlayer_export_settings
+        texture_export_settings.export_textures.add()
         return {'FINISHED'}
 
 class MATLAYER_OT_remove_export_texture(Operator):
@@ -1146,8 +1248,8 @@ class MATLAYER_OT_remove_export_texture(Operator):
     export_texture_index: IntProperty(default=0)
     
     def execute(self, context):
-        addon_preferences = context.preferences.addons[preferences.ADDON_NAME].preferences
-        addon_preferences.export_textures.remove(self.export_texture_index)
+        texture_export_settings = bpy.context.scene.matlayer_export_settings
+        texture_export_settings.export_textures.remove(self.export_texture_index)
         return {'FINISHED'}
 
 class MATLAYER_OT_set_export_folder(Operator):
@@ -1191,6 +1293,22 @@ class MATLAYER_OT_open_export_folder(Operator):
         blender_addon_utils.open_folder(matlayer_export_folder_path, self)
         return {'FINISHED'}
 
+class MATLAYER_OT_set_rgba_texture_export_channel(Operator):
+    bl_idname = "matlayer.set_rgba_texture_export_channel"
+    bl_label = "Set RGBA Texture Export Channel"
+    bl_description = "Sets the RGBA export channel for the specified export texture"
+
+    export_texture_index: IntProperty(default=-1)
+    rgba_channel_key: StringProperty()
+    channel_name: StringProperty(default="ERROR")
+
+    def execute(self, context):
+        texture_export_settings = bpy.context.scene.matlayer_export_settings
+        channel_property = getattr(texture_export_settings.export_textures, self.key)
+        if channel_property:
+            channel_property = self.channel_name
+        return {'FINISHED'}
+
 class ExportTemplateMenu(Menu):
     bl_idname = "MATLAYER_MT_export_template_menu"
     bl_label = "Export Template Menu"
@@ -1202,3 +1320,14 @@ class ExportTemplateMenu(Menu):
         for template in cached_template_names:
             op = layout.operator("matlayer.set_export_template", text=template.name)
             op.export_template_name = template.name
+
+class ExportChannelSubMenu(Menu):
+    bl_idname = "MATLAYER_MT_export_channel_sub_menu"
+    bl_label = "Export Channel Sub Menu"
+    bl_description = "Menu for setting the input texture used for RGBA channel packing"
+
+    def draw(self, context):
+        layout = self.layout
+        shader_info = bpy.context.scene.matlayer_shader_info
+        for channel in shader_info.material_channels:
+            operator = layout.operator("matlayer.set_rgba_texture_export_channel", text=channel.name)

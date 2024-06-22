@@ -21,7 +21,7 @@ from bpy.props import PointerProperty, CollectionProperty, EnumProperty, StringP
 from bpy.app.handlers import persistent
 
 # Preferences
-from .preferences import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MATLAYER_texture_export_settings, AddonPreferences
+from .preferences import AddonPreferences
 
 # Texture Set Settings
 from .core.texture_set_settings import MATLAYER_texture_set_settings, MATLAYER_OT_toggle_texture_set_material_channel, MATLAYER_OT_set_raw_texture_folder, MATLAYER_OT_open_raw_texture_folder
@@ -42,7 +42,7 @@ from .core.material_slots import MATLAYER_OT_add_material_slot, MATLAYER_OT_remo
 from .core.mesh_map_baking import MATLAYER_mesh_map_anti_aliasing, MATLAYER_baking_settings, MATLAYER_OT_batch_bake, MATLAYER_OT_set_mesh_map_folder, MATLAYER_OT_open_mesh_map_folder, MATLAYER_OT_preview_mesh_map, MATLAYER_OT_disable_mesh_map_preview, MATLAYER_OT_delete_mesh_map, MATLAYER_OT_create_baking_cage, MATLAYER_OT_delete_baking_cage
 
 # Exporting
-from .core.export_textures import MATLAYER_OT_export, MATLAYER_OT_set_export_folder, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_refresh_export_template_list, MATLAYER_OT_delete_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, MATLAYER_export_template_names, ExportTemplateMenu, read_export_template_names, set_export_template
+from .core.export_textures import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MATLAYER_texture_export_settings, MATLAYER_texture_export_settings, MATLAYER_texture_set_export_settings, MATLAYER_OT_export, MATLAYER_OT_set_export_folder, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_rgba_texture_export_channel, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_refresh_export_template_list, MATLAYER_OT_delete_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, MATLAYER_export_template_names, ExportTemplateMenu, ExportChannelSubMenu, read_export_template_names, set_export_template
 
 # Utilities
 from .core.image_utilities import MATLAYER_OT_add_texture_node_image, MATLAYER_OT_import_texture_node_image, MATLAYER_OT_edit_texture_node_image_externally, MATLAY_OT_export_uvs, MATLAYER_OT_reload_texture_node_image, MATLAYER_OT_delete_texture_node_image, MATLAY_OT_image_edit_uvs, auto_save_images
@@ -74,9 +74,6 @@ bl_info = {
 # List of classes to be registered.
 classes = (
     # Preferences
-    MATLAYER_pack_textures,
-    MATLAYER_RGBA_pack_channels,
-    MATLAYER_texture_export_settings,
     AddonPreferences,
 
     # Mesh Map Baking
@@ -92,6 +89,11 @@ classes = (
     MATLAYER_OT_delete_baking_cage,
 
     # Exporting
+    MATLAYER_pack_textures,
+    MATLAYER_RGBA_pack_channels,
+    MATLAYER_texture_export_settings,
+    MATLAYER_texture_set_export_settings,
+    MATLAYER_export_template_names,
     MATLAYER_OT_export,
     MATLAYER_OT_set_export_template,
     MATLAYER_OT_save_export_template,
@@ -99,10 +101,11 @@ classes = (
     MATLAYER_OT_delete_export_template,
     MATLAYER_OT_add_export_texture,
     MATLAYER_OT_remove_export_texture,
-    MATLAYER_export_template_names,
     MATLAYER_OT_set_export_folder,
     MATLAYER_OT_open_export_folder,
+    MATLAYER_OT_set_rgba_texture_export_channel,
     ExportTemplateMenu,
+    ExportChannelSubMenu,
 
     # Shaders
     shaders.MATLAYER_shader_name,
@@ -344,6 +347,9 @@ def register():
     bpy.types.Scene.pause_auto_updates = BoolProperty(default=False)
     bpy.types.Scene.previous_active_material_name = StringProperty(default="")
     bpy.types.Scene.previous_object_name = StringProperty(default="")
+
+    # Exporting Properties
+    bpy.types.Scene.matlayer_texture_export_settings = PointerProperty(type=MATLAYER_texture_set_export_settings)
     
     bpy.types.Scene.matlayer_raw_textures_folder = StringProperty(
         name="Raw Texture Folder",
@@ -364,7 +370,7 @@ def register():
     )
 
     # Apply a default export template.
-    set_export_template("PBR Metallic Roughness")
+    #set_export_template("PBR Metallic Roughness")
 
     # Register auto-saving for all images.
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences

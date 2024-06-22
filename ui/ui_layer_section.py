@@ -107,7 +107,7 @@ def draw_selected_material_channel(layout):
     row.scale_x = 2
     row.scale_y = 1.4
     selected_material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
-    row.menu('MATLAYER_MT_material_channel_sub_menu', text=selected_material_channel)
+    row.menu("MATLAYER_MT_material_channel_sub_menu", text=selected_material_channel)
     row.operator("matlayer.isolate_material_channel", text="", icon='MATERIAL')
 
 def draw_layer_operations(layout):
