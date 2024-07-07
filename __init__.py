@@ -310,10 +310,8 @@ def load_handler(dummy):
 
         material_layers.refresh_layer_stack()
 
-    # Read existing export templates into Blender memory, and apply the user set export template if one exists.
-    read_export_template_names()
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-    set_export_template(addon_preferences.export_template_name)
+    # TODO: Temporary fix for updating the shader list.
+    shaders.update_shader_list()
 
 # Run startup functions when a new blend file is loaded.
 bpy.app.handlers.load_post.append(load_handler)
@@ -369,12 +367,11 @@ def register():
         default="Default",
     )
 
-    # Apply a default export template.
-    #set_export_template("PBR Metallic Roughness")
-
     # Register auto-saving for all images.
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     bpy.app.timers.register(auto_save_images, first_interval=addon_preferences.image_auto_save_interval)
+
+    
 
 def unregister():
     for cls in classes:
