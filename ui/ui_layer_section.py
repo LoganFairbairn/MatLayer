@@ -51,12 +51,13 @@ def draw_layers_tab_ui(self, context):
             else:
                 active_material = active_object.active_material
                 if active_material and shaders.validate_active_shader(active_material) == False:
-                    row = layout.row()
+                    row = column_one.row()
                     row.alignment = 'CENTER'
                     row.label(text="Shader Not Defined")
-                    row = layout.row()
+                    row = column_one.row()
                     row.alignment = 'CENTER'
                     row.label(text="The material must be created with MatLayer.")
+                    draw_material_selector(column_two)
                 
                 # Draw layer section UI.
                 else:
