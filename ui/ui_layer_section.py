@@ -94,6 +94,8 @@ def draw_material_selector(layout):
         second_column.operator("object.material_slot_assign", text="", icon='MATERIAL_DATA')
         second_column.operator("object.material_slot_select", text="", icon='SELECT_SET')
 
+        # TODO: Deprecate this if drag 'n drop material merging is implemented.
+        '''
         split = layout.split(factor=0.70)
         first_column = split.column()
         second_column = split.column()
@@ -104,6 +106,7 @@ def draw_material_selector(layout):
             col = second_column.column()
             col.scale_y = 2.0
             col.operator("matlayer.merge_materials", text="Merge")
+        '''
 
 def draw_selected_material_channel(layout):
     '''Draws the selected material channel.'''
