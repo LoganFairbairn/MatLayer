@@ -498,7 +498,7 @@ def invert_image(image, invert_r = False, invert_g = False, invert_b = False, in
 
 def channel_pack_textures(texture_set_name):
     '''Creates channel packed textures using pre-baked textures.'''
-    texture_export_settings = bpy.context.scene.matlayer_export_settings
+    texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
     active_object = bpy.context.active_object
 
     # Cycle through all defined export textures and channel pack them.
@@ -623,7 +623,7 @@ def format_export_image_name(texture_name_format):
 
 def get_texture_channel_bake_list():
     '''Returns a list of material channels required to be baked as defined in the texture export settings.'''
-    texture_export_settings = bpy.context.scene.matlayer_export_settings
+    texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
     material_channels_to_bake = []
     for export_texture in texture_export_settings.export_textures:
         for key in export_texture.pack_textures.__annotations__.keys():
@@ -646,7 +646,7 @@ def get_texture_channel_bake_list():
 def set_export_template(export_template_name):
     '''Applies the export template settings stored in the specified export template from the export template json file.'''
     # TODO: BPY context isn't available here if this is called on scene load.
-    texture_export_settings = bpy.context.scene.matlayer_export_settings
+    texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
     jdata = read_export_template_data()
     export_templates = jdata['export_templates']
     for template in export_templates:
@@ -846,7 +846,7 @@ def read_export_template_data():
         with open(templates_json_path,"w") as f:
             json.dump(default_json_file, f)
         
-        texture_export_settings = bpy.context.scene.matlayer_export_settings
+        texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
         texture_export_settings.export_template_name = "PBR Metallic Roughness"
         read_export_template_names()
 
@@ -873,15 +873,29 @@ def read_export_template_names():
         cached_template.name = template['name']
     debug_logging.log("Updated export templates.")
 
+def get_shader_channel_enum_list(scene, context):
+    '''Returns an enum list of current shader channels that can be used in RGBA channel packing.'''
+    items = []
+
+    # Add a 'NONE' ENUM option for when no texture needs to be channel packed in an RGBA channel.
+    items += [("NONE", "None", "None")]
+
+    # Add an ENUM option for all shader channels.
+    shader_info = bpy.context.scene.matlayer_shader_info
+    for channel in shader_info.material_channels:
+        items += [(channel.name.upper(), channel.name, "")]
+    
+    return items
+
 
 #----------------------------- EXPORT OPERATORS -----------------------------#
 
 
 class MATLAYER_pack_textures(PropertyGroup):
-    r_texture: StringProperty(default='COLOR', name='R Texture')
-    g_texture: StringProperty(default='COLOR', name='G Texture')
-    b_texture: StringProperty(default='COLOR', name='B Texture')
-    a_texture: StringProperty(default='NONE', name='R Texture')
+    r_texture: EnumProperty(items=get_shader_channel_enum_list, name='R Texture')
+    g_texture: EnumProperty(items=get_shader_channel_enum_list, name='G Texture')
+    b_texture: EnumProperty(items=get_shader_channel_enum_list, name='B Texture')
+    a_texture: EnumProperty(items=get_shader_channel_enum_list, name='A Texture')
 
 class MATLAYER_RGBA_pack_channels(PropertyGroup):
     r_color_channel: EnumProperty(items=RGBA_PACKING_CHANNELS, default='R', name="R")
@@ -947,7 +961,7 @@ class MATLAYER_OT_export(Operator):
                         debug_logging.log("Baked - (texture channel - active material): {0} - {1}".format(self._bake_image_name, bpy.context.active_object.active_material.name))
                 
                 # Start baking the next material channel.
-                texture_export_settings = bpy.context.scene.matlayer_export_settings
+                texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
                 if self._texture_channel_index < len(self._texture_channels_to_bake) - 1:
                     self._texture_channel_index += 1
                     self._bake_image_name = ""
@@ -1025,7 +1039,7 @@ class MATLAYER_OT_export(Operator):
         self._texture_channels_to_bake = get_texture_channel_bake_list()
 
         # Get the number of materials to bake and export.
-        texture_export_settings = bpy.context.scene.matlayer_export_settings
+        texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
         match texture_export_settings.export_mode:
             case 'ONLY_ACTIVE_MATERIAL':
                 debug_logging.log("Starting exporting for only the active material...")
@@ -1131,7 +1145,7 @@ class MATLAYER_OT_save_export_template(Operator):
     bl_description = "Saves the current export template. If a template with the same name already exists, it will be overwritten"
     
     def execute(self, context):
-        texture_export_settings = bpy.context.scene.matlayer_export_settings
+        texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
 
         # Check if the export template json file exists.
         jdata = read_export_template_data()
@@ -1197,7 +1211,7 @@ class MATLAYER_OT_delete_export_template(Operator):
     bl_description = "Deletes the currently selected export template from the json file if it exists"
     
     def execute(self, context):
-        texture_export_settings = bpy.context.scene.matlayer_export_settings
+        texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
 
         # Read the existing export templates from the json data.
         jdata = read_export_template_data()
@@ -1236,7 +1250,7 @@ class MATLAYER_OT_add_export_texture(Operator):
     bl_description = "Adds an additional texture to the export texture list"
     
     def execute(self, context):
-        texture_export_settings = bpy.context.scene.matlayer_export_settings
+        texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
         texture_export_settings.export_textures.add()
         return {'FINISHED'}
 
@@ -1248,7 +1262,7 @@ class MATLAYER_OT_remove_export_texture(Operator):
     export_texture_index: IntProperty(default=0)
     
     def execute(self, context):
-        texture_export_settings = bpy.context.scene.matlayer_export_settings
+        texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
         texture_export_settings.export_textures.remove(self.export_texture_index)
         return {'FINISHED'}
 
@@ -1293,22 +1307,6 @@ class MATLAYER_OT_open_export_folder(Operator):
         blender_addon_utils.open_folder(matlayer_export_folder_path, self)
         return {'FINISHED'}
 
-class MATLAYER_OT_set_rgba_texture_export_channel(Operator):
-    bl_idname = "matlayer.set_rgba_texture_export_channel"
-    bl_label = "Set RGBA Texture Export Channel"
-    bl_description = "Sets the RGBA export channel for the specified export texture"
-
-    export_texture_index: IntProperty(default=-1)
-    rgba_channel_key: StringProperty()
-    channel_name: StringProperty(default="ERROR")
-
-    def execute(self, context):
-        texture_export_settings = bpy.context.scene.matlayer_export_settings
-        channel_property = getattr(texture_export_settings.export_textures, self.key)
-        if channel_property:
-            channel_property = self.channel_name
-        return {'FINISHED'}
-
 class ExportTemplateMenu(Menu):
     bl_idname = "MATLAYER_MT_export_template_menu"
     bl_label = "Export Template Menu"
@@ -1320,14 +1318,3 @@ class ExportTemplateMenu(Menu):
         for template in cached_template_names:
             op = layout.operator("matlayer.set_export_template", text=template.name)
             op.export_template_name = template.name
-
-class ExportChannelSubMenu(Menu):
-    bl_idname = "MATLAYER_MT_export_channel_sub_menu"
-    bl_label = "Export Channel Sub Menu"
-    bl_description = "Menu for setting the input texture used for RGBA channel packing"
-
-    def draw(self, context):
-        layout = self.layout
-        shader_info = bpy.context.scene.matlayer_shader_info
-        for channel in shader_info.material_channels:
-            operator = layout.operator("matlayer.set_rgba_texture_export_channel", text=channel.name)

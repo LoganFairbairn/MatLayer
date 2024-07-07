@@ -2,7 +2,6 @@
 
 import bpy
 from ..ui import ui_section_tabs
-from .. import preferences
 from ..core import material_layers
 
 def draw_export_tab_ui(self, context):
@@ -21,7 +20,7 @@ def draw_export_tab_ui(self, context):
     row = layout.row()
     row.separator()
     baking_settings = bpy.context.scene.matlayer_baking_settings
-    texture_export_settings = bpy.context.scene.matlayer_export_settings
+    texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
     split = layout.split(factor=0.2)
     first_column = split.column()
     first_column.scale_x = 0.1
@@ -134,11 +133,12 @@ def draw_export_tab_ui(self, context):
         split = col_2.split(factor=0.9)
         col_1 = split.column(align=True)
 
+        # Draw menus with shader channels that can be used as inputs for RGBA channel packing.
         row = col_1.row(align=True)
         for key in texture.pack_textures.__annotations__.keys():
-            input_channel = getattr(texture.pack_textures, key)
-            row.menu('MATLAYER_MT_export_channel_sub_menu', text=input_channel)
+            row.prop(texture.pack_textures, key, text="")
         
+        # Draw RGBA channels for desired input and output channels.
         row = col_1.row(align=True)
         for key in texture.input_rgba_channels.__annotations__.keys():
             row.prop(texture.input_rgba_channels, key, text="")
