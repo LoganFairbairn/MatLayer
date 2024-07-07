@@ -54,6 +54,9 @@ def draw_layers_tab_ui(self, context):
                     row = layout.row()
                     row.alignment = 'CENTER'
                     row.label(text="Shader Not Defined")
+                    row = layout.row()
+                    row.alignment = 'CENTER'
+                    row.label(text="The material must be created with MatLayer.")
                 
                 # Draw layer section UI.
                 else:
