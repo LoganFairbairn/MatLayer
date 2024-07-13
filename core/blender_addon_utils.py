@@ -604,3 +604,10 @@ def safe_node_link(input_socket, output_socket, node_tree):
     '''Checks that both sockets exist, before linking the sockets together.'''
     if input_socket and output_socket:
         node_tree.links.new(output_socket, input_socket)
+
+def get_valid_enum(enum_items, enum_value, default_value):
+    '''Returns the provided enum value if it exists in the provided Blender enum tuple list, returns a default value for the enum if it does not.'''
+    if any(item[0] == enum_value for item in enum_items):
+        return enum_value
+    else:
+        return default_value

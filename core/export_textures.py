@@ -13,7 +13,7 @@ from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty, P
 from ..core import mesh_map_baking
 from ..core import texture_set_settings as tss
 from ..core import debug_logging
-from ..core import blender_addon_utils
+from ..core import blender_addon_utils as bau
 from ..core import material_layers
 from ..core import image_utilities
 from ..preferences import ADDON_NAME
@@ -444,7 +444,7 @@ def channel_pack(pack_textures, input_packing, output_packing, image_name_format
 
     # Create an image using the packed pixels and save them to the disk.
     image_name = format_export_image_name(image_name_format)
-    packed_image = blender_addon_utils.create_data_image(
+    packed_image = bau.create_data_image(
         image_name,
         image_width=w,
         image_height=h,
@@ -462,8 +462,8 @@ def channel_pack(pack_textures, input_packing, output_packing, image_name_format
             packed_image.colorspace_settings.name = 'sRGB'
 
     # Define a file format, filepath and then save the channel packed image.
-    file_extension = blender_addon_utils.get_image_file_extension(file_format)
-    export_path = blender_addon_utils.get_texture_folder_path(folder='EXPORT_TEXTURES')
+    file_extension = bau.get_image_file_extension(file_format)
+    export_path = bau.get_texture_folder_path(folder='EXPORT_TEXTURES')
     packed_image.file_format = file_format
     packed_image.filepath = "{0}/{1}.{2}".format(export_path, image_name, file_extension)
     packed_image.pixels.foreach_set(output_pixels)
@@ -475,7 +475,7 @@ def channel_pack(pack_textures, input_packing, output_packing, image_name_format
             output_colorspace = 'sRGB'
         case 'NON_COLOR':
             output_colorspace = 'Non-Color'
-    blender_addon_utils.save_image(packed_image, file_format, 'EXPORT_TEXTURE', colorspace=output_colorspace)
+    bau.save_image(packed_image, file_format, 'EXPORT_TEXTURE', colorspace=output_colorspace)
 
     return packed_image
 
@@ -661,10 +661,12 @@ def set_export_template(export_template_name):
                 export_texture.image_format = texture['export_image_format']
                 export_texture.bit_depth = texture['export_bit_depth']
                 export_texture.colorspace = texture['export_colorspace']
-                export_texture.pack_textures.r_texture = texture['pack_textures'][0]
-                export_texture.pack_textures.g_texture = texture['pack_textures'][1]
-                export_texture.pack_textures.b_texture = texture['pack_textures'][2]
-                export_texture.pack_textures.a_texture = texture['pack_textures'][3]
+
+                enum_items = get_shader_channel_enum_items()
+                export_texture.pack_textures.r_texture = bau.get_valid_enum(enum_items, texture['pack_textures'][0], 'NONE')
+                export_texture.pack_textures.g_texture = bau.get_valid_enum(enum_items, texture['pack_textures'][1], 'NONE')
+                export_texture.pack_textures.b_texture = bau.get_valid_enum(enum_items, texture['pack_textures'][2], 'NONE')
+                export_texture.pack_textures.a_texture = bau.get_valid_enum(enum_items, texture['pack_textures'][3], 'NONE')
                 export_texture.input_rgba_channels.r_color_channel = texture['input_pack_channels'][0]
                 export_texture.input_rgba_channels.g_color_channel = texture['input_pack_channels'][1]
                 export_texture.input_rgba_channels.b_color_channel = texture['input_pack_channels'][2]
@@ -714,7 +716,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
         image_name = format_baked_material_channel_name(object_name, export_channel_name)
         export_image = bpy.data.images.get(image_name)
         if export_image == None:
-            export_image = blender_addon_utils.create_image(
+            export_image = bau.create_image(
                 new_image_name=image_name,
                 image_width=tss.get_texture_width(),
                 image_height=tss.get_texture_height(),
@@ -731,7 +733,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     else:
         material_name = bpy.context.active_object.active_material.name.replace('_', '')
         image_name = format_baked_material_channel_name(material_name, export_channel_name)
-        export_image = blender_addon_utils.create_image(
+        export_image = bau.create_image(
             new_image_name=image_name,
             image_width=tss.get_texture_width(),
             image_height=tss.get_texture_height(),
@@ -750,7 +752,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     image_node.image = export_image
     image_node.select = True
     material_nodes.active = image_node
-    blender_addon_utils.set_texture_paint_image(export_image)
+    bau.set_texture_paint_image(export_image)
 
     # Bake normals directly from the principled BSDF shader when baking normal + height mixes.
     if material_channel_name == 'NORMAL_HEIGHT':
@@ -772,7 +774,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
                     channel_name = 'Coat IOR'
                 case _:
                     channel_name = material_channel_name.replace('-', ' ')
-                    channel_name = blender_addon_utils.capitalize_by_space(channel_name)
+                    channel_name = bau.capitalize_by_space(channel_name)
             export_value = bsdf_node.inputs.get(channel_name).default_value
             
             # Remap IOR values to between a 0 and 1 range, so they can be properly stored in a texture.
@@ -794,7 +796,7 @@ def add_bake_texture_nodes():
     '''Adds a bake texture node to all materials in all material slots on the active object.'''
 
     # Adding a placeholder image to the bake image nodes stops Blender from throwing annoying and incorrect 'no active image' warnings when baking'.
-    placeholder_image = blender_addon_utils.create_data_image("ML_Placeholder", image_width=32, image_height=32)
+    placeholder_image = bau.create_data_image("ML_Placeholder", image_width=32, image_height=32)
 
     active_object = bpy.context.active_object
     for material_slot in active_object.material_slots:
@@ -873,7 +875,7 @@ def read_export_template_names():
         cached_template.name = template['name']
     debug_logging.log("Updated export templates.")
 
-def get_shader_channel_enum_list(scene, context):
+def get_shader_channel_enum_items(scene=None, context=None):
     '''Returns an enum list of current shader channels that can be used in RGBA channel packing.'''
     items = []
 
@@ -883,7 +885,7 @@ def get_shader_channel_enum_list(scene, context):
     # Add an ENUM option for all shader channels.
     shader_info = bpy.context.scene.matlayer_shader_info
     for channel in shader_info.material_channels:
-        items += [(channel.name.upper(), channel.name, "")]
+        items += [(channel.name.upper().replace(' ', '_'), channel.name, "")]
     
     return items
 
@@ -892,10 +894,10 @@ def get_shader_channel_enum_list(scene, context):
 
 
 class MATLAYER_pack_textures(PropertyGroup):
-    r_texture: EnumProperty(items=get_shader_channel_enum_list, name='R Texture')
-    g_texture: EnumProperty(items=get_shader_channel_enum_list, name='G Texture')
-    b_texture: EnumProperty(items=get_shader_channel_enum_list, name='B Texture')
-    a_texture: EnumProperty(items=get_shader_channel_enum_list, name='A Texture')
+    r_texture: EnumProperty(items=get_shader_channel_enum_items, name='R Texture')
+    g_texture: EnumProperty(items=get_shader_channel_enum_items, name='G Texture')
+    b_texture: EnumProperty(items=get_shader_channel_enum_items, name='B Texture')
+    a_texture: EnumProperty(items=get_shader_channel_enum_items, name='A Texture')
 
 class MATLAYER_RGBA_pack_channels(PropertyGroup):
     r_color_channel: EnumProperty(items=RGBA_PACKING_CHANNELS, default='R', name="R")
@@ -981,7 +983,7 @@ class MATLAYER_OT_export(Operator):
 
                         # Move to baking the next material.
                         bpy.context.active_object.active_material_index += 1
-                        while blender_addon_utils.verify_addon_material(bpy.context.active_object.active_material) == False and bpy.context.active_object.active_material_index + 1 < self._total_materials_to_bake:
+                        while bau.verify_addon_material(bpy.context.active_object.active_material) == False and bpy.context.active_object.active_material_index + 1 < self._total_materials_to_bake:
                             debug_logging.log("Skipped exporting texture set for invalid material (not created with this add-on): {0}".format(bpy.context.active_object.active_material.name))
                             bpy.context.active_object.active_material_index += 1
 
@@ -1005,7 +1007,7 @@ class MATLAYER_OT_export(Operator):
                         # De-isolate all materials at the end of baking.
                         for i in range(0, len(bpy.context.active_object.material_slots)):
                             bpy.context.active_object.active_material_index = i
-                            if blender_addon_utils.verify_addon_material(bpy.context.active_object.material_slots[i].material):
+                            if bau.verify_addon_material(bpy.context.active_object.material_slots[i].material):
                                 material_layers.show_layer()
 
                         material_layers.refresh_layer_stack()
@@ -1016,14 +1018,14 @@ class MATLAYER_OT_export(Operator):
 
     def execute(self, context):
         # Verify the export folder is valid.
-        export_folder = blender_addon_utils.get_texture_folder_path(folder='EXPORT_TEXTURES')
-        folder_valid = blender_addon_utils.verify_folder(export_folder)
+        export_folder = bau.get_texture_folder_path(folder='EXPORT_TEXTURES')
+        folder_valid = bau.verify_folder(export_folder)
         if not folder_valid:
             debug_logging.log_status("Define a valid export folder before exporting, or reset the folder path to 'Default'.", self, type='ERROR')
             return {'FINISHED'}
         
         # Verify the object can be baked to.
-        if blender_addon_utils.verify_bake_object(self, check_active_material=True) == False:
+        if bau.verify_bake_object(self, check_active_material=True) == False:
             return {'FINISHED'}
         
         # To avoid errors don't start baking if there is already a bake job running.
@@ -1090,7 +1092,7 @@ class MATLAYER_OT_export(Operator):
         bpy.context.scene.cycles.samples = 1
 
         # Force save all textures (unsaved textures will be cleared and not bake properly).
-        blender_addon_utils.force_save_all_textures()
+        bau.force_save_all_textures()
 
         # Add a timer to provide periodic timer events.
         wm = context.window_manager
@@ -1303,8 +1305,8 @@ class MATLAYER_OT_open_export_folder(Operator):
         return context.active_object
 
     def execute(self, context):
-        matlayer_export_folder_path = blender_addon_utils.get_texture_folder_path(folder='EXPORT_TEXTURES')
-        blender_addon_utils.open_folder(matlayer_export_folder_path, self)
+        matlayer_export_folder_path = bau.get_texture_folder_path(folder='EXPORT_TEXTURES')
+        bau.open_folder(matlayer_export_folder_path, self)
         return {'FINISHED'}
 
 class ExportTemplateMenu(Menu):
