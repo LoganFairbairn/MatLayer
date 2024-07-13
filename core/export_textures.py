@@ -304,43 +304,6 @@ ROUGHNESS_MODE = [
     ("SMOOTHNESS", "Smoothness", "Roughness textures will be converted (inverted) to smoothness textures before exporting / packing. This supports some software which uses smoothness maps (e.g. Unity).")
 ]
 
-EXPORT_CHANNELS = [
-    ("COLOR", "Color", "Color"),
-    ("SUBSURFACE", "Subsurface", "Subsurface"),
-    ("SUBSURFACE-TINT", "Subsurface Tint", "Subsurface Tint"),
-    ("SUBSURFACE-RADIUS", "Subsurface Radius", "Subsurface Radius"),
-    ("SUBSURFACE-SCALE", "Subsurface Scale", "Subsurface Scale"),
-    ("SUBSURFACE-ANISOTROPY", "Subsurface Anisotropy", "Subsurface Anisotropy"),
-    ("METALLIC", "Metallic", "Metallic"),
-    ("SPECULAR", "Specular (IOR Level)", "Specular"),
-    ("SPECULAR-TINT", "Specular Tint", "Specular Tint"),
-    ("SPECULAR-ANISOTROPIC", "Specular Anisotropic", "Specular Anisotropic"),
-    ("SPECULAR-ANISOTROPIC-ROTATION", "Specular Anisotropic Rotation", "Specular Anisotropic Rotation"),
-    ("ROUGHNESS", "Roughness", "Roughness"),
-    ("EMISSION", "Emission", "Emission"),
-    ("NORMAL", "Normal", "Normal"),
-    ("HEIGHT", "Height", "Height"),
-    ("NORMAL_HEIGHT", "Normal + Height", "Normal + Height"),
-    ("AMBIENT-OCCLUSION", "Ambient Occlusion", "Ambient Occlusion"),
-    ("CURVATURE", "Curvature", "Curvature"),
-    ("THICKNESS", "Thickness", "Thickness"),
-    ("BASE_NORMALS", "Base Normals", "Base Normals"),
-    ("WORLD_SPACE_NORMALS", "World Space Normals", "World Space Normals"),
-    ("ALPHA", "Alpha", "Alpha"),
-    ("IOR", "IOR / 4", "IOR / 4"),
-    ("TRANSMISSION-WEIGHT", "Transmission Weight", "Transmission Weight"),
-    ("COAT", "Coat", "Coat (a.k.a clear coat)"),
-    ("COAT-ROUGHNESS", "Coat Roughness", "Coat Roughness"),
-    ("COAT-IOR", "Coat IOR / 4", "Coat IOR / 4"),
-    ("COAT-TINT", "Coat Tint", "Coat Tint"),
-    ("COAT-NORMAL", "Coat Normal", "Coat Normal"),
-    ("SHEEN", "Sheen", "Sheen"),
-    ("SHEEN-ROUGHNESS", "Sheen Roughness", "Sheen"),
-    ("SHEEN-TINT", "Sheen Tint", "Sheen Tint"),
-    ("DISPLACEMENT", "Displacement", "Displacement"),
-    ("NONE", "None", "None")
-]
-
 RGBA_PACKING_CHANNELS = [
     ("R", "R", "Red Channel"),
     ("G", "G", "Green Channel"),
