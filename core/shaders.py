@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 from ..core import debug_logging
 from ..core import blender_addon_utils as bau
+from ..core import export_textures
 from .. import preferences
 
 LAYER_BLEND_MODES = [
@@ -159,6 +160,10 @@ def set_shader(shader_name):
     # Set the default channel of the shader to be the first defined channel.
     if len(shader_info.material_channels) > 0:
         bpy.context.scene.matlayer_layer_stack.selected_material_channel = shader_info.material_channels[0].name
+
+    # Reload the export template to avoid invalid pack texture enums in the export texture settings.
+    texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
+    export_textures.set_export_template(texture_export_settings.export_template_name)
 
 def read_json_shader_data():
     '''Reads json shader data. Creates a json file if one does not exist.'''
