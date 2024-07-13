@@ -646,7 +646,7 @@ def set_export_template(export_template_name):
     return
 
 def bake_material_channel(material_channel_name, single_texture_set=False):
-    '''Bakes the defined material channel to an image texture (stores it in Blender's data). Returns true if baking was successful.'''
+    '''Bakes the defined material channel to an image texture and stores it in Blender's data. Returns true if baking was successful.'''
 
     # We can always bake for the normal + height channel.
     if material_channel_name != 'NORMAL_HEIGHT':
@@ -722,34 +722,25 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
         bpy.ops.object.bake('INVOKE_DEFAULT', type='NORMAL')
     
     else:
-        # TODO: For all channels, isolate and bake from an emission node.
-        # For some material channels, we'll isolate and bake from an emission node.
-        if material_channel_name in emission_exporting_channels:
-            active_node_tree = bpy.context.active_object.active_material.node_tree
-            emission_node = active_node_tree.nodes.get('EMISSION')
-            bsdf_node = active_node_tree.nodes.get('MATLAYER_SHADER')
-            material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
+        # For all channels, isolate and bake from an emission node.
+        active_node_tree = bpy.context.active_object.active_material.node_tree
+        emission_node = active_node_tree.nodes.get('EMISSION')
+        bsdf_node = active_node_tree.nodes.get('MATLAYER_SHADER')
+        material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
 
-            match material_channel_name:
-                case 'IOR':
-                    channel_name = 'IOR'
-                case 'COAT-IOR':
-                    channel_name = 'Coat IOR'
-                case _:
-                    channel_name = material_channel_name.replace('-', ' ')
-                    channel_name = bau.capitalize_by_space(channel_name)
-            export_value = bsdf_node.inputs.get(channel_name).default_value
-            
-            # Remap IOR values to between a 0 and 1 range, so they can be properly stored in a texture.
-            if material_channel_name == 'IOR' or material_channel_name == 'COAT-IOR':
-                export_value = max(0, min(4, export_value))
-                export_value = export_value / 4
+        channel_name = material_channel_name.replace('-', ' ')
+        channel_name = bau.capitalize_by_space(channel_name)
+        export_value = bsdf_node.inputs.get(channel_name).default_value
+        
+        # Remap IOR values to between a 0 and 1 range, so they can be properly stored in a texture.
+        #if material_channel_name == 'IOR' or material_channel_name == 'COAT-IOR':
+        #    export_value = max(0, min(4, export_value))
+        #    export_value = export_value / 4
 
-            emission_node.inputs[0].default_value = (export_value, export_value, export_value, 1.0)
-            active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
-
-        else:
-            material_layers.isolate_material_channel(material_channel_name)
+        emission_node.inputs[0].default_value = (export_value, export_value, export_value, 1.0)
+        active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
+        
+        #material_layers.isolate_material_channel(material_channel_name)
 
         bpy.ops.object.bake('INVOKE_DEFAULT', type='EMIT')
 
@@ -849,6 +840,12 @@ def get_shader_channel_enum_items(scene=None, context=None):
     shader_info = bpy.context.scene.matlayer_shader_info
     for channel in shader_info.material_channels:
         items += [(channel.name.upper().replace(' ', '_'), channel.name, "")]
+
+    # Add ENUM options for all output pins on the shader node the user can bake from.
+    active_material = bpy.context.active_object.active_material
+    shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+    for i in range(1, len(shader_node.outputs)):
+        items += [(shader_node.outputs[i].name, shader_node.outputs[i].name, '')]
     
     return items
 
