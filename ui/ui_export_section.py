@@ -126,7 +126,7 @@ def draw_export_tab_ui(self, context):
         split = second_column.split(factor=0.2)
         col_1 = split.column(align=True)
         col_1.alignment = 'RIGHT'
-        col_1.label(text="In Texture")
+        col_1.label(text="Textures")
         col_1.label(text="In / Out")
 
         col_2 = split.column(align=True)
