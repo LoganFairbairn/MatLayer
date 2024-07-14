@@ -1695,9 +1695,7 @@ def isolate_material_channel(material_channel_name):
     for i in range(total_layers, 0, -1):
         layer_node = get_material_layer_node('LAYER', i - 1)
         if bau.get_node_active(layer_node):
-            channel_name = material_channel_name.replace('-', ' ')
-            channel_name = bau.capitalize_by_space(channel_name)
-            active_node_tree.links.new(layer_node.outputs.get(channel_name), emission_node.inputs[0])
+            bau.safe_node_link(layer_node.outputs.get(material_channel_name), emission_node.inputs[0], active_node_tree)
             break
     
     active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
