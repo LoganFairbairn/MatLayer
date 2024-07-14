@@ -16,6 +16,7 @@ from ..core import debug_logging
 from ..core import blender_addon_utils as bau
 from ..core import material_layers
 from ..core import image_utilities
+from ..core import shaders
 from ..preferences import ADDON_NAME
 
 
@@ -324,9 +325,16 @@ EXPORT_MODE = [
     ("SINGLE_TEXTURE_SET", "Single Texture Set", "Bakes all materials in all texture slots on the active object to 1 texture set. Separating the final material into separate smaller materials assigned to different parts of the mesh and then baking them to a single texture set can be efficient for workflow, and can reduce shader compilation time while editing")
 ]
 
+# Available colorspace settings for exported textures.
 IMAGE_COLORSPACE_SETTINGS = [
     ("SRGB", "sRGB", ""),
     ("NON_COLOR", "Non-Color", "")
+]
+
+# List of channels that should be baked using normal baking instead of the default emission baking.
+NORMAL_BAKE_CHANNELS = [
+    'NORMAL',
+    'NORMAL_HEIGHT'
 ]
 
 
@@ -594,9 +602,10 @@ def get_texture_channel_bake_list():
             if input_texture_channel not in material_channels_to_bake:
                 if input_texture_channel != 'NONE':
                     material_channels_to_bake.append(input_texture_channel)
-
-    # Normal maps and normal / height data bake as blank when baked after other maps, it's unclear why.
-    # As a (perhaps temporary) we'll bake all normal map textures first by moving them to the first elements in the list.
+    
+    # TODO: Fix this...!
+    # Normal map data bakes blank if they are baked before other maps, it's unclear why.
+    # Bake all normal maps first to avoid this error.
     if 'NORMAL_HEIGHT' in material_channels_to_bake:
         material_channels_to_bake.insert(0, material_channels_to_bake.pop(material_channels_to_bake.index('NORMAL_HEIGHT')))
 
@@ -648,19 +657,16 @@ def set_export_template(export_template_name):
 def bake_material_channel(material_channel_name, single_texture_set=False):
     '''Bakes the defined material channel to an image texture and stores it in Blender's data. Returns true if baking was successful.'''
 
-    # We can always bake for the normal + height channel.
-    if material_channel_name != 'NORMAL_HEIGHT':
+    # Ensure the material channel name provided is valid to bake.
+    static_channel_list = shaders.get_static_shader_channel_list()
+    if material_channel_name not in static_channel_list:
+        debug_logging.log("Can't bake invalid material channel: {0}".format(material_channel_name))
+        return ""
 
-        # Ensure the material channel name provided is valid to bake.
-        shader_info = bpy.context.scene.matlayer_shader_info
-        if material_channel_name not in shader_info.material_channels:
-            debug_logging.log("Can't bake invalid material channel: {0}".format(material_channel_name))
-            return ""
-
-        # Skip baking for material channels that are toggled off in the texture set settings.
-        if not tss.get_material_channel_active(material_channel_name):
-            debug_logging.log("Skipped baking for globally disabled material channel: {channel_name}.".format(channel_name=material_channel_name))
-            return ""
+    # Skip baking for material channels that are toggled off in the texture set settings.
+    if not tss.get_material_channel_active(material_channel_name):
+        debug_logging.log("Skipped baking for disabled material channel: {channel_name}.".format(channel_name=material_channel_name))
+        return ""
 
     # Define a background color for new bake textures.
     background_color = (0.0, 0.0, 0.0, 1.0)
@@ -673,7 +679,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     if material_channel_name == 'NORMAL_HEIGHT':
         export_channel_name = 'NORMAL'
 
-    # For baking multiple materials to a single texture set use one defined image that uses the name of the active object.
+    # For baking multiple materials to a single texture set use one image that uses the name of the active object.
     if single_texture_set:
         object_name = bpy.context.active_object.name.replace('_', '')
         image_name = format_baked_material_channel_name(object_name, export_channel_name)
@@ -717,31 +723,31 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     material_nodes.active = image_node
     bau.set_texture_paint_image(export_image)
 
-    # Bake normals directly from the principled BSDF shader when baking normal + height mixes.
-    if material_channel_name == 'NORMAL_HEIGHT':
-        bpy.ops.object.bake('INVOKE_DEFAULT', type='NORMAL')
-    
-    else:
-        # For all channels, isolate and bake from an emission node.
+    # For baking channels output from the shader node, connect them to an emission node then bake.
+    output_channels = []
+    active_material = bpy.context.active_object.active_material
+    shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+    if shader_node:
+        for i in range(1, len(shader_node.outputs)):
+            static_channel = bau.format_node_channel_name(shader_node.outputs[i].name)
+            output_channels.append(static_channel)
+
+    if material_channel_name in output_channels:
         active_node_tree = bpy.context.active_object.active_material.node_tree
         emission_node = active_node_tree.nodes.get('EMISSION')
-        bsdf_node = active_node_tree.nodes.get('MATLAYER_SHADER')
+        shader_node = active_node_tree.nodes.get('MATLAYER_SHADER')
         material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
+        bau.safe_node_link(shader_node.outputs.get(material_channel_name), emission_node.inputs[0], active_node_tree)
+        bau.safe_node_link(emission_node.outputs[0], material_output.inputs[0], active_node_tree)
+    
+    # For all other material channels, use the isolate material channel function, then bake.
+    else:
+        material_layers.isolate_material_channel(material_channel_name)
 
-        channel_name = material_channel_name.replace('-', ' ')
-        channel_name = bau.capitalize_by_space(channel_name)
-        export_value = bsdf_node.inputs.get(channel_name).default_value
-        
-        # Remap IOR values to between a 0 and 1 range, so they can be properly stored in a texture.
-        #if material_channel_name == 'IOR' or material_channel_name == 'COAT-IOR':
-        #    export_value = max(0, min(4, export_value))
-        #    export_value = export_value / 4
-
-        emission_node.inputs[0].default_value = (export_value, export_value, export_value, 1.0)
-        active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
-        
-        #material_layers.isolate_material_channel(material_channel_name)
-
+    # Trigger either emission or normal baking based on the material channel name.
+    if material_channel_name in NORMAL_BAKE_CHANNELS:
+        bpy.ops.object.bake('INVOKE_DEFAULT', type='NORMAL')
+    else:
         bpy.ops.object.bake('INVOKE_DEFAULT', type='EMIT')
 
     return export_image.name
@@ -839,13 +845,18 @@ def get_shader_channel_enum_items(scene=None, context=None):
     # Add an ENUM option for all shader channels.
     shader_info = bpy.context.scene.matlayer_shader_info
     for channel in shader_info.material_channels:
-        items += [(channel.name.upper().replace(' ', '_'), channel.name, "")]
+        items += [(
+            bau.format_node_channel_name(channel.name),
+            channel.name,
+            ""
+        )]
 
     # Add ENUM options for all output pins on the shader node the user can bake from.
     active_material = bpy.context.active_object.active_material
     shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
-    for i in range(1, len(shader_node.outputs)):
-        items += [(shader_node.outputs[i].name, shader_node.outputs[i].name, '')]
+    if shader_node:
+        for i in range(1, len(shader_node.outputs)):
+            items += [(shader_node.outputs[i].name, shader_node.outputs[i].name, '')]
     
     return items
 
@@ -993,9 +1004,14 @@ class MATLAYER_OT_export(Operator):
             debug_logging.log_status("Bake job already in process, cancel or wait until the bake is finished before starting another.", self)
             return {'FINISHED'}
         
-        self._start_bake_time = time.time()                     # Record the starting time before baking.
-        bpy.context.scene.pause_auto_updates = True             # Pause auto updates for add-on properties, they don't need to run while exporting textures.
-        bpy.context.space_data.shading.type = 'MATERIAL'        # Set the viewport shading mode to 'Material' (helps bake materials slightly faster while still being able to preview material changes).
+        # Record the starting time before baking.
+        self._start_bake_time = time.time()
+
+        # Pause auto updating for add-on properties, they will cause errors while baking.
+        bpy.context.scene.pause_auto_updates = True
+        
+        # Set the viewport shading mode to 'Material' so users can monitor the baking process.
+        bpy.context.space_data.shading.type = 'MATERIAL'
 
         # Compile a list of material channels that require baking based on settings.
         self._texture_channels_to_bake = get_texture_channel_bake_list()

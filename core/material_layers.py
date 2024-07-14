@@ -1682,20 +1682,16 @@ def isolate_material_channel(material_channel_name):
     emission_node = active_node_tree.nodes.get('EMISSION')
     material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
 
-    # Unlink the emission node (ensures nothing else is connected to it).
+    # Unlink the emission node to ensure nothing else is connected to it.
     bau.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
-
-    # For the normal material channel, connect the normal and height mix to the emission node.
-    if material_channel_name == 'NORMAL':
-        base_normals_mix_node = get_material_layer_node('BASE_NORMALS_MIX')
-        active_node_tree.links.new(base_normals_mix_node.outputs[0], emission_node.inputs[0])
-
+    
     # For all other material channels connect the specified material channel for the last active material channel.
+    output_socket_name = shaders.get_shader_channel_socket_name(material_channel_name)
     total_layers = count_layers(bpy.context.active_object.active_material)
     for i in range(total_layers, 0, -1):
         layer_node = get_material_layer_node('LAYER', i - 1)
         if bau.get_node_active(layer_node):
-            bau.safe_node_link(layer_node.outputs.get(material_channel_name), emission_node.inputs[0], active_node_tree)
+            bau.safe_node_link(layer_node.outputs.get(output_socket_name), emission_node.inputs[0], active_node_tree)
             break
     
     active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
