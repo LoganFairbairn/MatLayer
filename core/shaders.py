@@ -232,16 +232,16 @@ def get_static_shader_channel_list():
     shader_info = bpy.context.scene.matlayer_shader_info
     static_channel_list = []
     for channel in shader_info.material_channels:
-        channel_name = bau.format_node_channel_name(channel.name)
+        channel_name = bau.format_static_channel_name(channel.name)
         static_channel_list.append(channel_name)
     return static_channel_list
 
 def get_shader_channel_socket_name(material_channel_name):
     '''Returns the shader channel socket name when provided with a static material channel name.'''
-    search_channel_name = bau.format_node_channel_name(material_channel_name)
+    search_channel_name = bau.format_static_channel_name(material_channel_name)
     shader_info = bpy.context.scene.matlayer_shader_info
     for channel in shader_info.material_channels:
-        static_channel_name = bau.format_node_channel_name(channel.name)
+        static_channel_name = bau.format_static_channel_name(channel.name)
         if search_channel_name == static_channel_name:
             return channel.name
     

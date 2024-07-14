@@ -602,7 +602,7 @@ def get_texture_channel_bake_list():
             if input_texture_channel not in material_channels_to_bake:
                 if input_texture_channel != 'NONE':
                     material_channels_to_bake.append(input_texture_channel)
-    
+
     # Normal map data bakes blank if they are baked before other maps, it's unclear why.
     # Bake all normal maps first to avoid this error.
     if 'NORMAL-HEIGHT-MIX' in material_channels_to_bake:
@@ -728,7 +728,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
     if shader_node:
         for i in range(1, len(shader_node.outputs)):
-            static_channel = bau.format_node_channel_name(shader_node.outputs[i].name)
+            static_channel = bau.format_static_channel_name(shader_node.outputs[i].name)
             output_channels.append(static_channel)
 
     if material_channel_name in output_channels:
@@ -845,7 +845,7 @@ def get_shader_channel_enum_items(scene=None, context=None):
     shader_info = bpy.context.scene.matlayer_shader_info
     for channel in shader_info.material_channels:
         items += [(
-            bau.format_node_channel_name(channel.name),
+            bau.format_static_channel_name(channel.name),
             channel.name,
             ""
         )]
@@ -855,7 +855,7 @@ def get_shader_channel_enum_items(scene=None, context=None):
     shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
     if shader_node:
         for i in range(1, len(shader_node.outputs)):
-            static_socket_name = bau.format_node_channel_name(shader_node.outputs[i].name)
+            static_socket_name = bau.format_static_channel_name(shader_node.outputs[i].name)
             items += [(static_socket_name, shader_node.outputs[i].name, '')]
     
     return items

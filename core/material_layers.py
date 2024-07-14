@@ -228,7 +228,7 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
         return
     
     layer_group_node_name = format_layer_group_node_name(active_material.name, layer_index)
-    static_channel_name = bau.format_node_channel_name(channel_name)
+    static_channel_name = bau.format_static_channel_name(channel_name)
 
     match layer_node_name:
         case 'LAYER':
@@ -412,7 +412,7 @@ def create_default_material_setup(self):
             node_spacing = 40
             for channel in shader_info.material_channels:
                 new_channel_toggle_node = blank_node_tree.nodes.new('ShaderNodeValue')
-                static_channel_name = bau.format_node_channel_name(channel.name)
+                static_channel_name = bau.format_static_channel_name(channel.name)
                 new_channel_toggle_node.name = "GLOBAL_{0}_TOGGLE".format(static_channel_name)
                 new_channel_toggle_node.label = new_channel_toggle_node.name
                 new_channel_toggle_node.width = node_width
@@ -512,7 +512,7 @@ def create_default_layer_node(layer_type):
     frame_x = -1000
     frame_y = 0
     for channel in shader_info.material_channels:
-        static_channel_name = bau.format_node_channel_name(channel.name)
+        static_channel_name = bau.format_static_channel_name(channel.name)
 
         # Add a frame for the material channel.
         channel_frame_node = default_node_group.nodes.new('NodeFrame')
@@ -1318,7 +1318,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layer_node_tree = get_layer_node_tree(selected_layer_index)
     value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, 1)
-    node_channel_name = bau.format_node_channel_name(material_channel_name)
+    node_channel_name = bau.format_static_channel_name(material_channel_name)
     
     # Texture nodes are the only nodes that require a specific projection node setup, ignore other node types.
     # If set_texture_node is true, the material channel value node will be replaces with a texture node, regardless of it's original node type.
@@ -1441,7 +1441,7 @@ def replace_material_channel_node(channel_name, node_type):
     layer_group_node = get_layer_node_tree(selected_layer_index)
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
     value_node = get_material_layer_node('VALUE', selected_layer_index, channel_name)
-    node_channel_name = bau.format_node_channel_name(channel_name)
+    node_channel_name = bau.format_static_channel_name(channel_name)
 
     match node_type:
         case 'GROUP':
@@ -1684,7 +1684,7 @@ def isolate_material_channel(material_channel_name):
 
     # Unlink the emission node to ensure nothing else is connected to it.
     bau.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
-    
+
     # For all other material channels connect the specified material channel for the last active material channel.
     output_socket_name = shaders.get_shader_channel_socket_name(material_channel_name)
     total_layers = count_layers(bpy.context.active_object.active_material)

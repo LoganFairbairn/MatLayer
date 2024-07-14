@@ -11,7 +11,7 @@ from ..core import texture_set_settings as tss
 from ..core import debug_logging
 from .. import preferences
 
-def format_node_channel_name(channel_name):
+def format_static_channel_name(channel_name):
     '''Formats the given material channel name to be used as node names and labels in the material node graph (replaces underscores and spaces with dashes and capitalizes the channel name).'''
 
     # Node channel names can't use under-scores.
