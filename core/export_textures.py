@@ -603,11 +603,10 @@ def get_texture_channel_bake_list():
                 if input_texture_channel != 'NONE':
                     material_channels_to_bake.append(input_texture_channel)
     
-    # TODO: Fix this...!
     # Normal map data bakes blank if they are baked before other maps, it's unclear why.
     # Bake all normal maps first to avoid this error.
-    if 'NORMAL-HEIGHT' in material_channels_to_bake:
-        material_channels_to_bake.insert(0, material_channels_to_bake.pop(material_channels_to_bake.index('NORMAL-HEIGHT')))
+    if 'NORMAL-HEIGHT-MIX' in material_channels_to_bake:
+        material_channels_to_bake.insert(0, material_channels_to_bake.pop(material_channels_to_bake.index('NORMAL-HEIGHT-MIX')))
 
     if 'NORMAL' in material_channels_to_bake:
         material_channels_to_bake.insert(0, material_channels_to_bake.pop(material_channels_to_bake.index('NORMAL')))
