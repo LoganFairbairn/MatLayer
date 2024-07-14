@@ -610,4 +610,5 @@ def get_valid_enum(enum_items, enum_value, default_value):
     if any(item[0] == enum_value for item in enum_items):
         return enum_value
     else:
+        debug_logging.log("Invalid enum: {0}".format(enum_value))
         return default_value

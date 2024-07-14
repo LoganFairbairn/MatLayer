@@ -83,9 +83,9 @@
                     "export_colorspace": "NON_COLOR",
                     "export_bit_depth": "THIRTY_TWO",
                     "pack_textures": [
-                        "NORMAL_HEIGHT",
-                        "NORMAL_HEIGHT",
-                        "NORMAL_HEIGHT",
+                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL-HEIGHT-MIX",
                         "NONE"
                     ],
                     "input_pack_channels": [
@@ -210,9 +210,9 @@
                     "export_colorspace": "NON_COLOR",
                     "export_bit_depth": "THIRTY_TWO",
                     "pack_textures": [
-                        "NORMAL_HEIGHT",
-                        "NORMAL_HEIGHT",
-                        "NORMAL_HEIGHT",
+                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL-HEIGHT-MIX",
                         "NONE"
                     ],
                     "input_pack_channels": [
@@ -313,9 +313,9 @@
                     "export_colorspace": "NON_COLOR",
                     "export_bit_depth": "THIRTY_TWO",
                     "pack_textures": [
-                        "NORMAL_HEIGHT",
-                        "NORMAL_HEIGHT",
-                        "NORMAL_HEIGHT",
+                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL-HEIGHT-MIX",
                         "NONE"
                     ],
                     "input_pack_channels": [
@@ -416,9 +416,9 @@
                     "export_colorspace": "NON_COLOR",
                     "export_bit_depth": "THIRTY_TWO",
                     "pack_textures": [
-                        "NORMAL_HEIGHT",
-                        "NORMAL_HEIGHT",
-                        "NORMAL_HEIGHT",
+                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL-HEIGHT-MIX",
                         "NONE"
                     ],
                     "input_pack_channels": [
@@ -519,9 +519,9 @@
                     "export_colorspace": "NON_COLOR",
                     "export_bit_depth": "THIRTY_TWO",
                     "pack_textures": [
-                        "NORMAL_HEIGHT",
-                        "NORMAL_HEIGHT",
-                        "NORMAL_HEIGHT",
+                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL-HEIGHT-MIX",
                         "NONE"
                     ],
                     "input_pack_channels": [
@@ -622,9 +622,9 @@
                     "export_colorspace": "NON_COLOR",
                     "export_bit_depth": "THIRTY_TWO",
                     "pack_textures": [
-                        "NORMAL_HEIGHT",
-                        "NORMAL_HEIGHT",
-                        "NORMAL_HEIGHT",
+                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL-HEIGHT-MIX",
                         "AMBIENT_OCCLUSION"
                     ],
                     "input_pack_channels": [

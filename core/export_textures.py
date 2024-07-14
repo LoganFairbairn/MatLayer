@@ -606,8 +606,8 @@ def get_texture_channel_bake_list():
     # TODO: Fix this...!
     # Normal map data bakes blank if they are baked before other maps, it's unclear why.
     # Bake all normal maps first to avoid this error.
-    if 'NORMAL_HEIGHT' in material_channels_to_bake:
-        material_channels_to_bake.insert(0, material_channels_to_bake.pop(material_channels_to_bake.index('NORMAL_HEIGHT')))
+    if 'NORMAL-HEIGHT' in material_channels_to_bake:
+        material_channels_to_bake.insert(0, material_channels_to_bake.pop(material_channels_to_bake.index('NORMAL-HEIGHT')))
 
     if 'NORMAL' in material_channels_to_bake:
         material_channels_to_bake.insert(0, material_channels_to_bake.pop(material_channels_to_bake.index('NORMAL')))
@@ -856,7 +856,8 @@ def get_shader_channel_enum_items(scene=None, context=None):
     shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
     if shader_node:
         for i in range(1, len(shader_node.outputs)):
-            items += [(shader_node.outputs[i].name, shader_node.outputs[i].name, '')]
+            static_socket_name = bau.format_node_channel_name(shader_node.outputs[i].name)
+            items += [(static_socket_name, shader_node.outputs[i].name, '')]
     
     return items
 
