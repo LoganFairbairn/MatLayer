@@ -334,7 +334,7 @@ IMAGE_COLORSPACE_SETTINGS = [
 # List of channels that should be baked using normal baking instead of the default emission baking.
 NORMAL_BAKE_CHANNELS = [
     'NORMAL',
-    'NORMAL_HEIGHT'
+    'NORMAL_HEIGHT-MIX'
 ]
 
 
@@ -662,26 +662,30 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
         debug_logging.log("Can't bake invalid material channel: {0}".format(material_channel_name))
         return ""
 
-    # Skip baking for material channels that are toggled off in the texture set settings.
-    if not tss.get_material_channel_active(material_channel_name):
-        debug_logging.log("Skipped baking for disabled material channel: {channel_name}.".format(channel_name=material_channel_name))
-        return ""
+    # Get a list of output channels the shader can bake from.
+    output_channels = []
+    active_material = bpy.context.active_object.active_material
+    shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+    if shader_node:
+        for i in range(1, len(shader_node.outputs)):
+            static_channel = bau.format_static_channel_name(shader_node.outputs[i].name)
+            output_channels.append(static_channel)
+
+    # Skip baking for inactive material channels.
+    if material_channel_name not in output_channels:
+        if not tss.get_material_channel_active(material_channel_name):
+            debug_logging.log("Skipped baking for disabled material channel: {channel_name}.".format(channel_name=material_channel_name))
+            return ""
 
     # Define a background color for new bake textures.
     background_color = (0.0, 0.0, 0.0, 1.0)
-    if material_channel_name == 'NORMAL' or material_channel_name == 'NORMAL_HEIGHT':
+    if material_channel_name == 'NORMAL':
         background_color = (0.735337, 0.735337, 1.0, 1.0)
-
-    # Normal + height material channel combines height information into the normal map.
-    # Convert the name used in exported textures for the normal + height material channel to normal.
-    export_channel_name = material_channel_name
-    if material_channel_name == 'NORMAL_HEIGHT':
-        export_channel_name = 'NORMAL'
 
     # For baking multiple materials to a single texture set use one image that uses the name of the active object.
     if single_texture_set:
         object_name = bpy.context.active_object.name.replace('_', '')
-        image_name = format_baked_material_channel_name(object_name, export_channel_name)
+        image_name = format_baked_material_channel_name(object_name, material_channel_name)
         export_image = bpy.data.images.get(image_name)
         if export_image == None:
             export_image = bau.create_image(
@@ -695,12 +699,13 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
                 add_unique_id=False,
                 delete_existing=True
             )
-            image_utilities.set_image_colorspace_by_material_channel(export_image, material_channel_name)
+            export_image.colorspace_settings.name = 'Non-Color'
+            #image_utilities.set_image_colorspace_by_material_channel(export_image, material_channel_name)
 
     # For baking individual materials to textures, create new images to bake to for each material.
     else:
         material_name = bpy.context.active_object.active_material.name.replace('_', '')
-        image_name = format_baked_material_channel_name(material_name, export_channel_name)
+        image_name = format_baked_material_channel_name(material_name, material_channel_name)
         export_image = bau.create_image(
             new_image_name=image_name,
             image_width=tss.get_texture_width(),
@@ -712,7 +717,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
             add_unique_id=False,
             delete_existing=True
         )
-        image_utilities.set_image_colorspace_by_material_channel(export_image, material_channel_name)
+        #image_utilities.set_image_colorspace_by_material_channel(export_image, material_channel_name)
 
     # Add the baking image to the preset baking texture node (included in the default material setup).
     material_nodes = bpy.context.active_object.active_material.node_tree.nodes
@@ -722,31 +727,13 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     material_nodes.active = image_node
     bau.set_texture_paint_image(export_image)
 
-    # For baking channels output from the shader node, connect them to an emission node then bake.
-    output_channels = []
-    active_material = bpy.context.active_object.active_material
-    shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
-    if shader_node:
-        for i in range(1, len(shader_node.outputs)):
-            static_channel = bau.format_static_channel_name(shader_node.outputs[i].name)
-            output_channels.append(static_channel)
+    # For baking normal maps, bake directly from the material output.
+    if material_channel_name == 'NORMAL':
+        bpy.ops.object.bake('INVOKE_DEFAULT', type='NORMAL')
 
-    if material_channel_name in output_channels:
-        active_node_tree = bpy.context.active_object.active_material.node_tree
-        emission_node = active_node_tree.nodes.get('EMISSION')
-        shader_node = active_node_tree.nodes.get('MATLAYER_SHADER')
-        material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
-        bau.safe_node_link(shader_node.outputs.get(material_channel_name), emission_node.inputs[0], active_node_tree)
-        bau.safe_node_link(emission_node.outputs[0], material_output.inputs[0], active_node_tree)
-    
-    # For all other material channels, use the isolate material channel function, then bake.
+    # Isolate the material channel and bake from an emission node.
     else:
         material_layers.isolate_material_channel(material_channel_name)
-
-    # Trigger either emission or normal baking based on the material channel name.
-    if material_channel_name in NORMAL_BAKE_CHANNELS:
-        bpy.ops.object.bake('INVOKE_DEFAULT', type='NORMAL')
-    else:
         bpy.ops.object.bake('INVOKE_DEFAULT', type='EMIT')
 
     return export_image.name
@@ -849,14 +836,6 @@ def get_shader_channel_enum_items(scene=None, context=None):
             channel.name,
             ""
         )]
-
-    # Add ENUM options for all output pins on the shader node the user can bake from.
-    active_material = bpy.context.active_object.active_material
-    shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
-    if shader_node:
-        for i in range(1, len(shader_node.outputs)):
-            static_socket_name = bau.format_static_channel_name(shader_node.outputs[i].name)
-            items += [(static_socket_name, shader_node.outputs[i].name, '')]
     
     return items
 

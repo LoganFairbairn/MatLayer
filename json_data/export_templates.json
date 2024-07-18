@@ -80,12 +80,12 @@
                 {
                     "export_name_format": "/MeshName_Normal",
                     "export_image_format": "PNG",
-                    "export_colorspace": "NON_COLOR",
+                    "export_colorspace": "SRGB",
                     "export_bit_depth": "THIRTY_TWO",
                     "pack_textures": [
-                        "NORMAL-HEIGHT-MIX",
-                        "NORMAL-HEIGHT-MIX",
-                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL",
+                        "NORMAL",
+                        "NORMAL",
                         "NONE"
                     ],
                     "input_pack_channels": [
@@ -207,12 +207,12 @@
                 {
                     "export_name_format": "/MeshName_Normal",
                     "export_image_format": "PNG",
-                    "export_colorspace": "NON_COLOR",
+                    "export_colorspace": "SRGB",
                     "export_bit_depth": "THIRTY_TWO",
                     "pack_textures": [
-                        "NORMAL-HEIGHT-MIX",
-                        "NORMAL-HEIGHT-MIX",
-                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL",
+                        "NORMAL",
+                        "NORMAL",
                         "NONE"
                     ],
                     "input_pack_channels": [
@@ -310,12 +310,12 @@
                 {
                     "export_name_format": "T_/MeshName_N",
                     "export_image_format": "PNG",
-                    "export_colorspace": "NON_COLOR",
+                    "export_colorspace": "SRGB",
                     "export_bit_depth": "THIRTY_TWO",
                     "pack_textures": [
-                        "NORMAL-HEIGHT-MIX",
-                        "NORMAL-HEIGHT-MIX",
-                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL",
+                        "NORMAL",
+                        "NORMAL",
                         "NONE"
                     ],
                     "input_pack_channels": [
@@ -413,12 +413,12 @@
                 {
                     "export_name_format": "T_/MeshName_N",
                     "export_image_format": "PNG",
-                    "export_colorspace": "NON_COLOR",
+                    "export_colorspace": "SRGB",
                     "export_bit_depth": "THIRTY_TWO",
                     "pack_textures": [
-                        "NORMAL-HEIGHT-MIX",
-                        "NORMAL-HEIGHT-MIX",
-                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL",
+                        "NORMAL",
+                        "NORMAL",
                         "NONE"
                     ],
                     "input_pack_channels": [
@@ -516,12 +516,12 @@
                 {
                     "export_name_format": "T_/MaterialName_N",
                     "export_image_format": "PNG",
-                    "export_colorspace": "NON_COLOR",
+                    "export_colorspace": "SRGB",
                     "export_bit_depth": "THIRTY_TWO",
                     "pack_textures": [
-                        "NORMAL-HEIGHT-MIX",
-                        "NORMAL-HEIGHT-MIX",
-                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL",
+                        "NORMAL",
+                        "NORMAL",
                         "NONE"
                     ],
                     "input_pack_channels": [
@@ -619,12 +619,12 @@
                 {
                     "export_name_format": "T_/MaterialName_NDXO",
                     "export_image_format": "PNG",
-                    "export_colorspace": "NON_COLOR",
+                    "export_colorspace": "SRGB",
                     "export_bit_depth": "THIRTY_TWO",
                     "pack_textures": [
-                        "NORMAL-HEIGHT-MIX",
-                        "NORMAL-HEIGHT-MIX",
-                        "NORMAL-HEIGHT-MIX",
+                        "NORMAL",
+                        "NORMAL",
+                        "NORMAL",
                         "AMBIENT_OCCLUSION"
                     ],
                     "input_pack_channels": [

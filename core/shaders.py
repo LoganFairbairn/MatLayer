@@ -231,9 +231,12 @@ def get_static_shader_channel_list():
     '''Returns a list of shader channel name using static formatting.'''
     shader_info = bpy.context.scene.matlayer_shader_info
     static_channel_list = []
+
+    # Add a static channel name for all material channels.
     for channel in shader_info.material_channels:
         channel_name = bau.format_static_channel_name(channel.name)
         static_channel_list.append(channel_name)
+
     return static_channel_list
 
 def get_shader_channel_socket_name(material_channel_name):
