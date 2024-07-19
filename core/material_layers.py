@@ -624,11 +624,15 @@ def create_default_layer_node(layer_type):
             case 'NodeSocketFloat':
                 default_group_filter = bau.append_group_node('ML_DefaultFloatFilter')
             case 'NodeSocketColor':
-                default_group_filter = bau.append_group_node('ML_DefaultColorFilter')
+                if channel.name.upper() == 'NORMAL':
+                    default_group_filter = bau.append_group_node('ML_DefaultNormalFilter')
+                else:
+                    default_group_filter = bau.append_group_node('ML_DefaultColorFilter')
             case 'NodeSocketVector':
-                default_group_filter = bau.append_group_node('ML_DefaultVectorFilter')
-            case 'NodeSocketNormal':
-                default_group_filter = bau.append_group_node('ML_DefaultNormalFilter')
+                if channel.name.upper() == 'NORMAL':
+                    default_group_filter = bau.append_group_node('ML_DefaultNormalFilter')
+                else:
+                    default_group_filter = bau.append_group_node('ML_DefaultVectorFilter')
 
         filter_node = default_node_group.nodes.new('ShaderNodeGroup')
         filter_node.name = "{0}_FILTER".format(static_channel_name)
