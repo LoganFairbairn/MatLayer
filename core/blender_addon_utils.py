@@ -6,6 +6,8 @@ import numpy as np
 import random
 import os
 import re
+import platform
+import subprocess
 from pathlib import Path
 from ..core import texture_set_settings as tss
 from ..core import debug_logging
@@ -541,9 +543,14 @@ def add_modifier(obj, new_modifier_type, modifier_name, only_one=False):
         return new_modifier
 
 def open_folder(folder_path, self):
-    '''Verifies the specified folder path exists and opens the folder in the operating systems file explorer if it does.'''
+    '''Opens the folder path in the users operating system if it exists.'''
     if os.path.isdir(folder_path):
-        os.startfile(folder_path)
+        if platform.system() == 'Windows':
+            os.startfile(folder_path)
+        elif platform.system() == "Darwin":
+            subprocess.Popen(["open", folder_path])
+        else:
+            subprocess.Popen(["xdg-open", folder_path])
     else:
         debug_logging.log_status("Folder path is invalid: {0}".format(folder_path), self, type='INFO')
 
