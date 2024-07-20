@@ -825,6 +825,9 @@ def add_material_layer(layer_type, self):
             # Blend the image alpha into the layer.
             toggle_image_alpha_blending('BASE-COLOR')
 
+            # Select the new image for painting.
+            bau.set_texture_paint_image(new_image)
+
             debug_logging.log("Added image layer.")
 
 def duplicate_layer(original_layer_index, self):
