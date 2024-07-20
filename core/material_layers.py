@@ -44,8 +44,7 @@ def update_layer_index(self, context):
     value_node = get_material_layer_node('VALUE', selected_layer_index, selected_material_channel)
     if value_node:
         if value_node.bl_static_type == 'TEX_IMAGE':
-            if value_node.image != None:
-                bau.set_texture_paint_image(value_node.image)
+            bau.set_texture_paint_image(value_node.image)
     
     active_object = bpy.context.active_object
     if active_object:
@@ -822,6 +821,9 @@ def add_material_layer(layer_type, self):
             if value_node:
                 if value_node.bl_static_type == 'TEX_IMAGE':
                     value_node.image = new_image
+
+            # Blend the image alpha into the layer.
+            toggle_image_alpha_blending('BASE-COLOR')
 
             debug_logging.log("Added image layer.")
 
