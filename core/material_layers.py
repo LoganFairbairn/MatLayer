@@ -1853,7 +1853,7 @@ class MATLAYER_layers(PropertyGroup):
 class MATLAYER_OT_add_material_layer(Operator):
     bl_idname = "matlayer.add_material_layer"
     bl_label = "Add Material Layer"
-    bl_description = "Adds a material layer to the active material (if the material is created with this add-on)"
+    bl_description = "Adds a material layer to the active material"
     bl_options = {'REGISTER', 'UNDO'}
 
     # Disable when there is no active object.
@@ -1867,8 +1867,8 @@ class MATLAYER_OT_add_material_layer(Operator):
 
 class MATLAYER_OT_add_decal_material_layer(Operator):
     bl_idname = "matlayer.add_decal_material_layer"
-    bl_label = "Add Decal Material Layer"
-    bl_description = "Adds a non-destructive layer designed specifically for placing decals (stickers / text). Control the position of the decal using the layers associated decal (empty) object"
+    bl_label = "Add Decal Layer"
+    bl_description = "Adds a non-destructive layer designed specifically for placing decals (stickers / text). Control the position and scale of the decal using the layers associated decal (empty) object"
     bl_options = {'REGISTER', 'UNDO'}
 
     # Disable when there is no active object.
@@ -1883,7 +1883,7 @@ class MATLAYER_OT_add_decal_material_layer(Operator):
 class MATLAYER_OT_add_image_layer(Operator):
     bl_idname = "matlayer.add_image_layer"
     bl_label = "Add Image Layer"
-    bl_description = "Adds a new layer setup to use only the base color channel. An image is automatically added to the base color channel"
+    bl_description = "Adds a new layer setup that uses only the base color channel. A new image is automatically added to the base color channel. The shader must have a base color channel to add image layers"
     bl_options = {'REGISTER', 'UNDO'}
 
     # Disable when there is no active object.
