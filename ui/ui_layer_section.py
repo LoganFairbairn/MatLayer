@@ -657,6 +657,7 @@ class MATLAYER_OT_add_material_layer_menu(Operator):
         col = split.column(align=True)
         col.scale_y = 1.4
         col.operator("matlayer.add_material_layer", text="Add Material")
+        col.operator("matlayer.add_image_layer", text="Add Image Layer")
         col.operator("matlayer.add_decal_material_layer", text="Add Decal")
 
 class MATLAYER_OT_add_layer_mask_menu(Operator):

@@ -125,6 +125,7 @@ classes = (
     material_layers.MATLAYER_layers,
     material_layers.MATLAYER_OT_add_material_layer,
     material_layers.MATLAYER_OT_add_decal_material_layer,
+    material_layers.MATLAYER_OT_add_image_layer,
     material_layers.MATLAYER_OT_delete_layer,
     material_layers.MATLAYER_OT_duplicate_layer, 
     material_layers.MATLAYER_OT_move_material_layer_up,
