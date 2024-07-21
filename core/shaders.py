@@ -249,7 +249,7 @@ def get_shader_channel_socket_name(material_channel_name):
             return channel.name
     
     # Return an error for material channel sockets that don't exist.
-    debug_logging.log("Invalid material channel socket name: {0}".format(material_channel_name))
+    debug_logging.log("Invalid material channel socket name: {0}".format(material_channel_name), message_type='ERROR')
     return ""
 
 class MATLAYER_shader_name(PropertyGroup):
