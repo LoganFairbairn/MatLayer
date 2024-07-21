@@ -851,7 +851,10 @@ def duplicate_layer(original_layer_index, self):
             new_layer_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
             new_layer_group_node.node_tree = duplicated_node_tree
             new_layer_group_node.name = str(new_layer_slot_index) + "~"
-            new_layer_group_node.label = "Layer " + str(new_layer_slot_index + 1)
+
+            # Copy the name of the original layer.
+            original_layer_node = get_material_layer_node('LAYER', original_layer_index)
+            new_layer_group_node.label = original_layer_node.label + " Copy"
             
             reindex_layer_nodes(change_made='ADDED_LAYER', affected_layer_index=new_layer_slot_index)
             organize_layer_group_nodes()
