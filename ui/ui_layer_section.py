@@ -76,6 +76,7 @@ def draw_layers_tab_ui(self, context):
                     draw_selected_material_channel(column_two)
                     draw_layer_operations(column_two)
                     draw_layer_stack(column_two)
+                    draw_selected_image_name(column_two)
 
 def draw_material_selector(layout):
     '''Draws a material selector.'''
@@ -135,6 +136,11 @@ def draw_layer_stack(layout):
     row = layout.row(align=True)
     row.template_list("MATLAYER_UL_layer_list", "Layers", bpy.context.scene, "matlayer_layers", bpy.context.scene.matlayer_layer_stack, "selected_layer_index", sort_reverse=True)
     row.scale_y = 2
+
+def draw_selected_image_name(layout):
+    '''Draws the selected image name.'''
+    row = layout.row(align=True)
+    row.label(text="Selecting: {0}".format(bpy.context.scene.tool_settings.image_paint.canvas.name))
 
 def draw_material_property_tabs(layout):
     '''Draws tabs to change between editing the material layer and the masks applied to the material layer.'''
