@@ -140,7 +140,8 @@ def draw_layer_stack(layout):
 def draw_selected_image_name(layout):
     '''Draws the selected image name.'''
     row = layout.row(align=True)
-    row.label(text="Selecting: {0}".format(bpy.context.scene.tool_settings.image_paint.canvas.name))
+    if bpy.context.scene.tool_settings.image_paint.canvas:
+        row.label(text="Selecting: {0}".format(bpy.context.scene.tool_settings.image_paint.canvas.name))
 
 def draw_material_property_tabs(layout):
     '''Draws tabs to change between editing the material layer and the masks applied to the material layer.'''
