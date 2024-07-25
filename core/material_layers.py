@@ -719,8 +719,6 @@ def create_default_layer_node(layer_type):
             case _:
                 default_node_group.links.new(input_node.outputs.get('Layer Mask'), image_alpha_node_reroute.inputs[0])
 
-        debug_logging.log("Is Linked: " + str(linear_decal_mask_blend_node.inputs[1].is_linked))
-
         default_node_group.links.new(image_alpha_node_reroute.outputs[0], image_alpha_node.inputs[0])
         default_node_group.links.new(image_alpha_node.outputs[0], opacity_node.inputs[3])
         default_node_group.links.new(opacity_node.outputs[0], mix_node.inputs[0])
