@@ -68,7 +68,7 @@ NODE_SOCKET_VECTOR_SUBTYPES = [
 DEFAULT_SHADER_FILE = {
     "shaders": [
         {
-            "group_node_name": "ML_BSDF",
+            "group_node_name": "PrincipledBSDF",
             "material_channels": [
                 {
                     "name": "Color",
