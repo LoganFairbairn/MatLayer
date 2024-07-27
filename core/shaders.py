@@ -410,17 +410,16 @@ class MATLAYER_OT_save_shader(Operator):
         shader_group_node = shader_info.shader_node_group
         jdata = read_json_shader_data()
         shader_exists = False
-        for shader in jdata['shaders']:
+        for i, shader in enumerate(jdata['shaders']):
             if shader['group_node_name'] == shader_group_node.name:
+                existing_shader_index = i
                 shader_exists = True
                 break
 
-        # If the shader doesn't exist in the json file,
-        # add a new json template by duplicating default json shader data.
-        if not shader_exists:
-            new_shader_info = copy.deepcopy(DEFAULT_SHADER_FILE['shaders'][0])
+        # Create new json data for the shader settings.
+        new_shader_info = copy.deepcopy(DEFAULT_SHADER_FILE['shaders'][0])
 
-        # Overwrite the json data with the shader info from the user interface.
+        # Overwrite the default shader info with the current shader info.
         new_shader_info['group_node_name'] = shader_group_node.name
 
         new_shader_info['global_properties'].clear()
@@ -452,10 +451,14 @@ class MATLAYER_OT_save_shader(Operator):
 
             new_channel['default_blend_mode'] = channel.default_blend_mode
             new_shader_info['material_channels'].append(new_channel)
-
-        # Save the new shader into the json file.
+        
+        # If the shader already existed, overwrite the existing shader settings in the json file.
         if shader_exists:
+            jdata['shaders'][existing_shader_index] = new_shader_info
+            write_json_shader_data(jdata)
             debug_logging.log_status("Existing shader settings saved.", self, type='INFO')
+
+        # If the shader didn't already exist, append the json data to the file.
         else:
             jdata['shaders'].append(new_shader_info)
             write_json_shader_data(jdata)
