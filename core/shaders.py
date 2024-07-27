@@ -45,10 +45,23 @@ NODE_SOCKET_TYPES = [
     ("NodeSocketVector", "Vector", "Channel contains vector data."),
 ]
 
-# Valid node socket subtypes for shader channels defined for this add-on.
-NODE_SOCKET_SUBTYPES = [
-    ("NONE", "None", "No socket subtype."),
-    ("FACTOR", "Factor", "Define the socket property as a factor (makes the property a slider in the interface).")
+# Valid float node socket subtypes for shader channels defined for this add-on.
+NODE_SOCKET_FLOAT_SUBTYPES = [
+    ("PERCENTAGE", "Percentage", ""),
+    ("FACTOR", "Factor", "Define the socket property as a factor (makes the property a slider in the interface)."),
+    ("ANGLE", "Angle", "Angle"),
+    ("TIME", "Time", ""),
+    ("DISTANCE", "Distance", "Distance")
+]
+
+# Valid vector node socket subtypes for shader channels defined for this add-on.
+NODE_SOCKET_VECTOR_SUBTYPES = [
+    ("TRANSLATION", "Translation", "Translation"),
+    ("DIRECTION", "Direction", "Direction"),
+    ("VELOCITY", "Velocity", "Velocity"),
+    ("ACCELERATION", "Acceleration", "Acceleration"),
+    ("EULER_ANGLE", "Euler Angles", "Euler Angles"),
+    ("XYZ", "XYZ", "XYZ")
 ]
 
 # Internal backup template for the shader json file.
@@ -102,6 +115,7 @@ def set_shader(shader_name):
     shaders = jdata['shaders']
 
     # Set the shader by caching json info into Blender's memory.
+    bpy.context.scene.matlayer_selected_shader_index = 0
     shader_exists = False
     for i, shader in enumerate(matlayer_shader_list):
         if shader['name'] == shader_name:
@@ -223,7 +237,7 @@ def read_shader(active_material):
             set_shader(shader_group_node_name)
             debug_logging.log(
                 "Shader properties updated to match the valid active material shader.", 
-                message_type='INFO', 
+                message_type='INFO',
                 sub_process=True
             )
 
@@ -252,6 +266,27 @@ def get_shader_channel_socket_name(material_channel_name):
     debug_logging.log("Invalid material channel socket name: {0}".format(material_channel_name), message_type='ERROR')
     return ""
 
+def get_socket_subtype_enums(scene=None, context=None):
+    '''Returns a list of valid socket subtypes in Blender enum format for the selected shader channel.'''
+    items = []
+
+    # Add a 'NONE' option for when a node socket subtype isn't defined.
+    items += [("NONE", "None", "None")]
+
+    # Return an enum list of either float or vector node socket subtypes based on main node socket type.
+    selected_shader_channel_index = bpy.context.scene.matlayer_selected_shader_index
+    shader_info = bpy.context.scene.matlayer_shader_info
+    selected_shader_channel = shader_info.material_channels[selected_shader_channel_index]
+    if selected_shader_channel:
+        match selected_shader_channel.socket_type:
+            case 'NodeSocketFloat':
+                return items + NODE_SOCKET_FLOAT_SUBTYPES
+            case 'NodeSocketVector':
+                return items + NODE_SOCKET_VECTOR_SUBTYPES
+
+    # If a shader channel isn't selected, return all possible enum values to avoid an error.
+    return items + NODE_SOCKET_FLOAT_SUBTYPES + NODE_SOCKET_VECTOR_SUBTYPES
+
 class MATLAYER_shader_name(PropertyGroup):
     '''Shader name'''
     name: StringProperty()
@@ -275,10 +310,8 @@ class MATLAYER_shader_material_channel(PropertyGroup):
         default='NodeSocketColor'
     )
     socket_subtype: EnumProperty(
-        name="Shader Channel Subtype",
-        description="Defines the subtype for the shader channel",
-        items=NODE_SOCKET_SUBTYPES, 
-        default='NONE'
+        items=get_socket_subtype_enums, 
+        name="Shader Channel Subtype"
     )
     socket_float_default: FloatProperty(
         name="Channel Float Default",
