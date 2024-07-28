@@ -1,7 +1,7 @@
 import bpy
 from bpy.types import Menu
 
-def draw_section_tabs(self, context):
+def draw_addon_tabs(self, context):
     '''Draws tabs for swapping to different sections in this add-on.'''
     layout = self.layout
     panel_properties = context.scene.matlayer_panel_properties
@@ -9,10 +9,10 @@ def draw_section_tabs(self, context):
     # Draw add-on section buttons.
     row = layout.row(align=True)
     row.scale_y = 2.0
-    row.prop_enum(panel_properties, "sections", 'SECTION_LAYERS')
-    row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS")
-    row.prop_enum(panel_properties, "sections", 'SECTION_TEXTURE_SET')
     row.prop_enum(panel_properties, "sections", 'SECTION_SHADER')
+    row.prop_enum(panel_properties, "sections", 'SECTION_TEXTURE_SET')
+    row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS")
+    row.prop_enum(panel_properties, "sections", 'SECTION_LAYERS')
     row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT')
     row.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS')
     row.menu("MATLAYER_MT_utility_sub_menu", text="", icon='TOOL_SETTINGS')

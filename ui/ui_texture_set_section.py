@@ -6,7 +6,7 @@ from .. import preferences
 
 def draw_texture_set_tab_ui(self, context):
     '''Draws the layer section UI.'''
-    ui_section_tabs.draw_section_tabs(self, context)
+    ui_section_tabs.draw_addon_tabs(self, context)
 
     # Draw texture set settings.
     layout = self.layout

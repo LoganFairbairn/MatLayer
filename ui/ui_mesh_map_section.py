@@ -186,7 +186,7 @@ def draw_mesh_map_settings(layout, baking_settings):
 
 def draw_baking_tab_ui(self, context):
     '''Draws the baking section user interface'''
-    ui_section_tabs.draw_section_tabs(self, context)
+    ui_section_tabs.draw_addon_tabs(self, context)
 
     layout = self.layout
 

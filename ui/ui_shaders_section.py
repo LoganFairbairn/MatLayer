@@ -8,7 +8,7 @@ def draw_ui_shaders_tab(self, context):
     '''Draws user interface for the shaders tab.'''
 
     # Draws tabs for all sections in this add-on.
-    ui_section_tabs.draw_section_tabs(self, context)
+    ui_section_tabs.draw_addon_tabs(self, context)
 
     shader_info = bpy.context.scene.matlayer_shader_info
     layout = self.layout

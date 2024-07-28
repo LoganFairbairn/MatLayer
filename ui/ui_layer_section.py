@@ -19,7 +19,7 @@ MATERIAL_LAYER_PROPERTY_TABS = [
 
 def draw_layers_tab_ui(self, context):
     '''Draws the layer section user interface to the add-on side panel.'''
-    ui_section_tabs.draw_section_tabs(self, context)
+    ui_section_tabs.draw_addon_tabs(self, context)
     layout = self.layout
     split = layout.split()
     column_one = split.column()

@@ -8,7 +8,7 @@ def draw_export_tab_ui(self, context):
     '''Draws user interface for the export section.'''
     layout = self.layout
 
-    ui_section_tabs.draw_section_tabs(self, context)
+    ui_section_tabs.draw_addon_tabs(self, context)
     SCALE_Y = 1.4
 
     # Draw export button.
