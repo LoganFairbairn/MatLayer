@@ -3,26 +3,33 @@
 import bpy
 from bpy.types import Menu
 from .import ui_section_tabs
+from ..core import texture_set_settings as tss
+from ..core import blender_addon_utils
+from .. import preferences
 
-def draw_ui_shaders_tab(self, context):
+def draw_setup_tab(self, context):
     '''Draws user interface for the shaders tab.'''
 
     # Draws tabs for all sections in this add-on.
     ui_section_tabs.draw_addon_tabs(self, context)
 
-    shader_info = bpy.context.scene.matlayer_shader_info
+    # Draw all settings related to material setup.
     layout = self.layout
-    split = layout.split(factor=0.25)
+    draw_texture_settings(layout)
+    draw_shader_settings(layout)
+
+def draw_shader_settings(layout):
+    '''Draws addon shader settings.'''
+
+    # Draw the selected shader, and operators to change or edit the shader.
+    shader_info = bpy.context.scene.matlayer_shader_info
+    split = layout.split(factor=0.3)
     first_column = split.column()
     second_column = split.column()
-
-    # Draw the selected shader, and a list of other available shaders.
     row = first_column.row()
     row.label(text="Shader")
-    row.scale_y = 1.4
     row = second_column.row(align=True)
     row.scale_x = 2
-    row.scale_y = 1.4
     menu_label = shader_info.name
     menu_label = menu_label.replace('ML_', '')
     row.prop(shader_info, "shader_node_group", text="")
@@ -33,15 +40,13 @@ def draw_ui_shaders_tab(self, context):
     row.operator("matlayer.delete_shader", text="", icon='TRASH')
 
     # Draw global properties for the shader.
-    split = layout.split(factor=0.25)
+    split = layout.split(factor=0.3)
     first_column = split.column()
-    row.scale_y = 1.4
     second_column = split.column()
     row = first_column.row()
     row.label(text="Global Shader Properties")
     row = second_column.row(align=True)
     row.scale_x = 2
-    row.scale_y = 1.4
     row.alignment = 'RIGHT'
     row.operator("matlayer.add_global_shader_property", text="", icon='ADD')
     row.operator("matlayer.delete_global_shader_property", text="", icon='TRASH')
@@ -51,7 +56,7 @@ def draw_ui_shaders_tab(self, context):
     selected_global_shader_property_index = bpy.context.scene.matlayer_selected_global_shader_property_index
     if selected_global_shader_property_index > -1 and selected_global_shader_property_index < len(shader_info.global_properties):
         global_shader_property = shader_info.global_properties[selected_global_shader_property_index]
-        split = layout.split(factor=0.25)
+        split = layout.split(factor=0.3)
         first_column = split.column()
         second_column = split.column()
 
@@ -82,24 +87,21 @@ def draw_ui_shaders_tab(self, context):
             row.label(text="No Object Selected")
 
     # Draw all the channels for the selected shader.
-    split = layout.split(factor=0.25)
+    split = layout.split(factor=0.3)
     first_column = split.column()
     second_column = split.column()
-
     row = first_column.row()
-    row.scale_y = 1.4
     row.label(text="Shader Channels")
     row = second_column.row(align=True)
     row.alignment = 'RIGHT'
     row.scale_x = 2
-    row.scale_y = 1.4
     row.operator("matlayer.add_shader_channel", text="", icon='ADD')
     row.operator("matlayer.delete_shader_channel", text="", icon='TRASH')
     row = layout.row(align=True)
     row.template_list("MATLAYER_UL_shader_channel_list", "Shader Channels", bpy.context.scene.matlayer_shader_info, "material_channels", bpy.context.scene, "matlayer_selected_shader_index", sort_reverse=False)
 
     # Draw properties for the selected shader channel.
-    split = layout.split(factor=0.25)
+    split = layout.split(factor=0.3)
     first_column = split.column()
     second_column = split.column()
 
@@ -160,7 +162,81 @@ def draw_ui_shaders_tab(self, context):
         row.label(text="Default Blend Mode")
         row = second_column.row()
         row.prop(selected_shader_channel, "default_blend_mode", text="")
-    
+
+    # Draw active material channels.
+    active_object = bpy.context.active_object
+    if active_object:
+        if active_object.active_material:
+            if blender_addon_utils.verify_addon_material(active_object.active_material):
+
+                # Draw global material channel toggles.
+                layout.label(text="Active Material Channels")
+                row = layout.row()
+                row_count = 0
+
+                shader_info = bpy.context.scene.matlayer_shader_info
+                for channel in shader_info.material_channels:
+
+                    if tss.get_material_channel_active(channel.name):
+                        operator = row.operator("matlayer.toggle_texture_set_material_channel", text=channel.name, depress=True)
+                    else:
+                        operator = row.operator("matlayer.toggle_texture_set_material_channel", text=channel.name)
+                    operator.material_channel_name = channel.name
+
+                    row_count += 1
+                    if row_count >= 2:
+                        row = layout.row()
+                        row_count = 0
+            else:
+                layout.label(text="Active material isn't created with this add-on, or the format isn't valid.")
+        else:
+            layout.label(text="No active material.")
+            layout.label(text="Add a material layer to see texture set settings.")
+    else:
+        layout.label(text="No active object.")
+        layout.label(text="Select an object with a MatLayer material applied")
+        layout.label(text="to see texture set settings.")
+
+def draw_texture_settings(layout):
+    '''Draws addon texture settings.'''
+    texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    split = layout.split(factor=0.3)
+    first_column = split.column()
+    second_column = split.column()
+
+    # Draw the raw texture folder setting.
+    row = first_column.row()
+    row.label(text="Raw Texture Folder ")
+    row = second_column.row(align=True)
+    row.prop(bpy.context.scene, "matlayer_raw_textures_folder", text="")
+    row.operator("matlayer.set_raw_texture_folder", text="", icon='FOLDER_REDIRECT')
+    row.operator("matlayer.open_raw_texture_folder", text="", icon='FILE_FOLDER')
+
+    # Draw texture size setting.
+    row = first_column.row()
+    row.label(text="Texture Size ")
+    row = second_column.row()
+    col = row.split()
+    col.prop(texture_set_settings, "image_width", text="")
+
+    col = row.split()
+    if texture_set_settings.match_image_resolution:
+        col.prop(texture_set_settings, "match_image_resolution", text="", icon="LOCKED")
+    else:
+        col.prop(texture_set_settings, "match_image_resolution", text="", icon="UNLOCKED")
+
+    col = row.split()
+    if texture_set_settings.match_image_resolution:
+        col.enabled = False
+    col.prop(texture_set_settings, "image_height", text="")
+
+    # Draw 32-bit color depth setting.
+    row = first_column.row()
+    row.label(text="Thirty Two Bit Depth ")
+    row = second_column.row()
+    row.prop(addon_preferences, "thirty_two_bit")
+
 class ShaderSubMenu(Menu):
     bl_idname = "MATLAYER_MT_shader_sub_menu"
     bl_label = "Shader Sub Menu"
