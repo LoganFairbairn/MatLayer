@@ -1,5 +1,6 @@
 # This module contains user preference settings for this add-on.
 
+import bpy
 from bpy.types import AddonPreferences
 from bpy.props import BoolProperty, IntProperty
 
@@ -47,6 +48,27 @@ class AddonPreferences(AddonPreferences):
     #----------------------------- ADDON PREFERENCE MENU -----------------------------#
     def draw(self, context):
         layout = self.layout
+
+        # Draw the raw texture folder preference.
+        split = layout.split(factor=0.3)
+        first_column = split.column()
+        second_column = split.column()
+        row = first_column.row()
+        row.label(text="Raw Texture Folder")
+        row = second_column.row(align=True)
+        row.prop(bpy.context.scene, "matlayer_raw_textures_folder", text="")
+        row.operator("matlayer.set_raw_texture_folder", text="", icon='FOLDER_REDIRECT')
+        row.operator("matlayer.open_raw_texture_folder", text="", icon='FILE_FOLDER')
+
+        # Draw the mesh map folder preference.
+        row = first_column.row()
+        row.label(text="Mesh Map Folder")
+        row = second_column.row(align=True)
+        row.prop(bpy.context.scene, "matlayer_mesh_map_folder", text="")
+        row.operator("matlayer.set_mesh_map_folder", text="", icon='FOLDER_REDIRECT')
+        row.operator("matlayer.open_mesh_map_folder", text="", icon='FILE_FOLDER')
+
+        # Draw other preferences.
         layout.prop(self, "log_main_operations")
         layout.prop(self, "log_sub_operations")
         layout.prop(self, "save_imported_textures")
