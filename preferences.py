@@ -68,6 +68,9 @@ class AddonPreferences(AddonPreferences):
         row.operator("matlayer.set_mesh_map_folder", text="", icon='FOLDER_REDIRECT')
         row.operator("matlayer.open_mesh_map_folder", text="", icon='FILE_FOLDER')
 
+        # Draw 32-bit color depth setting.
+        layout.prop(self, "thirty_two_bit")
+
         # Draw other preferences.
         layout.prop(self, "log_main_operations")
         layout.prop(self, "log_sub_operations")

@@ -50,7 +50,6 @@ def draw_mesh_map_status(layout, baking_settings):
 
     # Draw the disable preview button.
     row = layout.row()
-    row.scale_y = 1.4
     row.operator("matlayer.disable_mesh_map_preview", text="Disable Mesh Map Preview")
 
 def draw_mesh_map_settings(layout, baking_settings):

@@ -223,12 +223,6 @@ def draw_texture_settings(layout):
         col.enabled = False
     col.prop(texture_set_settings, "image_height", text="")
 
-    # Draw 32-bit color depth setting.
-    row = first_column.row()
-    row.label(text="Thirty Two Bit Depth ")
-    row = second_column.row()
-    row.prop(addon_preferences, "thirty_two_bit")
-
 class ShaderSubMenu(Menu):
     bl_idname = "MATLAYER_MT_shader_sub_menu"
     bl_label = "Shader Sub Menu"
