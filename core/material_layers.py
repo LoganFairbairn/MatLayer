@@ -343,6 +343,12 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
                 return node_tree.nodes.get("GROUP_OUTPUT")
             return None
         
+        case 'EXPORT_UV_MAP':
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get("EXPORT_UV_MAP")
+            return None
+        
         case _:
             debug_logging.log("Invalid material node name passed to get_material_layer_node.")
             return None
