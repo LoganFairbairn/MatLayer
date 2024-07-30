@@ -317,12 +317,11 @@ def draw_material_channel_properties(layout):
         if not tss.get_material_channel_active(channel.name):
             continue
 
+        # Draw properties for all active material channels.
         layer_node_tree = material_layers.get_layer_node_tree(selected_layer_index)
         mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, channel.name)
         value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, channel.name)
-        if value_node:
-            
-            # Only draw properties for material channels that are active in this layer.
+        if value_node and mix_node:
             if not mix_node.mute:
                 row = layout.row()
                 row.separator()

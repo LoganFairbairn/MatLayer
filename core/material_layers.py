@@ -282,6 +282,13 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
                 return node_tree.nodes.get(mix_node_name)
             return None
         
+        case 'MIX_REROUTE':
+            reroute_node_name = "{0}_MIX_REROUTE".format(static_channel_name)
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get(reroute_node_name)
+            return None
+        
         case 'OPACITY':
             opacity_node_name = "{0}_OPACITY".format(static_channel_name)
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
@@ -1680,7 +1687,6 @@ def set_material_channel_crgba_output(material_channel_name, output_channel_name
         input_node = filter_node
         input_socket = 0
         connect_filter_node = True
-
     else:
         input_node = mix_node
         if mix_node.bl_static_type == 'GROUP':
@@ -1826,6 +1832,7 @@ def set_layer_blending_mode(layer_index, blending_mode, material_channel_name='C
     '''Sets the blending mode for the layer at the specified index.'''
     layer_node_tree = get_layer_node_tree(layer_index)
     original_mix_node = get_material_layer_node('MIX', layer_index, material_channel_name)
+    static_node_channel_name = bau.format_static_channel_name(material_channel_name)
     original_output_channel = get_material_channel_crgba_output(material_channel_name)
 
     # Ensure the mix not is a group node and apply the layer blending modes.
@@ -1835,10 +1842,13 @@ def set_layer_blending_mode(layer_index, blending_mode, material_channel_name='C
             original_location = original_mix_node.location
             layer_node_tree.nodes.remove(original_mix_node)
             mix_node = layer_node_tree.nodes.new('ShaderNodeGroup')
-            mix_node.location = (original_location[0], original_location[1])
-            mix_node.name = "{0}_MIX".format(material_channel_name)
+            mix_node.name = "{0}_MIX".format(static_node_channel_name)
             mix_node.label = mix_node.name
             mix_node.width = 300
+            channel_frame = layer_node_tree.nodes.get(static_node_channel_name)
+            if channel_frame:
+                mix_node.parent = layer_node_tree.nodes.get(static_node_channel_name)
+                mix_node.location = (original_location[0], original_location[1])
         else:
             mix_node = original_mix_node
 
@@ -1855,26 +1865,27 @@ def set_layer_blending_mode(layer_index, blending_mode, material_channel_name='C
 
             mix_node = layer_node_tree.nodes.new('ShaderNodeMix')
             mix_node.location = (original_location[0], original_location[1])
-            mix_node.name = "{0}_MIX".format(material_channel_name)
+            mix_node.name = "{0}_MIX".format(static_node_channel_name)
             mix_node.label = mix_node.name
             mix_node.data_type = 'RGBA'
             mix_node.width = 300
         
         mix_node.blend_type = blending_mode
-
-    # Relink the layer mix node with the layer opacity and previous layer values.
+    
+    # Relink the mix node with layer opacity.
     opacity_node = get_material_layer_node('OPACITY', layer_index, material_channel_name)
     bau.safe_node_link(opacity_node.outputs[0], mix_node.inputs[0], layer_node_tree)
 
-    group_input = get_material_layer_node('GROUP_INPUT', layer_index)
+    # Relink the mix node with the channels value node.
     channel_input_name = material_channel_name + " Mix"
+    mix_reroute_node = get_material_layer_node('MIX_REROUTE', layer_index, material_channel_name)
     group_output = get_material_layer_node('GROUP_OUTPUT', layer_index)
     if mix_node.bl_static_type == 'GROUP':
         bau.safe_node_link(mix_node.outputs[0], group_output.inputs.get(material_channel_name), layer_node_tree)
-        bau.safe_node_link(group_input.outputs.get(channel_input_name), mix_node.inputs[1], layer_node_tree)
+        bau.safe_node_link(mix_reroute_node.outputs[0], mix_node.inputs[1], layer_node_tree)
     else:
         bau.safe_node_link(mix_node.outputs[2], group_output.inputs.get(material_channel_name), layer_node_tree)
-        bau.safe_node_link(group_input.outputs.get(channel_input_name), mix_node.inputs[6], layer_node_tree)
+        bau.safe_node_link(mix_reroute_node.outputs[0], mix_node.inputs[6], layer_node_tree)
 
     # Relink the material channel of this layer based on the original material output channel.
     set_material_channel_crgba_output(material_channel_name, original_output_channel, layer_index)
