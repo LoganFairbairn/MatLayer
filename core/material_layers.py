@@ -1703,9 +1703,6 @@ def set_material_channel_crgba_output(material_channel_name, output_channel_name
     connect_rgb_separator = False
     output_socket = 0
     match output_channel_name:
-        case 'COLOR':
-            output_socket = 0
-
         case 'ALPHA':
             if output_node.bl_static_type == 'TEX_IMAGE':
                 output_socket = 1
@@ -1725,11 +1722,6 @@ def set_material_channel_crgba_output(material_channel_name, output_channel_name
             connect_rgb_separator = True
 
         case _:
-            debug_logging.log(
-                "Invalid material output channel provided to set_material_channel_crgba_output.",
-                message_type='ERROR',
-                sub_process=False
-            )
             output_socket = 0
     
     # Always link alpha to opacity if the value node is using an image texture node.
