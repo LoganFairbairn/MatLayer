@@ -9,6 +9,7 @@ from ..core import blender_addon_utils as bau
 from ..core import debug_logging
 from ..core import texture_set_settings as tss
 from ..core import shaders
+import copy
 import random
 
 TRIPLANAR_PROJECTION_INPUTS = [
@@ -1827,49 +1828,48 @@ def set_layer_blending_mode(layer_index, blending_mode, material_channel_name='C
     static_node_channel_name = bau.format_static_channel_name(material_channel_name)
     original_output_channel = get_material_channel_crgba_output(material_channel_name)
 
-    # Ensure the mix not is a group node and apply the layer blending modes.
+    # Remember the layers original mix node and it's location.
     mix_node = original_mix_node
+    original_node_location = copy.copy(mix_node.location)
+
+    # For setting custom normal map layer blender modes unique to this add-on,
+    # Set the layers mix node to a group node with the custom group node mix calculation.
     if blending_mode == 'NORMAL_MAP_COMBINE' or blending_mode == 'NORMAL_MAP_DETAIL':
         if original_mix_node.bl_static_type != 'GROUP':
-            original_location = original_mix_node.location
             layer_node_tree.nodes.remove(original_mix_node)
             mix_node = layer_node_tree.nodes.new('ShaderNodeGroup')
-            mix_node.name = "{0}_MIX".format(static_node_channel_name)
-            mix_node.label = mix_node.name
-            mix_node.width = 300
-            channel_frame = layer_node_tree.nodes.get(static_node_channel_name)
-            if channel_frame:
-                mix_node.parent = layer_node_tree.nodes.get(static_node_channel_name)
-                mix_node.location = (original_location[0], original_location[1])
         else:
             mix_node = original_mix_node
-
         if blending_mode == 'NORMAL_MAP_COMBINE':
             mix_node.node_tree = bau.append_group_node('ML_WhiteoutNormalMapMix')
         elif blending_mode == 'NORMAL_MAP_DETAIL':
             mix_node.node_tree = bau.append_group_node('ML_ReorientedNormalMapMix')
 
-    # Ensure the mix node type isn't a group node and then apply the layer blending value.
+    # For setting layer blending modes already available through Blender's mix node,
+    # Ensure the layers mix node is using Blender's mix RGB node then set the blending type.
     else:
         if original_mix_node.bl_static_type != 'MIX':
-            original_location = original_mix_node.location
             layer_node_tree.nodes.remove(original_mix_node)
-
             mix_node = layer_node_tree.nodes.new('ShaderNodeMix')
-            mix_node.location = (original_location[0], original_location[1])
-            mix_node.name = "{0}_MIX".format(static_node_channel_name)
-            mix_node.label = mix_node.name
             mix_node.data_type = 'RGBA'
-            mix_node.width = 300
-        
         mix_node.blend_type = blending_mode
     
+    # Reset the layers mix node name and label.
+    mix_node.name = "{0}_MIX".format(static_node_channel_name)
+    mix_node.label = mix_node.name
+
+    # Reset the layers mix node back to it's original location and size.
+    channel_frame = layer_node_tree.nodes.get(static_node_channel_name)
+    if channel_frame:
+        mix_node.parent = layer_node_tree.nodes.get(static_node_channel_name)
+    mix_node.location = original_node_location
+    mix_node.width = 300
+
     # Relink the mix node with layer opacity.
     opacity_node = get_material_layer_node('OPACITY', layer_index, material_channel_name)
     bau.safe_node_link(opacity_node.outputs[0], mix_node.inputs[0], layer_node_tree)
 
     # Relink the mix node with the channels value node.
-    channel_input_name = material_channel_name + " Mix"
     mix_reroute_node = get_material_layer_node('MIX_REROUTE', layer_index, material_channel_name)
     group_output = get_material_layer_node('GROUP_OUTPUT', layer_index)
     if mix_node.bl_static_type == 'GROUP':
