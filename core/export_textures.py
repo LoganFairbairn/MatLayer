@@ -759,11 +759,11 @@ def add_bake_texture_nodes():
             if export_uv_map_node:
                 material_slot.material.node_tree.links.new(export_uv_map_node.outputs[0], bake_texture_node.inputs[0])
 
-            # Select the export UV map, otherwise Blender will still bake to the original UV map.
-            export_uv_map_name = export_uv_map_node.uv_map
-            export_uv_map_data = active_object.data.uv_layers.get(export_uv_map_name)
-            if export_uv_map_data:
-                export_uv_map_data.active = True
+                # Select the export UV map, otherwise Blender will still bake to the original UV map.
+                export_uv_map_name = export_uv_map_node.uv_map
+                export_uv_map_data = active_object.data.uv_layers.get(export_uv_map_name)
+                if export_uv_map_data:
+                    export_uv_map_data.active = True
 
 def remove_bake_texture_nodes():
     '''Removes image texture nodes for baking from all materials in all material slots on the active object.'''
