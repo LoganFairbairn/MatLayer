@@ -11,7 +11,6 @@ from ..core import export_textures                  # For access to the invert i
 import os                                           # For saving layer images.
 import re                                           # For splitting strings using regex to identify material channels.
 
-# TODO: Move channel tags to add-on preferences so users can edit them?
 # Dictionary of words / tags that may be in image texture names that could be used to identify material channels from image file names.
 MATERIAL_CHANNEL_TAGS = {
     "color": 'BASE-COLOR',
