@@ -331,9 +331,8 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
             if node_tree:
                 return node_tree.nodes.get('LINEAR_DECAL_MASK_BLEND')
             return None
-
-        # TODO: Rename this to SEPARATE_RGBA.
-        case 'SEPARATE':
+        
+        case 'SEPARATE_RGBA':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
                 return node_tree.nodes.get("SEPARATE_{0}".format(static_channel_name))
@@ -1661,7 +1660,7 @@ def set_material_channel_crgba_output(material_channel_name, output_channel_name
         layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
     layer_node_tree = get_layer_node_tree(layer_index)
-    separate_color_node = get_material_layer_node('SEPARATE', layer_index, material_channel_name)
+    separate_color_node = get_material_layer_node('SEPARATE_RGBA', layer_index, material_channel_name)
     projection_node = get_material_layer_node('PROJECTION', layer_index)
     filter_node = get_material_layer_node('FILTER', layer_index, material_channel_name)
     value_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
