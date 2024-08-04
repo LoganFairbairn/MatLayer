@@ -9,7 +9,6 @@ def draw_export_tab_ui(self, context):
     layout = self.layout
 
     ui_section_tabs.draw_addon_tabs(self, context)
-    SCALE_Y = 1.4
 
     # Draw export button.
     row = layout.row(align=True)
@@ -28,20 +27,16 @@ def draw_export_tab_ui(self, context):
     
     # Export folder.
     row = first_column.row()
-    row.scale_y = SCALE_Y
     row.label(text="Export Folder")
     row = second_column.row(align=True)
-    row.scale_y = SCALE_Y
     row.prop(bpy.context.scene, "matlayer_export_folder", text="")
     row.operator("matlayer.set_export_folder", text="", icon='FOLDER_REDIRECT')
     row.operator("matlayer.open_export_folder", text="", icon='FILE_FOLDER')
 
     # Export mode.
     row = first_column.row()
-    row.scale_y = SCALE_Y
     row.label(text="Export Template")
     row = second_column.row(align=True)
-    row.scale_y = SCALE_Y
     row.prop(texture_export_settings, "export_template_name", text="")
     row.menu("MATLAYER_MT_export_template_menu", text="Load Template")
     row.operator("matlayer.save_export_template", text="", icon='FILE_TICK')
@@ -49,40 +44,30 @@ def draw_export_tab_ui(self, context):
     row.operator("matlayer.delete_export_template", text="", icon='TRASH')
 
     row = first_column.row()
-    row.scale_y = SCALE_Y
     row.label(text="Export Mode")
     row = second_column.row()
-    row.scale_y = SCALE_Y
     row.prop(texture_export_settings, "export_mode", text="")
 
     row = first_column.row()
-    row.scale_y = SCALE_Y
     row.label(text="Render Device")
     row = second_column.row()
-    row.scale_y = SCALE_Y
     row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
 
     row = first_column.row()
-    row.scale_y = SCALE_Y
     row.label(text="Normal Map Mode")
     row = second_column.row(align=True)
-    row.scale_y = SCALE_Y
     row.prop_enum(texture_export_settings, "normal_map_mode", 'OPEN_GL')
     row.prop_enum(texture_export_settings, "normal_map_mode", 'DIRECTX')
 
     row = first_column.row()
-    row.scale_y = SCALE_Y
     row.label(text="Roughness Mode")
     row = second_column.row(align=True)
-    row.scale_y = SCALE_Y
     row.prop_enum(texture_export_settings, "roughness_mode", 'ROUGHNESS')
     row.prop_enum(texture_export_settings, "roughness_mode", 'SMOOTHNESS')
 
     row = first_column.row()
-    row.scale_y = SCALE_Y
     row.label(text="UV Padding")
     row = second_column.row()
-    row.scale_y = SCALE_Y
     row.prop(baking_settings, "uv_padding", text="")
     
     active_object = bpy.context.active_object
@@ -90,10 +75,8 @@ def draw_export_tab_ui(self, context):
         export_uv_map_node = material_layers.get_material_layer_node('EXPORT_UV_MAP')
         if export_uv_map_node:
             row = first_column.row()
-            row.scale_y = SCALE_Y
             row.label(text="Export UV Map")
             row = second_column.row()
-            row.scale_y = SCALE_Y
             row.prop_search(export_uv_map_node, "uv_map", active_object.data, "uv_layers", text="")
 
     # Split layout into 2 columns.
@@ -102,12 +85,10 @@ def draw_export_tab_ui(self, context):
     second_column = split.column()
 
     row = first_column.row()
-    row.scale_y = SCALE_Y
     row.alignment = 'LEFT'
     row.label(text="EXPORT TEXTURE SETTINGS")
 
     row = second_column.row(align=True)
-    row.scale_y = SCALE_Y
     row.alignment = 'RIGHT'
     row.operator("matlayer.add_export_texture", text="Add Export Texture")
 
