@@ -162,9 +162,6 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
                 # Toggle on displacement in the material settings.
                 if self.material_channel_name == 'DISPLACEMENT':
                     active_material.cycles.displacement_method = 'BOTH'
-                    displacement_node = material_layers.get_material_layer_node('DISPLACEMENT')
-                    material_output_node = material_layers.get_material_layer_node('MATERIAL_OUTPUT')
-                    active_material.node_tree.links.new(displacement_node.outputs[0], material_output_node.inputs[2])
             
             # Toggle material channel off.
             else:
@@ -185,8 +182,6 @@ class MATLAYER_OT_toggle_texture_set_material_channel(Operator):
                 # Toggle off displacement in the material settings.
                 if self.material_channel_name == 'DISPLACEMENT':
                     active_material.cycles.displacement_method = 'BUMP'
-                    displacement_node = material_layers.get_material_layer_node('DISPLACEMENT')
-                    bau.unlink_node(displacement_node, active_material.node_tree, unlink_inputs=True, unlink_outputs=True)
 
         return {'FINISHED'}
 
