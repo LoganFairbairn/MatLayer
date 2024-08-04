@@ -237,10 +237,6 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
             else:
                 return active_material.node_tree.nodes.get(str(layer_index))
         
-        # TODO: Remove this, deprecated??
-        case 'DISPLACEMENT':
-            return active_material.node_tree.nodes.get('DISPLACEMENT')
-        
         case 'MATERIAL_OUTPUT':
             return active_material.node_tree.nodes.get('MATERIAL_OUTPUT')
         
