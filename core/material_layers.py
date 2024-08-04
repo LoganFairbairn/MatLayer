@@ -236,10 +236,6 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
                 return active_material.node_tree.nodes.get(str(layer_index) + "~")
             else:
                 return active_material.node_tree.nodes.get(str(layer_index))
-            
-        # TODO: Remove this, deprecated??
-        case 'NORMAL_HEIGHT_MIX':
-            return active_material.node_tree.nodes.get('NORMAL_HEIGHT_MIX')
         
         # TODO: Remove this, deprecated??
         case 'DISPLACEMENT':

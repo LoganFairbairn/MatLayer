@@ -14,18 +14,17 @@ def draw_export_tab_ui(self, context):
     row = layout.row(align=True)
     row.scale_y = 2.0
     row.operator("matlayer.export")
-
-    # Draw export texture settings.
     row = layout.row()
     row.separator()
-    baking_settings = bpy.context.scene.matlayer_baking_settings
-    texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
-    split = layout.split(factor=0.2)
+
+    # Split the UI into a two column layout.
+    split = layout.split(factor=0.25)
     first_column = split.column()
-    first_column.scale_x = 0.1
     second_column = split.column()
     
-    # Export folder.
+    # Draw the export folder.
+    baking_settings = bpy.context.scene.matlayer_baking_settings
+    texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
     row = first_column.row()
     row.label(text="Export Folder")
     row = second_column.row(align=True)
@@ -33,16 +32,17 @@ def draw_export_tab_ui(self, context):
     row.operator("matlayer.set_export_folder", text="", icon='FOLDER_REDIRECT')
     row.operator("matlayer.open_export_folder", text="", icon='FILE_FOLDER')
 
-    # Export mode.
+    # Draw the export template options.
     row = first_column.row()
     row.label(text="Export Template")
     row = second_column.row(align=True)
     row.prop(texture_export_settings, "export_template_name", text="")
-    row.menu("MATLAYER_MT_export_template_menu", text="Load Template")
+    row.menu("MATLAYER_MT_export_template_menu", text="", icon='FILE_PARENT')
     row.operator("matlayer.save_export_template", text="", icon='FILE_TICK')
     row.operator("matlayer.refresh_export_template_list", text="", icon='FILE_REFRESH')
     row.operator("matlayer.delete_export_template", text="", icon='TRASH')
 
+    # Draw the export mode.
     row = first_column.row()
     row.label(text="Export Mode")
     row = second_column.row()
@@ -79,20 +79,19 @@ def draw_export_tab_ui(self, context):
             row = second_column.row()
             row.prop_search(export_uv_map_node, "uv_map", active_object.data, "uv_layers", text="")
 
-    # Split layout into 2 columns.
+    # Draw export textures and their settings.
+    row = first_column.row()
+    row.scale_y = 1.5
+    row.label(text="EXPORT TEXTURES")
+    row = second_column.row(align=True)
+    row.scale_x = 1.5
+    row.scale_y = 1.5
+    row.alignment = 'RIGHT'
+    row.operator("matlayer.add_export_texture", text="", icon='ADD')
+
     split = layout.split(factor=0.4)
     first_column = split.column()
     second_column = split.column()
-
-    row = first_column.row()
-    row.alignment = 'LEFT'
-    row.label(text="EXPORT TEXTURE SETTINGS")
-
-    row = second_column.row(align=True)
-    row.alignment = 'RIGHT'
-    row.operator("matlayer.add_export_texture", text="Add Export Texture")
-
-    # Draw settings for textures that will be exported.
     for i, texture in enumerate(texture_export_settings.export_textures):
 
         # Draw texture settings.
@@ -126,5 +125,6 @@ def draw_export_tab_ui(self, context):
             row.prop(texture.output_rgba_channels, key, text="")
 
         col = split.column()
+        col.ui_units_x = 0.7
         op = col.operator("matlayer.remove_export_texture", icon='X', text="")
         op.export_texture_index = i
