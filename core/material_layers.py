@@ -310,15 +310,6 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
             if node_tree:
                 return node_tree.nodes.get(filter_node_name)
             return None
-        
-        # TODO: Deprecate this, it's not used.
-        case 'COORDINATES':
-            node_tree = bpy.data.node_groups.get(layer_group_node_name)
-            if node_tree:
-                decal_projection_node = node_tree.nodes.get('PROJECTION')
-                if decal_projection_node:
-                    return decal_projection_node.node_tree.nodes.get('COORDINATES')
-            return None
 
         case 'DECAL_COORDINATES':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)

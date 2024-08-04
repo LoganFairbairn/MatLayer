@@ -110,13 +110,6 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
                 return node_tree.nodes.get('PROJECTION')
             return None
 
-        case 'COORDINATES':
-            mask_group_node_name = format_mask_name(layer_index, mask_index)
-            node_tree = bpy.data.node_groups.get(mask_group_node_name)
-            if node_tree:
-                return node_tree.nodes.get('COORDINATES')
-            return None
-
         case 'DECAL_COORDINATES':
             mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
