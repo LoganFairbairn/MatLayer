@@ -607,10 +607,9 @@ def duplicate_object(original_object, duplicated_object_name=""):
 
     return duplicated_object
 
-# TODO: Reverse input / output socket variables.
-def safe_node_link(input_socket, output_socket, node_tree):
+def safe_node_link(output_socket, input_socket, node_tree):
     '''Checks that both sockets exist, before linking the sockets together.'''
-    if input_socket and output_socket:
+    if output_socket and input_socket:
         node_tree.links.new(output_socket, input_socket)
 
 def get_valid_enum(enum_items, enum_value, default_value):
