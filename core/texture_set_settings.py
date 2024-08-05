@@ -97,10 +97,9 @@ def get_material_channel_active(channel_name):
     if channel_toggle_node:
         if channel_toggle_node.mute:
             return False
-    
+
     # If the channel toggle node exists, and isn't muted, return true.
-    else:
-        return True
+    return True
 
 class MATLAYER_texture_set_settings(PropertyGroup):
     image_width: EnumProperty(
