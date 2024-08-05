@@ -341,9 +341,6 @@ def draw_layer_projection(layout):
     if projection_node:
         match projection_node.node_tree.name:
             case 'ML_UVProjection':
-                row = layout.row()
-                row.label(text="PROJECTION")
-
                 # Draw the projection mode submenu.
                 split = layout.split(factor=0.25)
                 first_column = split.column()
@@ -379,10 +376,6 @@ def draw_layer_projection(layout):
                 row.prop(projection_node.inputs.get('Rotation'), "default_value", text="Rotation", slider=True)
 
             case 'ML_TriplanarProjection':
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.label(text="PROJECTION")
-
                 # Draw the projection mode submenu.
                 split = layout.split(factor=0.25)
                 first_column = split.column()
@@ -417,6 +410,16 @@ def draw_layer_projection(layout):
                 row = layout.row()
                 row.scale_y = DEFAULT_UI_SCALE_Y
                 row.prop(projection_node.inputs.get('Blending'), "default_value", text="Blending")
+
+            case 'ML_DecalProjection':
+                split = layout.split(factor=0.25)
+                first_column = split.column()
+                second_column = split.column()
+
+                row = first_column.row()
+                row.label(text="Projection")
+                row = second_column.row()
+                row.label(text="Decal")
 
 def draw_mask_projection(layout):
     '''Draws projection settings for the selected mask.'''
