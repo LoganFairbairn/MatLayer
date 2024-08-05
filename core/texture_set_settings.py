@@ -79,19 +79,26 @@ def get_texture_height():
 
 def get_material_channel_active(channel_name):
     '''Returns if the material channel is active in the active materials texture set.'''
-    if not bpy.context.active_object:
-        return
-    
-    active_material = bpy.context.active_object.active_material
-    if not active_material:
-        return
 
+    # Return false if there is no active object.
+    active_object = bpy.context.active_object
+    if not active_object:
+        return False
+    
+    # Return false if there is no active material.
+    active_material = active_object.active_material
+    if not active_material:
+        return False
+
+    # If the channel toggle node doesn't exist, or is muted, the channel isn't active.
     static_channel_name = bau.format_static_channel_name(channel_name)
     channel_toggle_node_name = "GLOBAL_{0}_TOGGLE".format(static_channel_name)
     channel_toggle_node = active_material.node_tree.nodes.get(channel_toggle_node_name)
-
-    if channel_toggle_node.mute:
-        return False
+    if channel_toggle_node:
+        if channel_toggle_node.mute:
+            return False
+    
+    # If the channel toggle node exists, and isn't muted, return true.
     else:
         return True
 
