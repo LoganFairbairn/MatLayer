@@ -45,7 +45,7 @@ def draw_layers_tab_ui(self, context):
             if shader_info.shader_node_group == None:
                 row = layout.row()
                 row.alignment = 'CENTER'
-                row.label(text="Shader Node Group Not Defined")
+                row.label(text="Define a shader group node to edit layers.")
 
             # Verify a valid shader is defined if there is an active material.
             else:
