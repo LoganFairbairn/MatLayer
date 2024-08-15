@@ -619,3 +619,9 @@ def get_valid_enum(enum_items, enum_value, default_value):
     else:
         debug_logging.log("Invalid enum: {0}".format(enum_value))
         return default_value
+
+def print_aligned_text(layout, aligned_text, alignment='LEFT'):
+    '''Prints a row of center-aligned text.'''
+    row = layout.row()
+    row.alignment = alignment
+    row.label(text=aligned_text)
