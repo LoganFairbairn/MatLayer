@@ -4,7 +4,7 @@ import bpy
 from bpy.types import Menu
 from .import ui_section_tabs
 from ..core import texture_set_settings as tss
-from ..core import blender_addon_utils
+from ..core import blender_addon_utils as bau
 
 MATERIAL_SETUP_TABS = [
     ("SHADER_CHANNELS", "Shader Channels", ""),
@@ -154,6 +154,7 @@ def draw_setup_tab(self, context):
                 row.label(text="Default Blend Mode")
                 row = second_column.row()
                 row.prop(selected_shader_channel, "default_blend_mode", text="")
+        
         case 'GLOBAL_SHADER_PROPERTIES':
             split = layout.split(factor=0.25)
             first_column = split.column()
@@ -202,11 +203,12 @@ def draw_setup_tab(self, context):
                         row.label(text="No Active Material")
                 else:
                     row.label(text="No Object Selected")
+        
         case 'ACTIVE_CHANNELS':
             active_object = bpy.context.active_object
             if active_object:
                 if active_object.active_material:
-                    if blender_addon_utils.verify_addon_material(active_object.active_material):
+                    if bau.verify_addon_material(active_object.active_material):
 
                         # Draw global material channel toggles.
                         row = layout.row()
@@ -229,7 +231,7 @@ def draw_setup_tab(self, context):
                                 row = layout.row()
                                 row_count = 0
                     else:
-                        layout.label(text="Active material isn't created with this add-on, or the format isn't valid.")
+                        bau.print_aligned_text(layout, "Active material isn't created with this add-on, or the format is not valid.", alignment='CENTER')
                 else:
                     layout.label(text="No active material.")
                     layout.label(text="Add a material layer to see texture set settings.")
