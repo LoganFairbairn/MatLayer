@@ -3,7 +3,7 @@
 import bpy
 from .import ui_tabs
 from ..core import mesh_map_baking
-from ..core import blender_addon_utils
+from ..core import blender_addon_utils as bau
 
 def draw_mesh_map_status(layout, baking_settings):
     '''Draws status and operators for each mesh map type.'''
@@ -17,7 +17,7 @@ def draw_mesh_map_status(layout, baking_settings):
 
     for mesh_map_type in mesh_map_baking.MESH_MAP_TYPES:
         mesh_map_label = mesh_map_type.replace('_', ' ')
-        mesh_map_label = blender_addon_utils.capitalize_by_space(mesh_map_label)
+        mesh_map_label = bau.capitalize_by_space(mesh_map_label)
 
         bake_checkbox_property_name = "bake_{0}".format(mesh_map_type.lower())
         row = first_column.row()
@@ -41,12 +41,42 @@ def draw_mesh_map_status(layout, baking_settings):
         col.prop(baking_settings.mesh_map_anti_aliasing, mesh_map_type.lower() + "_anti_aliasing", text="")
 
         col = row.column()
-        row = col.row(align=True)
-        operator = row.operator("matlayer.preview_mesh_map", text="", icon='MATERIAL_DATA')
-        operator.mesh_map_type = mesh_map_type
-        row.operator("matlayer.disable_mesh_map_preview", text="", icon='TRACKING_REFINE_BACKWARDS')
+        row = col.row(align=True)        
         operator = row.operator("matlayer.delete_mesh_map", text="", icon='TRASH')
         operator.mesh_map_name = mesh_map_type
+
+def draw_mesh_map_previews(layout):
+    '''Draws operators to enable & disable mesh map baking previews.'''
+    row = layout.row()
+    row.separator()
+    row.scale_y = 2
+
+    # Draw section title.
+    split = layout.split(factor=0.25)
+    first_column = split.column()
+    second_column = split.column()
+    row = first_column.row()
+    row.label(text="PREVIEW")
+    row.scale_y = 1.5
+
+    # Draw an operator to disable mesh map previewing.
+    row = second_column.row(align=True)
+    row.alignment = 'RIGHT'
+    row.scale_x = 1.5
+    row.scale_y = 1.5
+    row.operator("matlayer.disable_mesh_map_preview", text="", icon='BACK')
+
+    # Draw an operator to preview all mesh maps.
+    row = layout.row(align=True)
+    row.scale_y = 1.5
+    for mesh_map_type in mesh_map_baking.MESH_MAP_TYPES:
+
+        # Skip drawing an operator to preview normal maps, they can't be previewed.
+        if mesh_map_type != 'NORMALS':
+            mesh_map_name = mesh_map_type.replace('_', ' ')
+            mesh_map_name = bau.capitalize_by_space(mesh_map_name)
+            operator = row.operator("matlayer.preview_mesh_map", text=mesh_map_name)
+            operator.mesh_map_type = mesh_map_type
 
 def draw_mesh_map_settings(layout, baking_settings):
     '''Draws general settings for mesh map baking.'''
@@ -198,4 +228,5 @@ def draw_baking_tab_ui(self, context):
     row.operator("matlayer.batch_bake", text="Bake Mesh Maps")
 
     draw_mesh_map_status(layout, baking_settings)
+    draw_mesh_map_previews(layout)
     draw_mesh_map_settings(layout, baking_settings)
