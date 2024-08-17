@@ -5,7 +5,7 @@ from . import ui_setup_section
 from . import ui_layer_section
 from . import ui_mesh_map_section
 from . import ui_export_section
-from . import ui_settings_section
+from . import ui_viewport_tab
 from ..core import export_textures
 
 def check_blend_saved():
@@ -60,7 +60,7 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
                     ui_export_section.draw_export_tab_ui(self, context)
 
                 case 'SECTION_VIEWPORT_SETTINGS':
-                    ui_settings_section.draw_ui_settings_tab(self, context)
+                    ui_viewport_tab.draw_ui_settings_tab(self, context)
 
         else:
             layout.label(text="Save your .blend file to use MatLayer.")
