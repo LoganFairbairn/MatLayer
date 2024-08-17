@@ -2,7 +2,7 @@
 
 import bpy
 from . import ui_settings_tab
-from . import ui_layer_section
+from . import ui_layers_tab
 from . import ui_mesh_map_section
 from . import ui_export_section
 from . import ui_viewport_tab
@@ -48,7 +48,7 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
         if check_blend_saved():
             match panel_properties.sections:
                 case "SECTION_LAYERS":
-                    ui_layer_section.draw_layers_tab_ui(self, context)
+                    ui_layers_tab.draw_layers_tab_ui(self, context)
 
                 case 'SECTION_MESH_MAPS':
                     ui_mesh_map_section.draw_baking_tab_ui(self, context)
