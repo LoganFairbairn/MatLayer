@@ -9,7 +9,6 @@ from ..core import material_layers
 from ..core import blender_addon_utils
 from ..core import debug_logging
 from ..core import texture_set_settings as tss
-from .. import preferences
 
 MESH_MAP_MATERIAL_NAMES = (
     "BakeNormals",
@@ -1015,7 +1014,7 @@ class MATLAYER_OT_preview_mesh_map(Operator):
 class MATLAYER_OT_disable_mesh_map_preview(Operator):
     bl_idname = "matlayer.disable_mesh_map_preview"
     bl_label = "Disable Mesh Map Preview"
-    bl_description = "Reapplies the render engine and active objects materials that were in use before the mesh map preview was toggled on"
+    bl_description = "Reapplies the previously selected render engine and all of the active objects materials that were in use before the mesh map preview was toggled on"
 
     @ classmethod
     def poll(cls, context):

@@ -5,7 +5,6 @@ from .import ui_tabs
 from ..core import mesh_map_baking
 from ..core import blender_addon_utils
 
-
 def draw_mesh_map_status(layout, baking_settings):
     '''Draws status and operators for each mesh map type.'''
     layout.label(text="MESH MAPS")
@@ -45,12 +44,9 @@ def draw_mesh_map_status(layout, baking_settings):
         row = col.row(align=True)
         operator = row.operator("matlayer.preview_mesh_map", text="", icon='MATERIAL_DATA')
         operator.mesh_map_type = mesh_map_type
+        row.operator("matlayer.disable_mesh_map_preview", text="", icon='TRACKING_REFINE_BACKWARDS')
         operator = row.operator("matlayer.delete_mesh_map", text="", icon='TRASH')
         operator.mesh_map_name = mesh_map_type
-
-    # Draw the disable preview button.
-    row = layout.row()
-    row.operator("matlayer.disable_mesh_map_preview", text="Disable Mesh Map Preview")
 
 def draw_mesh_map_settings(layout, baking_settings):
     '''Draws general settings for mesh map baking.'''
@@ -199,7 +195,7 @@ def draw_baking_tab_ui(self, context):
     # Draw bake button.
     row = layout.row(align=True)
     row.scale_y = 2.0
-    row.operator("matlayer.batch_bake", text="Bake")
+    row.operator("matlayer.batch_bake", text="Bake Mesh Maps")
 
     draw_mesh_map_status(layout, baking_settings)
     draw_mesh_map_settings(layout, baking_settings)
