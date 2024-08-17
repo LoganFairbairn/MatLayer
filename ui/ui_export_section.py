@@ -1,6 +1,7 @@
 # This files handles drawing the exporting section's user interface.
 
 import bpy
+from bpy.types import Menu
 from . import ui_tabs
 from ..core import material_layers
 
@@ -37,10 +38,8 @@ def draw_export_tab_ui(self, context):
     row.label(text="Export Template")
     row = second_column.row(align=True)
     row.prop(texture_export_settings, "export_template_name", text="")
-    row.menu("MATLAYER_MT_export_template_menu", text="", icon='FILE_PARENT')
-    row.operator("matlayer.save_export_template", text="", icon='FILE_TICK')
-    row.operator("matlayer.refresh_export_template_list", text="", icon='FILE_REFRESH')
-    row.operator("matlayer.delete_export_template", text="", icon='TRASH')
+    row.menu("MATLAYER_MT_export_template_menu", text="Load Template")
+    row.menu("MATLAYER_MT_export_setting_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
     # Draw the export mode.
     row = first_column.row()
@@ -128,3 +127,13 @@ def draw_export_tab_ui(self, context):
         col.ui_units_x = 0.7
         op = col.operator("matlayer.remove_export_texture", icon='X', text="")
         op.export_texture_index = i
+
+class ExportSettingUtilitySubMenu(Menu):
+    bl_idname = "MATLAYER_MT_export_setting_utility_sub_menu"
+    bl_label = "Export Setting Utility Sub Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("matlayer.save_export_template", text="Save Export Template", icon='FILE_TICK')
+        layout.operator("matlayer.refresh_export_template_list", text="Refresh Export Template List", icon='FILE_REFRESH')
+        layout.operator("matlayer.delete_export_template", text="Delete Export Template", icon='TRASH')
