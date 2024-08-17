@@ -48,12 +48,11 @@ def draw_layers_tab_ui(self, context):
     active_material = active_object.active_material
     if active_material == None:
         bau.print_aligned_text(column_one, "No Active Material", alignment='CENTER')
-        draw_material_selector(column_two)
-        return
 
     # Print info for when the active material isn't made with this add-on.
-    if bau.verify_addon_material(active_material) == False:
+    elif bau.verify_addon_material(active_material) == False:
         bau.print_aligned_text(column_one, "Material Invalid", alignment='CENTER')
+        bau.print_aligned_text(column_one, "Can't Edit Layers", alignment='CENTER')
         bau.print_aligned_text(column_one, "Possible Reasons Include:")
         bau.print_aligned_text(column_one, "• Material isn't created with this add-on.")
         bau.print_aligned_text(column_one, "• Material node format is corrupted.")
@@ -63,7 +62,7 @@ def draw_layers_tab_ui(self, context):
         return
 
     # Print info for when the shader in the active material isn't defined in shader settings.
-    if shaders.validate_active_shader(active_material) == False:
+    elif shaders.validate_active_shader(active_material) == False:
         bau.print_aligned_text(column_one, "Shader Not Defined", alignment='CENTER')
         bau.print_aligned_text(column_one, "Define the active shader in setup tab.")
         draw_material_selector(column_two)
