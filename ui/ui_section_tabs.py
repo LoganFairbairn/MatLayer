@@ -12,7 +12,7 @@ def draw_addon_tabs(self, context):
     row.prop_enum(panel_properties, "sections", 'SECTION_LAYERS')
     row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS")
     row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT')
-    row.prop_enum(panel_properties, "sections", 'SECTION_SETUP')
+    row.prop_enum(panel_properties, "sections", 'SECTION_SETTINGS')
     row.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS')
     row.menu("MATLAYER_MT_utility_sub_menu", text="", icon='TOOL_SETTINGS')
 

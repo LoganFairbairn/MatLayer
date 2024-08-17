@@ -39,8 +39,8 @@ def draw_texture_settings(layout):
         col.enabled = False
     col.prop(texture_set_settings, "image_height", text="")
 
-def draw_setup_tab(self, context):
-    '''Draws user interface for the shaders tab.'''
+def draw_settings_tab(self, context):
+    '''Draws user interface for the setup tab.'''
 
     # Draws tabs for all sections in this add-on.
     ui_section_tabs.draw_addon_tabs(self, context)

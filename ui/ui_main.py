@@ -1,7 +1,7 @@
 # Draws the matlayer user interface.
 
 import bpy
-from . import ui_setup_section
+from . import ui_settings_tab
 from . import ui_layer_section
 from . import ui_mesh_map_section
 from . import ui_export_section
@@ -24,7 +24,7 @@ def update_main_ui_tabs(self, context):
 
 class MATLAYER_panel_properties(bpy.types.PropertyGroup):
     sections: bpy.props.EnumProperty(
-        items=[('SECTION_SETUP', "SETUP", "This section contains parameters to define and change the material group node used as the shader node in materials created with this add-on."),
+        items=[('SECTION_SETTINGS', "SETTINGS", "Settings that defined how materials and textures are created by this add-on."),
                ('SECTION_MESH_MAPS', "MESH MAPS", "This section contains operations to quickly bake mesh map textures for your models. Baking mesh maps transfer 3D data such as shadows, curvature, sharp edges and extra detail from higher polycount objects to image textures. Baked mesh map textures can be used as textures in layers in many different ways to make the texturing process faster. One example of where baked mesh maps could be used is to mask dirt by using the baked ambient occlusion as a mask."),
                ('SECTION_LAYERS', "LAYERS", "This section contains a layer stack for the selected object's active material. In this section you can add, edit and blend multiple materials together."),
                ('SECTION_EXPORT', "EXPORT", "This section contains operations to quickly export textures made with MatLayer."),
@@ -47,17 +47,17 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
         panel_properties = context.scene.matlayer_panel_properties
         if check_blend_saved():
             match panel_properties.sections:
-                case 'SECTION_SETUP':
-                    ui_setup_section.draw_setup_tab(self, context)
-                
-                case 'SECTION_MESH_MAPS':
-                    ui_mesh_map_section.draw_baking_tab_ui(self, context)
-                
                 case "SECTION_LAYERS":
                     ui_layer_section.draw_layers_tab_ui(self, context)
 
+                case 'SECTION_MESH_MAPS':
+                    ui_mesh_map_section.draw_baking_tab_ui(self, context)
+
                 case 'SECTION_EXPORT':
                     ui_export_section.draw_export_tab_ui(self, context)
+
+                case 'SECTION_SETTINGS':
+                    ui_settings_tab.draw_settings_tab(self, context)
 
                 case 'SECTION_VIEWPORT_SETTINGS':
                     ui_viewport_tab.draw_ui_settings_tab(self, context)
