@@ -1,7 +1,7 @@
 # This files handles drawing baking section user interface.
 
 import bpy
-from .import ui_section_tabs
+from .import ui_tabs
 from ..core import mesh_map_baking
 from ..core import blender_addon_utils
 
@@ -184,7 +184,7 @@ def draw_mesh_map_settings(layout, baking_settings):
 
 def draw_baking_tab_ui(self, context):
     '''Draws the baking section user interface'''
-    ui_section_tabs.draw_addon_tabs(self, context)
+    ui_tabs.draw_addon_tabs(self, context)
 
     layout = self.layout
 

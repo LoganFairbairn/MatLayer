@@ -50,7 +50,7 @@ from .core.layer_utilities import MATLAYER_OT_import_texture_set, MATLAYER_OT_me
 from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLAYER_OT_append_workspace, MATLAYER_OT_append_basic_brushes, MATLAYER_OT_append_hdri_world, MATLAYER_OT_remove_unused_raw_textures
 
 # User Interface
-from .ui.ui_section_tabs import UtilitySubMenu
+from .ui.ui_tabs import UtilitySubMenu
 from .ui.ui_layer_section import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, MATLAYER_OT_add_material_filter_menu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MATERIAL_LAYER_PROPERTY_TABS
 from .ui.ui_settings_tab import ShaderSubMenu, MATLAYER_UL_shader_channel_list, MATLAYER_UL_global_shader_property_list, MATERIAL_SETUP_TABS
 from .ui.ui_main import *

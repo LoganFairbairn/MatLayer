@@ -9,7 +9,7 @@ from ..core import blender_addon_utils
 from ..core import texture_set_settings as tss
 from ..core import shaders
 from ..core import blender_addon_utils as bau
-from ..ui import ui_section_tabs
+from . import ui_tabs
 
 DEFAULT_UI_SCALE_Y = 1
 
@@ -20,7 +20,7 @@ MATERIAL_LAYER_PROPERTY_TABS = [
     
 def draw_layers_tab_ui(self, context):
     '''Draws the layer section user interface to the add-on side panel.'''
-    ui_section_tabs.draw_addon_tabs(self, context)
+    ui_tabs.draw_addon_tabs(self, context)
     layout = self.layout
     split = layout.split()
     column_one = split.column()

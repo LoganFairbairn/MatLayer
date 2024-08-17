@@ -1,8 +1,8 @@
 import bpy
-from . import ui_section_tabs
+from . import ui_tabs
 
 def draw_ui_settings_tab(self, context):
-    ui_section_tabs.draw_addon_tabs(self, context)
+    ui_tabs.draw_addon_tabs(self, context)
 
     layout = self.layout
 

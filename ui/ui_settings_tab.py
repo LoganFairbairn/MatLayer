@@ -2,7 +2,7 @@
 
 import bpy
 from bpy.types import Menu
-from .import ui_section_tabs
+from .import ui_tabs
 from ..core import texture_set_settings as tss
 from ..core import blender_addon_utils as bau
 
@@ -43,7 +43,7 @@ def draw_settings_tab(self, context):
     '''Draws user interface for the setup tab.'''
 
     # Draws tabs for all sections in this add-on.
-    ui_section_tabs.draw_addon_tabs(self, context)
+    ui_tabs.draw_addon_tabs(self, context)
 
     # Draw texture set settings.
     layout = self.layout
