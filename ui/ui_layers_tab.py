@@ -52,12 +52,11 @@ def draw_layers_tab_ui(self, context):
     # Print info for when the active material isn't made with this add-on.
     elif bau.verify_addon_material(active_material) == False:
         bau.print_aligned_text(column_one, "Material Invalid", alignment='CENTER')
-        bau.print_aligned_text(column_one, "Can't Edit Layers", alignment='CENTER')
-        bau.print_aligned_text(column_one, "Possible Reasons Include:")
+        bau.print_aligned_text(column_one, "Possible Reasons:")
         bau.print_aligned_text(column_one, "• Material isn't created with this add-on.")
         bau.print_aligned_text(column_one, "• Material node format is corrupted.")
         bau.print_aligned_text(column_one, "Solution:")
-        bau.print_aligned_text(column_one, "Add a new layer to an empty material slot.")
+        bau.print_aligned_text(column_one, "• Add a new layer to an empty material slot.")
         draw_material_selector(column_two)
         return
 
