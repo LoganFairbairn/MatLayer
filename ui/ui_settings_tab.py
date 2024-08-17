@@ -62,11 +62,8 @@ def draw_settings_tab(self, context):
     menu_label = shader_info.name
     menu_label = menu_label.replace('ML_', '')
     row.prop(shader_info, "shader_node_group", text="")
-    row.menu("MATLAYER_MT_shader_sub_menu", text="", icon='FILE_PARENT')
-    row.operator("matlayer.new_shader", text="", icon='ADD')
-    row.operator("matlayer.save_shader", text="", icon='FILE_TICK')
-    row.operator("matlayer.create_shader_from_nodetree", text="", icon='NODETREE')
-    row.operator("matlayer.delete_shader", text="", icon='TRASH')
+    row.menu("MATLAYER_MT_shader_sub_menu", text="Load Shader")
+    row.menu("MATLAYER_MT_shader_setup_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
     # Draw material setup tabs.
     row = layout.row(align=True)
@@ -266,3 +263,14 @@ class MATLAYER_UL_global_shader_property_list(bpy.types.UIList):
         self.use_filter_show = False
         self.use_filter_reverse = True
         layout.label(text=item.name)
+
+class ShaderSetupUtilitySubMenu(Menu):
+    bl_idname = "MATLAYER_MT_shader_setup_utility_sub_menu"
+    bl_label = "Shader Setup Utility Sub Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("matlayer.new_shader", text="New Shader", icon='ADD')
+        layout.operator("matlayer.save_shader", text="Save Shader", icon='FILE_TICK')
+        layout.operator("matlayer.create_shader_from_nodetree", text="Create Shader From Shader Node", icon='NODETREE')
+        layout.operator("matlayer.delete_shader", text="Delete Shader", icon='TRASH')
