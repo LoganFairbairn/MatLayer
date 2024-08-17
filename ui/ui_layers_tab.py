@@ -102,6 +102,8 @@ def draw_material_selector(layout):
         second_column.operator("object.material_slot_assign", text="", icon='MATERIAL_DATA')
         second_column.operator("object.material_slot_select", text="", icon='SELECT_SET')
 
+        layout.prop(bpy.context.active_object, "active_material", text="")
+        
         # TODO: Deprecate this if drag 'n drop material merging is implemented.
         '''
         split = layout.split(factor=0.70)
