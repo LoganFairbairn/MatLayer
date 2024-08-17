@@ -6,14 +6,22 @@ def draw_addon_tabs(self, context):
     layout = self.layout
     panel_properties = context.scene.matlayer_panel_properties
 
-    # Draw add-on section buttons.
-    row = layout.row(align=True)
+    # Draw add-on section tabs.
+    split = layout.split(factor=0.75, align=True)
+    first_column = split.column(align=True)
+    second_column = split.column(align=True)
+
+    row = first_column.row(align=True)
     row.scale_y = 2.0
     row.prop_enum(panel_properties, "sections", 'SECTION_LAYERS')
     row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS")
     row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT')
-    row.prop_enum(panel_properties, "sections", 'SECTION_SETTINGS')
-    row.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS')
+
+    row = second_column.row(align=True)
+    row.scale_x = 10
+    row.scale_y = 2.0
+    row.prop_enum(panel_properties, "sections", 'SECTION_SETTINGS', text="", icon='SETTINGS')
+    row.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS', text="", icon='VIEW3D')
     row.menu("MATLAYER_MT_utility_sub_menu", text="", icon='TOOL_SETTINGS')
 
 class UtilitySubMenu(Menu):
