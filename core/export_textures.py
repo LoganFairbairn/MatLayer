@@ -428,9 +428,9 @@ def channel_pack(pack_textures, input_packing, output_packing, image_name_format
     # Define the colorspace for the packed image.
     match export_colorspace:
         case 'SRGB':
-            packed_image.colorspace_settings.name = 'Linear Rec.709'
-        case 'NON_COLOR':
             packed_image.colorspace_settings.name = 'sRGB'
+        case 'NON_COLOR':
+            packed_image.colorspace_settings.name = 'Non-Color'
 
     # Define a file format, filepath and then save the channel packed image.
     file_extension = bau.get_image_file_extension(file_format)
@@ -440,7 +440,8 @@ def channel_pack(pack_textures, input_packing, output_packing, image_name_format
     packed_image.pixels.foreach_set(output_pixels)
     packed_image.save()
    
-    # Save the packed image to a folder in the correct color space (note that the image must be saved already before the color space is shifted to sRGB otherwise the output will be blank).
+    # Save the packed image to a folder in the correct color space.
+    # Note that the image must be saved already before the color space is changed otherwise the output will be blank).
     match export_colorspace:
         case 'SRGB':
             output_colorspace = 'sRGB'
@@ -568,12 +569,14 @@ def channel_pack_textures(texture_set_name):
         )
 
     # Delete temp material channel bake images, they are no longer needed because they are packed into new textures now.
+    '''
     shader_info = bpy.context.scene.matlayer_shader_info
     for channel in shader_info.material_channels:
         temp_material_channel_image_name = format_baked_material_channel_name(texture_set_name, channel.name )
         temp_material_channel_image = bpy.data.images.get(temp_material_channel_image_name)
         if temp_material_channel_image:
             bpy.data.images.remove(temp_material_channel_image)
+    '''
 
     debug_logging.log("Channel packed textures.")
 
@@ -676,11 +679,12 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
         if not tss.get_material_channel_active(material_channel_name):
             debug_logging.log("Skipped baking for disabled material channel: {channel_name}.".format(channel_name=material_channel_name))
             return ""
-
-    # Define a background color for new bake textures.
-    background_color = (0.0, 0.0, 0.0, 1.0)
+    
+    # Assign normal map image background color the default RGB color for 'UP' in Blender.
     if material_channel_name == 'NORMAL':
         background_color = (0.735337, 0.735337, 1.0, 1.0)
+    else:
+        background_color = (0.0, 0.0, 0.0, 1.0)
 
     # For baking multiple materials to a single texture set use one image that uses the name of the active object.
     if single_texture_set:
@@ -699,8 +703,6 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
                 add_unique_id=False,
                 delete_existing=True
             )
-            export_image.colorspace_settings.name = 'Non-Color'
-            #image_utilities.set_image_colorspace_by_material_channel(export_image, material_channel_name)
 
     # For baking individual materials to textures, create new images to bake to for each material.
     else:
@@ -717,8 +719,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
             add_unique_id=False,
             delete_existing=True
         )
-        #image_utilities.set_image_colorspace_by_material_channel(export_image, material_channel_name)
-
+    
     # Add the baking image to the preset baking texture node (included in the default material setup).
     material_nodes = bpy.context.active_object.active_material.node_tree.nodes
     image_node = material_nodes.get('BAKE_IMAGE')
