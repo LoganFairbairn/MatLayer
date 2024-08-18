@@ -17,9 +17,12 @@ def get_random_image_id():
     return str(random.randrange(10000,99999))
 
 def set_image_colorspace_by_material_channel(image, material_channel_name):
-    '''Correctly sets an image's colorspace based on the provided material channel.'''
+    '''Correctly sets an image's colorspace based on the provided material channel for use within Blender.'''
     match material_channel_name:
         case 'COLOR':
+            image.colorspace_settings.name = 'sRGB'
+
+        case 'BASE-COLOR':
             image.colorspace_settings.name = 'sRGB'
 
         case 'METALLIC':
