@@ -33,8 +33,6 @@ class MATLAYER_OT_append_workspace(Operator):
             debug_logging.log_status("The default workspace already exists, manually delete it and click this operator again to re-load the workspace.", self, 'INFO')
             return {'FINISHED'}
         
-        previously_selected_object = bpy.context.active_object
-
         USER = Path(resource_path('USER'))
         ADDON = ADDON_NAME
         BLEND_FILE = "Assets.blend"
@@ -48,14 +46,6 @@ class MATLAYER_OT_append_workspace(Operator):
 
         # Reset the main pannel tab.
         context.scene.matlayer_panel_properties.sections = 'SECTION_TEXTURE_SET'
-        
-        # Frame selected objects.
-        '''
-        bpy.ops.object.select_all(action='DESELECT')
-        previously_selected_object.select_set(True)
-        bpy.context.view_layer.objects.active = previously_selected_object
-        bpy.ops.view3d.view_selected(use_all_regions=True)
-        '''
 
         # Set up a material asset browser for the user.
         preferences = bpy.context.preferences
