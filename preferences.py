@@ -55,6 +55,9 @@ class AddonPreferences(AddonPreferences):
     def draw(self, context):
         layout = self.layout
 
+        # Draw texture management operations.
+        layout.label(text="Texture Management")
+
         # Draw the raw texture folder preference.
         split = layout.split(factor=0.3)
         first_column = split.column()
@@ -76,11 +79,15 @@ class AddonPreferences(AddonPreferences):
 
         # Draw 32-bit color depth setting.
         layout.prop(self, "thirty_two_bit")
-
-        # Draw other preferences.
-        layout.prop(self, "beginner_help")
-        layout.prop(self, "log_main_operations")
-        layout.prop(self, "log_sub_operations")
         layout.prop(self, "save_imported_textures")
         layout.prop(self, "auto_save_images")
         layout.prop(self, "image_auto_save_interval")
+
+        # Draw debug logging preferences.
+        layout.label(text="Debug Logging")
+        layout.prop(self, "log_main_operations")
+        layout.prop(self, "log_sub_operations")
+
+        # Draw other preferences.
+        layout.label(text="Other")
+        layout.prop(self, "beginner_help")
