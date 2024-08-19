@@ -8,7 +8,13 @@ ADDON_NAME = __package__
 
 class AddonPreferences(AddonPreferences):
     bl_idname = ADDON_NAME
-    
+
+    beginner_help: BoolProperty(
+        name="Beginner ToolTips",
+        description="When on labels and buttons designed to help new users of this add-on will appear",
+        default=True
+    )
+
     save_imported_textures: BoolProperty(
         name="Save Imported Textures", 
         default=False,
@@ -41,7 +47,7 @@ class AddonPreferences(AddonPreferences):
 
     thirty_two_bit: BoolProperty(
         name="32 Bit Color", 
-        description="When toggled on, images created using this add-on will be created with 32 bit color depth. 32-bit images will take up more memory, but will have significantly less color banding in gradients", 
+        description="When on, images created using this add-on will be created with 32 bit color depth. 32-bit images will take up more memory, but will have significantly less color banding in gradients", 
         default=True
     )
 
@@ -72,6 +78,7 @@ class AddonPreferences(AddonPreferences):
         layout.prop(self, "thirty_two_bit")
 
         # Draw other preferences.
+        layout.prop(self, "beginner_help")
         layout.prop(self, "log_main_operations")
         layout.prop(self, "log_sub_operations")
         layout.prop(self, "save_imported_textures")
