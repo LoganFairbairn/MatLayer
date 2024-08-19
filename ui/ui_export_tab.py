@@ -16,29 +16,28 @@ def draw_export_tab_ui(self, context):
     row.scale_y = 2.0
     row.operator("matlayer.export", text="Export Texture")
 
-    # Draw the users rendering device options.
-    split = layout.split(factor=0.4)
+    # Draw a warning for users using their CPU to export textures.
+    scene = bpy.data.scenes["Scene"]
+    if scene.cycles.device == 'CPU':
+        row = layout.row()
+        row.separator()
+        row = layout.row()
+        row.alignment = 'CENTER'
+        row.label(text="Exporting is slow with CPUs, it's recommended to use your GPU.", icon='ERROR')
+        row = layout.row()
+        row.separator()
+
+    # Split the UI into a two column layout.
+    split = layout.split(factor=0.25)
     first_column = split.column()
     second_column = split.column()
+    
+    # Draw the render device.
     row = first_column.row()
     row.label(text="Render Device")
     row = second_column.row()
     row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
 
-    # Draw a warning for users using their CPU to export textures.
-    scene = bpy.data.scenes["Scene"]
-    if scene.cycles.device == 'CPU':
-        row = layout.row()
-        row.alignment = 'CENTER'
-        row.label(text="Exporting is slow with CPUs, it's recommended to use your GPU.", icon='ERROR')
-
-    # Split the UI into a two column layout.
-    row = layout.row()
-    row.separator()
-    split = layout.split(factor=0.25)
-    first_column = split.column()
-    second_column = split.column()
-    
     # Draw the export folder.
     baking_settings = bpy.context.scene.matlayer_baking_settings
     texture_export_settings = bpy.context.scene.matlayer_texture_export_settings

@@ -7,8 +7,6 @@ from ..core import blender_addon_utils as bau
 
 def draw_mesh_map_status(layout, baking_settings):
     '''Draws status and operators for each mesh map type.'''
-    row = layout.row()
-    row.separator()
     layout.label(text="MESH MAPS")
 
     split = layout.split(factor=0.4)
@@ -81,15 +79,20 @@ def draw_mesh_map_previews(layout):
             operator.mesh_map_type = mesh_map_type
 
 def draw_mesh_map_settings(layout, baking_settings):
-    '''Draws general settings for mesh map baking.'''
+    '''Draws settings for mesh map baking.'''
     row = layout.row()
     row.separator()
     row.scale_y = 2
-    layout.label(text="GENERAL SETTINGS")
+    layout.label(text="SETTINGS")
 
     split = layout.split(factor=0.4)
     first_column = split.column()
     second_column = split.column()
+
+    row = first_column.row()
+    row.label(text="Render Device")
+    row = second_column.row()
+    row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
 
     row = first_column.row()
     row.label(text="High Poly Object")
@@ -223,22 +226,17 @@ def draw_baking_tab_ui(self, context):
     row = layout.row(align=True)
     row.scale_y = 2.0
     row.operator("matlayer.batch_bake", text="Bake Mesh Maps")
-    
-    # Draw the users rendering device options.
-    split = layout.split(factor=0.4)
-    first_column = split.column()
-    second_column = split.column()
-    row = first_column.row()
-    row.label(text="Render Device")
-    row = second_column.row()
-    row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
 
     # Draw a warning for users using their CPU to bake mesh maps.
     scene = bpy.data.scenes["Scene"]
     if scene.cycles.device == 'CPU':
         row = layout.row()
+        row.separator()
+        row = layout.row()
         row.alignment = 'CENTER'
         row.label(text="Baking is slow with CPUs, it's recommended to use your GPU.", icon='ERROR')
+        row = layout.row()
+        row.separator()
 
     draw_mesh_map_status(layout, baking_settings)
     draw_mesh_map_previews(layout)
