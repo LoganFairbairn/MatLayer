@@ -708,7 +708,7 @@ def draw_unlayered_material_properties(layout):
     split = layout.split(factor=0.6)
     first_column = split.column()
     second_column = split.column()
-    for property in shader_info.global_properties:
+    for property in shader_info.unlayered_properties:
         shader_property = matlayer_shader_node.inputs.get(property.name)
         row = layout.row()
         if shader_property:

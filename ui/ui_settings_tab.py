@@ -8,7 +8,7 @@ from ..core import blender_addon_utils as bau
 
 MATERIAL_SETUP_TABS = [
     ("SHADER_CHANNELS", "Shader Channels", ""),
-    ("GLOBAL_SHADER_PROPERTIES", "Shader Properties", ""),
+    ("UNLAYERED_SHADER_PROPERTIES", "Unlayered Properties", ""),
     ("ACTIVE_CHANNELS", "Active Channels", "")
 ]
 
@@ -69,7 +69,7 @@ def draw_settings_tab(self, context):
     row = layout.row(align=True)
     row.scale_y = 1.25
     row.prop_enum(bpy.context.scene, "matlayer_material_setup_tabs", 'SHADER_CHANNELS')
-    row.prop_enum(bpy.context.scene, "matlayer_material_setup_tabs", "GLOBAL_SHADER_PROPERTIES")
+    row.prop_enum(bpy.context.scene, "matlayer_material_setup_tabs", "UNLAYERED_SHADER_PROPERTIES")
     row.prop_enum(bpy.context.scene, "matlayer_material_setup_tabs", 'ACTIVE_CHANNELS')
 
     match bpy.context.scene.matlayer_material_setup_tabs:
@@ -152,12 +152,12 @@ def draw_settings_tab(self, context):
                 row = second_column.row()
                 row.prop(selected_shader_channel, "default_blend_mode", text="")
         
-        case 'GLOBAL_SHADER_PROPERTIES':
-            split = layout.split(factor=0.25)
+        case 'UNLAYERED_SHADER_PROPERTIES':
+            split = layout.split(factor=0.4)
             first_column = split.column()
             second_column = split.column()
             row = first_column.row()
-            row.label(text="Global Shader Properties")
+            row.label(text="Unlayered Shader Properties")
             row.scale_y = 1.5
             row = second_column.row(align=True)
             row.scale_x = 1.5
@@ -166,11 +166,11 @@ def draw_settings_tab(self, context):
             row.operator("matlayer.add_global_shader_property", text="", icon='ADD')
             row.operator("matlayer.delete_global_shader_property", text="", icon='TRASH')
             row = layout.row(align=True)
-            row.template_list("MATLAYER_UL_global_shader_property_list", "Global Shader Properties", bpy.context.scene.matlayer_shader_info, "global_properties", bpy.context.scene, "matlayer_selected_global_shader_property_index", sort_reverse=False)
+            row.template_list("MATLAYER_UL_global_shader_property_list", "Unlayered Shader Properties", bpy.context.scene.matlayer_shader_info, "unlayered_properties", bpy.context.scene, "matlayer_selected_global_shader_property_index", sort_reverse=False)
 
             selected_global_shader_property_index = bpy.context.scene.matlayer_selected_global_shader_property_index
-            if selected_global_shader_property_index > -1 and selected_global_shader_property_index < len(shader_info.global_properties):
-                global_shader_property = shader_info.global_properties[selected_global_shader_property_index]
+            if selected_global_shader_property_index > -1 and selected_global_shader_property_index < len(shader_info.unlayered_properties):
+                global_shader_property = shader_info.unlayered_properties[selected_global_shader_property_index]
                 split = layout.split(factor=0.3)
                 first_column = split.column()
                 second_column = split.column()
