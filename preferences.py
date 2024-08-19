@@ -11,20 +11,20 @@ class AddonPreferences(AddonPreferences):
 
     beginner_help: BoolProperty(
         name="Beginner ToolTips",
-        description="When on labels and buttons designed to help new users of this add-on will appear",
+        description="If on labels and buttons designed to help new users of this add-on will appear",
         default=True
     )
 
     save_imported_textures: BoolProperty(
         name="Save Imported Textures", 
         default=False,
-        description="When true, all textures imported through operators in this add-on will be saved to an external folder named 'Raw Textures' next to the blend file. This helps manage texture files used in materials by keeping all of them in a constant location next to the blend file in which they are used."
+        description="If on, all textures imported through operators in this add-on will be saved to an external folder named 'Raw Textures' next to the blend file. This helps manage texture files used in materials by keeping all of them in a constant location next to the blend file in which they are used."
     )
 
     auto_save_images: BoolProperty(
         name="Auto Save Images",
         default=False,
-        description="[RESTART BLENDER TO APPLY] If true, all images in the blend file that have defined paths, and require saving will be auto-saved at regular intervals."
+        description="(Requires Blender Restart) - If on, all images in the blend file that have defined paths, and require saving will be auto-saved at the defined interval."
     )
 
     image_auto_save_interval: IntProperty(
@@ -36,18 +36,18 @@ class AddonPreferences(AddonPreferences):
     log_main_operations: BoolProperty(
         name="Log Main Operations",
         default=True,
-        description="When enabled, debug info for main functions ran by this add-on will be printed to Blenders terminal"
+        description="If on, debug info for main functions ran by this add-on will be printed to Blenders terminal"
     )
 
     log_sub_operations: BoolProperty(
         name="Log Sub Processes",
         default=True,
-        description="When enabled, debug info for secondary / smaller functions ran by this add-on will be printed to Blenders terminal"
+        description="If on, debug info for secondary / smaller functions ran by this add-on will be printed to Blenders terminal"
     )
 
     thirty_two_bit: BoolProperty(
         name="32 Bit Color", 
-        description="When on, images created using this add-on will be created with 32 bit color depth. 32-bit images will take up more memory, but will have significantly less color banding in gradients", 
+        description="If on, images created using this add-on will be created with 32 bit color depth. 32-bit images will take up more memory, but will have significantly less color banding in gradients", 
         default=True
     )
 
