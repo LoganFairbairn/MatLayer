@@ -61,12 +61,7 @@ def draw_export_tab_ui(self, context):
     row.label(text="Export Mode")
     row = second_column.row()
     row.prop(texture_export_settings, "export_mode", text="")
-
-    row = first_column.row()
-    row.label(text="Render Device")
-    row = second_column.row()
-    row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
-
+    
     row = first_column.row()
     row.label(text="Normal Map Mode")
     row = second_column.row(align=True)
