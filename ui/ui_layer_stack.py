@@ -123,18 +123,6 @@ class MATLAYER_UL_layer_list(bpy.types.UIList):
                     operator = row.operator("matlayer.toggle_hide_layer", text="", emboss=False, icon='HIDE_ON')
                     operator.layer_index = item_index
 
-                # Draw the layer type icon.
-                row = layout.row()
-                row.ui_units_x = 1
-                projection_node = material_layers.get_material_layer_node('PROJECTION', item_index)
-                if projection_node:
-                    match projection_node.node_tree.name:
-                        case 'ML_DecalProjection':
-                            row.label(text="", icon='FONT_DATA')
-
-                        case _:
-                            row.label(text="", icon='MATERIAL_DATA')
-
                 # Draw the layer name.
                 row = layout.row()
                 row.ui_units_x = 2
