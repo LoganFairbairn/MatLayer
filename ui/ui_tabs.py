@@ -21,7 +21,7 @@ def draw_addon_tabs(self, context):
     row.scale_x = 10
     row.scale_y = 2.0
     row.prop_enum(panel_properties, "sections", 'SECTION_SETTINGS', text="", icon='SETTINGS')
-    row.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS', text="", icon='VIEW3D')
+    row.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS', text="", icon='RESTRICT_VIEW_OFF')
     row.menu("MATLAYER_MT_utility_sub_menu", text="", icon='TOOL_SETTINGS')
 
 class UtilitySubMenu(Menu):
