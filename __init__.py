@@ -55,7 +55,7 @@ from .ui.ui_layers_tab import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_a
 from .ui.ui_settings_tab import ShaderSubMenu, MATLAYER_UL_shader_channel_list, MATLAYER_UL_global_shader_property_list, ShaderSetupUtilitySubMenu, MATERIAL_SETUP_TABS
 from .ui.ui_main import *
 from .ui.ui_layer_stack import MATLAYER_UL_layer_list, LayerBlendingModeSubMenu
-from .ui.ui_export_section import ExportSettingUtilitySubMenu
+from .ui.ui_export_tab import ExportSettingUtilitySubMenu
 
 # Subscription Update Handler
 from .core.subscription_update_handler import on_active_material_changed, on_active_object_changed, on_active_object_name_changed, on_active_material_index_changed, on_active_material_name_changed

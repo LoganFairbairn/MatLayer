@@ -4,7 +4,7 @@ import bpy
 from . import ui_settings_tab
 from . import ui_layers_tab
 from . import ui_mesh_map_section
-from . import ui_export_section
+from . import ui_export_tab
 from . import ui_viewport_tab
 from ..core import export_textures
 
@@ -54,7 +54,7 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
                     ui_mesh_map_section.draw_baking_tab_ui(self, context)
 
                 case 'SECTION_EXPORT':
-                    ui_export_section.draw_export_tab_ui(self, context)
+                    ui_export_tab.draw_export_tab_ui(self, context)
 
                 case 'SECTION_SETTINGS':
                     ui_settings_tab.draw_settings_tab(self, context)
