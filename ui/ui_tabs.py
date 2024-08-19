@@ -1,4 +1,3 @@
-import bpy
 from bpy.types import Menu
 
 def draw_addon_tabs(self, context):
@@ -13,7 +12,7 @@ def draw_addon_tabs(self, context):
 
     row = first_column.row(align=True)
     row.scale_y = 2.0
-    row.prop_enum(panel_properties, "sections", 'SECTION_LAYERS')
+    row.prop_enum(panel_properties, "sections", 'SECTION_EDIT')
     row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS")
     row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT')
 

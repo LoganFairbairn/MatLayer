@@ -38,7 +38,7 @@ from .core.layer_masks import MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_m
 # Material Slots
 from .core.material_slots import MATLAYER_OT_add_material_slot, MATLAYER_OT_remove_material_slot, MATLAYER_OT_move_material_slot_up, MATLAYER_OT_move_material_slot_down
 
-# Baking
+# Baking Mesh Maps
 from .core.mesh_map_baking import MATLAYER_mesh_map_anti_aliasing, MATLAYER_baking_settings, MATLAYER_OT_batch_bake, MATLAYER_OT_set_mesh_map_folder, MATLAYER_OT_open_mesh_map_folder, MATLAYER_OT_preview_mesh_map, MATLAYER_OT_disable_mesh_map_preview, MATLAYER_OT_delete_mesh_map, MATLAYER_OT_create_baking_cage, MATLAYER_OT_delete_baking_cage
 
 # Exporting
@@ -51,7 +51,7 @@ from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLA
 
 # User Interface
 from .ui.ui_tabs import UtilitySubMenu
-from .ui.ui_layers_tab import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, MATLAYER_OT_add_material_filter_menu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MATERIAL_LAYER_PROPERTY_TABS
+from .ui.ui_edit_tab import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, MATLAYER_OT_add_material_filter_menu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MATERIAL_LAYER_PROPERTY_TABS
 from .ui.ui_settings_tab import ShaderSubMenu, MATLAYER_UL_shader_channel_list, MATLAYER_UL_global_shader_property_list, ShaderSetupUtilitySubMenu, MATERIAL_SETUP_TABS
 from .ui.ui_main import *
 from .ui.ui_layer_stack import MATLAYER_UL_layer_list, LayerBlendingModeSubMenu
