@@ -10,6 +10,7 @@ from ..core import texture_set_settings as tss
 from ..core import shaders
 from ..core import blender_addon_utils as bau
 from . import ui_tabs
+from .. import preferences
 
 DEFAULT_UI_SCALE_Y = 1
 
@@ -22,6 +23,11 @@ def draw_layers_tab_ui(self, context):
     '''Draws the layer section user interface to the add-on side panel.'''
     ui_tabs.draw_addon_tabs(self, context)
     layout = self.layout
+
+    # Draw setup prompts to help new users of the add-on.
+    draw_workspace_prompt(layout)
+
+    # Use a two column layout.
     split = layout.split()
     column_one = split.column()
     column_two = split.column()
@@ -84,6 +90,23 @@ def draw_layers_tab_ui(self, context):
     draw_layer_operations(column_two)
     draw_layer_stack(column_two)
     draw_selected_image_name(column_two)
+
+def draw_workspace_prompt(layout):
+    '''Draws a prompt to load the suggested workspace to help new users of the add-on.'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+    if addon_preferences.beginner_help:
+        workspace = bpy.data.workspaces.get('Matlayer')
+        if not workspace:
+            row = layout.row()
+            row.scale_y = 1.5
+            row.separator()
+            row = layout.row()
+            row.scale_y = 1.5
+            row.alignment = 'CENTER'
+            row.operator("matlayer.append_workspace", text="Load Suggested Workspace")
+            row = layout.row()
+            row.scale_y = 1.5
+            row.separator()
 
 def draw_material_selector(layout):
     '''Draws a material selector.'''
