@@ -64,7 +64,7 @@ bl_info = {
     "name": "MatLayer",
     "author": "Logan Fairbairn (Ryver)",
     "version": (3, 0, 0),
-    "blender": (4, 0, 2),
+    "blender": (4, 2, 0),
     "location": "View3D > Sidebar > MatLayer",
     "description": "Provides a layer based wrapper user interface and utility functions for editing complex materials in Blender",
     "warning": "",
