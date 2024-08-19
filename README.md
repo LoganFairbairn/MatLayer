@@ -4,12 +4,6 @@ MatLayer is a free and open-source libre add-on that drastically speeds up and s
 
 I've invested over 2000 hours over the past 3 years to designing, programming, researching, testing and making assets for MatLayer so there will be a great, free 3D material editing solution available, and everyone will have the freedom to create.
 
-If you would like to help support this add-ons development you can...
-- Donate to my [PayPal](https://paypal.me/RyverCA?country.x=CA&locale.x=en_US)
-- Star and follow the repository on Github
-- Share MatLayer
-- Report issues and give suggestions through the Github issues page
-
 Get the latest release here: https://github.com/LoganFairbairn/matlayer/releases
 
 Cheers!
