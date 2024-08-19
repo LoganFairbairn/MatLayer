@@ -6,10 +6,12 @@ def draw_ui_settings_tab(self, context):
 
     layout = self.layout
 
+    # Use a two column layout.
     split = layout.split(factor=0.3)
     first_column = split.column()
     second_column = split.column()
 
+    # Draw render engine settings.
     row = first_column.row()
     row.label(text="Engine")
     row = second_column.row()
@@ -28,7 +30,6 @@ def draw_ui_settings_tab(self, context):
             row = first_column.row()
             row.scale_y = 7
             row.label(text="HDRI")
-            
             row = second_column.row()
             row.template_ID_preview(hdri_texture_node, "image", open="image.open")
 
@@ -56,26 +57,8 @@ def draw_ui_settings_tab(self, context):
                 row = second_column.row()
                 row.prop(hdri_node.inputs.get('Environment Exposure'), "default_value", text="", slider=True)
 
-    # EEVEE Settings
-    if bpy.context.scene.render.engine == 'BLENDER_EEVEE':
-        row = first_column.row()
-        row.label(text="EEVEE Viewport Samples")
-        row = second_column.row()
-        row.prop(bpy.context.scene.eevee, "taa_samples", text="")
-
-        row = first_column.row()
-        row.label(text="Bloom")
-        row = second_column.row()
-        row.prop(bpy.context.scene.eevee, 'use_bloom', text="")
-
-        # Ambient Occlusion
-        row = first_column.row()
-        row.label(text="Ambient Occlusion")
-        row = second_column.row()
-        row.prop(bpy.context.scene.eevee, 'use_gtao', text="")
-
-        # Screenspace Reflections
-        row = first_column.row()
-        row.label(text="Screen Space Reflections")
-        row = second_column.row()
-        row.prop(bpy.context.scene.eevee, 'use_ssr', text="")
+    # Draw an operator to append the HDRI lighting setup.
+    else:
+        row = layout.row()
+        row.scale_y = 1.5
+        row.operator("matlayer.append_hdri_world", text="Append HDRI World")
