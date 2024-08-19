@@ -15,7 +15,6 @@ from ..core import texture_set_settings as tss
 from ..core import debug_logging
 from ..core import blender_addon_utils as bau
 from ..core import material_layers
-from ..core import image_utilities
 from ..core import shaders
 from ..preferences import ADDON_NAME
 
