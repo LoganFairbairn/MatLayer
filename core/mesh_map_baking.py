@@ -127,7 +127,9 @@ def update_thickness_samples(self, context):
     if node:
         node.samples = baking_settings.thickness_samples
 
+
 #----------------------------- HELPER FUNCTIONS -----------------------------#
+
 
 def get_bounding_box_multiplier():
     '''Returns the average of the active mesh dimensions to multiply into distance based baking properties.'''
