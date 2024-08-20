@@ -808,7 +808,7 @@ def save_export_template_data(json_data):
     json_file.close()
     
 def read_export_template_names():
-    '''Reads all of the export template names from the json file into Blender memory (to avoid reading json data in a draw call).'''
+    '''Reads all of the export template names from the json file into Blender memory.'''
     templates_path = str(Path(resource_path('USER')) / "scripts/addons" / ADDON_NAME / "json_data" / "export_templates.json")
     json_file = open(templates_path, "r")
     jdata = json.load(json_file)

@@ -7,6 +7,7 @@ from . import ui_settings_tab
 from . import ui_export_tab
 from . import ui_viewport_tab
 from ..core import export_textures
+from ..core import shaders
 
 def check_blend_saved():
     if bpy.path.abspath("//") == "":
@@ -17,8 +18,11 @@ def check_blend_saved():
 def update_main_ui_tabs(self, context):
     '''Callback function for updating data when the main user interface tab is changed.'''
 
-    # Ideally we'd like to read all the export templates only when the add-on is registered, but this doesn't seem possible due to the cached export templates being stored in add-on preferences.
-    # Update the available export templates when the export tab is selected.
+    # Read json data for available shaders when the shader tab is selected.
+    if context.scene.matlayer_panel_properties.sections == 'SECTION_SETTINGS':
+        shaders.update_shader_list()
+
+    # Read the available export templates when the export tab is selected.
     if context.scene.matlayer_panel_properties.sections == 'SECTION_EXPORT':
         export_textures.read_export_template_names()
 
