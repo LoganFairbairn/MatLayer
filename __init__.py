@@ -268,7 +268,7 @@ def depsgraph_change_handler(scene, depsgraph):
             # Re-link layer group nodes together (so changes in layer opacity will trigger relinking).
             #material_layers.link_layer_group_nodes(self=None)
 
-# Mark load handlers as persistent so they are not freed when loading a new blend file.
+# Mark load handlers as persistent so they are not called again when loading a new blend file.
 @persistent
 def load_handler(dummy):
 
@@ -311,12 +311,12 @@ def load_handler(dummy):
                 bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_name_sub_owner, notify=on_active_material_name_changed, args=())
 
         material_layers.refresh_layer_stack()
-
-    # TODO: Temporary fix for updating the shader list.
+    
+    # Apply a default shader setup when a blend file is loaded if there is no shader node defined.
     shaders.update_shader_list()
-
-# Run startup functions when a new blend file is loaded.
-bpy.app.handlers.load_post.append(load_handler)
+    shader_info = bpy.context.scene.matlayer_shader_info
+    if shader_info.shader_node_group == None:
+        shaders.set_shader('MetallicRoughnessPBR')
 
 def register():
     # Register properties, operators and pannels.
@@ -374,7 +374,8 @@ def register():
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     bpy.app.timers.register(auto_save_images, first_interval=addon_preferences.image_auto_save_interval)
 
-    
+    # Add a load handler to run functions when a Blender file is loaded.
+    bpy.app.handlers.load_post.append(load_handler)
 
 def unregister():
     for cls in classes:

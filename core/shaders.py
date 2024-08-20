@@ -126,8 +126,9 @@ def set_shader(shader_name):
             shader_node_group = bpy.data.node_groups.get(shader_nodegroup_name)
             if shader_node_group:
                 shader_info.shader_node_group = shader_node_group
+            
+            # If the shader node group isn't in the blend file already, attempt to append it from the add-on assets file.
             else:
-                # If the shader node group isn't in the blend file already, attempt to append it from the add-on assets file.
                 shader_node_group = bau.append_group_node(shader_nodegroup_name)
                 if shader_node_group:
                     debug_logging.log("Shader node group successfully appended from add-on asset file.")
@@ -136,6 +137,7 @@ def set_shader(shader_name):
                     debug_logging.log("Shader nodetree does not exist and cannot be appended from the add-on assets file.")
                     return
             
+            # Set shader info to info from the json data.
             shader_info.group_node_name = shaders[i]['group_node_name']
             shader_material_channels = shaders[i]['material_channels']
             shader_info.material_channels.clear()
@@ -167,17 +169,22 @@ def set_shader(shader_name):
                 unlayered_property = shader_info.unlayered_properties.add()
                 unlayered_property.name = property
 
-    # TODO: If the shader wasn't found, apply a default shader instead.
+    # Reload the export template to avoid invalid pack texture enums in the export texture settings.
+    if shader_exists:
+        texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
+        export_textures.set_export_template(texture_export_settings.export_template_name)
+
+    # If the shader wasn't found, log an error.
     if not shader_exists:
-        debug_logging.log("Shader {0} doesn't exist, applying default shader.".format(shader_name))
+        debug_logging.log(
+            "Shader {0} doesn't exist.".format(shader_name), 
+            message_type='ERROR', 
+            sub_process=False
+        )
 
     # Set the default channel of the shader to be the first defined channel.
     if len(shader_info.material_channels) > 0:
         bpy.context.scene.matlayer_layer_stack.selected_material_channel = shader_info.material_channels[0].name
-
-    # Reload the export template to avoid invalid pack texture enums in the export texture settings.
-    texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
-    export_textures.set_export_template(texture_export_settings.export_template_name)
 
 def read_json_shader_data():
     '''Reads json shader data. Creates a json file if one does not exist.'''
