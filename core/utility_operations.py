@@ -45,7 +45,7 @@ class MATLAYER_OT_append_workspace(Operator):
         bpy.context.window.workspace = bpy.data.workspaces['Matlayer']
         
         # Set the UI to the default tab.
-        context.scene.matlayer_panel_properties.sections = 'SECTION_LAYERS'
+        context.scene.matlayer_panel_properties.sections = 'SECTION_EDIT'
 
         # Set up a material asset browser for the user.
         preferences = bpy.context.preferences
