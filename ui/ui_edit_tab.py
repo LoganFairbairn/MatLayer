@@ -14,6 +14,7 @@ from .. import preferences
 
 DEFAULT_UI_SCALE_Y = 1
 
+# Tabs to help organize the user interface and help limit the number of properties displayed at one time.
 MATERIAL_LAYER_PROPERTY_TABS = [
     ("LAYER", "LAYER", "Properties for the selected material layer."),
     ("MASKS", "MASKS", "Properties for masks applied to the selected material layer."),
@@ -226,9 +227,10 @@ def draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_laye
     match value_node.bl_static_type:
         case 'GROUP':
             row = layout.row(align=True)
+            row.prop(value_node, "node_tree", text="")
             row.context_pointer_set("mix_node", mix_node)
             row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text="", icon='NODETREE')
-            row.prop(value_node, "node_tree", text="")
+            row.menu('MATLAYER_MT_material_filter_sub_menu', text="", icon='FILTER')
 
         case 'TEX_IMAGE':
             split = layout.split(factor=0.825)
@@ -261,6 +263,32 @@ def draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_laye
             output_channel_name = material_layers.get_material_channel_crgba_output(material_channel_name)
             if len(output_channel_name) > 0:
                 row.menu("MATLAYER_MT_material_channel_output_sub_menu", text=output_channel_name[0])
+
+def draw_filter_properties(layout, material_channel_name, selected_layer_index):
+    '''Draws material channel filter node properties to the user interface.'''
+    layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
+    static_channel_name = bau.format_static_channel_name(material_channel_name)
+
+    # Draw properties for all filters for the specified material channel name.
+    filter_index = 1
+    filter_node_name = static_channel_name + "_FILTER_" + str(filter_index)
+    filter_node = layer_node.node_tree.nodes.get(filter_node_name)
+    while filter_node:
+        for input in filter_node.inputs:
+            split = layout.split(factor=0.25)
+            first_column = split.column(align=True)
+            second_column = split.column(align=True)
+
+            row = first_column.row()
+            row.label(text=input.name)
+
+            row = second_column.row()
+            row.prop(input, "default_value", text="")
+
+        # Increment the filter index to draw the next filter properties.
+        filter_index += 1
+        filter_node_name = static_channel_name + "_FILTER_" + str(filter_index)
+        filter_node = layer_node.node_tree.nodes.get(filter_node_name)
 
 def draw_material_channel_filter_node(layout, material_channel_name, selected_layer_index):
     '''Draws the material channel filter toggle and group node used to filter the material channel.'''
@@ -311,6 +339,13 @@ def draw_value_node_properties(layout, value_node):
             for i in range(0, len(value_node.inputs)):
                 row = layout.row(align=True)
                 if value_node.inputs[i].type == 'RGBA' or value_node.inputs[i].type == 'VECTOR':
+                    split = layout.split(factor=0.25)
+                    first_column = split.column(align=True)
+                    second_column = split.column(align=True)
+
+                    row = first_column.row()
+                    row.label(text=value_node.inputs[i].name)
+                    row = second_column.row()
                     row.prop(value_node.inputs[i], "default_value", text="")
                 else:
                     row.prop(value_node.inputs[i], "default_value", text=value_node.inputs[i].name)
@@ -364,8 +399,9 @@ def draw_material_channel_properties(layout):
                 row = layout.row()
                 row.label(text="• {0}".format(channel.name))
                 draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_layer_index, channel.name)
-                draw_material_channel_filter_node(layout, channel.name, selected_layer_index)
+                draw_filter_properties(layout, channel.name, selected_layer_index)
                 draw_value_node_properties(layout, value_node)
+                draw_material_channel_filter_node(layout, channel.name, selected_layer_index)
                 draw_material_channel_filter_properties(layout, selected_layer_index, channel.name)
 
 def draw_layer_projection(layout):
@@ -933,3 +969,33 @@ class MaterialChannelOutputSubMenu(Menu):
         operator = layout.operator("matlayer.set_material_channel_crgba_output", text="Blue")
         operator.output_channel_name = 'BLUE'
         operator.material_channel_name = material_channel_name
+
+class MaterialFilterSubMenu(Menu):
+    bl_idname = "MATLAYER_MT_material_filter_sub_menu"
+    bl_label = "Material Filter Sub Menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        # Get the material channel name from the mix node being drawn.
+        material_channel_name = context.mix_node.name.replace('_MIX', '')
+
+        # Draw operators to add available material filters.
+        op = layout.operator("matlayer.add_material_filter", text="Add HSV Filter")
+        op.material_channel = material_channel_name
+        op.filter_type = 'HSV'
+        op = layout.operator("matlayer.add_material_filter", text="Add Invert Filter")
+        op.material_channel = material_channel_name
+        op.filter_type = 'INVERT'
+        op = layout.operator("matlayer.add_material_filter", text="Add Brightness / Contrast Filter")
+        op.material_channel = material_channel_name
+        op.filter_type = 'BRIGHTNESS_CONTRAST'
+        op = layout.operator("matlayer.add_material_filter", text="Add Gamma Filter")
+        op.material_channel = material_channel_name
+        op.filter_type = 'GAMMA'
+        op = layout.operator("matlayer.add_material_filter", text="Add RGB Curves Fitler")
+        op.material_channel = material_channel_name
+        op.filter_type = 'RGB_CURVES'
+        op = layout.operator("matlayer.add_material_filter", text="Add Normal Intensity Filter")
+        op.material_channel = material_channel_name
+        op.filter_type = 'NORMAL_INTENSITY'
