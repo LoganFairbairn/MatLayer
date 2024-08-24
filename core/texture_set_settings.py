@@ -228,6 +228,6 @@ class MATLAYER_OT_open_raw_texture_folder(Operator):
         return context.active_object
 
     def execute(self, context):
-        raw_texture_folder_path = blender_addon_utils.get_texture_folder_path(folder='RAW_TEXTURES')
-        blender_addon_utils.open_folder(raw_texture_folder_path, self)
+        raw_texture_folder_path = bau.get_texture_folder_path(folder='RAW_TEXTURES')
+        bau.open_folder(raw_texture_folder_path, self)
         return {'FINISHED'}
