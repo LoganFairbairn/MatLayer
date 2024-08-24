@@ -399,25 +399,6 @@ def create_default_material_setup(self):
             material_output_node = blank_node_tree.nodes.get('MATERIAL_OUTPUT')
             if material_output_node:
                 blank_node_tree.links.new(new_shader_node.outputs[0], material_output_node.inputs[0])
-
-            # Add global channel toggle nodes for all material channels defined in the shader.
-            node_width = 400
-            node_x = 300
-            node_y = -150
-            node_spacing = 40
-            for channel in shader_info.material_channels:
-                new_channel_toggle_node = blank_node_tree.nodes.new('ShaderNodeValue')
-                static_channel_name = bau.format_static_channel_name(channel.name)
-                new_channel_toggle_node.name = "GLOBAL_{0}_TOGGLE".format(static_channel_name)
-                new_channel_toggle_node.label = new_channel_toggle_node.name
-                new_channel_toggle_node.width = node_width
-                new_channel_toggle_node.location[0] = node_x
-                new_channel_toggle_node.location[1] = node_y
-                new_channel_toggle_node.hide = True
-                node_y -= node_spacing
-
-                if channel.default_active == False:
-                    new_channel_toggle_node.mute = True
     
     else:
         debug_logging.log("Missing blank material setup.", message_type='ERROR', sub_process=False)
