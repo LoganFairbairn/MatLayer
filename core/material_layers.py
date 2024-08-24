@@ -629,6 +629,7 @@ def create_default_layer_node(layer_type):
         opacity_node.inputs[2].default_value = 0.0
         opacity_node.inputs[3].default_value = 1.0
 
+        # Add a separate node for separating RGBA channels.
         separate_node = default_node_group.nodes.new('ShaderNodeSeparateColor')
         separate_node.name = "SEPARATE_{0}".format(static_channel_name)
         separate_node.label = separate_node.label
@@ -636,31 +637,7 @@ def create_default_layer_node(layer_type):
         separate_node.location[1] = -500
         separate_node.parent = channel_frame_node
 
-        # Assign a default group node filter based on the socket type.
-        match channel.socket_type:
-            case 'NodeSocketFloat':
-                default_group_filter = bau.append_group_node('ML_DefaultFloatFilter')
-            case 'NodeSocketColor':
-                if channel.name.upper() == 'NORMAL':
-                    default_group_filter = bau.append_group_node('ML_DefaultNormalFilter')
-                else:
-                    default_group_filter = bau.append_group_node('ML_DefaultColorFilter')
-            case 'NodeSocketVector':
-                if channel.name.upper() == 'NORMAL':
-                    default_group_filter = bau.append_group_node('ML_DefaultNormalFilter')
-                else:
-                    default_group_filter = bau.append_group_node('ML_DefaultVectorFilter')
-
-        filter_node = default_node_group.nodes.new('ShaderNodeGroup')
-        filter_node.name = "{0}_FILTER".format(static_channel_name)
-        filter_node.label = filter_node.name
-        filter_node.location[0] = 0
-        filter_node.location[1] = -500
-        filter_node.parent = channel_frame_node
-        filter_node.width = 300
-        filter_node.node_tree = default_group_filter
-        bau.set_node_active(filter_node, active=False)
-
+        # Add re-route nodes for organization.
         mix_node_reroute = default_node_group.nodes.new('NodeReroute')
         mix_node_reroute.name = "{0}_MIX_REROUTE".format(static_channel_name)
         mix_node_reroute.label = mix_node_reroute.name
