@@ -97,7 +97,6 @@ def append_default_node_groups():
     append_group_node("PrincipledBSDF", never_auto_delete=True)
     append_group_node("ML_TriplanarNormalsBlend", never_auto_delete=True)
     append_group_node("ML_DefaultLayer", never_auto_delete=True)
-    append_group_node("ML_DecalLayer", never_auto_delete=True)
     append_group_node("ML_LayerBlur", never_auto_delete=True)
     append_group_node("ML_TriplanarBlur", never_auto_delete=True)
     append_group_node("ML_TriplanarLayerBlur", never_auto_delete=True)
