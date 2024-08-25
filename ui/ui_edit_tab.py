@@ -221,26 +221,25 @@ def draw_layer_material_channel_toggles(layout):
                     row.scale_y = DEFAULT_UI_SCALE_Y
                     drawn_toggles = 0
 
-def draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_layer_index, material_channel_name):
-    '''Draws the value node type to the UI.'''
+def draw_value_node_properties(layout, value_node, layer_node_tree):
+    '''Draws properties for the provided value node.'''
+
+    # Use a two column layout.
+    split = layout.split(factor=0.3)
+    first_column = split.column(align=True)
+    second_column = split.column(align=True)
 
     match value_node.bl_static_type:
         case 'GROUP':
-            row = layout.row(align=True)
+            row = first_column.row()
+            row.label(text="Node Tree")
+            row = second_column.row(align=True)
             row.prop(value_node, "node_tree", text="")
-            row.context_pointer_set("mix_node", mix_node)
-            row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text="", icon='NODETREE')
-            row.menu('MATLAYER_MT_material_filter_sub_menu', text="", icon='FILTER')
-
+        
         case 'TEX_IMAGE':
-            split = layout.split(factor=0.825)
-            first_column = split.column(align=True)
-            second_column = split.column(align=True)
-
-            # Draw the image texture property.
-            row = first_column.row(align=True)
-            row.context_pointer_set("mix_node", mix_node)
-            row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text="", icon='IMAGE_DATA')
+            row = first_column.row()
+            row.label(text="Texture")
+            row = second_column.row(align=True)
             row.prop(value_node, "image", text="")
             image = value_node.image
             if image:
@@ -250,19 +249,6 @@ def draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_laye
             row.context_pointer_set("node_tree", layer_node_tree)
             row.context_pointer_set("node", value_node)
             row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
-
-            # Draw the toggle image alpha button and the RGBA output channel.
-            row = second_column.row(align=True)
-            mix_image_alpha_node = material_layers.get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
-            if mix_image_alpha_node.mute:
-                operator = row.operator("matlayer.toggle_image_alpha_blending", text="", icon='IMAGE_ALPHA')
-            else:
-                operator = row.operator("matlayer.toggle_image_alpha_blending", text="", icon='IMAGE_ALPHA', depress=True)
-            operator.material_channel_name = material_channel_name
-            row.context_pointer_set("mix_node", mix_node)
-            output_channel_name = material_layers.get_material_channel_crgba_output(material_channel_name)
-            if len(output_channel_name) > 0:
-                row.menu("MATLAYER_MT_material_channel_output_sub_menu", text=output_channel_name[0])
 
 def draw_filter_properties(layout, material_channel_name, selected_layer_index):
     '''Draws material channel filter node properties to the user interface.'''
@@ -274,14 +260,16 @@ def draw_filter_properties(layout, material_channel_name, selected_layer_index):
     filter_node_name = static_channel_name + "_FILTER_" + str(filter_index)
     filter_node = layer_node.node_tree.nodes.get(filter_node_name)
     while filter_node:
+        row = layout.row()
+        row.label(text="Filter " + str(filter_index))
+        row.operator("matlayer.delete_material_filter", text="", icon="TRASH")
         for input in filter_node.inputs:
-            split = layout.split(factor=0.25)
+            split = layout.split(factor=0.3)
             first_column = split.column(align=True)
             second_column = split.column(align=True)
 
             row = first_column.row()
             row.label(text=input.name)
-
             row = second_column.row()
             row.prop(input, "default_value", text="")
 
@@ -290,91 +278,10 @@ def draw_filter_properties(layout, material_channel_name, selected_layer_index):
         filter_node_name = static_channel_name + "_FILTER_" + str(filter_index)
         filter_node = layer_node.node_tree.nodes.get(filter_node_name)
 
-def draw_material_channel_filter_node(layout, material_channel_name, selected_layer_index):
-    '''Draws the material channel filter toggle and group node used to filter the material channel.'''
-    filter_node = material_layers.get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
-    if filter_node:
-        split = layout.split(align=True, factor=0.08)
-        row = split.column(align=True)
-
-        if blender_addon_utils.get_node_active(filter_node) == True:
-            operator = row.operator("matlayer.toggle_material_channel_filter", text='', icon='FILTER', depress=True)
-        else:
-            operator = row.operator("matlayer.toggle_material_channel_filter", text='', icon='FILTER')
-        operator.material_channel_name = material_channel_name
-        row = split.column(align=True)
-        if filter_node.mute:
-            row.enabled = False
-        row.prop(filter_node, "node_tree", text="")
-
-def draw_material_channel_filter_properties(layout, selected_layer_index, material_channel_name):
-    '''Draws properties for material channel filter group node.'''
-    filter_node = material_layers.get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
-    if filter_node:
-        split = layout.split(factor=0.25)
-        first_column = split.column()
-        second_column = split.column()
-    
-        if blender_addon_utils.get_node_active(filter_node) == True:
-
-            # Draw all group node input properties.
-            for i in range(0, len(filter_node.inputs)):
-                if i == 0:
-                    continue
-                row = first_column.row()
-                row.label(text=filter_node.inputs[i].name)
-                row = second_column.row()
-                row.prop(filter_node.inputs[i], "default_value", text="")
-            
-            # Draw all color ramp properties from within node groups.
-            for node in filter_node.node_tree.nodes:
-                if node.bl_static_type == 'VALTORGB':
-                    layout.template_color_ramp(node, "color_ramp", expand=True)
-
-def draw_value_node_properties(layout, value_node):
-    '''Draws properties for the provided value node.'''
-    match value_node.bl_static_type:
-        case 'GROUP':
-            # Draw input properties for the group node.
-            for i in range(0, len(value_node.inputs)):
-                row = layout.row(align=True)
-                if value_node.inputs[i].type == 'RGBA' or value_node.inputs[i].type == 'VECTOR':
-                    split = layout.split(factor=0.25)
-                    first_column = split.column(align=True)
-                    second_column = split.column(align=True)
-
-                    row = first_column.row()
-                    row.label(text=value_node.inputs[i].name)
-                    row = second_column.row()
-                    row.prop(value_node.inputs[i], "default_value", text="")
-                else:
-                    row.prop(value_node.inputs[i], "default_value", text=value_node.inputs[i].name)
-
-            # Draw texture properties stored in custom group nodes.
-            for node in value_node.node_tree.nodes:
-                if node.bl_static_type == 'TEX_IMAGE':
-                    row = layout.row(align=True)
-
-                    split = row.split(factor=0.4)
-                    first_column = split.row()
-                    second_column = split.row(align=True)
-
-                    if node.label == "":
-                        first_column.label(text=node.name)
-                    else:
-                        first_column.label(text=node.label)
-                    second_column.prop(node, "image", text="")
-                    second_column.context_pointer_set("node_tree", value_node.node_tree)
-                    second_column.context_pointer_set("node", node)
-                    second_column.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
-
-        case 'TEX_IMAGE':
-            row = layout.row()
-            row.prop(value_node, "interpolation", text="")
-
 def draw_material_channel_properties(layout):
     '''Draws properties for all active material channels on selected material layer.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    layout.separator()
 
     # Avoid drawing material channel properties for invalid layers.
     if material_layers.get_material_layer_node('LAYER', selected_layer_index) == None:
@@ -394,19 +301,48 @@ def draw_material_channel_properties(layout):
         value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, channel.name)
         if value_node and mix_node:
             if not mix_node.mute:
-                row = layout.row()
-                row.separator()
-                row = layout.row()
-                row.label(text="• {0}".format(channel.name))
-                draw_value_node(layout, value_node, mix_node, layer_node_tree, selected_layer_index, channel.name)
+                layout.separator()
+
+                # Use a three column layout.
+                split = layout.split(factor=0.3)
+                first_column = split.column(align=True)
+                second_column = split.column(align=True)
+
+                # Draw the channel name.
+                row = first_column.row()
+                row.label(text="{0}".format(channel.name.upper()))
+
+                # Draw additional operators when images are used as the material channel value...
+                row = second_column.row(align=True)
+                row.alignment = 'RIGHT'
+                if value_node.bl_static_type == 'TEX_IMAGE':
+
+                    # Draw CRGB channel output being used (mainly for channel packing).
+                    row.context_pointer_set("mix_node", mix_node)
+                    output_channel_name = material_layers.get_material_channel_crgba_output(channel.name)
+                    if len(output_channel_name) > 0:
+                        row.menu("MATLAYER_MT_material_channel_output_sub_menu", text=output_channel_name[0])
+                    
+                    # Draw a toggle for image alpha blending.
+                    mix_image_alpha_node = material_layers.get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, channel.name)
+                    if mix_image_alpha_node.mute:
+                        operator = row.operator("matlayer.toggle_image_alpha_blending", text="", icon='IMAGE_ALPHA')
+                    else:
+                        operator = row.operator("matlayer.toggle_image_alpha_blending", text="", icon='IMAGE_ALPHA', depress=True)
+                    operator.material_channel_name = channel.name
+
+                # Draw a sub-menu with operators for editing the material channel.
+                row.context_pointer_set("mix_node", mix_node)
+                row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text="", icon='NODE')
+
+                draw_value_node_properties(layout, value_node, layer_node_tree)
                 draw_filter_properties(layout, channel.name, selected_layer_index)
-                draw_value_node_properties(layout, value_node)
-                draw_material_channel_filter_node(layout, channel.name, selected_layer_index)
-                draw_material_channel_filter_properties(layout, selected_layer_index, channel.name)
 
 def draw_layer_projection(layout):
     '''Draws layer projection settings.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+
+    layout.label(text="PROJECTION")
     
     # Draw the projection mode.
     projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
@@ -419,7 +355,7 @@ def draw_layer_projection(layout):
                 second_column = split.column()
 
                 row = first_column.row()
-                row.label(text="Projection")
+                row.label(text="Method")
                 row = second_column.row()
                 row.menu('MATLAYER_MT_layer_projection_submenu', text="UV")
 
@@ -921,13 +857,42 @@ class MaterialChannelValueNodeSubMenu(Menu):
         # Get the material channel name from the mix node being drawn.
         material_channel_name = context.mix_node.name.replace('_MIX', '')
 
-        operator = layout.operator("matlayer.change_material_channel_value_node", text='GROUP', icon='NODETREE')
+        operator = layout.operator("matlayer.change_material_channel_value_node", text='Use Group', icon='NODETREE')
         operator.material_channel_name = material_channel_name
         operator.node_type = 'GROUP'
 
-        operator = layout.operator("matlayer.change_material_channel_value_node", text='TEXTURE', icon='IMAGE_DATA')
+        operator = layout.operator("matlayer.change_material_channel_value_node", text='Use Texture', icon='IMAGE_DATA')
         operator.material_channel_name = material_channel_name
         operator.node_type = 'TEXTURE'
+
+        # Draw operators to add available material filters.
+        op = layout.operator("matlayer.add_material_filter", text="Add HSV Filter", icon='FILTER')
+        op.material_channel = material_channel_name
+        op.filter_type = 'HSV'
+        op = layout.operator("matlayer.add_material_filter", text="Add Invert Filter", icon='FILTER')
+        op.material_channel = material_channel_name
+        op.filter_type = 'INVERT'
+        op = layout.operator("matlayer.add_material_filter", text="Add Brightness / Contrast Filter", icon='FILTER')
+        op.material_channel = material_channel_name
+        op.filter_type = 'BRIGHTNESS_CONTRAST'
+        op = layout.operator("matlayer.add_material_filter", text="Add Gamma Filter", icon='FILTER')
+        op.material_channel = material_channel_name
+        op.filter_type = 'GAMMA'
+        op = layout.operator("matlayer.add_material_filter", text="Add RGB Curves Fitler", icon='FILTER')
+        op.material_channel = material_channel_name
+        op.filter_type = 'RGB_CURVES'
+        op = layout.operator("matlayer.add_material_filter", text="Add RGB to BW Fitler", icon='FILTER')
+        op.material_channel = material_channel_name
+        op.filter_type = 'RGB_TO_BW'
+        op = layout.operator("matlayer.add_material_filter", text="Add Color Ramp Fitler", icon='FILTER')
+        op.material_channel = material_channel_name
+        op.filter_type = 'COLOR_RAMP'
+        op = layout.operator("matlayer.add_material_filter", text="Add Cheap Contrast Filter", icon='FILTER')
+        op.material_channel = material_channel_name
+        op.filter_type = 'CHEAP_CONTRAST'
+        op = layout.operator("matlayer.add_material_filter", text="Add Normal Intensity Filter", icon='FILTER')
+        op.material_channel = material_channel_name
+        op.filter_type = 'NORMAL_INTENSITY'
 
 class MaskChannelSubMenu(Menu):
     bl_idname = "MATLAYER_MT_mask_channel_sub_menu"
@@ -969,33 +934,3 @@ class MaterialChannelOutputSubMenu(Menu):
         operator = layout.operator("matlayer.set_material_channel_crgba_output", text="Blue")
         operator.output_channel_name = 'BLUE'
         operator.material_channel_name = material_channel_name
-
-class MaterialFilterSubMenu(Menu):
-    bl_idname = "MATLAYER_MT_material_filter_sub_menu"
-    bl_label = "Material Filter Sub Menu"
-
-    def draw(self, context):
-        layout = self.layout
-
-        # Get the material channel name from the mix node being drawn.
-        material_channel_name = context.mix_node.name.replace('_MIX', '')
-
-        # Draw operators to add available material filters.
-        op = layout.operator("matlayer.add_material_filter", text="Add HSV Filter")
-        op.material_channel = material_channel_name
-        op.filter_type = 'HSV'
-        op = layout.operator("matlayer.add_material_filter", text="Add Invert Filter")
-        op.material_channel = material_channel_name
-        op.filter_type = 'INVERT'
-        op = layout.operator("matlayer.add_material_filter", text="Add Brightness / Contrast Filter")
-        op.material_channel = material_channel_name
-        op.filter_type = 'BRIGHTNESS_CONTRAST'
-        op = layout.operator("matlayer.add_material_filter", text="Add Gamma Filter")
-        op.material_channel = material_channel_name
-        op.filter_type = 'GAMMA'
-        op = layout.operator("matlayer.add_material_filter", text="Add RGB Curves Fitler")
-        op.material_channel = material_channel_name
-        op.filter_type = 'RGB_CURVES'
-        op = layout.operator("matlayer.add_material_filter", text="Add Normal Intensity Filter")
-        op.material_channel = material_channel_name
-        op.filter_type = 'NORMAL_INTENSITY'

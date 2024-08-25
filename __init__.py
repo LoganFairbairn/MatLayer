@@ -36,7 +36,7 @@ from .core import material_layers
 from .core.layer_masks import MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_mask_list, MATLAYER_OT_move_layer_mask_up, MATLAYER_OT_move_layer_mask_down, MATLAYER_OT_duplicate_layer_mask, MATLAYER_OT_delete_layer_mask, MATLAYER_OT_add_empty_layer_mask, MATLAYER_OT_add_black_layer_mask, MATLAYER_OT_add_white_layer_mask, MATLAYER_OT_add_linear_gradient_mask, MATLAYER_OT_add_decal_mask, MATLAYER_OT_add_ambient_occlusion_mask, MATLAYER_OT_add_curvature_mask, MATLAYER_OT_add_thickness_mask, MATLAYER_OT_add_world_space_normals_mask,  MATLAYER_OT_add_grunge_mask, MATLAYER_OT_add_edge_wear_mask, MATLAYER_OT_add_decal_mask, MATLAYER_OT_set_mask_projection_uv, MATLAYER_OT_set_mask_projection_triplanar, MATLAYER_OT_set_mask_output_channel, MATLAYER_OT_isolate_mask, MATLAYER_OT_toggle_mask_blur
 
 # Material Filters
-from .core.material_filters import MATLAYER_OT_add_material_filter
+from .core.material_filters import MATLAYER_OT_add_material_filter, MATLAYER_OT_delete_material_filter
 
 # Material Slots
 from .core.material_slots import MATLAYER_OT_add_material_slot, MATLAYER_OT_remove_material_slot, MATLAYER_OT_move_material_slot_up, MATLAYER_OT_move_material_slot_down
@@ -54,7 +54,7 @@ from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLA
 
 # User Interface
 from .ui.ui_tabs import UtilitySubMenu
-from .ui.ui_edit_tab import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, MATLAYER_OT_add_material_filter_menu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MaterialFilterSubMenu, MATERIAL_LAYER_PROPERTY_TABS
+from .ui.ui_edit_tab import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, MATLAYER_OT_add_material_filter_menu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MATERIAL_LAYER_PROPERTY_TABS
 from .ui.ui_settings_tab import ShaderSubMenu, MATLAYER_UL_shader_channel_list, MATLAYER_UL_global_shader_property_list, ShaderSetupUtilitySubMenu
 from .ui.ui_main import *
 from .ui.ui_layer_stack import MATLAYER_UL_layer_list, LayerBlendingModeSubMenu
@@ -175,6 +175,7 @@ classes = (
 
     # Material Filters
     MATLAYER_OT_add_material_filter,
+    MATLAYER_OT_delete_material_filter,
 
     # Material Slots
     MATLAYER_OT_add_material_slot, 
@@ -225,7 +226,6 @@ classes = (
     MaterialChannelValueNodeSubMenu,
     MaskChannelSubMenu,
     MaterialChannelOutputSubMenu,
-    MaterialFilterSubMenu,
     MATLAYER_panel_properties,
     MATLAYER_PT_Panel,
     ExportSettingUtilitySubMenu
