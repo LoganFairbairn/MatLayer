@@ -259,15 +259,19 @@ def draw_filter_properties(layout, material_channel_name, selected_layer_index):
     filter_index = 1
     filter_node_name = static_channel_name + "_FILTER_" + str(filter_index)
     filter_node = layer_node.node_tree.nodes.get(filter_node_name)
-    while filter_node:
-        row = layout.row()
-        row.label(text="Filter " + str(filter_index))
-        row.operator("matlayer.delete_material_filter", text="", icon="TRASH")
-        for input in filter_node.inputs:
-            split = layout.split(factor=0.3)
-            first_column = split.column(align=True)
-            second_column = split.column(align=True)
+    split = layout.split(factor=0.3)
+    first_column = split.column(align=True)
+    second_column = split.column(align=True)
 
+    while filter_node:
+        row = first_column.row(align=True)
+        row.label(text="Filter " + str(filter_index))
+        row = second_column.row(align=True)
+        row.prop(filter_node, "label", text="")
+        op = row.operator("matlayer.delete_material_filter", text="", icon="TRASH")
+        op.filter_index = filter_index
+        op.material_channel = material_channel_name
+        for input in filter_node.inputs:
             row = first_column.row()
             row.label(text=input.name)
             row = second_column.row()

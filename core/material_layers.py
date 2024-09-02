@@ -317,10 +317,10 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
                 return node_tree.nodes.get('LINEAR_DECAL_MASK_BLEND')
             return None
         
-        case 'SEPARATE_RGBA':
+        case 'SEPARATE_RGB':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                return node_tree.nodes.get("SEPARATE_{0}".format(static_channel_name))
+                return node_tree.nodes.get("SEPARATE-RGB_{0}".format(static_channel_name))
             return None
         
         case 'GROUP_INPUT':
@@ -612,8 +612,8 @@ def create_default_layer_node(layer_type):
 
         # Add a separate node for separating RGBA channels.
         separate_node = default_node_group.nodes.new('ShaderNodeSeparateColor')
-        separate_node.name = "SEPARATE_{0}".format(static_channel_name)
-        separate_node.label = separate_node.label
+        separate_node.name = "SEPARATE-RGB_{0}".format(static_channel_name)
+        separate_node.label = separate_node.name
         separate_node.location[0] = -200
         separate_node.location[1] = -500
         separate_node.parent = channel_frame_node
@@ -1600,7 +1600,7 @@ def set_material_channel_crgba_output(material_channel_name, output_channel_name
         layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
     layer_node_tree = get_layer_node_tree(layer_index)
-    separate_color_node = get_material_layer_node('SEPARATE_RGBA', layer_index, material_channel_name)
+    separate_rgb_node = get_material_layer_node('SEPARATE_RGB', layer_index, material_channel_name)
     projection_node = get_material_layer_node('PROJECTION', layer_index)
     filter_node = get_material_layer_node('FILTER', layer_index, material_channel_name)
     value_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
@@ -1619,7 +1619,7 @@ def set_material_channel_crgba_output(material_channel_name, output_channel_name
         case _:
             output_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
 
-    # Determine the input node for the main material channel value.
+    # Determine the input node that will plug into the channel mix node.
     input_node = None
     input_socket = -1
     connect_filter_node = False
@@ -1627,6 +1627,8 @@ def set_material_channel_crgba_output(material_channel_name, output_channel_name
         input_node = filter_node
         input_socket = 0
         connect_filter_node = True
+
+    # If there is no active filter nodes, the input node will be the mix node.
     else:
         input_node = mix_node
         if mix_node.bl_static_type == 'GROUP':
@@ -1636,7 +1638,7 @@ def set_material_channel_crgba_output(material_channel_name, output_channel_name
 
     # Unlink nodes to ensure only the correct nodes will be linked after this function is complete.
     bau.unlink_node(output_node, layer_node_tree, unlink_inputs=False, unlink_outputs=True)
-    bau.unlink_node(separate_color_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
+    bau.unlink_node(separate_rgb_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
 
     # Based on the output channel specified, determine the output socket that should be used
     # and if a RGB channel separator node is required.
@@ -1674,8 +1676,8 @@ def set_material_channel_crgba_output(material_channel_name, output_channel_name
 
         if connect_rgb_separator:
             layer_node_tree.links.new(output_node.outputs[0], fix_normal_rotation_node.inputs[0])
-            layer_node_tree.links.new(fix_normal_rotation_node.outputs[0], separate_color_node.inputs[0])
-            layer_node_tree.links.new(separate_color_node.outputs[output_socket], input_node.inputs[input_socket])
+            layer_node_tree.links.new(fix_normal_rotation_node.outputs[0], separate_rgb_node.inputs[0])
+            layer_node_tree.links.new(separate_rgb_node.outputs[output_socket], input_node.inputs[input_socket])
 
         else:
             layer_node_tree.links.new(output_node.outputs[output_socket], fix_normal_rotation_node.inputs[0])
@@ -1684,8 +1686,8 @@ def set_material_channel_crgba_output(material_channel_name, output_channel_name
     else:
         # Link the the RGB separator for channels using RGB outputs.
         if connect_rgb_separator:
-            layer_node_tree.links.new(output_node.outputs[0], separate_color_node.inputs[0])
-            layer_node_tree.links.new(separate_color_node.outputs[output_socket], input_node.inputs[input_socket])
+            layer_node_tree.links.new(output_node.outputs[0], separate_rgb_node.inputs[0])
+            layer_node_tree.links.new(separate_rgb_node.outputs[output_socket], input_node.inputs[input_socket])
         else:
             layer_node_tree.links.new(output_node.outputs[output_socket], input_node.inputs[input_socket])
 
