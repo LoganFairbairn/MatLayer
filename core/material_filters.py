@@ -7,6 +7,11 @@ from ..core import material_layers
 from ..core import debug_logging
 from ..core import blender_addon_utils as bau
 
+FILTER_DEFAULT_LOCATION_X = 150
+FILTER_DEFAULT_LOCATION_Y = -220
+FILTER_SPACING = 50
+FILTER_NODE_WIDTH = 200
+
 def format_filter_name(material_channel_name, filter_index):
     '''Correctly formats the name of material filter nodes.'''
     static_channel_name = bau.format_static_channel_name(material_channel_name)
@@ -93,13 +98,10 @@ def add_material_filter(self, material_channel_name, filter_type):
     # Name the filter node with an index to determine it's connection order.
     static_channel_name = bau.format_static_channel_name(material_channel_name)
     filter_index = 1
-    filter_y = -220
-    filter_spacing = 50
     filter_node_name = format_filter_name(material_channel_name, filter_index)
     filter_node = layer_node.node_tree.nodes.get(filter_node_name)
     while filter_node:
         filter_index += 1
-        filter_y -= filter_spacing
         filter_node_name = format_filter_name(material_channel_name, filter_index)
         filter_node = layer_node.node_tree.nodes.get(filter_node_name)
     new_filter_node.name = filter_node_name
@@ -108,12 +110,6 @@ def add_material_filter(self, material_channel_name, filter_type):
     # Parent the new filter node to the respective channel frame.
     frame = layer_node.node_tree.nodes.get(static_channel_name)
     new_filter_node.parent = frame
-    
-    # Set the filter node location and width for organization.
-    new_filter_node.location[0] = 150
-    new_filter_node.location[1] = filter_y
-    new_filter_node.width = 200
-    new_filter_node.hide = True
 
     # Append and insert filter node groups if necessary.
     filter_node_tree = None
@@ -129,6 +125,9 @@ def add_material_filter(self, material_channel_name, filter_type):
     relink_filter_nodes(material_channel_name)
     original_crgba_output = material_layers.get_material_channel_crgba_output(material_channel_name)
     material_layers.relink_material_channel(material_channel_name, original_crgba_output, unlink_projection=False)
+
+    # Organize filter nodes.
+    organize_filter_nodes(material_channel_name)
 
     # Log action.
     debug_logging.log("Added {0} filter to {1}.".format(filter_type, material_channel_name))
@@ -161,6 +160,9 @@ def delete_material_filter(material_channel_name, filter_index):
     relink_filter_nodes(material_channel_name)
     material_layers.relink_material_channel(material_channel_name, original_crgba_output, unlink_projection=False)
 
+    # Organize filter nodes.
+    organize_filter_nodes(material_channel_name)
+
     # Log action.
     debug_logging.log("Deleted filter at index {0}".format(filter_index))
 
@@ -170,6 +172,27 @@ def get_filter_node(material_channel_name, filter_index):
     layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
     filter_node_name = format_filter_name(material_channel_name, filter_index)
     return layer_node.node_tree.nodes.get(filter_node_name)
+
+def organize_filter_nodes(material_channel_name):
+    '''Organizes all filter nodes within the material channel frame.'''
+
+    # Cycle through all filter nodes and set the location, width and collapse / hide them.
+    filter_index = 1
+    filter_x = FILTER_DEFAULT_LOCATION_X
+    filter_y = FILTER_DEFAULT_LOCATION_Y
+    filter_node = get_filter_node(material_channel_name, filter_index)
+    while filter_node:
+        filter_node.location[0] = filter_x
+        filter_node.location[1] = filter_y
+        filter_node.width = FILTER_NODE_WIDTH
+        filter_node.hide = True
+
+        # Add spacing between nodes.
+        filter_y -= FILTER_SPACING
+
+        # Increment the index to organize the next filter node.
+        filter_index += 1
+        filter_node = get_filter_node(material_channel_name, filter_index)
 
 class MATLAYER_OT_add_material_filter(Operator):
     bl_label = "Add Material Filter"
