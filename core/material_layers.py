@@ -4,6 +4,7 @@ import bpy
 from bpy.types import PropertyGroup, Operator
 from bpy.props import IntProperty, StringProperty
 from ..core import layer_masks
+from ..core import material_filters
 from ..core import mesh_map_baking
 from ..core import blender_addon_utils as bau
 from ..core import debug_logging
@@ -1314,7 +1315,7 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                                 if not value_node.node_tree.name.startswith("ML_Default"):
                                     layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
 
-            set_material_channel_crgba_output(channel.name, original_output_channel)
+            set_material_channel_crgba_output(channel.name, original_output_channel, selected_layer_index)
 
 def set_layer_projection_nodes(projection_method):
     '''Changes the layer projection nodes to use the specified layer projection method.'''
@@ -1594,109 +1595,70 @@ def get_material_channel_crgba_output(material_channel_name):
     else:
         return output_channel
 
-def set_material_channel_crgba_output(material_channel_name, output_channel_name, layer_index=-1):
-    '''Links the specified Color / RGBA output channel for the specified material channel.'''
-    if layer_index == -1:
-        layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+def set_material_channel_crgba_output(material_channel_name, crgba_output, layer_index):
+    '''Relinks material channel nodes to output the specified Color / RGBA channel.'''
 
-    layer_node_tree = get_layer_node_tree(layer_index)
-    separate_rgb_node = get_material_layer_node('SEPARATE_RGB', layer_index, material_channel_name)
+    # Determine the node that effectively outputs the material channel value.
     projection_node = get_material_layer_node('PROJECTION', layer_index)
-    filter_node = get_material_layer_node('FILTER', layer_index, material_channel_name)
     value_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
-    mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', layer_index, material_channel_name)
-    mix_node = get_material_layer_node('MIX', layer_index, material_channel_name)
-    fix_normal_rotation_node = get_material_layer_node('FIX_NORMAL_ROTATION', layer_index, material_channel_name)
-
-    # Determine the node the main material channel output value is coming from.
-    output_node = None
+    channel_output_node = None
     match projection_node.node_tree.name:
         case 'ML_TriplanarProjection':
             if value_node.bl_static_type == 'TEX_IMAGE':
-                output_node = get_material_layer_node('TRIPLANAR_BLEND', layer_index, material_channel_name)
+                channel_output_node = get_material_layer_node('TRIPLANAR_BLEND', layer_index, material_channel_name)
             else:
-                output_node = value_node
+                channel_output_node = value_node
         case _:
-            output_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
+            if material_channel_name == 'NORMAL':
+                fix_normal_rotation_node = get_material_layer_node('FIX_NORMAL_ROTATION', layer_index, material_channel_name)
+                if fix_normal_rotation_node:
+                    channel_output_node = fix_normal_rotation_node
+                else:
+                    debug_logging.log("Fix normal rotation node missing.", message_type='ERROR')
+            else:
+                channel_output_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
 
-    # Determine the input node that will plug into the channel mix node.
-    input_node = None
-    input_socket = -1
-    connect_filter_node = False
-    if bau.get_node_active(filter_node):
-        input_node = filter_node
-        input_socket = 0
-        connect_filter_node = True
-
-    # If there is no active filter nodes, the input node will be the mix node.
+    # Determine if a separate RGB node is required.
+    if crgba_output == 'RED' or crgba_output == 'BLUE' or crgba_output == 'GREEN':
+        connect_separate_rgb = True
     else:
-        input_node = mix_node
-        if mix_node.bl_static_type == 'GROUP':
-            input_socket = 2
-        else:
-            input_socket = 7
+        connect_separate_rgb = False
+    
+    # Determine if connecting to a filter is required.
+    connect_filters = False
+    filter_count = material_filters.count_filter_nodes(material_channel_name)
+    last_filter_node = material_filters.get_filter_node(material_channel_name, filter_count)
+    if last_filter_node:
+        connect_filters = True
 
-    # Unlink nodes to ensure only the correct nodes will be linked after this function is complete.
-    bau.unlink_node(output_node, layer_node_tree, unlink_inputs=False, unlink_outputs=True)
+    # Unlink nodes to avoid potential errors when re-linking.
+    separate_rgb_node = get_material_layer_node('SEPARATE_RGB', layer_index, material_channel_name)
+    layer_node_tree = get_layer_node_tree(layer_index)
+    bau.unlink_node(channel_output_node, layer_node_tree, unlink_inputs=False, unlink_outputs=True)
     bau.unlink_node(separate_rgb_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
 
-    # Based on the output channel specified, determine the output socket that should be used
-    # and if a RGB channel separator node is required.
-    connect_rgb_separator = False
-    output_socket = 0
-    match output_channel_name:
-        case 'ALPHA':
-            if output_node.bl_static_type == 'TEX_IMAGE':
-                output_socket = 1
-            else:
-                output_socket = 0
-
-        case 'RED':
-            output_socket = 0
-            connect_rgb_separator = True
-
-        case 'GREEN':
-            output_socket = 1
-            connect_rgb_separator = True
-
-        case 'BLUE':
-            output_socket = 2
-            connect_rgb_separator = True
-
-        case _:
-            output_socket = 0
-    
-    # Always link alpha to opacity if the value node is using an image texture node.
-    if value_node.bl_static_type == 'TEX_IMAGE':
-        layer_node_tree.links.new(output_node.outputs[1], mix_image_alpha_node.inputs[1])
-
-    # For layers using UV projection, link to a normal rotation fix node.
-    if material_channel_name == 'NORMAL' and projection_node.node_tree.name == 'ML_UVProjection':
-        layer_node_tree.links.new(projection_node.outputs.get('Rotation'), fix_normal_rotation_node.inputs.get('Rotation'))
-
-        if connect_rgb_separator:
-            layer_node_tree.links.new(output_node.outputs[0], fix_normal_rotation_node.inputs[0])
-            layer_node_tree.links.new(fix_normal_rotation_node.outputs[0], separate_rgb_node.inputs[0])
-            layer_node_tree.links.new(separate_rgb_node.outputs[output_socket], input_node.inputs[input_socket])
-
-        else:
-            layer_node_tree.links.new(output_node.outputs[output_socket], fix_normal_rotation_node.inputs[0])
-            layer_node_tree.links.new(fix_normal_rotation_node.outputs[0], input_node.inputs[input_socket])
-
+    # Connect the nodes to the mix material channel ndoe based on the material channel and it's settings.
+    mix_node = get_material_layer_node('MIX', layer_index, material_channel_name)
+    if connect_separate_rgb:
+        bau.safe_node_link(channel_output_node.outputs[0], separate_rgb_node.inputs[0], layer_node_tree)
     else:
-        # Link the the RGB separator for channels using RGB outputs.
-        if connect_rgb_separator:
-            layer_node_tree.links.new(output_node.outputs[0], separate_rgb_node.inputs[0])
-            layer_node_tree.links.new(separate_rgb_node.outputs[output_socket], input_node.inputs[input_socket])
+        if connect_filters:
+            first_filter_node = material_filters.get_filter_node(material_channel_name, 1)
+            bau.safe_node_link(channel_output_node.outputs[0], first_filter_node.inputs[0], layer_node_tree)
+            if mix_node.bl_static_type == 'GROUP':
+                bau.safe_node_link(last_filter_node.outputs[0], mix_node.inputs[2], layer_node_tree)
+            else:
+                bau.safe_node_link(last_filter_node.outputs[0], mix_node.inputs[7], layer_node_tree)
         else:
-            layer_node_tree.links.new(output_node.outputs[output_socket], input_node.inputs[input_socket])
+            if mix_node.bl_static_type == 'GROUP':
+                bau.safe_node_link(channel_output_node.outputs[0], mix_node.inputs[2], layer_node_tree)
+            else:
+                bau.safe_node_link(channel_output_node.outputs[0], mix_node.inputs[7], layer_node_tree)
 
-    # Link the filter node if it's enabled for this material channel.
-    if connect_filter_node:
-        if mix_node.bl_static_type == 'GROUP':
-            layer_node_tree.links.new(input_node.outputs[0], mix_node.inputs[2])
-        else:
-            layer_node_tree.links.new(input_node.outputs[0], mix_node.inputs[7])
+    # Always link alpha to opacity if the value node is using an image texture node.
+    mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', layer_index, material_channel_name)
+    if value_node.bl_static_type == 'TEX_IMAGE':
+        layer_node_tree.links.new(channel_output_node.outputs[1], mix_image_alpha_node.inputs[1])
 
 def isolate_material_channel(material_channel_name):
     '''Isolates the specified material channel by linking only the specified material channel output to the material channel output / emission node.'''
@@ -2155,7 +2117,8 @@ class MATLAYER_OT_set_matchannel_crgba_output(Operator):
         return context.active_object
 
     def execute(self, context):
-        set_material_channel_crgba_output(self.material_channel_name, self.output_channel_name)
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        set_material_channel_crgba_output(self.material_channel_name, self.output_channel_name, selected_layer_index)
         return {'FINISHED'}
     
 class MATLAYER_OT_set_layer_blending_mode(Operator):

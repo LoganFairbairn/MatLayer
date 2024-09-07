@@ -12,6 +12,38 @@ def format_filter_name(material_channel_name, filter_index):
     static_channel_name = bau.format_static_channel_name(material_channel_name)
     return "{0}_FILTER_{1}".format(static_channel_name, str(filter_index))
 
+def count_filter_nodes(material_channel_name):
+    '''Returns the total count of the number of filter nodes for the specified material channel.'''
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
+    filter_count = 0
+    filter_exists = True
+    while filter_exists:
+        filter_node_name = format_filter_name(material_channel_name, filter_count + 1)
+        filter_node = layer_node.node_tree.nodes.get(filter_node_name)
+        if filter_node:
+            filter_count += 1
+        else:
+            filter_exists = False
+    return filter_count
+
+def relink_filter_nodes(material_channel_name):
+    '''Relinks filter nodes to other existing filter nodes.'''
+    # We don't need to link filters to other filters if there's only one.
+    filter_count = count_filter_nodes(material_channel_name)
+    if filter_count <= 1:
+        return
+
+    # Cycle through all existing filters and link all of them to each other.
+    else:
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        layer_node_tree = material_layers.get_layer_node_tree(selected_layer_index)
+        for i in range(1, filter_count):
+            filter_one = get_filter_node(material_channel_name, i)
+            filter_two = get_filter_node(material_channel_name, i + 1)
+            if filter_one and filter_two:
+                bau.safe_node_link(filter_one.outputs[0], filter_two.inputs[0], layer_node_tree)
+
 def add_material_filter(self, material_channel_name, filter_type):
     '''Adds a filter of the specified type to the specified material channel'''
 
@@ -94,9 +126,11 @@ def add_material_filter(self, material_channel_name, filter_type):
         new_filter_node.node_tree = filter_node_tree
 
     # Relink the nodes for the material channel to link the new filters.
+    relink_filter_nodes(material_channel_name)
     original_crgba_output = material_layers.get_material_channel_crgba_output(material_channel_name)
     material_layers.relink_material_channel(material_channel_name, original_crgba_output, unlink_projection=False)
 
+    # Log action.
     debug_logging.log("Added {0} filter to {1}.".format(filter_type, material_channel_name))
 
 def delete_material_filter(material_channel_name, filter_index):
@@ -104,6 +138,10 @@ def delete_material_filter(material_channel_name, filter_index):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
 
+    # Remember the original CRGBA output for the material channel so it can be reset properly after deleting nodes.
+    original_crgba_output = material_layers.get_material_channel_crgba_output(material_channel_name)
+
+    # Delete the specified filter.
     filter_node_name = format_filter_name(material_channel_name, filter_index)
     filter_node = layer_node.node_tree.nodes.get(filter_node_name)
     if filter_node:
@@ -118,21 +156,13 @@ def delete_material_filter(material_channel_name, filter_index):
         filter_index += 1
         filter_node_name = format_filter_name(material_channel_name, filter_index)
         filter_node = layer_node.node_tree.nodes.get(filter_node_name)
+    
+    # Trigger a relink of material channel nodes so filters will be linked properly.
+    relink_filter_nodes(material_channel_name)
+    material_layers.relink_material_channel(material_channel_name, original_crgba_output, unlink_projection=False)
 
+    # Log action.
     debug_logging.log("Deleted filter at index {0}".format(filter_index))
-
-def count_filter_nodes(material_channel_name):
-    '''Returns the total count of the number of filter nodes for the specified material channel.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
-    filter_node_name = format_filter_name(material_channel_name, filter_index)
-    filter_node = layer_node.node_tree.nodes.get(filter_node_name)
-    filter_index = 0 
-    while filter_node:
-        filter_index += 1
-        filter_node_name = format_filter_name(material_channel_name, filter_index)
-        filter_node = layer_node.node_tree.nodes.get(filter_node_name)
-    return filter_index
 
 def get_filter_node(material_channel_name, filter_index):
     '''Returns the filter with the specified index.'''
