@@ -235,6 +235,11 @@ def draw_value_node_properties(layout, value_node, layer_node_tree):
             row.label(text="Node Tree")
             row = second_column.row(align=True)
             row.prop(value_node, "node_tree", text="")
+            for input in value_node.inputs:
+                row = first_column.row()
+                row.label(text=input.name)
+                row = second_column.row()
+                row.prop(input, "default_value", text="")
         
         case 'TEX_IMAGE':
             row = first_column.row()
