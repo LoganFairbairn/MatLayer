@@ -20,7 +20,7 @@ MATERIAL_LAYER_PROPERTY_TABS = [
     ("MASKS", "MASKS", "Properties for masks applied to the selected material layer."),
     ("UNLAYERED", "UNLAYERED", "Properties for the selected material that are not layered.")
 ]
-    
+
 def draw_layers_tab_ui(self, context):
     '''Draws the layer section user interface to the add-on side panel.'''
     ui_tabs.draw_addon_tabs(self, context)
@@ -160,7 +160,7 @@ def draw_layer_operations(layout):
     row.scale_y = 2.0
     row.scale_x = 10
     row.operator("matlayer.add_material_layer_menu", icon='ADD', text="")
-    #row.operator("matlayer.merge_layers", icon='TRIA_DOWN_BAR', text="")
+    row.operator("matlayer.merge_layers", icon='TRIA_DOWN_BAR', text="")
     row.operator("matlayer.import_texture_set", icon='IMPORT', text="")
     row.operator("matlayer.move_material_layer_up", icon='TRIA_UP', text="")
     row.operator("matlayer.move_material_layer_down", icon='TRIA_DOWN', text="")

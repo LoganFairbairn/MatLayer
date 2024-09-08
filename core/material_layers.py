@@ -12,6 +12,7 @@ from ..core import texture_set_settings as tss
 from ..core import shaders
 import copy
 import random
+import numpy as np
 
 TRIPLANAR_PROJECTION_INPUTS = [
     'LeftRight',
@@ -1788,6 +1789,108 @@ def set_layer_blending_mode(layer_index, blending_mode, material_channel_name='C
     # Relink the material channel of this layer based on the original material output channel.
     set_material_channel_crgba_output(material_channel_name, original_output_channel, layer_index)
 
+def convert_material_channel_to_pixels(layer_index, material_channel_name):
+    '''Converts the provided material channel in the specified layer to pixel data (images).'''
+    value_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
+    if value_node:
+        match value_node.bl_static_type:
+            case 'TEX_IMAGE':
+                debug_logging.log("Material channel {0} for layer {1} is already pixel data.".format(material_channel_name, layer_index))
+                return value_node.image
+            case 'GROUP':
+                if value_node.node_tree.name.startswith('ML_Default'):
+                    opacity_node = get_material_layer_node('OPACITY', layer_index, material_channel_name)
+                    color = value_node.inputs[0].default_value
+                    alpha = opacity_node.inputs[0].default_value
+                    rgba = (color[0], color[1], color[2], alpha)
+                    return bau.create_image(
+                        new_image_name=material_channel_name + "_MergeTest",
+                        image_width=2048,
+                        image_height=2048,
+                        base_color=rgba,
+                        generate_type='BLANK',
+                        alpha_channel=True,
+                        add_unique_id=True,
+                        delete_existing=True
+                    )
+    else:
+        debug_logging.log("Can't convert invalid value node to pixel data.", message_type='ERROR')
+        return
+
+def merge_layers(self):
+    '''Merges the selected layer with the layer below by converting all material channels to pixel data (images)'''
+
+    # Verify there is a layer below the selected one to merge into.
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    if selected_layer_index - 1 < 0:
+        debug_logging.log_status("No layer below the selected layer to merge with.", self, type='INFO')
+        return
+
+    merged_image = None
+    shader_info = bpy.context.scene.matlayer_shader_info
+    for material_channel in shader_info.material_channels:
+
+        # Convert the value node to pixel data for both the selected layer and the one below it.
+        image_1 = convert_material_channel_to_pixels(selected_layer_index, material_channel.name)
+        image_2 = convert_material_channel_to_pixels(selected_layer_index - 1, material_channel.name)
+
+        # Images must contain the same number of pixels to be merged properly...
+        # Re-size both images to be the same size.
+        if image_1.size[0] != image_2.size[1] or image_1.size[1] != image_2.size[1]:
+            image_1.scale(
+                max(image_1.size[0], image_2.size[0]),
+                max(image_1.size[1], image_2.size[1])
+            )
+
+        # Define the merged image width and height.
+        width, height = image_1.size
+        
+        # 1. Convert to Blender pixel data to numpy arrays.
+        # Blender's pixel data uses a 'flat' list of RGBA pixels.
+        # As an example a 2x2 image pixel's data might look like this...
+        # [R1, G1, B1, A1, R2, G2, B2, A2, R3, G3, B3, A3, R4, G4, B4, A4]
+        # We'll use numpy's reshape function to create a 2D array with RGBA (4 values) in each array slot.
+        # Reshaping the array makes it easier to perform blending operations on the pixels.
+        pixels_1 = np.array(image_1.pixels[:]).reshape((height, width, 4))
+        pixels_2 = np.array(image_2.pixels[:]).reshape((height, width, 4))
+
+        # 2. Extract the RGBA channels using array slicing so they can be used in blending formulas.
+        rgba_1 = pixels_1[:, :, :4]     # Top RGB
+        rgba_2 = pixels_2[:, :, :4]     # Bottom RGB
+        alpha_1 = rgba_1[:, :, 3:4]     # Top Alpha
+
+        # 3. Merge the images using 'Normal' blending.
+        # result color = top color x top alpha + bottom color x (1 - top alpha)
+        # result alpha = top alpha + (1 - top alpha) x bottom alpha
+        merged_rgb = rgba_1[:, :, :3] * alpha_1 + rgba_2[:, :, :3] * (1 - alpha_1)
+        merged_alpha = alpha_1 + (1 - alpha_1) * rgba_2[:, :, 3:4]
+        merged_rgba = np.concatenate((merged_rgb, merged_alpha), axis=-1)
+
+        # 4. Create a new image in Blender's data to store the merged result.
+        merged_image = bau.create_data_image(
+            image_name="MergedImage",
+            image_width=width,
+            image_height=height,
+            alpha_channel=True,
+            thirty_two_bit=True,
+            data=True,
+            delete_existing=True
+        )
+        merged_image.pixels = merged_rgba.flatten()
+        merged_image.update()
+
+    # Delete the originally selected layer.
+    delete_layer(self)
+
+    # Add all of the merged images to every material channel for the layer below.
+    shader_info = bpy.context.scene.matlayer_shader_info
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    for material_channel in shader_info.material_channels:
+        replace_material_channel_node(material_channel.name, 'TEXTURE')
+        texture_node = get_material_layer_node('VALUE', selected_layer_index, material_channel.name)
+        texture_node.image = merged_image
+
+    debug_logging.log("Merged layers.")
 
 #----------------------------- OPERATORS -----------------------------#
 
@@ -2146,7 +2249,7 @@ class MATLAYER_OT_set_layer_blending_mode(Operator):
 class MATLAYER_OT_merge_layers(Operator):
     bl_idname = "matlayer.merge_layers"
     bl_label = "Merge Layers"
-    bl_description = "Converts all material channels of the selected layer to pixel data, then merges all active material channels of the selected layer with the layer below."
+    bl_description = "Merges the selected layer with the layer below by converting all material channels to pixel data (images)"
     bl_options = {'REGISTER', 'UNDO'}
 
     @ classmethod
@@ -2154,4 +2257,5 @@ class MATLAYER_OT_merge_layers(Operator):
         return context.active_object
 
     def execute(self, context):
+        merge_layers(self)
         return {'FINISHED'}
