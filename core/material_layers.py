@@ -1644,11 +1644,14 @@ def set_material_channel_crgba_output(material_channel_name, crgba_output, layer
     else:
         if connect_filters:
             first_filter_node = material_filters.get_filter_node(material_channel_name, 1)
-            bau.safe_node_link(channel_output_node.outputs[0], first_filter_node.inputs[0], layer_node_tree)
+            filter_type = material_filters.get_filter_type(first_filter_node)
+            filter_input = material_filters.get_filter_info(filter_type, "main_input_socket")
+            filter_output = material_filters.get_filter_info(filter_type, "main_output_socket")
+            bau.safe_node_link(channel_output_node.outputs[0], first_filter_node.inputs[filter_input], layer_node_tree)
             if mix_node.bl_static_type == 'GROUP':
-                bau.safe_node_link(last_filter_node.outputs[0], mix_node.inputs[2], layer_node_tree)
+                bau.safe_node_link(last_filter_node.outputs[filter_output], mix_node.inputs[2], layer_node_tree)
             else:
-                bau.safe_node_link(last_filter_node.outputs[0], mix_node.inputs[7], layer_node_tree)
+                bau.safe_node_link(last_filter_node.outputs[filter_output], mix_node.inputs[7], layer_node_tree)
         else:
             if mix_node.bl_static_type == 'GROUP':
                 bau.safe_node_link(channel_output_node.outputs[0], mix_node.inputs[2], layer_node_tree)

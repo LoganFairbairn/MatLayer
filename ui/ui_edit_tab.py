@@ -783,7 +783,7 @@ class MATLAYER_OT_add_material_filter_menu(Operator):
         split = layout.split()
         col = split.column(align=True)
         col.scale_y = 1.4
-        col.operator("matlayer.add_material_filter_hsv", text="Add HSV")
+        col.operator("matlayer.add_material_filter_hsv", text="Add HUE_SAT")
         col.operator("matlayer.add_material_filter_color_ramp", text="Add Color Ramp")
         col.operator("matlayer.add_material_filter_invert", text="Add Invert")
 
@@ -872,25 +872,25 @@ class MaterialChannelValueNodeSubMenu(Menu):
         # Draw operators to add available material filters.
         op = layout.operator("matlayer.add_material_filter", text="Add HSV Filter", icon='FILTER')
         op.material_channel = material_channel_name
-        op.filter_type = 'HSV'
+        op.filter_type = 'HUE_SAT'
         op = layout.operator("matlayer.add_material_filter", text="Add Invert Filter", icon='FILTER')
         op.material_channel = material_channel_name
         op.filter_type = 'INVERT'
         op = layout.operator("matlayer.add_material_filter", text="Add Brightness / Contrast Filter", icon='FILTER')
         op.material_channel = material_channel_name
-        op.filter_type = 'BRIGHTNESS_CONTRAST'
+        op.filter_type = 'BRIGHTCONTRAST'
         op = layout.operator("matlayer.add_material_filter", text="Add Gamma Filter", icon='FILTER')
         op.material_channel = material_channel_name
         op.filter_type = 'GAMMA'
         op = layout.operator("matlayer.add_material_filter", text="Add RGB Curves Fitler", icon='FILTER')
         op.material_channel = material_channel_name
-        op.filter_type = 'RGB_CURVES'
+        op.filter_type = 'CURVE_RGB'
         op = layout.operator("matlayer.add_material_filter", text="Add RGB to BW Fitler", icon='FILTER')
         op.material_channel = material_channel_name
-        op.filter_type = 'RGB_TO_BW'
+        op.filter_type = 'RGBTOBW'
         op = layout.operator("matlayer.add_material_filter", text="Add Color Ramp Fitler", icon='FILTER')
         op.material_channel = material_channel_name
-        op.filter_type = 'COLOR_RAMP'
+        op.filter_type = 'VALTORGB'
         op = layout.operator("matlayer.add_material_filter", text="Add Cheap Contrast Filter", icon='FILTER')
         op.material_channel = material_channel_name
         op.filter_type = 'CHEAP_CONTRAST'

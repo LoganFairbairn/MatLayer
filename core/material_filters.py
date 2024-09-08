@@ -12,6 +12,73 @@ FILTER_DEFAULT_LOCATION_Y = -220
 FILTER_SPACING = 50
 FILTER_NODE_WIDTH = 200
 
+# Info lookup table for filter node info.
+FILTER_INFO = {
+    "HUE_SAT": {
+        "bpy_node_name": "ShaderNodeHueSaturation",
+        "node_label": "Hue Saturation Value",
+        "main_input_socket": 4,
+        "main_output_socket": 0,
+        "custom_node_group": ""
+    },
+    "INVERT": {
+        "bpy_node_name": "ShaderNodeInvert", 
+        "node_label": "Invert",
+        "main_input_socket": 1,
+        "main_output_socket": 0,
+        "custom_node_group": ""
+    },
+    "BRIGHTCONTRAST": {
+        "bpy_node_name": "ShaderNodeBrightContrast",
+        "node_label": "Brightness / Contrast",
+        "main_input_socket": 0,
+        "main_output_socket": 0,
+        "custom_node_group": ""
+    },
+    "GAMMA": {
+        "bpy_node_name": "ShaderNodeGamma",
+        "node_label": "Gamma",
+        "main_input_socket": 0,
+        "main_output_socket": 0,
+        "custom_node_group": ""
+    },
+    "CURVE_RGB": {
+        "bpy_node_name": "ShaderNodeRGBCurve",
+        "node_label": "RGB Curves",
+        "main_input_socket": 1,
+        "main_output_socket": 0,
+        "custom_node_group": ""
+    },
+    "RGBTOBW": {
+        "bpy_node_name": "ShaderNodeRGBToBW",
+        "node_label": "RGB to BW",
+        "main_input_socket": 0,
+        "main_output_socket": 0,
+        "custom_node_group": ""
+    },
+    "VALTORGB": {
+        "bpy_node_name": "ShaderNodeValToRGB",
+        "node_label": "Color Ramp",
+        "main_input_socket": 0,
+        "main_output_socket": 0,
+        "custom_node_group": ""
+    },
+    "CHEAP_CONTRAST": {
+        "bpy_node_name": "ShaderNodeGroup",
+        "node_label": "Cheap Contrast",
+        "main_input_socket": 0,
+        "main_output_socket": 0,
+        "custom_node_group": "ML_CheapContrast"
+    },
+    "NORMAL_INTENSITY": {
+        "bpy_node_name": "ShaderNodeGroup",
+        "node_label": "Normal Intensity",
+        "main_input_socket": 0,
+        "main_output_socket": 0,
+        "custom_node_group": "ML_AdjustNormalIntensity"
+    }
+}
+
 def format_filter_name(material_channel_name, filter_index):
     '''Correctly formats the name of material filter nodes.'''
     static_channel_name = bau.format_static_channel_name(material_channel_name)
@@ -32,6 +99,29 @@ def count_filter_nodes(material_channel_name):
             filter_exists = False
     return filter_count
 
+def get_filter_info(filter_type, filter_info):
+    '''Returns the main socket index for the specified filter node.'''
+    if filter_type in FILTER_INFO:
+        info = FILTER_INFO[filter_type]
+        if info:
+            return info[filter_info]
+    debug_logging.log("No filter info for: {0}".format(filter_type), message_type='ERROR')
+    return 0
+
+def get_filter_type(filter_node):
+    '''Returns the static type name for the provided filter node.'''
+    if filter_node.bl_static_type == 'GROUP':
+        match filter_node.node_tree.name:
+            case 'ML_CheapContrast':
+                return 'CHEAP_CONTRAST'
+            case 'ML_AdjustNormalIntensity':
+                return 'NORMAL_INTENSITY'
+            case _:
+                debug_logging.log("Can't determing filter node type for filter node.")
+                return 'INVALID_FILTER_TYPE'
+    else:
+        return filter_node.bl_static_type   
+
 def relink_filter_nodes(material_channel_name):
     '''Relinks filter nodes to other existing filter nodes.'''
     # We don't need to link filters to other filters if there's only one.
@@ -47,7 +137,10 @@ def relink_filter_nodes(material_channel_name):
             filter_one = get_filter_node(material_channel_name, i)
             filter_two = get_filter_node(material_channel_name, i + 1)
             if filter_one and filter_two:
-                bau.safe_node_link(filter_one.outputs[0], filter_two.inputs[0], layer_node_tree)
+                filter_type = get_filter_type(filter_two)
+                output_socket = get_filter_info(filter_type, "main_output_socket")
+                input_socket = get_filter_info(filter_type, "main_input_socket")
+                bau.safe_node_link(filter_one.outputs[output_socket], filter_two.inputs[input_socket], layer_node_tree)
 
 def add_material_filter(self, material_channel_name, filter_type):
     '''Adds a filter of the specified type to the specified material channel'''
@@ -56,43 +149,10 @@ def add_material_filter(self, material_channel_name, filter_type):
     if bau.verify_material_operation_context(self, check_active_material=False) == False:
         return
     
-    # Based on the filter type, determine the Blender node name, and the node label.
-    node_type = ""
-    filter_node_label = "Error"
-    match filter_type:
-        case 'HSV':
-            node_type = 'ShaderNodeHueSaturation'
-            filter_node_label = "Hue Saturation Value"
-        case 'INVERT':
-            node_type = 'ShaderNodeInvert'
-            filter_node_label = "Invert"
-        case 'BRIGHTNESS_CONTRAST':
-            node_type = 'ShaderNodeBrightContrast'
-            filter_node_label = "Brightness Contrast"
-        case 'GAMMA':
-            node_type = 'ShaderNodeGamma'
-            filter_node_label = "Gamma"
-        case 'RGB_CURVES':
-            node_type = 'ShaderNodeRGBCurves'
-            filter_node_label = "Shader Node Curves"
-        case 'RGB_TO_BW':
-            node_type = 'ShaderNodeRGBToBW'
-            filter_node_label = "RGB to BW"
-        case 'COLOR_RAMP':
-            node_type = 'ShaderNodeValToRGB'
-            filter_node_label = "Color Ramp"
-        case 'CHEAP_CONTRAST':
-            node_type = 'ShaderNodeGroup'
-            filter_node_label = "Cheap Contrast"
-        case 'NORMAL_INTENSITY':
-            node_type = 'ShaderNodeGroup'
-            filter_node_label = "Normal Intensity"
-        case _:
-            debug_logging.log("Can't add material filter, invalid type: {0}".format(filter_type))
-    
     # Add the filter node of the specified type to the node tree.
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
+    node_type = get_filter_info(filter_type, "bpy_node_name")
     new_filter_node = layer_node.node_tree.nodes.new(node_type)
     
     # Name the filter node with an index to determine it's connection order.
@@ -105,7 +165,7 @@ def add_material_filter(self, material_channel_name, filter_type):
         filter_node_name = format_filter_name(material_channel_name, filter_index)
         filter_node = layer_node.node_tree.nodes.get(filter_node_name)
     new_filter_node.name = filter_node_name
-    new_filter_node.label = filter_node_label
+    new_filter_node.label = get_filter_info(filter_type, "node_label")
 
     # Parent the new filter node to the respective channel frame.
     frame = layer_node.node_tree.nodes.get(static_channel_name)
