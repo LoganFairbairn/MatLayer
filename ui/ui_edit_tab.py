@@ -12,8 +12,6 @@ from ..core import blender_addon_utils as bau
 from . import ui_tabs
 from .. import preferences
 
-DEFAULT_UI_SCALE_Y = 1
-
 # Tabs to help organize the user interface and help limit the number of properties displayed at one time.
 MATERIAL_LAYER_PROPERTY_TABS = [
     ("LAYER", "LAYER", "Properties for the selected material layer."),
@@ -200,7 +198,6 @@ def draw_layer_material_channel_toggles(layout):
     row.label(text="CHANNELS")
 
     row = layout.row()
-    row.scale_y = DEFAULT_UI_SCALE_Y
     drawn_toggles = 0
     
     shader_info = bpy.context.scene.matlayer_shader_info
@@ -220,7 +217,6 @@ def draw_layer_material_channel_toggles(layout):
             if len(active_material_channels) > 5:
                 if drawn_toggles >= min(4, round(len(active_material_channels) / 2)):
                     row = layout.row()
-                    row.scale_y = DEFAULT_UI_SCALE_Y
                     drawn_toggles = 0
 
 def draw_value_node_properties(layout, value_node, layer_node_tree):
@@ -409,25 +405,21 @@ def draw_layer_projection(layout):
                 # Rotation, offset and scale values are draw in columns rather than in rows to allow this.
                 split = layout.split()
                 col = split.column()
-                col.scale_y = DEFAULT_UI_SCALE_Y
                 col.prop(projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
                 col.prop(projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
                 col.prop(projection_node.inputs.get('OffsetZ'), "default_value", text="Offset Z", slider=True)
 
                 col = split.column()
-                col.scale_y = DEFAULT_UI_SCALE_Y
                 col.prop(projection_node.inputs.get('RotationX'), "default_value", text="Rotation X", slider=True)
                 col.prop(projection_node.inputs.get('RotationY'), "default_value", text="Rotation Y", slider=True)
                 col.prop(projection_node.inputs.get('RotationZ'), "default_value", text="Rotation Z", slider=True)
 
                 col = split.column()
-                col.scale_y = DEFAULT_UI_SCALE_Y
                 col.prop(projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
                 col.prop(projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
                 col.prop(projection_node.inputs.get('ScaleZ'), "default_value", text="Scale Z")
 
                 row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
                 row.prop(projection_node.inputs.get('Blending'), "default_value", text="Blending")
 
             case 'ML_DecalProjection':
@@ -440,106 +432,17 @@ def draw_layer_projection(layout):
                 row = second_column.row()
                 row.label(text="Decal")
 
-def draw_mask_projection(layout):
-    '''Draws projection settings for the selected mask.'''
-    row = layout.row()
-    row.scale_y = 2.5
-    row.separator()
-
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
-    mask_projection_node = layer_masks.get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
-    mask_id_name = layer_masks.get_mask_id_name(selected_layer_index, selected_mask_index)
-    if mask_projection_node:
-        match mask_projection_node.node_tree.name:
-            case 'ML_UVProjection':
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.label(text="MASK PROJECTION")
-
-                if mask_id_name == 'IMAGE_MASK':
-                    row = layout.row()
-                    row.scale_y = DEFAULT_UI_SCALE_Y
-                    row.menu('MATLAYER_MT_mask_projection_sub_menu', text="UV Projection")
-
-                split = layout.split()
-                col = split.column()
-                col.scale_y = DEFAULT_UI_SCALE_Y
-                col.prop(mask_projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
-                col.prop(mask_projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
-
-                col = split.column()
-                col.scale_y = DEFAULT_UI_SCALE_Y
-                col.prop(mask_projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
-                col.prop(mask_projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
-
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(mask_projection_node.inputs.get('Rotation'), "default_value", text="Rotation", slider=True)
-
-            case 'ML_TriplanarProjection':
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.label(text="MASK PROJECTION")
-
-                if mask_id_name == 'IMAGE_MASK':
-                    row = layout.row()
-                    row.scale_y = DEFAULT_UI_SCALE_Y
-                    row.menu('MATLAYER_MT_mask_projection_sub_menu', text="Triplanar Projection")
-
-                split = layout.split()
-                col = split.column()
-                col.scale_y = DEFAULT_UI_SCALE_Y
-                col.prop(mask_projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
-                col.prop(mask_projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
-                col.prop(mask_projection_node.inputs.get('OffsetZ'), "default_value", text="Offset Z", slider=True)
-
-                col = split.column()
-                col.scale_y = DEFAULT_UI_SCALE_Y
-                col.prop(mask_projection_node.inputs.get('RotationX'), "default_value", text="Rotation X", slider=True)
-                col.prop(mask_projection_node.inputs.get('RotationY'), "default_value", text="Rotation Y", slider=True)
-                col.prop(mask_projection_node.inputs.get('RotationZ'), "default_value", text="Rotation Z", slider=True)
-
-                col = split.column()
-                col.scale_y = DEFAULT_UI_SCALE_Y
-                col.prop(mask_projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
-                col.prop(mask_projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
-                col.prop(mask_projection_node.inputs.get('ScaleZ'), "default_value", text="Scale Z")
-
-                row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
-                row.prop(mask_projection_node.inputs.get('Blending'), "default_value", text="Blending")
-
-def draw_mask_channel(layout, selected_layer_index, selected_mask_index):
-    '''Draws the mask channel and sub menu to change the mask channel used.'''
-    split = layout.split(factor=0.4)
-    first_column = split.column()
-    second_column = split.column()
-
-    mask_filter_node = layer_masks.get_mask_node("FILTER", selected_layer_index, selected_mask_index)
-    if mask_filter_node:
-        row = first_column.row()
-        row.label(text="Channel")
-
-        if len(mask_filter_node.inputs[0].links) > 0:
-            menu_label = mask_filter_node.inputs[0].links[0].from_socket.name
-            row = second_column.row()
-            row.menu("MATLAYER_MT_mask_channel_sub_menu", text=menu_label)
-
 def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_index):
     '''Draws group node properties for the selected mask.'''
-    split = layout.split(factor=0.4)
+    split = layout.split(factor=0.3)
     first_column = split.column()
     second_column = split.column()
 
-    # Draw primary mask texture property ('TEXTURE_1').
+    # Draw primary mask image property ('TEXTURE_1').
     mask_texture_node = layer_masks.get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=1)
     if mask_texture_node:
         row = first_column.row()
-        texture_display_name = mask_texture_node.label.replace('_', ' ')
-        texture_display_name = blender_addon_utils.capitalize_by_space(texture_display_name)
-        row.label(text=texture_display_name)
-
+        row.label(text="Image")
         row = second_column.row(align=True)
         row.prop(mask_texture_node, "image", text="")
         image = mask_texture_node.image
@@ -578,34 +481,86 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
                 row.prop(node, "interpolation", text="")
 
     # Draw mask group node input properties.
+    split = layout.split(factor=0.3)
+    first_column = split.column()
+    second_column = split.column()
     for i in range(0, len(mask_node.inputs)):
-        if mask_node.inputs[i].name != 'Mix':
-            row = layout.row()
-            row.scale_y = DEFAULT_UI_SCALE_Y
-            row.prop(mask_node.inputs[i], "default_value", text=mask_node.inputs[i].name)
-
-    # Draw blurring properties.
-    blur_node = layer_masks.get_mask_node('BLUR', selected_layer_index, selected_mask_index)
-    if blur_node:
-        split = layout.split(factor=0.085)
-        first_column = split.column()
-        second_column = split.column()
-
-        row = first_column.row()
-        blur_value_row = second_column.row()
-        if blender_addon_utils.get_node_active(blur_node):
-            row.operator("matlayer.toggle_mask_blur", text="", icon='CHECKBOX_HLT', depress=True)
-            blur_value_row.enabled = True
-        else:
-            row.operator("matlayer.toggle_mask_blur", text="", icon='CHECKBOX_DEHLT')
-            blur_value_row.enabled = False
-
-        blur_value_row.prop(blur_node.inputs.get('Blur Amount'), "default_value", text="Blur", slider=True)
+        if mask_node.inputs[i].name != 'Mix' and mask_node.inputs[i].name != 'Blur Noise':
+            row = first_column.row()
+            row.label(text=mask_node.inputs[i].name)
+            row = second_column.row()
+            row.prop(mask_node.inputs[i], "default_value", text="")
 
     # Draw mask color ramp properties.
     mask_filter_node = layer_masks.get_mask_node('FILTER', selected_layer_index, selected_mask_index)
     if mask_filter_node:
         layout.template_color_ramp(mask_filter_node, "color_ramp", expand=True)
+
+def draw_mask_crgba_channel(layout, selected_layer_index, selected_mask_index):
+    '''Draws the mask CRGBA sub-menu.'''
+    split = layout.split(factor=0.3)
+    first_column = split.column()
+    second_column = split.column()
+    row = first_column.row()
+    row.label(text="Channel")
+    row = second_column.row()
+    row.menu("MATLAYER_MT_mask_channel_sub_menu", text="Color")
+
+def draw_mask_projection(layout):
+    '''Draws projection settings for the selected mask.'''
+    row = layout.row()
+    row.scale_y = 2.5
+    row.separator()
+
+    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+    mask_projection_node = layer_masks.get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
+    if mask_projection_node:
+        match mask_projection_node.node_tree.name:
+            case 'ML_UVProjection':
+                row = layout.row()
+                row.label(text="PROJECTION")
+
+                row = layout.row()
+                row.menu('MATLAYER_MT_mask_projection_sub_menu', text="UV Projection")
+
+                split = layout.split()
+                col = split.column()
+                col.prop(mask_projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
+                col.prop(mask_projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
+
+                col = split.column()
+                col.prop(mask_projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
+                col.prop(mask_projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
+
+                row = layout.row()
+                row.prop(mask_projection_node.inputs.get('Rotation'), "default_value", text="Rotation", slider=True)
+
+            case 'ML_TriplanarProjection':
+                row = layout.row()
+                row.label(text="MASK PROJECTION")
+
+                row = layout.row()
+                row.menu('MATLAYER_MT_mask_projection_sub_menu', text="Triplanar Projection")
+
+                split = layout.split()
+                col = split.column()
+                col.prop(mask_projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
+                col.prop(mask_projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
+                col.prop(mask_projection_node.inputs.get('OffsetZ'), "default_value", text="Offset Z", slider=True)
+
+                col = split.column()
+                col.prop(mask_projection_node.inputs.get('RotationX'), "default_value", text="Rotation X", slider=True)
+                col.prop(mask_projection_node.inputs.get('RotationY'), "default_value", text="Rotation Y", slider=True)
+                col.prop(mask_projection_node.inputs.get('RotationZ'), "default_value", text="Rotation Z", slider=True)
+
+                col = split.column()
+                col.prop(mask_projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
+                col.prop(mask_projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
+                col.prop(mask_projection_node.inputs.get('ScaleZ'), "default_value", text="Scale Z")
+
+                row = layout.row()
+                row.prop(mask_projection_node.inputs.get('Blending'), "default_value", text="Blending")
 
 def draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index):
     '''Draws un-editable mesh maps used in the selected mask.'''
@@ -617,7 +572,6 @@ def draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index):
                 row = layout.row()
                 row.separator()
                 row = layout.row()
-                row.scale_y = DEFAULT_UI_SCALE_Y
                 row.label(text="MESH MAPS")
                 drew_title = True
 
@@ -641,7 +595,7 @@ def draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index):
 def draw_masks(layout):
     row = layout.row(align=True)
     row.scale_x = 10
-    row.scale_y = DEFAULT_UI_SCALE_Y + 1.0
+    row.scale_y = 2
     row.operator("matlayer.add_layer_mask_menu", icon="ADD", text="")
     row.operator("matlayer.move_layer_mask_up", icon="TRIA_UP", text="")
     row.operator("matlayer.move_layer_mask_down", icon="TRIA_DOWN", text="")
@@ -657,11 +611,10 @@ def draw_masks(layout):
     mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, selected_mask_index)
     if mask_node:
         row = layout.row()
-        row.scale_y = DEFAULT_UI_SCALE_Y
-        row.label(text="MASK PROPERTIES")
+        row.label(text="PROPERTIES")
 
-        draw_mask_channel(layout, selected_layer_index, selected_mask_index)
         draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_index)
+        draw_mask_crgba_channel(layout, selected_layer_index, selected_mask_index)
         draw_mask_projection(layout)
         draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index)
 
@@ -743,17 +696,20 @@ class MATLAYER_OT_add_layer_mask_menu(Operator):
         row = layout.row(align=True)
         col = row.column(align=True)
         col.scale_y = 1.4
-        col.operator("matlayer.add_empty_layer_mask", text="Empty")
-        col.operator("matlayer.add_black_layer_mask", text="Black")
-        col.operator("matlayer.add_white_layer_mask", text="White")
+        col.operator("matlayer.add_empty_layer_mask", text="Add Empty Mask")
+        col.operator("matlayer.add_black_layer_mask", text="Add Black Mask")
+        col.operator("matlayer.add_white_layer_mask", text="Add White Mask")
         col.operator("matlayer.add_linear_gradient_mask", text="Linear Gradient")
-        col.operator("matlayer.add_decal_mask", text="Decal")
+
+        '''
         col.operator("matlayer.add_grunge_mask", text="Grunge")
         col.operator("matlayer.add_edge_wear_mask", text="Edge Wear")
+        col.operator("matlayer.add_decal_mask", text="Decal")
         col.operator("matlayer.add_ambient_occlusion_mask", text="Ambient Occlusion")
         col.operator("matlayer.add_curvature_mask", text="Curvature")
         col.operator("matlayer.add_thickness_mask", text="Thickness")
         col.operator("matlayer.add_world_space_normals_mask", text="World Space Normals")
+        '''
 
 class MATLAYER_OT_add_material_filter_menu(Operator):
     bl_label = ""

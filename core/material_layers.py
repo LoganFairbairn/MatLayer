@@ -124,6 +124,7 @@ def sync_triplanar_settings():
 
 def get_shorthand_material_channel_name(material_channel_name):
     '''Returns the short-hand version of the provided material channel name.'''
+    # TODO: Probably should just use json for this...
     match material_channel_name:
         case 'COLOR':
             return 'COLOR'
@@ -340,6 +341,9 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
         case 'EXPORT_UV_MAP':
             return active_material.node_tree.nodes.get('EXPORT_UV_MAP')
         
+        case 'BLUR_NOISE':
+            return active_material.node_tree.nodes.get('BLUR_NOISE')
+
         case _:
             debug_logging.log("Invalid material node name passed to get_material_layer_node.")
             return None

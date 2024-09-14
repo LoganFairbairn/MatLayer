@@ -33,7 +33,7 @@ from .core import shaders
 from .core import material_layers
 
 # Layer Masks
-from .core.layer_masks import MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_mask_list, MATLAYER_OT_move_layer_mask_up, MATLAYER_OT_move_layer_mask_down, MATLAYER_OT_duplicate_layer_mask, MATLAYER_OT_delete_layer_mask, MATLAYER_OT_add_empty_layer_mask, MATLAYER_OT_add_black_layer_mask, MATLAYER_OT_add_white_layer_mask, MATLAYER_OT_add_linear_gradient_mask, MATLAYER_OT_add_decal_mask, MATLAYER_OT_add_ambient_occlusion_mask, MATLAYER_OT_add_curvature_mask, MATLAYER_OT_add_thickness_mask, MATLAYER_OT_add_world_space_normals_mask,  MATLAYER_OT_add_grunge_mask, MATLAYER_OT_add_edge_wear_mask, MATLAYER_OT_add_decal_mask, MATLAYER_OT_set_mask_projection_uv, MATLAYER_OT_set_mask_projection_triplanar, MATLAYER_OT_set_mask_output_channel, MATLAYER_OT_isolate_mask, MATLAYER_OT_toggle_mask_blur
+from .core.layer_masks import MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_mask_list, MATLAYER_OT_move_layer_mask_up, MATLAYER_OT_move_layer_mask_down, MATLAYER_OT_duplicate_layer_mask, MATLAYER_OT_delete_layer_mask, MATLAYER_OT_add_empty_layer_mask, MATLAYER_OT_add_black_layer_mask, MATLAYER_OT_add_white_layer_mask, MATLAYER_OT_add_linear_gradient_mask, MATLAYER_OT_add_decal_mask, MATLAYER_OT_add_ambient_occlusion_mask, MATLAYER_OT_add_curvature_mask, MATLAYER_OT_add_thickness_mask, MATLAYER_OT_add_world_space_normals_mask,  MATLAYER_OT_add_grunge_mask, MATLAYER_OT_add_edge_wear_mask, MATLAYER_OT_add_decal_mask, MATLAYER_OT_set_mask_projection_uv, MATLAYER_OT_set_mask_projection_triplanar, MATLAYER_OT_set_mask_output_channel, MATLAYER_OT_isolate_mask
 
 # Material Filters
 from .core.material_filters import MATLAYER_OT_add_material_filter, MATLAYER_OT_delete_material_filter
@@ -171,7 +171,6 @@ classes = (
     MATLAYER_OT_set_mask_projection_triplanar,
     MATLAYER_OT_set_mask_output_channel,
     MATLAYER_OT_isolate_mask,
-    MATLAYER_OT_toggle_mask_blur,
 
     # Material Filters
     MATLAYER_OT_add_material_filter,
