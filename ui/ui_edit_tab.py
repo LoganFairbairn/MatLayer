@@ -747,26 +747,9 @@ class MATLAYER_OT_add_layer_mask_menu(Operator):
         col.operator("matlayer.add_black_layer_mask", text="Black")
         col.operator("matlayer.add_white_layer_mask", text="White")
         col.operator("matlayer.add_linear_gradient_mask", text="Linear Gradient")
-
-        row = layout.row(align=True)
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-        layer_projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
-        if layer_projection_node:
-            if layer_projection_node.node_tree.name != 'ML_DecalProjection':
-                row.enabled = False
-        col = row.column(align=True)
-        col.scale_y = 1.4
         col.operator("matlayer.add_decal_mask", text="Decal")
-
-        row = layout.row(align=True)
-        col = row.column(align=True)
-        col.scale_y = 1.4
         col.operator("matlayer.add_grunge_mask", text="Grunge")
         col.operator("matlayer.add_edge_wear_mask", text="Edge Wear")
-
-        row = layout.row(align=True)
-        col = row.column(align=True)
-        col.scale_y = 1.4
         col.operator("matlayer.add_ambient_occlusion_mask", text="Ambient Occlusion")
         col.operator("matlayer.add_curvature_mask", text="Curvature")
         col.operator("matlayer.add_thickness_mask", text="Thickness")
