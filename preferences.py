@@ -15,6 +15,12 @@ class AddonPreferences(AddonPreferences):
         default=True
     )
 
+    experimental_features: BoolProperty(
+        name="Experimental Features",
+        description="If on, experiemental features will be shown in the add-ons user interface",
+        default=False
+    )
+
     save_imported_textures: BoolProperty(
         name="Save Imported Textures", 
         default=False,
@@ -91,3 +97,4 @@ class AddonPreferences(AddonPreferences):
         # Draw other preferences.
         layout.label(text="Other")
         layout.prop(self, "beginner_help")
+        layout.prop(self, "experimental_features")
