@@ -239,6 +239,19 @@ def append_world(world_name):
         return world
     return world
 
+def append_object(object_name):
+    '''Appends the specified object from this add-ons blend asset file.'''
+    obj = bpy.data.objects.get(object_name)
+    if obj == None:
+        blend_assets_path = get_blend_assets_path()
+        with bpy.data.libraries.load(blend_assets_path, link=False) as (data_from, data_to):
+            data_to.objects = [object_name]
+        obj = bpy.data.objects.get(object_name)
+        if obj is not None:
+            bpy.context.collection.objects.link(obj)
+        return obj
+    return obj
+
 def get_node_by_bl_static_type(nodes, bl_static_type):
     '''Finds and returns a node by it's bl_static_type.'''
     # When using a different language, default nodes must be accessed using their type because their default name translates.
