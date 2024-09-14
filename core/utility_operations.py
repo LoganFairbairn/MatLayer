@@ -6,7 +6,7 @@ from bpy.types import Operator
 from bpy.utils import resource_path
 from pathlib import Path
 from ..core import debug_logging
-from ..core import blender_addon_utils
+from ..core import blender_addon_utils as bau
 from ..preferences import ADDON_NAME
 
 class MATLAYER_OT_set_decal_layer_snapping(Operator):
@@ -97,7 +97,7 @@ class MATLAYER_OT_append_hdri_world(Operator):
     bl_description = "Appends a world environment setup for HDRI lighting"
 
     def execute(self, context):
-        blender_addon_utils.append_world('HDRIWorld')
+        bau.append_world('HDRIWorld')
         bpy.context.scene.world = bpy.data.worlds['HDRIWorld']
         return {'FINISHED'}
 
@@ -107,7 +107,7 @@ class MATLAYER_OT_remove_unused_raw_textures(Operator):
     bl_description = "Removes all unused textures from the blend file, and all textures not used in the external raw texture folder"
 
     def execute(self, context):
-        external_folder_path = blender_addon_utils.get_texture_folder_path(folder='RAW_TEXTURES')
+        external_folder_path = bau.get_texture_folder_path(folder='RAW_TEXTURES')
 
         # Delete all images externally then internally for all images with no users.
         for image in bpy.data.images:
@@ -135,4 +135,13 @@ class MATLAYER_OT_remove_unused_raw_textures(Operator):
                 os.remove(image_path)
                 debug_logging.log("Deleted external image that doesn't exist internally: {0}".format(texture_name))
 
+        return {'FINISHED'}
+    
+class MATLAYER_OT_append_material_ball(Operator):
+    bl_idname = "matlayer.append_material_ball"
+    bl_label = "Append Material Ball"
+    bl_description = "Appends a material ball object designed to be optimal for testing materials"
+
+    def execute(self, context):
+        bau.append_object("MaterialBall")
         return {'FINISHED'}
