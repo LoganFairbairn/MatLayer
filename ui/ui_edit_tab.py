@@ -705,23 +705,28 @@ class MATLAYER_OT_add_layer_mask_menu(Operator):
     # Draws the properties in the popup.
     def draw(self, context):
         layout = self.layout
+        row = layout.row()
+        row.alignment = 'CENTER'
+        row.label(text="Add Mask")
         row = layout.row(align=True)
         col = row.column(align=True)
         col.scale_y = 1.4
-        col.operator("matlayer.add_empty_layer_mask", text="Add Empty Mask")
-        col.operator("matlayer.add_black_layer_mask", text="Add Black Mask")
-        col.operator("matlayer.add_white_layer_mask", text="Add White Mask")
+        col.operator("matlayer.add_empty_layer_mask", text="Empty Image")
+        col.operator("matlayer.add_black_layer_mask", text="Black Image")
+        col.operator("matlayer.add_white_layer_mask", text="White Image")
         col.operator("matlayer.add_linear_gradient_mask", text="Linear Gradient")
 
-        '''
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
+        if projection_node.node_tree.name == 'ML_DecalProjection':
+            col.operator("matlayer.add_decal_mask", text="Decal")
+        
         col.operator("matlayer.add_grunge_mask", text="Grunge")
         col.operator("matlayer.add_edge_wear_mask", text="Edge Wear")
-        col.operator("matlayer.add_decal_mask", text="Decal")
         col.operator("matlayer.add_ambient_occlusion_mask", text="Ambient Occlusion")
         col.operator("matlayer.add_curvature_mask", text="Curvature")
         col.operator("matlayer.add_thickness_mask", text="Thickness")
         col.operator("matlayer.add_world_space_normals_mask", text="World Space Normals")
-        '''
 
 class MATLAYER_OT_add_material_filter_menu(Operator):
     bl_label = ""
