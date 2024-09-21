@@ -778,7 +778,7 @@ def add_material_layer(layer_type, self):
             mask_texture_node = layer_masks.get_mask_node('TEXTURE', new_layer_slot_index, 0)
             if mask_texture_node:
                 mask_texture_node.image = default_decal_image
-            layer_masks.set_mask_output_channel('ALPHA')
+            layer_masks.set_mask_crgba_channel('ALPHA')
             
             # Apply decal snapping.
             bau.set_snapping('DECAL', snap_on=True)

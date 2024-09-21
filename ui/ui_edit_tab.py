@@ -499,13 +499,17 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
 def draw_mask_crgba_channel(layout, mask_node):
     '''Draws the mask CRGBA sub-menu for compatable masks.'''
     if mask_node.outputs[0].name == 'Mask CRGBA':
+        mask_crgba_channel_name = layer_masks.get_mask_crgba_channel()
         split = layout.split(factor=0.3)
         first_column = split.column()
         second_column = split.column()
         row = first_column.row()
         row.label(text="Channel")
         row = second_column.row()
-        row.menu("MATLAYER_MT_mask_channel_sub_menu", text="Color")
+        row.menu(
+            "MATLAYER_MT_mask_channel_sub_menu", 
+            text=bau.capitalize_by_space(mask_crgba_channel_name)
+        )
 
 def draw_mask_projection(layout):
     '''Draws projection settings for the selected mask.'''
@@ -621,7 +625,6 @@ def draw_masks_tab(layout):
     if mask_node:
         row = layout.row()
         row.label(text="PROPERTIES")
-
         draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_index)
         draw_mask_crgba_channel(layout, mask_node)
         draw_mask_projection(layout)
@@ -859,15 +862,15 @@ class MaskChannelSubMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        operator = layout.operator("matlayer.set_mask_output_channel", text="Color")
+        operator = layout.operator("matlayer.set_mask_crgba_channel", text="Color")
         operator.channel_name = 'COLOR'
-        operator = layout.operator("matlayer.set_mask_output_channel", text="Alpha")
+        operator = layout.operator("matlayer.set_mask_crgba_channel", text="Alpha")
         operator.channel_name = 'ALPHA'
-        operator = layout.operator("matlayer.set_mask_output_channel", text="Red")
+        operator = layout.operator("matlayer.set_mask_crgba_channel", text="Red")
         operator.channel_name = 'RED'
-        operator = layout.operator("matlayer.set_mask_output_channel", text="Green")
+        operator = layout.operator("matlayer.set_mask_crgba_channel", text="Green")
         operator.channel_name = 'GREEN'
-        operator = layout.operator("matlayer.set_mask_output_channel", text="Blue")
+        operator = layout.operator("matlayer.set_mask_crgba_channel", text="Blue")
         operator.channel_name = 'BLUE'
 
 class MaterialChannelOutputSubMenu(Menu):

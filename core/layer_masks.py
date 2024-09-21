@@ -155,6 +155,13 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
             if node_tree:
                 return node_tree.nodes.get('WORLD_SPACE_NORMALS')
             return None
+        
+        case 'SEPARATE_RGB':
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
+            node_tree = bpy.data.node_groups.get(mask_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('SEPARATE_RGB')
+            return None     
 
 def count_masks(layer_index, material_name=""):
     '''Counts the total number of masks for the specified material by applied to the specified layer by counting existing material node groups in the blend data.'''
@@ -400,7 +407,7 @@ def add_layer_mask(type, self):
 
             # For world space normals mask, masking using the blue (z or up) channel is more frequently used, so we'll apply that as the default.
             if type == 'WORLD_SPACE_NORMALS':
-                set_mask_output_channel('BLUE')
+                set_mask_crgba_channel('BLUE')
             debug_logging.log("Added a {0} mesh map mask.".format(type))
 
     material_layers.link_layer_group_nodes(self)
@@ -697,14 +704,14 @@ def relink_image_mask_projection(original_output_channel):
             mask_node.node_tree.links.new(filter_node.outputs[0], linear_mask_blend_node.inputs[0])
             mask_node.node_tree.links.new(projection_node.outputs[1], linear_mask_blend_node.inputs[1])
 
-    set_mask_output_channel(original_output_channel)
+    set_mask_crgba_channel(original_output_channel)
 
 def set_mask_projection_mode(projection_mode):
     '''Sets the projection mode of the mask. Only image masks can have their projection mode swapped.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
 
-    original_output_channel = get_mask_output_channel()
+    original_output_channel = get_mask_crgba_channel()
     
     match projection_mode:
         case 'UV':
@@ -778,26 +785,25 @@ def set_mask_projection_mode(projection_mode):
                 if blur_node:
                     blur_node.node_tree = bau.append_group_node('ML_TriplanarBlur')
 
-def get_mask_output_channel():
+def get_mask_crgba_channel():
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
     filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
-
     output_channel = ''
     if filter_node:
         input_socket = filter_node.inputs[0]
         link = input_socket.links[0]
         output_channel = link.from_socket.name.upper()
-
     return output_channel
 
-def set_mask_output_channel(output_channel):
+def set_mask_crgba_channel(output_channel):
+    '''Sets the CRGBA output channel for the selected mask.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
 
     mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
     filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
-    separate_color_node = mask_node.node_tree.nodes.get('SEPARATE_COLOR')
+    separate_rgb_node = get_mask_node('SEPARATE_RGB', selected_layer_index, selected_mask_index)
 
     # Find the main mask output node based on the mask projection.
     output_node = None
@@ -811,7 +817,7 @@ def set_mask_output_channel(output_channel):
 
     # Disconnect the mask nodes.
     bau.unlink_node(output_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
-    bau.unlink_node(separate_color_node, mask_node.node_tree, unlink_inputs=True, unlink_outputs=True)
+    bau.unlink_node(separate_rgb_node, mask_node.node_tree, unlink_inputs=True, unlink_outputs=True)
 
     # Connect the specified channel to the mask filter.
     match output_channel:
@@ -822,18 +828,20 @@ def set_mask_output_channel(output_channel):
             mask_node.node_tree.links.new(output_node.outputs[1], filter_node.inputs[0])
 
         case 'RED':
-            mask_node.node_tree.links.new(output_node.outputs[0], separate_color_node.inputs[0])
-            mask_node.node_tree.links.new(separate_color_node.outputs[0], filter_node.inputs[0])
+            mask_node.node_tree.links.new(output_node.outputs[0], separate_rgb_node.inputs[0])
+            mask_node.node_tree.links.new(separate_rgb_node.outputs[0], filter_node.inputs[0])
 
         case 'GREEN':
-            mask_node.node_tree.links.new(output_node.outputs[0], separate_color_node.inputs[0])
-            mask_node.node_tree.links.new(separate_color_node.outputs[1], filter_node.inputs[0])
+            mask_node.node_tree.links.new(output_node.outputs[0], separate_rgb_node.inputs[0])
+            mask_node.node_tree.links.new(separate_rgb_node.outputs[1], filter_node.inputs[0])
 
         case 'BLUE':
-            mask_node.node_tree.links.new(output_node.outputs[0], separate_color_node.inputs[0])
-            mask_node.node_tree.links.new(separate_color_node.outputs[2], filter_node.inputs[0])
+            mask_node.node_tree.links.new(output_node.outputs[0], separate_rgb_node.inputs[0])
+            mask_node.node_tree.links.new(separate_rgb_node.outputs[2], filter_node.inputs[0])
+
 
 #----------------------------- OPERATORS -----------------------------#
+
 
 class MATLAYER_mask_stack(PropertyGroup):
     '''Properties for the layer stack.'''
@@ -1128,7 +1136,7 @@ class MATLAYER_OT_set_mask_projection_uv(Operator):
         return context.active_object
 
     def execute(self, context):
-        original_output_channel = get_mask_output_channel()
+        original_output_channel = get_mask_crgba_channel()
         set_mask_projection_mode('UV')
         relink_image_mask_projection(original_output_channel)
         return {'FINISHED'}
@@ -1145,14 +1153,14 @@ class MATLAYER_OT_set_mask_projection_triplanar(Operator):
         return context.active_object
 
     def execute(self, context):
-        original_output_channel = get_mask_output_channel()
+        original_output_channel = get_mask_crgba_channel()
         set_mask_projection_mode('TRIPLANAR')
         relink_image_mask_projection(original_output_channel)
         return {'FINISHED'}
 
-class MATLAYER_OT_set_mask_output_channel(Operator):
+class MATLAYER_OT_set_mask_crgba_channel(Operator):
     bl_label = "Set Mask Output Channel"
-    bl_idname = "matlayer.set_mask_output_channel"
+    bl_idname = "matlayer.set_mask_crgba_channel"
     bl_description = "Sets the channel used for the mask to the specified value. This allows for the use of RGBA channel packed masks, and using image transparency as a mask"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1164,7 +1172,7 @@ class MATLAYER_OT_set_mask_output_channel(Operator):
         return context.active_object
 
     def execute(self, context):
-        set_mask_output_channel(self.channel_name)
+        set_mask_crgba_channel(self.channel_name)
         return {'FINISHED'}
 
 class MATLAYER_OT_isolate_mask(Operator):
