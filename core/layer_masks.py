@@ -4,7 +4,7 @@ from bpy.props import BoolProperty, IntProperty, StringProperty
 import random
 from ..core import texture_set_settings as tss
 from ..core import material_layers
-from ..core import blender_addon_utils
+from ..core import blender_addon_utils as bau
 from ..core import debug_logging
 
 def update_selected_mask_index(self, context):
@@ -13,7 +13,7 @@ def update_selected_mask_index(self, context):
     selected_mask_index = context.scene.matlayer_mask_stack.selected_index
     mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
     if mask_texture_node:
-        blender_addon_utils.set_texture_paint_image(mask_texture_node.image)
+        bau.set_texture_paint_image(mask_texture_node.image)
 
 def parse_mask_layer_index(mask_group_node_name):
     '''Return the mask's layer index by parsing the mask group node name. Returns -1 if there is no active object.'''
@@ -208,7 +208,7 @@ def add_mask_slot():
 def add_layer_mask(type, self):
     '''Adds a mask of the specified type to the selected material layer.'''
 
-    if blender_addon_utils.verify_material_operation_context(self) == False:
+    if bau.verify_material_operation_context(self) == False:
         return
 
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
@@ -218,7 +218,7 @@ def add_layer_mask(type, self):
     new_mask_group_node = None
     match type:
         case 'EMPTY':
-            default_node_group = blender_addon_utils.append_group_node("ML_ImageMask", never_auto_delete=True)
+            default_node_group = bau.append_group_node("ML_ImageMask", never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -232,7 +232,7 @@ def add_layer_mask(type, self):
             debug_logging.log("Added empty layer mask.")
                 
         case 'BLACK':
-            default_node_group = blender_addon_utils.append_group_node("ML_ImageMask", never_auto_delete=True)
+            default_node_group = bau.append_group_node("ML_ImageMask", never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -265,7 +265,7 @@ def add_layer_mask(type, self):
             debug_logging.log("Added black layer mask.")
 
         case 'WHITE':
-            default_node_group = blender_addon_utils.append_group_node("ML_ImageMask", never_auto_delete=True)
+            default_node_group = bau.append_group_node("ML_ImageMask", never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -298,7 +298,7 @@ def add_layer_mask(type, self):
             debug_logging.log("Added white layer mask.")
 
         case 'LINEAR_GRADIENT':
-            default_node_group = blender_addon_utils.append_group_node("ML_LinearGradient", never_auto_delete=True)
+            default_node_group = bau.append_group_node("ML_LinearGradient", never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -312,7 +312,7 @@ def add_layer_mask(type, self):
             debug_logging.log("Added a linear gradient mask.")
 
         case 'DECAL':
-            default_node_group = blender_addon_utils.append_group_node("ML_DecalMask", never_auto_delete=True)
+            default_node_group = bau.append_group_node("ML_DecalMask", never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -334,7 +334,7 @@ def add_layer_mask(type, self):
             debug_logging.log("Added a decal mask.")
 
         case 'GRUNGE':
-            default_node_group = blender_addon_utils.append_group_node("ML_Grunge", never_auto_delete=True)
+            default_node_group = bau.append_group_node("ML_Grunge", never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -348,7 +348,7 @@ def add_layer_mask(type, self):
             material_layers.apply_mesh_maps()
 
             # Add a default grunge texture to the mask.
-            default_grunge_texture = blender_addon_utils.append_image('DefaultGrunge')
+            default_grunge_texture = bau.append_image('DefaultGrunge')
             for i in range(0, 3):
                 texture_sample_node = get_mask_node('TEXTURE', selected_layer_index, new_mask_slot_index, node_number=i + 1)
                 if texture_sample_node:
@@ -357,7 +357,7 @@ def add_layer_mask(type, self):
             debug_logging.log("Added a grunge mask.") 
 
         case 'EDGE_WEAR':
-            default_node_group = blender_addon_utils.append_group_node("ML_EdgeWear", never_auto_delete=True)
+            default_node_group = bau.append_group_node("ML_EdgeWear", never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -371,7 +371,7 @@ def add_layer_mask(type, self):
             material_layers.apply_mesh_maps()
 
             # Add a default edge wear texture to the mask.
-            default_grunge_texture = blender_addon_utils.append_image('DefaultGrunge')
+            default_grunge_texture = bau.append_image('DefaultGrunge')
             for i in range(0, 3):
                 texture_sample_node = get_mask_node('TEXTURE', selected_layer_index, new_mask_slot_index, node_number=i + 1)
                 if texture_sample_node:
@@ -382,16 +382,16 @@ def add_layer_mask(type, self):
         # Mesh maps masks.
         case _:
             mesh_map_mask_name = type.replace('_', ' ')
-            mesh_map_mask_name = blender_addon_utils.capitalize_by_space(mesh_map_mask_name)
+            mesh_map_mask_name = bau.capitalize_by_space(mesh_map_mask_name)
             mesh_map_mask_name = mesh_map_mask_name.replace(' ', '')
             mesh_map_mask_name = "ML_{0}Mask".format(mesh_map_mask_name)
-            default_node_group = blender_addon_utils.append_group_node(mesh_map_mask_name, never_auto_delete=True)
+            default_node_group = bau.append_group_node(mesh_map_mask_name, never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
             new_mask_group_node.node_tree = default_node_group
             new_mask_group_node.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
-            new_mask_group_node.label = blender_addon_utils.capitalize_by_space("{0} Mask".format(type.replace('_', ' ')))
+            new_mask_group_node.label = bau.capitalize_by_space("{0} Mask".format(type.replace('_', ' ')))
             
             reindex_masks('ADDED_MASK', selected_layer_index, new_mask_slot_index)
             organize_mask_nodes()
@@ -413,7 +413,7 @@ def add_layer_mask(type, self):
 
 def duplicate_mask(self, mask_index=-1):
     '''Duplicates the mask at the provided mask index.'''
-    if blender_addon_utils.verify_material_operation_context(self) == False:
+    if bau.verify_material_operation_context(self) == False:
         return
     
     # Duplicate the selected mask index if a mask index to duplicate is not specified.
@@ -426,7 +426,7 @@ def duplicate_mask(self, mask_index=-1):
     mask_node = get_mask_node('MASK', selected_layer_index, mask_index)
     mask_node_tree = get_mask_node_tree(selected_layer_index, mask_index)
     if mask_node_tree:
-        duplicated_node_tree = blender_addon_utils.duplicate_node_group(mask_node_tree.name)
+        duplicated_node_tree = bau.duplicate_node_group(mask_node_tree.name)
 
         if duplicated_node_tree:
             new_mask_slot_index = add_mask_slot()
@@ -445,7 +445,7 @@ def duplicate_mask(self, mask_index=-1):
 
 def delete_layer_mask(self):
     '''Removed the selected layer mask from the mask stack.'''
-    if blender_addon_utils.verify_material_operation_context(self) == False:
+    if bau.verify_material_operation_context(self) == False:
         return
 
     masks = bpy.context.scene.matlayer_masks
@@ -472,7 +472,7 @@ def delete_layer_mask(self):
 
 def move_mask(direction, self):
     '''Moves the selected mask up / down on the material layer stack.'''
-    if blender_addon_utils.verify_material_operation_context(self) == False:
+    if bau.verify_material_operation_context(self) == False:
         return
 
     masks = bpy.context.scene.matlayer_masks
@@ -594,8 +594,11 @@ def link_mask_nodes(layer_index):
         mask_node = get_mask_node('MASK', layer_index, i)
         next_mask_node = get_mask_node('MASK', layer_index, i + 1)
         if next_mask_node:
-            last_input_index = len(next_mask_node.inputs) - 1
-            node_tree.links.new(mask_node.outputs[0], next_mask_node.inputs[last_input_index])
+            bau.safe_node_link(
+                mask_node.outputs[0], 
+                next_mask_node.inputs.get('Mix'), 
+                node_tree
+            )
 
     # Connect the last layer node.
     layer_node = material_layers.get_material_layer_node('LAYER', layer_index)
@@ -636,7 +639,7 @@ def relink_image_mask_projection(original_output_channel):
     blur_node = get_mask_node('BLUR', selected_layer_index, selected_mask_index)
 
     # Disconnect the projection and blur nodes.
-    blender_addon_utils.unlink_node(projection_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
+    bau.unlink_node(projection_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
 
     # Link mask nodes based on the mask projection mode.
     match projection_node.node_tree.name:
@@ -649,7 +652,7 @@ def relink_image_mask_projection(original_output_channel):
             mask_node.node_tree.links.new(texture_node.outputs[0], filter_node.inputs[0])
 
             # Unlink and re-link the mask filter node to trigger a re-compile of the material.
-            blender_addon_utils.unlink_node(filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
+            bau.unlink_node(filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
             mix_node = get_mask_node('MASK_MIX', selected_layer_index, selected_mask_index)
             if mix_node:
                 mask_node.node_tree.links.new(filter_node.outputs[0], mix_node.inputs[7])
@@ -667,12 +670,12 @@ def relink_image_mask_projection(original_output_channel):
             mask_node.node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
             
             if filter_node:
-                blender_addon_utils.unlink_node(filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
+                bau.unlink_node(filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
                 mask_node.node_tree.links.new(triplanar_blend_node.outputs[0], filter_node.inputs[0])
 
             # Unlink and re-link the mask filter node to trigger a re-compile of the material.
             if filter_node:
-                blender_addon_utils.unlink_node(filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
+                bau.unlink_node(filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
                 mix_node = get_mask_node('MASK_MIX', selected_layer_index, selected_mask_index)
                 if mix_node:
                     mask_node.node_tree.links.new(filter_node.outputs[0], mix_node.inputs[7])
@@ -681,7 +684,7 @@ def relink_image_mask_projection(original_output_channel):
             mask_node.node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
 
             texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
-            if blender_addon_utils.get_node_active(blur_node):
+            if bau.get_node_active(blur_node):
                 mask_node.node_tree.links.new(blur_node.outputs[0], texture_node.inputs[0])
 
             else:
@@ -730,10 +733,10 @@ def set_mask_projection_mode(projection_mode):
                 new_mask_texture_node.image = original_texture_node_image
 
             # Set the projection and blur nodes to use triplanar setups.
-            projection_node.node_tree = blender_addon_utils.append_group_node('ML_UVProjection')
+            projection_node.node_tree = bau.append_group_node('ML_UVProjection')
             blur_node = get_mask_node('BLUR', selected_layer_index, selected_mask_index)
             if blur_node:
-                blur_node.node_tree = blender_addon_utils.append_group_node('ML_NoiseBlur')
+                blur_node.node_tree = bau.append_group_node('ML_NoiseBlur')
 
         case 'TRIPLANAR':
             mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
@@ -762,7 +765,7 @@ def set_mask_projection_mode(projection_mode):
 
                     # Add a triplanar blending node.
                     triplanar_blend_node = mask_node.node_tree.nodes.new('ShaderNodeGroup')
-                    triplanar_blend_node.node_tree = blender_addon_utils.append_group_node("ML_TriplanarBlend")
+                    triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarBlend")
                     triplanar_blend_node.name = "TRIPLANAR_BLEND"
                     triplanar_blend_node.label = triplanar_blend_node.name
                     triplanar_blend_node.width = 200
@@ -770,10 +773,10 @@ def set_mask_projection_mode(projection_mode):
                     triplanar_blend_node.location = (location_x, location_y)
 
                 # Set the projection and blur nodes to use triplanar setups.
-                projection_node.node_tree = blender_addon_utils.append_group_node('ML_TriplanarProjection')
+                projection_node.node_tree = bau.append_group_node('ML_TriplanarProjection')
                 blur_node = get_mask_node('BLUR', selected_layer_index, selected_mask_index)
                 if blur_node:
-                    blur_node.node_tree = blender_addon_utils.append_group_node('ML_TriplanarBlur')
+                    blur_node.node_tree = bau.append_group_node('ML_TriplanarBlur')
 
 def get_mask_output_channel():
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
@@ -807,8 +810,8 @@ def set_mask_output_channel(output_channel):
             output_node = mask_texture_node
 
     # Disconnect the mask nodes.
-    blender_addon_utils.unlink_node(output_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
-    blender_addon_utils.unlink_node(separate_color_node, mask_node.node_tree, unlink_inputs=True, unlink_outputs=True)
+    bau.unlink_node(output_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
+    bau.unlink_node(separate_color_node, mask_node.node_tree, unlink_inputs=True, unlink_outputs=True)
 
     # Connect the specified channel to the mask filter.
     match output_channel:
@@ -1177,7 +1180,7 @@ class MATLAYER_OT_isolate_mask(Operator):
         return context.active_object
 
     def execute(self, context):
-        if blender_addon_utils.verify_material_operation_context(self) == False:
+        if bau.verify_material_operation_context(self) == False:
             return
 
         selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
@@ -1188,7 +1191,7 @@ class MATLAYER_OT_isolate_mask(Operator):
         emission_node = active_node_tree.nodes.get('EMISSION')
         material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
 
-        blender_addon_utils.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
+        bau.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
 
         active_node_tree.links.new(mask_node.outputs[0], emission_node.inputs[0])
         active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
