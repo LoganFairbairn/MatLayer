@@ -426,9 +426,9 @@ def draw_layer_projection(layout):
                 split = layout.split(factor=0.25)
                 first_column = split.column()
                 second_column = split.column()
-
+                
                 row = first_column.row()
-                row.label(text="Projection")
+                row.label(text="Method")
                 row = second_column.row()
                 row.label(text="Decal")
 
