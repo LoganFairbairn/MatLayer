@@ -409,7 +409,7 @@ def add_layer_mask(type, self):
     if "Blur Noise" in new_mask_group_node.inputs:
         blur_noise_node = material_layers.get_material_layer_node('BLUR_NOISE')
         node_tree = active_material.node_tree
-        node_tree.links.new(blur_noise_node.outputs[1], new_mask_group_node.inputs.get("Blur Noise"))
+        node_tree.links.new(blur_noise_node.outputs[0], new_mask_group_node.inputs.get("Blur Noise"))
 
 def duplicate_mask(self, mask_index=-1):
     '''Duplicates the mask at the provided mask index.'''
