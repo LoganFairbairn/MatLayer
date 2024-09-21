@@ -83,7 +83,7 @@ def draw_layers_tab_ui(self, context):
                 draw_layer_material_channel_toggles(column_one)
                 draw_material_channel_properties(column_one)
             case 'MASKS':
-                draw_masks(column_one)
+                draw_masks_tab(column_one)
             case 'UNLAYERED':
                 draw_unlayered_material_properties(column_one)
 
@@ -496,15 +496,16 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
     if mask_filter_node:
         layout.template_color_ramp(mask_filter_node, "color_ramp", expand=True)
 
-def draw_mask_crgba_channel(layout, selected_layer_index, selected_mask_index):
-    '''Draws the mask CRGBA sub-menu.'''
-    split = layout.split(factor=0.3)
-    first_column = split.column()
-    second_column = split.column()
-    row = first_column.row()
-    row.label(text="Channel")
-    row = second_column.row()
-    row.menu("MATLAYER_MT_mask_channel_sub_menu", text="Color")
+def draw_mask_crgba_channel(layout, mask_node):
+    '''Draws the mask CRGBA sub-menu for compatable masks.'''
+    if mask_node.outputs[0].name == 'Mask CRGBA':
+        split = layout.split(factor=0.3)
+        first_column = split.column()
+        second_column = split.column()
+        row = first_column.row()
+        row.label(text="Channel")
+        row = second_column.row()
+        row.menu("MATLAYER_MT_mask_channel_sub_menu", text="Color")
 
 def draw_mask_projection(layout):
     '''Draws projection settings for the selected mask.'''
@@ -592,7 +593,7 @@ def draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index):
             else:
                 row.label(text="Not Baked")
 
-def draw_masks(layout):
+def draw_masks_tab(layout):
     row = layout.row(align=True)
     row.scale_x = 10
     row.scale_y = 2
@@ -602,7 +603,15 @@ def draw_masks(layout):
     row.operator("matlayer.duplicate_layer_mask", icon="DUPLICATE", text="")
     row.operator("matlayer.delete_layer_mask", icon="TRASH", text="")
     row = layout.row(align=True)
-    row.template_list("MATLAYER_UL_mask_list", "Masks", bpy.context.scene, "matlayer_masks", bpy.context.scene.matlayer_mask_stack, "selected_index", sort_reverse=True)
+    row.template_list(
+        "MATLAYER_UL_mask_list", 
+        "Masks", 
+        bpy.context.scene, 
+        "matlayer_masks", 
+        bpy.context.scene.matlayer_mask_stack, 
+        "selected_index", 
+        sort_reverse=True
+    )
     row.scale_y = 2
 
     # Draw properties for the selected mask.
@@ -614,7 +623,7 @@ def draw_masks(layout):
         row.label(text="PROPERTIES")
 
         draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_index)
-        draw_mask_crgba_channel(layout, selected_layer_index, selected_mask_index)
+        draw_mask_crgba_channel(layout, mask_node)
         draw_mask_projection(layout)
         draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index)
 
