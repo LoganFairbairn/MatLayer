@@ -1072,8 +1072,9 @@ def count_layers(material=None):
 def organize_layer_group_nodes():
     '''Organizes all layer group nodes in the active material to ensure the node tree is easy to read.'''
     active_material = bpy.context.active_object.active_material
-    layer_count = count_layers()
 
+    # Organize layer group nodes.
+    layer_count = count_layers()
     position_x = -500
     for i in range(layer_count, 0, -1):
         layer_group_node = active_material.node_tree.nodes.get(str(i - 1))
@@ -1081,6 +1082,16 @@ def organize_layer_group_nodes():
             layer_group_node.width = 300
             layer_group_node.location = (position_x, 0)
             position_x -= 500
+
+    # Organize blur noise.
+    blur_noise = get_material_layer_node('BLUR_NOISE')
+    if blur_noise:
+        blur_node_y = 0
+        layer_node = active_material.node_tree.nodes.get('0')
+        if layer_node:
+            blur_node_y = layer_node.height * -6
+        blur_noise.location = (position_x, 0 + blur_node_y)
+
     debug_logging.log("Organized layer group nodes.")
 
 def refresh_layer_stack(reason="", scene=None):
