@@ -683,12 +683,15 @@ class MATLAYER_OT_add_material_layer_menu(Operator):
     # Draws the properties in the popup.
     def draw(self, context):
         layout = self.layout
+        row = layout.row()
+        row.alignment = 'CENTER'
+        row.label(text="Add Layer")
         split = layout.split()
         col = split.column(align=True)
         col.scale_y = 1.4
-        col.operator("matlayer.add_material_layer")
-        col.operator("matlayer.add_image_layer")
-        col.operator("matlayer.add_decal_material_layer")
+        col.operator("matlayer.add_material_layer", text="Material")
+        col.operator("matlayer.add_image_layer", text="Image")
+        col.operator("matlayer.add_decal_material_layer", text="Decal")
 
 class MATLAYER_OT_add_layer_mask_menu(Operator):
     bl_label = "Add Mask"
