@@ -585,8 +585,9 @@ def link_mask_nodes(layer_index):
         mask_node = get_mask_node('MASK', layer_index, i)
         if mask_node:
             for input in mask_node.inputs:
-                for link in input.links:
-                    node_tree.links.remove(link)
+                if input.name != 'Blur Noise':
+                    for link in input.links:
+                        node_tree.links.remove(link)
 
     # Re-connect all mask group nodes.
     for i in range(0, mask_count):
