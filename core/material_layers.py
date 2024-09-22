@@ -658,12 +658,16 @@ def create_default_layer_node(layer_type):
             default_node_group.links.new(mix_node_reroute.outputs[0], mix_node.inputs[6])
             default_node_group.links.new(value_node.outputs[0], mix_node.inputs[7])
             default_node_group.links.new(mix_node.outputs[2], output_node.inputs.get(channel.name))
-
+        
         mix_node.name = "{0}_MIX".format(static_channel_name)
         mix_node.label = mix_node.name
         mix_node.location[0] = 500
         mix_node.location[1] = 0
         mix_node.parent = channel_frame_node
+
+        # If the material channel is not active by default, mute the mix node.
+        if not channel.default_active:
+            mix_node.mute = True
 
         # Organize the location of the material channel frame.
         channel_frame_node.location[0] = frame_x
