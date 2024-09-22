@@ -469,19 +469,9 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
             row = second_column.row()
             row.prop(mask_node.inputs[i], "default_value", text="")
 
-    # Draw mask color ramp properties.
-    for node in mask_node.node_tree.nodes:
-        if node.bl_static_type == 'VALTORGB':
-            layout.label(text=node.label)
-            layout.template_color_ramp(node, "color_ramp", expand=True)
-
-def draw_mask_crgba_channel(layout, mask_node):
-    '''Draws the mask CRGBA sub-menu for compatable masks.'''
+    # Draw CRGBA channel properties for compatable masks.
     if mask_node.outputs[0].name == 'Mask CRGBA':
         mask_crgba_channel_name = layer_masks.get_mask_crgba_channel()
-        split = layout.split(factor=0.3)
-        first_column = split.column()
-        second_column = split.column()
         row = first_column.row()
         row.label(text="Channel")
         row = second_column.row()
@@ -489,6 +479,12 @@ def draw_mask_crgba_channel(layout, mask_node):
             "MATLAYER_MT_mask_channel_sub_menu", 
             text=bau.capitalize_by_space(mask_crgba_channel_name)
         )
+
+    # Draw mask color ramp properties.
+    for node in mask_node.node_tree.nodes:
+        if node.bl_static_type == 'VALTORGB':
+            layout.label(text=node.label)
+            layout.template_color_ramp(node, "color_ramp", expand=True)
 
 def draw_mask_projection(layout):
     '''Draws projection settings for the selected mask.'''
@@ -605,7 +601,6 @@ def draw_masks_tab(layout):
         row = layout.row()
         row.label(text="PROPERTIES")
         draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_index)
-        draw_mask_crgba_channel(layout, mask_node)
         draw_mask_projection(layout)
         draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index)
 
