@@ -1907,6 +1907,7 @@ def merge_layers(self):
 
     debug_logging.log("Merged layers.")
 
+
 #----------------------------- OPERATORS -----------------------------#
 
 

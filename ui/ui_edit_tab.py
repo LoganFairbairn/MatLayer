@@ -434,33 +434,14 @@ def draw_layer_projection(layout):
 
 def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_index):
     '''Draws group node properties for the selected mask.'''
-    split = layout.split(factor=0.3)
+    split = layout.split(factor=0.4)
     first_column = split.column()
     second_column = split.column()
 
-    # Draw primary mask image property ('TEXTURE_1').
-    mask_texture_node = layer_masks.get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=1)
-    if mask_texture_node:
-        row = first_column.row()
-        row.label(text="Image")
-        row = second_column.row(align=True)
-        row.prop(mask_texture_node, "image", text="")
-        image = mask_texture_node.image
-        if image:
-            row.prop(image, "use_fake_user", text="")
-        row.context_pointer_set("node_tree", mask_node.node_tree)
-        row.context_pointer_set("node", mask_texture_node)
-        row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
-
-        row = first_column.row()
-        row.label(text="Interpolation")
-        row = second_column.row()
-        row.prop(mask_texture_node, "interpolation", text="")
-
-    # Draw custom mask texture properties (if any exist).
+    # Draw properties for texture nodes in masks.
     for node in mask_node.node_tree.nodes:
-        if node.bl_static_type == 'TEX_IMAGE' and node.name not in mesh_map_baking.MESH_MAP_TYPES:
-            if not node.name.startswith('TEXTURE_'):
+        if node.bl_static_type == 'TEX_IMAGE':
+            if node.name not in mesh_map_baking.MESH_MAP_TYPES:
                 row = first_column.row()
                 texture_display_name = node.label.replace('_', ' ')
                 texture_display_name = blender_addon_utils.capitalize_by_space(texture_display_name)
@@ -468,7 +449,7 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
 
                 row = second_column.row(align=True)
                 row.prop(node, "image", text="")
-                image = mask_node.image
+                image = node.image
                 if image:
                     row.prop(image, "use_fake_user", text="")
                 row.context_pointer_set("node_tree", mask_node.node_tree)
@@ -480,10 +461,7 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
                 row = second_column.row()
                 row.prop(node, "interpolation", text="")
 
-    # Draw mask group node input properties.
-    split = layout.split(factor=0.3)
-    first_column = split.column()
-    second_column = split.column()
+    # Draw mask group node input properties, excluding those that will be auto-connected.
     for i in range(0, len(mask_node.inputs)):
         if mask_node.inputs[i].name != 'Mix' and mask_node.inputs[i].name != 'Blur Noise':
             row = first_column.row()
@@ -492,9 +470,10 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
             row.prop(mask_node.inputs[i], "default_value", text="")
 
     # Draw mask color ramp properties.
-    mask_filter_node = layer_masks.get_mask_node('FILTER', selected_layer_index, selected_mask_index)
-    if mask_filter_node:
-        layout.template_color_ramp(mask_filter_node, "color_ramp", expand=True)
+    for node in mask_node.node_tree.nodes:
+        if node.bl_static_type == 'VALTORGB':
+            layout.label(text=node.label)
+            layout.template_color_ramp(node, "color_ramp", expand=True)
 
 def draw_mask_crgba_channel(layout, mask_node):
     '''Draws the mask CRGBA sub-menu for compatable masks.'''
