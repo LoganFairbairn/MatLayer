@@ -223,7 +223,7 @@ def draw_value_node_properties(layout, value_node, layer_node_tree):
     '''Draws properties for the provided value node.'''
 
     # Use a two column layout.
-    split = layout.split(factor=0.3)
+    split = layout.split(factor=0.4)
     first_column = split.column(align=True)
     second_column = split.column(align=True)
 
@@ -262,7 +262,7 @@ def draw_filter_properties(layout, material_channel_name, selected_layer_index):
     filter_index = 1
     filter_node_name = static_channel_name + "_FILTER_" + str(filter_index)
     filter_node = layer_node.node_tree.nodes.get(filter_node_name)
-    split = layout.split(factor=0.3)
+    split = layout.split(factor=0.4)
     first_column = split.column(align=True)
     second_column = split.column(align=True)
 
@@ -311,39 +311,49 @@ def draw_material_channel_properties(layout):
                 layout.separator()
 
                 # Use a three column layout.
-                split = layout.split(factor=0.3)
+                split = layout.split(factor=0.4)
                 first_column = split.column(align=True)
                 second_column = split.column(align=True)
 
-                # Draw the channel name.
+                # Draw the channel name and operators for editing the material channel.
                 row = first_column.row()
                 row.label(text="{0}".format(channel.name.upper()))
-
-                # Draw additional operators when images are used as the material channel value...
                 row = second_column.row(align=True)
                 row.alignment = 'RIGHT'
-                if value_node.bl_static_type == 'TEX_IMAGE':
-
-                    # Draw CRGB channel output being used (mainly for channel packing).
-                    row.context_pointer_set("mix_node", mix_node)
-                    output_channel_name = material_layers.get_material_channel_crgba_output(channel.name)
-                    if len(output_channel_name) > 0:
-                        row.menu("MATLAYER_MT_material_channel_output_sub_menu", text=output_channel_name[0])
-                    
-                    # Draw a toggle for image alpha blending.
-                    mix_image_alpha_node = material_layers.get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, channel.name)
-                    if mix_image_alpha_node.mute:
-                        operator = row.operator("matlayer.toggle_image_alpha_blending", text="", icon='IMAGE_ALPHA')
-                    else:
-                        operator = row.operator("matlayer.toggle_image_alpha_blending", text="", icon='IMAGE_ALPHA', depress=True)
-                    operator.material_channel_name = channel.name
-
-                # Draw a sub-menu with operators for editing the material channel.
                 row.context_pointer_set("mix_node", mix_node)
                 row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text="", icon='NODE')
 
                 draw_value_node_properties(layout, value_node, layer_node_tree)
                 draw_filter_properties(layout, channel.name, selected_layer_index)
+
+                # Draw additional operators when images are used as the material channel value...
+                split = layout.split(factor=0.4)
+                first_column = split.column()
+                second_column = split.column()
+                row = second_column.row()
+                if value_node.bl_static_type == 'TEX_IMAGE':
+
+                    # Draw a toggle for image alpha blending.
+                    row = first_column.row()
+                    row.label(text="Blend Image Alpha")
+                    row = second_column.row()
+                    mix_image_alpha_node = material_layers.get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, channel.name)
+                    operator = row.operator(
+                        "matlayer.toggle_image_alpha_blending", 
+                        text=str(not mix_image_alpha_node.mute),
+                        depress=not mix_image_alpha_node.mute
+                    )
+                    operator.material_channel_name = channel.name
+
+                    # Draw CRGB channel output options (mainly for channel packing).
+                    row = first_column.row()
+                    row.label(text="Output")
+                    row = second_column.row()
+                    row.context_pointer_set("mix_node", mix_node)
+                    output_channel_name = material_layers.get_material_channel_crgba_output(channel.name)
+                    if len(output_channel_name) > 0:
+                        output_channel_name = bau.capitalize_by_space(output_channel_name)
+                        row.menu("MATLAYER_MT_material_channel_output_sub_menu", text=output_channel_name)
 
 def draw_layer_projection(layout):
     '''Draws layer projection settings.'''
