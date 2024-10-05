@@ -528,7 +528,7 @@ class MATLAYER_baking_settings(bpy.types.PropertyGroup):
     occlusion_intensity: FloatProperty(
         name="Occlusion Intensity",
         description="Intensity of the ambient occlusion, higher values result in more intense occlusion shadows",
-        default=3.0,
+        default=1.5,
         min=0.1,
         max=10.0,
         update=update_occlusion_intensity
