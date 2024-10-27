@@ -893,7 +893,7 @@ class MATLAYER_OT_export(Operator):
     # Users must have an object selected to call this operator.
     @ classmethod
     def poll(cls, context):
-        return context.active_object
+        return bau.verify_addon_active_material(context)
     
     def modal(self, context, event):
         if event.type in {'ESC'}:
