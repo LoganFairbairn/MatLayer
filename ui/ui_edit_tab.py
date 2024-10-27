@@ -43,14 +43,20 @@ def draw_layers_tab_ui(self, context):
         bau.print_aligned_text(layout, "Active Object Hidden", alignment='CENTER')
         return
     
-    # Print user info for when a shader node group is not defined.
+    # Draw user interface for when a shader node group is not defined.
     shader_info = bpy.context.scene.matlayer_shader_info
     if shader_info.shader_node_group == None:
         bau.print_aligned_text(layout, "No Shader Group Node", alignment='CENTER')
         bau.print_aligned_text(layout, "Define a shader group node to edit layers.", alignment='CENTER')
+
+        # Draw an operator that applies a defaul shader setup.
         row = layout.row()
         row.alignment = 'CENTER'
-        row.operator("matlayer.apply_default_shader")
+        column = row.column()
+        column.operator("matlayer.apply_default_shader")
+
+        # Draw a button to open shader settings.
+        column.prop_enum(context.scene.matlayer_panel_properties, "sections", 'SECTION_SETTINGS', text="Open Shader Settings")
         return
 
     # Print info for when there is no active material.
