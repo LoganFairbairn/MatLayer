@@ -143,7 +143,6 @@ classes = (
     material_layers.MATLAYER_OT_toggle_triplanar_flip_correction,
     material_layers.MATLAYER_OT_isolate_material_channel,
     material_layers.MATLAYER_OT_toggle_image_alpha_blending,
-    material_layers.MATLAYER_OT_toggle_material_channel_filter,
     material_layers.MATLAYER_OT_set_material_channel,
     material_layers.MATLAYER_OT_set_matchannel_crgba_output,
     material_layers.MATLAYER_OT_set_layer_blending_mode,

@@ -2190,36 +2190,6 @@ class MATLAYER_OT_toggle_image_alpha_blending(Operator):
         toggle_image_alpha_blending(self.material_channel_name)
         return {'FINISHED'}
 
-class MATLAYER_OT_toggle_material_channel_filter(Operator):
-    bl_idname = "matlayer.toggle_material_channel_filter"
-    bl_label = "Toggle Material Channel Filter"
-    bl_description = "Toggles the filter node for the material channel on / off"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    material_channel_name: StringProperty(default='COLOR')
-
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def execute(self, context):
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-        filter_node = get_material_layer_node('FILTER', selected_layer_index, self.material_channel_name)
-
-        output_channel = get_material_channel_crgba_output(self.material_channel_name)
-
-        # Toggle the active state for the filter node.
-        if bau.get_node_active(filter_node) == True:
-            bau.set_node_active(filter_node, False)
-
-        else:
-            bau.set_node_active(filter_node, True)
-
-        # Trigger a relink of the material layer.
-        relink_material_channel(relink_material_channel_name=self.material_channel_name, original_output_channel=output_channel)
-
-        return {'FINISHED'}
-
 class MATLAYER_OT_set_material_channel(Operator):
     bl_idname = "matlayer.set_material_channel"
     bl_label = "Set Material Channel"
