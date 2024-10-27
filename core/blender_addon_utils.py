@@ -427,7 +427,16 @@ def verify_addon_material(material):
         else:
             return False
     return False
-    
+
+def verify_addon_active_material(context):
+    '''Verifies there is an active object, active material, and the material is created with this add-on.'''
+    if not context.active_object:
+        return False
+    elif not context.active_object.active_material:
+        return False
+    else:
+        return verify_addon_material(context.active_object.active_material)
+
 def set_snapping(snapping_mode, snap_on=True):
     '''Sets ideal snapping settings for the specified mode.'''
     match snapping_mode:

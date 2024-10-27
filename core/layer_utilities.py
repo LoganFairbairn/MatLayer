@@ -5,7 +5,7 @@ from ..core import debug_logging                    # For printing / displaying 
 from ..core import image_utilities                  # For access to image related helper functions.
 from ..core import material_layers                  # For accessing material layer nodes.
 from ..core import layer_masks                      # For editing layer masks.
-from ..core import blender_addon_utils              # For extra helpful Blender utilities.
+from ..core import blender_addon_utils as bau       # For extra helpful Blender utilities.
 from ..core import texture_set_settings as tss      # For access to texture set settings.
 from ..core import export_textures                  # For access to the invert image function.
 import os                                           # For saving layer images.
@@ -100,6 +100,11 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
         default='*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.bmp;*.exr',
         options={'HIDDEN'}
     )
+
+    # Disable this operator when the material isn't made with this add-on.
+    @ classmethod
+    def poll(cls, context):
+        return bau.verify_addon_active_material(context)
 
     def execute(self, context):
         def split_filename_by_components(filename):
@@ -318,7 +323,7 @@ class MATLAYER_OT_merge_materials(Operator):
     bl_description = "Merges all layers from the selected material into the active material. Any mesh map textures in the merged material will be replaced by the mesh maps on the active object"
 
     def execute(self, context):
-        if blender_addon_utils.verify_material_operation_context(self) == False:
+        if bau.verify_material_operation_context(self) == False:
             return {'FINISHED'}
 
         merge_material = bpy.context.scene.matlayer_merge_material
@@ -336,7 +341,7 @@ class MATLAYER_OT_merge_materials(Operator):
                     merge_layer_node = merge_material.node_tree.nodes.get(str(i))
                     if merge_layer_node:
                         if merge_layer_node.node_tree:
-                            duplicated_node_tree = blender_addon_utils.duplicate_node_group(merge_layer_node.node_tree.name)
+                            duplicated_node_tree = bau.duplicate_node_group(merge_layer_node.node_tree.name)
                             if duplicated_node_tree:
                                 new_layer_slot_index = material_layers.add_material_layer_slot()
 
@@ -360,7 +365,7 @@ class MATLAYER_OT_merge_materials(Operator):
                         for c in range(0, mask_count):
                             original_mask_node = layer_masks.get_mask_node('MASK', i, c)
                             if original_mask_node:
-                                duplicated_node_tree = blender_addon_utils.duplicate_node_group(original_mask_node.node_tree.name)
+                                duplicated_node_tree = bau.duplicate_node_group(original_mask_node.node_tree.name)
                                 if duplicated_node_tree:
                                     new_mask_slot_index = layer_masks.add_mask_slot()
                                     duplicated_mask_name = layer_masks.format_mask_name(bpy.context.active_object.active_material.name, new_layer_slot_index, new_mask_slot_index) + "~"

@@ -1985,7 +1985,7 @@ class MATLAYER_OT_duplicate_layer(Operator):
     # Disable when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return context.active_object
+        return bau.verify_addon_active_material(context)
 
     def execute(self, context):
         selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
@@ -2001,7 +2001,7 @@ class MATLAYER_OT_delete_layer(Operator):
     # Disable when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return context.active_object
+        return bau.verify_addon_active_material(context)
 
     def execute(self, context):
         delete_layer(self)
@@ -2018,7 +2018,7 @@ class MATLAYER_OT_move_material_layer_up(Operator):
     # Disable when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return context.active_object
+        return bau.verify_addon_active_material(context)
 
     def execute(self, context):
         move_layer('UP', self)
@@ -2035,7 +2035,7 @@ class MATLAYER_OT_move_material_layer_down(Operator):
     # Disable when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return context.active_object
+        return bau.verify_addon_active_material(context)
 
     def execute(self, context):
         move_layer('DOWN', self)
@@ -2167,7 +2167,7 @@ class MATLAYER_OT_isolate_material_channel(Operator):
     # Disable when there is no active object.
     @ classmethod
     def poll(cls, context):
-        return context.active_object
+        return bau.verify_addon_active_material(context)
 
     def execute(self, context):
         selected_material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
