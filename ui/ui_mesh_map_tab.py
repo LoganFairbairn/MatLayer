@@ -239,5 +239,5 @@ def draw_baking_tab_ui(self, context):
         row.separator()
 
     draw_mesh_map_status(layout, baking_settings)
-    draw_mesh_map_previews(layout)
+    #draw_mesh_map_previews(layout)
     draw_mesh_map_settings(layout, baking_settings)
