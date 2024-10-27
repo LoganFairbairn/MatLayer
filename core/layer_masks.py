@@ -356,10 +356,9 @@ def add_layer_mask(type, self):
 
             # Add a default grunge texture to the mask.
             default_grunge_texture = bau.append_image('DefaultGrunge')
-            for i in range(0, 3):
-                texture_sample_node = get_mask_node('TEXTURE', selected_layer_index, new_mask_slot_index, node_number=i + 1)
-                if texture_sample_node:
-                    texture_sample_node.image = default_grunge_texture
+            texture_sample_node = get_mask_node('TEXTURE', selected_layer_index, new_mask_slot_index, node_number=1)
+            if texture_sample_node:
+                texture_sample_node.image = default_grunge_texture
 
             debug_logging.log("Added a grunge mask.") 
 
@@ -377,12 +376,11 @@ def add_layer_mask(type, self):
             link_mask_nodes(selected_layer_index)
             material_layers.apply_mesh_maps()
 
-            # Add a default edge wear texture to the mask.
+            # Add a default grunge texture to the mask.
             default_grunge_texture = bau.append_image('DefaultGrunge')
-            for i in range(0, 3):
-                texture_sample_node = get_mask_node('TEXTURE', selected_layer_index, new_mask_slot_index, node_number=i + 1)
-                if texture_sample_node:
-                    texture_sample_node.image = default_grunge_texture
+            texture_sample_node = get_mask_node('TEXTURE', selected_layer_index, new_mask_slot_index, node_number=1)
+            if texture_sample_node:
+                texture_sample_node.image = default_grunge_texture
                     
             debug_logging.log("Added edge wear mask.")
 
