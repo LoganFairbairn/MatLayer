@@ -2164,10 +2164,13 @@ class MATLAYER_OT_isolate_material_channel(Operator):
     bl_description = "Isolates the selected material channel. Select a material layer to de-isolate"
     bl_options = {'REGISTER', 'UNDO'}
 
-    # Disable when there is no active object.
+    # Disable when there is no active object, or layers.
     @ classmethod
     def poll(cls, context):
-        return bau.verify_addon_active_material(context)
+        if len(context.scene.matlayer_layers) < 1:
+            return False
+        else:
+            return bau.verify_addon_active_material(context)
 
     def execute(self, context):
         selected_material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
