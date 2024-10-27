@@ -123,6 +123,7 @@ classes = (
     shaders.MATLAYER_OT_add_global_shader_property,
     shaders.MATLAYER_OT_delete_global_shader_property,
     shaders.MATLAYER_OT_create_shader_from_nodetree,
+    shaders.MATLAYER_OT_apply_default_shader,
 
     # Material Layers
     material_layers.MATLAYER_layer_stack,
@@ -337,7 +338,7 @@ def register():
     # Shader Properties
     bpy.types.Scene.matlayer_shader_list = CollectionProperty(type=shaders.MATLAYER_shader_name)
     bpy.types.Scene.matlayer_shader_info = PointerProperty(type=shaders.MATLAYER_shader_info)
-    bpy.types.Scene.matlayer_selected_shader_index = IntProperty()
+    bpy.types.Scene.matlayer_shader_channel_index = IntProperty()
     bpy.types.Scene.matlayer_selected_global_shader_property_index = IntProperty()
 
     # Layer & Mask Properties

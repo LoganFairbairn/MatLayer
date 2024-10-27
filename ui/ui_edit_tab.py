@@ -48,6 +48,9 @@ def draw_layers_tab_ui(self, context):
     if shader_info.shader_node_group == None:
         bau.print_aligned_text(layout, "No Shader Group Node", alignment='CENTER')
         bau.print_aligned_text(layout, "Define a shader group node to edit layers.", alignment='CENTER')
+        row = layout.row()
+        row.alignment = 'CENTER'
+        row.operator("matlayer.apply_default_shader")
         return
 
     # Print info for when there is no active material.

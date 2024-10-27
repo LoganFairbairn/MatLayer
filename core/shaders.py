@@ -65,7 +65,7 @@ NODE_SOCKET_VECTOR_SUBTYPES = [
 ]
 
 # Internal backup template for the shader json file.
-DEFAULT_SHADER_FILE = {
+DEFAULT_SHADER_JSON = {
     "shaders": [
         {
             "group_node_name": "PrincipledBSDF",
@@ -108,14 +108,17 @@ def set_shader(shader_name):
     matlayer_shader_list = bpy.context.scene.matlayer_shader_list
     shader_info = bpy.context.scene.matlayer_shader_info
 
+    # Read shader JSON data into memory.
     templates_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "json_data" / "shader_info.json")
     json_file = open(templates_path, "r")
     jdata = json.load(json_file)
     json_file.close()
     shaders = jdata['shaders']
 
+    # Reset the selected shader channel index.
+    bpy.context.scene.matlayer_shader_channel_index = 0
+
     # Set the shader by caching json info into Blender's memory.
-    bpy.context.scene.matlayer_selected_shader_index = 0
     shader_exists = False
     for i, shader in enumerate(matlayer_shader_list):
         if shader['name'] == shader_name:
@@ -182,7 +185,7 @@ def set_shader(shader_name):
             sub_process=False
         )
 
-    # Set the default channel of the shader to be the first defined channel.
+    # Set the default selected material channel to be the first defined channel.
     if len(shader_info.material_channels) > 0:
         bpy.context.scene.matlayer_layer_stack.selected_material_channel = shader_info.material_channels[0].name
 
@@ -198,7 +201,7 @@ def read_json_shader_data():
     # If the shader info json file doesn't exist, create a new one.
     else:
         with open(shader_info_path, "w") as f:
-            json.dump(DEFAULT_SHADER_FILE, f)
+            json.dump(DEFAULT_SHADER_JSON, f)
 
     return jdata
 
@@ -281,7 +284,7 @@ def get_socket_subtype_enums(scene=None, context=None):
     items += [("NONE", "None", "None")]
 
     # Return an enum list of either float or vector node socket subtypes based on main node socket type.
-    selected_shader_channel_index = bpy.context.scene.matlayer_selected_shader_index
+    selected_shader_channel_index = bpy.context.scene.matlayer_shader_channel_index
     shader_info = bpy.context.scene.matlayer_shader_info
     selected_shader_channel = shader_info.material_channels[selected_shader_channel_index]
     if selected_shader_channel:
@@ -293,6 +296,118 @@ def get_socket_subtype_enums(scene=None, context=None):
 
     # If a shader channel isn't selected, return all possible enum values to avoid an error.
     return items + NODE_SOCKET_FLOAT_SUBTYPES + NODE_SOCKET_VECTOR_SUBTYPES
+
+def apply_default_shader():
+    '''Applies default shader settings.'''
+
+    # This function doesn't load from JSON file data because it's a constant backup shader setup
+    # in the case the user JSON data is missing or damaged.
+
+    shader_info = bpy.context.scene.matlayer_shader_info
+
+    # Ensure the default shader group node is in the blend file.
+    shader_nodegroup_name = "MetallicRoughnessPBR"
+    shader_node_group = bpy.data.node_groups.get(shader_nodegroup_name)
+    if shader_node_group:
+        shader_info.shader_node_group = shader_node_group
+    
+    # If the default shader node group isn't in the blend file already, attempt to append it from the add-on assets file.
+    else:
+        shader_node_group = bau.append_group_node(shader_nodegroup_name)
+        if shader_node_group:
+            debug_logging.log("Shader node group successfully appended from add-on asset file.")
+            shader_info.shader_node_group = shader_node_group
+        else:
+            debug_logging.log("Shader nodetree does not exist and cannot be appended from the add-on assets file.")
+            return
+
+    shader_info.group_node_name = "MetallicRoughnessPBR"
+
+    # Reset the selected shader channel index.
+    bpy.context.scene.matlayer_shader_channel_index = 0
+
+    # Set default material channels.
+    shader_info.material_channels.clear()
+    channel = shader_info.material_channels.add()
+    channel.name = "Base Color"
+    channel.default_active = True
+    channel.socket_type = "NodeSocketColor"
+    channel.socket_color_default = [0, 0.3, 1]
+    channel.socket_float_min = 0
+    channel.socket_float_max = 1
+    channel.default_blend_mode = "MIX"
+
+    channel = shader_info.material_channels.add()
+    channel.name = "Metallic"
+    channel.default_active = True
+    channel.socket_type = "NodeSocketFloat"
+    channel.socket_subtype = "FACTOR"
+    channel.socket_float_default = 0
+    channel.socket_float_min = 0
+    channel.socket_float_max = 1
+    channel.default_blend_mode = "MIX"
+
+    channel = shader_info.material_channels.add()
+    channel.name = "Roughness"
+    channel.default_active = True
+    channel.socket_type = "NodeSocketFloat"
+    channel.socket_subtype = "FACTOR"
+    channel.socket_float_default = 0.5
+    channel.socket_float_min = 0
+    channel.socket_float_max = 1
+    channel.default_blend_mode = "MIX"
+
+    channel = shader_info.material_channels.add()
+    channel.name = "Alpha"
+    channel.default_active = True
+    channel.socket_type = "NodeSocketFloat"
+    channel.socket_subtype = "FACTOR"
+    channel.socket_float_default = 1
+    channel.socket_float_min = 0
+    channel.socket_float_max = 1
+    channel.default_blend_mode = "MIX"
+
+    channel = shader_info.material_channels.add()
+    channel.name = "Normal"
+    channel.default_active = True
+    channel.socket_type = "NodeSocketColor"
+    channel.socket_color_default = [0.5, 0.5, 1.0]
+    channel.socket_float_min = 0
+    channel.socket_float_max = 1
+    channel.default_blend_mode = "NORMAL_MAP_COMBINE"
+
+    channel = shader_info.material_channels.add()
+    channel.name = "Height"
+    channel.default_active = True
+    channel.socket_type = "NodeSocketFloat"
+    channel.socket_subtype = "FACTOR"
+    channel.socket_float_default = 1
+    channel.socket_float_min = -1
+    channel.socket_float_max = 1
+    channel.default_blend_mode = "ADD"
+
+    channel = shader_info.material_channels.add()
+    channel.name = "Emission"
+    channel.default_active = True
+    channel.socket_type = "NodeSocketColor"
+    channel.socket_color_default = [0, 0, 0]
+    channel.socket_float_min = 0
+    channel.socket_float_max = 1
+    channel.default_blend_mode = "MIX"
+
+    # Set default shader unlayered properties.
+    shader_info.unlayered_properties.clear()
+    unlayered_property = shader_info.unlayered_properties.add()
+    unlayered_property.name = "Base Height"
+
+    unlayered_property = shader_info.unlayered_properties.add()
+    unlayered_property.name = "Emission Strength"
+
+    # Set the default selected material channel to be the first defined channel.
+    if len(shader_info.material_channels) > 0:
+        bpy.context.scene.matlayer_layer_stack.selected_material_channel = shader_info.material_channels[0].name
+    
+    debug_logging.log("Applied default shader settings.", message_type='INFO', sub_process=False)
 
 class MATLAYER_shader_name(PropertyGroup):
     '''Shader name'''
@@ -424,20 +539,20 @@ class MATLAYER_OT_save_shader(Operator):
                 break
 
         # Create new json data for the shader settings.
-        new_shader_info = copy.deepcopy(DEFAULT_SHADER_FILE['shaders'][0])
+        new_shader_info = copy.deepcopy(DEFAULT_SHADER_JSON['shaders'][0])
 
         # Overwrite the default shader info with the current shader info.
         new_shader_info['group_node_name'] = shader_group_node.name
 
         new_shader_info['unlayered_properties'].clear()
         for unlayered_property in shader_info.unlayered_properties:
-            new_unlayered_property = copy.deepcopy(DEFAULT_SHADER_FILE['shaders'][0]['unlayered_properties'][0])
+            new_unlayered_property = copy.deepcopy(DEFAULT_SHADER_JSON['shaders'][0]['unlayered_properties'][0])
             new_unlayered_property = unlayered_property.name
             new_shader_info['unlayered_properties'].append(new_unlayered_property)
 
         new_shader_info['material_channels'].clear()
         for channel in shader_info.material_channels:
-            new_channel = copy.deepcopy(DEFAULT_SHADER_FILE['shaders'][0]['material_channels'][0])
+            new_channel = copy.deepcopy(DEFAULT_SHADER_JSON['shaders'][0]['material_channels'][0])
             new_channel['name'] = channel.name
             new_channel['default_active'] = channel.default_active
             new_channel['socket_type'] = channel.socket_type
@@ -516,7 +631,7 @@ class MATLAYER_OT_add_shader_channel(Operator):
     def execute(self, context):
         shader_info = bpy.context.scene.matlayer_shader_info
         shader_info.material_channels.add()
-        bpy.context.scene.matlayer_selected_shader_index = len(shader_info.material_channels) - 1
+        bpy.context.scene.matlayer_shader_channel_index = len(shader_info.material_channels) - 1
         return {'FINISHED'}
     
 class MATLAYER_OT_delete_shader_channel(Operator):
@@ -526,11 +641,11 @@ class MATLAYER_OT_delete_shader_channel(Operator):
 
     def execute(self, context):
         shader_info = bpy.context.scene.matlayer_shader_info
-        selected_shader_index = bpy.context.scene.matlayer_selected_shader_index
+        selected_shader_index = bpy.context.scene.matlayer_shader_channel_index
         shader_info.material_channels.remove(selected_shader_index)
-        bpy.context.scene.matlayer_selected_shader_index = min(max(0, selected_shader_index - 1), len(shader_info.material_channels) - 1)
+        bpy.context.scene.matlayer_shader_channel_index = min(max(0, selected_shader_index - 1), len(shader_info.material_channels) - 1)
         return {'FINISHED'}
-    
+
 class MATLAYER_OT_add_global_shader_property(Operator):
     bl_idname = "matlayer.add_global_shader_property"
     bl_label = "Add Global Shader Property"
@@ -553,7 +668,7 @@ class MATLAYER_OT_delete_global_shader_property(Operator):
         shader_info.unlayered_properties.remove(selected_global_shader_property_index)
         bpy.context.scene.matlayer_selected_global_shader_property_index = min(max(0, selected_global_shader_property_index - 1), len(shader_info.unlayered_properties) - 1)
         return {'FINISHED'}
-    
+
 class MATLAYER_OT_create_shader_from_nodetree(Operator):
     bl_idname = "matlayer.create_shader_from_nodetree"
     bl_label = "Create Shader From Nodetree"
@@ -609,8 +724,17 @@ class MATLAYER_OT_create_shader_from_nodetree(Operator):
                         shader_channel.default_blend_mode = 'MIX'
 
         # Reset shader indicies.
-        bpy.context.scene.matlayer_selected_shader_index = 0
+        bpy.context.scene.matlayer_shader_channel_index = 0
         bpy.context.scene.matlayer_selected_global_shader_property_index = 0
 
         debug_logging.log_status("Created shader from selected group node.", self, type='INFO')
+        return {'FINISHED'}
+
+class MATLAYER_OT_apply_default_shader(Operator):
+    bl_idname = "matlayer.apply_default_shader"
+    bl_label = "Apply Default Shader"
+    bl_description = "Applies a default shader group node and shader setup"
+
+    def execute(self, context):
+        apply_default_shader()
         return {'FINISHED'}

@@ -71,14 +71,14 @@ def draw_settings_tab(self, context):
     row.operator("matlayer.add_shader_channel", text="", icon='ADD')
     row.operator("matlayer.delete_shader_channel", text="", icon='TRASH')
     row = layout.row(align=True)
-    row.template_list("MATLAYER_UL_shader_channel_list", "Shader Channels", bpy.context.scene.matlayer_shader_info, "material_channels", bpy.context.scene, "matlayer_selected_shader_index", sort_reverse=False)
+    row.template_list("MATLAYER_UL_shader_channel_list", "Shader Channels", bpy.context.scene.matlayer_shader_info, "material_channels", bpy.context.scene, "matlayer_shader_channel_index", sort_reverse=False)
 
     # Draw properties for the selected shader channel.
     split = layout.split(factor=0.3)
     first_column = split.column()
     second_column = split.column()
 
-    selected_shader_channel_index = bpy.context.scene.matlayer_selected_shader_index
+    selected_shader_channel_index = bpy.context.scene.matlayer_shader_channel_index
 
     if selected_shader_channel_index > -1 and selected_shader_channel_index < len(shader_info.material_channels):
         selected_shader_channel = shader_info.material_channels[selected_shader_channel_index]
