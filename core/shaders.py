@@ -339,7 +339,7 @@ def apply_default_shader():
 
     channel = shader_info.material_channels.add()
     channel.name = "Metallic"
-    channel.default_active = True
+    channel.default_active = False
     channel.socket_type = "NodeSocketFloat"
     channel.socket_subtype = "FACTOR"
     channel.socket_float_default = 0
@@ -349,7 +349,7 @@ def apply_default_shader():
 
     channel = shader_info.material_channels.add()
     channel.name = "Roughness"
-    channel.default_active = True
+    channel.default_active = False
     channel.socket_type = "NodeSocketFloat"
     channel.socket_subtype = "FACTOR"
     channel.socket_float_default = 0.5
@@ -359,7 +359,7 @@ def apply_default_shader():
 
     channel = shader_info.material_channels.add()
     channel.name = "Alpha"
-    channel.default_active = True
+    channel.default_active = False
     channel.socket_type = "NodeSocketFloat"
     channel.socket_subtype = "FACTOR"
     channel.socket_float_default = 1
@@ -369,7 +369,7 @@ def apply_default_shader():
 
     channel = shader_info.material_channels.add()
     channel.name = "Normal"
-    channel.default_active = True
+    channel.default_active = False
     channel.socket_type = "NodeSocketColor"
     channel.socket_color_default = [0.5, 0.5, 1.0]
     channel.socket_float_min = 0
@@ -378,7 +378,7 @@ def apply_default_shader():
 
     channel = shader_info.material_channels.add()
     channel.name = "Height"
-    channel.default_active = True
+    channel.default_active = False
     channel.socket_type = "NodeSocketFloat"
     channel.socket_subtype = "FACTOR"
     channel.socket_float_default = 1
@@ -388,7 +388,7 @@ def apply_default_shader():
 
     channel = shader_info.material_channels.add()
     channel.name = "Emission"
-    channel.default_active = True
+    channel.default_active = False
     channel.socket_type = "NodeSocketColor"
     channel.socket_color_default = [0, 0, 0]
     channel.socket_float_min = 0
@@ -627,6 +627,7 @@ class MATLAYER_OT_add_shader_channel(Operator):
     bl_idname = "matlayer.add_shader_channel"
     bl_label = "Add Shader Channel"
     bl_description = "Adds a shader channel to the shader info"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         shader_info = bpy.context.scene.matlayer_shader_info
@@ -638,6 +639,7 @@ class MATLAYER_OT_delete_shader_channel(Operator):
     bl_idname = "matlayer.delete_shader_channel"
     bl_label = "Delete Shader Channel"
     bl_description = "Deletes a shader channel from the shader info"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         shader_info = bpy.context.scene.matlayer_shader_info
@@ -650,6 +652,7 @@ class MATLAYER_OT_add_global_shader_property(Operator):
     bl_idname = "matlayer.add_global_shader_property"
     bl_label = "Add Global Shader Property"
     bl_description = "Adds a global shader property to the shader info"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         shader_info = bpy.context.scene.matlayer_shader_info
@@ -661,6 +664,7 @@ class MATLAYER_OT_delete_global_shader_property(Operator):
     bl_idname = "matlayer.delete_global_shader_property"
     bl_label = "Delete Global Shader Property"
     bl_description = "Deletes a global shader property to the shader info"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         shader_info = bpy.context.scene.matlayer_shader_info
@@ -673,6 +677,7 @@ class MATLAYER_OT_create_shader_from_nodetree(Operator):
     bl_idname = "matlayer.create_shader_from_nodetree"
     bl_label = "Create Shader From Nodetree"
     bl_description = "Automatically fills in shader info using the selected group node"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         shader_info = bpy.context.scene.matlayer_shader_info
@@ -734,6 +739,7 @@ class MATLAYER_OT_apply_default_shader(Operator):
     bl_idname = "matlayer.apply_default_shader"
     bl_label = "Apply Default Shader"
     bl_description = "Applies a default shader group node and shader setup"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         apply_default_shader()
