@@ -74,7 +74,8 @@ def verify_material_operation_context(self=None, display_message=True, check_act
                 debug_logging.log_status("No active material.", self, 'ERROR')
         return False
     
-    return True     # No context issues found, return true.
+    # No context issues found, return true.
+    return True     
 
 def get_blend_assets_path():
     '''Returns the asset path for the blend file.'''
@@ -96,7 +97,6 @@ def append_default_node_groups():
     '''Appends default nodes used by this add-on to the current blend file. Appending node groups in an initial batch helps avoid appending duplicates of node groups.'''
     append_group_node("PrincipledBSDF", never_auto_delete=True)
     append_group_node("ML_TriplanarNormalsBlend", never_auto_delete=True)
-    append_group_node("ML_DefaultLayer", never_auto_delete=True)
     append_group_node("ML_LayerBlur", never_auto_delete=True)
     append_group_node("ML_TriplanarBlur", never_auto_delete=True)
     append_group_node("ML_TriplanarLayerBlur", never_auto_delete=True)
@@ -422,7 +422,7 @@ def save_image(image, file_format='PNG', image_category='RAW_TEXTURE', colorspac
 def verify_addon_material(material):
     '''Verifies the material is created with this add-on.'''
     if material:
-        if material.node_tree.nodes.get('MATLAYER_SHADER') != None:
+        if material.node_tree.nodes.get('MATLAYER-SHADER') != None:
             return True
         else:
             return False
@@ -632,6 +632,11 @@ def safe_node_link(output_socket, input_socket, node_tree):
     '''Checks that both sockets exist, before linking the sockets together.'''
     if output_socket and input_socket:
         node_tree.links.new(output_socket, input_socket)
+
+def safe_node_delete(node_tree, node):
+    '''Verifies the provided node exists, before deleting it from the node tree.'''
+    if node:
+        node_tree.nodes.remove(node)
 
 def get_valid_enum(enum_items, enum_value, default_value):
     '''Returns the provided enum value if it exists in the provided Blender enum tuple list, returns a default value for the enum if it does not.'''

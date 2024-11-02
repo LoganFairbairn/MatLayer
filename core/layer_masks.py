@@ -65,11 +65,11 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
                 mask_node_name += "~"
             return active_material.node_tree.nodes.get(mask_node_name)
     
-        case 'MASK_MIX':
+        case 'MASK-MIX':
             mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
-                return node_tree.nodes.get('MASK_MIX')
+                return node_tree.nodes.get('MASK-MIX')
             return None
 
         case 'FILTER':
@@ -86,11 +86,11 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
                 return node_tree.nodes.get('PROJECTION')
             return None
 
-        case 'DECAL_COORDINATES':
+        case 'DECAL-COORDINATES':
             mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
-                return node_tree.nodes.get('DECAL_COORDINATES')
+                return node_tree.nodes.get('DECAL-COORDINATES')
             return None
 
         case 'DECAL_OFFSET':
@@ -100,11 +100,11 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
                 return node_tree.nodes.get('DECAL_OFFSET')
             return None
 
-        case 'TRIPLANAR_BLEND':
+        case 'TRIPLANAR-BLEND':
             mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
-                return node_tree.nodes.get('TRIPLANAR_BLEND')
+                return node_tree.nodes.get('TRIPLANAR-BLEND')
             return None
 
         case 'TEXTURE':
@@ -121,11 +121,11 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
                 return node_tree.nodes.get('BLUR')
             return None        
 
-        case 'AMBIENT_OCCLUSION':
+        case 'AMBIENT-OCCLUSION':
             mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
-                return node_tree.nodes.get('AMBIENT_OCCLUSION')
+                return node_tree.nodes.get('AMBIENT-OCCLUSION')
             return None
 
         case 'CURVATURE':
@@ -149,18 +149,18 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
                 return node_tree.nodes.get('NORMALS')
             return None
         
-        case 'WORLD_SPACE_NORMALS':
+        case 'WORLD-SPACE-NORMALS':
             mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
-                return node_tree.nodes.get('WORLD_SPACE_NORMALS')
+                return node_tree.nodes.get('WORLD-SPACE-NORMALS')
             return None
         
-        case 'SEPARATE_RGB':
+        case 'SEPARATE-RGB':
             mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
-                return node_tree.nodes.get('SEPARATE_RGB')
+                return node_tree.nodes.get('SEPARATE-RGB')
             return None     
 
 def count_masks(layer_index, material_name=""):
@@ -332,9 +332,9 @@ def add_layer_mask(type, self):
             link_mask_nodes(selected_layer_index)
 
             # Add the decal object from the layer decal projection to the mask projection.
-            decal_coordinates_node = material_layers.get_material_layer_node('DECAL_COORDINATES', selected_layer_index)
+            decal_coordinates_node = material_layers.get_material_layer_node('DECAL-COORDINATES', selected_layer_index)
             if decal_coordinates_node:
-                mask_coordinates_node = get_mask_node('DECAL_COORDINATES', selected_layer_index, new_mask_slot_index)
+                mask_coordinates_node = get_mask_node('DECAL-COORDINATES', selected_layer_index, new_mask_slot_index)
                 if mask_coordinates_node:
                     mask_coordinates_node.object = decal_coordinates_node.object
 
@@ -404,7 +404,7 @@ def add_layer_mask(type, self):
             material_layers.apply_mesh_maps()
 
             # For world space normals mask, masking using the blue (z or up) channel is more frequently used, so we'll apply that as the default.
-            if type == 'WORLD_SPACE_NORMALS':
+            if type == 'WORLD-SPACE-NORMALS':
                 set_mask_crgba_channel('BLUE')
             debug_logging.log("Added a {0} mesh map mask.".format(type))
 
@@ -412,7 +412,7 @@ def add_layer_mask(type, self):
 
     # Link noise blur nodes for masks that require them.
     if "Blur Noise" in new_mask_group_node.inputs:
-        blur_noise_node = material_layers.get_material_layer_node('BLUR_NOISE')
+        blur_noise_node = material_layers.get_material_layer_node('BLUR-NOISE')
         node_tree = active_material.node_tree
         node_tree.links.new(blur_noise_node.outputs[0], new_mask_group_node.inputs.get("Blur Noise"))
 
@@ -658,13 +658,13 @@ def relink_image_mask_projection(original_output_channel):
 
             # Unlink and re-link the mask filter node to trigger a re-compile of the material.
             bau.unlink_node(filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
-            mix_node = get_mask_node('MASK_MIX', selected_layer_index, selected_mask_index)
+            mix_node = get_mask_node('MASK-MIX', selected_layer_index, selected_mask_index)
             if mix_node:
                 mask_node.node_tree.links.new(filter_node.outputs[0], mix_node.inputs[7])
 
         case "ML_TriplanarProjection":
             filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
-            triplanar_blend_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
+            triplanar_blend_node = get_mask_node('TRIPLANAR-BLEND', selected_layer_index, selected_mask_index)
 
             for i in range(0, 3):
                 texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=i + 1)
@@ -681,7 +681,7 @@ def relink_image_mask_projection(original_output_channel):
             # Unlink and re-link the mask filter node to trigger a re-compile of the material.
             if filter_node:
                 bau.unlink_node(filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
-                mix_node = get_mask_node('MASK_MIX', selected_layer_index, selected_mask_index)
+                mix_node = get_mask_node('MASK-MIX', selected_layer_index, selected_mask_index)
                 if mix_node:
                     mask_node.node_tree.links.new(filter_node.outputs[0], mix_node.inputs[7])
 
@@ -698,7 +698,7 @@ def relink_image_mask_projection(original_output_channel):
             filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
             mask_node.node_tree.links.new(texture_node.outputs[0], filter_node.inputs[0])
 
-            linear_mask_blend_node = mask_node.node_tree.nodes.get('LINEAR_MASK_BLEND')
+            linear_mask_blend_node = mask_node.node_tree.nodes.get('LINEAR-MASK-BLEND')
             mask_node.node_tree.links.new(filter_node.outputs[0], linear_mask_blend_node.inputs[0])
             mask_node.node_tree.links.new(projection_node.outputs[1], linear_mask_blend_node.inputs[1])
 
@@ -727,7 +727,7 @@ def set_mask_projection_mode(projection_mode):
                     if texture_node:
                         mask_node.node_tree.nodes.remove(texture_node)
 
-                triplanar_blend_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
+                triplanar_blend_node = get_mask_node('TRIPLANAR-BLEND', selected_layer_index, selected_mask_index)
                 if triplanar_blend_node:
                     mask_node.node_tree.nodes.remove(triplanar_blend_node)
 
@@ -771,7 +771,7 @@ def set_mask_projection_mode(projection_mode):
                     # Add a triplanar blending node.
                     triplanar_blend_node = mask_node.node_tree.nodes.new('ShaderNodeGroup')
                     triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarBlend")
-                    triplanar_blend_node.name = "TRIPLANAR_BLEND"
+                    triplanar_blend_node.name = "TRIPLANAR-BLEND"
                     triplanar_blend_node.label = triplanar_blend_node.name
                     triplanar_blend_node.width = 200
                     triplanar_blend_node.hide = True
@@ -801,7 +801,7 @@ def set_mask_crgba_channel(output_channel):
 
     mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
     filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
-    separate_rgb_node = get_mask_node('SEPARATE_RGB', selected_layer_index, selected_mask_index)
+    separate_rgb_node = get_mask_node('SEPARATE-RGB', selected_layer_index, selected_mask_index)
 
     # Find the main mask output node based on the mask projection.
     output_node = None
@@ -809,7 +809,7 @@ def set_mask_crgba_channel(output_channel):
     mask_projection_node = get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
     match mask_projection_node.node_tree.name:
         case 'ML_TriplanarProjection':
-            output_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
+            output_node = get_mask_node('TRIPLANAR-BLEND', selected_layer_index, selected_mask_index)
         case _:
             output_node = mask_texture_node
 
@@ -885,7 +885,7 @@ class MATLAYER_UL_mask_list(bpy.types.UIList):
                 row.prop(mask_node, "label", text="", emboss=False)
 
             # Mask opacity and blending mode.
-            mask_mix_node = get_mask_node('MASK_MIX', selected_layer_index, item_index)
+            mask_mix_node = get_mask_node('MASK-MIX', selected_layer_index, item_index)
             if mask_mix_node:
                 row = layout.row(align=True)
                 row.ui_units_x = 2
@@ -1014,7 +1014,7 @@ class MATLAYER_OT_add_ambient_occlusion_mask(Operator):
         return context.active_object
 
     def execute(self, context):
-        add_layer_mask('AMBIENT_OCCLUSION', self)
+        add_layer_mask('AMBIENT-OCCLUSION', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_add_curvature_mask(Operator):
@@ -1059,7 +1059,7 @@ class MATLAYER_OT_add_world_space_normals_mask(Operator):
         return context.active_object
 
     def execute(self, context):
-        add_layer_mask('WORLD_SPACE_NORMALS', self)
+        add_layer_mask('WORLD-SPACE-NORMALS', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_move_layer_mask_up(Operator):
@@ -1195,7 +1195,7 @@ class MATLAYER_OT_isolate_mask(Operator):
 
         mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
         emission_node = active_node_tree.nodes.get('EMISSION')
-        material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
+        material_output = active_node_tree.nodes.get('MATERIAL-OUTPUT')
 
         bau.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
 

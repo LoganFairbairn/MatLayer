@@ -89,7 +89,6 @@ def draw_layers_tab_ui(self, context):
         match bpy.context.scene.matlayer_material_property_tabs:
             case 'LAYER':
                 draw_layer_projection(column_one)
-                draw_layer_material_channel_toggles(column_one)
                 draw_material_channel_properties(column_one)
             case 'MASKS':
                 draw_masks_tab(column_one)
@@ -196,38 +195,6 @@ def draw_material_property_tabs(layout):
     row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MASKS')
     row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'UNLAYERED')
 
-def draw_layer_material_channel_toggles(layout):
-    '''Draws on / off toggles with for individual material channels in the selected material layer.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-
-    row = layout.row()
-    row.separator()
-    row.scale_y = 2
-    row = layout.row()
-    row.label(text="CHANNELS")
-
-    row = layout.row()
-    drawn_toggles = 0
-    
-    shader_info = bpy.context.scene.matlayer_shader_info
-
-    active_material_channels = []
-    for channel in shader_info.material_channels:
-        if tss.get_material_channel_active(channel.name):
-            active_material_channels.append(channel.name)
-
-    for channel_name in active_material_channels:
-        mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, channel_name)
-        if mix_node:
-
-            # Draw material channels with shortened names so they are more condensed in the user interface.
-            row.prop(mix_node, "mute", text=material_layers.get_shorthand_material_channel_name(channel_name), toggle=True, invert_checkbox=True)
-            drawn_toggles += 1
-            if len(active_material_channels) > 5:
-                if drawn_toggles >= min(4, round(len(active_material_channels) / 2)):
-                    row = layout.row()
-                    drawn_toggles = 0
-
 def draw_value_node_properties(layout, value_node, layer_node_tree):
     '''Draws properties for the provided value node.'''
 
@@ -299,6 +266,15 @@ def draw_material_channel_properties(layout):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layout.separator()
 
+    # Draw sub-section title.
+    row = layout.row()
+    row.alignment = 'CENTER'
+    row.label(text="CHANNELS")
+
+    # Draw material channels add menu.
+    row = layout.row()
+    row.menu("MATLAYER_MT_add_material_channel_sub_menu", text="Add Channel")
+
     # Avoid drawing material channel properties for invalid layers.
     if material_layers.get_material_layer_node('LAYER', selected_layer_index) == None:
         return
@@ -323,14 +299,16 @@ def draw_material_channel_properties(layout):
                 split = layout.split(factor=0.4)
                 first_column = split.column(align=True)
                 second_column = split.column(align=True)
-
+                
                 # Draw the channel name and operators for editing the material channel.
                 row = first_column.row()
                 row.label(text="{0}".format(channel.name.upper()))
-                row = second_column.row(align=True)
+                row = second_column.row()
                 row.alignment = 'RIGHT'
                 row.context_pointer_set("mix_node", mix_node)
                 row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text="", icon='NODE')
+                operator = row.operator("matlayer.delete_material_channel_nodes", text="", icon='X')
+                operator.material_channel_name = channel.name
 
                 draw_value_node_properties(layout, value_node, layer_node_tree)
                 draw_filter_properties(layout, channel.name, selected_layer_index)
@@ -346,13 +324,14 @@ def draw_material_channel_properties(layout):
                     row = first_column.row()
                     row.label(text="Blend Image Alpha")
                     row = second_column.row()
-                    mix_image_alpha_node = material_layers.get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, channel.name)
-                    operator = row.operator(
-                        "matlayer.toggle_image_alpha_blending", 
-                        text=str(not mix_image_alpha_node.mute),
-                        depress=not mix_image_alpha_node.mute
-                    )
-                    operator.material_channel_name = channel.name
+                    mix_image_alpha_node = material_layers.get_material_layer_node('MIX-IMAGE-ALPHA', selected_layer_index, channel.name)
+                    if mix_image_alpha_node:
+                        operator = row.operator(
+                            "matlayer.toggle_image_alpha_blending", 
+                            text=str(not mix_image_alpha_node.mute),
+                            depress=not mix_image_alpha_node.mute
+                        )
+                        operator.material_channel_name = channel.name
 
                     # Draw CRGB channel output options (mainly for channel packing).
                     row = first_column.row()
@@ -639,7 +618,7 @@ def draw_unlayered_material_properties(layout):
         return
 
     # Ensure there is a valid shader node.
-    matlayer_shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+    matlayer_shader_node = active_material.node_tree.nodes.get('MATLAYER-SHADER')
     if not matlayer_shader_node:
         row.label(text="No Valid Shader Node")
         return
@@ -746,6 +725,17 @@ class MATLAYER_OT_add_material_filter_menu(Operator):
         col.operator("matlayer.add_material_filter_color_ramp", text="Add Color Ramp")
         col.operator("matlayer.add_material_filter_invert", text="Add Invert")
 
+class AddMaterialChannelSubMenu(Menu):
+    bl_idname = "MATLAYER_MT_add_material_channel_sub_menu"
+    bl_label = "Add Material Channel Sub Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        shader_info = bpy.context.scene.matlayer_shader_info
+        for channel in shader_info.material_channels:
+            operator = layout.operator("matlayer.add_material_channel_nodes", text=channel.name)
+            operator.material_channel_name = channel.name
+
 class MaterialChannelSubMenu(Menu):
     bl_idname = "MATLAYER_MT_material_channel_sub_menu"
     bl_label = "Material Channel Sub Menu"
@@ -755,7 +745,7 @@ class MaterialChannelSubMenu(Menu):
         shader_info = bpy.context.scene.matlayer_shader_info
         for channel in shader_info.material_channels:
             operator = layout.operator("matlayer.set_material_channel", text=channel.name)
-            operator.channel_name = channel.name
+            operator.material_channel_name = channel.name
 
 class ImageUtilitySubMenu(Menu):
     bl_idname = "MATLAYER_MT_image_utility_sub_menu"
@@ -820,11 +810,11 @@ class MaterialChannelValueNodeSubMenu(Menu):
         # Get the material channel name from the mix node being drawn.
         material_channel_name = context.mix_node.name.replace('_MIX', '')
 
-        operator = layout.operator("matlayer.change_material_channel_value_node", text='Use Group', icon='NODETREE')
+        operator = layout.operator("matlayer.change_material_channel_value_node", text="Use Group Node", icon='NODETREE')
         operator.material_channel_name = material_channel_name
         operator.node_type = 'GROUP'
 
-        operator = layout.operator("matlayer.change_material_channel_value_node", text='Use Texture', icon='IMAGE_DATA')
+        operator = layout.operator("matlayer.change_material_channel_value_node", text="Use Texture", icon='IMAGE_DATA')
         operator.material_channel_name = material_channel_name
         operator.node_type = 'TEXTURE'
 

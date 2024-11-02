@@ -81,7 +81,7 @@ def draw_export_tab_ui(self, context):
     
     active_object = bpy.context.active_object
     if active_object:
-        export_uv_map_node = material_layers.get_material_layer_node('EXPORT_UV_MAP')
+        export_uv_map_node = material_layers.get_material_layer_node('EXPORT-UV-MAP')
         if export_uv_map_node:
             row = first_column.row()
             row.label(text="Export UV Map")

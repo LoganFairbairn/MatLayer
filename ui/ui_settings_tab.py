@@ -172,7 +172,7 @@ def draw_settings_tab(self, context):
         if active_object: 
             active_material = active_object.active_material
             if active_material:
-                matlayer_shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+                matlayer_shader_node = active_material.node_tree.nodes.get('MATLAYER-SHADER')
                 if matlayer_shader_node:
                     shader_property = matlayer_shader_node.inputs.get(global_shader_property.name)
                     if shader_property:

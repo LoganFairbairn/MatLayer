@@ -482,8 +482,8 @@ def channel_pack_textures(texture_set_name):
             texture_channel = getattr(export_texture.pack_textures, key)
 
             match texture_channel:
-                case 'AMBIENT_OCCLUSION':
-                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'AMBIENT_OCCLUSION')
+                case 'AMBIENT-OCCLUSION':
+                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'AMBIENT-OCCLUSION')
                     image = bpy.data.images.get(meshmap_name)
                     input_images.append(image)
 
@@ -502,8 +502,8 @@ def channel_pack_textures(texture_set_name):
                     image = bpy.data.images.get(meshmap_name)
                     input_images.append(image)
 
-                case 'WORLD_SPACE_NORMALS':
-                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'WORLD_SPACE_NORMALS')
+                case 'WORLD-SPACE-NORMALS':
+                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'WORLD-SPACE-NORMALS')
                     image = bpy.data.images.get(meshmap_name)
                     input_images.append(image)
 
@@ -667,7 +667,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     # Get a list of output channels the shader can bake from.
     output_channels = []
     active_material = bpy.context.active_object.active_material
-    shader_node = active_material.node_tree.nodes.get('MATLAYER_SHADER')
+    shader_node = active_material.node_tree.nodes.get('MATLAYER-SHADER')
     if shader_node:
         for i in range(1, len(shader_node.outputs)):
             static_channel = bau.format_static_channel_name(shader_node.outputs[i].name)
@@ -755,7 +755,7 @@ def add_bake_texture_nodes():
             material_slot.material.node_tree.nodes.active = bake_texture_node
 
             # Link the export UV map to the bake texture node.
-            export_uv_map_node = material_layers.get_material_layer_node('EXPORT_UV_MAP')
+            export_uv_map_node = material_layers.get_material_layer_node('EXPORT-UV-MAP')
             if export_uv_map_node:
                 material_slot.material.node_tree.links.new(export_uv_map_node.outputs[0], bake_texture_node.inputs[0])
 
@@ -942,7 +942,7 @@ class MATLAYER_OT_export(Operator):
 
                         # Link the export UV map for the next material.
                         active_material = bpy.context.active_object.active_material
-                        export_uv_map_node = material_layers.get_material_layer_node('EXPORT_UV_MAP')
+                        export_uv_map_node = material_layers.get_material_layer_node('EXPORT-UV-MAP')
                         bake_texture_node = active_material.node_tree.nodes.get('BAKE_IMAGE')
                         if export_uv_map_node and bake_texture_node:
                             active_material.node_tree.links.new(export_uv_map_node.outputs[0], bake_texture_node.inputs[0])
