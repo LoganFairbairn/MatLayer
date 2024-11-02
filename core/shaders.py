@@ -381,9 +381,9 @@ def apply_default_shader():
     channel.default_active = False
     channel.socket_type = "NodeSocketFloat"
     channel.socket_subtype = "FACTOR"
-    channel.socket_float_default = 1
-    channel.socket_float_min = -1
-    channel.socket_float_max = 1
+    channel.socket_float_default = 0.0
+    channel.socket_float_min = -1.0
+    channel.socket_float_max = 1.0
     channel.default_blend_mode = "ADD"
 
     channel = shader_info.material_channels.add()
@@ -391,8 +391,8 @@ def apply_default_shader():
     channel.default_active = False
     channel.socket_type = "NodeSocketColor"
     channel.socket_color_default = [0, 0, 0]
-    channel.socket_float_min = 0
-    channel.socket_float_max = 1
+    channel.socket_float_min = 0.0
+    channel.socket_float_max = 1.0
     channel.default_blend_mode = "MIX"
 
     # Set default shader unlayered properties.

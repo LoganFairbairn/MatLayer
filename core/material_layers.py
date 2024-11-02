@@ -133,56 +133,6 @@ def sync_triplanar_settings():
                     if texture_sample_3.interpolation != texture_sample_1.interpolation:
                         texture_sample_3.interpolation = texture_sample_1.interpolation
 
-# TODO: REMOVE THIS, DEPRECATED!
-def get_shorthand_material_channel_name(material_channel_name):
-    '''Returns the short-hand version of the provided material channel name.'''
-    # TODO: Probably should just use json for this...
-    match material_channel_name:
-        case 'COLOR':
-            return 'COLOR'
-        case 'BASE-COLOR':
-            return 'COLOR'
-        case 'SUBSURFACE':
-            return 'SUBSURF'
-        case 'SUBSURFACE-RADIUS':
-            return 'SS-RADIUS'
-        case 'METALLIC':
-            return 'METAL'
-        case 'SPECULAR':
-            return 'SPEC'
-        case 'SPECULAR-TINT':
-            return 'SPEC-TINT'
-        case 'ROUGHNESS':
-            return 'ROUGH'
-        case 'EMISSION':
-            return 'EMIT'
-        case 'NORMAL':
-            return 'NORMAL'
-        case 'HEIGHT':
-            return 'HEIGHT'
-        case 'AMBIENT-OCCLUSION':
-            return 'AO'
-        case 'ALPHA':
-            return 'ALPHA'
-        case 'COAT':
-            return 'COAT'
-        case 'COAT-ROUGHNESS':
-            return 'COAT-ROUGH'
-        case 'COAT-TINT':
-            return 'COAT-TINT'
-        case 'COAT-NORMAL':
-            return 'COAT-NORM'
-        case 'SHEEN':
-            return 'SHEEN'
-        case 'SHEEN-ROUGHNESS':
-            return 'SHEEN-ROUGH'
-        case 'SHEEN-TINT':
-            return 'SHEEN-TINT'
-        case 'DISPLACEMENT':
-            return 'DISPLACE'
-        case _:
-            return material_channel_name
-
 def parse_layer_index(layer_group_node_name):
     '''Return the layers's index by parsing the layer group node name. Returns -1 if there is no active object'''
     active_object = bpy.context.active_object

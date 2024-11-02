@@ -351,8 +351,6 @@ def draw_material_channel_properties(layout):
 def draw_layer_projection(layout):
     '''Draws layer projection settings.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-
-    
     
     # Draw the projection mode.
     projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)

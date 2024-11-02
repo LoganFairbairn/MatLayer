@@ -266,7 +266,7 @@ def bake_mesh_map(mesh_map_type, object_name, self):
 
     # Append a premade material for baking the specified mesh map type.
     match mesh_map_type:
-        case 'AMBIENT-OCCLUSION':
+        case 'AMBIENT_OCCLUSION':
             temp_bake_material = blender_addon_utils.append_material('BakeAmbientOcclusion')
             self._mesh_map_group_node_name = "ML_AmbientOcclusion"
 
@@ -281,7 +281,7 @@ def bake_mesh_map(mesh_map_type, object_name, self):
         case 'NORMALS':
             temp_bake_material = blender_addon_utils.append_material('BakeNormals')
 
-        case 'WORLD-SPACE-NORMALS':
+        case 'WORLD_SPACE_NORMALS':
             temp_bake_material = blender_addon_utils.append_material('BakeWorldSpaceNormals')
             self._mesh_map_group_node_name = "ML_WorldSpaceNormals"
 
@@ -374,7 +374,7 @@ def get_batch_bake_mesh_maps():
     mesh_maps_to_bake = []
 
     if baking_settings.bake_ambient_occlusion:
-        mesh_maps_to_bake.append('AMBIENT-OCCLUSION')
+        mesh_maps_to_bake.append('AMBIENT_OCCLUSION')
 
     if baking_settings.bake_curvature:
         mesh_maps_to_bake.append('CURVATURE')
@@ -386,7 +386,7 @@ def get_batch_bake_mesh_maps():
         mesh_maps_to_bake.append('NORMALS')
 
     if baking_settings.bake_world_space_normals:
-        mesh_maps_to_bake.append('WORLD-SPACE-NORMALS')
+        mesh_maps_to_bake.append('WORLD_SPACE_NORMALS')
 
     return mesh_maps_to_bake
 

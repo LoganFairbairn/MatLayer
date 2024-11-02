@@ -273,10 +273,6 @@ def depsgraph_change_handler(scene, depsgraph):
                                 unlink_projection=True
                             )
 
-            # TODO: Look into optimizing this further, this causes lots of lag.
-            # Re-link layer group nodes together (so changes in layer opacity will trigger relinking).
-            #material_layers.link_layer_group_nodes(self=None)
-
 # Mark load handlers as persistent so they are not called again when loading a new blend file.
 @persistent
 def load_handler(dummy):
