@@ -295,13 +295,6 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
                 return node_tree.nodes.get("FIX-NORMAL-ROTATION")
             return None
 
-        # TODO: Remove this, it's deprecated.
-        case 'BLUR':
-            node_tree = bpy.data.node_groups.get(layer_group_node_name)
-            if node_tree:
-                return node_tree.nodes.get("BLUR")
-            return None
-
         case 'MIX':
             mix_node_name = "{0}_MIX".format(static_channel_name)
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
