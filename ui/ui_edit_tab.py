@@ -352,13 +352,15 @@ def draw_layer_projection(layout):
     '''Draws layer projection settings.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
-    layout.label(text="PROJECTION")
+    
     
     # Draw the projection mode.
     projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
     if projection_node:
         match projection_node.node_tree.name:
             case 'ML_UVProjection':
+                layout.label(text="PROJECTION")
+
                 # Draw the projection mode submenu.
                 split = layout.split(factor=0.25)
                 first_column = split.column()
@@ -394,6 +396,8 @@ def draw_layer_projection(layout):
                 row.prop(projection_node.inputs.get('Rotation'), "default_value", text="Rotation", slider=True)
 
             case 'ML_TriplanarProjection':
+                layout.label(text="PROJECTION")
+
                 # Draw the projection mode submenu.
                 split = layout.split(factor=0.25)
                 first_column = split.column()
@@ -426,14 +430,9 @@ def draw_layer_projection(layout):
                 row.prop(projection_node.inputs.get('Blending'), "default_value", text="Blending")
 
             case 'ML_DecalProjection':
-                split = layout.split(factor=0.25)
-                first_column = split.column()
-                second_column = split.column()
-
-                row = first_column.row()
-                row.label(text="Method")
-                row = second_column.row()
-                row.label(text="Decal")
+                row = layout.row()
+                row.alignment = 'CENTER'
+                row.label(text="USING DECAL PROJECTION")
 
 def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_index):
     '''Draws group node properties for the selected mask.'''
