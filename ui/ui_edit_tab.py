@@ -269,13 +269,16 @@ def draw_material_channel_properties(layout):
     layout.separator()
 
     # Draw sub-section title.
-    row = layout.row()
-    row.alignment = 'CENTER'
-    row.label(text="CHANNELS")
+    split = layout.split(factor=0.5)
+    first_column = split.column()
+    second_column = split.column()
+    row = first_column.row()
+    row.label(text="MATERIAL CHANNELS")
 
     # Draw material channels add menu.
-    row = layout.row()
-    row.menu("MATLAYER_MT_add_material_channel_sub_menu", text="Add Channel")
+    row = second_column.row()
+    row.alignment = 'RIGHT'
+    row.menu("MATLAYER_MT_add_material_channel_sub_menu", text="", icon='ADD')
 
     # Avoid drawing material channel properties for invalid layers.
     if material_layers.get_material_layer_node('LAYER', selected_layer_index) == None:
