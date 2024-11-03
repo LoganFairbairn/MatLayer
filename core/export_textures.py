@@ -482,8 +482,8 @@ def channel_pack_textures(texture_set_name):
             texture_channel = getattr(export_texture.pack_textures, key)
 
             match texture_channel:
-                case 'AMBIENT-OCCLUSION':
-                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'AMBIENT-OCCLUSION')
+                case 'AMBIENT_OCCLUSION':
+                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'AMBIENT_OCCLUSION')
                     image = bpy.data.images.get(meshmap_name)
                     input_images.append(image)
 
@@ -502,8 +502,8 @@ def channel_pack_textures(texture_set_name):
                     image = bpy.data.images.get(meshmap_name)
                     input_images.append(image)
 
-                case 'WORLD-SPACE-NORMALS':
-                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'WORLD-SPACE-NORMALS')
+                case 'WORLD_SPACE_NORMALS':
+                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'WORLD_SPACE_NORMALS')
                     image = bpy.data.images.get(meshmap_name)
                     input_images.append(image)
 
@@ -607,8 +607,8 @@ def get_texture_channel_bake_list():
 
     # Normal map data bakes blank if they are baked before other maps, it's unclear why.
     # Bake all normal maps first to avoid this error.
-    if 'NORMAL-HEIGHT-MIX' in material_channels_to_bake:
-        material_channels_to_bake.insert(0, material_channels_to_bake.pop(material_channels_to_bake.index('NORMAL-HEIGHT-MIX')))
+    if 'NORMAL_HEIGHT_MIX' in material_channels_to_bake:
+        material_channels_to_bake.insert(0, material_channels_to_bake.pop(material_channels_to_bake.index('NORMAL_HEIGHT_MIX')))
 
     if 'NORMAL' in material_channels_to_bake:
         material_channels_to_bake.insert(0, material_channels_to_bake.pop(material_channels_to_bake.index('NORMAL')))
@@ -667,7 +667,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     # Get a list of output channels the shader can bake from.
     output_channels = []
     active_material = bpy.context.active_object.active_material
-    shader_node = active_material.node_tree.nodes.get('MATLAYER-SHADER')
+    shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
     if shader_node:
         for i in range(1, len(shader_node.outputs)):
             static_channel = bau.format_static_channel_name(shader_node.outputs[i].name)
@@ -755,7 +755,7 @@ def add_bake_texture_nodes():
             material_slot.material.node_tree.nodes.active = bake_texture_node
 
             # Link the export UV map to the bake texture node.
-            export_uv_map_node = material_layers.get_material_layer_node('EXPORT-UV-MAP')
+            export_uv_map_node = material_layers.get_material_layer_node('EXPORT_UV_MAP')
             if export_uv_map_node:
                 material_slot.material.node_tree.links.new(export_uv_map_node.outputs[0], bake_texture_node.inputs[0])
 
@@ -942,7 +942,7 @@ class MATLAYER_OT_export(Operator):
 
                         # Link the export UV map for the next material.
                         active_material = bpy.context.active_object.active_material
-                        export_uv_map_node = material_layers.get_material_layer_node('EXPORT-UV-MAP')
+                        export_uv_map_node = material_layers.get_material_layer_node('EXPORT_UV_MAP')
                         bake_texture_node = active_material.node_tree.nodes.get('BAKE_IMAGE')
                         if export_uv_map_node and bake_texture_node:
                             active_material.node_tree.links.new(export_uv_map_node.outputs[0], bake_texture_node.inputs[0])

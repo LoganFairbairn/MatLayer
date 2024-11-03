@@ -225,7 +225,7 @@ def verify_shader_node_group(self):
 def validate_active_shader(active_material):
     '''Checks the shader group node name exists within the cached shader list read from json data.'''
     if active_material:
-        shader_node = active_material.node_tree.nodes.get('MATLAYER-SHADER')
+        shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
         if shader_node:
             shader_list = bpy.context.scene.matlayer_shader_list
             shader_group_node_name = shader_node.node_tree.name
@@ -237,7 +237,7 @@ def validate_active_shader(active_material):
 def read_shader(active_material):
     '''Reads the active material for a valid material / shader setup created with this add-on.'''
     # Check to see if the shader node in the active material contains a valid shader group node.
-    shader_node = active_material.node_tree.nodes.get('MATLAYER-SHADER')
+    shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
     if shader_node:
         shader_list = bpy.context.scene.matlayer_shader_list
         shader_group_node_name = shader_node.node_tree.name

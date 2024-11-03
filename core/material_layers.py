@@ -67,7 +67,7 @@ def update_layer_index(self, context):
             # Hide all decal objects excluding the one for this layer (if this layer is a decal layer).
             material_layers = bpy.context.scene.matlayer_layers
             for i in range(0, len(material_layers)):
-                decal_coordinates_node = get_material_layer_node('DECAL-COORDINATES', i)
+                decal_coordinates_node = get_material_layer_node('DECAL_COORDINATES', i)
                 if decal_coordinates_node:
                     if decal_coordinates_node.object:
                         if i == selected_layer_index:
@@ -198,8 +198,8 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
             else:
                 return active_material.node_tree.nodes.get(str(layer_index))
         
-        case 'MATERIAL-OUTPUT':
-            return active_material.node_tree.nodes.get('MATERIAL-OUTPUT')
+        case 'MATERIAL_OUTPUT':
+            return active_material.node_tree.nodes.get('MATERIAL_OUTPUT')
         
         case 'PROJECTION':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
@@ -285,10 +285,10 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
                 return node_tree.nodes.get(filter_node_name)
             return None
 
-        case 'DECAL-COORDINATES':
+        case 'DECAL_COORDINATES':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                return node_tree.nodes.get('DECAL-COORDINATES')
+                return node_tree.nodes.get('DECAL_COORDINATES')
             return None
         
         case 'LINEAR-DECAL-MASK-BLEND':
@@ -297,17 +297,17 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
                 return node_tree.nodes.get('LINEAR-DECAL-MASK-BLEND')
             return None
         
-        case 'SEPARATE-RGB':
+        case 'SEPARATE_RGB':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
                 return node_tree.nodes.get("{0}_SEPARATE-RGB".format(static_channel_name))
             return None
         
-        case 'EXPORT-UV-MAP':
-            return active_material.node_tree.nodes.get('EXPORT-UV-MAP')
+        case 'EXPORT_UV_MAP':
+            return active_material.node_tree.nodes.get('EXPORT_UV_MAP')
         
-        case 'BLUR-NOISE':
-            return active_material.node_tree.nodes.get('BLUR-NOISE')
+        case 'BLUR_NOISE':
+            return active_material.node_tree.nodes.get('BLUR_NOISE')
 
         case _:
             debug_logging.log("Invalid material node name: {0}".format(layer_node_name))
@@ -368,21 +368,21 @@ def create_default_material_setup():
         blank_node_tree = default_material.node_tree
         if blank_node_tree:
             shader_info = bpy.context.scene.matlayer_shader_info
-            shader_node = blank_node_tree.nodes.get('MATLAYER-SHADER')
+            shader_node = blank_node_tree.nodes.get('SHADER_NODE')
             
             # Replace the shader node in the blank material setup.
             old_node_location = shader_node.location
             old_node_width = shader_node.width
             blank_node_tree.nodes.remove(shader_node)
             new_shader_node = blank_node_tree.nodes.new('ShaderNodeGroup')
-            new_shader_node.name = 'MATLAYER-SHADER'
+            new_shader_node.name = 'SHADER_NODE'
             new_shader_node.label = new_shader_node.name
             new_shader_node.location = old_node_location
             new_shader_node.width = old_node_width
             new_shader_node.node_tree = shader_info.shader_node_group
 
             # Re-link the main shader node to the material output.
-            material_output_node = blank_node_tree.nodes.get('MATERIAL-OUTPUT')
+            material_output_node = blank_node_tree.nodes.get('MATERIAL_OUTPUT')
             if material_output_node:
                 blank_node_tree.links.new(new_shader_node.outputs[0], material_output_node.inputs[0])
     
@@ -522,7 +522,7 @@ def add_material_channel_nodes(material_channel_name, node_tree, layer_type, sel
 
     # Add a separate node for separating RGBA channels.
     separate_node = node_tree.nodes.new('ShaderNodeSeparateColor')
-    separate_node.name = format_layer_channel_node_name(static_channel_name, 'SEPARATE-RGB')
+    separate_node.name = format_layer_channel_node_name(static_channel_name, 'SEPARATE_RGB')
     separate_node.label = separate_node.name
     separate_node.location[0] = -200
     separate_node.location[1] = -500
@@ -605,7 +605,7 @@ def delete_material_channel_nodes(material_channel_name):
     mix_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
     mix_image_alpha_node = get_material_layer_node('MIX-IMAGE-ALPHA', selected_layer_index, material_channel_name)
     opacity_node = get_material_layer_node('OPACITY', selected_layer_index, material_channel_name)
-    separate_rgb_node = get_material_layer_node('SEPARATE-RGB', selected_layer_index, material_channel_name)
+    separate_rgb_node = get_material_layer_node('SEPARATE_RGB', selected_layer_index, material_channel_name)
     mix_reroute_node = get_material_layer_node('MIX-REROUTE', selected_layer_index, material_channel_name)
     image_alpha_reroute_node = get_material_layer_node('IMAGE-ALPHA-REROUTE', selected_layer_index, material_channel_name)
     value_node_1 = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=1)
@@ -733,7 +733,7 @@ def create_new_layer_node(layer_type):
         case 'DECAL':
             projection_node.node_tree = bau.append_group_node('ML_DecalProjection')
             decal_coord_node = new_node_group.nodes.new('ShaderNodeTexCoord')
-            decal_coord_node.name = 'DECAL-COORDINATES'
+            decal_coord_node.name = 'DECAL_COORDINATES'
             decal_coord_node.label = decal_coord_node.name
             decal_coord_node.location[0] = -3500
             decal_coord_node.location[1] = -1000
@@ -850,7 +850,7 @@ def add_material_layer(layer_type, self):
             bau.add_object_to_collection("Decals", decal_object, color_tag='COLOR_03', unlink_from_other_collections=True)
 
             # Add the new decal object to the decal coordinate node.
-            decal_coordinate_node = get_material_layer_node('DECAL-COORDINATES', new_layer_slot_index)
+            decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', new_layer_slot_index)
             if decal_coordinate_node:
                 decal_coordinate_node.object = decal_object
             
@@ -951,12 +951,12 @@ def duplicate_layer(original_layer_index, self):
             layer_masks.organize_mask_nodes()
 
             # Duplicate decal objects if the original layer was a decal layer.
-            decal_coordinate_node = get_material_layer_node('DECAL-COORDINATES', original_layer_index)
+            decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', original_layer_index)
             if decal_coordinate_node:
                 decal_object = decal_coordinate_node.object
                 if decal_object:
                     duplicated_decal_object = bau.duplicate_object(decal_object)
-                    new_decal_coordinate_node = get_material_layer_node('DECAL-COORDINATES', new_layer_slot_index)
+                    new_decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', new_layer_slot_index)
                     if new_decal_coordinate_node:
                         new_decal_coordinate_node.object = duplicated_decal_object
 
@@ -982,7 +982,7 @@ def duplicate_layer(original_layer_index, self):
                     layer_masks.reindex_masks('ADDED_MASK', new_layer_slot_index, affected_mask_index=i)
 
                     if duplicated_decal_object:
-                        decal_coordinate_node = layer_masks.get_mask_node('DECAL-COORDINATES', new_layer_slot_index, new_mask_slot_index)
+                        decal_coordinate_node = layer_masks.get_mask_node('DECAL_COORDINATES', new_layer_slot_index, new_mask_slot_index)
                         if decal_coordinate_node:
                             decal_coordinate_node.object = duplicated_decal_object
                             
@@ -1001,7 +1001,7 @@ def delete_layer(self):
     active_material = bpy.context.active_object.active_material
 
     # For decal layers, delete the accociated empty object if one exists.
-    decal_coordinate_node = get_material_layer_node('DECAL-COORDINATES', selected_layer_index)
+    decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', selected_layer_index)
     if decal_coordinate_node:
         decal_object = decal_coordinate_node.object
         if decal_object:
@@ -1180,7 +1180,7 @@ def organize_layer_group_nodes():
             position_x -= 500
 
     # Organize blur noise.
-    blur_noise = get_material_layer_node('BLUR-NOISE')
+    blur_noise = get_material_layer_node('BLUR_NOISE')
     if blur_noise:
         blur_node_y = 0
         layer_node = active_material.node_tree.nodes.get('0')
@@ -1280,7 +1280,7 @@ def link_layer_group_nodes(self):
                             node_tree.links.new(output_socket, input_socket)
 
     # Connect the last (non-muted / active) layer node to the principled BSDF.
-    shader_node = active_material.node_tree.nodes.get('MATLAYER-SHADER')
+    shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
 
     last_layer_node_index = layer_count - 1
     last_layer_node = get_material_layer_node('LAYER', last_layer_node_index)
@@ -1748,7 +1748,7 @@ def set_material_channel_crgba_output(material_channel_name, crgba_output, layer
         connect_filters = True
 
     # Unlink nodes to avoid potential errors when re-linking.
-    separate_rgb_node = get_material_layer_node('SEPARATE-RGB', layer_index, material_channel_name)
+    separate_rgb_node = get_material_layer_node('SEPARATE_RGB', layer_index, material_channel_name)
     layer_node_tree = get_layer_node_tree(layer_index)
     bau.unlink_node(channel_output_node, layer_node_tree, unlink_inputs=False, unlink_outputs=True)
     bau.unlink_node(separate_rgb_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
@@ -1783,7 +1783,7 @@ def isolate_material_channel(material_channel_name):
     '''Isolates the specified material channel by linking only the specified material channel output to the material channel output / emission node.'''
     active_node_tree = bpy.context.active_object.active_material.node_tree
     emission_node = active_node_tree.nodes.get('EMISSION')
-    material_output = active_node_tree.nodes.get('MATERIAL-OUTPUT')
+    material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
 
     # Unlink the emission node to ensure nothing else is connected to it.
     bau.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
@@ -1812,8 +1812,8 @@ def show_layer():
             if emission_node:
                 if len(emission_node.outputs[0].links) != 0:
                     bau.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
-                    material_output = active_node_tree.nodes.get('MATERIAL-OUTPUT')
-                    principled_bsdf = active_node_tree.nodes.get('MATLAYER-SHADER')
+                    material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
+                    principled_bsdf = active_node_tree.nodes.get('SHADER_NODE')
                     active_node_tree.links.new(principled_bsdf.outputs[0], material_output.inputs[0])
 
 def toggle_image_alpha_blending(material_channel_name):

@@ -620,7 +620,7 @@ def draw_unlayered_material_properties(layout):
         return
 
     # Ensure there is a valid shader node.
-    matlayer_shader_node = active_material.node_tree.nodes.get('MATLAYER-SHADER')
+    matlayer_shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
     if not matlayer_shader_node:
         row.label(text="No Valid Shader Node")
         return

@@ -16,10 +16,11 @@ from .. import preferences
 def format_static_channel_name(channel_name):
     '''Formats the given material channel name to be used as node names and labels in the material node graph (replaces underscores and spaces with dashes and capitalizes the channel name).'''
 
-    # Node channel names can't use under-scores.
+    # Node channel names can't use under-scores as they are used as delimiters for splitting
+    # node names into data such as the ID name, or index of the node.
     formatted_channel_name = channel_name.replace('_', '-')
 
-    # Node channel names never use spaces, use dashes instead.
+    # Node channel names should never use spaces, use dashes instead.
     formatted_channel_name = formatted_channel_name.replace(' ', '-')
 
     # Node channel names should be capitalized.
@@ -422,7 +423,7 @@ def save_image(image, file_format='PNG', image_category='RAW_TEXTURE', colorspac
 def verify_addon_material(material):
     '''Verifies the material is created with this add-on.'''
     if material:
-        if material.node_tree.nodes.get('MATLAYER-SHADER') != None:
+        if material.node_tree.nodes.get('SHADER_NODE') != None:
             return True
         else:
             return False

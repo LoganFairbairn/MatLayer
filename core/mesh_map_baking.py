@@ -68,14 +68,14 @@ MESH_MAP_CAGE_MODE = [
 def update_occlusion_samples(self, context):
     '''Updates the occlusion samples setting in the active material'''
     baking_settings = bpy.context.scene.matlayer_baking_settings
-    node = get_meshmap_node('AMBIENT-OCCLUSION')
+    node = get_meshmap_node('AMBIENT_OCCLUSION')
     if node:
         node.samples = baking_settings.occlusion_samples
 
 def update_occlusion_distance(self, context):
     '''Updates the occlusion distance setting in the active material'''
     baking_settings = bpy.context.scene.matlayer_baking_settings
-    node = get_meshmap_node('AMBIENT-OCCLUSION')
+    node = get_meshmap_node('AMBIENT_OCCLUSION')
     if node:
         node.inputs.get('Distance').default_value = baking_settings.occlusion_distance
 
@@ -89,7 +89,7 @@ def update_occlusion_intensity(self, context):
 def update_local_occlusion(self, context):
     '''Updates the local occlusion setting in the active material.'''
     baking_settings = bpy.context.scene.matlayer_baking_settings
-    node = get_meshmap_node('AMBIENT-OCCLUSION')
+    node = get_meshmap_node('AMBIENT_OCCLUSION')
     if node:
         node.only_local = baking_settings.local_occlusion
 
@@ -942,7 +942,7 @@ class MATLAYER_OT_preview_mesh_map(Operator):
     bl_label = "Preview Mesh Map"
     bl_description = "Replaces all material slots on the selected (active) object with a material used for baking the specified mesh map, then applies viewport and render settings to make the preview visible"
 
-    mesh_map_type: StringProperty(default='AMBIENT-OCCLUSION')
+    mesh_map_type: StringProperty(default='AMBIENT_OCCLUSION')
 
     @ classmethod
     def poll(cls, context):
@@ -977,7 +977,7 @@ class MATLAYER_OT_preview_mesh_map(Operator):
 
         # Append a material that will be used to preview the mesh map.
         match self.mesh_map_type:
-            case 'AMBIENT-OCCLUSION':
+            case 'AMBIENT_OCCLUSION':
                 mesh_map_material = blender_addon_utils.append_material('BakeAmbientOcclusion')
 
             case 'CURVATURE':
@@ -989,7 +989,7 @@ class MATLAYER_OT_preview_mesh_map(Operator):
             case 'NORMALS':
                 mesh_map_material = blender_addon_utils.append_material('BakeNormals')
 
-            case 'WORLD-SPACE-NORMALS':
+            case 'WORLD_SPACE_NORMALS':
                 mesh_map_material = blender_addon_utils.append_material('BakeWorldSpaceNormals')
 
         active_object = bpy.context.active_object
@@ -1067,7 +1067,7 @@ class MATLAYER_OT_delete_mesh_map(Operator):
     bl_label = "Delete Mesh Map"
     bl_description = "Deletes the specified mesh map from the blend files data for the active object if one exists"
 
-    mesh_map_name: StringProperty(default='AMBIENT-OCCLUSION')
+    mesh_map_name: StringProperty(default='AMBIENT_OCCLUSION')
 
     @ classmethod
     def poll(cls, context):

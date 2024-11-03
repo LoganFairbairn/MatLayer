@@ -49,9 +49,9 @@ MATERIAL_CHANNEL_TAGS = {
     "opacity": 'ALPHA',
     "opaque": 'ALPHA',
     "alpha": 'ALPHA',
-    "ao": 'AMBIENT-OCCLUSION',
-    "occlusion": 'AMBIENT-OCCLUSION',
-    "ambient": 'AMBIENT-OCCLUSION',
+    "ao": 'AMBIENT_OCCLUSION',
+    "occlusion": 'AMBIENT_OCCLUSION',
+    "ambient": 'AMBIENT_OCCLUSION',
 
     # RGB channel packing...
     "orm": 'CHANNEL_PACKED',
@@ -81,8 +81,8 @@ MATERIAL_CHANNEL_ABBREVIATIONS = {
     "a": 'ALPHA',
     "cc": 'COAT',
     "e": 'EMISSION',
-    "o": 'AMBIENT-OCCLUSION',
-    "ao": 'AMBIENT-OCCLUSION'
+    "o": 'AMBIENT_OCCLUSION',
+    "ao": 'AMBIENT_OCCLUSION'
 }
 
 class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
