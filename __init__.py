@@ -54,7 +54,7 @@ from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLA
 
 # User Interface
 from .ui.ui_tabs import UtilitySubMenu
-from .ui.ui_edit_tab import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, MATLAYER_OT_add_material_filter_menu, AddMaterialChannelSubMenu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MATERIAL_LAYER_PROPERTY_TABS
+from .ui.ui_edit_tab import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, AddMaterialChannelSubMenu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MATERIAL_LAYER_PROPERTY_TABS
 from .ui.ui_settings_tab import ShaderSubMenu, MATLAYER_UL_shader_channel_list, MATLAYER_UL_global_shader_property_list, ShaderSetupUtilitySubMenu
 from .ui.ui_main import *
 from .ui.ui_layer_stack import MATLAYER_UL_layer_list, LayerBlendingModeSubMenu
@@ -219,7 +219,6 @@ classes = (
     UtilitySubMenu,
     MATLAYER_OT_add_material_layer_menu,
     MATLAYER_OT_add_layer_mask_menu,
-    MATLAYER_OT_add_material_filter_menu,
     AddMaterialChannelSubMenu,
     MaterialChannelSubMenu,
     ImageUtilitySubMenu,

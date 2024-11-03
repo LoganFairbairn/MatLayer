@@ -705,29 +705,6 @@ class MATLAYER_OT_add_layer_mask_menu(Operator):
         col.operator("matlayer.add_thickness_mask", text="Thickness")
         col.operator("matlayer.add_world_space_normals_mask", text="World Space Normals")
 
-# TODO: Finish this...
-class MATLAYER_OT_add_material_filter_menu(Operator):
-    bl_label = ""
-    bl_idname = "matlayer.add_material_filter_menu"
-
-    # Runs when the add layer button in the popup is clicked.
-    def execute(self, context):
-        return {'FINISHED'}
-
-    # Opens the popup when the add layer button is clicked.
-    def invoke(self, context, event):
-        return context.window_manager.invoke_popup(self, width=150)
-    
-    # Draws the properties in the popup.
-    def draw(self, context):
-        layout = self.layout
-        split = layout.split()
-        col = split.column(align=True)
-        col.scale_y = 1.4
-        col.operator("matlayer.add_material_filter_hsv", text="Add HUE_SAT")
-        col.operator("matlayer.add_material_filter_color_ramp", text="Add Color Ramp")
-        col.operator("matlayer.add_material_filter_invert", text="Add Invert")
-
 class AddMaterialChannelSubMenu(Menu):
     bl_idname = "MATLAYER_MT_add_material_channel_sub_menu"
     bl_label = "Add Material Channel Sub Menu"
