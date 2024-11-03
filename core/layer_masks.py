@@ -64,7 +64,14 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
             if get_changed:
                 mask_node_name += "~"
             return active_material.node_tree.nodes.get(mask_node_name)
-    
+
+        case 'MASK_TYPE':
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
+            node_tree = bpy.data.node_groups.get(mask_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('MASK_TYPE')
+            return None     
+
         case 'MASK_MIX':
             mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
@@ -162,6 +169,14 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
             if node_tree:
                 return node_tree.nodes.get('SEPARATE_RGB')
             return None     
+
+def get_mask_type(layer_index, mask_index):
+    '''Returns the mask type by returning the label of the mask type node from the mask group node.'''
+    mask_node = get_mask_node('MASK_TYPE', layer_index, mask_index)
+    if mask_node:
+        return mask_node.label
+    else:
+        return 'UNDEFINED'
 
 def count_masks(layer_index, material_name=""):
     '''Counts the total number of masks for the specified material by applied to the specified layer by counting existing material node groups in the blend data.'''
@@ -403,7 +418,8 @@ def add_layer_mask(type, self):
             link_mask_nodes(selected_layer_index)
             material_layers.apply_mesh_maps()
 
-            # For world space normals mask, masking using the blue (z or up) channel is more frequently used, so we'll apply that as the default.
+            # For world space normals mask, masking using the blue (z or up) channel is more frequently used
+            # apply that as the default.
             if type == 'WORLD_SPACE_NORMALS':
                 set_mask_crgba_channel('BLUE')
             debug_logging.log("Added a {0} mesh map mask.".format(type))
@@ -803,15 +819,30 @@ def set_mask_crgba_channel(output_channel):
     filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
     separate_rgb_node = get_mask_node('SEPARATE_RGB', selected_layer_index, selected_mask_index)
 
-    # Find the main mask output node based on the mask projection.
+    # Don't set the CRGBA channel for masks without a separate RGB node.
+    if not separate_rgb_node:
+        debug_logging.log("No separate RGB node, can't set mask CRGBA channel.")
+        return
+    
+    # Find the node that outputs the mask value based on the mask type.
     output_node = None
-    mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
-    mask_projection_node = get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
-    match mask_projection_node.node_tree.name:
-        case 'ML_TriplanarProjection':
-            output_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
-        case _:
-            output_node = mask_texture_node
+    mask_type = get_mask_type(selected_layer_index, selected_mask_index)
+    match mask_type:
+        case 'IMAGE_MASK':
+            mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
+            mask_projection_node = get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
+            match mask_projection_node.node_tree.name:
+                case 'ML_TriplanarProjection':
+                    output_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
+                case _:
+                    output_node = mask_texture_node
+
+        case 'WORLD_SPACE_NORMALS_MASK':
+            output_node = get_mask_node('WORLD_SPACE_NORMALS', selected_layer_index, selected_mask_index)
+    
+    if output_node == None:
+        debug_logging.log("Failed to find the main node outputting the mask value.")
+        return
 
     # Disconnect the mask nodes.
     bau.unlink_node(output_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
