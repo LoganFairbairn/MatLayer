@@ -1393,7 +1393,7 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
             match projection_node.node_tree.name:
                 case 'ML_TriplanarProjection':
                     value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=1)
-                    triplanar_blend_node = get_material_layer_node('TRIPLANAR-BLEND', selected_layer_index, channel.name)
+                    triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, channel.name)
 
                     # Link projection nodes when image textures are used as the material channel value.
                     if value_node.bl_static_type == 'TEX_IMAGE':
@@ -1455,7 +1455,7 @@ def delete_triplanar_blending_nodes(material_channel_name):
         if texture_sample_node:
             layer_node_tree.nodes.remove(texture_sample_node)
 
-    triplanar_blend_node = get_material_layer_node('TRIPLANAR-BLEND', selected_layer_index, material_channel_name)
+    triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, material_channel_name)
     if triplanar_blend_node:
         layer_node_tree.nodes.remove(triplanar_blend_node)
 
@@ -1571,7 +1571,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                     triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarNormalsBlend")
                 else:
                     triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarBlend")
-                triplanar_blend_node.name = "TRIPLANAR_BLEND_{0}".format(node_channel_name)
+                triplanar_blend_node.name = format_material_channel_node_name(node_channel_name, 'TRIPLANAR_BLEND')
                 triplanar_blend_node.label = triplanar_blend_node.name
                 triplanar_blend_node.width = 300
                 triplanar_blend_node.hide = True
@@ -1725,7 +1725,7 @@ def set_material_channel_crgba_output(material_channel_name, crgba_output, layer
     match projection_node.node_tree.name:
         case 'ML_TriplanarProjection':
             if value_node.bl_static_type == 'TEX_IMAGE':
-                channel_output_node = get_material_layer_node('TRIPLANAR-BLEND', layer_index, material_channel_name)
+                channel_output_node = get_material_layer_node('TRIPLANAR_BLEND', layer_index, material_channel_name)
             else:
                 channel_output_node = value_node
         case _:

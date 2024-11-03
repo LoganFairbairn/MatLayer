@@ -100,11 +100,11 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
                 return node_tree.nodes.get('DECAL_OFFSET')
             return None
 
-        case 'TRIPLANAR-BLEND':
+        case 'TRIPLANAR_BLEND':
             mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
-                return node_tree.nodes.get('TRIPLANAR-BLEND')
+                return node_tree.nodes.get('TRIPLANAR_BLEND')
             return None
 
         case 'TEXTURE':
@@ -664,7 +664,7 @@ def relink_image_mask_projection(original_output_channel):
 
         case "ML_TriplanarProjection":
             filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
-            triplanar_blend_node = get_mask_node('TRIPLANAR-BLEND', selected_layer_index, selected_mask_index)
+            triplanar_blend_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
 
             for i in range(0, 3):
                 texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=i + 1)
@@ -727,7 +727,7 @@ def set_mask_projection_mode(projection_mode):
                     if texture_node:
                         mask_node.node_tree.nodes.remove(texture_node)
 
-                triplanar_blend_node = get_mask_node('TRIPLANAR-BLEND', selected_layer_index, selected_mask_index)
+                triplanar_blend_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
                 if triplanar_blend_node:
                     mask_node.node_tree.nodes.remove(triplanar_blend_node)
 
@@ -771,7 +771,7 @@ def set_mask_projection_mode(projection_mode):
                     # Add a triplanar blending node.
                     triplanar_blend_node = mask_node.node_tree.nodes.new('ShaderNodeGroup')
                     triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarBlend")
-                    triplanar_blend_node.name = "TRIPLANAR-BLEND"
+                    triplanar_blend_node.name = "TRIPLANAR_BLEND"
                     triplanar_blend_node.label = triplanar_blend_node.name
                     triplanar_blend_node.width = 200
                     triplanar_blend_node.hide = True
@@ -809,7 +809,7 @@ def set_mask_crgba_channel(output_channel):
     mask_projection_node = get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
     match mask_projection_node.node_tree.name:
         case 'ML_TriplanarProjection':
-            output_node = get_mask_node('TRIPLANAR-BLEND', selected_layer_index, selected_mask_index)
+            output_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
         case _:
             output_node = mask_texture_node
 
