@@ -140,7 +140,6 @@ classes = (
     material_layers.MATLAYER_OT_set_layer_projection_uv,
     material_layers.MATLAYER_OT_set_layer_projection_triplanar,
     material_layers.MATLAYER_OT_change_material_channel_value_node,
-    material_layers.MATLAYER_OT_toggle_triplanar_flip_correction,
     material_layers.MATLAYER_OT_isolate_material_channel,
     material_layers.MATLAYER_OT_toggle_image_alpha_blending,
     material_layers.MATLAYER_OT_set_material_channel,
