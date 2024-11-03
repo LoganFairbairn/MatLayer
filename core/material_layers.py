@@ -334,7 +334,8 @@ def add_material_layer_slot():
 
     layer_slot = layers.add()
 
-    # Assign a random, unique number to the layer slot. This allows the layer slot array index to be found using the name of the layer slot as a key.
+    # Assign a random, unique number to the layer slot. 
+    # This allows the layer slot array index to be found using the name of the layer slot as a key.
     unique_random_slot_id = str(random.randrange(0, 999999))
     while layers.find(unique_random_slot_id) != -1:
         unique_random_slot_id = str(random.randrange(0, 999999))
@@ -818,7 +819,15 @@ def add_material_layer(layer_type, self):
     new_layer_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
     new_layer_group_node.node_tree = default_layer_node_group
     new_layer_group_node.name = str(new_layer_slot_index) + "~"
-    new_layer_group_node.label = "Layer " + str(new_layer_slot_index + 1)
+
+    # Assign a default name to the layer based on the layer type.
+    match layer_type:
+        case 'NORMAL':
+            new_layer_group_node.label = "Material Layer"
+        case 'IMAGE':
+            new_layer_group_node.label = "Image Layer"
+        case 'DECAL':
+            new_layer_group_node.label = "Decal Layer"
 
     # Re-index, organize and link layer nodes together.
     reindex_layer_nodes(change_made='ADDED_LAYER', affected_layer_index=new_layer_slot_index)
@@ -2066,7 +2075,7 @@ class MATLAYER_OT_add_material_layer(Operator):
         return context.active_object
 
     def execute(self, context):
-        add_material_layer('DEFAULT', self)
+        add_material_layer('NORMAL', self)
         return {'FINISHED'}
 
 class MATLAYER_OT_add_decal_material_layer(Operator):
