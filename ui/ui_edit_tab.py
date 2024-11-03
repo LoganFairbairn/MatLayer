@@ -470,7 +470,8 @@ def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_
             row.prop(mask_node.inputs[i], "default_value", text="")
 
     # Draw CRGBA channel properties for compatable masks.
-    if mask_node.outputs[0].name == 'Mask CRGBA':
+    separate_rgb_node = layer_masks.get_mask_node('SEPARATE_RGB', selected_layer_index, selected_mask_index)
+    if separate_rgb_node:
         mask_crgba_channel_name = layer_masks.get_mask_crgba_channel()
         row = first_column.row()
         row.label(text="Channel")

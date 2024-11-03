@@ -168,7 +168,7 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
             if node_tree:
                 return node_tree.nodes.get('SEPARATE_RGB')
-            return None     
+            return None
 
 def get_mask_type(layer_index, mask_index):
     '''Returns the mask type by returning the label of the mask type node from the mask group node.'''
