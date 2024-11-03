@@ -2044,7 +2044,7 @@ class MATLAYER_OT_add_material_channel_nodes(Operator):
         selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
         layer_node = get_material_layer_node('LAYER', selected_layer_index)
         layer_type = get_layer_type()
-        add_material_channel_nodes(self.material_channel_name, layer_node.node_tree, layer_type)
+        add_material_channel_nodes(self.material_channel_name, layer_node.node_tree, layer_type, self)
         organize_material_channel_frames(layer_node.node_tree)
         return {'FINISHED'}
 
