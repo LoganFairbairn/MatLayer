@@ -390,13 +390,22 @@ def create_default_material_setup():
 
     return default_material
 
+def check_channel_nodes_exist(material_channel_name, node_tree):
+    '''Checks if the specified material channel nodes exist by checking for a material channel frame node.'''
+    static_channel_name = bau.format_static_channel_name(material_channel_name)
+    frame_node = node_tree.nodes.get(static_channel_name)
+    if frame_node:
+        return True
+    else:
+        return False
+
 def add_material_channel_nodes(material_channel_name, node_tree, layer_type, self=None):
     '''Creates framed nodes for a material channel.'''
     static_channel_name = bau.format_static_channel_name(material_channel_name)
 
-    # If a frame already exists for this material channel, there's an error, abort.
-    frame_node = node_tree.nodes.get(material_channel_name)
-    if frame_node:
+    # If a channel nodes already exist for this material channel, if they do, there's an error, abort.
+    channel_nodes_exist = check_channel_nodes_exist(material_channel_name, node_tree)
+    if channel_nodes_exist:
         debug_logging.log("Material channel already exists.")
         if self != None:
             debug_logging.log_status("Material channel already exists.", self, type='INFO')
@@ -1445,7 +1454,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
     node_channel_name = bau.format_static_channel_name(material_channel_name)
     
     # Texture nodes are the only nodes that require a specific projection node setup, ignore other node types.
-    # If set_texture_node is true, the material channel value node will be replaces with a texture node, regardless of it's original node type.
+    # If set_texture_node is true, the material channel value node will be replaced with a texture node, regardless of it's original node type.
     if value_node.bl_static_type == 'TEX_IMAGE' or set_texture_node:
 
         # Remember the original nodes location and type.
@@ -1618,36 +1627,40 @@ def replace_material_channel_node(channel_name, node_type):
                     setup_material_channel_projection_nodes(node_channel_name, 'DECAL', set_texture_node=True)
 
 def set_layer_projection(projection_mode, self):
-    '''Changes projection nodes for the layer to use the specified projection mode. Valid options include: 'UV', 'TRIPLANAR'.'''
+    '''Changes projection nodes for the layer to use the specified projection mode.'''
     if bau.verify_material_operation_context(self) == False:
         return
 
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
     if not projection_node:
-        debug_logging.log_status("Error, missing layer projection node. The material node format is corrupt, or the active material is not made with this add-on.")
+        debug_logging.log("Missing layer projection node.", message_type='ERROR')
         return
 
+    layer_node = get_material_layer_node('LAYER', selected_layer_index)
+    shader_info = bpy.context.scene.matlayer_shader_info
+
+    # Change projection nodes for the material channel.
     match projection_mode:
         case 'UV':
             if projection_node.node_tree.name != "ML_UVProjection":
                 set_layer_projection_nodes('UV')
 
-                shader_info = bpy.context.scene.matlayer_shader_info
                 for channel in shader_info.material_channels:
-                    setup_material_channel_projection_nodes(channel.name, 'UV')
-
-                debug_logging.log("Changed layer projection to 'UV'.")
+                    channel_nodes_exist = check_channel_nodes_exist(channel.name, layer_node.node_tree)
+                    if channel_nodes_exist:
+                        setup_material_channel_projection_nodes(channel.name, 'UV')
 
         case 'TRIPLANAR':
             if projection_node.node_tree.name != "ML_TriplanarProjection":
                 set_layer_projection_nodes('TRIPLANAR')
 
-                shader_info = bpy.context.scene.matlayer_shader_info
                 for channel in shader_info.material_channels:
-                    setup_material_channel_projection_nodes(channel.name, 'TRIPLANAR')
+                    channel_nodes_exist = check_channel_nodes_exist(channel.name, layer_node.node_tree)
+                    if channel_nodes_exist:
+                        setup_material_channel_projection_nodes(channel.name, 'TRIPLANAR')
 
-                debug_logging.log("Changed layer projection to 'TRIPLANAR'.")
+    debug_logging.log("Changed layer projection to: {0}".format(projection_mode))
 
 def get_material_channel_crgba_output(material_channel_name):
     '''Returns which Color / RGBA channel output is used for the specified material channel.'''
@@ -2191,6 +2204,7 @@ class MATLAYER_OT_toggle_hide_layer(Operator):
         link_layer_group_nodes(self)
         return {'FINISHED'}
 
+# TODO: This operator should be merged with set_layer_projection_triplanar.
 class MATLAYER_OT_set_layer_projection_uv(Operator):
     bl_idname = "matlayer.set_layer_projection_uv"
     bl_label = "Set Layer Projection UV"
@@ -2239,6 +2253,7 @@ class MATLAYER_OT_change_material_channel_value_node(Operator):
         replace_material_channel_node(self.material_channel_name, node_type=self.node_type)
         return {'FINISHED'}
 
+# TODO: Deprecate this? Toggle flip is not very useful, and provided minimal optimization.
 class MATLAYER_OT_toggle_triplanar_flip_correction(Operator):
     bl_idname = "matlayer.toggle_triplanar_flip_correction"
     bl_label = "Toggle Triplanar Flip Correction"
