@@ -128,10 +128,20 @@ class MATLAYER_UL_layer_list(bpy.types.UIList):
                 row.ui_units_x = 2
                 row.prop(layer_node, "label", text="", emboss=False)
 
-                # Layer opacity and blending mode (for the selected material channel).
-                selected_material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
-                opacity_layer_node = material_layers.get_material_layer_node('OPACITY', item_index, channel_name=selected_material_channel.upper())
-                mix_layer_node = material_layers.get_material_layer_node('MIX', item_index, channel_name=selected_material_channel.upper())
+                # Layer opacity and blending mode for the selected material channel.
+                selected_material_channel_name = bpy.context.scene.matlayer_layer_stack.selected_material_channel
+                opacity_layer_node = material_layers.get_material_layer_node(
+                    'OPACITY', 
+                    item_index, 
+                    channel_name=selected_material_channel_name
+                )
+
+                mix_layer_node = material_layers.get_material_layer_node(
+                    'MIX', 
+                    item_index, 
+                    channel_name=selected_material_channel_name
+                )
+
                 if mix_layer_node:
                     row = layout.row(align=True)
                     row.ui_units_x = 5

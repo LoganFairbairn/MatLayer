@@ -22,7 +22,7 @@ def set_image_colorspace_by_material_channel(image, material_channel_name):
         case 'COLOR':
             image.colorspace_settings.name = 'sRGB'
 
-        case 'BASE-COLOR':
+        case 'BASE_COLOR':
             image.colorspace_settings.name = 'sRGB'
 
         case 'METALLIC':

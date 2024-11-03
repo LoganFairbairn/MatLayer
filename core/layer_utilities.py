@@ -13,12 +13,12 @@ import re                                           # For splitting strings usin
 
 # Dictionary of words / tags that may be in image texture names that could be used to identify material channels from image file names.
 MATERIAL_CHANNEL_TAGS = {
-    "color": 'BASE-COLOR',
-    "colour": 'BASE-COLOR',
-    "couleur": 'BASE-COLOR',
-    "diffuse": 'BASE-COLOR',
-    "diff": 'BASE-COLOR',
-    "dif": 'BASE-COLOR',
+    "color": 'BASE_COLOR',
+    "colour": 'BASE_COLOR',
+    "couleur": 'BASE_COLOR',
+    "diffuse": 'BASE_COLOR',
+    "diff": 'BASE_COLOR',
+    "dif": 'BASE_COLOR',
     "subsurface": 'SUBSURFACE',
     "subsurf": 'SUBSURFACE',
     "ss": 'SUBSURFACE',
@@ -68,7 +68,7 @@ MATERIAL_CHANNEL_TAGS = {
 # With an identifiable material channel format, such as the one used commonly in game engines (T_MyTexture_C_1),
 # we can identify material channels using only the first few letters.
 MATERIAL_CHANNEL_ABBREVIATIONS = {
-    "c": 'BASE-COLOR',
+    "c": 'BASE_COLOR',
     "m": 'METALLIC',
     "r": 'ROUGHNESS',
     "n": 'NORMAL',

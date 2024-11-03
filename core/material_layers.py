@@ -30,12 +30,12 @@ TRIPLANAR_PROJECTION_INPUTS = [
 #----------------------------- UPDATING PROPERTIES -----------------------------#
 
 
-def format_layer_channel_node_name(material_channel_name, node_name, node_index=-1):
+def format_material_channel_node_name(material_channel_name, node_name, node_index=-1):
     '''Properly formats the name for a layer node that belongs to a material channel.'''
     if node_index != -1:
-        return "{0}_{1}_{2}".format(material_channel_name, node_name, node_index)
+        return "{0}-{1}-{2}".format(material_channel_name, node_name, node_index)
     else:
-        return "{0}_{1}".format(material_channel_name, node_name)
+        return "{0}-{1}".format(material_channel_name, node_name)
 
 def format_layer_group_node_name(material_name, layer_index):
     '''Properly formats the layer group node names for this add-on.'''
@@ -191,6 +191,7 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
     layer_group_node_name = format_layer_group_node_name(active_material.name, layer_index)
     static_channel_name = bau.format_static_channel_name(channel_name)
 
+    # TODO: This should use a list lookup, instead of a match statement.
     match layer_node_name:
         case 'LAYER':
             if get_changed:
@@ -207,16 +208,16 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
                 return node_tree.nodes.get("PROJECTION")
             return None
 
-        case 'GROUP-INPUT':
+        case 'GROUP_INPUT':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                return node_tree.nodes.get("GROUP-INPUT")
+                return node_tree.nodes.get("GROUP_INPUT")
             return None
         
-        case 'GROUP-OUTPUT':
+        case 'GROUP_OUTPUT':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                return node_tree.nodes.get("GROUP-OUTPUT")
+                return node_tree.nodes.get("GROUP_OUTPUT")
             return None
 
         case 'FRAME':
@@ -227,62 +228,64 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
             return None
 
         case 'VALUE':
-            value_node_name = "{0}_VALUE_{1}".format(static_channel_name, node_number)
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                return node_tree.nodes.get(value_node_name)
+                node_name = format_material_channel_node_name(static_channel_name, "VALUE", node_number)
+                return node_tree.nodes.get(node_name)
             return None
 
-        case 'TRIPLANAR-BLEND':
+        case 'TRIPLANAR_BLEND':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                return node_tree.nodes.get("TRIPLANAR_BLEND_{0}".format(static_channel_name))
+                node_name = format_material_channel_node_name(static_channel_name, "TRIPLANAR_BLEND")
+                return node_tree.nodes.get(node_name)
             return None
 
-        case 'FIX-NORMAL-ROTATION':
+        case 'FIX_NORMAL_ROTATION':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                return node_tree.nodes.get("FIX-NORMAL-ROTATION")
+                return node_tree.nodes.get("FIX_NORMAL_ROTATION")
             return None
 
         case 'MIX':
-            mix_node_name = "{0}_MIX".format(static_channel_name)
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                return node_tree.nodes.get(mix_node_name)
+                node_name = format_material_channel_node_name(static_channel_name, "MIX")
+                return node_tree.nodes.get(node_name)
             return None
         
-        case 'MIX-REROUTE':
-            reroute_node_name = "{0}_MIX-REROUTE".format(static_channel_name)
+        case 'MIX_REROUTE':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                return node_tree.nodes.get(reroute_node_name)
+                node_name = format_material_channel_node_name(static_channel_name, "MIX_REROUTE")
+                return node_tree.nodes.get(node_name)
             return None
 
-        case 'MIX-IMAGE-ALPHA':
+        case 'MIX_IMAGE_ALPHA':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                return node_tree.nodes.get("{0}_MIX-IMAGE-ALPHA".format(static_channel_name))
+                node_name = format_material_channel_node_name(static_channel_name, "MIX_IMAGE_ALPHA")
+                return node_tree.nodes.get(node_name)
             return None  
 
         case 'OPACITY':
-            opacity_node_name = "{0}_OPACITY".format(static_channel_name)
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                return node_tree.nodes.get(opacity_node_name)
+                node_name = format_material_channel_node_name(static_channel_name, 'OPACITY')
+                return node_tree.nodes.get(node_name)
             return None
         
-        case 'IMAGE-ALPHA-REROUTE':
-            image_alpha_reroute_name = "{0}_IMAGE-ALPHA-REROUTE".format(static_channel_name)
+        case 'IMAGE_ALPHA_REROUTE':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                return node_tree.nodes.get(image_alpha_reroute_name)
+                node_name = format_material_channel_node_name(static_channel_name, 'IMAGE_ALPHA_REROUTE')
+                return node_tree.nodes.get(node_name)
         
         case 'FILTER':
-            filter_node_name = "{0}_FILTER".format(static_channel_name)
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                return node_tree.nodes.get(filter_node_name)
+                node_name = format_material_channel_node_name(static_channel_name, 'FILTER')
+                return node_tree.nodes.get(node_name)
             return None
 
         case 'DECAL_COORDINATES':
@@ -291,16 +294,17 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
                 return node_tree.nodes.get('DECAL_COORDINATES')
             return None
         
-        case 'LINEAR-DECAL-MASK-BLEND':
+        case 'LINEAR_DECAL_MASK_BLEND':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                return node_tree.nodes.get('LINEAR-DECAL-MASK-BLEND')
+                return node_tree.nodes.get('LINEAR_DECAL_MASK_BLEND')
             return None
         
         case 'SEPARATE_RGB':
             node_tree = bpy.data.node_groups.get(layer_group_node_name)
             if node_tree:
-                return node_tree.nodes.get("{0}_SEPARATE-RGB".format(static_channel_name))
+                node_name = format_material_channel_node_name(static_channel_name, "SEPARATE_RGB")
+                return node_tree.nodes.get(node_name)
             return None
         
         case 'EXPORT_UV_MAP':
@@ -461,14 +465,14 @@ def add_material_channel_nodes(material_channel_name, node_tree, layer_type, sel
 
         # Add input and output nodes so the material channel can pass through the node.
         group_input_node = default_value_group_node.nodes.new('NodeGroupInput')
-        group_input_node.name = 'GROUP-INPUT'
+        group_input_node.name = 'GROUP_INPUT'
         group_input_node.label = group_input_node.name
         group_input_node.location[0] = -1000
         group_input_node.location[1] = 0
         group_input_node.width = 300
 
         group_output_node = default_value_group_node.nodes.new('NodeGroupOutput')
-        group_output_node.name = 'GROUP-OUTPUT'
+        group_output_node.name = 'GROUP_OUTPUT'
         group_output_node.label = group_output_node.name
         group_output_node.location[0] = 0
         group_output_node.location[1] = 0
@@ -479,7 +483,7 @@ def add_material_channel_nodes(material_channel_name, node_tree, layer_type, sel
 
     # Add a value node to represent this material channel.
     value_node = node_tree.nodes.new('ShaderNodeGroup')
-    value_node.name = format_layer_channel_node_name(static_channel_name, 'VALUE', node_index=1)
+    value_node.name = format_material_channel_node_name(static_channel_name, 'VALUE', node_index=1)
     value_node.label = value_node.name
     value_node.location[0] = -1000
     value_node.location[1] = -400
@@ -489,7 +493,7 @@ def add_material_channel_nodes(material_channel_name, node_tree, layer_type, sel
 
     # Add the mix image alpha node.
     image_alpha_node = node_tree.nodes.new('ShaderNodeMath')
-    image_alpha_node.name = format_layer_channel_node_name(static_channel_name, 'MIX-IMAGE-ALPHA')
+    image_alpha_node.name = format_material_channel_node_name(static_channel_name, 'MIX_IMAGE_ALPHA')
     image_alpha_node.label = image_alpha_node.name
     image_alpha_node.location[0] = -500
     image_alpha_node.location[1] = 0
@@ -501,7 +505,7 @@ def add_material_channel_nodes(material_channel_name, node_tree, layer_type, sel
 
     # Add a re-route for the image alpha node for better node organization.
     image_alpha_node_reroute = node_tree.nodes.new('NodeReroute')
-    image_alpha_node_reroute.name = format_layer_channel_node_name(static_channel_name, 'IMAGE-ALPHA-REROUTE')
+    image_alpha_node_reroute.name = format_material_channel_node_name(static_channel_name, 'IMAGE_ALPHA_REROUTE')
     image_alpha_node_reroute.label = image_alpha_node_reroute.name
     image_alpha_node_reroute.location[0] = -1000
     image_alpha_node_reroute.location[1] = 0
@@ -509,7 +513,7 @@ def add_material_channel_nodes(material_channel_name, node_tree, layer_type, sel
 
     # Add an opacity node.
     opacity_node = node_tree.nodes.new('ShaderNodeMix')
-    opacity_node.name = format_layer_channel_node_name(static_channel_name, 'OPACITY')
+    opacity_node.name = format_material_channel_node_name(static_channel_name, 'OPACITY')
     opacity_node.label = opacity_node.name
     opacity_node.location[0] = -300
     opacity_node.location[1] = 0
@@ -522,7 +526,7 @@ def add_material_channel_nodes(material_channel_name, node_tree, layer_type, sel
 
     # Add a separate node for separating RGBA channels.
     separate_node = node_tree.nodes.new('ShaderNodeSeparateColor')
-    separate_node.name = format_layer_channel_node_name(static_channel_name, 'SEPARATE_RGB')
+    separate_node.name = format_material_channel_node_name(static_channel_name, 'SEPARATE_RGB')
     separate_node.label = separate_node.name
     separate_node.location[0] = -200
     separate_node.location[1] = -500
@@ -530,20 +534,20 @@ def add_material_channel_nodes(material_channel_name, node_tree, layer_type, sel
 
     # Add re-route nodes for organization.
     mix_node_reroute = node_tree.nodes.new('NodeReroute')
-    mix_node_reroute.name = format_layer_channel_node_name(static_channel_name, 'MIX-REROUTE')
+    mix_node_reroute.name = format_material_channel_node_name(static_channel_name, 'MIX_REROUTE')
     mix_node_reroute.label = mix_node_reroute.name
     mix_node_reroute.location[0] = -1000
     mix_node_reroute.location[1] = -177
     mix_node_reroute.parent = channel_frame_node
 
     # Get group input / output nodes for linking.
-    group_input_node = node_tree.nodes.get('GROUP-INPUT')
-    group_output_node = node_tree.nodes.get('GROUP-OUTPUT')
+    group_input_node = node_tree.nodes.get('GROUP_INPUT')
+    group_output_node = node_tree.nodes.get('GROUP_OUTPUT')
 
     # Change the mix node and it's linking based on the default blend mode.
     if channel.default_blend_mode == 'NORMAL_MAP_COMBINE' or channel.default_blend_mode == 'NORMAL_MAP_DETAIL':
         normal_rotation_fix_node = node_tree.nodes.new('ShaderNodeGroup')
-        normal_rotation_fix_node.name = 'FIX-NORMAL-ROTATION'
+        normal_rotation_fix_node.name = 'FIX_NORMAL_ROTATION'
         normal_rotation_fix_node.label = normal_rotation_fix_node.name
         normal_rotation_fix_node.location[0] = -600
         normal_rotation_fix_node.location[1] = -500
@@ -567,7 +571,7 @@ def add_material_channel_nodes(material_channel_name, node_tree, layer_type, sel
         node_tree.links.new(value_node.outputs[0], mix_node.inputs[7])
         node_tree.links.new(mix_node.outputs[2], group_output_node.inputs.get(material_channel_name))
     
-    mix_node.name = "{0}_MIX".format(static_channel_name)
+    mix_node.name = format_material_channel_node_name(static_channel_name, 'MIX')
     mix_node.label = mix_node.name
     mix_node.location[0] = 500
     mix_node.location[1] = 0
@@ -589,7 +593,7 @@ def add_material_channel_nodes(material_channel_name, node_tree, layer_type, sel
     # Link layer mask nodes based on layer type.
     match layer_type:
         case 'DECAL':
-            linear_decal_mask_blend_node = node_tree.nodes.get('LINEAR-DECAL-MASK-BLEND')
+            linear_decal_mask_blend_node = node_tree.nodes.get('LINEAR_DECAL_MASK_BLEND')
             node_tree.links.new(group_input_node.outputs.get('Layer Mask'), linear_decal_mask_blend_node.inputs[0])
             node_tree.links.new(linear_decal_mask_blend_node.outputs[0], image_alpha_node_reroute.inputs[0])
         case _:
@@ -603,15 +607,15 @@ def delete_material_channel_nodes(material_channel_name):
     # Delete all layer nodes.
     frame_node = get_material_layer_node('FRAME', selected_layer_index, material_channel_name)
     mix_node = get_material_layer_node('MIX', selected_layer_index, material_channel_name)
-    mix_image_alpha_node = get_material_layer_node('MIX-IMAGE-ALPHA', selected_layer_index, material_channel_name)
+    mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
     opacity_node = get_material_layer_node('OPACITY', selected_layer_index, material_channel_name)
     separate_rgb_node = get_material_layer_node('SEPARATE_RGB', selected_layer_index, material_channel_name)
-    mix_reroute_node = get_material_layer_node('MIX-REROUTE', selected_layer_index, material_channel_name)
-    image_alpha_reroute_node = get_material_layer_node('IMAGE-ALPHA-REROUTE', selected_layer_index, material_channel_name)
+    mix_reroute_node = get_material_layer_node('MIX_REROUTE', selected_layer_index, material_channel_name)
+    image_alpha_reroute_node = get_material_layer_node('IMAGE_ALPHA_REROUTE', selected_layer_index, material_channel_name)
     value_node_1 = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=1)
     value_node_2 = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=2)
     value_node_3 = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=3)
-    fix_normal_rotation = get_material_layer_node('FIX-NORMAL-ROTATION', selected_layer_index, material_channel_name)
+    fix_normal_rotation = get_material_layer_node('FIX_NORMAL_ROTATION', selected_layer_index, material_channel_name)
 
     bau.safe_node_delete(layer_node_tree, frame_node)
     bau.safe_node_delete(layer_node_tree, mix_node)
@@ -634,8 +638,8 @@ def delete_material_channel_nodes(material_channel_name):
         filter_node = material_filters.get_filter_node(material_channel_name, filter_index)
 
     # Link the input and output nodes so the material channel value is passed through the layer.
-    input_node = get_material_layer_node('GROUP-INPUT', selected_layer_index, material_channel_name)
-    output_node = get_material_layer_node('GROUP-OUTPUT', selected_layer_index, material_channel_name)
+    input_node = get_material_layer_node('GROUP_INPUT', selected_layer_index, material_channel_name)
+    output_node = get_material_layer_node('GROUP_OUTPUT', selected_layer_index, material_channel_name)
     layer_node_tree.links.new(input_node.outputs.get(material_channel_name),output_node.inputs.get(material_channel_name))
 
 def organize_material_channel_frames(node_tree):
@@ -709,14 +713,14 @@ def create_new_layer_node(layer_type):
 
     # Add input and output nodes.
     input_node = new_node_group.nodes.new('NodeGroupInput')
-    input_node.name = 'GROUP-INPUT'
+    input_node.name = 'GROUP_INPUT'
     input_node.label = input_node.name
     input_node.location[0] = -3000
     input_node.location[1] = 0
     input_node.width = 300
 
     output_node = new_node_group.nodes.new('NodeGroupOutput')
-    output_node.name = 'GROUP-OUTPUT'
+    output_node.name = 'GROUP_OUTPUT'
     output_node.label = output_node.name
     output_node.location[0] = 0
     output_node.location[1] = 0
@@ -740,7 +744,7 @@ def create_new_layer_node(layer_type):
             decal_coord_node.width = 300
 
             linear_decal_mask_blend_node = new_node_group.nodes.new('ShaderNodeMath')
-            linear_decal_mask_blend_node.name = 'LINEAR-DECAL-MASK-BLEND'
+            linear_decal_mask_blend_node.name = 'LINEAR_DECAL_MASK_BLEND'
             linear_decal_mask_blend_node.label = linear_decal_mask_blend_node.name
             linear_decal_mask_blend_node.location[0] = -2500
             linear_decal_mask_blend_node.location[1] = -1000
@@ -855,11 +859,11 @@ def add_material_layer(layer_type, self):
                 decal_coordinate_node.object = decal_object
             
             # Add a default decal to the base color material channel (if one exists in the shader).
-            channel_socket_name = shaders.get_shader_channel_socket_name('BASE-COLOR')
+            channel_socket_name = shaders.get_shader_channel_socket_name('BASE_COLOR')
             if channel_socket_name != "":
                 default_decal_image = bau.append_image('DefaultDecal')
-                replace_material_channel_node('BASE-COLOR', 'TEXTURE')
-                texture_node = get_material_layer_node('VALUE', new_layer_slot_index, 'BASE-COLOR')
+                replace_material_channel_node('BASE_COLOR', 'TEXTURE')
+                texture_node = get_material_layer_node('VALUE', new_layer_slot_index, 'BASE_COLOR')
                 if texture_node:
                     if texture_node.bl_static_type == 'TEX_IMAGE':
                         texture_node.image = default_decal_image
@@ -880,7 +884,7 @@ def add_material_layer(layer_type, self):
         
         case 'IMAGE':
             # Toggle off all material channels excluding base color.
-            base_color_socket_name = shaders.get_shader_channel_socket_name('BASE-COLOR')
+            base_color_socket_name = shaders.get_shader_channel_socket_name('BASE_COLOR')
             shader_info = bpy.context.scene.matlayer_shader_info
             for channel in shader_info.material_channels:
                 if channel.name != base_color_socket_name:
@@ -903,13 +907,13 @@ def add_material_layer(layer_type, self):
 
             # Add the new blank image to the base color channel.
             replace_material_channel_node(base_color_socket_name, node_type='TEXTURE')
-            value_node = get_material_layer_node('VALUE', new_layer_slot_index, 'BASE-COLOR')
+            value_node = get_material_layer_node('VALUE', new_layer_slot_index, 'BASE_COLOR')
             if value_node:
                 if value_node.bl_static_type == 'TEX_IMAGE':
                     value_node.image = new_image
 
             # Blend the image alpha into the layer.
-            toggle_image_alpha_blending('BASE-COLOR')
+            toggle_image_alpha_blending('BASE_COLOR')
 
             # Select the new image for painting.
             bau.set_texture_paint_image(new_image)
@@ -1414,7 +1418,7 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
 
                 case _:
                     value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name)
-                    mix_image_alpha_node = get_material_layer_node('MIX-IMAGE-ALPHA', selected_layer_index, channel.name)
+                    mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, channel.name)
                     
                     match value_node.bl_static_type:
                         case 'TEX_IMAGE':
@@ -1484,7 +1488,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
 
                 # Replace the material channel value nodes with a texture node.
                 texture_sample_node = layer_node_tree.nodes.new('ShaderNodeTexImage')
-                texture_sample_node.name = "{0}_VALUE_{1}".format(node_channel_name, 1)
+                texture_sample_node.name = format_material_channel_node_name(material_channel_name, 'VALUE', node_index=1)
                 texture_sample_node.label = texture_sample_node.name
                 texture_sample_node.hide = True
                 texture_sample_node.width = 300
@@ -1513,7 +1517,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
 
                 # Replace with a single texture node.
                 texture_node = layer_node_tree.nodes.new('ShaderNodeTexImage')
-                texture_node.name = "{0}_VALUE_{1}".format(node_channel_name, 1)
+                texture_node.name = format_material_channel_node_name(material_channel_name, 'VALUE', node_index=1)
                 texture_node.label = texture_node.name
                 texture_node.hide = True
                 texture_node.width = 300
@@ -1549,7 +1553,7 @@ def setup_material_channel_projection_nodes(material_channel_name, projection_me
                 frame = layer_node_tree.nodes.get(frame_name)
                 for i in range(0, 3):
                     texture_sample_node = layer_node_tree.nodes.new('ShaderNodeTexImage')
-                    texture_sample_node.name = "{0}_VALUE_{1}".format(node_channel_name, i + 1)
+                    texture_sample_node.name = format_material_channel_node_name(material_channel_name, 'VALUE', node_index=i + 1)
                     texture_sample_node.label = texture_sample_node.name
                     texture_sample_node.hide = True
                     texture_sample_node.width = 300
@@ -1775,7 +1779,7 @@ def set_material_channel_crgba_output(material_channel_name, crgba_output, layer
                 bau.safe_node_link(channel_output_node.outputs[0], mix_node.inputs[7], layer_node_tree)
 
     # Always link alpha to opacity if the value node is using an image texture node.
-    mix_image_alpha_node = get_material_layer_node('MIX-IMAGE-ALPHA', layer_index, material_channel_name)
+    mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', layer_index, material_channel_name)
     if value_node.bl_static_type == 'TEX_IMAGE':
         layer_node_tree.links.new(channel_output_node.outputs[1], mix_image_alpha_node.inputs[1])
 
@@ -1818,7 +1822,7 @@ def show_layer():
 
 def toggle_image_alpha_blending(material_channel_name):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    image_alpha_node = get_material_layer_node('MIX-IMAGE-ALPHA', selected_layer_index, material_channel_name)
+    image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
     if image_alpha_node.mute:
         image_alpha_node.mute = False
     else:
@@ -1877,7 +1881,7 @@ def set_layer_blending_mode(layer_index, blending_mode, material_channel_name='C
         mix_node.blend_type = blending_mode
     
     # Reset the layers mix node name and label.
-    mix_node.name = "{0}_MIX".format(static_node_channel_name)
+    mix_node.name = "{0}-MIX".format(static_node_channel_name)
     mix_node.label = mix_node.name
 
     # Reset the layers mix node back to it's original location and size.
@@ -1892,8 +1896,8 @@ def set_layer_blending_mode(layer_index, blending_mode, material_channel_name='C
     bau.safe_node_link(opacity_node.outputs[0], mix_node.inputs[0], layer_node_tree)
 
     # Relink the mix node with the channels value node.
-    mix_reroute_node = get_material_layer_node('MIX-REROUTE', layer_index, material_channel_name)
-    group_output = get_material_layer_node('GROUP-OUTPUT', layer_index)
+    mix_reroute_node = get_material_layer_node('MIX_REROUTE', layer_index, material_channel_name)
+    group_output = get_material_layer_node('GROUP_OUTPUT', layer_index)
     if mix_node.bl_static_type == 'GROUP':
         bau.safe_node_link(mix_node.outputs[0], group_output.inputs.get(material_channel_name), layer_node_tree)
         bau.safe_node_link(mix_reroute_node.outputs[0], mix_node.inputs[1], layer_node_tree)

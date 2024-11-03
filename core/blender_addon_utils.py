@@ -16,14 +16,15 @@ from .. import preferences
 def format_static_channel_name(channel_name):
     '''Formats the given material channel name to be used as node names and labels in the material node graph (replaces underscores and spaces with dashes and capitalizes the channel name).'''
 
-    # Node channel names can't use under-scores as they are used as delimiters for splitting
-    # node names into data such as the ID name, or index of the node.
-    formatted_channel_name = channel_name.replace('_', '-')
+    # Node channel names can't use dashes as they are used as delimiters in some cases 
+    # for splitting node names into data such as the ID name, or index of the node.
+    formatted_channel_name = channel_name.replace('-', '_')
 
-    # Node channel names should never use spaces, use dashes instead.
-    formatted_channel_name = formatted_channel_name.replace(' ', '-')
+    # Node channel names should never use spaces, use underscores instead.
+    formatted_channel_name = formatted_channel_name.replace(' ', '_')
 
-    # Node channel names should be capitalized.
+    # Name matching errors can be caused by differences in lowercase and uppercase letters,
+    # to avoid these issues, static channel names should always be capitalized.
     formatted_channel_name = formatted_channel_name.upper()
 
     return formatted_channel_name

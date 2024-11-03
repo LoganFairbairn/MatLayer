@@ -329,7 +329,7 @@ def draw_material_channel_properties(layout):
                     row = first_column.row()
                     row.label(text="Blend Image Alpha")
                     row = second_column.row()
-                    mix_image_alpha_node = material_layers.get_material_layer_node('MIX-IMAGE-ALPHA', selected_layer_index, channel.name)
+                    mix_image_alpha_node = material_layers.get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, channel.name)
                     if mix_image_alpha_node:
                         operator = row.operator(
                             "matlayer.toggle_image_alpha_blending", 
@@ -705,6 +705,7 @@ class MATLAYER_OT_add_layer_mask_menu(Operator):
         col.operator("matlayer.add_thickness_mask", text="Thickness")
         col.operator("matlayer.add_world_space_normals_mask", text="World Space Normals")
 
+# TODO: Finish this...
 class MATLAYER_OT_add_material_filter_menu(Operator):
     bl_label = ""
     bl_idname = "matlayer.add_material_filter_menu"
@@ -810,7 +811,7 @@ class MaterialChannelValueNodeSubMenu(Menu):
 
         # This is a work-around for not being able (or not knowing how) to pass a string to this sub-menu from the draw layout call.
         # Get the material channel name from the mix node being drawn.
-        material_channel_name = context.mix_node.name.replace('_MIX', '')
+        material_channel_name = context.mix_node.name.replace('-MIX', '')
 
         operator = layout.operator("matlayer.change_material_channel_value_node", text="Use Group Node", icon='NODETREE')
         operator.material_channel_name = material_channel_name
@@ -871,7 +872,7 @@ class MaterialChannelOutputSubMenu(Menu):
     bl_label = "Material Channel Output Sub Menu"
 
     def draw(self, context):
-        material_channel_name = context.mix_node.name.replace('_MIX', '')
+        material_channel_name = context.mix_node.name.replace('-MIX', '')
 
         layout = self.layout
         operator = layout.operator("matlayer.set_material_channel_crgba_output", text="Color")
