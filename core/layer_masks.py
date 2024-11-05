@@ -427,10 +427,7 @@ def add_layer_mask(type, self):
     material_layers.link_layer_group_nodes(self)
 
     # Link noise blur nodes for masks that require them.
-    if "Blur Noise" in new_mask_group_node.inputs:
-        blur_noise_node = material_layers.get_material_layer_node('BLUR_NOISE')
-        node_tree = active_material.node_tree
-        node_tree.links.new(blur_noise_node.outputs[0], new_mask_group_node.inputs.get("Blur Noise"))
+    link_mask_blur(new_mask_group_node, active_material)
 
 def duplicate_mask(self, mask_index=-1):
     '''Duplicates the mask at the provided mask index.'''
@@ -441,7 +438,7 @@ def duplicate_mask(self, mask_index=-1):
     if mask_index == -1:
         mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
 
-    # Duplicate the mask node, mask node tree and add it to the mask stack.
+    # Duplicate the mask node, mask node tree and add it to the mask stack then link mask blurring if required.
     active_material = bpy.context.active_object.active_material
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     mask_node = get_mask_node('MASK', selected_layer_index, mask_index)
@@ -462,6 +459,7 @@ def duplicate_mask(self, mask_index=-1):
             link_mask_nodes(selected_layer_index)
             material_layers.link_layer_group_nodes(self)
 
+        link_mask_blur(new_mask_group_node, active_material)
         debug_logging.log("Duplicated layer mask.")
 
 def delete_layer_mask(self):
@@ -628,6 +626,13 @@ def link_mask_nodes(layer_index):
         node_tree.links.new(last_mask_node.outputs[0], layer_node.inputs.get('Layer Mask'))
 
     debug_logging.log("Re-linked mask nodes.")
+
+def link_mask_blur(mask_group_node, active_material):
+    '''Links the blur noise texture to mask node inputs to allow them to blur.'''
+    if "Blur Noise" in mask_group_node.inputs:
+        blur_noise_node = material_layers.get_material_layer_node('BLUR_NOISE')
+        node_tree = active_material.node_tree
+        node_tree.links.new(blur_noise_node.outputs[0], mask_group_node.inputs.get("Blur Noise"))
 
 def refresh_mask_slots():
     '''Refreshes the number of mask slots in the mask stack by counting the number of mask nodes in the active materials node tree.'''
