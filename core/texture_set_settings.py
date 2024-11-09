@@ -91,7 +91,7 @@ def get_material_channel_active(channel_name):
         return False
 
     # If the channel toggle node doesn't exist, or is muted, the channel isn't active.
-    static_channel_name = bau.format_static_channel_name(channel_name)
+    static_channel_name = bau.format_static_matchannel_name(channel_name)
     channel_toggle_node_name = "GLOBAL_{0}_TOGGLE".format(static_channel_name)
     channel_toggle_node = active_material.node_tree.nodes.get(channel_toggle_node_name)
     if channel_toggle_node:

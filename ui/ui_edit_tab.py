@@ -234,7 +234,7 @@ def draw_value_node_properties(layout, value_node, layer_node_tree):
 def draw_filter_properties(layout, material_channel_name, selected_layer_index):
     '''Draws material channel filter node properties to the user interface.'''
     layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
-    static_channel_name = bau.format_static_channel_name(material_channel_name)
+    static_channel_name = bau.format_static_matchannel_name(material_channel_name)
 
     # Use a two column layout so the properties align better in the user interface.
     split = layout.split(factor=0.4)

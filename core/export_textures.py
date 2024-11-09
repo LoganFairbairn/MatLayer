@@ -670,7 +670,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
     if shader_node:
         for i in range(1, len(shader_node.outputs)):
-            static_channel = bau.format_static_channel_name(shader_node.outputs[i].name)
+            static_channel = bau.format_static_matchannel_name(shader_node.outputs[i].name)
             output_channels.append(static_channel)
 
     # Skip baking for inactive material channels.
@@ -832,7 +832,7 @@ def get_shader_channel_enum_items(scene=None, context=None):
     shader_info = bpy.context.scene.matlayer_shader_info
     for channel in shader_info.material_channels:
         items += [(
-            bau.format_static_channel_name(channel.name),
+            bau.format_static_matchannel_name(channel.name),
             channel.name,
             ""
         )]
