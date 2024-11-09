@@ -340,11 +340,38 @@ class MATLAYER_OT_reload_texture_node_image(Operator):
             debug_logging.log_status("Reloaded {0}.".format(texture_node.image.name), self, type='INFO')
         return {'FINISHED'}
 
+class MATLAYER_OT_duplicate_texture_node_image(Operator):
+    bl_idname = "matlayer.duplicate_texture_node_image"
+    bl_label = "Duplicate Texture Node Image"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Duplicated the texture image stored in the texture node from Blender's data"
+
+    node_tree_name: StringProperty(default="")
+    node_name: StringProperty(default="")
+
+    def execute(self, context):
+        node_group = bpy.data.node_groups.get(self.node_tree_name)
+        if not node_group:
+            debug_logging.log_status("Provided node group does not exist in Blenders data when attempting to import a texture to a texture node.", self)
+            return {'FINISHED'}
+
+        if self.node_name == "":
+            debug_logging.log_status("Provided texture node name is blank when attempting to import a texture to a texture node.", self)
+            return {'FINISHED'}
+        
+        texture_node = node_group.nodes.get(self.node_name)
+        if texture_node.image:
+            duplicated_image = texture_node.image.copy()
+            duplicated_image.name = texture_node.image.name + "_Copy"
+            texture_node.image = duplicated_image
+            
+        return {'FINISHED'}
+
 class MATLAYER_OT_delete_texture_node_image(Operator):
     bl_idname = "matlayer.delete_texture_node_image"
     bl_label = "Delete Texture Node Image"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "Deletes the texture image stored in the texture node from blenders data, and it's saved file on disk if one exists"
+    bl_description = "Deletes the texture image stored in the texture node from Blender's data, and it's saved file on disk if one exists"
 
     node_tree_name: StringProperty(default="")
     node_name: StringProperty(default="")

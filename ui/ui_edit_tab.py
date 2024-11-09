@@ -749,28 +749,32 @@ class ImageUtilitySubMenu(Menu):
         if context.node and context.node_tree:
             material_channel_name = context.node.name.split('_')[0]
 
-            operator = layout.operator("matlayer.add_texture_node_image", icon="ADD", text="Add New Image")
+            operator = layout.operator("matlayer.add_texture_node_image", icon='ADD', text="Add New Image")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
             operator.material_channel_name = material_channel_name
 
-            operator = layout.operator("matlayer.import_texture_node_image", icon="IMPORT", text="Import Image")
+            operator = layout.operator("matlayer.import_texture_node_image", icon='IMPORT', text="Import Image")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
             operator.material_channel_name = material_channel_name
 
-            operator = layout.operator("matlayer.edit_texture_node_image_externally", icon="TPAINT_HLT", text="Edit Image Externally")
+            operator = layout.operator("matlayer.edit_texture_node_image_externally", icon='TPAINT_HLT', text="Edit Image Externally")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
             
-            operator = layout.operator("matlayer.image_edit_uvs", icon="UV", text="Externally Image Edit UVs")
-            operator = layout.operator("matlayer.export_uvs", icon="UV_DATA", text="Export UVs")
+            operator = layout.operator("matlayer.image_edit_uvs", icon='UV', text="Externally Image Edit UVs")
+            operator = layout.operator("matlayer.export_uvs", icon='UV_DATA', text="Export UVs")
 
-            operator = layout.operator("matlayer.reload_texture_node_image", icon="FILE_REFRESH", text="Reload Image")
+            operator = layout.operator("matlayer.reload_texture_node_image", icon='FILE_REFRESH', text="Reload Image")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
 
-            operator = layout.operator("matlayer.delete_texture_node_image", icon="TRASH", text="Delete Image")
+            operator = layout.operator("matlayer.duplicate_texture_node_image", icon='DUPLICATE', text="Duplicate Image")
+            operator.node_tree_name = context.node_tree.name
+            operator.node_name = context.node.name
+
+            operator = layout.operator("matlayer.delete_texture_node_image", icon='TRASH', text="Delete Image")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
 

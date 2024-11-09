@@ -48,7 +48,7 @@ from .core.mesh_map_baking import MATLAYER_mesh_map_anti_aliasing, MATLAYER_baki
 from .core.export_textures import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MATLAYER_texture_export_settings, MATLAYER_texture_export_settings, MATLAYER_texture_set_export_settings, MATLAYER_OT_export, MATLAYER_OT_set_export_folder, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_refresh_export_template_list, MATLAYER_OT_delete_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, MATLAYER_export_template_names, ExportTemplateMenu
 
 # Utilities
-from .core.image_utilities import MATLAYER_OT_add_texture_node_image, MATLAYER_OT_import_texture_node_image, MATLAYER_OT_edit_texture_node_image_externally, MATLAY_OT_export_uvs, MATLAYER_OT_reload_texture_node_image, MATLAYER_OT_delete_texture_node_image, MATLAY_OT_image_edit_uvs, auto_save_images
+from .core.image_utilities import MATLAYER_OT_add_texture_node_image, MATLAYER_OT_import_texture_node_image, MATLAYER_OT_edit_texture_node_image_externally, MATLAY_OT_export_uvs, MATLAYER_OT_reload_texture_node_image, MATLAYER_OT_duplicate_texture_node_image, MATLAYER_OT_delete_texture_node_image, MATLAY_OT_image_edit_uvs, auto_save_images
 from .core.layer_utilities import MATLAYER_OT_import_texture_set, MATLAYER_OT_merge_materials
 from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLAYER_OT_append_workspace, MATLAYER_OT_append_basic_brushes, MATLAYER_OT_append_hdri_world, MATLAYER_OT_remove_unused_raw_textures, MATLAYER_OT_append_material_ball
 
@@ -188,7 +188,8 @@ classes = (
     MATLAYER_OT_import_texture_node_image, 
     MATLAYER_OT_edit_texture_node_image_externally,
     MATLAY_OT_export_uvs,
-    MATLAYER_OT_reload_texture_node_image, 
+    MATLAYER_OT_reload_texture_node_image,
+    MATLAYER_OT_duplicate_texture_node_image,
     MATLAYER_OT_delete_texture_node_image,
     MATLAY_OT_image_edit_uvs,
 
