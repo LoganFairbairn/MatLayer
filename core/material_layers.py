@@ -624,6 +624,7 @@ def delete_material_channel_nodes(material_channel_name):
     value_node_2 = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=2)
     value_node_3 = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=3)
     fix_normal_rotation = get_material_layer_node('FIX_NORMAL_ROTATION', selected_layer_index, material_channel_name)
+    triplanar_blend = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, material_channel_name)
 
     bau.safe_node_delete(layer_node_tree, frame_node)
     bau.safe_node_delete(layer_node_tree, mix_node)
@@ -636,6 +637,7 @@ def delete_material_channel_nodes(material_channel_name):
     bau.safe_node_delete(layer_node_tree, value_node_2)
     bau.safe_node_delete(layer_node_tree, value_node_3)
     bau.safe_node_delete(layer_node_tree, fix_normal_rotation)
+    bau.safe_node_delete(layer_node_tree, triplanar_blend)
 
     # Delete all filter nodes.
     filter_index = 1
