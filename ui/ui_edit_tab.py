@@ -236,18 +236,30 @@ def draw_filter_properties(layout, material_channel_name, selected_layer_index):
     layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
     static_channel_name = bau.format_static_channel_name(material_channel_name)
 
-    # Draw properties for all filters for the specified material channel name.
-    filter_index = 1
-    filter_node_name = static_channel_name + "_FILTER_" + str(filter_index)
-    filter_node = layer_node.node_tree.nodes.get(filter_node_name)
+    # Use a two column layout so the properties align better in the user interface.
     split = layout.split(factor=0.4)
     first_column = split.column(align=True)
     second_column = split.column(align=True)
 
+    # Draw properties specifically for blur filters.
+    blur_node = material_layers.get_material_layer_node('BLUR', selected_layer_index, material_channel_name)
+    if blur_node:
+        row = first_column.row()
+        row.label(text="Blur Amount")
+        row = second_column.row()
+        row.prop(blur_node.inputs.get('Blur Amount'), "default_value", slider=True, text="")
+        op = row.operator("matlayer.delete_material_filter", text="", icon="TRASH")
+        op.material_channel = material_channel_name
+        op.filter_type = 'BLUR'
+
+    # Draw properties for all filters for the specified material channel name.
+    filter_index = 1
+    filter_node_name = static_channel_name + "_FILTER_" + str(filter_index)
+    filter_node = layer_node.node_tree.nodes.get(filter_node_name)
     while filter_node:
-        row = first_column.row(align=True)
+        row = first_column.row()
         row.label(text="Filter " + str(filter_index))
-        row = second_column.row(align=True)
+        row = second_column.row()
         row.prop(filter_node, "label", text="")
         op = row.operator("matlayer.delete_material_filter", text="", icon="TRASH")
         op.filter_index = filter_index
@@ -800,6 +812,9 @@ class MaterialChannelValueNodeSubMenu(Menu):
         operator.node_type = 'TEXTURE'
 
         # Draw operators to add available material filters.
+        op = layout.operator("matlayer.add_material_filter", text="Add Blur", icon='FILTER')
+        op.material_channel = material_channel_name
+        op.filter_type = 'BLUR'
         op = layout.operator("matlayer.add_material_filter", text="Add HSV Filter", icon='FILTER')
         op.material_channel = material_channel_name
         op.filter_type = 'HUE_SAT'

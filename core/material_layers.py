@@ -309,7 +309,14 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
         
         case 'EXPORT_UV_MAP':
             return active_material.node_tree.nodes.get('EXPORT_UV_MAP')
-        
+
+        case 'BLUR':
+            node_tree = bpy.data.node_groups.get(layer_group_node_name)
+            if node_tree:
+                node_name = format_material_channel_node_name(static_channel_name, 'BLUR')
+                return node_tree.nodes.get(node_name)
+            return None
+
         case 'BLUR_NOISE':
             return active_material.node_tree.nodes.get('BLUR_NOISE')
 
@@ -1393,6 +1400,7 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layer_node_tree = get_layer_node_tree(selected_layer_index)
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
+    group_input_node = get_material_layer_node('GROUP_INPUT', selected_layer_index)
     
     # Unlink and relink projection for nodes if requested.
     if unlink_projection:
@@ -1402,13 +1410,32 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
     static_relink_channel_name = bau.format_static_channel_name(relink_material_channel_name)
     shader_info = bpy.context.scene.matlayer_shader_info
     for channel in shader_info.material_channels:
+
+        # If the material channel is using a blur filter, connect the projection and blur node.
+        blur_node = get_material_layer_node('BLUR', selected_layer_index, channel.name)
+        projection_output_node = projection_node
+        if blur_node:
+            projection_output_node = blur_node
+
+            match projection_node.node_tree.name:
+                case 'ML_TriplanarProjection':
+                    layer_node_tree.links.new(projection_node.outputs.get('LeftRight'), blur_node.inputs.get('X'))
+                    layer_node_tree.links.new(projection_node.outputs.get('FrontBack'), blur_node.inputs.get('Y'))
+                    layer_node_tree.links.new(projection_node.outputs.get('TopBottom'), blur_node.inputs.get('Z'))
+                case _:
+                    layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs.get('Projection'))
+
+            layer_node_tree.links.new(group_input_node.outputs.get('Blur Noise'), blur_node.inputs.get('Blur Noise'))
+        
+
         if static_relink_channel_name == "" or static_relink_channel_name == bau.format_static_channel_name(channel.name):
 
-            # Remember the original output channel of the material channel so it can be properly set after relinking projection.
+            # Remember the original output channel of the material channel...
+            # so it can be properly set after relinking projection.
             if original_output_channel == '':
                 original_output_channel = get_material_channel_crgba_output(channel.name)
 
-            # Relink the material channel based on the projection node tree name.
+            # Relink the material channel projection node tree name...
             match projection_node.node_tree.name:
                 case 'ML_TriplanarProjection':
                     value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=1)
@@ -1418,7 +1445,7 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                     if value_node.bl_static_type == 'TEX_IMAGE':
                         for i in range(0, 3):
                             value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=i + 1)
-                            layer_node_tree.links.new(projection_node.outputs[i], value_node.inputs[0])
+                            layer_node_tree.links.new(projection_output_node.outputs[i], value_node.inputs[0])
 
                             # Link triplanar blending nodes.
                             if triplanar_blend_node:
@@ -1442,7 +1469,7 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                     match value_node.bl_static_type:
                         case 'TEX_IMAGE':
                             if value_node.bl_static_type == 'TEX_IMAGE':
-                                layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
+                                layer_node_tree.links.new(projection_output_node.outputs[0], value_node.inputs[0])
                                 layer_node_tree.links.new(value_node.outputs.get('Alpha'), mix_image_alpha_node.inputs[1])
 
                         case 'GROUP':

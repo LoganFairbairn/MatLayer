@@ -142,6 +142,54 @@ def relink_filter_nodes(material_channel_name):
                 input_socket = get_filter_info(filter_type, "main_input_socket")
                 bau.safe_node_link(filter_one.outputs[output_socket], filter_two.inputs[input_socket], layer_node_tree)
 
+def add_material_channel_blur(self, layer_index, layer_node, material_channel_name):
+    '''Adds a blur to the specified material channel by adding a blur node and triggering a relink for material channel projection.'''
+
+    # Only one blur filter is required for material channels.
+    # If a blur node exists, don't add another one.
+    blur_node_name = material_layers.format_material_channel_node_name(material_channel_name, 'BLUR')
+    blur_node = layer_node.node_tree.nodes.get(blur_node_name)
+    if blur_node:
+        debug_logging.log_status('Blur is already applied for this material channel.', self, type='INFO')
+        return
+
+    # If no blur node exists, append one based on the layer projection.
+    projection_node = material_layers.get_material_layer_node('PROJECTION', layer_index)
+    match projection_node.node_tree.name:
+        case 'ML_TriplanarProjection':
+            blur_node_tree = bau.append_group_node('ML_TriplanarBlur')
+        case _:
+            blur_node_tree = bau.append_group_node('ML_ProjectionBlur')
+
+    new_blur_node = layer_node.node_tree.nodes.new('ShaderNodeGroup')
+    new_blur_node.name = blur_node_name
+    new_blur_node.label = new_blur_node.name
+    new_blur_node.node_tree = blur_node_tree
+    new_blur_node.hide = True
+
+    # Parent the blur node to the material channels frame, 
+    frame = material_layers.get_material_layer_node('FRAME', layer_index, material_channel_name)
+    if frame:
+        new_blur_node.parent = frame
+
+    # Move the blur node above the value node.
+    value_node = material_layers.get_material_layer_node('VALUE', layer_index, material_channel_name)
+    if value_node:
+        new_blur_node.location = [value_node.location[0], value_node.location[1] + 100]
+        new_blur_node.width = value_node.width
+
+    # Re-link layer projection for the material channel.
+    material_layers.relink_material_channel(material_channel_name)
+
+def remove_material_channel_blur(layer_index, layer_node, material_channel_name):
+    '''Removes the blur applied to the material channel by deleting the blur node and triggering a relink for material channel projection.'''
+    blur_node = material_layers.get_material_layer_node('BLUR', layer_index, material_channel_name)
+    if blur_node:
+        layer_node.node_tree.nodes.remove(blur_node)
+    
+    # Re-link layer projection for the material channel.
+    material_layers.relink_material_channel(material_channel_name)
+
 def add_material_filter(self, material_channel_name, filter_type):
     '''Adds a filter of the specified type to the specified material channel'''
 
@@ -152,6 +200,12 @@ def add_material_filter(self, material_channel_name, filter_type):
     # Add the filter node of the specified type to the node tree.
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
+
+    # For blur filters, perform special setup steps.
+    if filter_type == 'BLUR':
+        add_material_channel_blur(self, selected_layer_index, layer_node, material_channel_name)
+        return
+
     node_type = get_filter_info(filter_type, "bpy_node_name")
     new_filter_node = layer_node.node_tree.nodes.new(node_type)
     
@@ -192,10 +246,15 @@ def add_material_filter(self, material_channel_name, filter_type):
     # Log action.
     debug_logging.log("Added {0} filter to {1}.".format(filter_type, material_channel_name))
 
-def delete_material_filter(material_channel_name, filter_index):
+def delete_material_filter(material_channel_name, filter_index, filter_type):
     '''Deletes the material filter node with the specified index.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
+
+    # Perform special steps to delete blur filters.
+    if filter_type == 'BLUR':
+        remove_material_channel_blur(selected_layer_index, layer_node, material_channel_name)
+        return
 
     # Remember the original CRGBA output for the material channel so it can be reset properly after deleting nodes.
     original_crgba_output = material_layers.get_material_channel_crgba_output(material_channel_name)
@@ -280,6 +339,7 @@ class MATLAYER_OT_delete_material_filter(Operator):
 
     filter_index: IntProperty()
     material_channel: StringProperty()
+    filter_type: StringProperty(default='NORMAL')
 
     # Disable when there is no active object.
     @ classmethod
@@ -287,5 +347,5 @@ class MATLAYER_OT_delete_material_filter(Operator):
         return context.active_object
 
     def execute(self, context):
-        delete_material_filter(self.material_channel, self.filter_index)
+        delete_material_filter(self.material_channel, self.filter_index, self.filter_type)
         return {'FINISHED'}
