@@ -954,67 +954,74 @@ def duplicate_layer(original_layer_index, self):
 
     # Duplicate the node tree and add it to the layer stack.
     layer_node_tree = get_layer_node_tree(original_layer_index)
-    if layer_node_tree:
-        duplicated_node_tree = bau.duplicate_node_group(layer_node_tree.name)
-        if duplicated_node_tree:
-            active_material = bpy.context.active_object.active_material
+    if not layer_node_tree:
+        debug_logging.log("No layer node tree, can't duplicate layer.")
+        return
 
-            new_layer_slot_index = add_material_layer_slot()
+    duplicated_node_tree = bau.duplicate_node_group(layer_node_tree.name)
+    if duplicated_node_tree:
+        active_material = bpy.context.active_object.active_material
 
-            duplicated_node_tree.name = "{0}_{1}".format(active_material.name, str(new_layer_slot_index))
-            new_layer_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
-            new_layer_group_node.node_tree = duplicated_node_tree
-            new_layer_group_node.name = str(new_layer_slot_index) + "~"
+        new_layer_slot_index = add_material_layer_slot()
 
-            # Copy the name of the original layer.
-            original_layer_node = get_material_layer_node('LAYER', original_layer_index)
-            new_layer_group_node.label = original_layer_node.label + " Copy"
-            
-            reindex_layer_nodes(change_made='ADDED_LAYER', affected_layer_index=new_layer_slot_index)
-            organize_layer_group_nodes()
-            link_layer_group_nodes(self)
-            layer_masks.organize_mask_nodes()
+        duplicated_node_tree.name = "{0}_{1}".format(active_material.name, str(new_layer_slot_index))
+        new_layer_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+        new_layer_group_node.node_tree = duplicated_node_tree
+        new_layer_group_node.name = str(new_layer_slot_index) + "~"
 
-            # Duplicate decal objects if the original layer was a decal layer.
-            decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', original_layer_index)
-            if decal_coordinate_node:
-                decal_object = decal_coordinate_node.object
-                if decal_object:
-                    duplicated_decal_object = bau.duplicate_object(decal_object)
-                    new_decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', new_layer_slot_index)
-                    if new_decal_coordinate_node:
-                        new_decal_coordinate_node.object = duplicated_decal_object
-
-        # Clear the mask stack from the new layer.
-        masks = bpy.context.scene.matlayer_masks
-        masks.clear()
-
-        # Duplicate mask node trees and add them as group nodes to the active material.
-        mask_count = layer_masks.count_masks(original_layer_index)
-        for i in range(0, mask_count):
-            original_mask_node = layer_masks.get_mask_node('MASK', original_layer_index, i)
-            if original_mask_node:
-                duplicated_node_tree = bau.duplicate_node_group(original_mask_node.node_tree.name)
-                if duplicated_node_tree:
-                    new_mask_slot_index = layer_masks.add_mask_slot()
-                    duplicated_mask_name = layer_masks.format_mask_name(new_layer_slot_index, new_mask_slot_index, bpy.context.active_object.active_material.name) + "~"
-                    duplicated_node_tree.name = duplicated_mask_name
-                    new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
-                    new_mask_group_node.node_tree = duplicated_node_tree
-                    new_mask_group_node.name = duplicated_mask_name
-                    new_mask_group_node.label = original_mask_node.label
-
-                    layer_masks.reindex_masks('ADDED_MASK', new_layer_slot_index, affected_mask_index=i)
-
-                    if duplicated_decal_object:
-                        decal_coordinate_node = layer_masks.get_mask_node('DECAL_COORDINATES', new_layer_slot_index, new_mask_slot_index)
-                        if decal_coordinate_node:
-                            decal_coordinate_node.object = duplicated_decal_object
-                            
-        layer_masks.link_mask_nodes(new_layer_slot_index)
+        # Copy the name of the original layer.
+        original_layer_node = get_material_layer_node('LAYER', original_layer_index)
+        new_layer_group_node.label = original_layer_node.label + " Copy"
+        
+        reindex_layer_nodes(change_made='ADDED_LAYER', affected_layer_index=new_layer_slot_index)
+        organize_layer_group_nodes()
+        link_layer_group_nodes(self)
         layer_masks.organize_mask_nodes()
 
-        debug_logging.log("Duplicated material layer.")
+        # Link blurring for the duplicated layer.
+        link_material_channel_noise_blur(active_material.node_tree, new_layer_group_node)
+
+        # Duplicate decal objects if the original layer was a decal layer.
+        decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', original_layer_index)
+        if decal_coordinate_node:
+            decal_object = decal_coordinate_node.object
+            if decal_object:
+                duplicated_decal_object = bau.duplicate_object(decal_object)
+                new_decal_coordinate_node = get_material_layer_node('DECAL_COORDINATES', new_layer_slot_index)
+                if new_decal_coordinate_node:
+                    new_decal_coordinate_node.object = duplicated_decal_object
+
+    # Clear the mask stack from the new layer.
+    masks = bpy.context.scene.matlayer_masks
+    masks.clear()
+
+    # Duplicate mask node trees and add them as group nodes to the active material.
+    mask_count = layer_masks.count_masks(original_layer_index)
+    for i in range(0, mask_count):
+        original_mask_node = layer_masks.get_mask_node('MASK', original_layer_index, i)
+        if original_mask_node:
+            duplicated_node_tree = bau.duplicate_node_group(original_mask_node.node_tree.name)
+            if duplicated_node_tree:
+                new_mask_slot_index = layer_masks.add_mask_slot()
+                duplicated_mask_name = layer_masks.format_mask_name(new_layer_slot_index, new_mask_slot_index, bpy.context.active_object.active_material.name) + "~"
+                duplicated_node_tree.name = duplicated_mask_name
+                new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+                new_mask_group_node.node_tree = duplicated_node_tree
+                new_mask_group_node.name = duplicated_mask_name
+                new_mask_group_node.label = original_mask_node.label
+
+                layer_masks.reindex_masks('ADDED_MASK', new_layer_slot_index, affected_mask_index=i)
+
+                if duplicated_decal_object:
+                    decal_coordinate_node = layer_masks.get_mask_node('DECAL_COORDINATES', new_layer_slot_index, new_mask_slot_index)
+                    if decal_coordinate_node:
+                        decal_coordinate_node.object = duplicated_decal_object
+                        
+    layer_masks.link_mask_nodes(new_layer_slot_index)
+    layer_masks.organize_mask_nodes()
+
+    # Log this operation completion for debugging purposes.
+    debug_logging.log("Duplicated material layer.")
 
 def delete_layer(self):
     '''Deletes the selected layer'''
