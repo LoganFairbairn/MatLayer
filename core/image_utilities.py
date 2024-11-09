@@ -6,7 +6,7 @@ from bpy.props import StringProperty
 from bpy_extras.io_utils import ImportHelper        # For importing images.
 from ..core import texture_set_settings as tss
 from ..core import debug_logging
-from ..core import blender_addon_utils
+from ..core import blender_addon_utils as bau
 from .. import preferences
 import random
 import os                                           # For saving layer images.
@@ -61,7 +61,7 @@ def save_raw_image(original_image_path, original_image_name):
         
         # In some cases, the original image name may include the file extension of the image already. 
         # We'll remove this to avoid saving images with the file extension in the name.
-        matlayer_raw_textures_folder_path = blender_addon_utils.get_texture_folder_path(folder='RAW_TEXTURES')
+        matlayer_raw_textures_folder_path = bau.get_texture_folder_path(folder='RAW_TEXTURES')
         original_image_name_extension = os.path.splitext(original_image_name)[1]
         if original_image_name_extension:
             original_image_name = original_image_name.replace(original_image_name_extension, '')
@@ -127,7 +127,7 @@ class MATLAYER_OT_add_texture_node_image(Operator):
         addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
         image_width = tss.get_texture_width()
         image_height = tss.get_texture_height()
-        new_image = blender_addon_utils.create_image(image_name, image_width, image_height, alpha_channel=True, thirty_two_bit=addon_preferences.thirty_two_bit)
+        new_image = bau.create_image(image_name, image_width, image_height, alpha_channel=True, thirty_two_bit=addon_preferences.thirty_two_bit)
     
         # If a material channel is defined, set the color space.
         if self.material_channel_name != "":
@@ -136,7 +136,7 @@ class MATLAYER_OT_add_texture_node_image(Operator):
         # Save the imported image to an external folder next to the blend file.
         image = bpy.data.images[image_name]
         if image:
-            blender_addon_utils.save_image(image, file_format='PNG', image_category='RAW_TEXTURE', colorspace='sRGB')
+            bau.save_image(image, file_format='PNG', image_category='RAW_TEXTURE', colorspace='sRGB')
 
         texture_node.image = new_image                                              # Add the new image to the image node.
         bpy.context.scene.tool_settings.image_paint.canvas = texture_node.image     # Select the new texture for painting.
@@ -244,8 +244,8 @@ class MATLAY_OT_export_uvs(Operator):
     bl_description = "Exports the selected object's UV layout to a folder next to the blend file"
 
     def execute(self, context):
-        blender_addon_utils.set_valid_material_editing_mode()
-        blender_addon_utils.verify_material_operation_context(self)
+        bau.set_valid_material_editing_mode()
+        bau.verify_material_operation_context(self)
 
         original_mode = bpy.context.object.mode
         active_object = bpy.context.active_object
@@ -260,7 +260,7 @@ class MATLAY_OT_export_uvs(Operator):
 
         # Save UV layout to a folder.
         uv_image_name = bpy.context.active_object.name + "_" + "UVLayout"
-        uv_layout_path = blender_addon_utils.get_raw_texture_file_path(uv_image_name, 'PNG')
+        uv_layout_path = bau.get_raw_texture_file_path(uv_image_name, 'PNG')
         bpy.ops.uv.export_layout(filepath=uv_layout_path, size=(tss.get_texture_width(), tss.get_texture_height()))
 
         # Reset mode and log completion.
@@ -275,8 +275,8 @@ class MATLAY_OT_image_edit_uvs(Operator):
     bl_description = "Exports the selected object's UV layout to the image editor defined in Blender's preferences (Edit -> Preferences -> File Paths -> Applications -> Image Editor)"
 
     def execute(self, context):
-        blender_addon_utils.set_valid_material_editing_mode()
-        blender_addon_utils.verify_material_operation_context(self)
+        bau.set_valid_material_editing_mode()
+        bau.verify_material_operation_context(self)
 
         original_mode = bpy.context.object.mode
         active_object = bpy.context.active_object
@@ -291,7 +291,7 @@ class MATLAY_OT_image_edit_uvs(Operator):
 
         # Save UV layout to a folder.
         uv_image_name = bpy.context.active_object.name + "_" + "UVLayout"
-        uv_layout_path = blender_addon_utils.get_raw_texture_file_path(uv_image_name, 'PNG')
+        uv_layout_path = bau.get_raw_texture_file_path(uv_image_name, 'PNG')
         bpy.ops.uv.export_layout(filepath=uv_layout_path, size=(tss.get_texture_width(), tss.get_texture_height()))
 
         # Load the UV layout into Blender's data so it can be exported directly from Blender.
@@ -364,6 +364,7 @@ class MATLAYER_OT_duplicate_texture_node_image(Operator):
             duplicated_image = texture_node.image.copy()
             duplicated_image.name = texture_node.image.name + "_Copy"
             texture_node.image = duplicated_image
+            bau.set_texture_paint_image(duplicated_image)
             
         return {'FINISHED'}
 
