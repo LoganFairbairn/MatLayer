@@ -632,7 +632,7 @@ def link_mask_blur(mask_group_node, active_material):
     if "Blur Noise" in mask_group_node.inputs:
         blur_noise_node = material_layers.get_material_layer_node('BLUR_NOISE')
         node_tree = active_material.node_tree
-        node_tree.links.new(blur_noise_node.outputs[0], mask_group_node.inputs.get("Blur Noise"))
+        node_tree.links.new(blur_noise_node.outputs[1], mask_group_node.inputs.get("Blur Noise"))
 
 def refresh_mask_slots():
     '''Refreshes the number of mask slots in the mask stack by counting the number of mask nodes in the active materials node tree.'''

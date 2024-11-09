@@ -712,7 +712,7 @@ def create_new_layer_node(layer_type):
         name="Blur Noise",
         description="Input for noise used in blurring filters",
         in_out='INPUT',
-        socket_type='NodeSocketFloat'
+        socket_type='NodeSocketColor'
     )
 
     # Add an input socket for layer mask input.
@@ -1332,7 +1332,7 @@ def link_material_channel_noise_blur(node_tree, layer_node):
     '''Links the blur noise texture to the layer input to allow it to apply blur filters to material channels.'''
     blur_noise_node = get_material_layer_node('BLUR_NOISE')
     if blur_noise_node:
-        node_tree.links.new(blur_noise_node.outputs[0], layer_node.inputs.get("Blur Noise"))
+        node_tree.links.new(blur_noise_node.outputs[1], layer_node.inputs.get("Blur Noise"))
     else:
         debug_logging.log("No blur noise texture node.", message_type='ERROR')
 
