@@ -842,8 +842,14 @@ def set_mask_crgba_channel(output_channel):
                 case _:
                     output_node = mask_texture_node
 
+        case 'DECAL_MASK':
+            output_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
+
         case 'WORLD_SPACE_NORMALS_MASK':
             output_node = get_mask_node('WORLD_SPACE_NORMALS', selected_layer_index, selected_mask_index)
+
+        case _:
+            output_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
     
     if output_node == None:
         debug_logging.log("Failed to find the main node outputting the mask value.")
