@@ -700,7 +700,7 @@ def create_new_layer_node(layer_type):
                 output_socket.default_value = channel.socket_vector_default
 
     # Add an input socket for inputting blur noise (for blurring filters).
-    blur_noise_socket = new_node_group.interface.new_socket(
+    new_node_group.interface.new_socket(
         name="Blur Noise",
         description="Input for noise used in blurring filters",
         in_out='INPUT',
