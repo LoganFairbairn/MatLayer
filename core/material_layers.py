@@ -698,8 +698,16 @@ def create_new_layer_node(layer_type):
             case 'NodeSocketVector':
                 input_socket.default_value = channel.socket_vector_default
                 output_socket.default_value = channel.socket_vector_default
-    
-    # Add a input socket for layer mask input.
+
+    # Add an input socket for inputting blur noise (for blurring filters).
+    blur_noise_socket = new_node_group.interface.new_socket(
+        name="Blur Noise",
+        description="Input for noise used in blurring filters",
+        in_out='INPUT',
+        socket_type='NodeSocketFloat'
+    )
+
+    # Add an input socket for layer mask input.
     mask_socket = new_node_group.interface.new_socket(
         name="Layer Mask",
         description="Mask input for the layer",
@@ -839,6 +847,9 @@ def add_material_layer(layer_type, self):
     link_layer_group_nodes(self)
     layer_masks.organize_mask_nodes()
     layer_masks.refresh_mask_slots()
+
+    # Link layer blur noise inputs so material channels have access to blurring.
+    link_material_channel_noise_blur(active_material.node_tree, new_layer_group_node)
 
     # Perform additional setup steps based on layer type.
     match layer_type:
@@ -1239,7 +1250,7 @@ def link_layer_group_nodes(self):
         layer_node = get_material_layer_node('LAYER', i)
         if layer_node:
             for input in layer_node.inputs:
-                if input.name != 'Layer Mask':
+                if input.name != 'Layer Mask' and input.name != 'Blur Noise':
                     for link in input.links:
                         node_tree.links.remove(link)
             for output in layer_node.outputs:
@@ -1308,6 +1319,14 @@ def link_layer_group_nodes(self):
                     node_tree.links.new(output_socket, input_socket)
     
     debug_logging.log("Linked layer group nodes.")
+
+def link_material_channel_noise_blur(node_tree, layer_node):
+    '''Links the blur noise texture to the layer input to allow it to apply blur filters to material channels.'''
+    blur_noise_node = get_material_layer_node('BLUR_NOISE')
+    if blur_noise_node:
+        node_tree.links.new(blur_noise_node.outputs[0], layer_node.inputs.get("Blur Noise"))
+    else:
+        debug_logging.log("No blur noise texture node.", message_type='ERROR')
 
 def reindex_layer_nodes(change_made, affected_layer_index):
     '''Reindexes layer group nodes to keep them properly indexed. This should be called after a change is made that effects the layer stack order such as adding, duplicating, deleting, or moving a material layer on the layer stack.'''
