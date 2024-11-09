@@ -1281,24 +1281,6 @@ def link_layer_group_nodes(self):
             if next_layer_node:
                 if bau.get_node_active(next_layer_node):
                     for channel in shader_info.material_channels:
-
-                        # Optimization disabled.
-                        # This causes issues with layer transparency changes not triggering updates in an optimized fashion.
-                        # If the next layers material channel is blending using the 'mix' blending method,
-                        # and the next layer has no mask applied, this layers material channel values will have no
-                        # effect on the material output. We can skip linking these channels so shaders will compile much faster.
-                        '''
-                        mask_node = layer_masks.get_mask_node('MASK', next_layer_index, 0)
-                        if not mask_node:
-                            next_layer_mix_node = get_material_layer_node('MIX', next_layer_index, channel.name)
-                            if next_layer_mix_node:
-                                if next_layer_mix_node.bl_static_type == 'MIX' and next_layer_mix_node.blend_type == 'MIX':
-                                    next_layer_opacity_node = get_material_layer_node('OPACITY', next_layer_index, channel.name)
-                                    if next_layer_opacity_node:
-                                        if next_layer_opacity_node.inputs[0].default_value == 1:
-                                            continue
-                        '''
-
                         output_socket = layer_node.outputs.get(channel.name)
                         input_socket = next_layer_node.inputs.get(channel.name)
                         if output_socket and input_socket:
