@@ -901,26 +901,25 @@ class MATLAYER_UL_mask_list(bpy.types.UIList):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             row = layout.row(align=True)
 
-            # Hidden Toggle
-            row = layout.row(align=True)
-            row.ui_units_x = 1
-            if item.hidden == True:
-                row.prop(item, "hidden", text="", emboss=False, icon='HIDE_ON')
-
-            elif item.hidden == False:
-                row.prop(item, "hidden", text="", emboss=False, icon='HIDE_OFF')
-
-            # Isolate Mask
-            row = layout.row(align=True)
-            row.ui_units_x = 1
+            # Draw a toggle to show / hide masks.
             masks = bpy.context.scene.matlayer_masks
             item_index = masks.find(item.name)
+            selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+            mask_node = get_mask_node('MASK', selected_layer_index, item_index)
+            row = layout.row(align=True)
+            row.ui_units_x = 1
+            if mask_node.mute:
+                row.prop(mask_node, "mute", text="", emboss=False, icon='HIDE_ON')
+            else:
+                row.prop(mask_node, "mute", text="", emboss=False, icon='HIDE_OFF')
+
+            # Draw a toggle to isolate a mask.
+            row = layout.row(align=True)
+            row.ui_units_x = 1
             operator = row.operator("matlayer.isolate_mask", text="", icon='MOD_MASK', emboss=False)
             operator.mask_index = item_index
 
-            # Mask Name
-            selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-            mask_node = get_mask_node('MASK', selected_layer_index, item_index)
+            # Draw the mask name.
             if mask_node:
                 row = layout.row()
                 row.ui_units_x = 3
