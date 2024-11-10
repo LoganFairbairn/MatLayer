@@ -872,6 +872,7 @@ class MATLAYER_texture_set_export_settings(PropertyGroup):
     roughness_mode: EnumProperty(name="Roughness Mode", items=ROUGHNESS_MODE, default='ROUGHNESS')
     normal_map_mode: EnumProperty(name="Normal Map Mode", items=NORMAL_MAP_MODE, default='OPEN_GL')
     export_mode: EnumProperty(name="Export Active Material", items=EXPORT_MODE, description="Exports only the active material using the defined export settings", default='SINGLE_TEXTURE_SET')
+    samples: IntProperty(name="Samples", default=1024, description="Sample count for baking export textures. Higher counts result in exported textures being less noisy, but exporting textures will take longer")
 
 class MATLAYER_export_template_names(PropertyGroup):
     name: bpy.props.StringProperty()
@@ -1044,7 +1045,7 @@ class MATLAYER_OT_export(Operator):
         baking_settings = bpy.context.scene.matlayer_baking_settings
         bpy.context.scene.render.bake.margin = baking_settings.uv_padding
         bpy.context.scene.render.bake.use_selected_to_active = False
-        bpy.context.scene.cycles.samples = 1
+        bpy.context.scene.cycles.samples = texture_export_settings.samples
 
         # Force save all textures (unsaved textures will be cleared and not bake properly).
         bau.force_save_all_textures()

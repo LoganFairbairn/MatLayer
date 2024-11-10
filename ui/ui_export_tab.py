@@ -78,6 +78,11 @@ def draw_export_tab_ui(self, context):
     row.label(text="UV Padding")
     row = second_column.row()
     row.prop(baking_settings, "uv_padding", text="")
+
+    row = first_column.row()
+    row.label(text="Samples")
+    row = second_column.row()
+    row.prop(texture_export_settings, "samples", text="")
     
     active_object = bpy.context.active_object
     if active_object:
