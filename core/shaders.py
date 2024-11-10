@@ -263,9 +263,9 @@ def get_static_shader_channel_list():
 
     return static_channel_list
 
-def get_shader_channel_socket_name(material_channel_name):
+def get_shader_channel_socket_name(static_material_channel_name):
     '''Returns the shader channel socket name when provided with a static material channel name.'''
-    search_channel_name = bau.format_static_matchannel_name(material_channel_name)
+    search_channel_name = bau.format_static_matchannel_name(static_material_channel_name)
     shader_info = bpy.context.scene.matlayer_shader_info
     for channel in shader_info.material_channels:
         static_channel_name = bau.format_static_matchannel_name(channel.name)
@@ -273,7 +273,7 @@ def get_shader_channel_socket_name(material_channel_name):
             return channel.name
     
     # Return an error for material channel sockets that don't exist.
-    debug_logging.log("Invalid material channel socket name: {0}".format(material_channel_name), message_type='ERROR')
+    debug_logging.log("Invalid material channel socket name: {0}".format(static_material_channel_name), message_type='ERROR')
     return ""
 
 def get_socket_subtype_enums(scene=None, context=None):

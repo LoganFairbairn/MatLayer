@@ -415,6 +415,7 @@ def check_channel_nodes_exist(material_channel_name, node_tree):
 def add_material_channel_nodes(material_channel_name, node_tree, layer_type, self=None):
     '''Creates framed nodes for a material channel.'''
     static_channel_name = bau.format_static_matchannel_name(material_channel_name)
+    material_channel_name = shaders.get_shader_channel_socket_name(static_channel_name)
 
     # If a channel nodes already exist for this material channel, if they do, there's an error, abort.
     channel_nodes_exist = check_channel_nodes_exist(material_channel_name, node_tree)
@@ -429,10 +430,16 @@ def add_material_channel_nodes(material_channel_name, node_tree, layer_type, sel
     channel_frame_node.name = static_channel_name
     channel_frame_node.label = static_channel_name
 
+    # Ensure the specified material channel exists in the shader.
+    shader_info = bpy.context.scene.matlayer_shader_info
+    static_shader_channel_list = shaders.get_static_shader_channel_list()
+    if static_channel_name not in static_shader_channel_list:
+        debug_logging.log("Shader channel {0} doesn't exist, not adding nodes.".format(material_channel_name))
+        return
+
     # We use group nodes to represent default float, color and vector values for material channels instead of 
     # value, or color nodes because the default ranges and socket types can only be specified for group nodes.
     # Create default group nodes to represent each material channel.
-    shader_info = bpy.context.scene.matlayer_shader_info
     channel = shader_info.material_channels.get(material_channel_name)
     default_value_group_node_name = "ML_Default{0}".format(material_channel_name.replace(' ', ''))
     default_value_group_node = bpy.data.node_groups.get(default_value_group_node_name)

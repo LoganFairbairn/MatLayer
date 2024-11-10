@@ -149,6 +149,11 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                 case _:
                     return 'ERROR'
 
+        # Get some information about the layer user later in the function.
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        layer_type = material_layers.get_layer_type()
+        layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
+        
         # Compile a list of all unique tags found accross all user selected image file names.
         material_channel_occurance = {}
         for file in self.files:
@@ -179,7 +184,7 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                 if channel_abbreviation in MATERIAL_CHANNEL_ABBREVIATIONS:
                     detected_material_channel = MATERIAL_CHANNEL_ABBREVIATIONS[channel_abbreviation]
 
-            # For image files that don't start with 'T_' guess the material channel by parsing for tags in the file name that would ID it.
+            # For all other files, guess the material channel by parsing for tags in the file name that would ID it.
             else:
 
                 # Create a list of tags used in this files name.
@@ -226,7 +231,8 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                     )
                     continue
 
-                # Create a list of all material channels that are packed into this image.
+                # To support proper importing of channel packed images,
+                # create a list of all material channels that are packed into this image.
                 # For images not using channel packing, this list will have a length of 1.
                 packed_channels = []
                 channel_packed_format = ""
@@ -263,12 +269,16 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
 
                                     packed_channels.append([packed_channel, get_rgba_channel_from_index(i)])
                 else:
-                    packed_channels.append([detected_material_channel, -1])
-
-                # Change all material channels to use texture nodes (if they aren't already).
+                    packed_channels.append([detected_material_channel, -1])                
+                
+                # Adjust nodes for the layer to support importing of all packed channels in the imported image.
                 for packed_channel in packed_channels:
                     channel = packed_channel[0]
-                    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+
+                    # Create material channel nodes for all new channels.
+                    material_layers.add_material_channel_nodes(channel, layer_node.node_tree, layer_type)
+
+                    # Change all material channels to use texture nodes (if they aren't already).
                     value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, channel)
                     if value_node.bl_static_type != 'TEX_IMAGE':
                         material_layers.replace_material_channel_node(channel, 'TEXTURE')
@@ -313,6 +323,9 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
 
             else:
                 debug_logging.log("No material channel detected for file: {0}".format(file.name))
+
+        # Organize all material channel frames.
+        material_layers.organize_material_channel_frames(layer_node.node_tree)
 
         return {'FINISHED'}
     
