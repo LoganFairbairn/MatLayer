@@ -19,63 +19,72 @@ FILTER_INFO = {
         "node_label": "Hue Saturation Value",
         "main_input_socket": 4,
         "main_output_socket": 0,
-        "custom_node_group": ""
+        "custom_node_group": "",
+        "ui_sockets": [0, 1, 2]
     },
     "INVERT": {
         "bpy_node_name": "ShaderNodeInvert", 
         "node_label": "Invert",
         "main_input_socket": 1,
         "main_output_socket": 0,
-        "custom_node_group": ""
+        "custom_node_group": "",
+        "ui_sockets": [0]
     },
     "BRIGHTCONTRAST": {
         "bpy_node_name": "ShaderNodeBrightContrast",
         "node_label": "Brightness / Contrast",
         "main_input_socket": 0,
         "main_output_socket": 0,
-        "custom_node_group": ""
+        "custom_node_group": "",
+        "ui_sockets": [1, 2]
     },
     "GAMMA": {
         "bpy_node_name": "ShaderNodeGamma",
         "node_label": "Gamma",
         "main_input_socket": 0,
         "main_output_socket": 0,
-        "custom_node_group": ""
+        "custom_node_group": "",
+        "ui_sockets": [1]
     },
     "CURVE_RGB": {
         "bpy_node_name": "ShaderNodeRGBCurve",
         "node_label": "RGB Curves",
         "main_input_socket": 1,
         "main_output_socket": 0,
-        "custom_node_group": ""
+        "custom_node_group": "",
+        "ui_sockets": []
     },
     "RGBTOBW": {
         "bpy_node_name": "ShaderNodeRGBToBW",
         "node_label": "RGB to BW",
         "main_input_socket": 0,
         "main_output_socket": 0,
-        "custom_node_group": ""
+        "custom_node_group": "",
+        "ui_sockets": []
     },
     "VALTORGB": {
         "bpy_node_name": "ShaderNodeValToRGB",
         "node_label": "Color Ramp",
         "main_input_socket": 0,
         "main_output_socket": 0,
-        "custom_node_group": ""
+        "custom_node_group": "",
+        "ui_sockets": []
     },
     "CHEAP_CONTRAST": {
         "bpy_node_name": "ShaderNodeGroup",
         "node_label": "Cheap Contrast",
         "main_input_socket": 0,
         "main_output_socket": 0,
-        "custom_node_group": "ML_CheapContrast"
+        "custom_node_group": "ML_CheapContrast",
+        "ui_sockets": [1]
     },
     "NORMAL_INTENSITY": {
         "bpy_node_name": "ShaderNodeGroup",
         "node_label": "Normal Intensity",
         "main_input_socket": 0,
         "main_output_socket": 0,
-        "custom_node_group": "ML_AdjustNormalIntensity"
+        "custom_node_group": "ML_AdjustNormalIntensity",
+        "ui_sockets": [1]
     }
 }
 

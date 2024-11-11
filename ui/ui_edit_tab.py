@@ -9,6 +9,7 @@ from ..core import blender_addon_utils
 from ..core import texture_set_settings as tss
 from ..core import shaders
 from ..core import blender_addon_utils as bau
+from ..core import material_filters
 from . import ui_tabs
 from .. import preferences
 
@@ -231,17 +232,27 @@ def draw_value_node_properties(layout, value_node, layer_node_tree):
             row.context_pointer_set("node", value_node)
             row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
+def draw_material_filter_name(layout, material_channel_name, filter_index, filter_node):
+    split = layout.split(factor=0.4)
+    first_column = split.column(align=True)
+    second_column = split.column(align=True)
+    row = first_column.row()
+    row.label(text="Filter " + str(filter_index))
+    row = second_column.row()
+    row.prop(filter_node, "label", text="")
+    op = row.operator("matlayer.delete_material_filter", text="", icon="TRASH")
+    op.filter_index = filter_index
+    op.material_channel = material_channel_name
+
 def draw_filter_properties(layout, material_channel_name, selected_layer_index):
     '''Draws material channel filter node properties to the user interface.'''
     layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
     static_channel_name = bau.format_static_matchannel_name(material_channel_name)
 
-    # Use a two column layout so the properties align better in the user interface.
+    # Draw properties specifically for blur filters.
     split = layout.split(factor=0.4)
     first_column = split.column(align=True)
     second_column = split.column(align=True)
-
-    # Draw properties specifically for blur filters.
     blur_node = material_layers.get_material_layer_node('BLUR', selected_layer_index, material_channel_name)
     if blur_node:
         row = first_column.row()
@@ -252,23 +263,36 @@ def draw_filter_properties(layout, material_channel_name, selected_layer_index):
         op.material_channel = material_channel_name
         op.filter_type = 'BLUR'
 
-    # Draw properties for all filters for the specified material channel name.
+    # Draw specific properties for all filters applied to the material channel.
     filter_index = 1
     filter_node_name = static_channel_name + "_FILTER_" + str(filter_index)
     filter_node = layer_node.node_tree.nodes.get(filter_node_name)
     while filter_node:
-        row = first_column.row()
-        row.label(text="Filter " + str(filter_index))
-        row = second_column.row()
-        row.prop(filter_node, "label", text="")
-        op = row.operator("matlayer.delete_material_filter", text="", icon="TRASH")
-        op.filter_index = filter_index
-        op.material_channel = material_channel_name
-        for input in filter_node.inputs:
-            row = first_column.row()
-            row.label(text=input.name)
-            row = second_column.row()
-            row.prop(input, "default_value", text="")
+        filter_type = material_filters.get_filter_type(filter_node)
+        ui_sockets = material_filters.get_filter_info(filter_type, "ui_sockets")
+
+        match filter_type:
+            case 'CURVE_RGB':
+                draw_material_filter_name(layout, material_channel_name, filter_index, filter_node)
+                layout.template_curve_mapping(filter_node, "mapping")
+
+            case 'VALTORGB':
+                draw_material_filter_name(layout, material_channel_name, filter_index, filter_node)
+                layout.template_color_ramp(filter_node, "color_ramp", expand=False)
+
+            case _:
+                draw_material_filter_name(layout, material_channel_name, filter_index, filter_node)
+                split = layout.split(factor=0.4)
+                first_column = split.column(align=True)
+                second_column = split.column(align=True)
+                for i, input in enumerate(filter_node.inputs):
+                    if i in ui_sockets:
+                        match filter_type:
+                            case _:
+                                row = first_column.row()
+                                row.label(text=input.name)
+                                row = second_column.row()
+                                row.prop(input, "default_value", text="")
 
         # Increment the filter index to draw the next filter properties.
         filter_index += 1
