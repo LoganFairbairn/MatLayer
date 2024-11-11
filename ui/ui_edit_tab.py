@@ -243,6 +243,7 @@ def draw_material_filter_name(layout, material_channel_name, filter_index, filte
     op = row.operator("matlayer.delete_material_filter", text="", icon="TRASH")
     op.filter_index = filter_index
     op.material_channel = material_channel_name
+    op.filter_type = 'NORMAL'
 
 def draw_filter_properties(layout, material_channel_name, selected_layer_index):
     '''Draws material channel filter node properties to the user interface.'''
