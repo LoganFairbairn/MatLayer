@@ -1618,13 +1618,14 @@ def set_matchannel_projection(material_channel_name, projection_method, set_text
         # Connect texture sample and blending nodes for material channels.
         relink_material_channel(material_channel_name)
 
-def replace_material_channel_node(channel_name, node_type):
-    '''Replaces the existing material channel node with a new node of the given type. Valid node types include: 'GROUP', 'TEXTURE'.'''
+def replace_material_channel_node(material_channel_name, node_type):
+    '''Replaces the existing material channel node with a new node of the given type.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layer_group_node = get_layer_node_tree(selected_layer_index)
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
-    value_node = get_material_layer_node('VALUE', selected_layer_index, channel_name)
-    node_channel_name = bau.format_static_matchannel_name(channel_name)
+    value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
+    static_matchannel_name = bau.format_static_matchannel_name(material_channel_name)
+    node_socket_name = shaders.get_shader_channel_socket_name(material_channel_name)
 
     match node_type:
         case 'GROUP':
@@ -1634,31 +1635,28 @@ def replace_material_channel_node(channel_name, node_type):
             # Remove the old nodes.
             match projection_node.node_tree.name:
                 case 'ML_TriplanarProjection':
-                    delete_triplanar_blending_nodes(node_channel_name)
+                    delete_triplanar_blending_nodes(static_matchannel_name)
                 case _:
                     layer_group_node.nodes.remove(value_node)
 
             # Replace the material channel value nodes with a group node.
             new_node = layer_group_node.nodes.new('ShaderNodeGroup')
-            new_node.name = "{0}_VALUE_1".format(node_channel_name)
+            new_node.name = format_material_channel_node_name(static_matchannel_name, "VALUE", node_index=1)
             new_node.label = new_node.name
             new_node.width = 300
             new_node.location = original_node_location
 
             # Frame the new node.
-            frame_name = node_channel_name.replace('-', ' ')
-            frame = layer_group_node.nodes.get(frame_name)
+            frame = layer_group_node.nodes.get(static_matchannel_name)
             new_node.parent = frame
 
             # Apply the default group node for the specified channel.
-            default_node_tree_name = node_channel_name.replace('-', ' ')
-            default_node_tree_name = bau.capitalize_by_space(default_node_tree_name)
-            default_node_tree_name = "ML_Default{0}".format(default_node_tree_name. replace(' ', ''))
+            default_node_tree_name = "ML_Default{0}".format(node_socket_name.replace(' ', ''))
             default_node_tree = bpy.data.node_groups.get(default_node_tree_name)
             new_node.node_tree = default_node_tree
 
             # Link the new group node.
-            mix_node = get_material_layer_node('MIX', selected_layer_index, node_channel_name)
+            mix_node = get_material_layer_node('MIX', selected_layer_index, static_matchannel_name)
             if mix_node.bl_static_type == 'GROUP':
                 layer_group_node.links.new(new_node.outputs[0], mix_node.inputs[2])
             else:
@@ -1668,13 +1666,13 @@ def replace_material_channel_node(channel_name, node_type):
         case 'TEXTURE':
             match projection_node.node_tree.name:
                 case 'ML_UVProjection':
-                    set_matchannel_projection(node_channel_name, 'UV', set_texture_node=True)
+                    set_matchannel_projection(static_matchannel_name, 'UV', set_texture_node=True)
 
                 case 'ML_TriplanarProjection':
-                    set_matchannel_projection(node_channel_name, 'TRIPLANAR', set_texture_node=True)
+                    set_matchannel_projection(static_matchannel_name, 'TRIPLANAR', set_texture_node=True)
 
                 case 'ML_DecalProjection':
-                    set_matchannel_projection(node_channel_name, 'DECAL', set_texture_node=True)
+                    set_matchannel_projection(static_matchannel_name, 'DECAL', set_texture_node=True)
 
 def set_layer_projection(projection_mode, self):
     '''Changes the projection nodes for the selected layer.'''
