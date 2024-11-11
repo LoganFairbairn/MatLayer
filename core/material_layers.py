@@ -76,11 +76,8 @@ def update_layer_index(self, context):
                         else:
                             decal_coordinates_node.object.hide_set(True)
 
-def sync_triplanar_settings():
-    '''Syncs triplanar texture settings to match the first texture sample (only if triplanar layer projection is being used).'''
-    if bau.verify_material_operation_context(display_message=False) == False:
-        return
-
+def sync_triplanar_nodes():
+    '''Updates the image texture used in triplanar texture nodes to match the image being used in the first triplanar node.'''
     # Sync triplanar texture samples for all material channels.
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
@@ -133,6 +130,33 @@ def sync_triplanar_settings():
 
                     if texture_sample_3.interpolation != texture_sample_1.interpolation:
                         texture_sample_3.interpolation = texture_sample_1.interpolation
+
+def link_custom_group_nodes():
+    '''Links custom group nodes.'''
+    shader_info = bpy.context.scene.matlayer_shader_info
+    for channel in shader_info.material_channels:
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name)
+        if value_node:
+            if len(value_node.outputs) > 0:
+                if len(value_node.outputs[0].links) == 0:
+                    output_channel = get_material_channel_crgba_output(channel.name)
+                    relink_material_channel(
+                        relink_material_channel_name=channel.name, 
+                        original_output_channel=output_channel, 
+                        unlink_projection=True
+                    )
+
+def shader_node_tree_update():
+    '''Updates properties when the shader nodetree is changed.'''
+
+    # If the context isn't correct to edit materials, don't update any properties after a shader nodetree update.
+    if bau.verify_material_operation_context(display_message=False) == False:
+        return
+    
+    # Perform updates that should occur after a shader nodetree change is detected.
+    sync_triplanar_nodes()
+    link_custom_group_nodes()
 
 def parse_layer_index(layer_group_node_name):
     '''Return the layers's index by parsing the layer group node name. Returns -1 if there is no active object'''

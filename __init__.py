@@ -250,27 +250,9 @@ def depsgraph_change_handler(scene, depsgraph):
                         on_active_material_changed(scene)
                         triggered_active_material_callback = True
 
-        # Update properties when there is a shader nodetree change...
+        # Run updates when a shader nodetree change is detected.
         if update.id.name == "Shader Nodetree":
-
-            # When a texture property is updated, sync all texture samples for the layer if it's using triplanar projection.
-            material_layers.sync_triplanar_settings()
-
-            # Group nodes for material channels can become unlinked when a user applies a custom group node.
-            # Search for an relink any unlinked material channels that occur as a result of this change.
-            shader_info = bpy.context.scene.matlayer_shader_info
-            for channel in shader_info.material_channels:
-                selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-                value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, channel.name)
-                if value_node:
-                    if len(value_node.outputs) > 0:
-                        if len(value_node.outputs[0].links) == 0:
-                            output_channel = material_layers.get_material_channel_crgba_output(channel.name)
-                            material_layers.relink_material_channel(
-                                relink_material_channel_name=channel.name, 
-                                original_output_channel=output_channel, 
-                                unlink_projection=True
-                            )
+            material_layers.shader_node_tree_update()
 
 # Mark load handlers as persistent so they are not called again when loading a new blend file.
 @persistent
