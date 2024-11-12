@@ -297,7 +297,7 @@ def get_socket_subtype_enums(scene=None, context=None):
     # If a shader channel isn't selected, return all possible enum values to avoid an error.
     return items + NODE_SOCKET_FLOAT_SUBTYPES + NODE_SOCKET_VECTOR_SUBTYPES
 
-def apply_default_shader():
+def apply_default_shader(self):
     '''Applies default shader settings.'''
 
     # This function doesn't load from JSON file data because it's a constant backup shader setup
@@ -407,7 +407,7 @@ def apply_default_shader():
     if len(shader_info.material_channels) > 0:
         bpy.context.scene.matlayer_layer_stack.selected_material_channel = shader_info.material_channels[0].name
     
-    debug_logging.log("Applied default shader settings.", message_type='INFO', sub_process=False)
+    debug_logging.log_status("Applied default shader settings.", self, type='INFO')
 
 class MATLAYER_shader_name(PropertyGroup):
     '''Shader name'''
@@ -742,5 +742,5 @@ class MATLAYER_OT_apply_default_shader(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        apply_default_shader()
+        apply_default_shader(self)
         return {'FINISHED'}
