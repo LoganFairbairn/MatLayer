@@ -468,36 +468,48 @@ def draw_layer_projection(layout):
                 row.alignment = 'CENTER'
                 row.label(text="USING DECAL PROJECTION")
 
-def draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_index):
-    '''Draws group node properties for the selected mask.'''
+def draw_image_texture_property(layout, node_tree, texture_node):
+    '''Draws an image texture property with this add-ons image utility sub-menu.'''
     split = layout.split(factor=0.4)
     first_column = split.column()
     second_column = split.column()
+    row = first_column.row()
+    texture_display_name = texture_node.label.replace('_', ' ')
+    texture_display_name = blender_addon_utils.capitalize_by_space(texture_display_name)
+    row.label(text=texture_display_name)
 
-    # Draw properties for texture nodes in masks.
-    for node in mask_node.node_tree.nodes:
-        if node.bl_static_type == 'TEX_IMAGE':
-            if node.name not in mesh_map_baking.MESH_MAP_TYPES:
-                row = first_column.row()
-                texture_display_name = node.label.replace('_', ' ')
-                texture_display_name = blender_addon_utils.capitalize_by_space(texture_display_name)
-                row.label(text=texture_display_name)
+    row = second_column.row(align=True)
+    row.prop(texture_node, "image", text="")
+    image = texture_node.image
+    if image:
+        row.prop(image, "use_fake_user", text="")
+    row.context_pointer_set("node_tree", node_tree)
+    row.context_pointer_set("node", texture_node)
+    row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
-                row = second_column.row(align=True)
-                row.prop(node, "image", text="")
-                image = node.image
-                if image:
-                    row.prop(image, "use_fake_user", text="")
-                row.context_pointer_set("node_tree", mask_node.node_tree)
-                row.context_pointer_set("node", node)
-                row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+    row = first_column.row()
+    row.label(text="Interpolation")
+    row = second_column.row()
+    row.prop(texture_node, "interpolation", text="")
 
-                row = first_column.row()
-                row.label(text="Interpolation")
-                row = second_column.row()
-                row.prop(node, "interpolation", text="")
+def draw_mask_properties(layout, mask_node, mask_type, selected_layer_index, selected_mask_index):
+    '''Draws group node properties for the selected mask.'''
+
+    # Draw properties for texture nodes in masks based on mask type.
+    match mask_type:
+        case 'IMAGE_MASK':
+            texture_node = layer_masks.get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=1)
+            draw_image_texture_property(layout, mask_node.node_tree, texture_node)
+
+        case _:
+            for node in mask_node.node_tree.nodes:
+                if node.bl_static_type == 'TEX_IMAGE' and node.name not in mesh_map_baking.MESH_MAP_TYPES:
+                    draw_image_texture_property(layout, mask_node.node_tree, node)
 
     # Draw mask group node input properties, excluding those that will be auto-connected.
+    split = layout.split(factor=0.4)
+    first_column = split.column()
+    second_column = split.column()
     for i in range(0, len(mask_node.inputs)):
         if mask_node.inputs[i].name != 'Mix' and mask_node.inputs[i].name != 'Blur Noise':
             row = first_column.row()
@@ -634,10 +646,11 @@ def draw_masks_tab(layout):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
     mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, selected_mask_index)
+    mask_type = layer_masks.get_mask_type(selected_layer_index, selected_mask_index)
     if mask_node:
         row = layout.row()
         row.label(text="PROPERTIES")
-        draw_mask_properties(layout, mask_node, selected_layer_index, selected_mask_index)
+        draw_mask_properties(layout, mask_node, mask_type, selected_layer_index, selected_mask_index)
         draw_mask_projection(layout)
         draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index)
 
