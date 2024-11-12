@@ -227,10 +227,16 @@ def draw_value_node_properties(layout, value_node, layer_node_tree):
             if image:
                 row.prop(image, "use_fake_user", text="")
 
-            # Draw a custom sub-menu for editing the image property.
+            # Draw a custom sub-menu for image utility operators.
             row.context_pointer_set("node_tree", layer_node_tree)
             row.context_pointer_set("node", value_node)
             row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+
+            # Draw texture interpolation.
+            row = first_column.row()
+            row.label(text="Interpolation")
+            row = second_column.row()
+            row.prop(value_node, "interpolation", text="")
 
 def draw_material_filter_name(layout, material_channel_name, filter_index, filter_node):
     split = layout.split(factor=0.4)
