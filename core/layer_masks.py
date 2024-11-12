@@ -65,6 +65,20 @@ def get_mask_node(node_name, layer_index, mask_index, node_number=1, get_changed
                 mask_node_name += "~"
             return active_material.node_tree.nodes.get(mask_node_name)
 
+        case 'GROUP_INPUT':
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
+            node_tree = bpy.data.node_groups.get(mask_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('GROUP_INPUT')
+            return None     
+
+        case 'GROUP_OUTPUT':
+            mask_group_node_name = format_mask_name(layer_index, mask_index)
+            node_tree = bpy.data.node_groups.get(mask_group_node_name)
+            if node_tree:
+                return node_tree.nodes.get('GROUP_OUTPUT')
+            return None    
+
         case 'MASK_TYPE':
             mask_group_node_name = format_mask_name(layer_index, mask_index)
             node_tree = bpy.data.node_groups.get(mask_group_node_name)
@@ -663,65 +677,72 @@ def relink_image_mask_projection(original_output_channel):
     mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
     projection_node = get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
     blur_node = get_mask_node('BLUR', selected_layer_index, selected_mask_index)
+    filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
+    texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
+    mix_node = get_mask_node('MASK_MIX', selected_layer_index, selected_mask_index)
+    group_input_node = get_mask_node('GROUP_INPUT', selected_layer_index, selected_mask_index)
+
+    # If the mix node is missing, there's an error, abort.
+    if not mix_node:
+        debug_logging.log(
+            "Can't relink image mask projection, mix node missing.", 
+            message_type='ERROR', 
+            sub_process=False
+        )
+        return
 
     # Disconnect the projection and blur nodes.
+    bau.unlink_node(blur_node, mask_node.node_tree, unlink_inputs=True, unlink_outputs=True)
     bau.unlink_node(projection_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
 
+    # Determine the node outputting the projection for the mask.
+    projection_output_node = projection_node
+    if blur_node:
+        projection_output_node = blur_node
+
     # Link mask nodes based on the mask projection mode.
+    mask_links = mask_node.node_tree.links
     match projection_node.node_tree.name:
         case "ML_UVProjection":
-            filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
-            texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
-            mask_node.node_tree.links.new(projection_node.outputs[0], texture_node.inputs[0])
+            mask_links.new(projection_output_node.outputs[0], texture_node.inputs[0])
+            mask_links.new(texture_node.outputs[0], filter_node.inputs[0])
+            mask_links.new(filter_node.outputs[0], mix_node.inputs[7])
 
-            filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
-            mask_node.node_tree.links.new(texture_node.outputs[0], filter_node.inputs[0])
-
-            # Unlink and re-link the mask filter node to trigger a re-compile of the material.
-            bau.unlink_node(filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
-            mix_node = get_mask_node('MASK_MIX', selected_layer_index, selected_mask_index)
-            if mix_node:
-                mask_node.node_tree.links.new(filter_node.outputs[0], mix_node.inputs[7])
+            if blur_node:
+                mask_links.new(group_input_node.outputs.get('Blur Noise'), blur_node.inputs.get('Blur Noise'))
+                mask_links.new(group_input_node.outputs.get('Blur'), blur_node.inputs.get('Blur Amount'))
+                mask_links.new(projection_node.outputs[0], blur_node.inputs[2])
 
         case "ML_TriplanarProjection":
-            filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
             triplanar_blend_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
 
             for i in range(0, 3):
                 texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=i + 1)
                 if texture_node:
-                    mask_node.node_tree.links.new(projection_node.outputs[i], texture_node.inputs[0])
+                    mask_node.node_tree.links.new(projection_output_node.outputs[i], texture_node.inputs[0])
                     mask_node.node_tree.links.new(texture_node.outputs[0], triplanar_blend_node.inputs[i])
                     mask_node.node_tree.links.new(texture_node.outputs[1], triplanar_blend_node.inputs[i + 3])
             mask_node.node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
-            
-            if filter_node:
-                bau.unlink_node(filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
-                mask_node.node_tree.links.new(triplanar_blend_node.outputs[0], filter_node.inputs[0])
+            mask_node.node_tree.links.new(triplanar_blend_node.outputs[0], filter_node.inputs[0])
+            mask_node.node_tree.links.new(filter_node.outputs[0], mix_node.inputs[7])
 
-            # Unlink and re-link the mask filter node to trigger a re-compile of the material.
-            if filter_node:
-                bau.unlink_node(filter_node, mask_node.node_tree, unlink_inputs=False, unlink_outputs=True)
-                mix_node = get_mask_node('MASK_MIX', selected_layer_index, selected_mask_index)
-                if mix_node:
-                    mask_node.node_tree.links.new(filter_node.outputs[0], mix_node.inputs[7])
+            if blur_node:
+                mask_links.new(group_input_node.outputs.get('Blur Noise'), blur_node.inputs.get('Blur Noise'))
+                mask_links.new(group_input_node.outputs.get('Blur'), blur_node.inputs.get('Blur Amount'))
+                mask_node.node_tree.links.new(projection_node.outputs.get('LeftRight'), blur_node.inputs.get('X'))
+                mask_node.node_tree.links.new(projection_node.outputs.get('FrontBack'), blur_node.inputs.get('Y'))
+                mask_node.node_tree.links.new(projection_node.outputs.get('TopBottom'), blur_node.inputs.get('Z'))
 
         case "ML_DecalProjection":
             mask_node.node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
-
-            texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
-            if bau.get_node_active(blur_node):
-                mask_node.node_tree.links.new(blur_node.outputs[0], texture_node.inputs[0])
-
-            else:
-                mask_node.node_tree.links.new(projection_node.outputs[0], texture_node.inputs[0])
-
-            filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
+            mask_node.node_tree.links.new(projection_output_node.outputs[0], texture_node.inputs[0])
             mask_node.node_tree.links.new(texture_node.outputs[0], filter_node.inputs[0])
-
             linear_mask_blend_node = mask_node.node_tree.nodes.get('LINEAR_MASK_BLEND')
             mask_node.node_tree.links.new(filter_node.outputs[0], linear_mask_blend_node.inputs[0])
             mask_node.node_tree.links.new(projection_node.outputs[1], linear_mask_blend_node.inputs[1])
+
+            if blur_node:
+                mask_node.node_tree.links.new(blur_node.outputs[0], texture_node.inputs[0])
 
     set_mask_crgba_channel(original_output_channel)
 
@@ -729,13 +750,14 @@ def set_mask_projection_mode(projection_mode):
     '''Sets the projection mode of the mask. Only image masks can have their projection mode swapped.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
-
-    original_output_channel = get_mask_crgba_channel()
-    
     match projection_mode:
         case 'UV':
             mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
             projection_node = get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
+
+            # If the projection being used is already UV, abort.
+            if projection_node.node_tree.name == 'ML_UVProjection':
+                return
 
             # Replace triplanar mask node setup.
             mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
@@ -762,47 +784,52 @@ def set_mask_projection_mode(projection_mode):
             projection_node.node_tree = bau.append_group_node('ML_UVProjection')
             blur_node = get_mask_node('BLUR', selected_layer_index, selected_mask_index)
             if blur_node:
-                blur_node.node_tree = bau.append_group_node('ML_NoiseBlur')
+                blur_node.node_tree = bau.append_group_node('ML_ProjectionBlur')
+                blur_node.hide = True
 
         case 'TRIPLANAR':
             mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
             projection_node = get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
-            if projection_node.node_tree.name != 'ML_TriplanarProjection':
 
-                # Replace the UV mask texture node setup with a triplanar texture node setup.
-                mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
-                if mask_texture_node:
-                    original_texture_node_location = mask_texture_node.location
-                    original_texture_node_image = mask_texture_node.image
+            # If the projection being used is already triplanar, abort.
+            if projection_node.node_tree.name == 'ML_TriplanarProjection':
+                return
+            
+            # Replace the UV mask texture node setup with a triplanar texture node setup.
+            mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
+            if mask_texture_node:
+                original_texture_node_location = mask_texture_node.location
+                original_texture_node_image = mask_texture_node.image
 
-                    mask_node.node_tree.nodes.remove(mask_texture_node)
+                mask_node.node_tree.nodes.remove(mask_texture_node)
 
-                    location_x = original_texture_node_location[0]
-                    location_y = original_texture_node_location[1]
-                    for i in range(0, 3):
-                        new_mask_texture_node = mask_node.node_tree.nodes.new('ShaderNodeTexImage')
-                        new_mask_texture_node.name = "TEXTURE_{0}".format(i + 1)
-                        new_mask_texture_node.label = new_mask_texture_node.name
-                        new_mask_texture_node.location = (location_x, location_y)
-                        new_mask_texture_node.hide = True
-                        new_mask_texture_node.width = 200
-                        new_mask_texture_node.image = original_texture_node_image
-                        location_y -= 50
+                location_x = original_texture_node_location[0]
+                location_y = original_texture_node_location[1]
+                for i in range(0, 3):
+                    new_mask_texture_node = mask_node.node_tree.nodes.new('ShaderNodeTexImage')
+                    new_mask_texture_node.name = "TEXTURE_{0}".format(i + 1)
+                    new_mask_texture_node.label = new_mask_texture_node.name
+                    new_mask_texture_node.location = (location_x, location_y)
+                    new_mask_texture_node.hide = True
+                    new_mask_texture_node.width = 200
+                    new_mask_texture_node.image = original_texture_node_image
+                    location_y -= 50
 
-                    # Add a triplanar blending node.
-                    triplanar_blend_node = mask_node.node_tree.nodes.new('ShaderNodeGroup')
-                    triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarBlend")
-                    triplanar_blend_node.name = "TRIPLANAR_BLEND"
-                    triplanar_blend_node.label = triplanar_blend_node.name
-                    triplanar_blend_node.width = 200
-                    triplanar_blend_node.hide = True
-                    triplanar_blend_node.location = (location_x, location_y)
+                # Add a triplanar blending node.
+                triplanar_blend_node = mask_node.node_tree.nodes.new('ShaderNodeGroup')
+                triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarBlend")
+                triplanar_blend_node.name = "TRIPLANAR_BLEND"
+                triplanar_blend_node.label = triplanar_blend_node.name
+                triplanar_blend_node.width = 200
+                triplanar_blend_node.hide = True
+                triplanar_blend_node.location = (location_x, location_y)
 
-                # Set the projection and blur nodes to use triplanar setups.
-                projection_node.node_tree = bau.append_group_node('ML_TriplanarProjection')
-                blur_node = get_mask_node('BLUR', selected_layer_index, selected_mask_index)
-                if blur_node:
-                    blur_node.node_tree = bau.append_group_node('ML_TriplanarBlur')
+            # Set the projection and blur nodes to use triplanar setups.
+            projection_node.node_tree = bau.append_group_node('ML_TriplanarProjection')
+            blur_node = get_mask_node('BLUR', selected_layer_index, selected_mask_index)
+            if blur_node:
+                blur_node.node_tree = bau.append_group_node('ML_TriplanarBlur')
+                blur_node.hide = True
 
 def get_mask_crgba_channel():
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
