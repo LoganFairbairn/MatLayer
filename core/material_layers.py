@@ -1521,6 +1521,7 @@ def set_matchannel_projection(material_channel_name, projection_method, set_text
     layer_node_tree = get_layer_node_tree(selected_layer_index)
     value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, 1)
     static_channel_name = bau.format_static_matchannel_name(material_channel_name)
+    frame = layer_node_tree.nodes.get(static_channel_name)
 
     # If a blur node exists for the material channel, update it to match the specified projection method.
     blur_node = get_material_layer_node('BLUR', selected_layer_index, material_channel_name)
@@ -1557,8 +1558,6 @@ def set_matchannel_projection(material_channel_name, projection_method, set_text
                 texture_sample_nodes = []
                 location_x = original_node_location[0]
                 location_y = original_node_location[1]
-                frame_name = material_channel_name.replace('-', ' ')
-                frame = layer_node_tree.nodes.get(frame_name)
                 for i in range(0, 3):
                     texture_sample_node = layer_node_tree.nodes.new('ShaderNodeTexImage')
                     texture_sample_node.name = format_material_channel_node_name(material_channel_name, 'VALUE', node_index=i + 1)
@@ -1602,7 +1601,10 @@ def set_matchannel_projection(material_channel_name, projection_method, set_text
                 texture_node.hide = True
                 texture_node.width = 300
                 texture_node.location = original_node_location
+                texture_node.parent = frame
                 
+                # Ensure the image and interpolation settings from the
+                # original image texture are preserved.
                 if original_value_node_type == 'TEX_IMAGE':
                     texture_node.image = original_image
                     texture_node.interpolation = original_interpolation
@@ -1611,11 +1613,6 @@ def set_matchannel_projection(material_channel_name, projection_method, set_text
                 # to avoid the texture from repeating.
                 if projection_method == 'DECAL':
                     texture_node.extension = 'CLIP'
-
-                # Frame the new nodes.
-                frame_name = material_channel_name.replace('-', ' ')
-                frame = layer_node_tree.nodes.get(frame_name)
-                texture_node.parent = frame
         
         # Connect texture sample and blending nodes for material channels.
         relink_material_channel(material_channel_name)
