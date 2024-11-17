@@ -26,6 +26,12 @@ TRIPLANAR_PROJECTION_INPUTS = [
     'SignedGeometryNormals'
 ]
 
+PROJECTION_TEXTURE_SAMPLE_COUNTS = {
+    'UV': 1,
+    'TRIPLANAR': 3,
+    'TRIPLANAR_HEX_GRID': 9,
+    'DECAL': 1
+}
 
 #----------------------------- UPDATING PROPERTIES -----------------------------#
 
@@ -82,29 +88,19 @@ def sync_triplanar_nodes():
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
     if projection_node:
-        if projection_node.node_tree.name == 'ML_TriplanarProjection':
+        if projection_node.node_tree.name == 'ML_TriplanarProjection' or projection_node.node_tree.name == 'ML_TriplanarHexGridProjection':
             shader_info = bpy.context.scene.matlayer_shader_info
             for channel in shader_info.material_channels:
                 value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=1)
                 if value_node:
                     if value_node.bl_static_type == 'TEX_IMAGE':
-                        texture_sample_2 = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=2)
-                        texture_sample_3 = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=3)
-                        
-                        # Running these additional if checks to avoid accidentally triggering shader re-compiling by changing an image to the same image.
-                        if texture_sample_2:
-                            if texture_sample_2.image != value_node.image:
-                                texture_sample_2.image = value_node.image
-
-                            if texture_sample_2.interpolation != value_node.interpolation:
-                                texture_sample_2.interpolation = value_node.interpolation
-
-                        if texture_sample_3:
-                            if texture_sample_3.image != value_node.image:
-                                texture_sample_3.image = value_node.image
-
-                            if texture_sample_3.interpolation != value_node.interpolation:
-                                texture_sample_3.interpolation = value_node.interpolation
+                        for i in range(2, 10):
+                            texture_sample_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=i)
+                            if texture_sample_node:
+                                if texture_sample_node.image != value_node.image:
+                                    texture_sample_node.image = value_node.image
+                                if texture_sample_node.interpolation != value_node.interpolation:
+                                    texture_sample_node.interpolation = value_node.interpolation
 
     # Sync triplanar texture samples for masks.
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
@@ -1484,6 +1480,22 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                             if value_node.inputs.get(input) and projection_node.outputs.get(input):
                                 layer_node_tree.links.new(projection_node.outputs.get(input), value_node.inputs.get(input))
 
+                case 'ML_TriplanarHexGridProjection':
+                    value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=1)
+                    triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, channel.name)
+
+                    # Link projection nodes when image textures are used as the material channel value.
+                    if value_node.bl_static_type == 'TEX_IMAGE':
+                        for i in range(0, 9):
+                            value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=i + 1)
+                            layer_node_tree.links.new(projection_output_node.outputs[i], value_node.inputs[0])
+
+                            # Link triplanar blending nodes.
+                            if triplanar_blend_node:
+                                layer_node_tree.links.new(value_node.outputs.get('Color'), triplanar_blend_node.inputs[i])
+                                layer_node_tree.links.new(value_node.outputs.get('Alpha'), triplanar_blend_node.inputs[i + 3])
+                                layer_node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
+
                 case _:
                     value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name)
                     mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, channel.name)
@@ -1501,16 +1513,19 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
 
             set_material_channel_crgba_output(channel.name, original_output_channel, selected_layer_index)
 
-def delete_triplanar_blending_nodes(material_channel_name):
+def delete_value_nodes(material_channel_name, selected_layer_index, layer_node_tree):
     '''Deletes nodes used for triplanar texture sampling and blending for the specified material channel.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layer_node_tree = get_layer_node_tree(selected_layer_index)
 
-    for i in range(0, 3):
+    # The max texture sample nodes that can exist is 9, for triplanar hex grid projection.
+    # Remove all value / texture sample nodes.
+    for i in range(0, 9):
         texture_sample_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, i + 1)
         if texture_sample_node:
             layer_node_tree.nodes.remove(texture_sample_node)
 
+    # Delete triplanar blend node if one exists.
     triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, material_channel_name)
     if triplanar_blend_node:
         layer_node_tree.nodes.remove(triplanar_blend_node)
@@ -1536,83 +1551,62 @@ def set_matchannel_projection(material_channel_name, projection_method, set_text
     # Texture nodes are the only nodes that require a specific projection node setup, ignore other node types.
     # If set_texture_node is true, the material channel value node will be replaced with a texture node, regardless of it's original node type.
     if value_node.bl_static_type == 'TEX_IMAGE' or set_texture_node:
-
-        # Remember the original nodes location and type.
-        original_value_node_type = value_node.bl_static_type
+        # Remember settings from the original texture sample nodes.
         value_node.parent = None
         original_node_location = value_node.location.copy()
+        original_image = None
+        original_interpolation = 'Linear'
+        if value_node.bl_static_type == 'TEX_IMAGE':
+            original_image = value_node.image
+            original_interpolation = value_node.interpolation
 
-        # Update the nodes based on the layer projection method.
+        # Delete original value nodes.
+        delete_value_nodes(material_channel_name, selected_layer_index, layer_node_tree)
+
+        # Add new texture nodes based on the projection method.
+        location_x = original_node_location[0]
+        location_y = original_node_location[1]
+        sample_count = PROJECTION_TEXTURE_SAMPLE_COUNTS[projection_method]
+        for i in range(0, sample_count):
+            texture_node = layer_node_tree.nodes.new('ShaderNodeTexImage')
+            texture_node.name = format_material_channel_node_name(material_channel_name, 'VALUE', node_index=i + 1)
+            texture_node.label = texture_node.name
+            texture_node.hide = True
+            texture_node.width = 300
+            texture_node.location = (location_x, location_y)
+            texture_node.parent = frame
+            texture_node.image = original_image
+            texture_node.interpolation = original_interpolation
+            location_y -= 50
+
+        # For decal projection, texture extension must be 'CLIP'.
+        if projection_method == 'DECAL':
+            texture_node.extension = 'CLIP'
+
+        # Add texture sample blending modes if required.
+        triplanar_blend_node = None
         match projection_method:
             case 'TRIPLANAR':
-                # Remember the old image and location.
-                original_value_node_type = value_node.bl_static_type
-                if original_value_node_type == 'TEX_IMAGE':
-                    original_image = value_node.image
-                    original_interpolation = value_node.interpolation
-
-                # Remove the old value node.
-                layer_node_tree.nodes.remove(value_node)
-
-                # Add 3 required texture samples for triplanar projection and frame them.
-                texture_sample_nodes = []
-                location_x = original_node_location[0]
-                location_y = original_node_location[1]
-                for i in range(0, 3):
-                    texture_sample_node = layer_node_tree.nodes.new('ShaderNodeTexImage')
-                    texture_sample_node.name = format_material_channel_node_name(material_channel_name, 'VALUE', node_index=i + 1)
-                    texture_sample_node.label = texture_sample_node.name
-                    texture_sample_node.hide = True
-                    texture_sample_node.width = 300
-                    texture_sample_node.location = (location_x, location_y)
-                    texture_sample_nodes.append(texture_sample_node)
-                    location_y -= 50
-                    if original_value_node_type == 'TEX_IMAGE':
-                        texture_sample_node.image = original_image
-                        texture_sample_node.interpolation = original_interpolation
-                    texture_sample_node.parent = frame
-
-                # Add a node for blending texture samples.
                 triplanar_blend_node = layer_node_tree.nodes.new('ShaderNodeGroup')
                 if static_channel_name == 'NORMAL':
                     triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarNormalsBlend")
                 else:
                     triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarBlend")
-                triplanar_blend_node.name = format_material_channel_node_name(static_channel_name, 'TRIPLANAR_BLEND')
-                triplanar_blend_node.label = triplanar_blend_node.name
-                triplanar_blend_node.width = 300
-                triplanar_blend_node.hide = True
-                triplanar_blend_node.location = (location_x, location_y)
-                triplanar_blend_node.parent = frame
 
-            case _:
-                # Remember original location and image of the texture node.
-                if original_value_node_type == 'TEX_IMAGE':
-                    original_image = value_node.image
-                    original_interpolation = value_node.interpolation
+            case 'TRIPLANAR_HEX_GRID':
+                triplanar_blend_node = layer_node_tree.nodes.new('ShaderNodeGroup')
+                if static_channel_name == 'NORMAL':
+                    triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarHexGridBlend")
+                else:
+                    triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarHexGridBlend")
 
-                # Delete triplanar texture nodes if they exist.
-                delete_triplanar_blending_nodes(material_channel_name)
-
-                # Replace material channel value nodes with a single texture node.
-                texture_node = layer_node_tree.nodes.new('ShaderNodeTexImage')
-                texture_node.name = format_material_channel_node_name(material_channel_name, 'VALUE', node_index=1)
-                texture_node.label = texture_node.name
-                texture_node.hide = True
-                texture_node.width = 300
-                texture_node.location = original_node_location
-                texture_node.parent = frame
-                
-                # Ensure the image and interpolation settings from the
-                # original image texture are preserved.
-                if original_value_node_type == 'TEX_IMAGE':
-                    texture_node.image = original_image
-                    texture_node.interpolation = original_interpolation
-
-                # For decal projection, change the texture extension method to clip
-                # to avoid the texture from repeating.
-                if projection_method == 'DECAL':
-                    texture_node.extension = 'CLIP'
+        if triplanar_blend_node:
+            triplanar_blend_node.name = format_material_channel_node_name(static_channel_name, 'TRIPLANAR_BLEND')
+            triplanar_blend_node.label = triplanar_blend_node.name
+            triplanar_blend_node.width = 300
+            triplanar_blend_node.hide = True
+            triplanar_blend_node.location = (location_x, location_y)
+            triplanar_blend_node.parent = frame
         
         # Connect texture sample and blending nodes for material channels.
         relink_material_channel(material_channel_name)
@@ -1620,7 +1614,7 @@ def set_matchannel_projection(material_channel_name, projection_method, set_text
 def replace_material_channel_node(material_channel_name, node_type):
     '''Replaces the existing material channel node with a new node of the given type.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    layer_group_node = get_layer_node_tree(selected_layer_index)
+    layer_node_tree = get_layer_node_tree(selected_layer_index)
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
     value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
     static_matchannel_name = bau.format_static_matchannel_name(material_channel_name)
@@ -1634,19 +1628,19 @@ def replace_material_channel_node(material_channel_name, node_type):
             # Remove the old nodes.
             match projection_node.node_tree.name:
                 case 'ML_TriplanarProjection':
-                    delete_triplanar_blending_nodes(static_matchannel_name)
+                    delete_value_nodes(static_matchannel_name, selected_layer_index, layer_node_tree)
                 case _:
-                    layer_group_node.nodes.remove(value_node)
+                    layer_node_tree.nodes.remove(value_node)
 
             # Replace the material channel value nodes with a group node.
-            new_node = layer_group_node.nodes.new('ShaderNodeGroup')
+            new_node = layer_node_tree.nodes.new('ShaderNodeGroup')
             new_node.name = format_material_channel_node_name(static_matchannel_name, "VALUE", node_index=1)
             new_node.label = new_node.name
             new_node.width = 300
             new_node.location = original_node_location
 
             # Frame the new node.
-            frame = layer_group_node.nodes.get(static_matchannel_name)
+            frame = layer_node_tree.nodes.get(static_matchannel_name)
             new_node.parent = frame
 
             # Apply the default group node for the specified channel.
@@ -1657,9 +1651,9 @@ def replace_material_channel_node(material_channel_name, node_type):
             # Link the new group node.
             mix_node = get_material_layer_node('MIX', selected_layer_index, static_matchannel_name)
             if mix_node.bl_static_type == 'GROUP':
-                layer_group_node.links.new(new_node.outputs[0], mix_node.inputs[2])
+                layer_node_tree.links.new(new_node.outputs[0], mix_node.inputs[2])
             else:
-                layer_group_node.links.new(new_node.outputs[0], mix_node.inputs[7])
+                layer_node_tree.links.new(new_node.outputs[0], mix_node.inputs[7])
 
         # Apply projection to texture nodes based on the projection group node name.
         case 'TEXTURE':
@@ -1669,6 +1663,9 @@ def replace_material_channel_node(material_channel_name, node_type):
 
                 case 'ML_TriplanarProjection':
                     set_matchannel_projection(static_matchannel_name, 'TRIPLANAR', set_texture_node=True)
+
+                case 'ML_TriplanarHexGridProjection':
+                    set_matchannel_projection(static_matchannel_name, 'TRIPLANAR_HEX_GRID', set_texture_node=True)
 
                 case 'ML_DecalProjection':
                     set_matchannel_projection(static_matchannel_name, 'DECAL', set_texture_node=True)
@@ -1698,6 +1695,11 @@ def set_layer_projection(projection_mode, self):
         case 'TRIPLANAR':
             if projection_node.node_tree.name != "ML_TriplanarProjection":
                 projection_node.node_tree = bau.append_group_node("ML_TriplanarProjection")
+                update_nodes = True
+
+        case 'TRIPLANAR_HEX_GRID':
+            if projection_node.node_tree.name != "ML_TriplanarHexGridProjection":
+                projection_node.node_tree = bau.append_group_node("ML_TriplanarHexGridProjection")
                 update_nodes = True
 
     # Set the projection nodes for all channels if a node update is required.
@@ -2254,27 +2256,13 @@ class MATLAYER_OT_toggle_hide_layer(Operator):
         link_layer_group_nodes(self)
         return {'FINISHED'}
 
-# TODO: This operator should be merged with set_layer_projection_triplanar.
-class MATLAYER_OT_set_layer_projection_uv(Operator):
-    bl_idname = "matlayer.set_layer_projection_uv"
-    bl_label = "Set Layer Projection UV"
+class MATLAYER_OT_set_layer_projection(Operator):
+    bl_idname = "matlayer.set_layer_projection"
+    bl_label = "Set Layer Projection"
     bl_description = "Sets the projection mode for the layer to UV projection, which uses the UV layout of the object to project textures used on this material layer"
     bl_options = {'REGISTER', 'UNDO'}
 
-    # Disable when there is no active object.
-    @ classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def execute(self, context):
-        set_layer_projection('UV', self)
-        return {'FINISHED'}
-
-class MATLAYER_OT_set_layer_projection_triplanar(Operator):
-    bl_idname = "matlayer.set_layer_projection_triplanar"
-    bl_label = "Set Layer Projection Triplanar"
-    bl_description = "Sets the projection mode for the layer to triplanar projection which projects the textures onto the object from each axis. This projection method can be used to apply materials to objects without needing to manually blend seams"
-    bl_options = {'REGISTER', 'UNDO'}
+    projection_method: StringProperty(default='UV')
 
     # Disable when there is no active object.
     @ classmethod
@@ -2282,7 +2270,7 @@ class MATLAYER_OT_set_layer_projection_triplanar(Operator):
         return context.active_object
 
     def execute(self, context):
-        set_layer_projection('TRIPLANAR', self)
+        set_layer_projection(self.projection_method, self)
         return {'FINISHED'}
 
 class MATLAYER_OT_change_material_channel_value_node(Operator):

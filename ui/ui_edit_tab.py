@@ -463,6 +463,53 @@ def draw_layer_projection(layout):
                 row = layout.row()
                 row.prop(projection_node.inputs.get('Blending'), "default_value", text="Blending")
 
+            case 'ML_TriplanarHexGridProjection':
+                layout.label(text="PROJECTION")
+
+                # Draw the projection mode submenu.
+                split = layout.split(factor=0.25)
+                first_column = split.column()
+                second_column = split.column()
+
+                row = first_column.row()
+                row.label(text="Projection")
+                row = second_column.row()
+                row.menu('MATLAYER_MT_layer_projection_submenu', text="Triplanar Hex Grid")
+
+                # In Blender users can edit multiple properties by holding shift and dragging the mouse down over all properties they wish to edit.
+                # Rotation, offset and scale values are draw in columns rather than in rows to allow this.
+                split = layout.split()
+                col = split.column()
+                col.prop(projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
+                col.prop(projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
+                col.prop(projection_node.inputs.get('OffsetZ'), "default_value", text="Offset Z", slider=True)
+
+                col = split.column()
+                col.prop(projection_node.inputs.get('RotationX'), "default_value", text="Rotation X", slider=True)
+                col.prop(projection_node.inputs.get('RotationY'), "default_value", text="Rotation Y", slider=True)
+                col.prop(projection_node.inputs.get('RotationZ'), "default_value", text="Rotation Z", slider=True)
+
+                col = split.column()
+                col.prop(projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
+                col.prop(projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
+                col.prop(projection_node.inputs.get('ScaleZ'), "default_value", text="Scale Z")
+
+                row = layout.row()
+                row.prop(projection_node.inputs.get('Triplanar Blending'), "default_value", text="Triplanar Blending")
+
+                row = layout.row()
+                row.prop(projection_node.inputs.get('Hex Scale Min'), "default_value", text="Grid Scale Min")
+                row = layout.row()
+                row.prop(projection_node.inputs.get('Hex Scale Max'), "default_value", text="Grid Scale Max")
+                row = layout.row()
+                row.prop(projection_node.inputs.get('Hex Rotation Min'), "default_value", text="Hex Rotation Min")
+                row = layout.row()
+                row.prop(projection_node.inputs.get('Hex Rotation Max'), "default_value", text="Hex Rotation Max")
+                row = layout.row()
+                row.prop(projection_node.inputs.get('Hex Grid Scale'), "default_value", text="Hex Grid Scale")
+                row = layout.row()
+                row.prop(projection_node.inputs.get('Hex Sharpness'), "default_value", text="Hex Sharpness")
+
             case 'ML_DecalProjection':
                 row = layout.row()
                 row.alignment = 'CENTER'
@@ -821,8 +868,12 @@ class LayerProjectionModeSubMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("matlayer.set_layer_projection_uv", text="UV")
-        layout.operator("matlayer.set_layer_projection_triplanar", text="Triplanar")
+        op = layout.operator("matlayer.set_layer_projection", text="UV")
+        op.projection_method = 'UV'
+        op = layout.operator("matlayer.set_layer_projection", text="Triplanar")
+        op.projection_method = 'TRIPLANAR'
+        op = layout.operator("matlayer.set_layer_projection", text="Triplanar Hex Grid")
+        op.projection_method = 'TRIPLANAR_HEX_GRID'
 
 class MaskProjectionModeSubMenu(Menu):
     bl_idname = "MATLAYER_MT_mask_projection_sub_menu"
