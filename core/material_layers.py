@@ -1459,6 +1459,13 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                     value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=1)
                     triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, channel.name)
 
+                    # If there is no triplanar blend node, this projection method can't be linked properly, abort.
+                    if triplanar_blend_node:
+                        bau.unlink_node(triplanar_blend_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
+                    else:
+                        debug_logging.log("Triplanar blend node missing, can't relink triplanar hex grid projection.", message_type='ERROR')
+                        return
+
                     # Link projection nodes when image textures are used as the material channel value.
                     if value_node.bl_static_type == 'TEX_IMAGE':
                         for i in range(0, 3):
@@ -1466,13 +1473,12 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                             layer_node_tree.links.new(projection_output_node.outputs[i], value_node.inputs[0])
 
                             # Link triplanar blending nodes.
-                            if triplanar_blend_node:
-                                layer_node_tree.links.new(value_node.outputs.get('Color'), triplanar_blend_node.inputs[i])
-                                layer_node_tree.links.new(value_node.outputs.get('Alpha'), triplanar_blend_node.inputs[i + 3])
-                                layer_node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
-                                if channel.name == 'NORMAL':
-                                    layer_node_tree.links.new(projection_node.outputs.get('Rotation'), triplanar_blend_node.inputs.get('Rotation'))
-                                    layer_node_tree.links.new(projection_node.outputs.get('SignedGeometryNormals'), triplanar_blend_node.inputs.get('SignedGeometryNormals'))
+                            layer_node_tree.links.new(value_node.outputs.get('Color'), triplanar_blend_node.inputs[i])
+                            layer_node_tree.links.new(value_node.outputs.get('Alpha'), triplanar_blend_node.inputs[i + 3])
+                            layer_node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
+                            if channel.name == 'NORMAL':
+                                layer_node_tree.links.new(projection_node.outputs.get('Rotation'), triplanar_blend_node.inputs.get('Rotation'))
+                                layer_node_tree.links.new(projection_node.outputs.get('SignedGeometryNormals'), triplanar_blend_node.inputs.get('SignedGeometryNormals'))
 
                     # Link the triplanar projection for custom group nodes with inputs that having matching names with projection node outputs.
                     else:
@@ -1484,17 +1490,61 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                     value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=1)
                     triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, channel.name)
 
+                    # If there is no triplanar blend node, this projection method can't be linked properly, abort.
+                    if triplanar_blend_node:
+                        bau.unlink_node(triplanar_blend_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
+                    else:
+                        debug_logging.log("Triplanar blend node missing, can't relink triplanar hex grid projection.", message_type='ERROR')
+                        return
+                    
+                    # Only image textures need to have projection linked.
                     # Link projection nodes when image textures are used as the material channel value.
                     if value_node.bl_static_type == 'TEX_IMAGE':
-                        for i in range(0, 9):
-                            value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=i + 1)
-                            layer_node_tree.links.new(projection_output_node.outputs[i], value_node.inputs[0])
 
-                            # Link triplanar blending nodes.
-                            if triplanar_blend_node:
-                                layer_node_tree.links.new(value_node.outputs.get('Color'), triplanar_blend_node.inputs[i])
-                                layer_node_tree.links.new(value_node.outputs.get('Alpha'), triplanar_blend_node.inputs[i + 3])
-                                layer_node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
+                        # Link X Hex Grid
+                        for i in range(1, 4):
+                            value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=i)
+                            if value_node:
+                                layer_node_tree.links.new(projection_output_node.outputs.get("X Grid {0}".format(i)), value_node.inputs[0])
+                                layer_node_tree.links.new(projection_output_node.outputs.get("X Grid Mask {0}".format(i)), triplanar_blend_node.inputs.get("X Grid Mask {0}".format(i)))
+                                layer_node_tree.links.new(value_node.outputs[0], triplanar_blend_node.inputs.get("X Grid Color {0}".format(i)))
+                                layer_node_tree.links.new(value_node.outputs[1], triplanar_blend_node.inputs.get("X Grid Alpha {0}".format(i)))
+                            else:
+                                debug_logging.log(
+                                    "Missing texture sample {0} for triplanar hex grid projection.".format(i),
+                                    message_type='ERROR'
+                                )
+                        
+                        # Link Y Hex Grid
+                        for i in range(1, 4):
+                            value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=i + 3)
+                            if value_node:
+                                layer_node_tree.links.new(projection_output_node.outputs.get("Y Grid {0}".format(i)), value_node.inputs[0])
+                                layer_node_tree.links.new(projection_output_node.outputs.get("Y Grid Mask {0}".format(i)), triplanar_blend_node.inputs.get("Y Grid Mask {0}".format(i)))
+                                layer_node_tree.links.new(value_node.outputs[0], triplanar_blend_node.inputs.get("Y Grid Color {0}".format(i)))
+                                layer_node_tree.links.new(value_node.outputs[1], triplanar_blend_node.inputs.get("Y Grid Alpha {0}".format(i)))
+                            else:
+                                debug_logging.log(
+                                    "Missing texture sample {0} for triplanar hex grid projection.".format(i),
+                                    message_type='ERROR'
+                                )
+                        
+                        # Link Z Hex Grid
+                        for i in range(1, 4):
+                            value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=i + 6)
+                            if value_node:
+                                layer_node_tree.links.new(projection_output_node.outputs.get("Z Grid {0}".format(i)), value_node.inputs[0])
+                                layer_node_tree.links.new(projection_output_node.outputs.get("Z Grid Mask {0}".format(i)), triplanar_blend_node.inputs.get("Z Grid Mask {0}".format(i)))
+                                layer_node_tree.links.new(value_node.outputs[0], triplanar_blend_node.inputs.get("Z Grid Color {0}".format(i)))
+                                layer_node_tree.links.new(value_node.outputs[1], triplanar_blend_node.inputs.get("Z Grid Alpha {0}".format(i)))
+                            else:
+                                debug_logging.log(
+                                    "Missing texture sample {0} for triplanar hex grid projection.".format(i),
+                                    message_type='ERROR'
+                                )
+                        
+                        # Link triplanar blending node.
+                        layer_node_tree.links.new(projection_node.outputs.get('AxisMask'), triplanar_blend_node.inputs.get('AxisMask'))
 
                 case _:
                     value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name)
@@ -1626,11 +1676,7 @@ def replace_material_channel_node(material_channel_name, node_type):
             original_node_location = value_node.location.copy()
 
             # Remove the old nodes.
-            match projection_node.node_tree.name:
-                case 'ML_TriplanarProjection':
-                    delete_value_nodes(static_matchannel_name, selected_layer_index, layer_node_tree)
-                case _:
-                    layer_node_tree.nodes.remove(value_node)
+            delete_value_nodes(static_matchannel_name, selected_layer_index, layer_node_tree)
 
             # Replace the material channel value nodes with a group node.
             new_node = layer_node_tree.nodes.new('ShaderNodeGroup')
@@ -1643,6 +1689,7 @@ def replace_material_channel_node(material_channel_name, node_type):
             frame = layer_node_tree.nodes.get(static_matchannel_name)
             new_node.parent = frame
 
+            # TODO: IMPORTANT! If the default group node doesn't exist, create one!
             # Apply the default group node for the specified channel.
             default_node_tree_name = "ML_Default{0}".format(node_socket_name.replace(' ', ''))
             default_node_tree = bpy.data.node_groups.get(default_node_tree_name)
@@ -1761,21 +1808,20 @@ def set_material_channel_crgba_output(material_channel_name, crgba_output, layer
     projection_node = get_material_layer_node('PROJECTION', layer_index)
     value_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
     channel_output_node = None
-    match projection_node.node_tree.name:
-        case 'ML_TriplanarProjection':
-            if value_node.bl_static_type == 'TEX_IMAGE':
-                channel_output_node = get_material_layer_node('TRIPLANAR_BLEND', layer_index, material_channel_name)
+    if projection_node.node_tree.name == 'ML_TriplanarProjection' or projection_node.node_tree.name == 'ML_TriplanarHexGridProjection':
+        if value_node.bl_static_type == 'TEX_IMAGE':
+            channel_output_node = get_material_layer_node('TRIPLANAR_BLEND', layer_index, material_channel_name)
+        else:
+            channel_output_node = value_node
+    else:
+        if material_channel_name == 'NORMAL':
+            fix_normal_rotation_node = get_material_layer_node('FIX_NORMAL_ROTATION', layer_index, material_channel_name)
+            if fix_normal_rotation_node:
+                channel_output_node = fix_normal_rotation_node
             else:
-                channel_output_node = value_node
-        case _:
-            if material_channel_name == 'NORMAL':
-                fix_normal_rotation_node = get_material_layer_node('FIX_NORMAL_ROTATION', layer_index, material_channel_name)
-                if fix_normal_rotation_node:
-                    channel_output_node = fix_normal_rotation_node
-                else:
-                    debug_logging.log("Fix normal rotation node missing.", message_type='ERROR')
-            else:
-                channel_output_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
+                debug_logging.log("Fix normal rotation node missing.", message_type='ERROR')
+        else:
+            channel_output_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
 
     # Determine if a separate RGB node is required.
     if crgba_output == 'RED' or crgba_output == 'BLUE' or crgba_output == 'GREEN':
@@ -1820,7 +1866,7 @@ def set_material_channel_crgba_output(material_channel_name, crgba_output, layer
     # Always link alpha to opacity if the value node is using an image texture node.
     mix_image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', layer_index, material_channel_name)
     if value_node.bl_static_type == 'TEX_IMAGE':
-        layer_node_tree.links.new(channel_output_node.outputs[1], mix_image_alpha_node.inputs[1])
+        bau.safe_node_link(channel_output_node.outputs[1], mix_image_alpha_node.inputs[1], layer_node_tree)
 
 def isolate_material_channel(material_channel_name):
     '''Isolates the specified material channel by linking only the specified material channel output to the material channel output / emission node.'''
