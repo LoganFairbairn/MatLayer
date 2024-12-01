@@ -872,8 +872,12 @@ class LayerProjectionModeSubMenu(Menu):
         op.projection_method = 'UV'
         op = layout.operator("matlayer.set_layer_projection", text="Triplanar")
         op.projection_method = 'TRIPLANAR'
-        op = layout.operator("matlayer.set_layer_projection", text="Triplanar Hex Grid")
-        op.projection_method = 'TRIPLANAR_HEX_GRID'
+
+        # Experimental anti-repetition projection method.
+        addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+        if addon_preferences.experimental_features:
+            op = layout.operator("matlayer.set_layer_projection", text="Triplanar Hex Grid")
+            op.projection_method = 'TRIPLANAR_HEX_GRID'
 
 class MaskProjectionModeSubMenu(Menu):
     bl_idname = "MATLAYER_MT_mask_projection_sub_menu"
