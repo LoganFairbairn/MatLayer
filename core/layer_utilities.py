@@ -39,6 +39,7 @@ MATERIAL_CHANNEL_TAGS = {
     "émission": 'EMISSION',
     "emit": 'EMISSION',
     "normal": 'NORMAL',
+    "normals": 'NORMAL',
     "normale": 'NORMAL',
     "nor": 'NORMAL',
     "ngl": 'NORMAL',
