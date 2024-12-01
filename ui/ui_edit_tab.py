@@ -261,6 +261,18 @@ def draw_value_node_properties(layout, material_channel_name, layer_node_tree, s
             row = second_column.row()
             row.prop(value_node, "interpolation", text="")
 
+            # Draw texture color-space and alpha settings.
+            if value_node.image:
+                row = first_column.row()
+                row.label(text="Color Space")
+                row = second_column.row()
+                row.prop(value_node.image.colorspace_settings, "name", text="")
+
+                row = first_column.row()
+                row.label(text="Alpha Mode")
+                row = second_column.row()
+                row.prop(value_node.image, "alpha_mode", text="")
+
 def draw_material_filter_name(layout, material_channel_name, filter_index, filter_node):
     split = layout.split(factor=0.4)
     first_column = split.column(align=True)
