@@ -15,11 +15,13 @@ from .. import preferences
 
 # Tabs to help organize the user interface and help limit the number of properties displayed at one time.
 MATERIAL_LAYER_PROPERTY_TABS = [
-    ("LAYER", "LAYER", "Properties for the selected material layer."),
+    ("MATERIAL_LAYER", "MATERIAL LAYER", "Properties for the selected material layer."),
+    ("PROJECTION", "PROJECTION", "Projection properties for the selected layer"),
     ("MASKS", "MASKS", "Properties for masks applied to the selected material layer."),
     ("UNLAYERED", "UNLAYERED", "Properties for the selected material that are not layered.")
 ]
 
+# UI label equivalents for projection methods.
 PROJECTION_MODE_LABELS = {
     "ML_UVProjection": "UV",
     "ML_TriplanarProjection": "Triplanar",
@@ -93,13 +95,14 @@ def draw_layers_tab_ui(self, context):
     # Draw layer user interface.
     layer_count = material_layers.count_layers()
     if layer_count > 0:
-        draw_material_property_tabs(column_one)
+        draw_layer_property_dropdown(column_one)
         match bpy.context.scene.matlayer_material_property_tabs:
-            case 'LAYER':
-                draw_layer_projection(column_one)
+            case 'MATERIAL_LAYER':
                 draw_material_channel_properties(column_one)
             case 'MASKS':
                 draw_masks_tab(column_one)
+            case 'PROJECTION':
+                draw_layer_projection(column_one)
             case 'UNLAYERED':
                 draw_unlayered_material_properties(column_one)
 
@@ -197,13 +200,11 @@ def draw_selected_image_name(layout):
         selected_image_name = bpy.context.scene.tool_settings.image_paint.canvas.name
         row.label(text=selected_image_name)
 
-def draw_material_property_tabs(layout):
+def draw_layer_property_dropdown(layout):
     '''Draws tabs to change between editing the material layer and the masks applied to the material layer.'''
     row = layout.row(align=True)
     row.scale_y = 1.5
-    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'LAYER')
-    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MASKS')
-    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'UNLAYERED')
+    row.prop(bpy.context.scene, "matlayer_material_property_tabs", text="")
 
 def draw_value_node_properties(layout, material_channel_name, layer_node_tree, selected_layer_index, value_node, mix_node):
     '''Draws properties for the provided value node.'''
@@ -419,7 +420,7 @@ def draw_layer_projection(layout):
 
     # Draw the projection mode submenu.
     row = first_column.row()
-    row.label(text="Projection")
+    row.label(text="Method")
     row = second_column.row()
     projection_method_label = PROJECTION_MODE_LABELS[projection_node.node_tree.name]
     row.menu('MATLAYER_MT_layer_projection_submenu', text=projection_method_label)

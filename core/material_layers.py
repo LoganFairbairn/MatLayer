@@ -971,7 +971,7 @@ def add_material_layer(layer_type, self):
             debug_logging.log("Added image layer.")
 
     # Switch to the layer UI tab after creating a new layer.
-    bpy.context.scene.matlayer_material_property_tabs = 'LAYER'
+    bpy.context.scene.matlayer_material_property_tabs = 'MATERIAL_LAYER'
 
 def duplicate_layer(original_layer_index, self):
     '''Duplicates the material layer at the provided layer index.'''
