@@ -15,12 +15,12 @@ import random
 import numpy as np
 
 TRIPLANAR_PROJECTION_INPUTS = [
-    'LeftRight',
-    'FrontBack',
-    'TopBottom',
-    'UnflippedLeftRight',
-    'UnflippedFrontBack',
-    'UnflippedTopBottom',
+    'X',
+    'Y',
+    'Z',
+    'UnflippedX',
+    'UnflippedY',
+    'UnflippedZ',
     'AxisMask',
     'Rotation',
     'SignedGeometryNormals'
@@ -1439,9 +1439,9 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
             projection_output_node = blur_node
             match projection_node.node_tree.name:
                 case 'ML_TriplanarProjection':
-                    layer_node_tree.links.new(projection_node.outputs.get('LeftRight'), blur_node.inputs.get('X'))
-                    layer_node_tree.links.new(projection_node.outputs.get('FrontBack'), blur_node.inputs.get('Y'))
-                    layer_node_tree.links.new(projection_node.outputs.get('TopBottom'), blur_node.inputs.get('Z'))
+                    layer_node_tree.links.new(projection_node.outputs.get('X'), blur_node.inputs.get('X'))
+                    layer_node_tree.links.new(projection_node.outputs.get('Y'), blur_node.inputs.get('Y'))
+                    layer_node_tree.links.new(projection_node.outputs.get('Z'), blur_node.inputs.get('Z'))
                 case _:
                     layer_node_tree.links.new(projection_node.outputs[0], blur_node.inputs.get('Projection'))
             layer_node_tree.links.new(group_input_node.outputs.get('Blur Noise'), blur_node.inputs.get('Blur Noise'))

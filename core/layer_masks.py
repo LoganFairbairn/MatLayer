@@ -729,9 +729,9 @@ def relink_image_mask_projection(original_output_channel):
             if blur_node:
                 mask_links.new(group_input_node.outputs.get('Blur Noise'), blur_node.inputs.get('Blur Noise'))
                 mask_links.new(group_input_node.outputs.get('Blur'), blur_node.inputs.get('Blur Amount'))
-                mask_node.node_tree.links.new(projection_node.outputs.get('LeftRight'), blur_node.inputs.get('X'))
-                mask_node.node_tree.links.new(projection_node.outputs.get('FrontBack'), blur_node.inputs.get('Y'))
-                mask_node.node_tree.links.new(projection_node.outputs.get('TopBottom'), blur_node.inputs.get('Z'))
+                mask_node.node_tree.links.new(projection_node.outputs.get('X'), blur_node.inputs.get('X'))
+                mask_node.node_tree.links.new(projection_node.outputs.get('Y'), blur_node.inputs.get('Y'))
+                mask_node.node_tree.links.new(projection_node.outputs.get('Z'), blur_node.inputs.get('Z'))
 
         case "ML_DecalProjection":
             mask_node.node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
