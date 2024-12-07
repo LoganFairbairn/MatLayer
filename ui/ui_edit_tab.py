@@ -20,6 +20,13 @@ MATERIAL_LAYER_PROPERTY_TABS = [
     ("UNLAYERED", "UNLAYERED", "Properties for the selected material that are not layered.")
 ]
 
+PROJECTION_MODE_LABELS = {
+    "ML_UVProjection": "UV",
+    "ML_TriplanarProjection": "Triplanar",
+    "ML_TriplanarHexGridProjection": "Triplanar Hex Grid",
+    "ML_DecalProjection": "Decal Projection"
+}
+
 def draw_layers_tab_ui(self, context):
     '''Draws the layer section user interface to the add-on side panel.'''
     ui_tabs.draw_addon_tabs(self, context)
@@ -399,133 +406,37 @@ def draw_material_channel_properties(layout):
 def draw_layer_projection(layout):
     '''Draws layer projection settings.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    
-    # Draw the projection mode.
+
+    # USe a two column layout for neatness.
+    split = layout.split(factor=0.25)
+    first_column = split.column()
+    second_column = split.column()
+
+    # Only draw layer projection if a projection node exists.
     projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
-    if projection_node:
-        match projection_node.node_tree.name:
-            case 'ML_UVProjection':
-                layout.label(text="PROJECTION")
+    if not projection_node:
+        return
 
-                # Draw the projection mode submenu.
-                split = layout.split(factor=0.25)
-                first_column = split.column()
-                second_column = split.column()
+    # Draw the projection mode submenu.
+    row = first_column.row()
+    row.label(text="Projection")
+    row = second_column.row()
+    projection_method_label = PROJECTION_MODE_LABELS[projection_node.node_tree.name]
+    row.menu('MATLAYER_MT_layer_projection_submenu', text=projection_method_label)
 
+    # Draw adjustment settings for the selected projection method.
+    match projection_node.node_tree.name:
+        case 'ML_DecalProjection':
+            row = layout.row()
+            row.alignment = 'CENTER'
+            row.label(text="USING DECAL PROJECTION")
+        
+        case _:
+            for input in projection_node.inputs:
                 row = first_column.row()
-                row.label(text="Method")
+                row.label(text=input.name)
                 row = second_column.row()
-                row.menu('MATLAYER_MT_layer_projection_submenu', text="UV")
-
-                # Draw the UV map property.
-                active_object = bpy.context.active_object
-                if active_object:
-                    uv_map_node = projection_node.node_tree.nodes.get('UV_MAP')
-                    if uv_map_node:
-                        row = first_column.row()
-                        row.label(text="UV Map")
-                        row = second_column.row()
-                        row.prop_search(uv_map_node, "uv_map", active_object.data, "uv_layers", text="")
-
-                # In Blender users can edit multiple properties by holding shift and dragging the mouse down over all properties they wish to edit.
-                # Rotation, offset and scale values are draw in columns rather than in rows to allow this.
-                split = layout.split()
-                col = split.column()
-                col.prop(projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
-                col.prop(projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
-
-                col = split.column()
-                col.prop(projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
-                col.prop(projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
-
-                row = layout.row()
-                row.prop(projection_node.inputs.get('Rotation'), "default_value", text="Rotation", slider=True)
-
-            case 'ML_TriplanarProjection':
-                layout.label(text="PROJECTION")
-
-                # Draw the projection mode submenu.
-                split = layout.split(factor=0.25)
-                first_column = split.column()
-                second_column = split.column()
-
-                row = first_column.row()
-                row.label(text="Projection")
-                row = second_column.row()
-                row.menu('MATLAYER_MT_layer_projection_submenu', text="Triplanar")
-
-                # In Blender users can edit multiple properties by holding shift and dragging the mouse down over all properties they wish to edit.
-                # Rotation, offset and scale values are draw in columns rather than in rows to allow this.
-                split = layout.split()
-                col = split.column()
-                col.prop(projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
-                col.prop(projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
-                col.prop(projection_node.inputs.get('OffsetZ'), "default_value", text="Offset Z", slider=True)
-
-                col = split.column()
-                col.prop(projection_node.inputs.get('RotationX'), "default_value", text="Rotation X", slider=True)
-                col.prop(projection_node.inputs.get('RotationY'), "default_value", text="Rotation Y", slider=True)
-                col.prop(projection_node.inputs.get('RotationZ'), "default_value", text="Rotation Z", slider=True)
-
-                col = split.column()
-                col.prop(projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
-                col.prop(projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
-                col.prop(projection_node.inputs.get('ScaleZ'), "default_value", text="Scale Z")
-
-                row = layout.row()
-                row.prop(projection_node.inputs.get('Blending'), "default_value", text="Blending")
-
-            case 'ML_TriplanarHexGridProjection':
-                layout.label(text="PROJECTION")
-
-                # Draw the projection mode submenu.
-                split = layout.split(factor=0.25)
-                first_column = split.column()
-                second_column = split.column()
-
-                row = first_column.row()
-                row.label(text="Projection")
-                row = second_column.row()
-                row.menu('MATLAYER_MT_layer_projection_submenu', text="Triplanar Hex Grid")
-
-                # In Blender users can edit multiple properties by holding shift and dragging the mouse down over all properties they wish to edit.
-                # Rotation, offset and scale values are draw in columns rather than in rows to allow this.
-                split = layout.split()
-                col = split.column()
-                col.prop(projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
-                col.prop(projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
-                col.prop(projection_node.inputs.get('OffsetZ'), "default_value", text="Offset Z", slider=True)
-
-                col = split.column()
-                col.prop(projection_node.inputs.get('RotationX'), "default_value", text="Rotation X", slider=True)
-                col.prop(projection_node.inputs.get('RotationY'), "default_value", text="Rotation Y", slider=True)
-                col.prop(projection_node.inputs.get('RotationZ'), "default_value", text="Rotation Z", slider=True)
-
-                col = split.column()
-                col.prop(projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
-                col.prop(projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
-                col.prop(projection_node.inputs.get('ScaleZ'), "default_value", text="Scale Z")
-
-                row = layout.row()
-                row.prop(projection_node.inputs.get('Triplanar Blending'), "default_value", text="Triplanar Blending")
-
-                row = layout.row()
-                row.prop(projection_node.inputs.get('Hex Scale Min'), "default_value", text="Grid Scale Min")
-                row = layout.row()
-                row.prop(projection_node.inputs.get('Hex Scale Max'), "default_value", text="Grid Scale Max")
-                row = layout.row()
-                row.prop(projection_node.inputs.get('Hex Rotation Min'), "default_value", text="Hex Rotation Min")
-                row = layout.row()
-                row.prop(projection_node.inputs.get('Hex Rotation Max'), "default_value", text="Hex Rotation Max")
-                row = layout.row()
-                row.prop(projection_node.inputs.get('Hex Grid Scale'), "default_value", text="Hex Grid Scale")
-                row = layout.row()
-                row.prop(projection_node.inputs.get('Hex Sharpness'), "default_value", text="Hex Sharpness")
-
-            case 'ML_DecalProjection':
-                row = layout.row()
-                row.alignment = 'CENTER'
-                row.label(text="USING DECAL PROJECTION")
+                row.prop(input, "default_value", text="", slider=True)
 
 def draw_image_texture_property(layout, node_tree, texture_node):
     '''Draws an image texture property with this add-ons image utility sub-menu.'''
@@ -614,12 +525,12 @@ def draw_mask_projection(layout):
 
                 split = layout.split()
                 col = split.column()
-                col.prop(mask_projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
-                col.prop(mask_projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
+                col.prop(mask_projection_node.inputs.get('3D Offset X'), "default_value", text="Offset X", slider=True)
+                col.prop(mask_projection_node.inputs.get('3D Offset Y'), "default_value", text="Offset Y", slider=True)
 
                 col = split.column()
-                col.prop(mask_projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
-                col.prop(mask_projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
+                col.prop(mask_projection_node.inputs.get('3D Scale X'), "default_value", text="3D Scale X")
+                col.prop(mask_projection_node.inputs.get('3D Scale Y'), "default_value", text="3D Scale Y")
 
                 row = layout.row()
                 row.prop(mask_projection_node.inputs.get('Rotation'), "default_value", text="Rotation", slider=True)
@@ -633,19 +544,19 @@ def draw_mask_projection(layout):
 
                 split = layout.split()
                 col = split.column()
-                col.prop(mask_projection_node.inputs.get('OffsetX'), "default_value", text="Offset X", slider=True)
-                col.prop(mask_projection_node.inputs.get('OffsetY'), "default_value", text="Offset Y", slider=True)
-                col.prop(mask_projection_node.inputs.get('OffsetZ'), "default_value", text="Offset Z", slider=True)
+                col.prop(mask_projection_node.inputs.get('3D Offset X'), "default_value", text="Offset X", slider=True)
+                col.prop(mask_projection_node.inputs.get('3D Offset Y'), "default_value", text="Offset Y", slider=True)
+                col.prop(mask_projection_node.inputs.get('3D Offset Z'), "default_value", text="Offset Z", slider=True)
 
                 col = split.column()
-                col.prop(mask_projection_node.inputs.get('RotationX'), "default_value", text="Rotation X", slider=True)
-                col.prop(mask_projection_node.inputs.get('RotationY'), "default_value", text="Rotation Y", slider=True)
-                col.prop(mask_projection_node.inputs.get('RotationZ'), "default_value", text="Rotation Z", slider=True)
+                col.prop(mask_projection_node.inputs.get('3D Rotation X'), "default_value", text="Rotation X", slider=True)
+                col.prop(mask_projection_node.inputs.get('3D Rotation Y'), "default_value", text="Rotation Y", slider=True)
+                col.prop(mask_projection_node.inputs.get('3D Rotation Z'), "default_value", text="Rotation Z", slider=True)
 
                 col = split.column()
-                col.prop(mask_projection_node.inputs.get('ScaleX'), "default_value", text="Scale X")
-                col.prop(mask_projection_node.inputs.get('ScaleY'), "default_value", text="Scale Y")
-                col.prop(mask_projection_node.inputs.get('ScaleZ'), "default_value", text="Scale Z")
+                col.prop(mask_projection_node.inputs.get('3D Scale X'), "default_value", text="3D Scale X")
+                col.prop(mask_projection_node.inputs.get('3D Scale Y'), "default_value", text="3D Scale Y")
+                col.prop(mask_projection_node.inputs.get('3D Scale Z'), "default_value", text="3D Scale Z")
 
                 row = layout.row()
                 row.prop(mask_projection_node.inputs.get('Blending'), "default_value", text="Blending")
