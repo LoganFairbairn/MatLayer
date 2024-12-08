@@ -21,8 +21,8 @@ MATERIAL_LAYER_PROPERTY_TABS = [
     ("UNLAYERED", "UNLAYERED", "Properties for the selected material that are not layered")
 ]
 
-# UI label equivalents for projection methods.
-PROJECTION_MODE_LABELS = {
+# User interface labels for group nodes.
+GROUP_NODE_UI_LABELS = {
     "ML_UVProjection": "UV",
     "ML_TriplanarProjection": "Triplanar",
     "ML_TriplanarHexGridProjection": "Triplanar Hex Grid",
@@ -408,22 +408,22 @@ def draw_layer_projection(layout):
     '''Draws layer projection settings.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
 
-    # USe a two column layout for neatness.
-    split = layout.split(factor=0.25)
-    first_column = split.column()
-    second_column = split.column()
-
     # Only draw layer projection if a projection node exists.
     projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
     if not projection_node:
         return
 
+    # Use a two column layout for neatness.
+    split = layout.split(factor=0.25)
+    first_column = split.column()
+    second_column = split.column()
+
     # Draw the projection mode submenu.
     row = first_column.row()
     row.label(text="Method")
     row = second_column.row()
-    projection_method_label = PROJECTION_MODE_LABELS[projection_node.node_tree.name]
-    row.menu('MATLAYER_MT_layer_projection_submenu', text=projection_method_label)
+    projection_method_dropdown_label = GROUP_NODE_UI_LABELS[projection_node.node_tree.name]
+    row.menu('MATLAYER_MT_layer_projection_submenu', text=projection_method_dropdown_label)
 
     # Draw adjustment settings for the selected projection method.
     match projection_node.node_tree.name:
@@ -512,55 +512,31 @@ def draw_mask_projection(layout):
     row.scale_y = 2.5
     row.separator()
 
+    # If no mask projection node exists, abort drawing properties for it.
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
     mask_projection_node = layer_masks.get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
-    if mask_projection_node:
-        match mask_projection_node.node_tree.name:
-            case 'ML_UVProjection':
-                row = layout.row()
-                row.label(text="PROJECTION")
+    if not mask_projection_node:
+        return
 
-                row = layout.row()
-                row.menu('MATLAYER_MT_mask_projection_sub_menu', text="UV Projection")
+    # Draw the projection title & method drop-down.
+    row = layout.row()
+    row.label(text="PROJECTION")
+    row = layout.row()
+    projection_method_dropdown_label = GROUP_NODE_UI_LABELS[mask_projection_node.node_tree.name]
+    row.menu('MATLAYER_MT_mask_projection_sub_menu', text=projection_method_dropdown_label)
 
-                split = layout.split()
-                col = split.column()
-                col.prop(mask_projection_node.inputs.get('3D Offset X'), "default_value", text="Offset X", slider=True)
-                col.prop(mask_projection_node.inputs.get('3D Offset Y'), "default_value", text="Offset Y", slider=True)
+    # Use a two column layout for neatness.
+    split = layout.split(factor=0.25)
+    first_column = split.column()
+    second_column = split.column()
 
-                col = split.column()
-                col.prop(mask_projection_node.inputs.get('3D Scale X'), "default_value", text="3D Scale X")
-                col.prop(mask_projection_node.inputs.get('3D Scale Y'), "default_value", text="3D Scale Y")
-
-                row = layout.row()
-                row.prop(mask_projection_node.inputs.get('Rotation'), "default_value", text="Rotation", slider=True)
-
-            case 'ML_TriplanarProjection':
-                row = layout.row()
-                row.label(text="MASK PROJECTION")
-
-                row = layout.row()
-                row.menu('MATLAYER_MT_mask_projection_sub_menu', text="Triplanar Projection")
-
-                split = layout.split()
-                col = split.column()
-                col.prop(mask_projection_node.inputs.get('3D Offset X'), "default_value", text="Offset X", slider=True)
-                col.prop(mask_projection_node.inputs.get('3D Offset Y'), "default_value", text="Offset Y", slider=True)
-                col.prop(mask_projection_node.inputs.get('3D Offset Z'), "default_value", text="Offset Z", slider=True)
-
-                col = split.column()
-                col.prop(mask_projection_node.inputs.get('3D Rotation X'), "default_value", text="Rotation X", slider=True)
-                col.prop(mask_projection_node.inputs.get('3D Rotation Y'), "default_value", text="Rotation Y", slider=True)
-                col.prop(mask_projection_node.inputs.get('3D Rotation Z'), "default_value", text="Rotation Z", slider=True)
-
-                col = split.column()
-                col.prop(mask_projection_node.inputs.get('3D Scale X'), "default_value", text="3D Scale X")
-                col.prop(mask_projection_node.inputs.get('3D Scale Y'), "default_value", text="3D Scale Y")
-                col.prop(mask_projection_node.inputs.get('3D Scale Z'), "default_value", text="3D Scale Z")
-
-                row = layout.row()
-                row.prop(mask_projection_node.inputs.get('Blending'), "default_value", text="Blending")
+    # Draw all properties for the mask.
+    for input in mask_projection_node.inputs:
+        row = first_column.row()
+        row.label(text=input.name)
+        row = second_column.row()
+        row.prop(input, "default_value", text="")
 
 def draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index):
     '''Draws un-editable mesh maps used in the selected mask.'''
