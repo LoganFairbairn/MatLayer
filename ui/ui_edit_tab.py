@@ -15,10 +15,10 @@ from .. import preferences
 
 # Tabs to help organize the user interface and help limit the number of properties displayed at one time.
 MATERIAL_LAYER_PROPERTY_TABS = [
-    ("MATERIAL_LAYER", "MATERIAL LAYER", "Properties for the selected material layer."),
+    ("MATERIAL_LAYER", "MATERIAL LAYER", "Properties for the selected material layer"),
     ("PROJECTION", "PROJECTION", "Projection properties for the selected layer"),
-    ("MASKS", "MASKS", "Properties for masks applied to the selected material layer."),
-    ("UNLAYERED", "UNLAYERED", "Properties for the selected material that are not layered.")
+    ("MASKS", "MASKS", "Properties for masks applied to the selected material layer"),
+    ("UNLAYERED", "UNLAYERED", "Properties for the selected material that are not layered")
 ]
 
 # UI label equivalents for projection methods.
