@@ -28,7 +28,8 @@ class MATLAYER_OT_append_workspace(Operator):
     bl_description = "Appends a suggested workspace for using this add-on"
 
     def execute(self, context):
-        workspace = bpy.data.workspaces.get('Matlayer')
+        workspace_name = "MatLayer"
+        workspace = bpy.data.workspaces.get(workspace_name)
         if workspace:
             debug_logging.log_status("The default workspace already exists, manually delete it and click this operator again to re-load the workspace.", self, 'INFO')
             return {'FINISHED'}
@@ -39,23 +40,31 @@ class MATLAYER_OT_append_workspace(Operator):
         source_path =  str(USER / "scripts/addons" / ADDON / "blend" / BLEND_FILE)
         
         with bpy.data.libraries.load(source_path) as (data_from, data_to):
-            data_to.workspaces = ["Matlayer"]
+            data_to.workspaces = [workspace_name]
 
         # Set the current workspace to the appended workspace.
-        bpy.context.window.workspace = bpy.data.workspaces['Matlayer']
+        bpy.context.window.workspace = bpy.data.workspaces[workspace_name]
         
-        # Set the UI to the default tab.
+        # Set the add-on user interface to the edit tab.
         context.scene.matlayer_panel_properties.sections = 'SECTION_EDIT'
 
         # Set up a material asset browser for the user.
+        # TODO: Disabled until more experimenting can be done with drag 'n drop material layer application.
+        '''
         preferences = bpy.context.preferences
         if not preferences.filepaths.asset_libraries.get("MatLayer Default Assets"):
             bpy.ops.preferences.asset_library_add()
             new_library = bpy.context.preferences.filepaths.asset_libraries[-1]
             new_library.name = "MatLayer Default Assets"
             new_library.path = str(USER / "scripts/addons" / ADDON / "blend")
+        '''
 
-        self.report({'INFO'}, "Appended workspace (check the workspaces / user interface layouts at the top of your screen).")
+        # Display an info message after appending the new workspace.
+        debug_logging.log_status(
+            "Appended workspace (check the workspaces / user interface layouts at the top of your screen).", 
+            self, 
+            type='INFO'
+        )
 
         return {'FINISHED'}
 
