@@ -83,7 +83,36 @@ def draw_mesh_map_settings(layout, baking_settings):
 
     row = layout.row()
     row.separator()
-    row.scale_y = 2
+    layout.label(text="BAKING OBJECTS")
+
+    row = layout.row()
+    row.operator("matlayer.create_baking_cage", text="Add Cage")
+    row.operator("matlayer.delete_baking_cage", text="Delete Cage")
+
+    split = layout.split(factor=0.4)
+    first_column = split.column()
+    second_column = split.column()
+
+    match baking_settings.cage_mode:
+        case 'NO_CAGE':
+            row = first_column.row()
+            row.label(text="Cage Extrusion")
+            row = second_column.row()
+            row.prop(bpy.context.scene.render.bake, "cage_extrusion", text="")
+
+        case 'MANUAL_CAGE':
+            row = first_column.row()
+            row.label(text="Cage")
+            row = second_column.row(align=True)
+            row.prop(bpy.context.scene.render.bake, "cage_object", text="")
+    
+    row = first_column.row()
+    row.label(text="High Poly Object")
+    row = second_column.row()
+    row.prop(baking_settings, "high_poly_object", text="", slider=True)
+
+    layout.separator()
+    row = layout.row()
     layout.label(text="SETTINGS")
 
     split = layout.split(factor=0.4)
@@ -99,26 +128,6 @@ def draw_mesh_map_settings(layout, baking_settings):
     row.label(text="Cage Mode")
     row = second_column.row()
     row.prop(baking_settings, "cage_mode", text="")
-
-    match baking_settings.cage_mode:
-        case 'NO_CAGE':
-            row = first_column.row()
-            row.label(text="Cage Extrusion")
-            row = second_column.row()
-            row.prop(bpy.context.scene.render.bake, "cage_extrusion", text="")
-
-        case 'MANUAL_CAGE':
-            row = first_column.row()
-            row.label(text="Cage")
-            row = second_column.row(align=True)
-            row.prop(bpy.context.scene.render.bake, "cage_object", text="")
-            row.operator("matlayer.create_baking_cage", text="", icon='ADD')
-            row.operator("matlayer.delete_baking_cage", text="", icon='TRASH')
-
-    row = first_column.row()
-    row.label(text="High Poly Object")
-    row = second_column.row()
-    row.prop(baking_settings, "high_poly_object", text="", slider=True)
 
     row = first_column.row()
     row.label(text="Upscale")
@@ -136,6 +145,7 @@ def draw_mesh_map_settings(layout, baking_settings):
     row.prop(baking_settings, "uv_padding", text="")
 
     # Ambient Occlusion Settings
+    layout.separator()
     layout.label(text="AMBIENT OCCLUSION")
     split = layout.split(factor=0.4)
     first_column = split.column()
@@ -162,6 +172,7 @@ def draw_mesh_map_settings(layout, baking_settings):
     row.prop(baking_settings, "local_occlusion", text="")
 
     # Curvature Settings
+    layout.separator()
     layout.label(text="CURVATURE")
     split = layout.split(factor=0.4)
     first_column = split.column()
@@ -183,6 +194,7 @@ def draw_mesh_map_settings(layout, baking_settings):
     row.prop(baking_settings, "relative_to_bounding_box", text="")
 
     # Thickness Settings
+    layout.separator()
     layout.label(text="THICKNESS")
     split = layout.split(factor=0.4)
     first_column = split.column()
