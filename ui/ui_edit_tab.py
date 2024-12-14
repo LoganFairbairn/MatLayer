@@ -116,7 +116,7 @@ def draw_workspace_prompt(layout):
     '''Draws a prompt to load the suggested workspace to help new users of the add-on.'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     if addon_preferences.beginner_help:
-        workspace = bpy.data.workspaces.get('Matlayer')
+        workspace = bpy.data.workspaces.get('MatLayer')
         if not workspace:
             row = layout.row()
             row.scale_y = 1.5
