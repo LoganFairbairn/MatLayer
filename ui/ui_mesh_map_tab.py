@@ -80,6 +80,7 @@ def draw_mesh_map_previews(layout):
 
 def draw_mesh_map_settings(layout, baking_settings):
     '''Draws settings for mesh map baking.'''
+
     row = layout.row()
     row.separator()
     row.scale_y = 2
@@ -95,6 +96,26 @@ def draw_mesh_map_settings(layout, baking_settings):
     row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
 
     row = first_column.row()
+    row.label(text="Cage Mode")
+    row = second_column.row()
+    row.prop(baking_settings, "cage_mode", text="")
+
+    match baking_settings.cage_mode:
+        case 'NO_CAGE':
+            row = first_column.row()
+            row.label(text="Cage Extrusion")
+            row = second_column.row()
+            row.prop(bpy.context.scene.render.bake, "cage_extrusion", text="")
+
+        case 'MANUAL_CAGE':
+            row = first_column.row()
+            row.label(text="Cage")
+            row = second_column.row(align=True)
+            row.prop(bpy.context.scene.render.bake, "cage_object", text="")
+            row.operator("matlayer.create_baking_cage", text="", icon='ADD')
+            row.operator("matlayer.delete_baking_cage", text="", icon='TRASH')
+
+    row = first_column.row()
     row.label(text="High Poly Object")
     row = second_column.row()
     row.prop(baking_settings, "high_poly_object", text="", slider=True)
@@ -108,32 +129,6 @@ def draw_mesh_map_settings(layout, baking_settings):
     row.label(text="Mesh Map Quality")
     row = second_column.row()
     row.prop(baking_settings, "mesh_map_quality", text="")
-
-    row = first_column.row()
-    row.label(text="Cage Mode")
-    row = second_column.row()
-    row.prop(baking_settings, "cage_mode", text="")
-
-    match baking_settings.cage_mode:
-        case 'NO_CAGE':
-            row = first_column.row()
-            row.label(text="Cage Extrusion")
-            row = second_column.row()
-            row.prop(bpy.context.scene.render.bake, "cage_extrusion", text="")
-
-        case 'AUTO_CAGE':
-            row = first_column.row()
-            row.label(text="Cage Upscale")
-            row = second_column.row()
-            row.prop(baking_settings, "cage_upscale", text="")
-
-        case 'MANUAL_CAGE':
-            row = first_column.row()
-            row.label(text="Cage")
-            row = second_column.row(align=True)
-            row.prop(bpy.context.scene.render.bake, "cage_object", text="")
-            row.operator("matlayer.create_baking_cage", text="", icon='ADD')
-            row.operator("matlayer.delete_baking_cage", text="", icon='TRASH')
 
     row = first_column.row()
     row.label(text="UV Padding")

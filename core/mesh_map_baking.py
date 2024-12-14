@@ -57,7 +57,6 @@ MESH_MAP_BAKING_QUALITY = [
 
 MESH_MAP_CAGE_MODE = [
     ("NO_CAGE", "No Cage", "No cage will be used when baking mesh maps. This can in rare cases produce better results than using a cage"),
-    ("AUTO_CAGE", "Auto Cage", "A cage object will be automatically created by duplicating the low poly object and scaling it slightly by the defined amount using a complex solidify modifier. Baking using a cage can cause some skewing of the baked data if the cage extends too much, or missing normal data in areas where the geometry is not covered by the cage. Auto-cage produces good quality baking results in many cases, but in some cases using a manually created cage is required"),
     ("MANUAL_CAGE", "Manual Cage", "Insert a manually created cage to be used when baking mesh maps. Baking using a cage can cause some skewing of the baked data if the cage extends too much, or missing normal data in areas where the geometry is not covered by the cage. For some objects that have small crevaces where cage mesh normals would intersect if extruded defining a manual cage object will produce the best results")
 ]
 
@@ -404,16 +403,6 @@ def clean_mesh_map_assets():
         if mesh_map_group_node:
             bpy.data.node_groups.remove(mesh_map_group_node)
 
-def delete_auto_cage_object():
-    '''Deletes the auto cage object created for mesh map baking if one exists.'''
-    baking_settings = bpy.context.scene.matlayer_baking_settings
-    if baking_settings.cage_mode == 'AUTO_CAGE':
-        low_poly_object = bpy.context.active_object
-        if low_poly_object:
-            cage_object = bpy.data.objects.get(low_poly_object.name + "_Cage")
-            if cage_object:
-                bpy.data.objects.remove(cage_object)
-
 
 #----------------------------- OPERATORS AND PROPERTIES -----------------------------#
 
@@ -454,8 +443,8 @@ class MATLAYER_baking_settings(bpy.types.PropertyGroup):
     cage_mode: EnumProperty(
         items=MESH_MAP_CAGE_MODE,
         name="Cage Mode",
-        description="Mode to define if a cage is used for mesh map baking, and if the cage is created automatically, or manually defined",
-        default='AUTO_CAGE'
+        description="Mode to define if a cage is used for mesh map baking",
+        default='MANUAL_CAGE'
     )
 
     cage_upscale: FloatProperty(
@@ -743,43 +732,11 @@ class MATLAYER_OT_batch_bake(Operator):
                 case 'NO_CAGE':
                     bpy.context.scene.render.bake.use_cage = False
 
-                # A cage object will be automatically created for baking by duplicating the low poly object and scaling it's normals up.
-                case 'AUTO_CAGE':
-                    bpy.context.scene.render.bake.use_cage = True
-                    auto_cage_object = None
-                    if bpy.context.scene.render.bake.cage_object == None:
-                        auto_cage_object = low_poly_object.copy()
-                        auto_cage_object.data = low_poly_object.data.copy()
-                        auto_cage_object.name = low_poly_object.name + "_Cage"
-                        bpy.context.collection.objects.link(auto_cage_object)
-                        bpy.context.scene.render.bake.cage_object = auto_cage_object
-
-                        blender_addon_utils.select_only(auto_cage_object)
-                        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-                        bpy.ops.mesh.select_all(action='SELECT')
-                        bpy.ops.transform.shrink_fatten(
-                            value=baking_settings.cage_upscale,
-                            use_even_offset=False,
-                            mirror=True, 
-                            use_proportional_edit=False,
-                            proportional_edit_falloff='SMOOTH', 
-                            proportional_size=1, 
-                            use_proportional_connected=False, 
-                            use_proportional_projected=False, 
-                            snap=False
-                        )
-
-                        # Hide the auto cage object, it doesn't need to be visible for baking.
-                        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-                        auto_cage_object.hide_set(True)
-                        auto_cage_object.hide_render = True
-                        blender_addon_utils.select_only(low_poly_object)
-
                 # The cage is manually defined by the user, check one was provided.
                 case 'MANUAL_CAGE':
                     bpy.context.scene.render.bake.use_cage = True
                     if bpy.context.scene.render.bake.cage_object == None:
-                        debug_logging.log_status("No cage object was provided. Please use no cage, auto cage mode, or define a cage object before baking", self, type='INFO')
+                        debug_logging.log_status("No cage object, please define a cage object.", self, type='INFO')
                         return {'FINISHED'}
 
             # Ensure the high poly object is visible for rendering.
@@ -841,8 +798,6 @@ class MATLAYER_OT_batch_bake(Operator):
             if material:
                 bpy.context.object.material_slots[i].material = material
 
-        delete_auto_cage_object()
-
         # Reset the render engine.
         bpy.context.scene.render.engine = self._original_render_engine
 
@@ -874,8 +829,6 @@ class MATLAYER_OT_batch_bake(Operator):
             material = bpy.data.materials.get(self._original_material_names[i])
             if material:
                 bpy.context.object.material_slots[i].material = material
-
-        delete_auto_cage_object()
 
         # Select only the low poly object.
         low_poly_object = bpy.context.active_object
@@ -1080,7 +1033,7 @@ class MATLAYER_OT_delete_mesh_map(Operator):
 class MATLAYER_OT_create_baking_cage(Operator):
     bl_idname = "matlayer.create_baking_cage"
     bl_label = "Create Baking Cage"
-    bl_description = "Creates a duplicate of the selected object, scaled slightly up to act as a cage object for baking mesh maps"
+    bl_description = "Creates a duplicate of the selected object, scaled slightly up to act as a cage object for baking high to low poly mesh map textures"
 
     @ classmethod
     def poll(cls, context):
