@@ -403,6 +403,71 @@ def clean_mesh_map_assets():
         if mesh_map_group_node:
             bpy.data.node_groups.remove(mesh_map_group_node)
 
+def create_baking_cage(self):
+    '''Creates a duplicate of the selected object, scaled slightly up to act as a cage object for baking high to low poly mesh map textures.'''
+
+    # This function requires a selected (active object), abort if there is not active object.
+    active_object = bpy.context.active_object
+    if not active_object:
+        return
+    
+    # If the active object being selected is a cage object, don't make a new cage.
+    selecting_cage = active_object.name.endswith("_Cage")
+    if selecting_cage:
+        debug_logging.log_status("Selected object is a bake cage.", self, type='INFO')
+        return
+    
+    # Make a scaled up duplicate of the object to act as the base mesh.
+    cage_object = active_object.copy()
+    cage_mesh = active_object.data.copy()
+    cage_object.data = cage_mesh
+    cage_object.name = active_object.name + "_Cage"
+    bpy.context.collection.objects.link(cage_object)
+    bpy.context.scene.render.bake.cage_object = cage_object
+    blender_addon_utils.select_only(cage_object)
+    bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.transform.shrink_fatten(
+        value=0.01,
+        use_even_offset=False,
+        mirror=True,
+        use_proportional_edit=False,
+        proportional_edit_falloff='SMOOTH', 
+        proportional_size=1,
+        use_proportional_connected=False, 
+        use_proportional_projected=False, 
+        snap=False
+    )
+
+    # Change viewport shading so users can see the cage better.
+    bpy.context.space_data.shading.color_type = 'MATERIAL'
+    bpy.context.space_data.shading.type = 'SOLID'
+    bpy.context.space_data.overlay.show_retopology = True
+
+    # Show a message for users.
+    debug_logging.log_status("Created new bake cage object.", self, type='INFO')
+
+def delete_baking_cage(self):
+    '''Deletes the selected baking cage, or the bake cage for the selected object if one exists.'''
+
+    # This function requires a selected (active object), abort if there is not active object.
+    active_object = bpy.context.active_object
+    if not active_object:
+        return
+    
+    # If the active object being selected is a bake cage, delete it.
+    selecting_cage = active_object.name.endswith("_Cage")
+    if selecting_cage:
+        bpy.data.objects.remove(active_object)
+        debug_logging.log_status("Removed bake cage.", self, type='INFO')
+
+    # Delete the bake cage if one exists for the selected object.
+    else:
+        cage_object = bpy.data.objects.get(active_object.name + "_Cage")
+        if cage_object:
+            bpy.data.objects.remove(cage_object)
+            debug_logging.log_status("Removed bake cage for selected object.", self, type='INFO')
+
 
 #----------------------------- OPERATORS AND PROPERTIES -----------------------------#
 
@@ -1040,53 +1105,18 @@ class MATLAYER_OT_create_baking_cage(Operator):
         return context.active_object
     
     def execute(self, context):
-        active_object = bpy.context.active_object
-        if active_object:
-
-            # Make a scaled up duplicate of the object to act as the base mesh.
-            cage_object = active_object.copy()
-            cage_mesh = active_object.data.copy()
-            cage_object.data = cage_mesh
-            cage_object.name = active_object.name + "_Cage"
-            bpy.context.collection.objects.link(cage_object)
-            bpy.context.scene.render.bake.cage_object = cage_object
-            blender_addon_utils.select_only(cage_object)
-            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-            bpy.ops.mesh.select_all(action='SELECT')
-            bpy.ops.transform.shrink_fatten(
-                value=0.01,
-                use_even_offset=False,
-                mirror=True,
-                use_proportional_edit=False,
-                proportional_edit_falloff='SMOOTH', 
-                proportional_size=1, 
-                use_proportional_connected=False, 
-                use_proportional_projected=False, 
-                snap=False
-            )
-
-            # Change viewport shading so users can see the cage better.
-            bpy.context.space_data.shading.color_type = 'MATERIAL'
-            bpy.context.space_data.shading.type = 'SOLID'
-            bpy.context.space_data.overlay.show_retopology = True
+        create_baking_cage(self)
         return {'FINISHED'}
     
 class MATLAYER_OT_delete_baking_cage(Operator):
     bl_idname = "matlayer.delete_baking_cage"
     bl_label = "Delete Baking Cage"
-    bl_description = "Deletes the baking cage object associated with the selected object, and the cage material if either exist"
+    bl_description = "Deletes the selected baking cage, or the bake cage for the selected object if one exists"
 
     @ classmethod
     def poll(cls, context):
         return context.active_object
     
     def execute(self, context):
-        active_object = bpy.context.active_object
-        if active_object:
-
-            # Delete the cage object if one exists.
-            cage_object = bpy.data.objects.get(active_object.name + "_Cage")
-            if cage_object:
-                bpy.data.objects.remove(cage_object)
-
+        delete_baking_cage(self)
         return {'FINISHED'}
