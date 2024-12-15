@@ -1203,14 +1203,15 @@ def move_layer(direction, self):
 
 def count_layers(material=None):
     '''Counts the total layers in the specified material (active material if no material is specified) by reading the active material's node tree.'''
+    layer_count = 0
+
     # Count the number of layers in the specified material.
     if material != None:
-        layer_count = 0
         while material.node_tree.nodes.get(str(layer_count)):
             layer_count += 1
         return layer_count
     
-    # Count the active material, since no material was specified to have it's layers counted.
+    # Count the number of layers in the active material.
     else:
         active_object_attribute = getattr(bpy.context, "active_object", None)
         if active_object_attribute == None:
@@ -1219,11 +1220,14 @@ def count_layers(material=None):
             return 0
         if not bpy.context.active_object.active_material:
             return 0
-        
+
         active_material = bpy.context.active_object.active_material
-        layer_count = 0
+        if active_material.use_nodes == False:
+            return 0
+        
         while active_material.node_tree.nodes.get(str(layer_count)):
             layer_count += 1
+        
         return layer_count
 
 def organize_layer_group_nodes():
@@ -1257,7 +1261,8 @@ def refresh_layer_stack(reason="", scene=None):
         layers = scene.matlayer_layers
     else:
         layers = bpy.context.scene.matlayer_layers
-        
+    
+    # Clear all layers.
     layers.clear()
 
     # Do not add material slots if there is no active object.
@@ -1894,16 +1899,23 @@ def show_layer():
     if not active_object_attribute:
         return
     
-    if bpy.context.active_object:
-        if bpy.context.active_object.active_material:
-            active_node_tree = bpy.context.active_object.active_material.node_tree
-            emission_node = active_node_tree.nodes.get('EMISSION')
-            if emission_node:
-                if len(emission_node.outputs[0].links) != 0:
-                    bau.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
-                    material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
-                    principled_bsdf = active_node_tree.nodes.get('SHADER_NODE')
-                    active_node_tree.links.new(principled_bsdf.outputs[0], material_output.inputs[0])
+    if not bpy.context.active_object:
+        return
+    
+    if not bpy.context.active_object.active_material:
+        return
+
+    active_node_tree = bpy.context.active_object.active_material.node_tree
+    if not active_node_tree:
+        return
+    
+    emission_node = active_node_tree.nodes.get('EMISSION')
+    if emission_node:
+        if len(emission_node.outputs[0].links) != 0:
+            bau.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
+            material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
+            principled_bsdf = active_node_tree.nodes.get('SHADER_NODE')
+            active_node_tree.links.new(principled_bsdf.outputs[0], material_output.inputs[0])
 
 def toggle_image_alpha_blending(material_channel_name):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index

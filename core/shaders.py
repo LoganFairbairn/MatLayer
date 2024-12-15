@@ -236,6 +236,10 @@ def validate_active_shader(active_material):
 
 def read_shader(active_material):
     '''Reads the active material for a valid material / shader setup created with this add-on.'''
+    # Abort if the active material doesn't use nodes.
+    if active_material.use_nodes == False:
+        return
+    
     # Check to see if the shader node in the active material contains a valid shader group node.
     shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
     if shader_node:
