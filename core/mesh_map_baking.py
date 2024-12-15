@@ -449,10 +449,7 @@ def create_baking_cage(self):
     cage_material_name = 'Cage Material'
     cage_material = bpy.data.materials.get(cage_material_name)
     if not cage_material:
-        cage_material = bpy.data.materials.new(name=cage_material_name)
-        cage_material.diffuse_color = [1.0, 0.3, 0.0, 0.3]
-        cage_material.metallic = 0.0
-        cage_material.roughness = 1.0
+        cage_material = blender_addon_utils.append_material("Cage Material")
 
     # Must be in object mode to make changes to the material.
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
