@@ -102,7 +102,7 @@ def draw_mesh_map_settings(layout, baking_settings):
 
         case 'MANUAL_CAGE':
             row = first_column.row()
-            row.label(text="Cage")
+            row.label(text="Cage Object")
             row = second_column.row(align=True)
             row.prop(bpy.context.scene.render.bake, "cage_object", text="")
     

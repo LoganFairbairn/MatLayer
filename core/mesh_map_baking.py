@@ -439,10 +439,27 @@ def create_baking_cage(self):
         snap=False
     )
 
-    # Change viewport shading so users can see the cage better.
+    # Change viewport shading so users can see the applied cage material.
     bpy.context.space_data.shading.color_type = 'MATERIAL'
     bpy.context.space_data.shading.type = 'SOLID'
-    bpy.context.space_data.overlay.show_retopology = True
+
+    # Create a new material for the cage object.
+    # This material will be slightly transparent to allow the user to see through the cage object.
+    # The material will display slightly see-through even when in 'shaded' viewport display mode.
+    cage_material_name = 'Cage Material'
+    cage_material = bpy.data.materials.get(cage_material_name)
+    if not cage_material:
+        cage_material = bpy.data.materials.new(name=cage_material_name)
+        cage_material.diffuse_color = [1.0, 0.3, 0.0, 0.3]
+        cage_material.metallic = 0.0
+        cage_material.roughness = 1.0
+
+    # Must be in object mode to make changes to the material.
+    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+    # Remove all material slots on the cage object.
+    cage_object.data.materials.clear()
+    cage_object.data.materials.append(cage_material)
 
     # Show a message for users.
     debug_logging.log_status("Created new bake cage object.", self, type='INFO')
@@ -459,7 +476,7 @@ def delete_baking_cage(self):
     selecting_cage = active_object.name.endswith("_Cage")
     if selecting_cage:
         bpy.data.objects.remove(active_object)
-        debug_logging.log_status("Removed bake cage.", self, type='INFO')
+        debug_logging.log_status("Removed selected bake cage object.", self, type='INFO')
 
     # Delete the bake cage if one exists for the selected object.
     else:
