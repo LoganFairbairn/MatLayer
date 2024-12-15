@@ -777,6 +777,7 @@ class MATLAYER_OT_batch_bake(Operator):
             debug_logging.log_status("Bake job already in process, cancel or wait until the bake is finished before starting another.", self)
             return {'FINISHED'}
         
+        # Pause auto-updates for this add-on while baking.
         bpy.context.scene.pause_auto_updates = True
         debug_logging.log("Starting mesh map baking...", sub_process=False)
 
@@ -814,12 +815,25 @@ class MATLAYER_OT_batch_bake(Operator):
                 case 'NO_CAGE':
                     bpy.context.scene.render.bake.use_cage = False
 
-                # The cage is manually defined by the user, check one was provided.
                 case 'MANUAL_CAGE':
                     bpy.context.scene.render.bake.use_cage = True
-                    if bpy.context.scene.render.bake.cage_object == None:
+
+                    # If a cage object isn't defined, ask the user to define one.
+                    cage_object = bpy.context.scene.render.bake.cage_object
+                    if cage_object == None:
                         debug_logging.log_status("No cage object, please define a cage object.", self, type='INFO')
                         return {'FINISHED'}
+                        
+                    # Abort if both a cage and high poly object is defined, 
+                    # but the vertex count between the low poly and cage objects don't match.
+                    if cage_object and high_poly_object:
+                        cage_object_vertex_count = len(cage_object.data.vertices)
+                        low_poly_object_vertex_count = len(high_poly_object.data.vertices)
+                        debug_logging.log("Cage object vertex count: {0}".format(cage_object_vertex_count))
+                        debug_logging.log("High poly object vertex count: {0}".format(low_poly_object_vertex_count))
+                        if len(cage_object.data.vertices) != len(low_poly_object.data.vertices):
+                            debug_logging.log_status("Vertex count for low poly and cage object must match.", self, type='ERROR')
+                            return {'FINISHED'}
 
             # Ensure the high poly object is visible for rendering.
             high_poly_object.hide_set(False)
