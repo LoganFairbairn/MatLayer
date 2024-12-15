@@ -28,7 +28,7 @@ def update_main_ui_tabs(self, context):
 
 class MATLAYER_panel_properties(bpy.types.PropertyGroup):
     sections: bpy.props.EnumProperty(
-        items=[('SECTION_EDIT', "EDIT", "This section contains operators to edit materials on objects."),
+        items=[('SECTION_EDIT', "EDIT", "This section contains operators to edit material layers."),
                ('SECTION_MESH_MAPS', "MESH MAPS", "This section contains operations to quickly bake mesh map textures for your models. Baking mesh maps transfer 3D data such as shadows, curvature, sharp edges and extra detail from higher polycount objects to image textures. Baked mesh map textures can be used as textures in layers in many different ways to make the texturing process faster. One example of where baked mesh maps could be used is to mask dirt by using the baked ambient occlusion as a mask."),
                ('SECTION_EXPORT', "EXPORT", "This section contains operations to quickly export textures made with MatLayer."),
                ('SECTION_SETTINGS', "SETTINGS", "Settings that defined how materials and textures are created by this add-on."),

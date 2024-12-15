@@ -18,7 +18,7 @@ MATERIAL_LAYER_PROPERTY_TABS = [
     ("MATERIAL_LAYER", "MATERIAL LAYER", "Properties for the selected material layer"),
     ("PROJECTION", "PROJECTION", "Projection properties for the selected layer"),
     ("MASKS", "MASKS", "Properties for masks applied to the selected material layer"),
-    ("UNLAYERED", "UNLAYERED", "Properties for the selected material that are not layered")
+    ("UNLAYERED", "UNLAYERED PROPERTIES", "Properties for the selected material that are not layered")
 ]
 
 # User interface labels for group nodes.
