@@ -3,6 +3,7 @@
 import bpy
 from bpy.types import Menu
 from .import ui_tabs
+from .. import preferences
 
 ADDON_SETTINGS_TABS = [
     ("TEXTURE_SETTINGS", "TEXTURE SETTINGS", "Add-on settings related to textures"),
@@ -12,6 +13,7 @@ ADDON_SETTINGS_TABS = [
 def draw_texture_settings(layout):
     '''Draws addon texture settings.'''
     texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
 
     # Split the UI into a two column layout.
     split = layout.split(factor=0.25)
@@ -35,6 +37,40 @@ def draw_texture_settings(layout):
     if texture_set_settings.match_image_resolution:
         col.enabled = False
     col.prop(texture_set_settings, "image_height", text="")
+
+    # Split the UI into a two column layout.
+    split = layout.split(factor=0.25)
+    first_column = split.column()
+    second_column = split.column()
+
+    # Draw the raw texture folder preference.
+    row = first_column.row()
+    row.label(text="Raw Texture Folder")
+    row = second_column.row(align=True)
+    row.prop(bpy.context.scene, "matlayer_raw_textures_folder", text="")
+    row.operator("matlayer.set_raw_texture_folder", text="", icon='FOLDER_REDIRECT')
+    row.operator("matlayer.open_raw_texture_folder", text="", icon='FILE_FOLDER')
+
+    # Draw other texture management settings.
+    row = first_column.row()
+    row.label(text="Thirty Two Bit Textures")
+    row = second_column.row()
+    row.prop(addon_preferences, "thirty_two_bit", text="")
+
+    row = first_column.row()
+    row.label(text="Save Imported Textures")
+    row = second_column.row()
+    row.prop(addon_preferences, "save_imported_textures", text="")
+
+    row = first_column.row()
+    row.label(text="Auto-save Images")
+    row = second_column.row()
+    row.prop(addon_preferences, "auto_save_images", text="")
+
+    row = first_column.row()
+    row.label(text="Auto-save Image Interval")
+    row = second_column.row()
+    row.prop(addon_preferences, "image_auto_save_interval", text="")
 
 def draw_shader_settings(layout):
     '''Draws shader setting user interface for this add-on.'''

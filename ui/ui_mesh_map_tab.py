@@ -118,6 +118,13 @@ def draw_mesh_map_settings(layout, baking_settings):
     split = layout.split(factor=0.4)
     first_column = split.column()
     second_column = split.column()
+    
+    row = first_column.row()
+    row.label(text="Mesh Map Folder")
+    row = second_column.row(align=True)
+    row.prop(bpy.context.scene, "matlayer_mesh_map_folder", text="")
+    row.operator("matlayer.set_mesh_map_folder", text="", icon='FOLDER_REDIRECT')
+    row.operator("matlayer.open_mesh_map_folder", text="", icon='FILE_FOLDER')
 
     row = first_column.row()
     row.label(text="Render Device")
