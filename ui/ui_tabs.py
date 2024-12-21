@@ -5,23 +5,19 @@ def draw_addon_tabs(self, context):
     layout = self.layout
     panel_properties = context.scene.matlayer_panel_properties
 
-    # Draw add-on section tabs.
-    split = layout.split(factor=0.75, align=True)
-    first_column = split.column(align=True)
-    second_column = split.column(align=True)
+    # Draw top row sub-menus.
+    row = layout.row(align=True)
+    row.alignment = 'LEFT'
+    row.menu("MATLAYER_MT_utility_sub_menu", text="Utility Operators")
 
-    row = first_column.row(align=True)
+    # Draw add-on section tabs.
+    row = layout.row(align=True)
     row.scale_y = 2.0
     row.prop_enum(panel_properties, "sections", 'SECTION_EDIT', text="EDIT LAYERS")
     row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS", text="BAKE MESH MAPS")
     row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT', text="EXPORT TEXTURES")
-
-    row = second_column.row(align=True)
-    row.scale_x = 10
-    row.scale_y = 2.0
-    row.prop_enum(panel_properties, "sections", 'SECTION_SETTINGS', text="", icon='SETTINGS')
-    row.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS', text="", icon='RESTRICT_VIEW_OFF')
-    row.menu("MATLAYER_MT_utility_sub_menu", text="", icon='TOOL_SETTINGS')
+    row.prop_enum(panel_properties, "sections", 'SECTION_SETTINGS', text="SETTINGS")
+    row.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS', text="VIEW")
 
 class UtilitySubMenu(Menu):
     bl_idname = "MATLAYER_MT_utility_sub_menu"
