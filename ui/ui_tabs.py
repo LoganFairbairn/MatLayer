@@ -9,7 +9,7 @@ def draw_addon_tabs(self, context):
     row = layout.row(align=True)
     row.scale_y = 2.0
     row.prop_enum(panel_properties, "sections", 'SECTION_EDIT', text="EDIT LAYERS")
-    row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS", text="BAKE MESH MAPS")
+    row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS", text="MESH MAPS")
     row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT', text="EXPORT TEXTURES")
     row.prop_enum(panel_properties, "sections", 'SECTION_SETTINGS', text="SETTINGS")
     row.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS', text="VIEW")
