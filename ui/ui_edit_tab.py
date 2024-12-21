@@ -17,8 +17,7 @@ from .. import preferences
 MATERIAL_LAYER_PROPERTY_TABS = [
     ("MATERIAL_LAYER", "MATERIAL LAYER", "Properties for the selected material layer"),
     ("PROJECTION", "PROJECTION", "Projection properties for the selected layer"),
-    ("MASKS", "MASKS", "Properties for masks applied to the selected material layer"),
-    ("UNLAYERED", "UNLAYERED PROPERTIES", "Properties for the selected material that are not layered")
+    ("MASKS", "MASKS", "Properties for masks applied to the selected material layer")
 ]
 
 # User interface labels for group nodes.
@@ -103,8 +102,6 @@ def draw_layers_tab_ui(self, context):
                 draw_masks_tab(column_one)
             case 'PROJECTION':
                 draw_layer_projection(column_one)
-            case 'UNLAYERED':
-                draw_unlayered_material_properties(column_one)
 
     draw_material_selector(column_two)
     draw_selected_material_channel(column_two)
@@ -173,7 +170,6 @@ def draw_selected_material_channel(layout):
 
 def draw_layer_operations(layout):
     '''Draws layer operation buttons.'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
     row = layout.row(align=True)
     row.scale_y = 2.0
     row.scale_x = 10
@@ -202,7 +198,9 @@ def draw_layer_property_dropdown(layout):
     '''Draws tabs to change between editing the material layer and the masks applied to the material layer.'''
     row = layout.row(align=True)
     row.scale_y = 1.5
-    row.prop(bpy.context.scene, "matlayer_material_property_tabs", text="")
+    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MATERIAL_LAYER', text="LAYER")
+    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'PROJECTION', text="PROJECTION")
+    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MASKS', text="MASKS")
 
 def draw_value_node_properties(layout, material_channel_name, layer_node_tree, selected_layer_index, value_node, mix_node):
     '''Draws properties for the provided value node.'''
@@ -600,43 +598,6 @@ def draw_masks_tab(layout):
         draw_mask_properties(layout, mask_node, mask_type, selected_layer_index, selected_mask_index)
         draw_mask_projection(layout)
         draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index)
-
-def draw_unlayered_material_properties(layout):
-    '''Draws all unlayered material properties.'''
-
-    # Ensure there is an active object.
-    active_object = bpy.context.active_object
-    if not active_object:
-        row.label(text="No Active Object Selected")
-        return
-
-    # Ensure there is an active material.
-    active_material = active_object.active_material
-    if not active_material:
-        row.label(text="No Active Material")
-        return
-
-    # Ensure there is a valid shader node.
-    matlayer_shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
-    if not matlayer_shader_node:
-        row.label(text="No Valid Shader Node")
-        return
-
-    # Draw all unlayered material properties.
-    shader_info = bpy.context.scene.matlayer_shader_info
-    split = layout.split(factor=0.6)
-    first_column = split.column()
-    second_column = split.column()
-    for property in shader_info.unlayered_properties:
-        shader_property = matlayer_shader_node.inputs.get(property.name)
-        row = layout.row()
-        if shader_property:
-            row = first_column.row()
-            row.label(text=property.name)
-            row = second_column.row()
-            row.prop(shader_property, "default_value", text="")
-        else:
-            row.label(text="Shader Property Invalid")
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
