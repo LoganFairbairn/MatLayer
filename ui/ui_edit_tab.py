@@ -179,7 +179,6 @@ def draw_layer_operations(layout):
     row.scale_x = 10
     row.operator("matlayer.add_material_layer_menu", icon='ADD', text="")
     row.operator("matlayer.merge_layers", icon='TRIA_DOWN_BAR', text="")
-    row.operator("matlayer.import_texture_set", icon='IMPORT', text="")
     row.operator("matlayer.move_material_layer_up", icon='TRIA_UP', text="")
     row.operator("matlayer.move_material_layer_down", icon='TRIA_DOWN', text="")
     row.operator("matlayer.duplicate_layer", icon='DUPLICATE', text="")
@@ -359,17 +358,13 @@ def draw_material_channel_properties(layout):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layout.separator()
 
+    # Draw material channels add menu.
+    layout.menu("MATLAYER_MT_add_material_channel_sub_menu", text="Add Material Channels", icon='ADD')
+
     # Draw sub-section title.
     split = layout.split(factor=0.5)
     first_column = split.column()
     second_column = split.column()
-    row = first_column.row()
-    row.label(text="MATERIAL CHANNELS")
-
-    # Draw material channels add menu.
-    row = second_column.row()
-    row.alignment = 'RIGHT'
-    row.menu("MATLAYER_MT_add_material_channel_sub_menu", text="", icon='ADD')
 
     # Avoid drawing material channel properties for invalid layers.
     if material_layers.get_material_layer_node('LAYER', selected_layer_index) == None:
@@ -713,6 +708,7 @@ class AddMaterialChannelSubMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
+        layout.operator("matlayer.import_texture_set", text="Import Texture Set")
         shader_info = bpy.context.scene.matlayer_shader_info
         for channel in shader_info.material_channels:
             operator = layout.operator("matlayer.add_material_channel_nodes", text=channel.name)
@@ -867,7 +863,6 @@ class MaterialChannelOutputSubMenu(Menu):
 
     def draw(self, context):
         material_channel_name = context.mix_node.name.replace('-MIX', '')
-
         layout = self.layout
         operator = layout.operator("matlayer.set_material_channel_crgba_output", text="Color")
         operator.output_channel_name = 'COLOR'
