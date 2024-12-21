@@ -1244,7 +1244,7 @@ class MATLAYER_OT_set_mask_crgba_channel(Operator):
 class MATLAYER_OT_isolate_mask(Operator):
     bl_label = "Isolate Mask"
     bl_idname = "matlayer.isolate_mask"
-    bl_description = "Isolates the specified mask. Select a material layer to de-isolate"
+    bl_description = "Isolates the specified mask"
     bl_options = {'REGISTER', 'UNDO'}
 
     mask_index: IntProperty(default=-1)
