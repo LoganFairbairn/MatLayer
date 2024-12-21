@@ -107,7 +107,7 @@ def draw_layers_tab_ui(self, context):
     draw_selected_material_channel(column_two)
     draw_layer_operations(column_two)
     draw_layer_stack(column_two)
-    draw_selected_image_name(column_two)
+    draw_selected_image_info(column_two)
 
 def draw_workspace_prompt(layout):
     '''Draws a prompt to load the suggested workspace to help new users of the add-on.'''
@@ -186,13 +186,13 @@ def draw_layer_stack(layout):
     row.template_list("MATLAYER_UL_layer_list", "Layers", bpy.context.scene, "matlayer_layers", bpy.context.scene.matlayer_layer_stack, "selected_layer_index", sort_reverse=True)
     row.scale_y = 2
 
-def draw_selected_image_name(layout):
-    '''Draws the selected image name.'''
+def draw_selected_image_info(layout):
+    '''Draws info for the selected image.'''
     row = layout.row(align=True)
     row.alignment = 'CENTER'
     if bpy.context.scene.tool_settings.image_paint.canvas:
-        selected_image_name = bpy.context.scene.tool_settings.image_paint.canvas.name
-        row.label(text=selected_image_name)
+        selected_image = bpy.context.scene.tool_settings.image_paint.canvas
+        row.label(text="{0} ({1} x {2})".format(selected_image.name, selected_image.size[0], selected_image.size[1]))
 
 def draw_layer_property_dropdown(layout):
     '''Draws tabs to change between editing the material layer and the masks applied to the material layer.'''
