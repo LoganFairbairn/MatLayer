@@ -719,7 +719,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
             delete_existing=True
         )
     
-    # Add the baking image to the preset baking texture node (included in the default material setup).
+    # Add the baking image to the bake texture node.
     material_nodes = bpy.context.active_object.active_material.node_tree.nodes
     image_node = material_nodes.get('BAKE_IMAGE')
     image_node.image = export_image

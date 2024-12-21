@@ -178,8 +178,7 @@ def draw_layer_operations(layout):
     row.scale_y = 2.0
     row.scale_x = 10
     row.operator("matlayer.add_material_layer_menu", icon='ADD', text="")
-    if addon_preferences.experimental_features:
-        row.operator("matlayer.merge_layers", icon='TRIA_DOWN_BAR', text="")
+    row.operator("matlayer.merge_layers", icon='TRIA_DOWN_BAR', text="")
     row.operator("matlayer.import_texture_set", icon='IMPORT', text="")
     row.operator("matlayer.move_material_layer_up", icon='TRIA_UP', text="")
     row.operator("matlayer.move_material_layer_down", icon='TRIA_DOWN', text="")

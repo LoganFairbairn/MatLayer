@@ -12,7 +12,7 @@ from ..core import texture_set_settings as tss
 from ..core import shaders
 import copy
 import random
-import numpy as np
+import time
 
 TRIPLANAR_PROJECTION_INPUTS = [
     'X',
@@ -432,7 +432,7 @@ def check_channel_nodes_exist(material_channel_name, node_tree):
     else:
         return False
 
-def add_material_channel_nodes(material_channel_name, node_tree, layer_type, self=None):
+def add_material_channel_nodes(material_channel_name, node_tree, layer_type, self=None, log_in_info_window=True):
     '''Creates framed nodes for a material channel.'''
     static_channel_name = bau.format_static_matchannel_name(material_channel_name)
     material_channel_name = shaders.get_shader_channel_socket_name(static_channel_name)
@@ -442,7 +442,11 @@ def add_material_channel_nodes(material_channel_name, node_tree, layer_type, sel
     if channel_nodes_exist:
         debug_logging.log("Material channel already exists.")
         if self != None:
-            debug_logging.log_status("Material channel already exists.", self, type='INFO')
+            info_message = "Material channel already exists."
+            if log_in_info_window:
+                debug_logging.log_status(info_message, self, type='INFO')
+            else:
+                debug_logging.log(info_message, message_type='INFO', sub_process=False)
         return
 
     # Add a frame for the material channel.
@@ -1806,9 +1810,31 @@ def get_material_channel_crgba_output(material_channel_name):
     else:
         return output_channel
 
+def get_material_channel_output_node(material_channel_name, layer_index):
+    '''Returns the node that outputs the material channel value.'''
+    projection_node = get_material_layer_node('PROJECTION', layer_index)
+    value_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
+    channel_output_node = None
+    if projection_node.node_tree.name == 'ML_TriplanarProjection' or projection_node.node_tree.name == 'ML_TriplanarHexGridProjection':
+        if value_node.bl_static_type == 'TEX_IMAGE':
+            channel_output_node = get_material_layer_node('TRIPLANAR_BLEND', layer_index, material_channel_name)
+        else:
+            channel_output_node = value_node
+    else:
+        if material_channel_name == 'NORMAL':
+            fix_normal_rotation_node = get_material_layer_node('FIX_NORMAL_ROTATION', layer_index, material_channel_name)
+            if fix_normal_rotation_node:
+                channel_output_node = fix_normal_rotation_node
+            else:
+                debug_logging.log("Fix normal rotation node missing.", message_type='ERROR')
+        else:
+            channel_output_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
+    return channel_output_node
+
 def set_material_channel_crgba_output(material_channel_name, crgba_output, layer_index):
     '''Relinks material channel nodes to output the specified Color / RGBA channel.'''
 
+    # TODO: Use get_material_channel_output_node here.
     # Determine the node that effectively outputs the material channel value.
     projection_node = get_material_layer_node('PROJECTION', layer_index)
     value_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
@@ -2005,108 +2031,152 @@ def set_layer_blending_mode(layer_index, blending_mode, material_channel_name='C
     # Relink the material channel of this layer based on the original material output channel.
     set_material_channel_crgba_output(material_channel_name, original_output_channel, layer_index)
 
-def convert_material_channel_to_pixels(layer_index, material_channel_name):
-    '''Converts the provided material channel in the specified layer to pixel data (images).'''
-    value_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
-    if value_node:
-        match value_node.bl_static_type:
-            case 'TEX_IMAGE':
-                debug_logging.log("Material channel {0} for layer {1} is already pixel data.".format(material_channel_name, layer_index))
-                return value_node.image
-            case 'GROUP':
-                if value_node.node_tree.name.startswith('ML_Default'):
-                    opacity_node = get_material_layer_node('OPACITY', layer_index, material_channel_name)
-                    color = value_node.inputs[0].default_value
-                    alpha = opacity_node.inputs[0].default_value
-                    rgba = (color[0], color[1], color[2], alpha)
-                    return bau.create_image(
-                        new_image_name=material_channel_name + "_MergeTest",
-                        image_width=2048,
-                        image_height=2048,
-                        base_color=rgba,
-                        generate_type='BLANK',
-                        alpha_channel=True,
-                        add_unique_id=True,
-                        delete_existing=True
-                    )
-    else:
-        debug_logging.log("Can't convert invalid value node to pixel data.", message_type='ERROR')
-        return
+def add_bake_texture_nodes():
+    '''Adds a bake texture node to all materials in all material slots on the active object.'''
 
-def merge_layers(self):
-    '''Merges the selected layer with the layer below by converting all material channels to pixel data (images)'''
+    # Adding a placeholder image to the bake image nodes stops Blender from throwing annoying and incorrect 'no active image' warnings when baking'.
+    placeholder_image = bau.create_data_image("ML_Placeholder", image_width=32, image_height=32)
 
-    # Verify there is a layer below the selected one to merge into.
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    if selected_layer_index - 1 < 0:
-        debug_logging.log_status("No layer below the selected layer to merge with.", self, type='INFO')
-        return
+    active_object = bpy.context.active_object
+    for material_slot in active_object.material_slots:
+        if material_slot.material:
+            bake_texture_node = material_slot.material.node_tree.nodes.new('ShaderNodeTexImage')
+            bake_texture_node.name = 'BAKE_IMAGE'
+            bake_texture_node.label = bake_texture_node.name
+            bake_texture_node.image = placeholder_image
+            bake_texture_node.select = True
+            material_slot.material.node_tree.nodes.active = bake_texture_node
 
-    merged_image = None
-    shader_info = bpy.context.scene.matlayer_shader_info
-    for material_channel in shader_info.material_channels:
+            # Link the export UV map to the bake texture node.
+            export_uv_map_node = get_material_layer_node('EXPORT_UV_MAP')
+            if export_uv_map_node:
+                material_slot.material.node_tree.links.new(export_uv_map_node.outputs[0], bake_texture_node.inputs[0])
 
-        # Convert the value node to pixel data for both the selected layer and the one below it.
-        image_1 = convert_material_channel_to_pixels(selected_layer_index, material_channel.name)
-        image_2 = convert_material_channel_to_pixels(selected_layer_index - 1, material_channel.name)
+                # Select the export UV map, otherwise Blender will still bake to the original UV map.
+                export_uv_map_name = export_uv_map_node.uv_map
+                export_uv_map_data = active_object.data.uv_layers.get(export_uv_map_name)
+                if export_uv_map_data:
+                    export_uv_map_data.active = True
 
-        # Images must contain the same number of pixels to be merged properly...
-        # Re-size both images to be the same size.
-        if image_1.size[0] != image_2.size[1] or image_1.size[1] != image_2.size[1]:
-            image_1.scale(
-                max(image_1.size[0], image_2.size[0]),
-                max(image_1.size[1], image_2.size[1])
-            )
+def remove_bake_texture_nodes():
+    '''Removes image texture nodes for baking from all materials in all material slots on the active object.'''
+    placeholder_image = bpy.data.images.get('ML_Placeholder')
+    if placeholder_image:
+        bpy.data.images.remove(placeholder_image)
 
-        # Define the merged image width and height.
-        width, height = image_1.size
-        
-        # 1. Convert to Blender pixel data to numpy arrays.
-        # Blender's pixel data uses a 'flat' list of RGBA pixels.
-        # As an example a 2x2 image pixel's data might look like this...
-        # [R1, G1, B1, A1, R2, G2, B2, A2, R3, G3, B3, A3, R4, G4, B4, A4]
-        # We'll use numpy's reshape function to create a 2D array with RGBA (4 values) in each array slot.
-        # Reshaping the array makes it easier to perform blending operations on the pixels.
-        pixels_1 = np.array(image_1.pixels[:]).reshape((height, width, 4))
-        pixels_2 = np.array(image_2.pixels[:]).reshape((height, width, 4))
+    active_object = bpy.context.active_object
+    for material_slot in active_object.material_slots:
+        if material_slot.material:
+            bake_texture_node = material_slot.material.node_tree.nodes.get('BAKE_IMAGE')
+            if bake_texture_node:
+                material_slot.material.node_tree.nodes.remove(bake_texture_node)
 
-        # 2. Extract the RGBA channels using array slicing so they can be used in blending formulas.
-        rgba_1 = pixels_1[:, :, :4]     # Top RGB
-        rgba_2 = pixels_2[:, :, :4]     # Bottom RGB
-        alpha_1 = rgba_1[:, :, 3:4]     # Top Alpha
-
-        # 3. Merge the images using 'Normal' blending.
-        # result color = top color x top alpha + bottom color x (1 - top alpha)
-        # result alpha = top alpha + (1 - top alpha) x bottom alpha
-        merged_rgb = rgba_1[:, :, :3] * alpha_1 + rgba_2[:, :, :3] * (1 - alpha_1)
-        merged_alpha = alpha_1 + (1 - alpha_1) * rgba_2[:, :, 3:4]
-        merged_rgba = np.concatenate((merged_rgb, merged_alpha), axis=-1)
-
-        # 4. Create a new image in Blender's data to store the merged result.
-        merged_image = bau.create_data_image(
-            image_name="MergedImage",
-            image_width=width,
-            image_height=height,
-            alpha_channel=True,
-            thirty_two_bit=True,
-            data=True,
-            delete_existing=True
+def add_channel_output_sockets(layer_group_node):
+    '''Creates color and alpha output sockets for the provided group node if they don't already exist.'''
+    if "Channel Color" not in layer_group_node.outputs:
+        output_color_socket = layer_group_node.node_tree.interface.new_socket(
+            name="Channel Color",
+            description="Color output for a material channel",
+            in_out='OUTPUT',
+            socket_type='NodeSocketColor'
         )
-        merged_image.pixels = merged_rgba.flatten()
-        merged_image.update()
+        output_color_socket.default_value = [0.0, 0.0, 0.0, 1.0]
 
-    # Delete the originally selected layer.
-    delete_layer(self)
+    if "Channel Alpha" not in layer_group_node.outputs:
+        output_alpha_socket = layer_group_node.node_tree.interface.new_socket(
+            name="Channel Alpha",
+            description="Output for material channel alpha",
+            in_out='OUTPUT',
+            socket_type='NodeSocketFloat'
+        )
+        output_alpha_socket.subtype = 'FACTOR'
+        output_alpha_socket.default_value = 1.0
+        output_alpha_socket.min_value = 0.0
+        output_alpha_socket.max_value = 1.0
 
-    # Add all of the merged images to every material channel for the layer below.
-    shader_info = bpy.context.scene.matlayer_shader_info
+def merge_bake_material_channel(material_channel_name):
+    '''Triggers a bake for the specified material channel to convert it pixel data.'''
+    
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    for material_channel in shader_info.material_channels:
-        replace_material_channel_node(material_channel.name, 'TEXTURE')
-        texture_node = get_material_layer_node('VALUE', selected_layer_index, material_channel.name)
-        texture_node.image = merged_image
+    active_material = bpy.context.active_object.active_material
+    selected_layer_node = get_material_layer_node('LAYER', selected_layer_index)
+    below_layer_node = get_material_layer_node('LAYER', selected_layer_index - 1)
 
-    debug_logging.log("Merged layers.")
+    # Assign a color for the bake image background based on the material channel being baked.
+    static_channel_name = bau.format_static_matchannel_name(material_channel_name)
+    if static_channel_name == 'NORMAL':
+        background_color = (0.735337, 0.735337, 1.0, 1.0)
+        use_alpha = False
+    else:
+        background_color = (0.0, 0.0, 0.0, 0.0)
+        use_alpha = True
+
+    # Create a new image to bake the material channel to.
+    bake_image_name = selected_layer_node.label
+    bake_image = bau.create_image(
+        new_image_name=bake_image_name + "_Merged",
+        image_width=tss.get_texture_width(),
+        image_height=tss.get_texture_height(),
+        base_color=background_color,
+        generate_type='BLANK',
+        alpha_channel=use_alpha,
+        thirty_two_bit=True,
+        add_unique_id=False,
+        delete_existing=True
+    )
+
+    # Add the baking image to the bake texture node.
+    material_nodes = bpy.context.active_object.active_material.node_tree.nodes
+    image_node = material_nodes.get('BAKE_IMAGE')
+    image_node.image = bake_image
+    image_node.select = True
+    material_nodes.active = image_node
+    bau.set_texture_paint_image(bake_image)
+
+    # Create output sockets for the material channel color and it's alpha values
+    add_channel_output_sockets(selected_layer_node)
+    add_channel_output_sockets(below_layer_node)
+
+    # Link the material channel color and alpha values to their respective group outputs.
+    channel_output_node = get_material_channel_output_node(material_channel_name, selected_layer_index)
+    opacity_node = get_material_layer_node('OPACITY', selected_layer_index, material_channel_name)
+    group_output_node = get_material_layer_node('GROUP_OUTPUT', selected_layer_index)
+    selected_layer_node.node_tree.links.new(channel_output_node.outputs[0], group_output_node.inputs.get("Channel Color"))
+    selected_layer_node.node_tree.links.new(opacity_node.outputs[0], group_output_node.inputs.get("Channel Alpha"))
+
+    channel_output_node = get_material_channel_output_node(material_channel_name, selected_layer_index - 1)
+    opacity_node = get_material_layer_node('OPACITY', selected_layer_index - 1, material_channel_name)
+    group_output_node = get_material_layer_node('GROUP_OUTPUT', selected_layer_index - 1)
+    below_layer_node.node_tree.links.new(channel_output_node.outputs[0], group_output_node.inputs.get("Channel Color"))
+    below_layer_node.node_tree.links.new(opacity_node.outputs[0], group_output_node.inputs.get("Channel Alpha"))
+
+    # Link the material channel color and alpha outputs to the bake node.
+    bake_node = active_material.node_tree.nodes.get('BAKE_NODE')
+    active_material.node_tree.links.new(selected_layer_node.outputs.get("Channel Color"), bake_node.inputs.get("Color 2"))
+    active_material.node_tree.links.new(selected_layer_node.outputs.get("Channel Alpha"), bake_node.inputs.get("Alpha 2"))
+    active_material.node_tree.links.new(below_layer_node.outputs.get("Channel Color"), bake_node.inputs.get("Color 1"))
+    active_material.node_tree.links.new(below_layer_node.outputs.get("Channel Alpha"), bake_node.inputs.get("Alpha 1"))
+
+    # Connect the bake node to the material output node.
+    material_output_node = get_material_layer_node('MATERIAL_OUTPUT')
+    bau.unlink_node(material_output_node, active_material.node_tree, unlink_inputs=True, unlink_outputs=False)
+    active_material.node_tree.links.new(bake_node.outputs[0], material_output_node.inputs[0])
+
+    # TODO: Account for normal map baking here.
+    # Adjust settings, then trigger a baking operation based on the material channel being baked.
+    bpy.context.scene.render.bake.use_pass_direct = False
+    bpy.context.scene.render.bake.use_pass_indirect = False
+    bpy.ops.object.bake('INVOKE_DEFAULT', type='DIFFUSE')
+
+    return bake_image.name
+
+def relink_shader_node():
+    '''Relinks the shader node to the material output node.'''
+    active_material = bpy.context.active_object.active_material
+    material_output_node = get_material_layer_node('MATERIAL_OUTPUT')
+    shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
+    bau.unlink_node(material_output_node, active_material.node_tree, unlink_inputs=True, unlink_outputs=False)
+    active_material.node_tree.links.new(shader_node.outputs[0], material_output_node.inputs[0])
 
 
 #----------------------------- OPERATORS -----------------------------#
@@ -2436,13 +2506,204 @@ class MATLAYER_OT_set_layer_blending_mode(Operator):
 class MATLAYER_OT_merge_layers(Operator):
     bl_idname = "matlayer.merge_layers"
     bl_label = "Merge Layers"
-    bl_description = "Merges the selected layer with the layer below by converting all material channels to pixel data (images)"
+    bl_description = "Merges the selected layer with the layer below by converting all material channels to pixel data (images) through a baking operation"
     bl_options = {'REGISTER', 'UNDO'}
 
+    _timer = None
+    _bake_texture_index = -1
+    _active_material_channels = []
+    _original_render_engine_name = ""
+    _start_bake_time = 0
+    _bake_image_name = ""
+
+    # Users must have an object selected to call this operator.
     @ classmethod
     def poll(cls, context):
-        return context.active_object
+        return bau.verify_addon_active_material(context)
+    
+    def modal(self, context, event):
+        if event.type in {'ESC'}:
+            self.cancel(context)
+            return {'CANCELLED'}
+        
+        if event.type == 'TIMER':
+
+            # If baking still isn't finished, abort until the next timer event.
+            if bpy.app.is_job_running('OBJECT_BAKE'):
+                return {'RUNNING_MODAL'}
+            
+            # If an image was baked, pack it in the blend files data.
+            bake_image = bpy.data.images.get(self._bake_image_name)
+            if bake_image != None:
+                if not bake_image.packed_file:
+                    bake_image.pack()
+                    debug_logging.log("Baking complete for: {0}".format(self._bake_image_name))
+
+            # Start baking the next material channel.
+            if self._bake_texture_index < len(self._active_material_channels) - 1:
+                self._bake_texture_index += 1
+                self._bake_image_name = ""
+                next_material_channel_to_bake = self._active_material_channels[self._bake_texture_index]
+                self._bake_image_name = merge_bake_material_channel(next_material_channel_to_bake)
+                debug_logging.log("Starting baking to merge {0}.".format(next_material_channel_to_bake))
+            
+            # Finish if there are no more material channels to bake.
+            else:
+                self.finish(context)
+                return {'FINISHED'}
+                
+        return {'RUNNING_MODAL'}
 
     def execute(self, context):
-        merge_layers(self)
-        return {'FINISHED'}
+        # If there is no layer below the selected one to merge with, abort.
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        if selected_layer_index - 1 < 0:
+            debug_logging.log_status("No layer below to merge with.", self, type='INFO')
+            return
+        
+        # To avoid errors don't start baking if there is somehow already a bake job running.
+        if bpy.app.is_job_running('OBJECT_BAKE') == True:
+            debug_logging.log_status("Bake job already in process, cancel or wait until the bake is finished before starting another.", self)
+            return {'FINISHED'}
+        
+        # Record the starting time before baking.
+        self._start_bake_time = time.time()
+
+        # Pause auto updating for add-on properties, they will cause errors while baking.
+        bpy.context.scene.pause_auto_updates = True
+        
+        # Set the viewport shading mode to 'Material' so users can monitor the baking process.
+        bpy.context.space_data.shading.type = 'MATERIAL'
+
+        # Create a list of active material channels that need to be baked.
+        shader_info = bpy.context.scene.matlayer_shader_info
+        self._active_material_channels = []
+        for material_channel in shader_info.material_channels:
+            layer_node_tree = get_layer_node_tree(selected_layer_index)
+            nodes_exist = check_channel_nodes_exist(material_channel.name, layer_node_tree)
+            if nodes_exist and material_channel.name not in self._active_material_channels:
+                self._active_material_channels.append(material_channel.name)
+
+        for material_channel in shader_info.material_channels:
+            layer_node_tree = get_layer_node_tree(selected_layer_index - 1)
+            nodes_exist = check_channel_nodes_exist(material_channel.name, layer_node_tree)
+            if nodes_exist and material_channel.name not in self._active_material_channels:
+                self._active_material_channels.append(material_channel.name)
+
+        debug_logging.log("Merging active material channels: {0}".format(self._active_material_channels))
+
+        # If there are no material channels to bake, abort.
+        if len(self._active_material_channels) <= 0:
+            debug_logging.log_status("No active material channels to bake, can't merge layers.", self, type='INFO')
+            return {'FINISHED'}
+        
+        # Add a temporary texture node to the material setup to bake to.
+        add_bake_texture_nodes()
+
+        # Remember the original render engine so we can reset it after baking.
+        bpy.context.scene.render.engine = 'CYCLES'
+        self._original_render_engine_name = bpy.context.scene.render.engine
+
+        # Apply baking settings.
+        bpy.context.scene.render.bake.margin = 14
+        bpy.context.scene.render.bake.use_selected_to_active = False
+        bpy.context.scene.cycles.samples = 32
+
+        # Force save all textures (unsaved textures will be cleared and not bake properly).
+        bau.force_save_all_textures()
+
+        # Add a timer to provide periodic timer events.
+        wm = context.window_manager
+        self._timer = wm.event_timer_add(1, window=context.window)
+        wm.modal_handler_add(self)
+
+        # Baking will start automatically when the timer hits the first event.
+        return {'RUNNING_MODAL'}
+
+    def cancel(self, context):
+        # Remove the modal operator timer.
+        if self._timer:
+            wm = context.window_manager
+            wm.event_timer_remove(self._timer)
+
+        # Remove texture baking nodes and refresh the layer stack.
+        remove_bake_texture_nodes()
+        refresh_layer_stack()
+
+        # Relink the shader node.
+        relink_shader_node()
+
+        # Reset settings.
+        bpy.context.scene.render.engine = self._original_render_engine_name
+        bpy.context.scene.pause_auto_updates = False
+
+        # Log the user has manually cancelled merging layers.
+        debug_logging.log_status("Merging layers was cancelled by the user.", self, type='INFO')
+
+    def finish(self, context):
+        # Remove the modal operator timer.
+        if self._timer:
+            wm = context.window_manager
+            wm.event_timer_remove(self._timer)
+
+        # Store the selected layer name.
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_layer_node = get_material_layer_node('LAYER', selected_layer_index)
+        layer_name = selected_layer_node.label
+
+        # Delete both layer group nodes.
+        delete_layer(self)
+        delete_layer(self)
+
+        # Make a new layer and set the selected layers name.
+        add_material_layer('NORMAL', self)
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_layer_node = get_material_layer_node('LAYER', selected_layer_index)
+        selected_layer_node.label = layer_name
+
+        # Add material channel nodes for each active (merged) material channels.
+        for material_channel_name in self._active_material_channels:
+            add_material_channel_nodes(
+                material_channel_name, 
+                selected_layer_node.node_tree, 
+                'NORMAL', 
+                self, 
+                log_in_info_window=True
+            )
+
+            # Replace the standard value nodes with image textures,
+            # then add the images with the merged pixel data to them.
+            replace_material_channel_node(material_channel_name, node_type='TEXTURE')
+            merged_image = bpy.data.images.get(layer_name + "_Merged")
+            if merged_image:
+                value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, node_number=1)
+                value_node.image = merged_image
+
+            # Image alpha blending needs to be on to see merged alpha channels.
+            toggle_image_alpha_blending(material_channel_name)
+
+
+        # Relink all layer nodes together.
+        link_layer_group_nodes(self)
+        show_layer()
+
+        # Select the image in the selected material channel for painting.
+        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
+        value_node = get_material_layer_node('VALUE', selected_layer_index, selected_material_channel)
+        if value_node:
+            if value_node.bl_static_type == 'TEX_IMAGE':
+                bau.set_texture_paint_image(value_node.image)
+
+        # Relink the shader node.
+        relink_shader_node()
+
+        # Reset settings.
+        bpy.context.scene.render.engine = self._original_render_engine_name
+        remove_bake_texture_nodes()
+        bpy.context.scene.pause_auto_updates = False
+
+        # Log the completion of merging layers.
+        end_bake_time = time.time()
+        total_bake_time = end_bake_time - self._start_bake_time
+        debug_logging.log_status("Merging layers completed, total time: {0} seconds.".format(round(total_bake_time), 1), self, 'INFO')
