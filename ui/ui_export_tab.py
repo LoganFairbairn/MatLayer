@@ -14,7 +14,7 @@ def draw_export_tab_ui(self, context):
     # Draw export button.
     row = layout.row(align=True)
     row.scale_y = 2.0
-    row.operator("matlayer.export", text="Export Texture")
+    row.operator("matlayer.export", text="Export Textures")
 
     # Draw a warning for users using their CPU to export textures.
     scene = bpy.data.scenes["Scene"]
