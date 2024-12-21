@@ -5,11 +5,6 @@ def draw_addon_tabs(self, context):
     layout = self.layout
     panel_properties = context.scene.matlayer_panel_properties
 
-    # Draw top row sub-menus.
-    row = layout.row(align=True)
-    row.alignment = 'LEFT'
-    row.menu("MATLAYER_MT_utility_sub_menu", text="Utility Operators")
-
     # Draw add-on section tabs.
     row = layout.row(align=True)
     row.scale_y = 2.0

@@ -26,6 +26,12 @@ def update_main_ui_tabs(self, context):
     if context.scene.matlayer_panel_properties.sections == 'SECTION_EXPORT':
         export_textures.read_export_template_names()
 
+def draw_header_menu(layout):
+    # Draw top row sub-menus.
+    row = layout.row(align=True)
+    row.alignment = 'LEFT'
+    row.menu("MATLAYER_MT_utility_sub_menu", text="Utility Operators")
+
 class MATLAYER_panel_properties(bpy.types.PropertyGroup):
     sections: bpy.props.EnumProperty(
         items=[('SECTION_EDIT', "EDIT", "This section contains operators to edit material layers."),
@@ -50,6 +56,11 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
         layout = self.layout
         panel_properties = context.scene.matlayer_panel_properties
         if check_blend_saved():
+
+            # Draw header menu.
+            draw_header_menu(layout)
+
+            # Draw add-on menu based on the selected tab.
             match panel_properties.sections:
                 case "SECTION_EDIT":
                     ui_edit_tab.draw_layers_tab_ui(self, context)
