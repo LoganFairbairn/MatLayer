@@ -2094,6 +2094,38 @@ def add_channel_output_sockets(layer_group_node):
         output_alpha_socket.min_value = 0.0
         output_alpha_socket.max_value = 1.0
 
+def ensure_image_saved(layer_index, material_channel_name):
+    '''Ensures that the image texture in the specified material channel and layer index is either saved to disk, or packed into the saved blend file.'''
+    value_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
+    if value_node.bl_static_type == 'TEX_IMAGE':
+        debug_logging.log("Ensuring layer {0}'s, {1} is saved or packed.".format(layer_index, material_channel_name))
+
+        image = value_node.image
+        if image == None:
+            debug_logging.log("There's no image for layer {0}'s, {1}.".format(layer_index, material_channel_name))
+            return
+        
+        # If the image is not dirty (an unsaved change has been made), no saving / packing is required.
+        if not image.is_dirty:
+            debug_logging.log("Image isn't dirty, no saving / packing required.")
+            return
+        
+        # If the image has no data, no saving / packing is required.
+        if not image.has_data:
+            debug_logging.log("Image has no data, no saving / packing required.")
+            return
+        
+        # If the image has a defined filepath, save it to that filepath.
+        if image.filepath != '':
+            debug_logging.log("Image has a defined filepath, saving...")
+            image.save()
+            debug_logging.log("Image saved.")
+
+        # If there is no defined filepath, pack the image in the blend files data.
+        else:
+            debug_logging.log("Image has no defined filepath, return")
+            image.pack()
+
 def merge_bake_material_channel(material_channel_name):
     '''Triggers a bake for the specified material channel to convert it pixel data.'''
     
@@ -2161,6 +2193,11 @@ def merge_bake_material_channel(material_channel_name):
     material_output_node = get_material_layer_node('MATERIAL_OUTPUT')
     bau.unlink_node(material_output_node, active_material.node_tree, unlink_inputs=True, unlink_outputs=False)
     active_material.node_tree.links.new(bake_node.outputs[0], material_output_node.inputs[0])
+
+    # TODO: IMPORTANT: If either material channel being merged is using an image texture,
+    # it must be saved, or packed otherwise triggering a bake will erase it's data!
+    ensure_image_saved(selected_layer_index, material_channel_name)
+    ensure_image_saved(selected_layer_index - 1, material_channel_name)
 
     # TODO: Account for normal map baking here.
     # Adjust settings, then trigger a baking operation based on the material channel being baked.
@@ -2614,7 +2651,7 @@ class MATLAYER_OT_merge_layers(Operator):
 
         # Add a timer to provide periodic timer events.
         wm = context.window_manager
-        self._timer = wm.event_timer_add(1, window=context.window)
+        self._timer = wm.event_timer_add(0.1, window=context.window)
         wm.modal_handler_add(self)
 
         # Baking will start automatically when the timer hits the first event.
