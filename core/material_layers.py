@@ -2540,10 +2540,10 @@ class MATLAYER_OT_set_layer_blending_mode(Operator):
         link_layer_group_nodes(self)
         return {'FINISHED'}
 
-class MATLAYER_OT_merge_layers(Operator):
-    bl_idname = "matlayer.merge_layers"
-    bl_label = "Merge Layers"
-    bl_description = "Merges the selected layer with the layer below by converting all material channels to pixel data (images) through a baking operation"
+class MATLAYER_OT_merge_with_layer_below(Operator):
+    bl_idname = "matlayer.merge_with_layer_below"
+    bl_label = "Merge With Layer Below"
+    bl_description = "Merges the selected layer with the layer below it by converting all material channels to images through a baking operation"
     bl_options = {'REGISTER', 'UNDO'}
 
     _timer = None

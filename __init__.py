@@ -144,7 +144,7 @@ classes = (
     material_layers.MATLAYER_OT_set_material_channel,
     material_layers.MATLAYER_OT_set_matchannel_crgba_output,
     material_layers.MATLAYER_OT_set_layer_blending_mode,
-    material_layers.MATLAYER_OT_merge_layers,
+    material_layers.MATLAYER_OT_merge_with_layer_below,
     material_layers.MATLAYER_OT_add_material_channel_nodes,
     material_layers.MATLAYER_OT_delete_material_channel_nodes,
 
