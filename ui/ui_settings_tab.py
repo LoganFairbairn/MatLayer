@@ -4,6 +4,11 @@ import bpy
 from bpy.types import Menu
 from .import ui_tabs
 
+ADDON_SETTINGS_TABS = [
+    ("TEXTURE_SETTINGS", "TEXTURE SETTINGS", "Add-on settings related to textures"),
+    ("SHADER_SETTINGS", "SHADER SETTINGS", "Add-on settings related to shaders")
+]
+
 def draw_texture_settings(layout):
     '''Draws addon texture settings.'''
     texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
@@ -31,53 +36,8 @@ def draw_texture_settings(layout):
         col.enabled = False
     col.prop(texture_set_settings, "image_height", text="")
 
-def draw_unlayered_material_properties(layout):
-    '''Draws all unlayered material properties.'''
-
-    # Ensure there is an active object.
-    active_object = bpy.context.active_object
-    if not active_object:
-        row.label(text="No Active Object Selected")
-        return
-
-    # Ensure there is an active material.
-    active_material = active_object.active_material
-    if not active_material:
-        row.label(text="No Active Material")
-        return
-
-    # Ensure there is a valid shader node.
-    matlayer_shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
-    if not matlayer_shader_node:
-        row.label(text="No Valid Shader Node")
-        return
-
-    # Draw all unlayered material properties.
-    shader_info = bpy.context.scene.matlayer_shader_info
-    split = layout.split(factor=0.6)
-    first_column = split.column()
-    second_column = split.column()
-    for property in shader_info.unlayered_properties:
-        shader_property = matlayer_shader_node.inputs.get(property.name)
-        row = layout.row()
-        if shader_property:
-            row = first_column.row()
-            row.label(text=property.name)
-            row = second_column.row()
-            row.prop(shader_property, "default_value", text="")
-        else:
-            row.label(text="Shader Property Invalid")
-
-def draw_settings_tab(self, context):
-    '''Draws user interface for the setup tab.'''
-
-    # Draws tabs for all sections in this add-on.
-    ui_tabs.draw_addon_tabs(self, context)
-
-    # Draw texture set settings.
-    layout = self.layout
-    draw_texture_settings(layout)
-
+def draw_shader_settings(layout):
+    '''Draws shader setting user interface for this add-on.'''
     # Split the UI into a two column layout.
     split = layout.split(factor=0.25)
     first_column = split.column()
@@ -225,6 +185,64 @@ def draw_settings_tab(self, context):
 
     # Draw unlayered properties found in the active shader.
     draw_unlayered_material_properties(layout)
+
+def draw_unlayered_material_properties(layout):
+    '''Draws all unlayered material properties.'''
+
+    # Ensure there is an active object.
+    active_object = bpy.context.active_object
+    if not active_object:
+        row.label(text="No Active Object Selected")
+        return
+
+    # Ensure there is an active material.
+    active_material = active_object.active_material
+    if not active_material:
+        row.label(text="No Active Material")
+        return
+
+    # Ensure there is a valid shader node.
+    matlayer_shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
+    if not matlayer_shader_node:
+        row.label(text="No Valid Shader Node")
+        return
+
+    # Draw all unlayered material properties.
+    shader_info = bpy.context.scene.matlayer_shader_info
+    split = layout.split(factor=0.6)
+    first_column = split.column()
+    second_column = split.column()
+    for property in shader_info.unlayered_properties:
+        shader_property = matlayer_shader_node.inputs.get(property.name)
+        row = layout.row()
+        if shader_property:
+            row = first_column.row()
+            row.label(text=property.name)
+            row = second_column.row()
+            row.prop(shader_property, "default_value", text="")
+        else:
+            row.label(text="Shader Property Invalid")
+
+def draw_settings_tab(self, context):
+    '''Draws user interface for the setup tab.'''
+
+    # Draws tabs for all sections in this add-on.
+    ui_tabs.draw_addon_tabs(self, context)
+
+    # Draw settings tabs.
+    layout = self.layout
+    row = layout.row(align=True)
+    row.scale_y = 1.5
+    row.prop_enum(context.scene, "matlayer_addon_settings_tab", 'TEXTURE_SETTINGS', text="TEXTURE SETTINGS")
+    row.prop_enum(context.scene, "matlayer_addon_settings_tab", 'SHADER_SETTINGS', text="SHADER SETTINGS")
+
+    # Draw settings based on the selected tab.
+    match context.scene.matlayer_addon_settings_tab:
+        case 'TEXTURE_SETTINGS':
+            draw_texture_settings(layout)
+    
+        case 'SHADER_SETTINGS':
+            draw_shader_settings(layout)
 
 class ShaderSubMenu(Menu):
     bl_idname = "MATLAYER_MT_shader_sub_menu"
