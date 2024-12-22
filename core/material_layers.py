@@ -2149,6 +2149,33 @@ def ensure_image_saved(layer_index, material_channel_name):
             debug_logging.log("Image has no defined filepath, return")
             image.pack()
 
+def get_merge_bake_node():
+    '''Returns a node used for merge baking layers. If a merge bake node doesn't exist in the active node tree, one will be created.'''
+    active_material = bpy.context.active_object.active_material
+    merge_bake_node = active_material.node_tree.nodes.get('MERGE_BAKE_NODE')
+    if not merge_bake_node:
+        merge_bake_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+        merge_bake_node.name = 'MERGE_BAKE_NODE'
+        merge_bake_node.label = merge_bake_node.name
+        merge_bake_node.node_tree = bau.append_group_node("ML_MergeBake", never_auto_delete=True)
+        merge_bake_node.location = [0.0, 200.0]
+        merge_bake_node.width = 250.0
+    return merge_bake_node
+
+def delete_merge_bake_node():
+    '''Deletes the merge bake node from the active material's node tree, and the merge bake node group from blend data.'''
+
+    # Delete the merge bake node from the active material's node tree.
+    active_material = bpy.context.active_object.active_material
+    merge_bake_node = active_material.node_tree.nodes.get('MERGE_BAKE_NODE')
+    if merge_bake_node:
+        active_material.node_tree.nodes.remove(merge_bake_node)
+
+    # Deletes the merge bake node from blend data.
+    merge_bake_node_tree = bpy.data.node_groups.get("ML_MergeBake")
+    if merge_bake_node_tree:
+        bpy.data.node_groups.remove(merge_bake_node_tree, do_unlink=True, do_id_user=True, do_ui_user=True)
+
 def merge_bake_material_channel(material_channel_name):
     '''Triggers a bake for the specified material channel to convert it pixel data.'''
     
@@ -2205,19 +2232,17 @@ def merge_bake_material_channel(material_channel_name):
     below_layer_node.node_tree.links.new(channel_output_node.outputs[0], group_output_node.inputs.get("Channel Color"))
     below_layer_node.node_tree.links.new(opacity_node.outputs[0], group_output_node.inputs.get("Channel Alpha"))
 
-    # TODO: If there is no bake node, create one.
-    bake_node = active_material.node_tree.nodes.get('BAKE_NODE')
-
     # Link the material channel color and alpha outputs to the bake node.
-    active_material.node_tree.links.new(selected_layer_node.outputs.get("Channel Color"), bake_node.inputs.get("Color 2"))
-    active_material.node_tree.links.new(selected_layer_node.outputs.get("Channel Alpha"), bake_node.inputs.get("Alpha 2"))
-    active_material.node_tree.links.new(below_layer_node.outputs.get("Channel Color"), bake_node.inputs.get("Color 1"))
-    active_material.node_tree.links.new(below_layer_node.outputs.get("Channel Alpha"), bake_node.inputs.get("Alpha 1"))
+    merge_bake_node = get_merge_bake_node()
+    active_material.node_tree.links.new(selected_layer_node.outputs.get("Channel Color"), merge_bake_node.inputs.get("Color 2"))
+    active_material.node_tree.links.new(selected_layer_node.outputs.get("Channel Alpha"), merge_bake_node.inputs.get("Alpha 2"))
+    active_material.node_tree.links.new(below_layer_node.outputs.get("Channel Color"), merge_bake_node.inputs.get("Color 1"))
+    active_material.node_tree.links.new(below_layer_node.outputs.get("Channel Alpha"), merge_bake_node.inputs.get("Alpha 1"))
 
     # Connect the bake node to the material output node.
     material_output_node = get_material_layer_node('MATERIAL_OUTPUT')
     bau.unlink_node(material_output_node, active_material.node_tree, unlink_inputs=True, unlink_outputs=False)
-    active_material.node_tree.links.new(bake_node.outputs[0], material_output_node.inputs[0])
+    active_material.node_tree.links.new(merge_bake_node.outputs[0], material_output_node.inputs[0])
 
     # IMPORTANT: If either material channel being merged is using an image texture,
     # it must be saved, or packed otherwise triggering a bake will erase it's data!
@@ -2688,8 +2713,11 @@ class MATLAYER_OT_merge_with_layer_below(Operator):
             wm = context.window_manager
             wm.event_timer_remove(self._timer)
 
-        # Remove texture baking nodes and refresh the layer stack.
+        # Remove unnecessary nodes.
         remove_bake_texture_nodes()
+        delete_merge_bake_node()
+
+        # Refresh the layer stack.
         refresh_layer_stack()
 
         # Relink the shader node.
@@ -2760,9 +2788,12 @@ class MATLAYER_OT_merge_with_layer_below(Operator):
         # Relink the shader node.
         relink_shader_node()
 
+        # Remove unnecessary nodes.
+        remove_bake_texture_nodes()
+        delete_merge_bake_node()
+
         # Reset settings.
         bpy.context.scene.render.engine = self._original_render_engine_name
-        remove_bake_texture_nodes()
         bpy.context.scene.pause_auto_updates = False
 
         # Log the completion of merging layers.
