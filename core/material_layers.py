@@ -345,6 +345,33 @@ def get_material_layer_node(layer_node_name, layer_index=0, channel_name='COLOR'
             debug_logging.log("Invalid material node name: {0}".format(layer_node_name))
             return None
 
+def get_isolate_node():
+    '''Returns a node designed to isolate materials (Emission). If the node doesn't exist already within the active material node tree, a new isolate node will be created.'''
+    active_material = bpy.context.active_object.active_material
+    isolate_node = active_material.node_tree.nodes.get('ISOLATE_NODE')
+    if not isolate_node:
+        isolate_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+        isolate_node.name = 'ISOLATE_NODE'
+        isolate_node.label = isolate_node.name
+        isolate_node.node_tree = bau.append_group_node("ML_IsolateNode", never_auto_delete=True)
+        isolate_node.location = [0.0, 200.0]
+        isolate_node.width = 250.0
+    return isolate_node
+
+def delete_isolate_node():
+    '''Removes the isolation node from the active material's node tree, and the isolate node group from blend data.'''
+
+    # Remove the isolation node from the active material's node tree.
+    active_material = bpy.context.active_object.active_material
+    isolate_node = active_material.node_tree.nodes.get('ISOLATE_NODE')
+    if isolate_node:
+        active_material.node_tree.nodes.remove(isolate_node)
+
+    # Remove the isolation node from blend data, it's no longer needed.
+    isolate_node_tree = bpy.data.node_groups.get("ML_IsolateNode")
+    if isolate_node_tree:
+        bpy.data.node_groups.remove(isolate_node_tree, do_unlink=True, do_id_user=True, do_ui_user=True)
+
 def get_layer_type():
     '''Determines the type of the selected layer based on the projection node tree.'''
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
@@ -1902,11 +1929,8 @@ def set_material_channel_crgba_output(material_channel_name, crgba_output, layer
 def isolate_material_channel(material_channel_name):
     '''Isolates the specified material channel by linking only the specified material channel output to the material channel output / emission node.'''
     active_node_tree = bpy.context.active_object.active_material.node_tree
-    emission_node = active_node_tree.nodes.get('EMISSION')
+    isolate_node = get_isolate_node()
     material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
-
-    # Unlink the emission node to ensure nothing else is connected to it.
-    bau.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
 
     # For all other material channels connect the specified material channel for the last active material channel.
     output_socket_name = shaders.get_shader_channel_socket_name(material_channel_name)
@@ -1914,10 +1938,10 @@ def isolate_material_channel(material_channel_name):
     for i in range(total_layers, 0, -1):
         layer_node = get_material_layer_node('LAYER', i - 1)
         if bau.get_node_active(layer_node):
-            bau.safe_node_link(layer_node.outputs.get(output_socket_name), emission_node.inputs[0], active_node_tree)
+            bau.safe_node_link(layer_node.outputs.get(output_socket_name), isolate_node.inputs[0], active_node_tree)
             break
     
-    active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
+    active_node_tree.links.new(isolate_node.outputs[0], material_output.inputs[0])
 
 def show_layer():
     '''Removes material channel or mask isolation if they are applied.'''
@@ -1935,13 +1959,13 @@ def show_layer():
     if not active_node_tree:
         return
     
-    emission_node = active_node_tree.nodes.get('EMISSION')
-    if emission_node:
-        if len(emission_node.outputs[0].links) != 0:
-            bau.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
-            material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
-            principled_bsdf = active_node_tree.nodes.get('SHADER_NODE')
-            active_node_tree.links.new(principled_bsdf.outputs[0], material_output.inputs[0])
+    # Delete the isolate node if it exists.
+    delete_isolate_node()
+
+    # Re-link the shader node.
+    material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
+    principled_bsdf = active_node_tree.nodes.get('SHADER_NODE')
+    active_node_tree.links.new(principled_bsdf.outputs[0], material_output.inputs[0])
 
 def toggle_image_alpha_blending(material_channel_name):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
@@ -2182,8 +2206,10 @@ def merge_bake_material_channel(material_channel_name):
     below_layer_node.node_tree.links.new(channel_output_node.outputs[0], group_output_node.inputs.get("Channel Color"))
     below_layer_node.node_tree.links.new(opacity_node.outputs[0], group_output_node.inputs.get("Channel Alpha"))
 
-    # Link the material channel color and alpha outputs to the bake node.
+    # TODO: If there is no bake node, create one.
     bake_node = active_material.node_tree.nodes.get('BAKE_NODE')
+
+    # Link the material channel color and alpha outputs to the bake node.
     active_material.node_tree.links.new(selected_layer_node.outputs.get("Channel Color"), bake_node.inputs.get("Color 2"))
     active_material.node_tree.links.new(selected_layer_node.outputs.get("Channel Alpha"), bake_node.inputs.get("Alpha 2"))
     active_material.node_tree.links.new(below_layer_node.outputs.get("Channel Color"), bake_node.inputs.get("Color 1"))
