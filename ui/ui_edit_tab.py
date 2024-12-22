@@ -236,11 +236,12 @@ def draw_value_node_properties(layout, material_channel_name, layer_node_tree, s
             row.context_pointer_set("node", value_node)
             row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
-            # Draw the image texture name so users can change it.
-            row = first_column.row()
-            row.label(text="Image Name")
-            row = second_column.row()
-            row.prop(value_node.image, "name", text="")
+            # Draw the image texture name so users can change it if an image is linked.
+            if value_node.image:
+                row = first_column.row()
+                row.label(text="Image Name")
+                row = second_column.row()
+                row.prop(value_node.image, "name", text="")
             
             # Draw a toggle for image alpha blending.
             row = first_column.row()
