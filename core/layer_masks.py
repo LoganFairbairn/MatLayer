@@ -1262,12 +1262,10 @@ class MATLAYER_OT_isolate_mask(Operator):
         active_node_tree = bpy.context.active_object.active_material.node_tree
 
         mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
-        emission_node = active_node_tree.nodes.get('EMISSION')
+        isolate_node = material_layers.get_isolate_node()
         material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
 
-        bau.unlink_node(emission_node, active_node_tree, unlink_inputs=True, unlink_outputs=True)
-
-        active_node_tree.links.new(mask_node.outputs[0], emission_node.inputs[0])
-        active_node_tree.links.new(emission_node.outputs[0], material_output.inputs[0])
+        active_node_tree.links.new(mask_node.outputs[0], isolate_node.inputs[0])
+        active_node_tree.links.new(isolate_node.outputs[0], material_output.inputs[0])
 
         return {'FINISHED'}
