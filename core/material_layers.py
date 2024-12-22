@@ -359,15 +359,15 @@ def get_isolate_node():
     return isolate_node
 
 def delete_isolate_node():
-    '''Removes the isolation node from the active material's node tree, and the isolate node group from blend data.'''
+    '''Deletes the isolation node from the active material's node tree, and the iso late node group from blend data.'''
 
-    # Remove the isolation node from the active material's node tree.
+    # Delete the isolation node from the active material's node tree.
     active_material = bpy.context.active_object.active_material
     isolate_node = active_material.node_tree.nodes.get('ISOLATE_NODE')
     if isolate_node:
         active_material.node_tree.nodes.remove(isolate_node)
 
-    # Remove the isolation node from blend data, it's no longer needed.
+    # Deletes the isolation node from blend data.
     isolate_node_tree = bpy.data.node_groups.get("ML_IsolateNode")
     if isolate_node_tree:
         bpy.data.node_groups.remove(isolate_node_tree, do_unlink=True, do_id_user=True, do_ui_user=True)
@@ -1927,12 +1927,11 @@ def set_material_channel_crgba_output(material_channel_name, crgba_output, layer
         bau.safe_node_link(channel_output_node.outputs[1], mix_image_alpha_node.inputs[1], layer_node_tree)
 
 def isolate_material_channel(material_channel_name):
-    '''Isolates the specified material channel by linking only the specified material channel output to the material channel output / emission node.'''
+    '''Isolates the specified material channel by linking the specified material channel output to an isolate (emission) node.'''
     active_node_tree = bpy.context.active_object.active_material.node_tree
     isolate_node = get_isolate_node()
     material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
 
-    # For all other material channels connect the specified material channel for the last active material channel.
     output_socket_name = shaders.get_shader_channel_socket_name(material_channel_name)
     total_layers = count_layers(bpy.context.active_object.active_material)
     for i in range(total_layers, 0, -1):
@@ -1944,7 +1943,7 @@ def isolate_material_channel(material_channel_name):
     active_node_tree.links.new(isolate_node.outputs[0], material_output.inputs[0])
 
 def show_layer():
-    '''Removes material channel or mask isolation if they are applied.'''
+    '''Removes material channel or mask isolation if they are applied by re-linking the shader node to the material output node.'''
     active_object_attribute = getattr(bpy.context, "active_object", None)
     if not active_object_attribute:
         return
@@ -2220,7 +2219,7 @@ def merge_bake_material_channel(material_channel_name):
     bau.unlink_node(material_output_node, active_material.node_tree, unlink_inputs=True, unlink_outputs=False)
     active_material.node_tree.links.new(bake_node.outputs[0], material_output_node.inputs[0])
 
-    # TODO: IMPORTANT: If either material channel being merged is using an image texture,
+    # IMPORTANT: If either material channel being merged is using an image texture,
     # it must be saved, or packed otherwise triggering a bake will erase it's data!
     ensure_image_saved(selected_layer_index, material_channel_name)
     ensure_image_saved(selected_layer_index - 1, material_channel_name)

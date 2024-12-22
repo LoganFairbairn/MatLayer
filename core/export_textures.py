@@ -583,6 +583,33 @@ def channel_pack_textures(texture_set_name):
 #----------------------------- EXPORTING FUNCTIONS -----------------------------#
 
 
+def get_bake_node():
+    '''Returns a node designed to take material channel input and bake data from. If the bake node doesn't exist in the active material, a new bake node will be created.'''
+    active_material = bpy.context.active_object.active_material
+    bake_node = active_material.node_tree.nodes.get('BAKE_NODE')
+    if not bake_node:
+        bake_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
+        bake_node.name = 'BAKE_NODE'
+        bake_node.label = bake_node.name
+        bake_node.node_tree = bau.append_group_node("ML_BakeNode", never_auto_delete=True)
+        bake_node.location = [0.0, 200.0]
+        bake_node.width = 250.0
+    return bake_node
+
+def delete_bake_node():
+    '''Deletes the bake node from the active material's node tree, and the bake node group from blend data.'''
+
+    # Delete the bake node from the active material's node tree.
+    active_material = bpy.context.active_object.active_material
+    bake_node = active_material.node_tree.nodes.get('BAKE_NODE')
+    if bake_node:
+        active_material.node_tree.nodes.remove(bake_node)
+
+    # Deletes the bake node from blend data.
+    bake_node_tree = bpy.data.node_groups.get("ML_BakeNode")
+    if bake_node_tree:
+        bpy.data.node_groups.remove(bake_node_tree, do_unlink=True, do_id_user=True, do_ui_user=True)
+
 def format_export_image_name(texture_name_format):
     '''Properly formats the name for an export image based on the selected texture export template and the provided material channel.'''
     material_name = bpy.context.active_object.active_material.name
@@ -727,15 +754,33 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     material_nodes.active = image_node
     bau.set_texture_paint_image(export_image)
 
-    # For baking normal maps, bake directly from the material output.
+    # TODO: Link alpha for transparency baking here!
+    # Link to a bake node.
+    active_node_tree = bpy.context.active_object.active_material.node_tree
+    bake_node = get_bake_node()
+    material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
+
+    output_socket_name = shaders.get_shader_channel_socket_name(material_channel_name)
+    total_layers = material_layers.count_layers(bpy.context.active_object.active_material)
+    for i in range(total_layers, 0, -1):
+        layer_node = material_layers.get_material_layer_node('LAYER', i - 1)
+        if bau.get_node_active(layer_node):
+            if material_channel_name == 'NORMAL':
+                bau.safe_node_link(layer_node.outputs.get(output_socket_name), bake_node.inputs.get('Normal'), active_node_tree)
+            else:
+                bau.safe_node_link(layer_node.outputs.get(output_socket_name), bake_node.inputs.get('Color'), active_node_tree)
+            break
+
+    active_node_tree.links.new(bake_node.outputs[0], material_output.inputs[0])
+
+    # Trigger a baking operation based on the material channel being baked.
     if material_channel_name == 'NORMAL':
         bpy.ops.object.bake('INVOKE_DEFAULT', type='NORMAL')
-
-    # Isolate the material channel and bake from an emission node.
     else:
-        material_layers.isolate_material_channel(material_channel_name)
-        bpy.ops.object.bake('INVOKE_DEFAULT', type='EMIT')
-
+        bpy.context.scene.render.bake.use_pass_direct = False
+        bpy.context.scene.render.bake.use_pass_indirect = False
+        bpy.ops.object.bake('INVOKE_DEFAULT', type='DIFFUSE')
+    
     return export_image.name
 
 def add_bake_texture_nodes():
@@ -1066,6 +1111,7 @@ class MATLAYER_OT_export(Operator):
 
         bpy.context.scene.render.engine = self._original_render_engine_name
         remove_bake_texture_nodes()
+        delete_bake_node()
         material_layers.refresh_layer_stack()
         bpy.context.scene.pause_auto_updates = False
         self.report({'INFO'}, "Exporting textures was manually cancelled.")
@@ -1078,6 +1124,7 @@ class MATLAYER_OT_export(Operator):
 
         bpy.context.scene.render.engine = self._original_render_engine_name
         remove_bake_texture_nodes()
+        delete_bake_node()
         material_layers.refresh_layer_stack()
         bpy.context.scene.pause_auto_updates = False
 
