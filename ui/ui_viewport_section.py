@@ -1,9 +1,6 @@
 import bpy
-from . import ui_tabs
 
-def draw_ui_settings_tab(self, context):
-    ui_tabs.draw_addon_tabs(self, context)
-
+def draw_viewport_setting_ui(self, context):
     layout = self.layout
 
     # Use a two column layout.

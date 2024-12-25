@@ -2,14 +2,11 @@
 
 import bpy
 from bpy.types import Menu
-from . import ui_tabs
 from ..core import material_layers
 
-def draw_export_tab_ui(self, context):
+def draw_export_textures_ui(self, context):
     '''Draws user interface for the export section.'''
     layout = self.layout
-
-    ui_tabs.draw_addon_tabs(self, context)
 
     # Draw export button.
     row = layout.row(align=True)

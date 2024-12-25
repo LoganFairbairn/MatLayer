@@ -46,7 +46,7 @@ class MATLAYER_OT_append_workspace(Operator):
         bpy.context.window.workspace = bpy.data.workspaces[workspace_name]
         
         # Set the add-on user interface to the edit tab.
-        context.scene.matlayer_panel_properties.sections = 'SECTION_EDIT'
+        context.scene.matlayer_panel_properties.sections = 'SECTION_EDIT_LAYERS'
 
         # Set up a material asset browser for the user.
         # TODO: Disabled until more experimenting can be done with drag 'n drop material layer application.

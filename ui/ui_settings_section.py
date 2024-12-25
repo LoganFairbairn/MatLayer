@@ -2,15 +2,9 @@
 
 import bpy
 from bpy.types import Menu
-from .import ui_tabs
 from .. import preferences
 
-ADDON_SETTINGS_TABS = [
-    ("TEXTURE_SETTINGS", "TEXTURE SETTINGS", "Add-on settings related to textures"),
-    ("SHADER_SETTINGS", "SHADER SETTINGS", "Add-on settings related to shaders")
-]
-
-def draw_texture_settings(layout):
+def draw_texture_setting_ui(layout):
     '''Draws addon texture settings.'''
     texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
@@ -72,7 +66,7 @@ def draw_texture_settings(layout):
     row = second_column.row()
     row.prop(addon_preferences, "image_auto_save_interval", text="")
 
-def draw_shader_settings(layout):
+def draw_shader_setting_ui(layout):
     '''Draws shader setting user interface for this add-on.'''
     # Split the UI into a two column layout.
     split = layout.split(factor=0.25)
@@ -218,27 +212,6 @@ def draw_shader_settings(layout):
                 row.label(text="No Active Material")
         else:
             row.label(text="No Object Selected")
-
-def draw_settings_tab(self, context):
-    '''Draws user interface for the setup tab.'''
-
-    # Draws tabs for all sections in this add-on.
-    ui_tabs.draw_addon_tabs(self, context)
-
-    # Draw settings tabs.
-    layout = self.layout
-    row = layout.row(align=True)
-    row.scale_y = 1.5
-    row.prop_enum(context.scene, "matlayer_addon_settings_tab", 'TEXTURE_SETTINGS', text="TEXTURE SETTINGS")
-    row.prop_enum(context.scene, "matlayer_addon_settings_tab", 'SHADER_SETTINGS', text="SHADER SETTINGS")
-
-    # Draw settings based on the selected tab.
-    match context.scene.matlayer_addon_settings_tab:
-        case 'TEXTURE_SETTINGS':
-            draw_texture_settings(layout)
-    
-        case 'SHADER_SETTINGS':
-            draw_shader_settings(layout)
 
 class ShaderSubMenu(Menu):
     bl_idname = "MATLAYER_MT_shader_sub_menu"

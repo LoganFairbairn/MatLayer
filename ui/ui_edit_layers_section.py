@@ -10,7 +10,6 @@ from ..core import texture_set_settings as tss
 from ..core import shaders
 from ..core import blender_addon_utils as bau
 from ..core import material_filters
-from . import ui_tabs
 from .. import preferences
 
 # Tabs to help organize the user interface and help limit the number of properties displayed at one time.
@@ -28,9 +27,8 @@ GROUP_NODE_UI_LABELS = {
     "ML_DecalProjection": "Decal Projection"
 }
 
-def draw_layers_tab_ui(self, context):
+def draw_edit_layers_ui(self, context):
     '''Draws the layer section user interface to the add-on side panel.'''
-    ui_tabs.draw_addon_tabs(self, context)
     layout = self.layout
 
     # Draw setup prompts to help new users of the add-on.
