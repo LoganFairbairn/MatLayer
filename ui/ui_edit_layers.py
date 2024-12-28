@@ -355,13 +355,16 @@ def draw_material_channel_properties(layout):
     selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
     layout.separator()
 
-    # Draw material channels add menu.
-    layout.menu("MATLAYER_MT_add_material_channel_sub_menu", text="Add Material Channels", icon='ADD')
-
-    # Draw sub-section title.
+    # Use a two column layout so the user interface aligns better.
     split = layout.split(factor=0.5)
     first_column = split.column()
     second_column = split.column()
+
+    # Draw material channels add menu.
+    row = first_column.row()
+    row.label(text="CHANNELS")
+    row = second_column.row()
+    row.menu("MATLAYER_MT_add_material_channel_sub_menu", text="Add Channel", icon='ADD')
 
     # Avoid drawing material channel properties for invalid layers.
     if material_layers.get_material_layer_node('LAYER', selected_layer_index) == None:
@@ -668,7 +671,6 @@ class AddMaterialChannelSubMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("matlayer.import_texture_set", text="Import Texture Set")
         shader_info = bpy.context.scene.matlayer_shader_info
         for channel in shader_info.material_channels:
             operator = layout.operator("matlayer.add_material_channel_nodes", text=channel.name)
