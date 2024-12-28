@@ -53,7 +53,7 @@ from .core.layer_utilities import MATLAYER_OT_import_texture_set, MATLAYER_OT_me
 from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLAYER_OT_append_workspace, MATLAYER_OT_append_basic_brushes, MATLAYER_OT_append_hdri_world, MATLAYER_OT_remove_unused_raw_textures, MATLAYER_OT_append_material_ball
 
 # User Interface
-from .ui.ui_edit_layers import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, AddMaterialChannelSubMenu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MATERIAL_LAYER_PROPERTY_TABS
+from .ui.ui_edit_layers import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, AddMaterialChannelSubMenu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MaterialSelectorPanel, LayerStackPanel, LayerPropertiesPanel, MATERIAL_LAYER_PROPERTY_TABS
 from .ui.ui_settings import ShaderSubMenu, MATLAYER_UL_shader_channel_list, MATLAYER_UL_global_shader_property_list, ShaderSetupUtilitySubMenu
 from .ui.ui_main import *
 from .ui.ui_layer_stack import MATLAYER_UL_layer_list, LayerBlendingModeSubMenu
@@ -139,6 +139,7 @@ classes = (
     material_layers.MATLAYER_OT_set_layer_projection,
     material_layers.MATLAYER_OT_change_material_channel_value_node,
     material_layers.MATLAYER_OT_isolate_material_channel,
+    material_layers.MATLAYER_OT_show_compiled_material,
     material_layers.MATLAYER_OT_toggle_image_alpha_blending,
     material_layers.MATLAYER_OT_set_material_channel,
     material_layers.MATLAYER_OT_set_matchannel_crgba_output,
@@ -231,6 +232,9 @@ classes = (
     MaterialChannelOutputSubMenu,
     MATLAYER_panel_properties,
     MATLAYER_PT_Panel,
+    MaterialSelectorPanel,
+    LayerStackPanel,
+    LayerPropertiesPanel,
     ExportSettingUtilitySubMenu
 )
 

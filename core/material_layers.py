@@ -56,7 +56,6 @@ def update_layer_index(self, context):
     if active_object_attribute == None:
         return
     
-    show_layer()
     layer_masks.refresh_mask_slots()
 
     # Select the image for texture painting.
@@ -1002,7 +1001,7 @@ def add_material_layer(layer_type, self):
             debug_logging.log("Added image layer.")
 
     # Switch to the layer UI tab after creating a new layer.
-    bpy.context.scene.matlayer_material_property_tabs = 'MATERIAL_LAYER'
+    bpy.context.scene.matlayer_material_property_tabs = 'MATERIAL_CHANNELS'
 
 def duplicate_layer(original_layer_index, self):
     '''Duplicates the material layer at the provided layer index.'''
@@ -2524,6 +2523,24 @@ class MATLAYER_OT_isolate_material_channel(Operator):
         selected_material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
         isolate_material_channel(selected_material_channel)
         return {'FINISHED'}
+
+class MATLAYER_OT_show_compiled_material(Operator):
+    bl_idname = "matlayer.show_compiled_material"
+    bl_label = "Show Compiled Material"
+    bl_description = "Shows the full compiled material"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Disable when there is no active object, or layers.
+    @ classmethod
+    def poll(cls, context):
+        if len(context.scene.matlayer_layers) < 1:
+            return False
+        else:
+            return bau.verify_addon_active_material(context)
+
+    def execute(self, context):
+        show_layer()
+        return {'FINISHED'}    
 
 class MATLAYER_OT_toggle_image_alpha_blending(Operator):
     bl_idname = "matlayer.toggle_image_alpha_blending"

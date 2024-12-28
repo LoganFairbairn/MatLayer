@@ -1,7 +1,7 @@
 # This file handles drawing the user interface for the layers section.
 
 import bpy
-from bpy.types import Operator, Menu
+from bpy.types import Operator, Menu, Panel
 from ..core import material_layers
 from ..core import layer_masks
 from ..core import mesh_map_baking
@@ -12,9 +12,11 @@ from ..core import blender_addon_utils as bau
 from ..core import material_filters
 from .. import preferences
 
+STANDARD_UI_SPLIT = 0.4
+
 # Tabs to help organize the user interface and help limit the number of properties displayed at one time.
 MATERIAL_LAYER_PROPERTY_TABS = [
-    ("MATERIAL_LAYER", "MATERIAL LAYER", "Properties for the selected material layer"),
+    ("MATERIAL_CHANNELS", "CHANNELS", "Properties of material channels for the selected layer"),
     ("PROJECTION", "PROJECTION", "Projection properties for the selected layer"),
     ("MASKS", "MASKS", "Properties for masks applied to the selected material layer")
 ]
@@ -33,11 +35,6 @@ def draw_edit_layers_ui(self, context):
 
     # Draw setup prompts to help new users of the add-on.
     draw_workspace_prompt(layout)
-
-    # Use a two column layout.
-    split = layout.split()
-    column_one = split.column()
-    column_two = split.column()
 
     # Print info when there is no active object.
     active_object = bpy.context.view_layer.objects.active
@@ -69,43 +66,21 @@ def draw_edit_layers_ui(self, context):
     # Print info for when there is no active material.
     active_material = active_object.active_material
     if active_material == None:
-        bau.print_aligned_text(column_one, "No Active Material", alignment='CENTER')
+        bau.print_aligned_text(layout, "No Active Material", alignment='CENTER')
+        return
 
     # Print info for when the active material isn't made with this add-on.
     elif bau.verify_addon_material(active_material) == False:
-        bau.print_aligned_text(column_one, "Material Invalid", alignment='CENTER')
-        bau.print_aligned_text(column_one, "Possible Reasons:")
-        bau.print_aligned_text(column_one, "• Material isn't created with this add-on.")
-        bau.print_aligned_text(column_one, "• Material node format is corrupted.")
-        bau.print_aligned_text(column_one, "Solution:")
-        bau.print_aligned_text(column_one, "• Add a new layer to an empty material slot.")
-        draw_material_selector(column_two)
+        bau.print_aligned_text(layout, "Material Invalid", alignment='CENTER')
+        bau.print_aligned_text(layout, "Editable materials must be created with this add-on")
+        bau.print_aligned_text(layout, "and their format must remain unchanged.")
         return
 
     # Print info for when the shader in the active material isn't defined in shader settings.
     elif shaders.validate_active_shader(active_material) == False:
-        bau.print_aligned_text(column_one, "Shader Not Defined", alignment='CENTER')
-        bau.print_aligned_text(column_one, "Define the active shader in setup tab.")
-        draw_material_selector(column_two)
+        bau.print_aligned_text(layout, "Shader Not Defined", alignment='CENTER')
+        bau.print_aligned_text(layout, "Define the active shader in setup tab.")
         return
-
-    # Draw layer user interface.
-    layer_count = material_layers.count_layers()
-    if layer_count > 0:
-        draw_layer_property_dropdown(column_one)
-        match bpy.context.scene.matlayer_material_property_tabs:
-            case 'MATERIAL_LAYER':
-                draw_material_channel_properties(column_one)
-            case 'MASKS':
-                draw_masks_tab(column_one)
-            case 'PROJECTION':
-                draw_layer_projection(column_one)
-
-    draw_material_selector(column_two)
-    draw_selected_material_channel(column_two)
-    draw_layer_operations(column_two)
-    draw_layer_stack(column_two)
-    draw_selected_image_info(column_two)
 
 def draw_workspace_prompt(layout):
     '''Draws a prompt to load the suggested workspace to help new users of the add-on.'''
@@ -124,79 +99,53 @@ def draw_workspace_prompt(layout):
             row.scale_y = 1.5
             row.separator()
 
-def draw_material_selector(layout):
-    '''Draws a material selector.'''
+def draw_material_slots(layout):
+    '''Draws the active material, and material slots on the active object.'''
     active_object = bpy.context.active_object
-    if active_object:
-        split = layout.split(factor=0.90, align=True)
-        first_column = split.column(align=True)
-        second_column = split.column(align=True)
-        second_column.scale_x = 0.1
+    if not active_object:
+        return
 
-        first_column.template_list("MATERIAL_UL_matslots", "Layers", bpy.context.active_object, "material_slots", bpy.context.active_object, "active_material_index")
-        second_column.operator("matlayer.add_material_slot", text="", icon='ADD')
-        second_column.operator("matlayer.remove_material_slot", text="-")
-        second_column.operator("matlayer.move_material_slot_up", text="", icon='TRIA_UP')
-        second_column.operator("matlayer.move_material_slot_down", text="", icon='TRIA_DOWN')
-        second_column.operator("object.material_slot_assign", text="", icon='MATERIAL_DATA')
-        second_column.operator("object.material_slot_select", text="", icon='SELECT_SET')
+    # Draw the active material.
+    split = layout.split(factor=STANDARD_UI_SPLIT)
+    first_column = split.column()
+    second_column = split.column()
+    row = first_column.row()
+    row.label(text="Active Material")
+    row = second_column.row()
+    row.prop(bpy.context.active_object, "active_material", text="")
 
-        layout.prop(bpy.context.active_object, "active_material", text="")
-        
-        # TODO: Deprecate this if drag 'n drop material merging is implemented.
-        '''
-        split = layout.split(factor=0.70)
-        first_column = split.column()
-        second_column = split.column()
-        col = first_column.column()
-        if bpy.context.active_object:
-            col.prop(bpy.context.active_object, "active_material", text="")
-            col.prop(bpy.context.scene, "matlayer_merge_material", text="")
-            col = second_column.column()
-            col.scale_y = 2.0
-            col.operator("matlayer.merge_materials", text="Merge")
-        '''
-
-def draw_selected_material_channel(layout):
-    '''Draws the selected material channel.'''
-    row = layout.row(align=True)
-    row.scale_x = 2
-    row.scale_y = 1.4
-    selected_material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
-    row.menu("MATLAYER_MT_material_channel_sub_menu", text=selected_material_channel)
-    row.operator("matlayer.isolate_material_channel", text="", icon='MATERIAL')
-
-def draw_layer_operations(layout):
-    '''Draws layer operation buttons.'''
-    row = layout.row(align=True)
-    row.scale_y = 2.0
-    row.scale_x = 10
-    row.operator("matlayer.add_material_layer_menu", icon='ADD', text="")
-    row.operator("matlayer.merge_with_layer_below", icon='TRIA_DOWN_BAR', text="")
-    row.operator("matlayer.move_material_layer_up", icon='TRIA_UP', text="")
-    row.operator("matlayer.move_material_layer_down", icon='TRIA_DOWN', text="")
-    row.operator("matlayer.duplicate_layer", icon='DUPLICATE', text="")
-    row.operator("matlayer.delete_layer", icon='TRASH', text="")
-
-def draw_layer_stack(layout):
-    '''Draws the material layer stack along with it's operators and material channel.'''
-    row = layout.row(align=True)
-    row.template_list("MATLAYER_UL_layer_list", "Layers", bpy.context.scene, "matlayer_layers", bpy.context.scene.matlayer_layer_stack, "selected_layer_index", sort_reverse=True)
-    row.scale_y = 2
-
-def draw_selected_image_info(layout):
-    '''Draws info for the selected image.'''
-    row = layout.row(align=True)
-    row.alignment = 'CENTER'
-    if bpy.context.scene.tool_settings.image_paint.canvas:
-        selected_image = bpy.context.scene.tool_settings.image_paint.canvas
-        row.label(text="{0} ({1} x {2})".format(selected_image.name, selected_image.size[0], selected_image.size[1]))
+    # Draw material slots on the active object.
+    split = layout.split(factor=0.925)
+    first_column = split.column(align=True)
+    second_column = split.column(align=True)
+    second_column.scale_x = 0.1
+    first_column.template_list("MATERIAL_UL_matslots", "Layers", bpy.context.active_object, "material_slots", bpy.context.active_object, "active_material_index")
+    second_column.operator("matlayer.add_material_slot", text="", icon='ADD')
+    second_column.operator("matlayer.remove_material_slot", text="-")
+    second_column.operator("matlayer.move_material_slot_up", text="", icon='TRIA_UP')
+    second_column.operator("matlayer.move_material_slot_down", text="", icon='TRIA_DOWN')
+    second_column.operator("object.material_slot_assign", text="", icon='MATERIAL_DATA')
+    second_column.operator("object.material_slot_select", text="", icon='SELECT_SET')
+    
+    # TODO: Deprecate this if drag 'n drop material merging is implemented.
+    '''
+    split = layout.split(factor=0.70)
+    first_column = split.column()
+    second_column = split.column()
+    col = first_column.column()
+    if bpy.context.active_object:
+        col.prop(bpy.context.active_object, "active_material", text="")
+        col.prop(bpy.context.scene, "matlayer_merge_material", text="")
+        col = second_column.column()
+        col.scale_y = 2.0
+        col.operator("matlayer.merge_materials", text="Merge")
+    '''
 
 def draw_layer_property_dropdown(layout):
     '''Draws tabs to change between editing the material layer and the masks applied to the material layer.'''
     row = layout.row(align=True)
     row.scale_y = 1.5
-    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MATERIAL_LAYER', text="LAYER")
+    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MATERIAL_CHANNELS', text="CHANNELS")
     row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'PROJECTION', text="PROJECTION")
     row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MASKS', text="MASKS")
 
@@ -204,7 +153,7 @@ def draw_value_node_properties(layout, material_channel_name, layer_node_tree, s
     '''Draws properties for the provided value node.'''
 
     # Use a two column layout.
-    split = layout.split(factor=0.4)
+    split = layout.split(factor=STANDARD_UI_SPLIT)
     first_column = split.column(align=True)
     second_column = split.column(align=True)
 
@@ -283,7 +232,7 @@ def draw_value_node_properties(layout, material_channel_name, layer_node_tree, s
                 row.prop(value_node.image, "alpha_mode", text="")
 
 def draw_material_filter_name(layout, material_channel_name, filter_index, filter_node):
-    split = layout.split(factor=0.4)
+    split = layout.split(factor=STANDARD_UI_SPLIT)
     first_column = split.column(align=True)
     second_column = split.column(align=True)
     row = first_column.row()
@@ -301,7 +250,7 @@ def draw_filter_properties(layout, material_channel_name, selected_layer_index):
     static_channel_name = bau.format_static_matchannel_name(material_channel_name)
 
     # Draw properties specifically for blur filters.
-    split = layout.split(factor=0.4)
+    split = layout.split(factor=STANDARD_UI_SPLIT)
     first_column = split.column(align=True)
     second_column = split.column(align=True)
     blur_node = material_layers.get_material_layer_node('BLUR', selected_layer_index, material_channel_name)
@@ -333,7 +282,7 @@ def draw_filter_properties(layout, material_channel_name, selected_layer_index):
 
             case _:
                 draw_material_filter_name(layout, material_channel_name, filter_index, filter_node)
-                split = layout.split(factor=0.4)
+                split = layout.split(factor=STANDARD_UI_SPLIT)
                 first_column = split.column(align=True)
                 second_column = split.column(align=True)
                 for i, input in enumerate(filter_node.inputs):
@@ -356,7 +305,7 @@ def draw_material_channel_properties(layout):
     layout.separator()
 
     # Use a two column layout so the user interface aligns better.
-    split = layout.split(factor=0.5)
+    split = layout.split(factor=STANDARD_UI_SPLIT)
     first_column = split.column()
     second_column = split.column()
 
@@ -387,7 +336,7 @@ def draw_material_channel_properties(layout):
                 layout.separator()
 
                 # Use a three column layout.
-                split = layout.split(factor=0.4)
+                split = layout.split(factor=STANDARD_UI_SPLIT)
                 first_column = split.column(align=True)
                 second_column = split.column(align=True)
                 
@@ -414,7 +363,7 @@ def draw_layer_projection(layout):
         return
 
     # Use a two column layout for neatness.
-    split = layout.split(factor=0.25)
+    split = layout.split(factor=STANDARD_UI_SPLIT)
     first_column = split.column()
     second_column = split.column()
 
@@ -441,7 +390,7 @@ def draw_layer_projection(layout):
 
 def draw_image_texture_property(layout, node_tree, texture_node):
     '''Draws an image texture property with this add-ons image utility sub-menu.'''
-    split = layout.split(factor=0.4)
+    split = layout.split(factor=STANDARD_UI_SPLIT)
     first_column = split.column()
     second_column = split.column()
     row = first_column.row()
@@ -478,7 +427,7 @@ def draw_mask_properties(layout, mask_node, mask_type, selected_layer_index, sel
                     draw_image_texture_property(layout, mask_node.node_tree, node)
 
     # Draw mask group node input properties, excluding those that will be auto-connected.
-    split = layout.split(factor=0.4)
+    split = layout.split(factor=STANDARD_UI_SPLIT)
     first_column = split.column()
     second_column = split.column()
     for i in range(0, len(mask_node.inputs)):
@@ -527,7 +476,7 @@ def draw_mask_projection(layout):
     row.menu('MATLAYER_MT_mask_projection_sub_menu', text=projection_method_dropdown_label)
 
     # Use a two column layout for neatness.
-    split = layout.split(factor=0.25)
+    split = layout.split(factor=STANDARD_UI_SPLIT)
     first_column = split.column()
     second_column = split.column()
 
@@ -551,7 +500,7 @@ def draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index):
                 row.label(text="MESH MAPS")
                 drew_title = True
 
-            split = layout.split(factor=0.4)
+            split = layout.split(factor=STANDARD_UI_SPLIT)
             first_column = split.column()
             second_column = split.column()
 
@@ -600,6 +549,93 @@ def draw_masks_tab(layout):
         draw_mask_properties(layout, mask_node, mask_type, selected_layer_index, selected_mask_index)
         draw_mask_projection(layout)
         draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index)
+
+class MaterialSelectorPanel(Panel):
+    bl_label = "Material Selector"
+    bl_idname = "MATLAYER_PT_material_selector_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "MatLayer"
+
+    # Only draw this panel when the edit materials section is selected.
+    @ classmethod
+    def poll(cls, context):
+        return context.scene.matlayer_panel_properties.sections == 'SECTION_EDIT_MATERIALS'
+
+    def draw(self, context):
+        panel_properties = context.scene.matlayer_panel_properties
+        if panel_properties.sections == 'SECTION_EDIT_MATERIALS':
+            layout = self.layout
+            draw_material_slots(layout)
+
+class LayerStackPanel(Panel):
+    bl_label = "Layer Stack"
+    bl_idname = "MATLAYER_PT_layer_stack_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "MatLayer"
+
+    # Only draw this panel when the edit materials section is selected.
+    @ classmethod
+    def poll(cls, context):
+        return context.scene.matlayer_panel_properties.sections == 'SECTION_EDIT_MATERIALS'
+
+    def draw(self, context):
+        panel_properties = context.scene.matlayer_panel_properties
+        if panel_properties.sections == 'SECTION_EDIT_MATERIALS':
+            layout = self.layout
+
+            # Draw the selected material channel.
+            row = layout.row(align=True)
+            selected_material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
+            row.menu("MATLAYER_MT_material_channel_sub_menu", text=selected_material_channel)
+            row.operator("matlayer.isolate_material_channel", text="", icon='MATERIAL')
+            row.operator("matlayer.show_compiled_material", text="", icon='SHADING_RENDERED')
+
+            # Draw layer operations.
+            row = layout.row(align=True)
+            row.scale_y = 2.0
+            row.scale_x = 10
+            row.operator("matlayer.add_material_layer_menu", icon='ADD', text="")
+            row.operator("matlayer.merge_with_layer_below", icon='TRIA_DOWN_BAR', text="")
+            row.operator("matlayer.move_material_layer_up", icon='TRIA_UP', text="")
+            row.operator("matlayer.move_material_layer_down", icon='TRIA_DOWN', text="")
+            row.operator("matlayer.duplicate_layer", icon='DUPLICATE', text="")
+            row.operator("matlayer.delete_layer", icon='TRASH', text="")
+
+            # Draw the layer stack.
+            row = layout.row(align=True)
+            row.template_list("MATLAYER_UL_layer_list", "Layers", bpy.context.scene, "matlayer_layers", bpy.context.scene.matlayer_layer_stack, "selected_layer_index", sort_reverse=True)
+            row.scale_y = 2
+
+class LayerPropertiesPanel(Panel):
+    bl_label = "Layer Properties"
+    bl_idname = "MATLAYER_PT_layer_properties_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "MatLayer"
+
+    # Only draw this panel when the edit materials section is selected.
+    @ classmethod
+    def poll(cls, context):
+        return context.scene.matlayer_panel_properties.sections == 'SECTION_EDIT_MATERIALS'
+
+    def draw(self, context):
+        panel_properties = context.scene.matlayer_panel_properties
+        if panel_properties.sections == 'SECTION_EDIT_MATERIALS':
+            layout = self.layout
+
+            # Draw properties for the selected material layer.
+            layer_count = material_layers.count_layers()
+            if layer_count > 0:
+                draw_layer_property_dropdown(layout)
+                match bpy.context.scene.matlayer_material_property_tabs:
+                    case 'MATERIAL_CHANNELS':
+                        draw_material_channel_properties(layout)
+                    case 'MASKS':
+                        draw_masks_tab(layout)
+                    case 'PROJECTION':
+                        draw_layer_projection(layout)
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
