@@ -70,7 +70,7 @@ class EditSubMenu(Menu):
         layout.prop_enum(panel_properties, "sections", 'SECTION_TEXTURE_SETTINGS', text="Texture Settings")
         layout.prop_enum(panel_properties, "sections", 'SECTION_SHADER_SETTINGS', text="Shader Settings", icon='MATSHADERBALL')
         layout.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS', text="Viewport Settings")
-        layout.prop_enum(panel_properties, "sections", 'SECTION_EXPORT_TEXTURES', text="Export Textures", icon='EXPORT')
+        layout.prop_enum(panel_properties, "sections", 'SECTION_EXPORT_TEXTURES', text="Export Texture Settings", icon='EXPORT')
 
 class HelpSubMenu(Menu):
     bl_idname = "MATLAYER_MT_help_sub_menu"
