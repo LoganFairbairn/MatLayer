@@ -3,10 +3,31 @@
 import bpy
 from bpy.types import Menu
 from ..core import material_layers
+from ..core import blender_addon_utils as bau
+
+def verify_exporting_textures_is_valid(context):
+    '''Runs checks to verify if exporting textures is possible. If exporting textures is invalid, an info message will be returned.'''
+    if not context.active_object:
+        return "No Active Object"
+    
+    if context.active_object.active_material == None:
+        return "No Active Material"
+    
+    if bau.verify_addon_material(context.active_object.active_material) == False:
+        return "Material Invalid"
+
+    return ""
 
 def draw_export_textures_ui(self, context):
     '''Draws user interface for the export section.'''
     layout = self.layout
+
+    # Display a message when there is no active object.
+    exporting_textures_error = verify_exporting_textures_is_valid(context)
+    if exporting_textures_error != "":
+        bau.print_aligned_text(layout, "Can't Export Textures", alignment='CENTER')
+        bau.print_aligned_text(layout, exporting_textures_error, alignment='CENTER')
+        return
 
     # Draw export button.
     row = layout.row(align=True)

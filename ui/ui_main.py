@@ -2,11 +2,11 @@
 
 import bpy
 from bpy.types import Menu
-from . import ui_edit_layers_section
-from . import ui_mesh_map_section
-from . import ui_settings_section
-from . import ui_export_textures_section
-from . import ui_viewport_section
+from . import ui_edit_layers
+from . import ui_mesh_map
+from . import ui_settings
+from . import ui_export_textures
+from . import ui_viewport
 from ..core import export_textures
 from ..core import shaders
 
@@ -27,7 +27,8 @@ def update_main_ui_tabs(self, context):
     if context.scene.matlayer_panel_properties.sections == 'SECTION_EXPORT_TEXTURES':
         export_textures.read_export_template_names()
 
-def draw_header_menu(layout):
+def draw_addon_dropdown_menu_bar(layout):
+    '''Draws a dropdown menu bar for this add-on.'''
     # Draw top row sub-menus.
     row = layout.row(align=True)
     row.alignment = 'LEFT'
@@ -104,28 +105,28 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
         panel_properties = context.scene.matlayer_panel_properties
         if check_blend_saved():
 
-            # Draw header menu.
-            draw_header_menu(layout)
+            # Draw a dropdown menu bar containing options for editing main parts of this add-on.
+            draw_addon_dropdown_menu_bar(layout)
 
             # Draw user interface based on the selected section.
             match panel_properties.sections:
                 case "SECTION_EDIT_LAYERS":
-                    ui_edit_layers_section.draw_edit_layers_ui(self, context)
+                    ui_edit_layers.draw_edit_layers_ui(self, context)
 
                 case 'SECTION_MESH_MAPS':
-                    ui_mesh_map_section.draw_mesh_map_section_ui(self, context)
+                    ui_mesh_map.draw_mesh_map_section_ui(self, context)
 
                 case 'SECTION_EXPORT_TEXTURES':
-                    ui_export_textures_section.draw_export_textures_ui(self, context)
+                    ui_export_textures.draw_export_textures_ui(self, context)
 
                 case 'SECTION_TEXTURE_SETTINGS':
-                    ui_settings_section.draw_texture_setting_ui(layout)
+                    ui_settings.draw_texture_setting_ui(layout)
 
                 case 'SECTION_SHADER_SETTINGS':
-                    ui_settings_section.draw_shader_setting_ui(layout)
+                    ui_settings.draw_shader_setting_ui(layout)
 
                 case 'SECTION_VIEWPORT_SETTINGS':
-                    ui_viewport_section.draw_viewport_setting_ui(self, context)
+                    ui_viewport.draw_viewport_setting_ui(self, context)
 
         else:
             layout.label(text="Save your .blend file to use MatLayer.")
