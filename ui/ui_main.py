@@ -47,7 +47,7 @@ def draw_addon_dropdown_menu_bar(layout):
     panel_properties = bpy.context.scene.matlayer_panel_properties
     row = second_column.row()
     row.alignment = 'RIGHT'
-    row.prop_enum(panel_properties, "sections", 'SECTION_EDIT_LAYERS', text="Edit Materials", icon='MATERIAL')
+    row.prop_enum(panel_properties, "sections", 'SECTION_EDIT_MATERIALS', text="Edit Materials", icon='MATERIAL')
 
 class FileSubMenu(Menu):
     bl_idname = "MATLAYER_MT_file_sub_menu"
@@ -64,7 +64,7 @@ class EditSubMenu(Menu):
     def draw(self, context):
         layout = self.layout
         panel_properties = context.scene.matlayer_panel_properties
-        layout.prop_enum(panel_properties, "sections", 'SECTION_EDIT_LAYERS', text="Material Layers")
+        layout.prop_enum(panel_properties, "sections", 'SECTION_EDIT_MATERIALS', text="Materials")
         layout.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS", text="Mesh Maps")
         layout.prop_enum(panel_properties, "sections", 'SECTION_TEXTURE_SETTINGS', text="Texture Settings")
         layout.prop_enum(panel_properties, "sections", 'SECTION_SHADER_SETTINGS', text="Shader Settings", icon='MATSHADERBALL')
@@ -93,7 +93,7 @@ class UtilitySubMenu(Menu):
 
 class MATLAYER_panel_properties(bpy.types.PropertyGroup):
     sections: bpy.props.EnumProperty(
-        items=[('SECTION_EDIT_LAYERS', "Edit Layers", "This section contains operators to edit material layers."),
+        items=[('SECTION_EDIT_MATERIALS', "Edit Layers", "This section contains operators to edit material layers."),
                ('SECTION_MESH_MAPS', "Mesh Maps", "This section contains operations to quickly bake mesh map textures for your models. Baking mesh maps transfer 3D data such as shadows, curvature, sharp edges and extra detail from higher polycount objects to image textures. Baked mesh map textures can be used as textures in layers in many different ways to make the texturing process faster. One example of where baked mesh maps could be used is to mask dirt by using the baked ambient occlusion as a mask."),
                ('SECTION_EXPORT_TEXTURES', "Export Textures", "This section contains operations to quickly export textures made with MatLayer."),
                ('SECTION_TEXTURE_SETTINGS', "TEXTURE SETTINGS", "Settings that defined how materials and textures are created by this add-on."),
@@ -101,7 +101,7 @@ class MATLAYER_panel_properties(bpy.types.PropertyGroup):
                ('SECTION_VIEWPORT_SETTINGS', "VIEWPORT", "This section contains select viewport render settings to help preview materials")],
         name="MatLayer Sections",
         description="Current matlayer category",
-        default='SECTION_EDIT_LAYERS',
+        default='SECTION_EDIT_MATERIALS',
         update=update_main_ui_tabs
     )
 
@@ -122,7 +122,7 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
 
             # Draw user interface based on the selected section.
             match panel_properties.sections:
-                case "SECTION_EDIT_LAYERS":
+                case "SECTION_EDIT_MATERIALS":
                     ui_edit_layers.draw_edit_layers_ui(self, context)
 
                 case 'SECTION_MESH_MAPS':
