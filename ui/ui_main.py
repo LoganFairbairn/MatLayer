@@ -31,23 +31,24 @@ def draw_addon_dropdown_menu_bar(layout):
     '''Draws a dropdown menu bar for this add-on.'''
 
     # Split the UI into a two column layout.
-    split = layout.split(factor=0.75)
+    split = layout.split(factor=0.2)
     first_column = split.column()
     second_column = split.column()
 
+    # Draw a quick access button for the main add-on section.
+    panel_properties = bpy.context.scene.matlayer_panel_properties
+    row = first_column.row()
+    row.alignment = 'LEFT'
+    row.scale_x = 2.0
+    row.prop_enum(panel_properties, "sections", 'SECTION_EDIT_MATERIALS', text="Edit Materials", icon='MATERIAL')
+
     # Draw top row sub-menus.
-    row = first_column.row(align=True)
+    row = second_column.row(align=True)
     row.alignment = 'LEFT'
     row.menu("MATLAYER_MT_file_sub_menu", text="File")
     row.menu("MATLAYER_MT_edit_sub_menu", text="Edit")
     row.menu("MATLAYER_MT_utility_sub_menu", text="Utility Operators")
     row.menu("MATLAYER_MT_help_sub_menu", text="Help")
-
-    # Draw a quick access button for the main add-on section.
-    panel_properties = bpy.context.scene.matlayer_panel_properties
-    row = second_column.row()
-    row.alignment = 'RIGHT'
-    row.prop_enum(panel_properties, "sections", 'SECTION_EDIT_MATERIALS', text="Edit Materials", icon='MATERIAL')
 
 class FileSubMenu(Menu):
     bl_idname = "MATLAYER_MT_file_sub_menu"
