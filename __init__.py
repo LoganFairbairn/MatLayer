@@ -119,8 +119,6 @@ classes = (
     shaders.MATLAYER_OT_delete_shader,
     shaders.MATLAYER_OT_add_shader_channel,
     shaders.MATLAYER_OT_delete_shader_channel,
-    shaders.MATLAYER_OT_add_global_shader_property,
-    shaders.MATLAYER_OT_delete_global_shader_property,
     shaders.MATLAYER_OT_create_shader_from_nodetree,
     shaders.MATLAYER_OT_apply_default_shader,
 

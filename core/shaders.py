@@ -80,9 +80,6 @@ DEFAULT_SHADER_JSON = {
                     "socket_max": 1,
                     "default_blend_mode": "MIX"
                 }
-            ],
-            "unlayered_properties": [
-                "Emission Strength"
             ]
         }
     ]
@@ -165,12 +162,6 @@ def set_shader(shader_name):
                         channel.socket_vector_default = shader_material_channel['socket_default']
                         channel.socket_float_min = 0
                         channel.socket_float_max = 1
-
-            shader_info.unlayered_properties.clear()
-            unlayered_properties = shaders[i]['unlayered_properties']
-            for property in unlayered_properties:
-                unlayered_property = shader_info.unlayered_properties.add()
-                unlayered_property.name = property
 
     # Reload the export template to avoid invalid pack texture enums in the export texture settings.
     if shader_exists:
@@ -399,14 +390,6 @@ def apply_default_shader(self):
     channel.socket_float_max = 1.0
     channel.default_blend_mode = "MIX"
 
-    # Set default shader unlayered properties.
-    shader_info.unlayered_properties.clear()
-    unlayered_property = shader_info.unlayered_properties.add()
-    unlayered_property.name = "Base Height"
-
-    unlayered_property = shader_info.unlayered_properties.add()
-    unlayered_property.name = "Emission Strength"
-
     # Set the default selected material channel to be the first defined channel.
     if len(shader_info.material_channels) > 0:
         bpy.context.scene.matlayer_layer_stack.selected_material_channel = shader_info.material_channels[0].name
@@ -485,7 +468,6 @@ class MATLAYER_shader_info(PropertyGroup):
         description="The group node used as the shader node used when creating materials with this add-on"
     )
     material_channels: CollectionProperty(type=MATLAYER_shader_material_channel)
-    unlayered_properties: CollectionProperty(type=MATLAYER_shader_unlayered_property)
 
 class MATLAYER_OT_set_shader(Operator):
     bl_idname = "matlayer.set_shader"
@@ -511,7 +493,6 @@ class MATLAYER_OT_new_shader(Operator):
     def execute(self, context):
         shader_info = bpy.context.scene.matlayer_shader_info
         shader_info.shader_node_group = None
-        shader_info.unlayered_properties.clear()
         shader_info.material_channels.clear()
         return {'FINISHED'}
 
@@ -547,12 +528,6 @@ class MATLAYER_OT_save_shader(Operator):
 
         # Overwrite the default shader info with the current shader info.
         new_shader_info['group_node_name'] = shader_group_node.name
-
-        new_shader_info['unlayered_properties'].clear()
-        for unlayered_property in shader_info.unlayered_properties:
-            new_unlayered_property = copy.deepcopy(DEFAULT_SHADER_JSON['shaders'][0]['unlayered_properties'][0])
-            new_unlayered_property = unlayered_property.name
-            new_shader_info['unlayered_properties'].append(new_unlayered_property)
 
         new_shader_info['material_channels'].clear()
         for channel in shader_info.material_channels:
@@ -619,7 +594,6 @@ class MATLAYER_OT_delete_shader(Operator):
         
         # Clear shader info.
         shader_info.shader_node_group = None
-        shader_info.unlayered_properties.clear()
         shader_info.material_channels.clear()
 
         # Update the shader list.
@@ -652,31 +626,6 @@ class MATLAYER_OT_delete_shader_channel(Operator):
         bpy.context.scene.matlayer_shader_channel_index = min(max(0, selected_shader_index - 1), len(shader_info.material_channels) - 1)
         return {'FINISHED'}
 
-class MATLAYER_OT_add_global_shader_property(Operator):
-    bl_idname = "matlayer.add_global_shader_property"
-    bl_label = "Add Global Shader Property"
-    bl_description = "Adds a global shader property to the shader info"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        shader_info = bpy.context.scene.matlayer_shader_info
-        shader_info.unlayered_properties.add()
-        bpy.context.scene.matlayer_selected_global_shader_property_index = len(shader_info.unlayered_properties) - 1
-        return {'FINISHED'}
-    
-class MATLAYER_OT_delete_global_shader_property(Operator):
-    bl_idname = "matlayer.delete_global_shader_property"
-    bl_label = "Delete Global Shader Property"
-    bl_description = "Deletes a global shader property to the shader info"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        shader_info = bpy.context.scene.matlayer_shader_info
-        selected_global_shader_property_index = bpy.context.scene.matlayer_selected_global_shader_property_index
-        shader_info.unlayered_properties.remove(selected_global_shader_property_index)
-        bpy.context.scene.matlayer_selected_global_shader_property_index = min(max(0, selected_global_shader_property_index - 1), len(shader_info.unlayered_properties) - 1)
-        return {'FINISHED'}
-
 class MATLAYER_OT_create_shader_from_nodetree(Operator):
     bl_idname = "matlayer.create_shader_from_nodetree"
     bl_label = "Create Shader From Nodetree"
@@ -693,7 +642,6 @@ class MATLAYER_OT_create_shader_from_nodetree(Operator):
 
         # Clear all shader settings.
         shader_info.material_channels.clear()
-        shader_info.unlayered_properties.clear()
 
         # Add a shader channel for all group node inputs.
         for item in shader_info.shader_node_group.interface.items_tree:
