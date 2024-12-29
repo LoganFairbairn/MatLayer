@@ -99,48 +99,6 @@ def draw_workspace_prompt(layout):
             row.scale_y = 1.5
             row.separator()
 
-def draw_material_slots(layout):
-    '''Draws the active material, and material slots on the active object.'''
-    active_object = bpy.context.active_object
-    if not active_object:
-        return
-
-    # Draw the active material.
-    split = layout.split(factor=STANDARD_UI_SPLIT)
-    first_column = split.column()
-    second_column = split.column()
-    row = first_column.row()
-    row.label(text="Active Material")
-    row = second_column.row()
-    row.prop(bpy.context.active_object, "active_material", text="")
-
-    # Draw material slots on the active object.
-    split = layout.split(factor=0.925)
-    first_column = split.column(align=True)
-    second_column = split.column(align=True)
-    second_column.scale_x = 0.1
-    first_column.template_list("MATERIAL_UL_matslots", "Layers", bpy.context.active_object, "material_slots", bpy.context.active_object, "active_material_index")
-    second_column.operator("matlayer.add_material_slot", text="", icon='ADD')
-    second_column.operator("matlayer.remove_material_slot", text="-")
-    second_column.operator("matlayer.move_material_slot_up", text="", icon='TRIA_UP')
-    second_column.operator("matlayer.move_material_slot_down", text="", icon='TRIA_DOWN')
-    second_column.operator("object.material_slot_assign", text="", icon='MATERIAL_DATA')
-    second_column.operator("object.material_slot_select", text="", icon='SELECT_SET')
-    
-    # TODO: Deprecate this if drag 'n drop material merging is implemented.
-    '''
-    split = layout.split(factor=0.70)
-    first_column = split.column()
-    second_column = split.column()
-    col = first_column.column()
-    if bpy.context.active_object:
-        col.prop(bpy.context.active_object, "active_material", text="")
-        col.prop(bpy.context.scene, "matlayer_merge_material", text="")
-        col = second_column.column()
-        col.scale_y = 2.0
-        col.operator("matlayer.merge_materials", text="Merge")
-    '''
-
 def draw_layer_property_dropdown(layout):
     '''Draws tabs to change between editing the material layer and the masks applied to the material layer.'''
     row = layout.row(align=True)
@@ -564,9 +522,61 @@ class MaterialSelectorPanel(Panel):
 
     def draw(self, context):
         panel_properties = context.scene.matlayer_panel_properties
-        if panel_properties.sections == 'SECTION_EDIT_MATERIALS':
-            layout = self.layout
-            draw_material_slots(layout)
+        if not panel_properties.sections == 'SECTION_EDIT_MATERIALS':
+            return
+        
+        layout = self.layout
+        active_object = bpy.context.active_object
+        if not active_object:
+            return
+
+        # Draw the active material.
+        split = layout.split(factor=STANDARD_UI_SPLIT)
+        first_column = split.column()
+        second_column = split.column()
+        row = first_column.row()
+        row.label(text="Active Material")
+        row = second_column.row()
+        row.prop(bpy.context.active_object, "active_material", text="")
+
+        # Draw the shader node detected the active material.
+        active_material = bpy.context.active_object.active_material
+        if active_material:
+            row = first_column.row()
+            row.label(text="Active Shader Node")
+            row = second_column.row()
+            shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
+            if shader_node:
+                row.prop(shader_node.node_tree, "name", text="")
+            else:
+                row.label(text="NONE")
+
+        # Draw material slots on the active object.
+        split = layout.split(factor=0.925)
+        first_column = split.column(align=True)
+        second_column = split.column(align=True)
+        second_column.scale_x = 0.1
+        first_column.template_list("MATERIAL_UL_matslots", "Layers", bpy.context.active_object, "material_slots", bpy.context.active_object, "active_material_index")
+        second_column.operator("matlayer.add_material_slot", text="", icon='ADD')
+        second_column.operator("matlayer.remove_material_slot", text="-")
+        second_column.operator("matlayer.move_material_slot_up", text="", icon='TRIA_UP')
+        second_column.operator("matlayer.move_material_slot_down", text="", icon='TRIA_DOWN')
+        second_column.operator("object.material_slot_assign", text="", icon='MATERIAL_DATA')
+        second_column.operator("object.material_slot_select", text="", icon='SELECT_SET')
+        
+        # TODO: Deprecate this if drag 'n drop material merging is implemented.
+        '''
+        split = layout.split(factor=0.70)
+        first_column = split.column()
+        second_column = split.column()
+        col = first_column.column()
+        if bpy.context.active_object:
+            col.prop(bpy.context.active_object, "active_material", text="")
+            col.prop(bpy.context.scene, "matlayer_merge_material", text="")
+            col = second_column.column()
+            col.scale_y = 2.0
+            col.operator("matlayer.merge_materials", text="Merge")
+        '''
 
 class LayerStackPanel(Panel):
     bl_label = "Layer Stack"
