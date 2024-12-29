@@ -43,6 +43,7 @@ class FileSubMenu(Menu):
         layout = self.layout
         layout.operator("matlayer.save_all_textures", text="Save All Textures", icon='FILE_TICK')
         layout.operator("matlayer.import_texture_set", text="Import Texture Set", icon='IMPORT')
+        layout.operator("matlayer.append_default_workspace", text="Append Default Workspace")
         layout.operator("matlayer.append_material_ball", text="Append Material Ball")
         layout.operator("matlayer.export", text="Export Textures", icon='EXPORT')
         layout.operator("matlayer.export_uvs", text="Export UV Map", icon='UV')
@@ -106,7 +107,7 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
         row.prop_enum(panel_properties, "sections", 'SECTION_EDIT_MATERIALS', text="EDIT MATERIALS", icon='NONE')
         row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS", text="MESH MAPS", icon='NONE')
         row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT_TEXTURES', text="EXPORT TEXTURES", icon='NONE')
-        
+
         # Draw user interface based on the selected section.
         match panel_properties.sections:
             case "SECTION_EDIT_MATERIALS":
