@@ -1138,87 +1138,87 @@ def move_layer(direction, self):
             layers = bpy.context.scene.matlayer_layers
             layer_count = len(layers)
             selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-            if selected_layer_index < layer_count:
-                layer_node = get_material_layer_node('LAYER', selected_layer_index)
-                if layer_node:
-                    layer_node.name += "~"
-                    if layer_node.node_tree:
-                        layer_node.node_tree.name += "~"
+            if not selected_layer_index < layer_count - 1:
+                debug_logging.log_status("Can't move layer up. No layers exist above the selected layer.", self, type='INFO')
+                return
+            
+            layer_node = get_material_layer_node('LAYER', selected_layer_index)
+            if layer_node:
+                layer_node.name += "~"
+                if layer_node.node_tree:
+                    layer_node.node_tree.name += "~"
 
-                above_layer_node = get_material_layer_node('LAYER', selected_layer_index + 1)
-                if above_layer_node:
-                    above_layer_node.name = str(selected_layer_index)
-                    if above_layer_node.node_tree:
-                        material_name = parse_material_name(above_layer_node.node_tree.name)
-                        above_layer_node.node_tree.name = format_layer_group_node_name(material_name, selected_layer_index)
+            above_layer_node = get_material_layer_node('LAYER', selected_layer_index + 1)
+            if above_layer_node:
+                above_layer_node.name = str(selected_layer_index)
+                if above_layer_node.node_tree:
+                    material_name = parse_material_name(above_layer_node.node_tree.name)
+                    above_layer_node.node_tree.name = format_layer_group_node_name(material_name, selected_layer_index)
 
-                layer_node.name = str(selected_layer_index + 1)
-                material_name = parse_material_name(layer_node.node_tree.name)
-                layer_node.node_tree.name = format_layer_group_node_name(material_name, selected_layer_index + 1)
+            layer_node.name = str(selected_layer_index + 1)
+            material_name = parse_material_name(layer_node.node_tree.name)
+            layer_node.node_tree.name = format_layer_group_node_name(material_name, selected_layer_index + 1)
 
-                # Swap the layer index for all mask nodes in this layer with the layer above it.
-                selected_layer_mask_count = layer_masks.count_masks(selected_layer_index)
-                for i in range(0, selected_layer_mask_count):
-                    mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i)
-                    mask_node.name += "~"
-                    mask_node.node_tree.name = mask_node.name
+            # Swap the layer index for all mask nodes in this layer with the layer above it.
+            selected_layer_mask_count = layer_masks.count_masks(selected_layer_index)
+            for i in range(0, selected_layer_mask_count):
+                mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i)
+                mask_node.name += "~"
+                mask_node.node_tree.name = mask_node.name
 
-                above_layer_mask_count = layer_masks.count_masks(selected_layer_index + 1)
-                for i in range(0, above_layer_mask_count):
-                    mask_node = layer_masks.get_mask_node('MASK', selected_layer_index + 1, i)
-                    mask_node.name = layer_masks.format_mask_name(selected_layer_index, i)
-                    mask_node.node_tree.name = mask_node.name
+            above_layer_mask_count = layer_masks.count_masks(selected_layer_index + 1)
+            for i in range(0, above_layer_mask_count):
+                mask_node = layer_masks.get_mask_node('MASK', selected_layer_index + 1, i)
+                mask_node.name = layer_masks.format_mask_name(selected_layer_index, i)
+                mask_node.node_tree.name = mask_node.name
 
-                for i in range(0, selected_layer_mask_count):
-                    mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i, get_changed=True)
-                    mask_node.name = layer_masks.format_mask_name(selected_layer_index + 1, i)
-                    mask_node.node_tree.name = mask_node.name
+            for i in range(0, selected_layer_mask_count):
+                mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i, get_changed=True)
+                mask_node.name = layer_masks.format_mask_name(selected_layer_index + 1, i)
+                mask_node.node_tree.name = mask_node.name
 
-                bpy.context.scene.matlayer_layer_stack.selected_layer_index = selected_layer_index + 1
-
-            else:
-                debug_logging.log("Can't move layer up, no layers exist above the selected layer.")
+            bpy.context.scene.matlayer_layer_stack.selected_layer_index = selected_layer_index + 1
 
         case 'DOWN':
             # Swap the layer index for all nodes in this layer with the layer below it (if one exists).
             layers = bpy.context.scene.matlayer_layers
             selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-            if selected_layer_index - 1 >= 0:
-                layer_node = get_material_layer_node('LAYER', selected_layer_index)
-                layer_node.name += "~"
-                layer_node.node_tree.name += "~"
+            if not selected_layer_index - 1 >= 0:
+                debug_logging.log_status("Can't move layer down. No layers exist below the selected layer.", self, type='INFO')
+                return
+            
+            layer_node = get_material_layer_node('LAYER', selected_layer_index)
+            layer_node.name += "~"
+            layer_node.node_tree.name += "~"
 
-                below_layer_node = get_material_layer_node('LAYER', selected_layer_index - 1)
-                below_layer_node.name = str(selected_layer_index)
-                material_name = parse_material_name(below_layer_node.node_tree.name)
-                below_layer_node.node_tree.name = format_layer_group_node_name(material_name, selected_layer_index)
+            below_layer_node = get_material_layer_node('LAYER', selected_layer_index - 1)
+            below_layer_node.name = str(selected_layer_index)
+            material_name = parse_material_name(below_layer_node.node_tree.name)
+            below_layer_node.node_tree.name = format_layer_group_node_name(material_name, selected_layer_index)
 
-                layer_node.name = str(selected_layer_index - 1)
-                material_name = parse_material_name(layer_node.node_tree.name)
-                layer_node.node_tree.name = format_layer_group_node_name(material_name, selected_layer_index - 1)
+            layer_node.name = str(selected_layer_index - 1)
+            material_name = parse_material_name(layer_node.node_tree.name)
+            layer_node.node_tree.name = format_layer_group_node_name(material_name, selected_layer_index - 1)
 
-                # Swap the layer index for all mask nodes in this layer with the layer below it.
-                selected_layer_mask_count = layer_masks.count_masks(selected_layer_index)
-                for i in range(0, selected_layer_mask_count):
-                    mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i)
-                    mask_node.name += "~"
-                    mask_node.node_tree.name = mask_node.name
+            # Swap the layer index for all mask nodes in this layer with the layer below it.
+            selected_layer_mask_count = layer_masks.count_masks(selected_layer_index)
+            for i in range(0, selected_layer_mask_count):
+                mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i)
+                mask_node.name += "~"
+                mask_node.node_tree.name = mask_node.name
 
-                below_layer_mask_count = layer_masks.count_masks(selected_layer_index - 1)
-                for i in range(0, below_layer_mask_count):
-                    mask_node = layer_masks.get_mask_node('MASK', selected_layer_index - 1, i)
-                    mask_node.name = layer_masks.format_mask_name(selected_layer_index, i)
-                    mask_node.node_tree.name = mask_node.name
+            below_layer_mask_count = layer_masks.count_masks(selected_layer_index - 1)
+            for i in range(0, below_layer_mask_count):
+                mask_node = layer_masks.get_mask_node('MASK', selected_layer_index - 1, i)
+                mask_node.name = layer_masks.format_mask_name(selected_layer_index, i)
+                mask_node.node_tree.name = mask_node.name
 
-                for i in range(0, selected_layer_mask_count):
-                    mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i, get_changed=True)
-                    mask_node.name = layer_masks.format_mask_name(selected_layer_index - 1, i)
-                    mask_node.node_tree.name = mask_node.name
+            for i in range(0, selected_layer_mask_count):
+                mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, i, get_changed=True)
+                mask_node.name = layer_masks.format_mask_name(selected_layer_index - 1, i)
+                mask_node.node_tree.name = mask_node.name
 
-                bpy.context.scene.matlayer_layer_stack.selected_layer_index = selected_layer_index - 1
-
-            else:
-                debug_logging.log("Can't move layer down, no layers exist below the selected layer.")
+            bpy.context.scene.matlayer_layer_stack.selected_layer_index = selected_layer_index - 1
 
         case _:
             debug_logging.log_status("Invalid direction provided for moving a material layer.", self, 'ERROR')
@@ -1228,7 +1228,6 @@ def move_layer(direction, self):
     link_layer_group_nodes(self)
     layer_masks.organize_mask_nodes()
     layer_masks.refresh_mask_slots()
-
     debug_logging.log("Moved material layer.")
 
 def count_layers(material=None):
