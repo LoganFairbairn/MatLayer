@@ -10,7 +10,7 @@ def draw_texture_setting_ui(layout):
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
 
     # Split the UI into a two column layout.
-    split = layout.split(factor=0.25)
+    split = layout.split(factor=0.4)
     first_column = split.column()
     second_column = split.column()
 
@@ -33,7 +33,7 @@ def draw_texture_setting_ui(layout):
     col.prop(texture_set_settings, "image_height", text="")
 
     # Split the UI into a two column layout.
-    split = layout.split(factor=0.25)
+    split = layout.split(factor=0.4)
     first_column = split.column()
     second_column = split.column()
 
