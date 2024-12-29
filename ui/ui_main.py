@@ -29,11 +29,20 @@ def update_main_ui_tabs(self, context):
 
 def draw_addon_dropdown_menu_bar(layout):
     '''Draws a dropdown menu bar for this add-on.'''
-    row = layout.row(align=True)
+    split = layout.split(factor=0.3)
+    first_column = split.column(align=True)
+    second_column = split.column(align=True)
+
+    row = first_column.row(align=True)
     row.menu("MATLAYER_MT_file_sub_menu", text="File")
     row.menu("MATLAYER_MT_edit_sub_menu", text="Edit")
-    row.menu("MATLAYER_MT_utility_sub_menu", text="Utility")
     row.menu("MATLAYER_MT_help_sub_menu", text="Help")
+
+    row = second_column.row(align=True)
+    panel_properties = bpy.context.scene.matlayer_panel_properties
+    row.prop_enum(panel_properties, "sections", 'SECTION_EDIT_MATERIALS', text="Materials", icon='NONE')
+    row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS", text="Mesh Maps", icon='NONE')
+    row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT_TEXTURES', text="Export Textures", icon='NONE')
 
 class FileSubMenu(Menu):
     bl_idname = "MATLAYER_MT_file_sub_menu"
@@ -43,8 +52,11 @@ class FileSubMenu(Menu):
         layout = self.layout
         layout.operator("matlayer.save_all_textures", text="Save All Textures", icon='FILE_TICK')
         layout.operator("matlayer.import_texture_set", text="Import Texture Set", icon='IMPORT')
+        layout.operator("matlayer.append_material_ball", text="Append Material Ball")
         layout.operator("matlayer.export", text="Export Textures", icon='EXPORT')
         layout.operator("matlayer.export_uvs", text="Export UV Map", icon='UV')
+        layout.operator("matlayer.remove_unused_textures", text="Remove Unused Textures")
+        layout.operator("matlayer.apply_default_shader", text="Apply Default Shader")
 
 class EditSubMenu(Menu):
     bl_idname = "MATLAYER_MT_edit_sub_menu"
@@ -67,16 +79,6 @@ class HelpSubMenu(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator("wm.url_open", text="Documentation", icon='HELP').url = "https://loganfairbairn.github.io/matlayer_documentation.html"
-
-class UtilitySubMenu(Menu):
-    bl_idname = "MATLAYER_MT_utility_sub_menu"
-    bl_label = "Utility Sub Menu"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("matlayer.append_material_ball", text="Append Material Ball")
-        layout.operator("matlayer.remove_unused_textures", text="Remove Unused Textures")
-        layout.operator("matlayer.apply_default_shader", text="Apply Default Shader")
 
 class MATLAYER_panel_properties(bpy.types.PropertyGroup):
     sections: bpy.props.EnumProperty(

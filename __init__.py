@@ -212,7 +212,6 @@ classes = (
     # User Interface
     FileSubMenu,
     EditSubMenu,
-    UtilitySubMenu,
     HelpSubMenu,
     ShaderSubMenu,
     MATLAYER_UL_shader_channel_list,
