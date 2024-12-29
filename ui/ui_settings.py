@@ -169,56 +169,6 @@ def draw_shader_setting_ui(layout):
         row = second_column.row()
         row.prop(selected_shader_channel, "default_blend_mode", text="")
 
-    # Draw unlayered shader properties.
-    layout.separator()
-    split = layout.split(factor=0.4)
-    first_column = split.column()
-    second_column = split.column()
-    row = first_column.row()
-    row.label(text="UNLAYERED SHADER PROPERTIES")
-    row.scale_y = 1.5
-    row = second_column.row(align=True)
-    row.scale_x = 1.5
-    row.scale_y = 1.5
-    row.alignment = 'RIGHT'
-    row.operator("matlayer.add_global_shader_property", text="", icon='ADD')
-    row.operator("matlayer.delete_global_shader_property", text="", icon='TRASH')
-    row = layout.row(align=True)
-    row.template_list("MATLAYER_UL_global_shader_property_list", "Unlayered Shader Properties", bpy.context.scene.matlayer_shader_info, "unlayered_properties", bpy.context.scene, "matlayer_selected_global_shader_property_index", sort_reverse=False)
-
-    selected_global_shader_property_index = bpy.context.scene.matlayer_selected_global_shader_property_index
-    if selected_global_shader_property_index > -1 and selected_global_shader_property_index < len(shader_info.unlayered_properties):
-        global_shader_property = shader_info.unlayered_properties[selected_global_shader_property_index]
-        split = layout.split(factor=0.4)
-        first_column = split.column()
-        second_column = split.column()
-
-        row = first_column.row()
-        row.label(text="Property Name")
-        row = second_column.row()
-        row.prop(global_shader_property, "name", text="")
-
-        row = first_column.row()
-        row.label(text="Value")
-        row = second_column.row()
-        active_object = bpy.context.active_object
-        if active_object: 
-            active_material = active_object.active_material
-            if active_material:
-                matlayer_shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
-                if matlayer_shader_node:
-                    shader_property = matlayer_shader_node.inputs.get(global_shader_property.name)
-                    if shader_property:
-                        row.prop(shader_property, "default_value", text="")
-                    else:
-                        row.label(text="Shader Property Invalid")
-                else:
-                    row.label(text="No Valid Shader Node")
-            else:
-                row.label(text="No Active Material")
-        else:
-            row.label(text="No Object Selected")
-
 class ShaderSubMenu(Menu):
     bl_idname = "MATLAYER_MT_shader_sub_menu"
     bl_label = "Shader Sub Menu"

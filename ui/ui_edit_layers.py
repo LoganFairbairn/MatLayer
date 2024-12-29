@@ -18,7 +18,8 @@ STANDARD_UI_SPLIT = 0.4
 MATERIAL_LAYER_PROPERTY_TABS = [
     ("MATERIAL_CHANNELS", "CHANNELS", "Properties of material channels for the selected layer"),
     ("PROJECTION", "PROJECTION", "Projection properties for the selected layer"),
-    ("MASKS", "MASKS", "Properties for masks applied to the selected material layer")
+    ("MASKS", "MASKS", "Properties for masks applied to the selected material layer"),
+    ("UNLAYERED", "UNLAYERED", "Unlayered properties of the shader node")
 ]
 
 # User interface labels for group nodes.
@@ -318,6 +319,33 @@ def draw_layer_projection(layout):
                 row = second_column.row()
                 row.prop(input, "default_value", text="", slider=True)
 
+def draw_unlayered_shader_properties(layout):
+    '''Draws unlayered properties of the shader node.'''
+    # Use a two column layout for neatness.
+    split = layout.split(factor=STANDARD_UI_SPLIT)
+    first_column = split.column()
+    second_column = split.column()
+
+    active_object = bpy.context.active_object
+    if not active_object:
+        return
+
+    active_material = bpy.context.active_object.active_material
+    if not active_material:
+        return
+
+    shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
+    if not shader_node:
+        return
+
+    shader_info = bpy.context.scene.matlayer_shader_info
+    for input in shader_node.inputs:
+        if input.name not in shader_info.material_channels:
+            row = first_column.row()
+            row.label(text=input.name)
+            row = second_column.row()
+            row.prop(input, "default_value", text="")
+
 def draw_image_texture_property(layout, node_tree, texture_node):
     '''Draws an image texture property with this add-ons image utility sub-menu.'''
     split = layout.split(factor=STANDARD_UI_SPLIT)
@@ -616,6 +644,7 @@ class LayerPropertiesPanel(Panel):
                 row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MATERIAL_CHANNELS', text="CHANNELS")
                 row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'PROJECTION', text="PROJECTION")
                 row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MASKS', text="MASKS")
+                row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'UNLAYERED', text="UNLAYERED")
                 match bpy.context.scene.matlayer_material_property_tabs:
                     case 'MATERIAL_CHANNELS':
                         draw_material_channel_properties(layout)
@@ -623,6 +652,8 @@ class LayerPropertiesPanel(Panel):
                         draw_masks_tab(layout)
                     case 'PROJECTION':
                         draw_layer_projection(layout)
+                    case 'UNLAYERED':
+                        draw_unlayered_shader_properties(layout)
             else:
                 bau.print_aligned_text(layout, "No Layer Selected", alignment='CENTER')
 
