@@ -175,7 +175,7 @@ def set_shader(shader_name):
     # Reload the export template to avoid invalid pack texture enums in the export texture settings.
     if shader_exists:
         texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
-        export_textures.set_export_template(texture_export_settings.export_template_name)
+        export_textures.set_export_template(texture_export_settings.export_preset_name)
 
     # If the shader wasn't found, log an error.
     if not shader_exists:

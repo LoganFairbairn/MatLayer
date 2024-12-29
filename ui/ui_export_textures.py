@@ -50,6 +50,15 @@ def draw_export_textures_ui(self, context):
     first_column = split.column()
     second_column = split.column()
     
+    # Draw the export preset options.
+    texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
+    row = first_column.row()
+    row.label(text="Export Preset")
+    row = second_column.row(align=True)
+    row.prop(texture_export_settings, "export_preset_name", text="")
+    row.menu("MATLAYER_MT_export_preset_menu", text="Load Preset")
+    row.menu("MATLAYER_MT_export_setting_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+
     # Draw the render device.
     row = first_column.row()
     row.label(text="Render Device")
@@ -58,21 +67,12 @@ def draw_export_textures_ui(self, context):
 
     # Draw the export folder.
     baking_settings = bpy.context.scene.matlayer_baking_settings
-    texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
     row = first_column.row()
     row.label(text="Export Folder")
     row = second_column.row(align=True)
     row.prop(bpy.context.scene, "matlayer_export_folder", text="")
     row.operator("matlayer.set_export_folder", text="", icon='FOLDER_REDIRECT')
     row.operator("matlayer.open_export_folder", text="", icon='FILE_FOLDER')
-
-    # Draw the export template options.
-    row = first_column.row()
-    row.label(text="Export Template")
-    row = second_column.row(align=True)
-    row.prop(texture_export_settings, "export_template_name", text="")
-    row.menu("MATLAYER_MT_export_template_menu", text="Load Template")
-    row.menu("MATLAYER_MT_export_setting_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
     # Draw the export mode.
     row = first_column.row()
@@ -167,6 +167,6 @@ class ExportSettingUtilitySubMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("matlayer.save_export_template", text="Save Export Template", icon='FILE_TICK')
-        layout.operator("matlayer.refresh_export_template_list", text="Refresh Export Template List", icon='FILE_REFRESH')
-        layout.operator("matlayer.delete_export_template", text="Delete Export Template", icon='TRASH')
+        layout.operator("matlayer.save_export_template", text="Save Export Preset", icon='FILE_TICK')
+        layout.operator("matlayer.refresh_export_template_list", text="Refresh Export Preset List", icon='FILE_REFRESH')
+        layout.operator("matlayer.delete_export_template", text="Delete Export Preset", icon='TRASH')

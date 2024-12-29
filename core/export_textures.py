@@ -30,7 +30,7 @@ default_output_texture = {
 }
 
 default_export_template_json = {
-    "name": "Default Export Template",
+    "name": "Default Export Preset",
     "roughness_map_mode": "ROUGHNESS",
     "normal_map_mode": "OPEN_GL",
     "output_textures": [
@@ -643,15 +643,15 @@ def get_texture_channel_bake_list():
     debug_logging.log("Baking channels: {0}".format(material_channels_to_bake))
     return material_channels_to_bake
 
-def set_export_template(export_template_name):
+def set_export_template(export_preset_name):
     '''Applies the export template settings stored in the specified export template from the export template json file.'''
     # TODO: BPY context isn't available here if this is called on scene load.
     texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
     jdata = read_export_template_data()
     export_templates = jdata['export_templates']
     for template in export_templates:
-        if template['name'] == export_template_name:
-            texture_export_settings.export_template_name = template['name']
+        if template['name'] == export_preset_name:
+            texture_export_settings.export_preset_name = template['name']
             texture_export_settings.roughness_mode = template['roughness_map_mode']
             texture_export_settings.normal_map_mode = template['normal_map_mode']
             texture_export_settings.export_textures.clear()
@@ -676,7 +676,7 @@ def set_export_template(export_template_name):
                 export_texture.output_rgba_channels.b_color_channel = texture['output_pack_channels'][2]
                 export_texture.output_rgba_channels.a_color_channel = texture['output_pack_channels'][3]
 
-            debug_logging.log("Applied export template: {0}".format(export_template_name))
+            debug_logging.log("Applied export template: {0}".format(export_preset_name))
             return
     
     debug_logging.log("Error export template was not found in the json file and can't be applied")
@@ -840,7 +840,7 @@ def read_export_template_data():
             json.dump(default_json_file, f)
         
         texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
-        texture_export_settings.export_template_name = "PBR Metallic Roughness"
+        texture_export_settings.export_preset_name = "PBR Metallic Roughness"
         read_export_template_names()
 
     return jdata
@@ -912,7 +912,7 @@ class MATLAYER_texture_export_settings(PropertyGroup):
 
 class MATLAYER_texture_set_export_settings(PropertyGroup):
     '''Settings that define how textures are exported from this add-on.'''
-    export_template_name: StringProperty(name="Export Template Name", default="PBR Metallic Roughness")
+    export_preset_name: StringProperty(name="Export Preset Name", default="PBR Metallic Roughness")
     export_textures: CollectionProperty(type=MATLAYER_texture_export_settings)
     roughness_mode: EnumProperty(name="Roughness Mode", items=ROUGHNESS_MODE, default='ROUGHNESS')
     normal_map_mode: EnumProperty(name="Normal Map Mode", items=NORMAL_MAP_MODE, default='OPEN_GL')
@@ -1135,18 +1135,18 @@ class MATLAYER_OT_export(Operator):
 
 class MATLAYER_OT_set_export_template(Operator):
     bl_idname = "matlayer.set_export_template"
-    bl_label = "Set Export Template"
+    bl_label = "Set Export Preset"
     bl_description = "Sets an export template"
 
-    export_template_name: StringProperty(default="Error")
+    export_preset_name: StringProperty(default="Error")
     
     def execute(self, context):
-        set_export_template(self.export_template_name)
+        set_export_template(self.export_preset_name)
         return {'FINISHED'}
 
 class MATLAYER_OT_save_export_template(Operator):
     bl_idname = "matlayer.save_export_template"
-    bl_label = "Save Export Template"
+    bl_label = "Save Export Preset"
     bl_description = "Saves the current export template. If a template with the same name already exists, it will be overwritten"
     
     def execute(self, context):
@@ -1158,7 +1158,7 @@ class MATLAYER_OT_save_export_template(Operator):
         new_export_template = None
         export_templates = jdata['export_templates']
         for template in export_templates:
-            if template['name'] == texture_export_settings.export_template_name:
+            if template['name'] == texture_export_settings.export_preset_name:
                 new_export_template = template
                 template_existed = True
 
@@ -1167,7 +1167,7 @@ class MATLAYER_OT_save_export_template(Operator):
             new_export_template = copy.deepcopy(default_export_template_json)
 
         # Overwrite the properties of the export template with the export properties defined in the user interface.
-        new_export_template['name'] = texture_export_settings.export_template_name
+        new_export_template['name'] = texture_export_settings.export_preset_name
         new_export_template['roughness_map_mode'] = texture_export_settings.roughness_mode
         new_export_template['normal_map_mode'] = texture_export_settings.normal_map_mode
 
@@ -1212,7 +1212,7 @@ class MATLAYER_OT_save_export_template(Operator):
 
 class MATLAYER_OT_delete_export_template(Operator):
     bl_idname = "matlayer.delete_export_template"
-    bl_label = "Delete Export Template"
+    bl_label = "Delete Export Preset"
     bl_description = "Deletes the currently selected export template from the json file if it exists"
     
     def execute(self, context):
@@ -1224,7 +1224,7 @@ class MATLAYER_OT_delete_export_template(Operator):
         # Delete the template if it exists in the json data.
         export_templates = jdata['export_templates']
         for template in export_templates:
-            if template['name'] == texture_export_settings.export_template_name:
+            if template['name'] == texture_export_settings.export_preset_name:
                 template_name = template['name']
                 export_templates.remove(template)
                 debug_logging.log_status("Deleted template: {0}".format(template_name), self, type='INFO')
@@ -1241,7 +1241,7 @@ class MATLAYER_OT_delete_export_template(Operator):
 
 class MATLAYER_OT_refresh_export_template_list(Operator):
     bl_idname = "matlayer.refresh_export_template_list"
-    bl_label = "Refresh Export Template List"
+    bl_label = "Refresh Export Preset List"
     bl_description = "Updates the list of export templates by reading the export template json file"
     
     def execute(self, context):
@@ -1313,8 +1313,8 @@ class MATLAYER_OT_open_export_folder(Operator):
         return {'FINISHED'}
 
 class ExportTemplateMenu(Menu):
-    bl_idname = "MATLAYER_MT_export_template_menu"
-    bl_label = "Export Template Menu"
+    bl_idname = "MATLAYER_MT_export_preset_menu"
+    bl_label = "Export Preset Menu"
     bl_description = "Contains options to set a specific export template"
 
     def draw(self, context):
@@ -1322,4 +1322,4 @@ class ExportTemplateMenu(Menu):
         cached_template_names = bpy.context.scene.matlayer_export_templates
         for template in cached_template_names:
             op = layout.operator("matlayer.set_export_template", text=template.name)
-            op.export_template_name = template.name
+            op.export_preset_name = template.name
