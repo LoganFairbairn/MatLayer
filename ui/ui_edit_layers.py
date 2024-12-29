@@ -519,6 +519,7 @@ class MaterialSelectorPanel(Panel):
             row = second_column.row()
             shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
             if shader_node:
+                row.enabled = False
                 row.prop(shader_node.node_tree, "name", text="")
             else:
                 row.label(text="NONE")
