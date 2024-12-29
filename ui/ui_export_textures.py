@@ -46,24 +46,26 @@ def draw_export_textures_ui(self, context):
         row.separator()
 
     # Split the UI into a two column layout.
-    split = layout.split(factor=0.25)
+    split = layout.split(factor=0.4)
     first_column = split.column()
     second_column = split.column()
-    
-    # Draw the export preset options.
+
+    # Draw options for changing the export preset.
     texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
     row = first_column.row()
-    row.label(text="Export Preset")
+    row.label(text="Preset Options")
     row = second_column.row(align=True)
-    row.prop(texture_export_settings, "export_preset_name", text="")
-    row.menu("MATLAYER_MT_export_preset_menu", text="Load Preset")
-    row.menu("MATLAYER_MT_export_setting_utility_sub_menu", text="", icon='DOWNARROW_HLT')
-
-    # Draw the render device.
+    row.menu("MATLAYER_MT_export_preset_menu", text="Select Preset")
+    row.operator("matlayer.save_export_template", text="", icon='FILE_TICK')
+    row.operator("matlayer.refresh_export_template_list", text="", icon='FILE_REFRESH')
+    row.operator("matlayer.delete_export_template", text="", icon='TRASH')
+    
+    # Draw the name of the active export preset.
+    texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
     row = first_column.row()
-    row.label(text="Render Device")
+    row.label(text="Export Preset Name")
     row = second_column.row()
-    row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
+    row.prop(texture_export_settings, "export_preset_name", text="")
 
     # Draw the export folder.
     baking_settings = bpy.context.scene.matlayer_baking_settings
@@ -73,6 +75,12 @@ def draw_export_textures_ui(self, context):
     row.prop(bpy.context.scene, "matlayer_export_folder", text="")
     row.operator("matlayer.set_export_folder", text="", icon='FOLDER_REDIRECT')
     row.operator("matlayer.open_export_folder", text="", icon='FILE_FOLDER')
+
+    # Draw the render device.
+    row = first_column.row()
+    row.label(text="Render Device")
+    row = second_column.row()
+    row.prop(bpy.data.scenes["Scene"].cycles, "device", text="")
 
     # Draw the export mode.
     row = first_column.row()
@@ -121,45 +129,79 @@ def draw_export_textures_ui(self, context):
     row.alignment = 'RIGHT'
     row.operator("matlayer.add_export_texture", text="", icon='ADD')
 
-    split = layout.split(factor=0.4)
-    first_column = split.column()
-    second_column = split.column()
+    # Draw channel packing textures.
     for i, texture in enumerate(texture_export_settings.export_textures):
+        row = layout.row()
+        layout.separator()
+        split = layout.split(factor=0.4)
+        first_column = split.column()
+        second_column = split.column()
 
-        # Draw texture settings.
-        col = first_column.column(align=True)
-        col.prop(texture, "name_format", text="")
-        row = col.row(align=True)
-        row.prop(texture, "image_format", text="", emboss=True)
-        row.prop(texture, "colorspace", text="", emboss=True)
-        row.prop(texture, "bit_depth", text="", emboss=True)
-
-        # Draw channel packing settings.
-        split = second_column.split(factor=0.2)
-        col_1 = split.column(align=True)
-        col_1.alignment = 'RIGHT'
-        col_1.label(text="Textures")
-        col_1.label(text="In / Out")
-
-        col_2 = split.column(align=True)
-        split = col_2.split(factor=0.9)
-        col_1 = split.column(align=True)
-
-        # Draw menus with shader channels that can be used as inputs for RGBA channel packing.
-        row = col_1.row(align=True)
-        for key in texture.pack_textures.__annotations__.keys():
-            row.prop(texture.pack_textures, key, text="")
-        
-        # Draw RGBA channels for desired input and output channels.
-        row = col_1.row(align=True)
-        for key in texture.input_rgba_channels.__annotations__.keys():
-            row.prop(texture.input_rgba_channels, key, text="")
-            row.prop(texture.output_rgba_channels, key, text="")
-
-        col = split.column()
-        col.ui_units_x = 0.7
-        op = col.operator("matlayer.remove_export_texture", icon='X', text="")
+        row = first_column.row()
+        row.label(text=str(i) + ".")
+        row = second_column.row()
+        row.prop(texture, "name_format", text="")
+        op = row.operator("matlayer.remove_export_texture", icon='X', text="")
         op.export_texture_index = i
+
+        row = first_column.row()
+        row.label(text="Image Settings")
+        row = second_column.row(align=True)
+        row.prop(texture, "image_format", text="")
+        row.prop(texture, "colorspace", text="")
+        row.prop(texture, "bit_depth", text="")
+
+        row = first_column.row()
+        row.label(text="Red Packing")
+        split = second_column.split(factor=0.5)
+        sub_column_1 = split.column()
+        sub_column_2 = split.column()
+        row = sub_column_1.row()
+        row.prop(texture.pack_textures, "r_texture", text="")
+        row = sub_column_2.row()
+        row.alignment = 'CENTER'
+        row.prop(texture.input_rgba_channels, "r_color_channel", text="")
+        row.label(text="->")
+        row.prop(texture.output_rgba_channels, "r_color_channel", text="")
+
+        row = first_column.row()
+        row.label(text="Green Packing")
+        split = second_column.split(factor=0.5)
+        sub_column_1 = split.column()
+        sub_column_2 = split.column()
+        row = sub_column_1.row()
+        row.prop(texture.pack_textures, "g_texture", text="")
+        row = sub_column_2.row()
+        row.alignment = 'CENTER'
+        row.prop(texture.input_rgba_channels, "g_color_channel", text="")
+        row.label(text="->")
+        row.prop(texture.output_rgba_channels, "g_color_channel", text="")
+
+        row = first_column.row()
+        row.label(text="Blue Packing")
+        split = second_column.split(factor=0.5)
+        sub_column_1 = split.column()
+        sub_column_2 = split.column()
+        row = sub_column_1.row()
+        row.prop(texture.pack_textures, "b_texture", text="")
+        row = sub_column_2.row()
+        row.alignment = 'CENTER'
+        row.prop(texture.input_rgba_channels, "b_color_channel", text="")
+        row.label(text="->")
+        row.prop(texture.output_rgba_channels, "b_color_channel", text="")
+
+        row = first_column.row()
+        row.label(text="Alpha Packing")
+        split = second_column.split(factor=0.5)
+        sub_column_1 = split.column()
+        sub_column_2 = split.column()
+        row = sub_column_1.row()
+        row.prop(texture.pack_textures, "a_texture", text="")
+        row = sub_column_2.row()
+        row.alignment = 'CENTER'
+        row.prop(texture.input_rgba_channels, "a_color_channel", text="")
+        row.label(text="->")
+        row.prop(texture.output_rgba_channels, "a_color_channel", text="")
 
 class ExportSettingUtilitySubMenu(Menu):
     bl_idname = "MATLAYER_MT_export_setting_utility_sub_menu"
