@@ -50,7 +50,7 @@ from .core.export_textures import MATLAYER_pack_textures, MATLAYER_RGBA_pack_cha
 # Utilities
 from .core.image_utilities import MATLAYER_OT_add_texture_node_image, MATLAYER_OT_import_texture_node_image, MATLAYER_OT_edit_texture_node_image_externally, MATLAY_OT_export_uvs, MATLAYER_OT_reload_texture_node_image, MATLAYER_OT_duplicate_texture_node_image, MATLAYER_OT_delete_texture_node_image, MATLAY_OT_image_edit_uvs, auto_save_images
 from .core.layer_utilities import MATLAYER_OT_import_texture_set, MATLAYER_OT_merge_materials
-from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLAYER_OT_append_workspace, MATLAYER_OT_append_basic_brushes, MATLAYER_OT_append_hdri_world, MATLAYER_OT_remove_unused_raw_textures, MATLAYER_OT_append_material_ball
+from .core.utility_operations import MATLAYER_OT_set_decal_layer_snapping, MATLAYER_OT_append_basic_brushes, MATLAYER_OT_append_hdri_world, MATLAYER_OT_remove_unused_raw_textures, MATLAYER_OT_append_material_ball
 
 # User Interface
 from .ui.ui_edit_layers import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, AddMaterialChannelSubMenu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MaterialSelectorPanel, LayerStackPanel, LayerPropertiesPanel, MATERIAL_LAYER_PROPERTY_TABS
@@ -203,7 +203,6 @@ classes = (
 
     # Utility Operators
     MATLAYER_OT_set_decal_layer_snapping,
-    MATLAYER_OT_append_workspace,
     MATLAYER_OT_append_basic_brushes,
     MATLAYER_OT_append_hdri_world,
     MATLAYER_OT_remove_unused_raw_textures,

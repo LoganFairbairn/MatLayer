@@ -33,9 +33,6 @@ def draw_edit_layers_ui(self, context):
     '''Draws the layer section user interface to the add-on side panel.'''
     layout = self.layout
 
-    # Draw setup prompts to help new users of the add-on.
-    draw_workspace_prompt(layout)
-
     # Print info when there is no active object.
     active_object = bpy.context.view_layer.objects.active
     if not active_object:
@@ -81,23 +78,6 @@ def draw_edit_layers_ui(self, context):
         bau.print_aligned_text(layout, "Shader Not Defined", alignment='CENTER')
         bau.print_aligned_text(layout, "Define the active shader in setup tab.")
         return
-
-def draw_workspace_prompt(layout):
-    '''Draws a prompt to load the suggested workspace to help new users of the add-on.'''
-    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-    if addon_preferences.beginner_help:
-        workspace = bpy.data.workspaces.get('MatLayer')
-        if not workspace:
-            row = layout.row()
-            row.scale_y = 1.5
-            row.separator()
-            row = layout.row()
-            row.scale_y = 1.5
-            row.alignment = 'CENTER'
-            row.operator("matlayer.append_workspace", text="Load Suggested Workspace")
-            row = layout.row()
-            row.scale_y = 1.5
-            row.separator()
 
 def draw_layer_property_dropdown(layout):
     '''Draws tabs to change between editing the material layer and the masks applied to the material layer.'''
