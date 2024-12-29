@@ -113,3 +113,72 @@ class MATLAYER_OT_append_material_ball(Operator):
     def execute(self, context):
         bau.append_object("MaterialBall")
         return {'FINISHED'}
+
+def add_outline(outline_object, self):
+    '''Adds an outline to the specified object by adding a solidify modifier with inverted normals and an outline material to it.'''
+    # Ensure the selected object is a mesh.
+    if outline_object is None or outline_object.type != 'MESH':
+        debug_logging.log_status("Object must be a mesh.", self, type='INFO')
+        return
+    
+    # If an outline material is already applied, cancel the operation.
+    outline_material_name = "Outline"
+    for mat in outline_object.data.materials:
+        if mat and mat.name == outline_material_name:
+            debug_logging.log_status("Outline material already applied.", self, type='INFO')
+            return
+    
+    # Create an outline material if one does not exist.
+    outline_material = bpy.data.materials.get(outline_material_name)
+    if not outline_material:
+        outline_material = bpy.data.materials.new(name=outline_material_name)
+        outline_material.use_nodes = True
+        outline_material.use_backface_culling = True
+        outline_material.use_backface_culling_shadow = True
+        outline_material.use_backface_culling_lightprobe_volume = True
+
+        nodes = outline_material.node_tree.nodes
+        links = outline_material.node_tree.links
+        for node in nodes:
+            nodes.remove(node)
+        emission_node = nodes.new(type="ShaderNodeEmission")
+        emission_node.location = (-200, 0)
+        emission_node.inputs["Color"].default_value = (0, 0, 0, 1)
+        emission_node.inputs["Strength"].default_value = 1.0
+        output_node = nodes.new(type="ShaderNodeOutputMaterial")
+        output_node.location = (0, 0)
+        links.new(emission_node.outputs["Emission"], output_node.inputs["Surface"])
+
+    # Add the outline material to the object in a new material slot.
+    outline_object.data.materials.append(outline_material)
+
+    # Add a solidify modifier and adjust its settings so it acts as an outline.
+    solidify = outline_object.modifiers.new(name="Black Outline", type='SOLIDIFY')
+    solidify.thickness = self.thickness
+    solidify.offset = -1
+    solidify.use_flip_normals = True
+    solidify.material_offset = len(outline_object.data.materials) - 1
+    
+class MATLAYER_OT_add_black_outline(bpy.types.Operator):
+    bl_idname = "matlayer.add_black_outline"
+    bl_label = "Add Black Outline"
+    bl_description = "Adds a black outline to all selected objects by adding solidify modifiers with inverted normals and an outline material to them"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    thickness: bpy.props.FloatProperty(
+        name="Outline Thickness",
+        description="Thickness of the outline",
+        default=0.002,
+        min=0.001,
+        max=10.0,
+    )
+
+    def execute(self, context):
+
+        # Add an outline to all selected objects.
+        for obj in context.selected_objects:
+            add_outline(obj, self)
+            
+        # Log completion.
+        debug_logging.log_status("Added a black outline to all selected objects.", self, type='INFO')
+        return {'FINISHED'}

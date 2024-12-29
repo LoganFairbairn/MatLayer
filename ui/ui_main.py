@@ -63,6 +63,7 @@ class EditSubMenu(Menu):
         layout.prop_enum(panel_properties, "sections", 'SECTION_SHADER_SETTINGS', text="Shader Settings", icon='MATSHADERBALL')
         layout.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS', text="Viewport Settings")
         layout.prop_enum(panel_properties, "sections", 'SECTION_EXPORT_TEXTURES', text="Export Texture Settings", icon='EXPORT')
+        layout.operator("matlayer.add_black_outline", text="Add Black Outline")
 
 class HelpSubMenu(Menu):
     bl_idname = "MATLAYER_MT_help_sub_menu"
