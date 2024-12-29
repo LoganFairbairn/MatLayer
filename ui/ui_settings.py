@@ -69,23 +69,29 @@ def draw_texture_setting_ui(layout):
 def draw_shader_setting_ui(layout):
     '''Draws shader setting user interface for this add-on.'''
     # Split the UI into a two column layout.
-    split = layout.split(factor=0.25)
+    split = layout.split(factor=0.4)
     first_column = split.column()
     second_column = split.column()
+
+    # Draw options to edit the selected shader preset.
+    row = first_column.row()
+    row.label(text="Shader Preset")
+    row = second_column.row(align=True)
+    row.menu("MATLAYER_MT_shader_sub_menu", text="Select Shader")
+    row.operator("matlayer.new_shader", text="", icon='ADD')
+    row.operator("matlayer.save_shader", text="", icon='FILE_TICK')
+    row.operator("matlayer.create_shader_from_nodetree", text="", icon='NODETREE')
+    row.operator("matlayer.delete_shader", text="", icon='TRASH')
 
     # Draw the selected shader, and operators to change or edit the shader.
     shader_info = bpy.context.scene.matlayer_shader_info
     row = first_column.row()
-    row.label(text="Shader")
+    row.label(text="Shader Node")
     row = second_column.row(align=True)
-    menu_label = shader_info.name
-    menu_label = menu_label.replace('ML_', '')
     row.prop(shader_info, "shader_node_group", text="")
-    row.menu("MATLAYER_MT_shader_sub_menu", text="Load Shader")
-    row.menu("MATLAYER_MT_shader_setup_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
     # Draw shader channels.
-    split = layout.split(factor=0.25)
+    split = layout.split(factor=0.4)
     first_column = split.column()
     second_column = split.column()
     row = first_column.row()
@@ -101,7 +107,7 @@ def draw_shader_setting_ui(layout):
     row.template_list("MATLAYER_UL_shader_channel_list", "Shader Channels", bpy.context.scene.matlayer_shader_info, "material_channels", bpy.context.scene, "matlayer_shader_channel_index", sort_reverse=False)
 
     # Draw properties for the selected shader channel.
-    split = layout.split(factor=0.3)
+    split = layout.split(factor=0.4)
     first_column = split.column()
     second_column = split.column()
 
@@ -183,7 +189,7 @@ def draw_shader_setting_ui(layout):
     selected_global_shader_property_index = bpy.context.scene.matlayer_selected_global_shader_property_index
     if selected_global_shader_property_index > -1 and selected_global_shader_property_index < len(shader_info.unlayered_properties):
         global_shader_property = shader_info.unlayered_properties[selected_global_shader_property_index]
-        split = layout.split(factor=0.3)
+        split = layout.split(factor=0.4)
         first_column = split.column()
         second_column = split.column()
 

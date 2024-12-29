@@ -53,7 +53,7 @@ def draw_export_textures_ui(self, context):
     # Draw options for changing the export preset.
     texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
     row = first_column.row()
-    row.label(text="Preset Options")
+    row.label(text="Export Preset")
     row = second_column.row(align=True)
     row.menu("MATLAYER_MT_export_preset_menu", text="Select Preset")
     row.operator("matlayer.save_export_template", text="", icon='FILE_TICK')
