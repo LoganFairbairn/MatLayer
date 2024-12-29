@@ -2271,7 +2271,7 @@ def relink_shader_node():
 class MATLAYER_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''
     selected_layer_index: IntProperty(default=-1, description="Selected material layer", update=update_layer_index)
-    selected_material_channel: StringProperty(name="Material Channel", description="The currently selected material channel", default='ERROR')
+    selected_material_channel: StringProperty(name="Material Channel", description="The currently selected material channel", default='NONE')
 
 class MATLAYER_layers(PropertyGroup):
     # Storing properties in the layer slot data can potentially cause many errors and often more code -
@@ -2563,7 +2563,7 @@ class MATLAYER_OT_set_material_channel(Operator):
     bl_label = "Set Material Channel"
     bl_description = "Sets the material channel being edited in the layer stack"
 
-    material_channel_name: StringProperty(default="ERROR")
+    material_channel_name: StringProperty(default="NONE")
 
     def execute(self, context):
         bpy.context.scene.matlayer_layer_stack.selected_material_channel = self.material_channel_name
