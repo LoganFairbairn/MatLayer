@@ -55,10 +55,9 @@ from .core.blender_addon_utils import MATLAYER_OT_save_all_textures
 
 # User Interface
 from .ui.ui_edit_layers import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, AddMaterialChannelSubMenu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MaterialSelectorPanel, LayerStackPanel, LayerPropertiesPanel, MATERIAL_LAYER_PROPERTY_TABS
-from .ui.ui_settings import ShaderSubMenu, MATLAYER_UL_shader_channel_list, MATLAYER_UL_global_shader_property_list, ShaderSetupUtilitySubMenu
+from .ui.ui_settings import ShaderSubMenu, MATLAYER_UL_shader_channel_list, MATLAYER_UL_global_shader_property_list
 from .ui.ui_main import *
 from .ui.ui_layer_stack import MATLAYER_UL_layer_list, LayerBlendingModeSubMenu
-from .ui.ui_export_textures import ExportSettingUtilitySubMenu
 
 # Subscription Update Handler
 from .core.subscription_update_handler import on_active_material_changed, on_active_object_changed, on_active_object_name_changed, on_active_material_index_changed, on_active_material_name_changed
@@ -217,7 +216,6 @@ classes = (
     ShaderSubMenu,
     MATLAYER_UL_shader_channel_list,
     MATLAYER_UL_global_shader_property_list,
-    ShaderSetupUtilitySubMenu,
     MATLAYER_UL_layer_list,
     LayerBlendingModeSubMenu,
     MATLAYER_OT_add_material_layer_menu,
@@ -234,8 +232,7 @@ classes = (
     MATLAYER_PT_Panel,
     MaterialSelectorPanel,
     LayerStackPanel,
-    LayerPropertiesPanel,
-    ExportSettingUtilitySubMenu
+    LayerPropertiesPanel
 )
 
 @persistent

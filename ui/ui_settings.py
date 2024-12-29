@@ -245,14 +245,3 @@ class MATLAYER_UL_global_shader_property_list(bpy.types.UIList):
         self.use_filter_show = False
         self.use_filter_reverse = True
         layout.label(text=item.name)
-
-class ShaderSetupUtilitySubMenu(Menu):
-    bl_idname = "MATLAYER_MT_shader_setup_utility_sub_menu"
-    bl_label = "Shader Setup Utility Sub Menu"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("matlayer.new_shader", text="New Shader", icon='ADD')
-        layout.operator("matlayer.save_shader", text="Save Shader", icon='FILE_TICK')
-        layout.operator("matlayer.create_shader_from_nodetree", text="Create Shader From Shader Node", icon='NODETREE')
-        layout.operator("matlayer.delete_shader", text="Delete Shader", icon='TRASH')

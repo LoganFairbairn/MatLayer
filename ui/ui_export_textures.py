@@ -202,13 +202,3 @@ def draw_export_textures_ui(self, context):
         row.prop(texture.input_rgba_channels, "a_color_channel", text="")
         row.label(text="->")
         row.prop(texture.output_rgba_channels, "a_color_channel", text="")
-
-class ExportSettingUtilitySubMenu(Menu):
-    bl_idname = "MATLAYER_MT_export_setting_utility_sub_menu"
-    bl_label = "Export Setting Utility Sub Menu"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("matlayer.save_export_template", text="Save Export Preset", icon='FILE_TICK')
-        layout.operator("matlayer.refresh_export_template_list", text="Refresh Export Preset List", icon='FILE_REFRESH')
-        layout.operator("matlayer.delete_export_template", text="Delete Export Preset", icon='TRASH')
