@@ -102,33 +102,26 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         panel_properties = context.scene.matlayer_panel_properties
-        if check_blend_saved():
 
-            # Draw a dropdown menu bar containing options for editing main parts of this add-on.
-            draw_addon_dropdown_menu_bar(layout)
+        # Draw a dropdown menu bar containing options for editing main parts of this add-on.
+        draw_addon_dropdown_menu_bar(layout)
 
-            # Draw user interface based on the selected section.
-            match panel_properties.sections:
-                case "SECTION_EDIT_MATERIALS":
-                    ui_edit_layers.draw_edit_layers_ui(self, context)
+        # Draw user interface based on the selected section.
+        match panel_properties.sections:
+            case "SECTION_EDIT_MATERIALS":
+                ui_edit_layers.draw_edit_layers_ui(self, context)
 
-                case 'SECTION_MESH_MAPS':
-                    ui_mesh_map.draw_mesh_map_section_ui(self, context)
+            case 'SECTION_MESH_MAPS':
+                ui_mesh_map.draw_mesh_map_section_ui(self, context)
 
-                case 'SECTION_EXPORT_TEXTURES':
-                    ui_export_textures.draw_export_textures_ui(self, context)
+            case 'SECTION_EXPORT_TEXTURES':
+                ui_export_textures.draw_export_textures_ui(self, context)
 
-                case 'SECTION_TEXTURE_SETTINGS':
-                    ui_settings.draw_texture_setting_ui(layout)
+            case 'SECTION_TEXTURE_SETTINGS':
+                ui_settings.draw_texture_setting_ui(layout)
 
-                case 'SECTION_SHADER_SETTINGS':
-                    ui_settings.draw_shader_setting_ui(layout)
+            case 'SECTION_SHADER_SETTINGS':
+                ui_settings.draw_shader_setting_ui(layout)
 
-                case 'SECTION_VIEWPORT_SETTINGS':
-                    ui_viewport.draw_viewport_setting_ui(self, context)
-
-        else:
-            layout.label(text="Save your .blend file to use MatLayer.")
-            layout.label(text="The .blend path is used to find correct paths for image folders,")
-            layout.label(text="where textures, baked mesh maps, or exported textures created ")
-            layout.label(text="using this add-on are saved.")
+            case 'SECTION_VIEWPORT_SETTINGS':
+                ui_viewport.draw_viewport_setting_ui(self, context)
