@@ -73,7 +73,6 @@ class UtilitySubMenu(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator("matlayer.append_material_ball", text="Append Material Ball")
-        layout.operator("matlayer.append_basic_brushes", text="Append Basic Brushes")
         layout.operator("matlayer.remove_unused_textures", text="Remove Unused Textures")
         layout.operator("matlayer.apply_default_shader", text="Apply Default Shader")
 

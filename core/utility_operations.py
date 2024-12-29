@@ -22,38 +22,6 @@ class MATLAYER_OT_set_decal_layer_snapping(Operator):
         bpy.context.scene.tool_settings.use_snap_align_rotation = True
         return {'FINISHED'}
 
-class MATLAYER_OT_append_basic_brushes(Operator):
-    bl_idname = "matlayer.append_basic_brushes"
-    bl_label = "Append Basic Brushes"
-    bl_description = "Appends basic brush presets to the current blend file"
-
-    def execute(self, context):
-        brush_prefix = "ML_"
-
-        # Delete any Matlayer brushes if they exist before re-importing them.
-        for brush in bpy.data.brushes:
-            if brush.name.startswith(brush_prefix):
-                bpy.data.brushes.remove(brush)
-
-        USER = Path(resource_path('USER'))
-        BLEND_FILE = "Assets.blend"
-        source_path =  str(USER / "scripts/addons" / ADDON_NAME / "blend" / BLEND_FILE)
-
-        with bpy.data.libraries.load(source_path) as (data_from, data_to):
-            data_to.brushes = [name for name in data_from.brushes if name.startswith(brush_prefix)]
-            
-        # For all loaded brushes, assign a brush icon image.
-        brush_preview_images_path = str(USER / "scripts/addons" / ADDON_NAME / "brush_icons")
-        for brush in bpy.data.brushes:
-            if brush.name.startswith(brush_prefix):
-                brush.use_custom_icon = True
-                brush_icon_name = brush.name.split('_')[1]
-                brush.icon_filepath = os.path.join(brush_preview_images_path, brush_icon_name + ".png")
-
-        self.report({'INFO'}, "Appended basic brushes. Check the brush presets to see them (Texture Paint Mode -> Tool (3D view sidebar) -> Brushes)")
-
-        return {'FINISHED'}
-
 class MATLAYER_OT_append_hdri_world(Operator):
     bl_idname = "matlayer.append_hdri_world"
     bl_label = "Append HDRI World"
