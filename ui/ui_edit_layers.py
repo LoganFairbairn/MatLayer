@@ -60,7 +60,7 @@ def draw_edit_layers_ui(self, context):
         column.operator("matlayer.apply_default_shader")
 
         # Draw a button to open shader settings.
-        column.prop_enum(context.scene.matlayer_panel_properties, "sections", 'SECTION_SETTINGS', text="Open Shader Settings")
+        column.prop_enum(context.scene.matlayer_panel_properties, "sections", 'SECTION_SHADER_SETTINGS', text="Open Shader Settings")
         return
 
     # Print info for when there is no active material.
