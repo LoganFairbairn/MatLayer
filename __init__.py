@@ -68,7 +68,7 @@ bl_info = {
     "version": (3, 0, 0),
     "blender": (4, 3, 2),
     "location": "View3D > Sidebar > MatLayer",
-    "description": "Provides a layer based wrapper user interface and utility functions for editing complex materials in Blender",
+    "description": "Provides a layer based user interface and utility functions for creating complex materials in Blender",
     "warning": "",
     "doc_url": "https://loganfairbairn.github.io/matlayer_documentation.html",
     "category": "Material Editing",
