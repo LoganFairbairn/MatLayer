@@ -79,14 +79,6 @@ def draw_edit_layers_ui(self, context):
         bau.print_aligned_text(layout, "Define the active shader in setup tab.")
         return
 
-def draw_layer_property_dropdown(layout):
-    '''Draws tabs to change between editing the material layer and the masks applied to the material layer.'''
-    row = layout.row(align=True)
-    row.scale_y = 1.5
-    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MATERIAL_CHANNELS', text="CHANNELS")
-    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'PROJECTION', text="PROJECTION")
-    row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MASKS', text="MASKS")
-
 def draw_value_node_properties(layout, material_channel_name, layer_node_tree, selected_layer_index, value_node, mix_node):
     '''Draws properties for the provided value node.'''
 
@@ -618,7 +610,11 @@ class LayerPropertiesPanel(Panel):
             # Draw properties for the selected material layer.
             layer_count = material_layers.count_layers()
             if layer_count > 0:
-                draw_layer_property_dropdown(layout)
+                row = layout.row(align=True)
+                row.scale_y = 1.5
+                row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MATERIAL_CHANNELS', text="CHANNELS")
+                row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'PROJECTION', text="PROJECTION")
+                row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MASKS', text="MASKS")
                 match bpy.context.scene.matlayer_material_property_tabs:
                     case 'MATERIAL_CHANNELS':
                         draw_material_channel_properties(layout)
@@ -626,6 +622,8 @@ class LayerPropertiesPanel(Panel):
                         draw_masks_tab(layout)
                     case 'PROJECTION':
                         draw_layer_projection(layout)
+            else:
+                bau.print_aligned_text(layout, "No Layer Selected", alignment='CENTER')
 
 class MATLAYER_OT_add_material_layer_menu(Operator):
     bl_label = ""
