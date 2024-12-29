@@ -29,20 +29,11 @@ def update_main_ui_tabs(self, context):
 
 def draw_addon_dropdown_menu_bar(layout):
     '''Draws a dropdown menu bar for this add-on.'''
-    split = layout.split(factor=0.3)
-    first_column = split.column(align=True)
-    second_column = split.column(align=True)
-
-    row = first_column.row(align=True)
+    row = layout.row(align=True)
+    row.alignment = 'LEFT'
     row.menu("MATLAYER_MT_file_sub_menu", text="File")
     row.menu("MATLAYER_MT_edit_sub_menu", text="Edit")
     row.menu("MATLAYER_MT_help_sub_menu", text="Help")
-
-    row = second_column.row(align=True)
-    panel_properties = bpy.context.scene.matlayer_panel_properties
-    row.prop_enum(panel_properties, "sections", 'SECTION_EDIT_MATERIALS', text="Materials", icon='NONE')
-    row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS", text="Mesh Maps", icon='NONE')
-    row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT_TEXTURES', text="Export Textures", icon='NONE')
 
 class FileSubMenu(Menu):
     bl_idname = "MATLAYER_MT_file_sub_menu"
@@ -108,6 +99,14 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
         # Draw a dropdown menu bar containing options for editing main parts of this add-on.
         draw_addon_dropdown_menu_bar(layout)
 
+        # Draw tabs for quick access to the main sections of this add-on.
+        row = layout.row(align=True)
+        row.scale_y = 1.25
+        panel_properties = bpy.context.scene.matlayer_panel_properties
+        row.prop_enum(panel_properties, "sections", 'SECTION_EDIT_MATERIALS', text="EDIT MATERIALS", icon='NONE')
+        row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS", text="MESH MAPS", icon='NONE')
+        row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT_TEXTURES', text="EXPORT TEXTURES", icon='NONE')
+        
         # Draw user interface based on the selected section.
         match panel_properties.sections:
             case "SECTION_EDIT_MATERIALS":
