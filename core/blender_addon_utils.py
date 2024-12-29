@@ -2,6 +2,7 @@
 
 import bpy
 from bpy.utils import resource_path
+from bpy.types import Operator
 import numpy as np
 import random
 import os
@@ -653,3 +654,15 @@ def print_aligned_text(layout, aligned_text, alignment='LEFT'):
     row = layout.row()
     row.alignment = alignment
     row.label(text=aligned_text)
+
+class MATLAYER_OT_save_all_textures(Operator):
+    bl_idname = "matlayer.save_all_textures"
+    bl_label = "Save All Textures"
+    bl_description = "Saves all image textures in the blend file by packing them into the blend file, or saving them to the users disk"
+
+    def execute(self, context):
+        for image in bpy.data.images:
+            if image.filepath != '' and image.is_dirty and image.has_data:
+                image.save()
+        debug_logging.log_status("Saved all images.", self, type='INFO')
+        return {'FINISHED'}

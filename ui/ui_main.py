@@ -41,9 +41,10 @@ class FileSubMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("matlayer.export_uvs", text="Export UV Map", icon='UV')
-        layout.operator("matlayer.export", text="Export Textures", icon='EXPORT')
+        layout.operator("matlayer.save_all_textures", text="Save All Textures", icon='FILE_TICK')
         layout.operator("matlayer.import_texture_set", text="Import Texture Set", icon='IMPORT')
+        layout.operator("matlayer.export", text="Export Textures", icon='EXPORT')
+        layout.operator("matlayer.export_uvs", text="Export UV Map", icon='UV')
 
 class EditSubMenu(Menu):
     bl_idname = "MATLAYER_MT_edit_sub_menu"
