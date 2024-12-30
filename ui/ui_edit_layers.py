@@ -619,9 +619,9 @@ class LayerStackPanel(Panel):
             row.template_list("MATLAYER_UL_layer_list", "Layers", bpy.context.scene, "matlayer_layers", bpy.context.scene.matlayer_layer_stack, "selected_layer_index", sort_reverse=True)
             row.scale_y = 2
 
-class LayerPropertiesPanel(Panel):
-    bl_label = "Layer Properties"
-    bl_idname = "MATLAYER_PT_layer_properties_panel"
+class MaterialPropertiesPanel(Panel):
+    bl_label = "Material Properties"
+    bl_idname = "MATLAYER_PT_material_properties_panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "MatLayer"
