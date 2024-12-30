@@ -161,7 +161,7 @@ def add_outline(outline_object, self):
     
 class MATLAYER_OT_add_black_outline(bpy.types.Operator):
     bl_idname = "matlayer.add_black_outline"
-    bl_label = "Add Black Outline"
+    bl_label = "Add Black Outlines"
     bl_description = "Adds a black outline to all selected objects by adding solidify modifiers with inverted normals and an outline material to them"
     bl_options = {'REGISTER', 'UNDO'}
 
