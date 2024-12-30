@@ -175,6 +175,7 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
 
         # Cycle through all selected image files and try to identify the correct material channel to import them into.
         selected_image_file = False
+        no_files_imported = True
         for file in self.files:
             detected_material_channel = 'NONE'
             
@@ -220,6 +221,7 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
 
             # Only import the image if a material channel was detected.
             if detected_material_channel != 'NONE':
+                no_files_imported = False
                 folder_directory = os.path.split(self.filepath)
                 image_path = os.path.join(folder_directory[0], file.name)
                 bpy.ops.image.open(filepath=image_path)
@@ -325,8 +327,12 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
             else:
                 debug_logging.log("No material channel detected for file: {0}".format(file.name))
 
-        # Organize all material channel frames.
-        material_layers.organize_material_channel_frames(layer_node.node_tree)
+        if no_files_imported:
+            debug_logging.log_status("No detected material channel in any selected files.", self, type='WARNING')
+
+        else:
+            # Organize all material channel frames.
+            material_layers.organize_material_channel_frames(layer_node.node_tree)
 
         return {'FINISHED'}
     
