@@ -2662,7 +2662,7 @@ class MATLAYER_OT_merge_with_layer_below(Operator):
         selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
         if selected_layer_index - 1 < 0:
             debug_logging.log_status("No layer below to merge with.", self, type='INFO')
-            return
+            return {'FINISHED'}
         
         # To avoid errors don't start baking if there is somehow already a bake job running.
         if bpy.app.is_job_running('OBJECT_BAKE') == True:
