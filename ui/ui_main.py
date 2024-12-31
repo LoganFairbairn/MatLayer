@@ -41,14 +41,14 @@ class FileSubMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("rymat.save_all_textures", text="Save All Textures", icon='FILE_TICK')
-        layout.operator("rymat.import_texture_set", text="Import Texture Set", icon='IMPORT')
-        layout.operator("rymat.append_default_workspace", text="Append Default Workspace")
-        layout.operator("rymat.append_material_ball", text="Append Material Ball")
-        layout.operator("rymat.export", text="Export Textures", icon='EXPORT')
-        layout.operator("rymat.export_uvs", text="Export UV Map", icon='UV')
-        layout.operator("rymat.remove_unused_textures", text="Remove Unused Textures")
-        layout.operator("rymat.apply_default_shader", text="Apply Default Shader")
+        layout.operator("rymat.save_all_textures", text="Save All Textures", icon='NONE')
+        layout.operator("rymat.import_texture_set", text="Import Texture Set", icon='NONE')
+        layout.operator("rymat.append_default_workspace", text="Append Default Workspace", icon='NONE')
+        layout.operator("rymat.append_material_ball", text="Append Material Ball", icon='NONE')
+        layout.operator("rymat.export", text="Export Textures", icon='NONE')
+        layout.operator("rymat.export_uvs", text="Export UV Map", icon='NONE')
+        layout.operator("rymat.remove_unused_textures", text="Remove Unused Textures", icon='NONE')
+        layout.operator("rymat.apply_default_shader", text="Apply Default Shader", icon='NONE')
 
 class EditSubMenu(Menu):
     bl_idname = "RYMAT_MT_edit_sub_menu"
