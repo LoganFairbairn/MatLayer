@@ -29,7 +29,16 @@ def update_main_ui_tabs(self, context):
 
 def draw_addon_dropdown_menu_bar(layout):
     '''Draws a dropdown menu bar for this add-on.'''
-    row = layout.row(align=True)
+    
+    split = layout.split(factor=0.3)
+    first_column = split.column()
+    second_column = split.column()
+    
+    panel_properties = bpy.context.scene.rymat_panel_properties
+    row = first_column.row()
+    row.prop_enum(panel_properties, "sections", 'SECTION_EDIT_MATERIALS', text="EDIT MATERIALS", icon='NONE')
+
+    row = second_column.row(align=True)
     row.alignment = 'LEFT'
     row.menu("RYMAT_MT_file_sub_menu", text="File")
     row.menu("RYMAT_MT_edit_sub_menu", text="Edit")
@@ -100,14 +109,6 @@ class RYMAT_PT_Panel(bpy.types.Panel):
 
         # Draw a dropdown menu bar containing options for editing main parts of this add-on.
         draw_addon_dropdown_menu_bar(layout)
-
-        # Draw tabs for quick access to the main sections of this add-on.
-        row = layout.row(align=True)
-        row.scale_y = 1.25
-        panel_properties = bpy.context.scene.rymat_panel_properties
-        row.prop_enum(panel_properties, "sections", 'SECTION_EDIT_MATERIALS', text="EDIT MATERIALS", icon='NONE')
-        row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS", text="MESH MAPS", icon='NONE')
-        row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT_TEXTURES', text="EXPORT TEXTURES", icon='NONE')
 
         # Draw user interface based on the selected section.
         match panel_properties.sections:
