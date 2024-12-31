@@ -27,10 +27,10 @@ from .preferences import AddonPreferences
 from .core.texture_set_settings import RYMAT_texture_set_settings, RYMAT_OT_set_raw_texture_folder, RYMAT_OT_open_raw_texture_folder
 
 # Shaders
-from .core import shaders
+from .core.shaders import RYMAT_shader_name, RYMAT_shader_material_channel, RYMAT_shader_unlayered_property, RYMAT_shader_info, RYMAT_OT_set_shader, RYMAT_OT_new_shader, RYMAT_OT_save_shader, RYMAT_OT_delete_shader, RYMAT_OT_add_shader_channel, RYMAT_OT_delete_shader_channel, RYMAT_OT_create_shader_from_nodetree, RYMAT_OT_apply_default_shader, update_shader_list, set_shader
 
 # Material Layers
-from .core import material_layers
+from .core.material_layers import RYMAT_layer_stack, RYMAT_layers, RYMAT_OT_add_material_layer,RYMAT_OT_add_decal_material_layer, RYMAT_OT_add_image_layer, RYMAT_OT_delete_layer, RYMAT_OT_duplicate_layer, RYMAT_OT_move_material_layer_up, RYMAT_OT_move_material_layer_down,RYMAT_OT_toggle_material_channel_preview, RYMAT_OT_toggle_hide_layer, RYMAT_OT_set_layer_projection,RYMAT_OT_change_material_channel_value_node, RYMAT_OT_isolate_material_channel,RYMAT_OT_show_compiled_material, RYMAT_OT_toggle_image_alpha_blending, RYMAT_OT_set_material_channel, RYMAT_OT_set_matchannel_crgba_output, RYMAT_OT_set_layer_blending_mode, RYMAT_OT_merge_with_layer_below, RYMAT_OT_add_material_channel_nodes, RYMAT_OT_delete_material_channel_nodes, refresh_layer_stack, shader_node_tree_update
 
 # Layer Masks
 from .core.layer_masks import RYMAT_mask_stack, RYMAT_masks, RYMAT_UL_mask_list, RYMAT_OT_move_layer_mask_up, RYMAT_OT_move_layer_mask_down, RYMAT_OT_duplicate_layer_mask, RYMAT_OT_delete_layer_mask, RYMAT_OT_add_empty_layer_mask, RYMAT_OT_add_black_layer_mask, RYMAT_OT_add_white_layer_mask, RYMAT_OT_add_linear_gradient_mask, RYMAT_OT_add_decal_mask, RYMAT_OT_add_ambient_occlusion_mask, RYMAT_OT_add_curvature_mask, RYMAT_OT_add_thickness_mask, RYMAT_OT_add_world_space_normals_mask,  RYMAT_OT_add_grunge_mask, RYMAT_OT_add_edge_wear_mask, RYMAT_OT_add_decal_mask, RYMAT_OT_set_mask_projection_uv, RYMAT_OT_set_mask_projection_triplanar, RYMAT_OT_set_mask_crgba_channel, RYMAT_OT_isolate_mask
@@ -56,8 +56,8 @@ from .core.blender_addon_utils import RYMAT_OT_save_all_textures
 # User Interface
 from .ui.ui_edit_layers import RYMAT_OT_add_material_layer_menu, RYMAT_OT_add_layer_mask_menu, AddMaterialChannelSubMenu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MaterialSelectorPanel, LayerStackPanel, MaterialPropertiesPanel, MATERIAL_LAYER_PROPERTY_TABS
 from .ui.ui_settings import ShaderSubMenu, RYMAT_UL_shader_channel_list, RYMAT_UL_global_shader_property_list
-from .ui.ui_main import *
 from .ui.ui_layer_stack import RYMAT_UL_layer_list, LayerBlendingModeSubMenu
+from .ui.ui_main import FileSubMenu, EditSubMenu, HelpSubMenu, RYMAT_panel_properties, RYMAT_PT_Panel
 
 # Subscription Update Handler
 from .core.subscription_update_handler import on_active_material_changed, on_active_object_changed, on_active_object_name_changed, on_active_material_index_changed, on_active_material_name_changed
@@ -109,42 +109,42 @@ classes = (
     ExportTemplateMenu,
 
     # Shaders
-    shaders.RYMAT_shader_name,
-    shaders.RYMAT_shader_material_channel,
-    shaders.RYMAT_shader_unlayered_property,
-    shaders.RYMAT_shader_info,
-    shaders.RYMAT_OT_set_shader,
-    shaders.RYMAT_OT_new_shader,
-    shaders.RYMAT_OT_save_shader,
-    shaders.RYMAT_OT_delete_shader,
-    shaders.RYMAT_OT_add_shader_channel,
-    shaders.RYMAT_OT_delete_shader_channel,
-    shaders.RYMAT_OT_create_shader_from_nodetree,
-    shaders.RYMAT_OT_apply_default_shader,
+    RYMAT_shader_name,
+    RYMAT_shader_material_channel,
+    RYMAT_shader_unlayered_property,
+    RYMAT_shader_info,
+    RYMAT_OT_set_shader,
+    RYMAT_OT_new_shader,
+    RYMAT_OT_save_shader,
+    RYMAT_OT_delete_shader,
+    RYMAT_OT_add_shader_channel,
+    RYMAT_OT_delete_shader_channel,
+    RYMAT_OT_create_shader_from_nodetree,
+    RYMAT_OT_apply_default_shader,
 
     # Material Layers
-    material_layers.RYMAT_layer_stack,
-    material_layers.RYMAT_layers,
-    material_layers.RYMAT_OT_add_material_layer,
-    material_layers.RYMAT_OT_add_decal_material_layer,
-    material_layers.RYMAT_OT_add_image_layer,
-    material_layers.RYMAT_OT_delete_layer,
-    material_layers.RYMAT_OT_duplicate_layer, 
-    material_layers.RYMAT_OT_move_material_layer_up,
-    material_layers.RYMAT_OT_move_material_layer_down,
-    material_layers.RYMAT_OT_toggle_material_channel_preview,
-    material_layers.RYMAT_OT_toggle_hide_layer,
-    material_layers.RYMAT_OT_set_layer_projection,
-    material_layers.RYMAT_OT_change_material_channel_value_node,
-    material_layers.RYMAT_OT_isolate_material_channel,
-    material_layers.RYMAT_OT_show_compiled_material,
-    material_layers.RYMAT_OT_toggle_image_alpha_blending,
-    material_layers.RYMAT_OT_set_material_channel,
-    material_layers.RYMAT_OT_set_matchannel_crgba_output,
-    material_layers.RYMAT_OT_set_layer_blending_mode,
-    material_layers.RYMAT_OT_merge_with_layer_below,
-    material_layers.RYMAT_OT_add_material_channel_nodes,
-    material_layers.RYMAT_OT_delete_material_channel_nodes,
+    RYMAT_layer_stack,
+    RYMAT_layers,
+    RYMAT_OT_add_material_layer,
+    RYMAT_OT_add_decal_material_layer,
+    RYMAT_OT_add_image_layer,
+    RYMAT_OT_delete_layer,
+    RYMAT_OT_duplicate_layer, 
+    RYMAT_OT_move_material_layer_up,
+    RYMAT_OT_move_material_layer_down,
+    RYMAT_OT_toggle_material_channel_preview,
+    RYMAT_OT_toggle_hide_layer,
+    RYMAT_OT_set_layer_projection,
+    RYMAT_OT_change_material_channel_value_node,
+    RYMAT_OT_isolate_material_channel,
+    RYMAT_OT_show_compiled_material,
+    RYMAT_OT_toggle_image_alpha_blending,
+    RYMAT_OT_set_material_channel,
+    RYMAT_OT_set_matchannel_crgba_output,
+    RYMAT_OT_set_layer_blending_mode,
+    RYMAT_OT_merge_with_layer_below,
+    RYMAT_OT_add_material_channel_nodes,
+    RYMAT_OT_delete_material_channel_nodes,
 
     # Layer Masks
     RYMAT_mask_stack, 
@@ -253,7 +253,7 @@ def depsgraph_change_handler(scene, depsgraph):
 
         # Run updates when a shader nodetree change is detected.
         if update.id.name == "Shader Nodetree":
-            material_layers.shader_node_tree_update()
+            shader_node_tree_update()
 
 # Mark load handlers as persistent so they are not called again when loading a new blend file.
 @persistent
@@ -297,13 +297,13 @@ def load_handler(dummy):
                 bpy.msgbus.clear_by_owner(bpy.types.Scene.active_material_name_sub_owner)
                 bpy.msgbus.subscribe_rna(key=active_object.active_material.path_resolve("name", False), owner=bpy.types.Scene.active_material_name_sub_owner, notify=on_active_material_name_changed, args=())
 
-        material_layers.refresh_layer_stack()
+        refresh_layer_stack()
     
     # Apply a default shader setup when a blend file is loaded if there is no shader node defined.
-    shaders.update_shader_list()
+    update_shader_list()
     shader_info = bpy.context.scene.rymat_shader_info
     if shader_info.shader_node_group == None:
-        shaders.set_shader('MetallicRoughnessPBR')
+        set_shader('MetallicRoughnessPBR')
 
 def register():
     # Register properties, operators and pannels.
@@ -316,14 +316,14 @@ def register():
     bpy.types.Scene.rymat_merge_material = PointerProperty(type=bpy.types.Material)
 
     # Shader Properties
-    bpy.types.Scene.rymat_shader_list = CollectionProperty(type=shaders.RYMAT_shader_name)
-    bpy.types.Scene.rymat_shader_info = PointerProperty(type=shaders.RYMAT_shader_info)
+    bpy.types.Scene.rymat_shader_list = CollectionProperty(type=RYMAT_shader_name)
+    bpy.types.Scene.rymat_shader_info = PointerProperty(type=RYMAT_shader_info)
     bpy.types.Scene.rymat_shader_channel_index = IntProperty()
     bpy.types.Scene.rymat_selected_global_shader_property_index = IntProperty()
 
     # Layer & Mask Properties
-    bpy.types.Scene.rymat_layer_stack = PointerProperty(type=material_layers.RYMAT_layer_stack)
-    bpy.types.Scene.rymat_layers = CollectionProperty(type=material_layers.RYMAT_layers)
+    bpy.types.Scene.rymat_layer_stack = PointerProperty(type=RYMAT_layer_stack)
+    bpy.types.Scene.rymat_layers = CollectionProperty(type=RYMAT_layers)
     bpy.types.Scene.rymat_mask_stack = PointerProperty(type=RYMAT_mask_stack)
     bpy.types.Scene.rymat_masks = CollectionProperty(type=RYMAT_masks)
 
