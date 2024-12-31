@@ -116,19 +116,14 @@ class RYMAT_OT_append_material_ball(Operator):
 
 def add_black_outline(outline_object, self):
     '''Adds an outline to the specified object by adding a solidify modifier with inverted normals and an outline material to it.'''
-    # Ensure the selected object is a mesh.
+
+    # Ensure the specified object is a mesh.
     if outline_object is None or outline_object.type != 'MESH':
         debug_logging.log_status("Object must be a mesh.", self, type='INFO')
         return
     
-    # If an outline material is already applied, cancel the operation.
-    outline_material_name = "Outline"
-    for mat in outline_object.data.materials:
-        if mat and mat.name == outline_material_name:
-            debug_logging.log_status("Outline material already applied.", self, type='INFO')
-            return
-    
     # Create an outline material if one does not exist.
+    outline_material_name = "Outline"
     outline_material = bpy.data.materials.get(outline_material_name)
     if not outline_material:
         outline_material = bpy.data.materials.new(name=outline_material_name)
@@ -150,15 +145,28 @@ def add_black_outline(outline_object, self):
         output_node.location = (0, 0)
         links.new(emission_node.outputs["Emission"], output_node.inputs["Surface"])
 
+        debug_logging.log("Created black outline material.", message_type='INFO')
+
     # Add the outline material to the object in a new material slot.
     outline_object.data.materials.append(outline_material)
 
-    # Add a solidify modifier and adjust its settings so it acts as an outline.
-    solidify = outline_object.modifiers.new(name="Black Outline", type='SOLIDIFY')
-    solidify.thickness = self.thickness
-    solidify.offset = -1
-    solidify.use_flip_normals = True
-    solidify.material_offset = len(outline_object.data.materials) - 1
+    # If a solidify modifier for the black outline effect doesn't exist on the mesh, add one.
+    outline_modifier_name = "Outline"
+    if outline_modifier_name not in outline_object.modifiers:
+        solidify = outline_object.modifiers.new(name=outline_modifier_name, type='SOLIDIFY')
+        solidify.thickness = self.thickness
+        solidify.offset = -1
+        solidify.use_flip_normals = True
+        solidify.material_offset = len(outline_object.data.materials) - 1
+        debug_logging.log(
+            "Added solidify modifier for an outline effect to {0}.".format(outline_object.name), 
+            message_type='INFO'
+        )
+    else:
+        debug_logging.log(
+            "A solidify modifier for an outline effect already exists on {0}.".format(outline_object.name), 
+            message_type='INFO'
+        )
     
 class RYMAT_OT_add_black_outline(bpy.types.Operator):
     bl_idname = "rymat.add_black_outline"
@@ -181,5 +189,5 @@ class RYMAT_OT_add_black_outline(bpy.types.Operator):
             add_black_outline(obj, self)
             
         # Log completion.
-        debug_logging.log_status("Added a black outline to all selected objects.", self, type='INFO')
+        debug_logging.log_status("Finished adding black outlines to all selected objects.", self, type='INFO')
         return {'FINISHED'}
