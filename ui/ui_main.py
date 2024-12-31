@@ -63,7 +63,8 @@ class EditSubMenu(Menu):
         layout.prop_enum(panel_properties, "sections", 'SECTION_SHADER_SETTINGS', text="Shader Settings", icon='MATSHADERBALL')
         layout.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS', text="Viewport Settings")
         layout.prop_enum(panel_properties, "sections", 'SECTION_EXPORT_TEXTURES', text="Export Texture Settings", icon='EXPORT')
-        layout.operator("rymat.add_black_outline", text="Add Black Outlines")
+        layout.operator("rymat.add_black_outlines", text="Add Black Outlines")
+        layout.operator("rymat.remove_outlines", text="Remove Black Outlines")
 
 class HelpSubMenu(Menu):
     bl_idname = "RYMAT_MT_help_sub_menu"
