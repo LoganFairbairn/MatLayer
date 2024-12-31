@@ -98,7 +98,6 @@ def duplicate_node_group(node_group_name):
 
 def append_default_node_groups():
     '''Appends default nodes used by this add-on to the current blend file. Appending node groups in an initial batch helps avoid appending duplicates of node groups.'''
-    append_group_node("PrincipledBSDF", never_auto_delete=True)
     append_group_node("RY_TriplanarNormalsBlend", never_auto_delete=True)
     append_group_node("RY_LayerBlur", never_auto_delete=True)
     append_group_node("RY_TriplanarBlur", never_auto_delete=True)
