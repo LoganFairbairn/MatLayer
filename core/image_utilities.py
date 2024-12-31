@@ -256,10 +256,19 @@ class RYMAT_OT_export_uvs(Operator):
 
         # Set edit mode and select all uvs.
         bpy.ops.object.mode_set(mode = 'EDIT')
-        bpy.ops.uv.select_all(action='SELECT')
+        bpy.ops.mesh.select_all(action='DESELECT')
+
+        # If the object has an active material, use that to select the UVs to export.
+        if active_object.active_material:
+            bpy.ops.object.material_slot_select()
+            uv_image_name = active_object.active_material.name + "_UVs"
+
+        # If there is no active material slot, select the whole mesh.
+        else:
+            bpy.ops.uv.select_all(action='SELECT')
+            uv_image_name = bpy.context.active_object.name + "_UVs"
 
         # Save UV layout to a folder.
-        uv_image_name = bpy.context.active_object.name + "_" + "UVLayout"
         uv_layout_path = bau.get_raw_texture_file_path(uv_image_name, 'PNG')
         bpy.ops.uv.export_layout(filepath=uv_layout_path, size=(tss.get_texture_width(), tss.get_texture_height()))
 
