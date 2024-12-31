@@ -30,6 +30,26 @@ GROUP_NODE_UI_LABELS = {
     "RY_DecalProjection": "Decal Projection"
 }
 
+def update_material_properties_tab(self, context):
+    '''Callback function for when the material properties tab is changed.'''
+    selected_tab = bpy.context.scene.rymat_material_property_tabs
+
+    match selected_tab:
+        case 'MATERIAL_CHANNELS':
+            selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
+            selected_material_channel = bpy.context.scene.rymat_layer_stack.selected_material_channel
+            value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, selected_material_channel)
+            if value_node:
+                if value_node.bl_static_type == 'TEX_IMAGE':
+                    bau.set_texture_paint_image(value_node.image)
+
+        case 'MASKS':
+            selected_layer_index = context.scene.rymat_layer_stack.selected_layer_index
+            selected_mask_index = context.scene.rymat_mask_stack.selected_index
+            mask_texture_node = layer_masks.get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
+            if mask_texture_node:
+                bau.set_texture_paint_image(mask_texture_node.image)
+
 def draw_edit_layers_ui(self, context):
     '''Draws the layer section user interface to the add-on side panel.'''
     layout = self.layout

@@ -53,7 +53,7 @@ from .core.layer_utilities import RYMAT_OT_import_texture_set, RYMAT_OT_merge_ma
 from .core.utility_operations import RYMAT_OT_append_default_workspace, RYMAT_OT_set_decal_layer_snapping, RYMAT_OT_append_hdri_world, RYMAT_OT_remove_unused_raw_textures, RYMAT_OT_append_material_ball, RYMAT_OT_add_black_outlines, RYMAT_OT_remove_outlines
 
 # User Interface
-from .ui.ui_edit_layers import RYMAT_OT_add_material_layer_menu, RYMAT_OT_add_layer_mask_menu, AddMaterialChannelSubMenu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MaterialSelectorPanel, LayerStackPanel, MaterialPropertiesPanel, MATERIAL_LAYER_PROPERTY_TABS
+from .ui.ui_edit_layers import RYMAT_OT_add_material_layer_menu, RYMAT_OT_add_layer_mask_menu, AddMaterialChannelSubMenu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MaterialSelectorPanel, LayerStackPanel, MaterialPropertiesPanel, MATERIAL_LAYER_PROPERTY_TABS, update_material_properties_tab
 from .ui.ui_settings import ShaderSubMenu, RYMAT_UL_shader_channel_list, RYMAT_UL_global_shader_property_list
 from .ui.ui_layer_stack import RYMAT_UL_layer_list, LayerBlendingModeSubMenu
 from .ui.ui_main import FileSubMenu, EditSubMenu, HelpSubMenu, RYMAT_panel_properties, RYMAT_PT_Panel
@@ -313,7 +313,7 @@ def register():
 
     # Scene Properties
     bpy.types.Scene.rymat_panel_properties = PointerProperty(type=RYMAT_panel_properties)
-    bpy.types.Scene.rymat_material_property_tabs = EnumProperty(items=MATERIAL_LAYER_PROPERTY_TABS)
+    bpy.types.Scene.rymat_material_property_tabs = EnumProperty(items=MATERIAL_LAYER_PROPERTY_TABS, update=update_material_properties_tab)
     bpy.types.Scene.rymat_merge_material = PointerProperty(type=bpy.types.Material)
 
     # Shader Properties
