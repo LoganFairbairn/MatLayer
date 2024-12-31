@@ -541,16 +541,18 @@ class MaterialSelectorPanel(Panel):
 
         # Draw the shader node detected the active material.
         active_material = bpy.context.active_object.active_material
+        row = first_column.row()
+        row.label(text="Active Shader Node")
+        row = second_column.row()
         if active_material:
-            row = first_column.row()
-            row.label(text="Active Shader Node")
-            row = second_column.row()
             shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
             if shader_node:
                 row.enabled = False
                 row.prop(shader_node.node_tree, "name", text="")
             else:
                 row.label(text="NONE")
+        else:
+            row.label(text="NONE")
 
         # Draw material slots on the active object.
         split = layout.split(factor=0.925)
