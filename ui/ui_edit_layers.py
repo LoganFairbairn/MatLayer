@@ -635,6 +635,29 @@ class LayerStackPanel(Panel):
             row.template_list("RYMAT_UL_layer_list", "Layers", bpy.context.scene, "rymat_layers", bpy.context.scene.rymat_layer_stack, "selected_layer_index", sort_reverse=True)
             row.scale_y = 2
 
+class ColorPalettePanel(Panel):
+    bl_label = "Color Palette"
+    bl_idname = "RYMAT_PT_color_palette"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "RyMat"
+
+    # Only draw this panel when the edit materials section is selected.
+    @ classmethod
+    def poll(cls, context):
+        return context.scene.rymat_panel_properties.sections == 'SECTION_EDIT_MATERIALS'
+
+    def draw(self, context):
+        panel_properties = context.scene.rymat_panel_properties
+        if panel_properties.sections == 'SECTION_EDIT_MATERIALS':
+            layout = self.layout
+
+            tool_settings = context.tool_settings
+            if tool_settings.image_paint.palette:
+                row = layout.row(align=True)
+                row.template_ID(tool_settings.image_paint, "palette")
+                layout.template_palette(tool_settings.image_paint, "palette", color=True)
+
 class MaterialPropertiesPanel(Panel):
     bl_label = "Material Properties"
     bl_idname = "RYMAT_PT_material_properties_panel"
