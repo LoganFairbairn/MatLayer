@@ -110,50 +110,48 @@ class RYMAT_UL_layer_list(bpy.types.UIList):
             item_index = layers.find(item.name)
             layer_node = material_layers.get_material_layer_node('LAYER', item_index)
 
-            if layer_node:
+            # Don't draw layer properties if there is no layer node.
+            if not layer_node:
+                return
+            
+            # Use a two column layout.
+            split = layout.split(factor=0.5)
+            first_column = split.column()
+            second_column = split.column()
 
-                # Draw the hide layer toggle button.
-                row = layout.row(align=True)
-                row.ui_units_x = 1
-                if blender_addon_utils.get_node_active(layer_node):
-                    operator = row.operator("rymat.toggle_hide_layer", text="", emboss=False, icon='HIDE_OFF')
-                    operator.layer_index = item_index
+            # Draw the hide layer toggle button.
+            row = first_column.row(align=True)
+            if blender_addon_utils.get_node_active(layer_node):
+                operator = row.operator("rymat.toggle_hide_layer", text="", emboss=False, icon='HIDE_OFF')
+                operator.layer_index = item_index
 
-                else:
-                    operator = row.operator("rymat.toggle_hide_layer", text="", emboss=False, icon='HIDE_ON')
-                    operator.layer_index = item_index
+            else:
+                operator = row.operator("rymat.toggle_hide_layer", text="", emboss=False, icon='HIDE_ON')
+                operator.layer_index = item_index
 
-                # Draw the layer name.
-                row = layout.row()
-                row.ui_units_x = 2
-                row.prop(layer_node, "label", text="", emboss=False)
+            # Draw the layer name.
+            row.prop(layer_node, "label", text="", emboss=False)
 
-                # Layer opacity and blending mode for the selected material channel.
-                selected_material_channel_name = bpy.context.scene.rymat_layer_stack.selected_material_channel
-                opacity_layer_node = material_layers.get_material_layer_node(
-                    'OPACITY', 
-                    item_index, 
-                    channel_name=selected_material_channel_name
-                )
+            # Draw layer opacity.
+            row = second_column.row(align=True)
+            selected_material_channel_name = bpy.context.scene.rymat_layer_stack.selected_material_channel
+            opacity_layer_node = material_layers.get_material_layer_node(
+                'OPACITY', 
+                item_index, 
+                channel_name=selected_material_channel_name
+            )
+            if opacity_layer_node:
+                row.prop(opacity_layer_node.inputs[0], "default_value", text="", emboss=True)
 
-                mix_layer_node = material_layers.get_material_layer_node(
-                    'MIX', 
-                    item_index, 
-                    channel_name=selected_material_channel_name
-                )
-
-                if mix_layer_node:
-                    row = layout.row(align=True)
-                    row.ui_units_x = 5
-
-                    split = layout.split()
-                    col = split.column(align=True)
-                    col.ui_units_x = 1.6
-                    col.scale_y = 0.5
-                    col.prop(opacity_layer_node.inputs[0], "default_value", text="", emboss=True)
-
-                    col.context_pointer_set("layer_node", layer_node)
-                    blending_mode = material_layers.get_layer_blending_mode(item_index)
-                    blending_mode_label = blending_mode.replace('_', ' ')
-                    blending_mode_label = blender_addon_utils.capitalize_by_space(blending_mode_label)
-                    col.menu('RYMAT_MT_layer_blending_mode_sub_menu', text=blending_mode_label)
+            # Draw layer blending mode.
+            mix_layer_node = material_layers.get_material_layer_node(
+                'MIX', 
+                item_index, 
+                channel_name=selected_material_channel_name
+            )
+            if mix_layer_node:
+                row.context_pointer_set("layer_node", layer_node)
+                blending_mode = material_layers.get_layer_blending_mode(item_index)
+                blending_mode_label = blending_mode.replace('_', ' ')
+                blending_mode_label = blender_addon_utils.capitalize_by_space(blending_mode_label)
+                row.menu('RYMAT_MT_layer_blending_mode_sub_menu', text=blending_mode_label)

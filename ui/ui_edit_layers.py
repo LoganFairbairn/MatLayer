@@ -611,16 +611,14 @@ class LayerStackPanel(Panel):
         if panel_properties.sections == 'SECTION_EDIT_MATERIALS':
             layout = self.layout
 
-            # Draw the selected material channel.
-            row = layout.row(align=True)
-            selected_material_channel = bpy.context.scene.rymat_layer_stack.selected_material_channel
-            row.menu("RYMAT_MT_material_channel_sub_menu", text=selected_material_channel)
-            row.operator("rymat.isolate_material_channel", text="", icon='MATERIAL')
-            row.operator("rymat.show_compiled_material", text="", icon='SHADING_RENDERED')
+            # Use a two column layout.
+            split = layout.split(factor=0.5)
+            first_column = split.column()
+            second_column = split.column()
 
             # Draw layer operations.
-            row = layout.row(align=True)
-            row.scale_y = 2.0
+            row = first_column.row(align=True)
+            row.scale_y = 1.5
             row.scale_x = 10
             row.operator("rymat.add_material_layer_menu", icon='ADD', text="")
             row.operator("rymat.import_texture_set", icon='IMPORT', text="")
@@ -630,10 +628,25 @@ class LayerStackPanel(Panel):
             row.operator("rymat.merge_with_layer_below", icon='TRIA_DOWN_BAR', text="")
             row.operator("rymat.delete_layer", icon='TRASH', text="")
 
+            # Draw the selected material channel.
+            row = second_column.row(align=True)
+            row.scale_y = 1.5
+            selected_material_channel = bpy.context.scene.rymat_layer_stack.selected_material_channel
+            row.menu("RYMAT_MT_material_channel_sub_menu", text=selected_material_channel)
+            row.operator("rymat.isolate_material_channel", text="", icon='MATERIAL')
+            row.operator("rymat.show_compiled_material", text="", icon='SHADING_RENDERED')
+
             # Draw the layer stack.
             row = layout.row(align=True)
-            row.template_list("RYMAT_UL_layer_list", "Layers", bpy.context.scene, "rymat_layers", bpy.context.scene.rymat_layer_stack, "selected_layer_index", sort_reverse=True)
-            row.scale_y = 2
+            row.template_list(
+                "RYMAT_UL_layer_list", 
+                "Layers", 
+                bpy.context.scene, 
+                "rymat_layers", 
+                bpy.context.scene.rymat_layer_stack, 
+                "selected_layer_index", 
+                sort_reverse=True
+            )
 
 class ColorPalettePanel(Panel):
     bl_label = "Color Palette"
