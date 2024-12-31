@@ -93,6 +93,31 @@ def auto_save_images():
     # Return None to unregister the timer (effecitvely stops image auto saving).
     return None
 
+class RYMAT_OT_save_all_textures(Operator):
+    bl_idname = "rymat.save_all_textures"
+    bl_label = "Save All Textures"
+    bl_description = "Saves all unsaved image textures in the blend file (using default save method in texture settings)"
+
+    def execute(self, context):
+        addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+
+        # If the default save method is pack,
+        # pack all images in the blend file that have no filepath, and unsaved data.
+        if addon_preferences.default_texture_save_method == 'PACK':
+            for image in bpy.data.images:
+                if image.filepath == '' and image.is_dirty and image.has_data:
+                    image.pack()
+
+        # If the default save method if saving externally, trigger a save
+        # for all images that have a defined filepath and unsaved data..
+        else:
+            for image in bpy.data.images:
+                if image.filepath == '' and image.is_dirty and image.has_data:
+                    image.save()
+
+        debug_logging.log_status("Saved all images.", self, type='INFO')
+        return {'FINISHED'}
+
 class RYMAT_OT_add_texture_node_image(Operator):
     bl_idname = "rymat.add_texture_node_image"
     bl_label = "Add Texture Node Image"
@@ -233,7 +258,7 @@ class RYMAT_OT_edit_texture_node_image_externally(Operator):
             texture_node.image.save()
 
         # Select and then export the image to the external image editing software.
-        context.scene.tool_settings.image_paint.canvas = texture_node.image
+        bau.set_texture_paint_image(texture_node.image)
         bpy.ops.image.external_edit(filepath=texture_node.image.filepath)
 
         return {'FINISHED'}
