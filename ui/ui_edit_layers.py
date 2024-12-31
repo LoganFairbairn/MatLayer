@@ -754,36 +754,36 @@ class ImageUtilitySubMenu(Menu):
         if context.node and context.node_tree:
             material_channel_name = context.node.name.split('_')[0]
 
-            operator = layout.operator("rymat.add_texture_node_image", icon='ADD', text="Add New Image")
+            operator = layout.operator("rymat.add_texture_node_image", text="Add New Image", icon='NONE')
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
             operator.material_channel_name = material_channel_name
 
-            operator = layout.operator("rymat.import_texture_node_image", icon='IMPORT', text="Import Image")
+            operator = layout.operator("rymat.import_texture_node_image", text="Import Image", icon='NONE')
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
             operator.material_channel_name = material_channel_name
 
-            operator = layout.operator("rymat.rename_texture_node_image", icon='NONE', text="Rename Image")
+            operator = layout.operator("rymat.rename_texture_node_image", text="Rename Image", icon='NONE')
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
             operator.material_channel_name = material_channel_name
 
-            operator = layout.operator("rymat.edit_texture_node_image_externally", icon='TPAINT_HLT', text="Edit Image Externally")
+            operator = layout.operator("rymat.edit_texture_node_image_externally", text="Edit Image Externally", icon='NONE')
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
             
-            operator = layout.operator("rymat.image_edit_uvs", icon='UV', text="Externally Image Edit UVs")
+            operator = layout.operator("rymat.image_edit_uvs", text="Externally Image Edit UVs", icon='NONE')
 
-            operator = layout.operator("rymat.reload_texture_node_image", icon='FILE_REFRESH', text="Reload Image")
+            operator = layout.operator("rymat.reload_texture_node_image", text="Reload Image", icon='NONE')
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
 
-            operator = layout.operator("rymat.duplicate_texture_node_image", icon='DUPLICATE', text="Duplicate Image")
+            operator = layout.operator("rymat.duplicate_texture_node_image", text="Duplicate Image", icon='NONE')
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
 
-            operator = layout.operator("rymat.delete_texture_node_image", icon='TRASH', text="Delete Image")
+            operator = layout.operator("rymat.delete_texture_node_image", text="Delete Image", icon='NONE')
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
 
