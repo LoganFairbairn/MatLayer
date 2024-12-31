@@ -200,7 +200,7 @@ def remove_outlines(outlined_object):
 class RYMAT_OT_add_black_outlines(bpy.types.Operator):
     bl_idname = "rymat.add_black_outlines"
     bl_label = "Add Black Outlines"
-    bl_description = "Adds a black outline to all selected objects by adding solidify modifiers with inverted normals and an outline material to them"
+    bl_description = "Adds a black outline to all selected objects by adding solidify modifiers with inverted normals and an outline material to them (EEVEE Only)"
     bl_options = {'REGISTER', 'UNDO'}
 
     thickness: bpy.props.FloatProperty(
