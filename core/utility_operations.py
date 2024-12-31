@@ -114,7 +114,7 @@ class RYMAT_OT_append_material_ball(Operator):
         bau.append_object("MaterialBall")
         return {'FINISHED'}
 
-def add_outline(outline_object, self):
+def add_black_outline(outline_object, self):
     '''Adds an outline to the specified object by adding a solidify modifier with inverted normals and an outline material to it.'''
     # Ensure the selected object is a mesh.
     if outline_object is None or outline_object.type != 'MESH':
@@ -136,6 +136,7 @@ def add_outline(outline_object, self):
         outline_material.use_backface_culling = True
         outline_material.use_backface_culling_shadow = True
         outline_material.use_backface_culling_lightprobe_volume = True
+        outline_material.use_quality_normals = True
 
         nodes = outline_material.node_tree.nodes
         links = outline_material.node_tree.links
@@ -177,7 +178,7 @@ class RYMAT_OT_add_black_outline(bpy.types.Operator):
 
         # Add an outline to all selected objects.
         for obj in context.selected_objects:
-            add_outline(obj, self)
+            add_black_outline(obj, self)
             
         # Log completion.
         debug_logging.log_status("Added a black outline to all selected objects.", self, type='INFO')
