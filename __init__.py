@@ -231,9 +231,9 @@ classes = (
     RYMAT_panel_properties,
     RYMAT_PT_Panel,
     MaterialSelectorPanel,
+    ColorPalettePanel,
     LayerStackPanel,
-    MaterialPropertiesPanel,
-    ColorPalettePanel
+    MaterialPropertiesPanel
 )
 
 @persistent

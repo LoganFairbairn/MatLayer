@@ -492,12 +492,15 @@ def draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index):
 def draw_masks_tab(layout):
     row = layout.row(align=True)
     row.scale_x = 10
-    row.scale_y = 2
+    row.scale_y = 1.5
     row.operator("rymat.add_layer_mask_menu", icon="ADD", text="")
     row.operator("rymat.move_layer_mask_up", icon="TRIA_UP", text="")
     row.operator("rymat.move_layer_mask_down", icon="TRIA_DOWN", text="")
     row.operator("rymat.duplicate_layer_mask", icon="DUPLICATE", text="")
     row.operator("rymat.delete_layer_mask", icon="TRASH", text="")
+    row.operator("rymat.isolate_mask", text="", icon='MATERIAL')
+    row.operator("rymat.show_compiled_material", text="", icon='SHADING_RENDERED')
+
     row = layout.row(align=True)
     row.template_list(
         "RYMAT_UL_mask_list", 
@@ -508,7 +511,6 @@ def draw_masks_tab(layout):
         "selected_index", 
         sort_reverse=True
     )
-    row.scale_y = 2
 
     # Draw properties for the selected mask.
     selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
@@ -612,13 +614,13 @@ class LayerStackPanel(Panel):
         if panel_properties.sections == 'SECTION_EDIT_MATERIALS':
             layout = self.layout
 
-            # Use a two column layout.
-            split = layout.split(factor=0.5)
-            first_column = split.column()
-            second_column = split.column()
+            # Draw the selected material channel.
+            row = layout.row()
+            selected_material_channel = bpy.context.scene.rymat_layer_stack.selected_material_channel
+            row.menu("RYMAT_MT_material_channel_sub_menu", text=selected_material_channel)
 
             # Draw layer operations.
-            row = first_column.row(align=True)
+            row = layout.row(align=True)
             row.scale_y = 1.5
             row.scale_x = 10
             row.operator("rymat.add_material_layer_menu", icon='ADD', text="")
@@ -628,12 +630,6 @@ class LayerStackPanel(Panel):
             row.operator("rymat.duplicate_layer", icon='DUPLICATE', text="")
             row.operator("rymat.merge_with_layer_below", icon='TRIA_DOWN_BAR', text="")
             row.operator("rymat.delete_layer", icon='TRASH', text="")
-
-            # Draw the selected material channel.
-            row = second_column.row(align=True)
-            row.scale_y = 1.5
-            selected_material_channel = bpy.context.scene.rymat_layer_stack.selected_material_channel
-            row.menu("RYMAT_MT_material_channel_sub_menu", text=selected_material_channel)
             row.operator("rymat.isolate_material_channel", text="", icon='MATERIAL')
             row.operator("rymat.show_compiled_material", text="", icon='SHADING_RENDERED')
 

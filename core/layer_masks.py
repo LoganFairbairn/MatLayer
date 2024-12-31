@@ -926,44 +926,40 @@ class RYMAT_UL_mask_list(bpy.types.UIList):
         self.use_filter_reverse = True
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            row = layout.row(align=True)
-
-            # Draw a toggle to show / hide masks.
             masks = bpy.context.scene.rymat_masks
             item_index = masks.find(item.name)
             selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
             mask_node = get_mask_node('MASK', selected_layer_index, item_index)
-            row = layout.row(align=True)
-            row.ui_units_x = 1
+
+            if not mask_node:
+                return
+            
+            # Use a two column layout.
+            split = layout.split(factor=0.5)
+            first_column = split.column()
+            second_column = split.column()
+
+            # Draw a toggle to show / hide masks.
+            row = first_column.row()
             if mask_node.mute:
                 row.prop(mask_node, "mute", text="", emboss=False, icon='HIDE_ON')
             else:
                 row.prop(mask_node, "mute", text="", emboss=False, icon='HIDE_OFF')
 
             # Draw a toggle to isolate a mask.
-            row = layout.row(align=True)
-            row.ui_units_x = 1
             operator = row.operator("rymat.isolate_mask", text="", icon='MOD_MASK', emboss=False)
             operator.mask_index = item_index
 
             # Draw the mask name.
             if mask_node:
-                row = layout.row()
-                row.ui_units_x = 3
                 row.prop(mask_node, "label", text="", emboss=False)
 
             # Mask opacity and blending mode.
+            row = second_column.row(align=True)
             mask_mix_node = get_mask_node('MASK_MIX', selected_layer_index, item_index)
             if mask_mix_node:
-                row = layout.row(align=True)
-                row.ui_units_x = 2
-
-                split = layout.split()
-                col = split.column(align=True)
-                col.ui_units_x = 1.6
-                col.scale_y = 0.5
-                col.prop(mask_mix_node.inputs[0], "default_value", text="", emboss=True)
-                col.prop(mask_mix_node, "blend_type", text="")
+                row.prop(mask_mix_node.inputs[0], "default_value", text="", emboss=True)
+                row.prop(mask_mix_node, "blend_type", text="")
 
 class RYMAT_OT_add_empty_layer_mask(Operator):
     bl_label = "Add Empty Layer Mask"
