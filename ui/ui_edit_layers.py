@@ -603,10 +603,11 @@ class LayerStackPanel(Panel):
             row.scale_y = 2.0
             row.scale_x = 10
             row.operator("rymat.add_material_layer_menu", icon='ADD', text="")
-            row.operator("rymat.merge_with_layer_below", icon='TRIA_DOWN_BAR', text="")
+            row.operator("rymat.import_texture_set", icon='IMPORT', text="")
             row.operator("rymat.move_material_layer_up", icon='TRIA_UP', text="")
             row.operator("rymat.move_material_layer_down", icon='TRIA_DOWN', text="")
             row.operator("rymat.duplicate_layer", icon='DUPLICATE', text="")
+            row.operator("rymat.merge_with_layer_below", icon='TRIA_DOWN_BAR', text="")
             row.operator("rymat.delete_layer", icon='TRASH', text="")
 
             # Draw the layer stack.

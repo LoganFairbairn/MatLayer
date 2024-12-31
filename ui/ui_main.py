@@ -42,7 +42,6 @@ class FileSubMenu(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator("rymat.save_all_textures", text="Save All Textures", icon='NONE')
-        layout.operator("rymat.import_texture_set", text="Import Texture Set", icon='NONE')
         layout.operator("rymat.append_default_workspace", text="Append Default Workspace", icon='NONE')
         layout.operator("rymat.append_material_ball", text="Append Material Ball", icon='NONE')
         layout.operator("rymat.export", text="Export Textures", icon='NONE')
