@@ -138,7 +138,7 @@ def draw_export_textures_ui(self, context):
         second_column = split.column()
 
         row = first_column.row()
-        row.label(text=str(i) + ".")
+        row.label(text=str(i + 1) + ".")
         row = second_column.row()
         row.prop(texture, "name_format", text="")
         op = row.operator("rymat.remove_export_texture", icon='X', text="")
