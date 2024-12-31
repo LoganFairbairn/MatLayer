@@ -131,8 +131,7 @@ def add_black_outline(outline_object, thickness):
         outline_material.use_backface_culling = True
         outline_material.use_backface_culling_shadow = True
         outline_material.use_backface_culling_lightprobe_volume = True
-        outline_material.use_quality_normals = True
-
+        
         nodes = outline_material.node_tree.nodes
         links = outline_material.node_tree.links
         for node in nodes:
@@ -163,6 +162,7 @@ def add_black_outline(outline_object, thickness):
         solidify.thickness = thickness
         solidify.offset = -1
         solidify.use_flip_normals = True
+        solidify.use_quality_normals = True
         solidify.material_offset = len(outline_object.data.materials) - 1
         debug_logging.log(
             "Added solidify modifier for an outline effect to {0}.".format(outline_object.name), 
