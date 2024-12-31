@@ -224,6 +224,59 @@ class RYMAT_OT_import_texture_node_image(Operator, ImportHelper):
         save_raw_image(self.filepath, image.name)
         return {'FINISHED'}
 
+class RYMAT_OT_rename_texture_node_image(Operator):
+    bl_idname = "rymat.rename_texture_node_image"
+    bl_label = "Rename Texture Node Image"
+    bl_description = "Renames the image texture"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    new_image_name: StringProperty(default='')
+    node_tree_name: StringProperty(default="")
+    node_name: StringProperty(default="")
+    material_channel_name: StringProperty(default="")
+
+    def execute(self, context):
+
+        # Get the image texture from the provided node group.
+        node_group = bpy.data.node_groups.get(self.node_tree_name)
+        if not node_group:
+            debug_logging.log_status("Can't rename image texture node, node group invalid.", self)
+            return {'FINISHED'}
+        
+        texture_node = node_group.nodes.get(self.node_name)
+        if not texture_node:
+            debug_logging.log_status("Can't rename image texture node, texture node invalid.", self)
+            return {'FINISHED'}
+        
+        # Rename the image texture.
+        texture_node.image.name = self.new_image_name
+
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        # Get the image texture from the provided node group.
+        node_group = bpy.data.node_groups.get(self.node_tree_name)
+        if not node_group:
+            debug_logging.log_status("Can't rename image texture node, node group invalid.", self)
+            return {'FINISHED'}
+        
+        texture_node = node_group.nodes.get(self.node_name)
+        if not texture_node:
+            debug_logging.log_status("Can't rename image texture node, texture node invalid.", self)
+            return {'FINISHED'}
+        
+        # Pre-fill the new name with the current image name.
+        image = texture_node.image
+        if image:
+            self.new_image_name = image.name
+            
+        return context.window_manager.invoke_props_dialog(self)
+    
+    # Draw the pop-up menu manually to avoid showing texture node properties.
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "new_image_name", text="")
+
 class RYMAT_OT_edit_texture_node_image_externally(Operator):
     bl_idname = "rymat.edit_texture_node_image_externally"
     bl_label = "Edit Image Externally"

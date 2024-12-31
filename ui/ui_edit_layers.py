@@ -764,6 +764,11 @@ class ImageUtilitySubMenu(Menu):
             operator.node_name = context.node.name
             operator.material_channel_name = material_channel_name
 
+            operator = layout.operator("rymat.rename_texture_node_image", icon='NONE', text="Rename Image")
+            operator.node_tree_name = context.node_tree.name
+            operator.node_name = context.node.name
+            operator.material_channel_name = material_channel_name
+
             operator = layout.operator("rymat.edit_texture_node_image_externally", icon='TPAINT_HLT', text="Edit Image Externally")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
