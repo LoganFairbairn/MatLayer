@@ -32,7 +32,7 @@ def draw_export_textures_ui(self, context):
     # Draw export button.
     row = layout.row(align=True)
     row.scale_y = 2.0
-    row.operator("matlayer.export", text="Export Textures")
+    row.operator("rymat.export", text="Export Textures")
 
     # Draw a warning for users using their CPU to export textures.
     scene = bpy.data.scenes["Scene"]
@@ -51,30 +51,30 @@ def draw_export_textures_ui(self, context):
     second_column = split.column()
 
     # Draw options for changing the export preset.
-    texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
+    texture_export_settings = bpy.context.scene.rymat_texture_export_settings
     row = first_column.row()
     row.label(text="Export Preset")
     row = second_column.row(align=True)
-    row.menu("MATLAYER_MT_export_preset_menu", text="Select Preset")
-    row.operator("matlayer.save_export_template", text="", icon='FILE_TICK')
-    row.operator("matlayer.refresh_export_template_list", text="", icon='FILE_REFRESH')
-    row.operator("matlayer.delete_export_template", text="", icon='TRASH')
+    row.menu("RYMAT_MT_export_preset_menu", text="Select Preset")
+    row.operator("rymat.save_export_template", text="", icon='FILE_TICK')
+    row.operator("rymat.refresh_export_template_list", text="", icon='FILE_REFRESH')
+    row.operator("rymat.delete_export_template", text="", icon='TRASH')
     
     # Draw the name of the active export preset.
-    texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
+    texture_export_settings = bpy.context.scene.rymat_texture_export_settings
     row = first_column.row()
     row.label(text="Export Preset Name")
     row = second_column.row()
     row.prop(texture_export_settings, "export_preset_name", text="")
 
     # Draw the export folder.
-    baking_settings = bpy.context.scene.matlayer_baking_settings
+    baking_settings = bpy.context.scene.rymat_baking_settings
     row = first_column.row()
     row.label(text="Export Folder")
     row = second_column.row(align=True)
-    row.prop(bpy.context.scene, "matlayer_export_folder", text="")
-    row.operator("matlayer.set_export_folder", text="", icon='FOLDER_REDIRECT')
-    row.operator("matlayer.open_export_folder", text="", icon='FILE_FOLDER')
+    row.prop(bpy.context.scene, "rymat_export_folder", text="")
+    row.operator("rymat.set_export_folder", text="", icon='FOLDER_REDIRECT')
+    row.operator("rymat.open_export_folder", text="", icon='FILE_FOLDER')
 
     # Draw the render device.
     row = first_column.row()
@@ -127,7 +127,7 @@ def draw_export_textures_ui(self, context):
     row.scale_x = 1.5
     row.scale_y = 1.5
     row.alignment = 'RIGHT'
-    row.operator("matlayer.add_export_texture", text="", icon='ADD')
+    row.operator("rymat.add_export_texture", text="", icon='ADD')
 
     # Draw channel packing textures.
     for i, texture in enumerate(texture_export_settings.export_textures):
@@ -141,7 +141,7 @@ def draw_export_textures_ui(self, context):
         row.label(text=str(i) + ".")
         row = second_column.row()
         row.prop(texture, "name_format", text="")
-        op = row.operator("matlayer.remove_export_texture", icon='X', text="")
+        op = row.operator("rymat.remove_export_texture", icon='X', text="")
         op.export_texture_index = i
 
         row = first_column.row()

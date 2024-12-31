@@ -41,7 +41,7 @@ def draw_mesh_map_status(layout, baking_settings):
 
         col = row.column()
         row = col.row(align=True)        
-        operator = row.operator("matlayer.delete_mesh_map", text="", icon='TRASH')
+        operator = row.operator("rymat.delete_mesh_map", text="", icon='TRASH')
         operator.mesh_map_name = mesh_map_type
 
 def draw_mesh_map_previews(layout):
@@ -63,7 +63,7 @@ def draw_mesh_map_previews(layout):
     row.alignment = 'RIGHT'
     row.scale_x = 1.5
     row.scale_y = 1.5
-    row.operator("matlayer.disable_mesh_map_preview", text="", icon='BACK')
+    row.operator("rymat.disable_mesh_map_preview", text="", icon='BACK')
 
     # Draw an operator to preview all mesh maps.
     row = layout.row(align=True)
@@ -74,7 +74,7 @@ def draw_mesh_map_previews(layout):
         if mesh_map_type != 'NORMALS':
             mesh_map_name = mesh_map_type.replace('_', ' ')
             mesh_map_name = bau.capitalize_by_space(mesh_map_name)
-            operator = row.operator("matlayer.preview_mesh_map", text=mesh_map_name)
+            operator = row.operator("rymat.preview_mesh_map", text=mesh_map_name)
             operator.mesh_map_type = mesh_map_type
 
 def draw_mesh_map_settings(layout, baking_settings):
@@ -85,8 +85,8 @@ def draw_mesh_map_settings(layout, baking_settings):
     layout.label(text="BAKING OBJECTS")
 
     row = layout.row()
-    row.operator("matlayer.create_baking_cage", text="Add Cage")
-    row.operator("matlayer.delete_baking_cage", text="Delete Cage")
+    row.operator("rymat.create_baking_cage", text="Add Cage")
+    row.operator("rymat.delete_baking_cage", text="Delete Cage")
 
     split = layout.split(factor=0.4)
     first_column = split.column()
@@ -121,9 +121,9 @@ def draw_mesh_map_settings(layout, baking_settings):
     row = first_column.row()
     row.label(text="Mesh Map Folder")
     row = second_column.row(align=True)
-    row.prop(bpy.context.scene, "matlayer_mesh_map_folder", text="")
-    row.operator("matlayer.set_mesh_map_folder", text="", icon='FOLDER_REDIRECT')
-    row.operator("matlayer.open_mesh_map_folder", text="", icon='FILE_FOLDER')
+    row.prop(bpy.context.scene, "rymat_mesh_map_folder", text="")
+    row.operator("rymat.set_mesh_map_folder", text="", icon='FOLDER_REDIRECT')
+    row.operator("rymat.open_mesh_map_folder", text="", icon='FILE_FOLDER')
 
     row = first_column.row()
     row.label(text="Render Device")
@@ -232,12 +232,12 @@ def draw_mesh_map_section_ui(self, context):
         layout.label(text="Edit -> Preferences -> Add-ons -> Cycles Render Engine")
         return
 
-    baking_settings = context.scene.matlayer_baking_settings
+    baking_settings = context.scene.rymat_baking_settings
 
     # Draw bake button.
     row = layout.row(align=True)
     row.scale_y = 2.0
-    row.operator("matlayer.batch_bake", text="Bake Mesh Maps")
+    row.operator("rymat.batch_bake", text="Bake Mesh Maps")
 
     # Draw a warning for users using their CPU to bake mesh maps.
     scene = bpy.data.scenes["Scene"]

@@ -1,4 +1,4 @@
-# Draws the matlayer user interface.
+# Draws the rymat user interface.
 
 import bpy
 from bpy.types import Menu
@@ -20,83 +20,83 @@ def update_main_ui_tabs(self, context):
     '''Callback function for updating data when the main user interface tab is changed.'''
 
     # Read json data for available shaders when the shader tab is selected.
-    if context.scene.matlayer_panel_properties.sections == 'SECTION_SETTINGS':
+    if context.scene.rymat_panel_properties.sections == 'SECTION_SETTINGS':
         shaders.update_shader_list()
 
     # Read the available export templates when the export tab is selected.
-    if context.scene.matlayer_panel_properties.sections == 'SECTION_EXPORT_TEXTURES':
+    if context.scene.rymat_panel_properties.sections == 'SECTION_EXPORT_TEXTURES':
         export_textures.read_export_template_names()
 
 def draw_addon_dropdown_menu_bar(layout):
     '''Draws a dropdown menu bar for this add-on.'''
     row = layout.row(align=True)
     row.alignment = 'LEFT'
-    row.menu("MATLAYER_MT_file_sub_menu", text="File")
-    row.menu("MATLAYER_MT_edit_sub_menu", text="Edit")
-    row.menu("MATLAYER_MT_help_sub_menu", text="Help")
+    row.menu("RYMAT_MT_file_sub_menu", text="File")
+    row.menu("RYMAT_MT_edit_sub_menu", text="Edit")
+    row.menu("RYMAT_MT_help_sub_menu", text="Help")
 
 class FileSubMenu(Menu):
-    bl_idname = "MATLAYER_MT_file_sub_menu"
+    bl_idname = "RYMAT_MT_file_sub_menu"
     bl_label = "File Sub Menu"
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("matlayer.save_all_textures", text="Save All Textures", icon='FILE_TICK')
-        layout.operator("matlayer.import_texture_set", text="Import Texture Set", icon='IMPORT')
-        layout.operator("matlayer.append_default_workspace", text="Append Default Workspace")
-        layout.operator("matlayer.append_material_ball", text="Append Material Ball")
-        layout.operator("matlayer.export", text="Export Textures", icon='EXPORT')
-        layout.operator("matlayer.export_uvs", text="Export UV Map", icon='UV')
-        layout.operator("matlayer.remove_unused_textures", text="Remove Unused Textures")
-        layout.operator("matlayer.apply_default_shader", text="Apply Default Shader")
+        layout.operator("rymat.save_all_textures", text="Save All Textures", icon='FILE_TICK')
+        layout.operator("rymat.import_texture_set", text="Import Texture Set", icon='IMPORT')
+        layout.operator("rymat.append_default_workspace", text="Append Default Workspace")
+        layout.operator("rymat.append_material_ball", text="Append Material Ball")
+        layout.operator("rymat.export", text="Export Textures", icon='EXPORT')
+        layout.operator("rymat.export_uvs", text="Export UV Map", icon='UV')
+        layout.operator("rymat.remove_unused_textures", text="Remove Unused Textures")
+        layout.operator("rymat.apply_default_shader", text="Apply Default Shader")
 
 class EditSubMenu(Menu):
-    bl_idname = "MATLAYER_MT_edit_sub_menu"
+    bl_idname = "RYMAT_MT_edit_sub_menu"
     bl_label = "Edit Sub Menu"
 
     def draw(self, context):
         layout = self.layout
-        panel_properties = context.scene.matlayer_panel_properties
+        panel_properties = context.scene.rymat_panel_properties
         layout.prop_enum(panel_properties, "sections", 'SECTION_EDIT_MATERIALS', text="Materials")
         layout.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS", text="Mesh Maps")
         layout.prop_enum(panel_properties, "sections", 'SECTION_TEXTURE_SETTINGS', text="Texture Settings")
         layout.prop_enum(panel_properties, "sections", 'SECTION_SHADER_SETTINGS', text="Shader Settings", icon='MATSHADERBALL')
         layout.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS', text="Viewport Settings")
         layout.prop_enum(panel_properties, "sections", 'SECTION_EXPORT_TEXTURES', text="Export Texture Settings", icon='EXPORT')
-        layout.operator("matlayer.add_black_outline", text="Add Black Outlines")
+        layout.operator("rymat.add_black_outline", text="Add Black Outlines")
 
 class HelpSubMenu(Menu):
-    bl_idname = "MATLAYER_MT_help_sub_menu"
+    bl_idname = "RYMAT_MT_help_sub_menu"
     bl_label = "Help Sub Menu"
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("wm.url_open", text="Documentation", icon='HELP').url = "https://loganfairbairn.github.io/matlayer_documentation.html"
+        layout.operator("wm.url_open", text="Documentation", icon='HELP').url = "https://loganfairbairn.github.io/rymat_documentation.html"
 
-class MATLAYER_panel_properties(bpy.types.PropertyGroup):
+class RYMAT_panel_properties(bpy.types.PropertyGroup):
     sections: bpy.props.EnumProperty(
         items=[('SECTION_EDIT_MATERIALS', "Edit Layers", "This section contains operators to edit material layers."),
                ('SECTION_MESH_MAPS', "Mesh Maps", "This section contains operations to quickly bake mesh map textures for your models. Baking mesh maps transfer 3D data such as shadows, curvature, sharp edges and extra detail from higher polycount objects to image textures. Baked mesh map textures can be used as textures in layers in many different ways to make the texturing process faster. One example of where baked mesh maps could be used is to mask dirt by using the baked ambient occlusion as a mask."),
-               ('SECTION_EXPORT_TEXTURES', "Export Textures", "This section contains operations to quickly export textures made with MatLayer."),
+               ('SECTION_EXPORT_TEXTURES', "Export Textures", "This section contains operations to quickly export textures made with RyMat."),
                ('SECTION_TEXTURE_SETTINGS', "TEXTURE SETTINGS", "Settings that defined how materials and textures are created by this add-on."),
                ('SECTION_SHADER_SETTINGS', "Shader Settings", "Settings for shader node setups."),
                ('SECTION_VIEWPORT_SETTINGS', "VIEWPORT", "This section contains select viewport render settings to help preview materials")],
-        name="MatLayer Sections",
-        description="Current matlayer category",
+        name="RyMat Sections",
+        description="Current rymat category",
         default='SECTION_EDIT_MATERIALS',
         update=update_main_ui_tabs
     )
 
-class MATLAYER_PT_Panel(bpy.types.Panel):
-    bl_label = "MatLayer 3.0.0"
-    bl_idname = "MATLAYER_PT_main_panel"
+class RYMAT_PT_Panel(bpy.types.Panel):
+    bl_label = "RyMat 3.0.0"
+    bl_idname = "RYMAT_PT_main_panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = "MatLayer"
+    bl_category = "RyMat"
 
     def draw(self, context):
         layout = self.layout
-        panel_properties = context.scene.matlayer_panel_properties
+        panel_properties = context.scene.rymat_panel_properties
 
         # Draw a dropdown menu bar containing options for editing main parts of this add-on.
         draw_addon_dropdown_menu_bar(layout)
@@ -104,7 +104,7 @@ class MATLAYER_PT_Panel(bpy.types.Panel):
         # Draw tabs for quick access to the main sections of this add-on.
         row = layout.row(align=True)
         row.scale_y = 1.25
-        panel_properties = bpy.context.scene.matlayer_panel_properties
+        panel_properties = bpy.context.scene.rymat_panel_properties
         row.prop_enum(panel_properties, "sections", 'SECTION_EDIT_MATERIALS', text="EDIT MATERIALS", icon='NONE')
         row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS", text="MESH MAPS", icon='NONE')
         row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT_TEXTURES', text="EXPORT TEXTURES", icon='NONE')

@@ -6,7 +6,7 @@ from .. import preferences
 
 def draw_texture_setting_ui(layout):
     '''Draws addon texture settings.'''
-    texture_set_settings = bpy.context.scene.matlayer_texture_set_settings
+    texture_set_settings = bpy.context.scene.rymat_texture_set_settings
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
 
     # Split the UI into a two column layout.
@@ -41,9 +41,9 @@ def draw_texture_setting_ui(layout):
     row = first_column.row()
     row.label(text="Raw Texture Folder")
     row = second_column.row(align=True)
-    row.prop(bpy.context.scene, "matlayer_raw_textures_folder", text="")
-    row.operator("matlayer.set_raw_texture_folder", text="", icon='FOLDER_REDIRECT')
-    row.operator("matlayer.open_raw_texture_folder", text="", icon='FILE_FOLDER')
+    row.prop(bpy.context.scene, "rymat_raw_textures_folder", text="")
+    row.operator("rymat.set_raw_texture_folder", text="", icon='FOLDER_REDIRECT')
+    row.operator("rymat.open_raw_texture_folder", text="", icon='FILE_FOLDER')
 
     # Draw other texture management settings.
     row = first_column.row()
@@ -77,14 +77,14 @@ def draw_shader_setting_ui(layout):
     row = first_column.row()
     row.label(text="Shader Preset")
     row = second_column.row(align=True)
-    row.menu("MATLAYER_MT_shader_sub_menu", text="Select Shader")
-    row.operator("matlayer.new_shader", text="", icon='ADD')
-    row.operator("matlayer.save_shader", text="", icon='FILE_TICK')
-    row.operator("matlayer.create_shader_from_nodetree", text="", icon='NODETREE')
-    row.operator("matlayer.delete_shader", text="", icon='TRASH')
+    row.menu("RYMAT_MT_shader_sub_menu", text="Select Shader")
+    row.operator("rymat.new_shader", text="", icon='ADD')
+    row.operator("rymat.save_shader", text="", icon='FILE_TICK')
+    row.operator("rymat.create_shader_from_nodetree", text="", icon='NODETREE')
+    row.operator("rymat.delete_shader", text="", icon='TRASH')
 
     # Draw the selected shader, and operators to change or edit the shader.
-    shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.rymat_shader_info
     row = first_column.row()
     row.label(text="Shader Node")
     row = second_column.row(align=True)
@@ -101,17 +101,17 @@ def draw_shader_setting_ui(layout):
     row.alignment = 'RIGHT'
     row.scale_x = 1.5
     row.scale_y = 1.5
-    row.operator("matlayer.add_shader_channel", text="", icon='ADD')
-    row.operator("matlayer.delete_shader_channel", text="", icon='TRASH')
+    row.operator("rymat.add_shader_channel", text="", icon='ADD')
+    row.operator("rymat.delete_shader_channel", text="", icon='TRASH')
     row = layout.row(align=True)
-    row.template_list("MATLAYER_UL_shader_channel_list", "Shader Channels", bpy.context.scene.matlayer_shader_info, "material_channels", bpy.context.scene, "matlayer_shader_channel_index", sort_reverse=False)
+    row.template_list("RYMAT_UL_shader_channel_list", "Shader Channels", bpy.context.scene.rymat_shader_info, "material_channels", bpy.context.scene, "rymat_shader_channel_index", sort_reverse=False)
 
     # Draw properties for the selected shader channel.
     split = layout.split(factor=0.4)
     first_column = split.column()
     second_column = split.column()
 
-    selected_shader_channel_index = bpy.context.scene.matlayer_shader_channel_index
+    selected_shader_channel_index = bpy.context.scene.rymat_shader_channel_index
 
     if selected_shader_channel_index > -1 and selected_shader_channel_index < len(shader_info.material_channels):
         selected_shader_channel = shader_info.material_channels[selected_shader_channel_index]
@@ -170,17 +170,17 @@ def draw_shader_setting_ui(layout):
         row.prop(selected_shader_channel, "default_blend_mode", text="")
 
 class ShaderSubMenu(Menu):
-    bl_idname = "MATLAYER_MT_shader_sub_menu"
+    bl_idname = "RYMAT_MT_shader_sub_menu"
     bl_label = "Shader Sub Menu"
 
     def draw(self, context):
         layout = self.layout
-        shaders = bpy.context.scene.matlayer_shader_list
+        shaders = bpy.context.scene.rymat_shader_list
         for shader in shaders:
-            op = layout.operator("matlayer.set_shader", text=shader.name)
+            op = layout.operator("rymat.set_shader", text=shader.name)
             op.shader_name = shader.name
 
-class MATLAYER_UL_shader_channel_list(bpy.types.UIList):
+class RYMAT_UL_shader_channel_list(bpy.types.UIList):
     '''Draws the shader channel list'''
 
     def draw_item(self, context, layout, data, item, icon, active_data, index):
@@ -188,7 +188,7 @@ class MATLAYER_UL_shader_channel_list(bpy.types.UIList):
         self.use_filter_reverse = True
         layout.label(text=item.name)
 
-class MATLAYER_UL_global_shader_property_list(bpy.types.UIList):
+class RYMAT_UL_global_shader_property_list(bpy.types.UIList):
     '''Draws a list of the global properties for the selected shader.'''
 
     def draw_item(self, context, layout, data, item, icon, active_data, index):

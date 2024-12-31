@@ -24,7 +24,7 @@ from bpy.app.handlers import persistent
 from .preferences import AddonPreferences
 
 # Texture Set Settings
-from .core.texture_set_settings import MATLAYER_texture_set_settings, MATLAYER_OT_set_raw_texture_folder, MATLAYER_OT_open_raw_texture_folder
+from .core.texture_set_settings import RYMAT_texture_set_settings, RYMAT_OT_set_raw_texture_folder, RYMAT_OT_open_raw_texture_folder
 
 # Shaders
 from .core import shaders
@@ -33,44 +33,44 @@ from .core import shaders
 from .core import material_layers
 
 # Layer Masks
-from .core.layer_masks import MATLAYER_mask_stack, MATLAYER_masks, MATLAYER_UL_mask_list, MATLAYER_OT_move_layer_mask_up, MATLAYER_OT_move_layer_mask_down, MATLAYER_OT_duplicate_layer_mask, MATLAYER_OT_delete_layer_mask, MATLAYER_OT_add_empty_layer_mask, MATLAYER_OT_add_black_layer_mask, MATLAYER_OT_add_white_layer_mask, MATLAYER_OT_add_linear_gradient_mask, MATLAYER_OT_add_decal_mask, MATLAYER_OT_add_ambient_occlusion_mask, MATLAYER_OT_add_curvature_mask, MATLAYER_OT_add_thickness_mask, MATLAYER_OT_add_world_space_normals_mask,  MATLAYER_OT_add_grunge_mask, MATLAYER_OT_add_edge_wear_mask, MATLAYER_OT_add_decal_mask, MATLAYER_OT_set_mask_projection_uv, MATLAYER_OT_set_mask_projection_triplanar, MATLAYER_OT_set_mask_crgba_channel, MATLAYER_OT_isolate_mask
+from .core.layer_masks import RYMAT_mask_stack, RYMAT_masks, RYMAT_UL_mask_list, RYMAT_OT_move_layer_mask_up, RYMAT_OT_move_layer_mask_down, RYMAT_OT_duplicate_layer_mask, RYMAT_OT_delete_layer_mask, RYMAT_OT_add_empty_layer_mask, RYMAT_OT_add_black_layer_mask, RYMAT_OT_add_white_layer_mask, RYMAT_OT_add_linear_gradient_mask, RYMAT_OT_add_decal_mask, RYMAT_OT_add_ambient_occlusion_mask, RYMAT_OT_add_curvature_mask, RYMAT_OT_add_thickness_mask, RYMAT_OT_add_world_space_normals_mask,  RYMAT_OT_add_grunge_mask, RYMAT_OT_add_edge_wear_mask, RYMAT_OT_add_decal_mask, RYMAT_OT_set_mask_projection_uv, RYMAT_OT_set_mask_projection_triplanar, RYMAT_OT_set_mask_crgba_channel, RYMAT_OT_isolate_mask
 
 # Material Filters
-from .core.material_filters import MATLAYER_OT_add_material_filter, MATLAYER_OT_delete_material_filter
+from .core.material_filters import RYMAT_OT_add_material_filter, RYMAT_OT_delete_material_filter
 
 # Material Slots
-from .core.material_slots import MATLAYER_OT_add_material_slot, MATLAYER_OT_remove_material_slot, MATLAYER_OT_move_material_slot_up, MATLAYER_OT_move_material_slot_down
+from .core.material_slots import RYMAT_OT_add_material_slot, RYMAT_OT_remove_material_slot, RYMAT_OT_move_material_slot_up, RYMAT_OT_move_material_slot_down
 
 # Baking Mesh Maps
-from .core.mesh_map_baking import MATLAYER_mesh_map_anti_aliasing, MATLAYER_baking_settings, MATLAYER_OT_batch_bake, MATLAYER_OT_set_mesh_map_folder, MATLAYER_OT_open_mesh_map_folder, MATLAYER_OT_preview_mesh_map, MATLAYER_OT_disable_mesh_map_preview, MATLAYER_OT_delete_mesh_map, MATLAYER_OT_create_baking_cage, MATLAYER_OT_delete_baking_cage
+from .core.mesh_map_baking import RYMAT_mesh_map_anti_aliasing, RYMAT_baking_settings, RYMAT_OT_batch_bake, RYMAT_OT_set_mesh_map_folder, RYMAT_OT_open_mesh_map_folder, RYMAT_OT_preview_mesh_map, RYMAT_OT_disable_mesh_map_preview, RYMAT_OT_delete_mesh_map, RYMAT_OT_create_baking_cage, RYMAT_OT_delete_baking_cage
 
 # Exporting
-from .core.export_textures import MATLAYER_pack_textures, MATLAYER_RGBA_pack_channels, MATLAYER_texture_export_settings, MATLAYER_texture_export_settings, MATLAYER_texture_set_export_settings, MATLAYER_OT_export, MATLAYER_OT_set_export_folder, MATLAYER_OT_open_export_folder, MATLAYER_OT_set_export_template, MATLAYER_OT_save_export_template, MATLAYER_OT_refresh_export_template_list, MATLAYER_OT_delete_export_template, MATLAYER_OT_add_export_texture, MATLAYER_OT_remove_export_texture, MATLAYER_export_template_names, ExportTemplateMenu
+from .core.export_textures import RYMAT_pack_textures, RYMAT_RGBA_pack_channels, RYMAT_texture_export_settings, RYMAT_texture_export_settings, RYMAT_texture_set_export_settings, RYMAT_OT_export, RYMAT_OT_set_export_folder, RYMAT_OT_open_export_folder, RYMAT_OT_set_export_template, RYMAT_OT_save_export_template, RYMAT_OT_refresh_export_template_list, RYMAT_OT_delete_export_template, RYMAT_OT_add_export_texture, RYMAT_OT_remove_export_texture, RYMAT_export_template_names, ExportTemplateMenu
 
 # Utilities
-from .core.image_utilities import MATLAYER_OT_add_texture_node_image, MATLAYER_OT_import_texture_node_image, MATLAYER_OT_edit_texture_node_image_externally, MATLAY_OT_export_uvs, MATLAYER_OT_reload_texture_node_image, MATLAYER_OT_duplicate_texture_node_image, MATLAYER_OT_delete_texture_node_image, MATLAY_OT_image_edit_uvs, auto_save_images
-from .core.layer_utilities import MATLAYER_OT_import_texture_set, MATLAYER_OT_merge_materials
-from .core.utility_operations import MATLAYER_OT_append_default_workspace, MATLAYER_OT_set_decal_layer_snapping, MATLAYER_OT_append_hdri_world, MATLAYER_OT_remove_unused_raw_textures, MATLAYER_OT_append_material_ball, MATLAYER_OT_add_black_outline
-from .core.blender_addon_utils import MATLAYER_OT_save_all_textures
+from .core.image_utilities import RYMAT_OT_add_texture_node_image, RYMAT_OT_import_texture_node_image, RYMAT_OT_edit_texture_node_image_externally, RYMAT_OT_export_uvs, RYMAT_OT_reload_texture_node_image, RYMAT_OT_duplicate_texture_node_image, RYMAT_OT_delete_texture_node_image, RYMAT_OT_image_edit_uvs, auto_save_images
+from .core.layer_utilities import RYMAT_OT_import_texture_set, RYMAT_OT_merge_materials
+from .core.utility_operations import RYMAT_OT_append_default_workspace, RYMAT_OT_set_decal_layer_snapping, RYMAT_OT_append_hdri_world, RYMAT_OT_remove_unused_raw_textures, RYMAT_OT_append_material_ball, RYMAT_OT_add_black_outline
+from .core.blender_addon_utils import RYMAT_OT_save_all_textures
 
 # User Interface
-from .ui.ui_edit_layers import MATLAYER_OT_add_material_layer_menu, MATLAYER_OT_add_layer_mask_menu, AddMaterialChannelSubMenu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MaterialSelectorPanel, LayerStackPanel, MaterialPropertiesPanel, MATERIAL_LAYER_PROPERTY_TABS
-from .ui.ui_settings import ShaderSubMenu, MATLAYER_UL_shader_channel_list, MATLAYER_UL_global_shader_property_list
+from .ui.ui_edit_layers import RYMAT_OT_add_material_layer_menu, RYMAT_OT_add_layer_mask_menu, AddMaterialChannelSubMenu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MaterialSelectorPanel, LayerStackPanel, MaterialPropertiesPanel, MATERIAL_LAYER_PROPERTY_TABS
+from .ui.ui_settings import ShaderSubMenu, RYMAT_UL_shader_channel_list, RYMAT_UL_global_shader_property_list
 from .ui.ui_main import *
-from .ui.ui_layer_stack import MATLAYER_UL_layer_list, LayerBlendingModeSubMenu
+from .ui.ui_layer_stack import RYMAT_UL_layer_list, LayerBlendingModeSubMenu
 
 # Subscription Update Handler
 from .core.subscription_update_handler import on_active_material_changed, on_active_object_changed, on_active_object_name_changed, on_active_material_index_changed, on_active_material_name_changed
 
 bl_info = {
-    "name": "MatLayer",
+    "name": "RyMat",
     "author": "Logan Fairbairn (Ryver)",
-    "version": (3, 0, 0),
+    "version": (1, 0, 0),
     "blender": (4, 3, 2),
-    "location": "View3D > Sidebar > MatLayer",
+    "location": "View3D > Sidebar > RyMat",
     "description": "Provides a layer based user interface and utility functions for creating complex materials in Blender",
     "warning": "",
-    "doc_url": "https://loganfairbairn.github.io/matlayer_documentation.html",
+    "doc_url": "https://loganfairbairn.github.io/rymat_documentation.html",
     "category": "Material Editing",
 }
 
@@ -80,145 +80,145 @@ classes = (
     AddonPreferences,
 
     # Mesh Map Baking
-    MATLAYER_mesh_map_anti_aliasing,
-    MATLAYER_baking_settings,
-    MATLAYER_OT_batch_bake,
-    MATLAYER_OT_set_mesh_map_folder,
-    MATLAYER_OT_open_mesh_map_folder,
-    MATLAYER_OT_preview_mesh_map,
-    MATLAYER_OT_disable_mesh_map_preview,
-    MATLAYER_OT_delete_mesh_map,
-    MATLAYER_OT_create_baking_cage,
-    MATLAYER_OT_delete_baking_cage,
+    RYMAT_mesh_map_anti_aliasing,
+    RYMAT_baking_settings,
+    RYMAT_OT_batch_bake,
+    RYMAT_OT_set_mesh_map_folder,
+    RYMAT_OT_open_mesh_map_folder,
+    RYMAT_OT_preview_mesh_map,
+    RYMAT_OT_disable_mesh_map_preview,
+    RYMAT_OT_delete_mesh_map,
+    RYMAT_OT_create_baking_cage,
+    RYMAT_OT_delete_baking_cage,
 
     # Exporting
-    MATLAYER_pack_textures,
-    MATLAYER_RGBA_pack_channels,
-    MATLAYER_texture_export_settings,
-    MATLAYER_texture_set_export_settings,
-    MATLAYER_export_template_names,
-    MATLAYER_OT_export,
-    MATLAYER_OT_set_export_template,
-    MATLAYER_OT_save_export_template,
-    MATLAYER_OT_refresh_export_template_list,
-    MATLAYER_OT_delete_export_template,
-    MATLAYER_OT_add_export_texture,
-    MATLAYER_OT_remove_export_texture,
-    MATLAYER_OT_set_export_folder,
-    MATLAYER_OT_open_export_folder,
+    RYMAT_pack_textures,
+    RYMAT_RGBA_pack_channels,
+    RYMAT_texture_export_settings,
+    RYMAT_texture_set_export_settings,
+    RYMAT_export_template_names,
+    RYMAT_OT_export,
+    RYMAT_OT_set_export_template,
+    RYMAT_OT_save_export_template,
+    RYMAT_OT_refresh_export_template_list,
+    RYMAT_OT_delete_export_template,
+    RYMAT_OT_add_export_texture,
+    RYMAT_OT_remove_export_texture,
+    RYMAT_OT_set_export_folder,
+    RYMAT_OT_open_export_folder,
     ExportTemplateMenu,
 
     # Shaders
-    shaders.MATLAYER_shader_name,
-    shaders.MATLAYER_shader_material_channel,
-    shaders.MATLAYER_shader_unlayered_property,
-    shaders.MATLAYER_shader_info,
-    shaders.MATLAYER_OT_set_shader,
-    shaders.MATLAYER_OT_new_shader,
-    shaders.MATLAYER_OT_save_shader,
-    shaders.MATLAYER_OT_delete_shader,
-    shaders.MATLAYER_OT_add_shader_channel,
-    shaders.MATLAYER_OT_delete_shader_channel,
-    shaders.MATLAYER_OT_create_shader_from_nodetree,
-    shaders.MATLAYER_OT_apply_default_shader,
+    shaders.RYMAT_shader_name,
+    shaders.RYMAT_shader_material_channel,
+    shaders.RYMAT_shader_unlayered_property,
+    shaders.RYMAT_shader_info,
+    shaders.RYMAT_OT_set_shader,
+    shaders.RYMAT_OT_new_shader,
+    shaders.RYMAT_OT_save_shader,
+    shaders.RYMAT_OT_delete_shader,
+    shaders.RYMAT_OT_add_shader_channel,
+    shaders.RYMAT_OT_delete_shader_channel,
+    shaders.RYMAT_OT_create_shader_from_nodetree,
+    shaders.RYMAT_OT_apply_default_shader,
 
     # Material Layers
-    material_layers.MATLAYER_layer_stack,
-    material_layers.MATLAYER_layers,
-    material_layers.MATLAYER_OT_add_material_layer,
-    material_layers.MATLAYER_OT_add_decal_material_layer,
-    material_layers.MATLAYER_OT_add_image_layer,
-    material_layers.MATLAYER_OT_delete_layer,
-    material_layers.MATLAYER_OT_duplicate_layer, 
-    material_layers.MATLAYER_OT_move_material_layer_up,
-    material_layers.MATLAYER_OT_move_material_layer_down,
-    material_layers.MATLAYER_OT_toggle_material_channel_preview,
-    material_layers.MATLAYER_OT_toggle_hide_layer,
-    material_layers.MATLAYER_OT_set_layer_projection,
-    material_layers.MATLAYER_OT_change_material_channel_value_node,
-    material_layers.MATLAYER_OT_isolate_material_channel,
-    material_layers.MATLAYER_OT_show_compiled_material,
-    material_layers.MATLAYER_OT_toggle_image_alpha_blending,
-    material_layers.MATLAYER_OT_set_material_channel,
-    material_layers.MATLAYER_OT_set_matchannel_crgba_output,
-    material_layers.MATLAYER_OT_set_layer_blending_mode,
-    material_layers.MATLAYER_OT_merge_with_layer_below,
-    material_layers.MATLAYER_OT_add_material_channel_nodes,
-    material_layers.MATLAYER_OT_delete_material_channel_nodes,
+    material_layers.RYMAT_layer_stack,
+    material_layers.RYMAT_layers,
+    material_layers.RYMAT_OT_add_material_layer,
+    material_layers.RYMAT_OT_add_decal_material_layer,
+    material_layers.RYMAT_OT_add_image_layer,
+    material_layers.RYMAT_OT_delete_layer,
+    material_layers.RYMAT_OT_duplicate_layer, 
+    material_layers.RYMAT_OT_move_material_layer_up,
+    material_layers.RYMAT_OT_move_material_layer_down,
+    material_layers.RYMAT_OT_toggle_material_channel_preview,
+    material_layers.RYMAT_OT_toggle_hide_layer,
+    material_layers.RYMAT_OT_set_layer_projection,
+    material_layers.RYMAT_OT_change_material_channel_value_node,
+    material_layers.RYMAT_OT_isolate_material_channel,
+    material_layers.RYMAT_OT_show_compiled_material,
+    material_layers.RYMAT_OT_toggle_image_alpha_blending,
+    material_layers.RYMAT_OT_set_material_channel,
+    material_layers.RYMAT_OT_set_matchannel_crgba_output,
+    material_layers.RYMAT_OT_set_layer_blending_mode,
+    material_layers.RYMAT_OT_merge_with_layer_below,
+    material_layers.RYMAT_OT_add_material_channel_nodes,
+    material_layers.RYMAT_OT_delete_material_channel_nodes,
 
     # Layer Masks
-    MATLAYER_mask_stack, 
-    MATLAYER_masks,
-    MATLAYER_UL_mask_list,
-    MATLAYER_OT_move_layer_mask_up, 
-    MATLAYER_OT_move_layer_mask_down,
-    MATLAYER_OT_duplicate_layer_mask,
-    MATLAYER_OT_delete_layer_mask,
-    MATLAYER_OT_add_empty_layer_mask,
-    MATLAYER_OT_add_black_layer_mask,
-    MATLAYER_OT_add_white_layer_mask,
-    MATLAYER_OT_add_linear_gradient_mask,
-    MATLAYER_OT_add_grunge_mask,
-    MATLAYER_OT_add_edge_wear_mask,
-    MATLAYER_OT_add_decal_mask,
-    MATLAYER_OT_add_ambient_occlusion_mask, 
-    MATLAYER_OT_add_curvature_mask, 
-    MATLAYER_OT_add_thickness_mask, 
-    MATLAYER_OT_add_world_space_normals_mask,
-    MATLAYER_OT_set_mask_projection_uv,
-    MATLAYER_OT_set_mask_projection_triplanar,
-    MATLAYER_OT_set_mask_crgba_channel,
-    MATLAYER_OT_isolate_mask,
+    RYMAT_mask_stack, 
+    RYMAT_masks,
+    RYMAT_UL_mask_list,
+    RYMAT_OT_move_layer_mask_up, 
+    RYMAT_OT_move_layer_mask_down,
+    RYMAT_OT_duplicate_layer_mask,
+    RYMAT_OT_delete_layer_mask,
+    RYMAT_OT_add_empty_layer_mask,
+    RYMAT_OT_add_black_layer_mask,
+    RYMAT_OT_add_white_layer_mask,
+    RYMAT_OT_add_linear_gradient_mask,
+    RYMAT_OT_add_grunge_mask,
+    RYMAT_OT_add_edge_wear_mask,
+    RYMAT_OT_add_decal_mask,
+    RYMAT_OT_add_ambient_occlusion_mask, 
+    RYMAT_OT_add_curvature_mask, 
+    RYMAT_OT_add_thickness_mask, 
+    RYMAT_OT_add_world_space_normals_mask,
+    RYMAT_OT_set_mask_projection_uv,
+    RYMAT_OT_set_mask_projection_triplanar,
+    RYMAT_OT_set_mask_crgba_channel,
+    RYMAT_OT_isolate_mask,
 
     # Material Filters
-    MATLAYER_OT_add_material_filter,
-    MATLAYER_OT_delete_material_filter,
+    RYMAT_OT_add_material_filter,
+    RYMAT_OT_delete_material_filter,
 
     # Material Slots
-    MATLAYER_OT_add_material_slot, 
-    MATLAYER_OT_remove_material_slot,
-    MATLAYER_OT_move_material_slot_up, 
-    MATLAYER_OT_move_material_slot_down,
+    RYMAT_OT_add_material_slot, 
+    RYMAT_OT_remove_material_slot,
+    RYMAT_OT_move_material_slot_up, 
+    RYMAT_OT_move_material_slot_down,
 
     # Image Utilities
-    MATLAYER_OT_add_texture_node_image, 
-    MATLAYER_OT_import_texture_node_image, 
-    MATLAYER_OT_edit_texture_node_image_externally,
-    MATLAY_OT_export_uvs,
-    MATLAYER_OT_reload_texture_node_image,
-    MATLAYER_OT_duplicate_texture_node_image,
-    MATLAYER_OT_delete_texture_node_image,
-    MATLAY_OT_image_edit_uvs,
+    RYMAT_OT_add_texture_node_image, 
+    RYMAT_OT_import_texture_node_image, 
+    RYMAT_OT_edit_texture_node_image_externally,
+    RYMAT_OT_export_uvs,
+    RYMAT_OT_reload_texture_node_image,
+    RYMAT_OT_duplicate_texture_node_image,
+    RYMAT_OT_delete_texture_node_image,
+    RYMAT_OT_image_edit_uvs,
 
     # Layer Utilities
-    MATLAYER_OT_import_texture_set,
-    MATLAYER_OT_merge_materials,
+    RYMAT_OT_import_texture_set,
+    RYMAT_OT_merge_materials,
 
     # Texture Set Settings
-    MATLAYER_texture_set_settings,
-    MATLAYER_OT_set_raw_texture_folder,
-    MATLAYER_OT_open_raw_texture_folder,
+    RYMAT_texture_set_settings,
+    RYMAT_OT_set_raw_texture_folder,
+    RYMAT_OT_open_raw_texture_folder,
 
     # Utility Operators
-    MATLAYER_OT_append_default_workspace,
-    MATLAYER_OT_set_decal_layer_snapping,
-    MATLAYER_OT_append_hdri_world,
-    MATLAYER_OT_remove_unused_raw_textures,
-    MATLAYER_OT_append_material_ball,
-    MATLAYER_OT_add_black_outline,
-    MATLAYER_OT_save_all_textures,
+    RYMAT_OT_append_default_workspace,
+    RYMAT_OT_set_decal_layer_snapping,
+    RYMAT_OT_append_hdri_world,
+    RYMAT_OT_remove_unused_raw_textures,
+    RYMAT_OT_append_material_ball,
+    RYMAT_OT_add_black_outline,
+    RYMAT_OT_save_all_textures,
 
     # User Interface
     FileSubMenu,
     EditSubMenu,
     HelpSubMenu,
     ShaderSubMenu,
-    MATLAYER_UL_shader_channel_list,
-    MATLAYER_UL_global_shader_property_list,
-    MATLAYER_UL_layer_list,
+    RYMAT_UL_shader_channel_list,
+    RYMAT_UL_global_shader_property_list,
+    RYMAT_UL_layer_list,
     LayerBlendingModeSubMenu,
-    MATLAYER_OT_add_material_layer_menu,
-    MATLAYER_OT_add_layer_mask_menu,
+    RYMAT_OT_add_material_layer_menu,
+    RYMAT_OT_add_layer_mask_menu,
     AddMaterialChannelSubMenu,
     MaterialChannelSubMenu,
     ImageUtilitySubMenu,
@@ -227,8 +227,8 @@ classes = (
     MaterialChannelValueNodeSubMenu,
     MaskChannelSubMenu,
     MaterialChannelOutputSubMenu,
-    MATLAYER_panel_properties,
-    MATLAYER_PT_Panel,
+    RYMAT_panel_properties,
+    RYMAT_PT_Panel,
     MaterialSelectorPanel,
     LayerStackPanel,
     MaterialPropertiesPanel
@@ -264,14 +264,14 @@ def load_handler(dummy):
     bpy.app.handlers.depsgraph_update_post.append(depsgraph_change_handler)
 
     # Create objects to manage subscription updating.
-    bpy.types.Scene.matlayer_object_selection_updater = object()
+    bpy.types.Scene.rymat_object_selection_updater = object()
     bpy.types.Scene.active_object_name_sub_owner = object()
     bpy.types.Scene.active_material_index_sub_owner = object()
     bpy.types.Scene.active_material_name_sub_owner = object()
 
     # Subscribe to the active object to get notifications when it's changed.
     subscribe_to = bpy.types.LayerObjects, "active"
-    bpy.msgbus.subscribe_rna(key=subscribe_to, owner=bpy.types.Scene.matlayer_object_selection_updater, args=(), notify=on_active_object_changed)
+    bpy.msgbus.subscribe_rna(key=subscribe_to, owner=bpy.types.Scene.rymat_object_selection_updater, args=(), notify=on_active_object_changed)
 
     # Update the reference to the active material name, so it can be used to identify when properties need to be updated later.
     active_object = bpy.context.view_layer.objects.active
@@ -301,7 +301,7 @@ def load_handler(dummy):
     
     # Apply a default shader setup when a blend file is loaded if there is no shader node defined.
     shaders.update_shader_list()
-    shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.rymat_shader_info
     if shader_info.shader_node_group == None:
         shaders.set_shader('MetallicRoughnessPBR')
 
@@ -311,46 +311,46 @@ def register():
         bpy.utils.register_class(cls)
 
     # Scene Properties
-    bpy.types.Scene.matlayer_panel_properties = PointerProperty(type=MATLAYER_panel_properties)
-    bpy.types.Scene.matlayer_material_property_tabs = EnumProperty(items=MATERIAL_LAYER_PROPERTY_TABS)
-    bpy.types.Scene.matlayer_merge_material = PointerProperty(type=bpy.types.Material)
+    bpy.types.Scene.rymat_panel_properties = PointerProperty(type=RYMAT_panel_properties)
+    bpy.types.Scene.rymat_material_property_tabs = EnumProperty(items=MATERIAL_LAYER_PROPERTY_TABS)
+    bpy.types.Scene.rymat_merge_material = PointerProperty(type=bpy.types.Material)
 
     # Shader Properties
-    bpy.types.Scene.matlayer_shader_list = CollectionProperty(type=shaders.MATLAYER_shader_name)
-    bpy.types.Scene.matlayer_shader_info = PointerProperty(type=shaders.MATLAYER_shader_info)
-    bpy.types.Scene.matlayer_shader_channel_index = IntProperty()
-    bpy.types.Scene.matlayer_selected_global_shader_property_index = IntProperty()
+    bpy.types.Scene.rymat_shader_list = CollectionProperty(type=shaders.RYMAT_shader_name)
+    bpy.types.Scene.rymat_shader_info = PointerProperty(type=shaders.RYMAT_shader_info)
+    bpy.types.Scene.rymat_shader_channel_index = IntProperty()
+    bpy.types.Scene.rymat_selected_global_shader_property_index = IntProperty()
 
     # Layer & Mask Properties
-    bpy.types.Scene.matlayer_layer_stack = PointerProperty(type=material_layers.MATLAYER_layer_stack)
-    bpy.types.Scene.matlayer_layers = CollectionProperty(type=material_layers.MATLAYER_layers)
-    bpy.types.Scene.matlayer_mask_stack = PointerProperty(type=MATLAYER_mask_stack)
-    bpy.types.Scene.matlayer_masks = CollectionProperty(type=MATLAYER_masks)
+    bpy.types.Scene.rymat_layer_stack = PointerProperty(type=material_layers.RYMAT_layer_stack)
+    bpy.types.Scene.rymat_layers = CollectionProperty(type=material_layers.RYMAT_layers)
+    bpy.types.Scene.rymat_mask_stack = PointerProperty(type=RYMAT_mask_stack)
+    bpy.types.Scene.rymat_masks = CollectionProperty(type=RYMAT_masks)
 
     # Other Properties
-    bpy.types.Scene.matlayer_texture_set_settings = PointerProperty(type=MATLAYER_texture_set_settings)
-    bpy.types.Scene.matlayer_baking_settings = PointerProperty(type=MATLAYER_baking_settings)
-    bpy.types.Scene.matlayer_export_templates = CollectionProperty(type=MATLAYER_export_template_names)
+    bpy.types.Scene.rymat_texture_set_settings = PointerProperty(type=RYMAT_texture_set_settings)
+    bpy.types.Scene.rymat_baking_settings = PointerProperty(type=RYMAT_baking_settings)
+    bpy.types.Scene.rymat_export_templates = CollectionProperty(type=RYMAT_export_template_names)
     bpy.types.Scene.pause_auto_updates = BoolProperty(default=False)
     bpy.types.Scene.previous_active_material_name = StringProperty(default="")
     bpy.types.Scene.previous_object_name = StringProperty(default="")
 
     # Exporting Properties
-    bpy.types.Scene.matlayer_texture_export_settings = PointerProperty(type=MATLAYER_texture_set_export_settings)
+    bpy.types.Scene.rymat_texture_export_settings = PointerProperty(type=RYMAT_texture_set_export_settings)
     
-    bpy.types.Scene.matlayer_raw_textures_folder = StringProperty(
+    bpy.types.Scene.rymat_raw_textures_folder = StringProperty(
         name="Raw Texture Folder",
         description="Folder where textures used in materials are saved. If a folder isn't defined, or is invalid, exported textures will save to a 'Raw Textures' folder next to the saved blend file",
         default="Default",
     )
 
-    bpy.types.Scene.matlayer_mesh_map_folder = StringProperty(
+    bpy.types.Scene.rymat_mesh_map_folder = StringProperty(
         name="Mesh Map Folder",
         description="Folder where baked mesh maps are externally saved. If a folder isn't defined, or is invalid, the mesh maps will save to a 'Mesh Map' folder next to the saved blend file",
         default="Default",
     )
 
-    bpy.types.Scene.matlayer_export_folder = StringProperty(
+    bpy.types.Scene.rymat_export_folder = StringProperty(
         name="Export Folder",
         description="Folder where completed textures are exported to. If a folder isn't defined, or is invalid, exported textures will save to a 'Textures' folder next to the saved blend file",
         default="Default",
@@ -368,7 +368,7 @@ def unregister():
         bpy.utils.unregister_class(cls)
 
     # Empty objects that manage subscription updating.
-    bpy.types.Scene.matlayer_object_selection_updater = None
+    bpy.types.Scene.rymat_object_selection_updater = None
     bpy.types.Scene.active_object_name_sub_owner = None
     bpy.types.Scene.active_material_index_sub_owner = None
     bpy.types.Scene.active_material_name_sub_owner = None

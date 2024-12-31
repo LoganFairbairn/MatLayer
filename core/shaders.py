@@ -92,18 +92,18 @@ def update_shader_list():
     jdata = json.load(json_file)
     json_file.close()
     shaders = jdata['shaders']
-    matlayer_shader_list = bpy.context.scene.matlayer_shader_list
-    matlayer_shader_list.clear()
+    rymat_shader_list = bpy.context.scene.rymat_shader_list
+    rymat_shader_list.clear()
     for shader in shaders:
-        shader_name = matlayer_shader_list.add()
+        shader_name = rymat_shader_list.add()
         shader_name.name = shader['group_node_name']
     debug_logging.log("Updated shader list.")
 
 def set_shader(shader_name):
     '''Sets the shader that will be used in materials created with this add-on.'''
     update_shader_list()
-    matlayer_shader_list = bpy.context.scene.matlayer_shader_list
-    shader_info = bpy.context.scene.matlayer_shader_info
+    rymat_shader_list = bpy.context.scene.rymat_shader_list
+    shader_info = bpy.context.scene.rymat_shader_info
 
     # Read shader JSON data into memory.
     templates_path = str(Path(resource_path('USER')) / "scripts/addons" / preferences.ADDON_NAME / "json_data" / "shader_info.json")
@@ -113,11 +113,11 @@ def set_shader(shader_name):
     shaders = jdata['shaders']
 
     # Reset the selected shader channel index.
-    bpy.context.scene.matlayer_shader_channel_index = 0
+    bpy.context.scene.rymat_shader_channel_index = 0
 
     # Set the shader by caching json info into Blender's memory.
     shader_exists = False
-    for i, shader in enumerate(matlayer_shader_list):
+    for i, shader in enumerate(rymat_shader_list):
         if shader['name'] == shader_name:
             shader_exists = True
 
@@ -165,7 +165,7 @@ def set_shader(shader_name):
 
     # Reload the export template to avoid invalid pack texture enums in the export texture settings.
     if shader_exists:
-        texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
+        texture_export_settings = bpy.context.scene.rymat_texture_export_settings
         export_textures.set_export_template(texture_export_settings.export_preset_name)
 
     # If the shader wasn't found, log an error.
@@ -178,7 +178,7 @@ def set_shader(shader_name):
 
     # Set the default selected material channel to be the first defined channel.
     if len(shader_info.material_channels) > 0:
-        bpy.context.scene.matlayer_layer_stack.selected_material_channel = shader_info.material_channels[0].name
+        bpy.context.scene.rymat_layer_stack.selected_material_channel = shader_info.material_channels[0].name
 
 def read_json_shader_data():
     '''Reads json shader data. Creates a json file if one does not exist.'''
@@ -205,7 +205,7 @@ def write_json_shader_data(json_data):
 
 def verify_shader_node_group(self):
     '''Returns true if the shader node group exists within the current blend file.'''
-    shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.rymat_shader_info
     if shader_info.shader_node_group:
         debug_logging.log("Shader node group is valid.")
         return True
@@ -218,7 +218,7 @@ def validate_active_shader(active_material):
     if active_material:
         shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
         if shader_node:
-            shader_list = bpy.context.scene.matlayer_shader_list
+            shader_list = bpy.context.scene.rymat_shader_list
             shader_group_node_name = shader_node.node_tree.name
 
             if shader_group_node_name in shader_list:
@@ -234,7 +234,7 @@ def read_shader(active_material):
     # Check to see if the shader node in the active material contains a valid shader group node.
     shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
     if shader_node:
-        shader_list = bpy.context.scene.matlayer_shader_list
+        shader_list = bpy.context.scene.rymat_shader_list
         shader_group_node_name = shader_node.node_tree.name
 
         # If the active material contains a valid shader group node, set that as the shader.
@@ -248,7 +248,7 @@ def read_shader(active_material):
 
 def get_static_shader_channel_list():
     '''Returns a list of shader channel name using static formatting.'''
-    shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.rymat_shader_info
     static_channel_list = []
 
     # Add a static channel name for all material channels.
@@ -261,7 +261,7 @@ def get_static_shader_channel_list():
 def get_shader_channel_socket_name(static_material_channel_name):
     '''Returns the shader channel socket name when provided with a static material channel name.'''
     search_channel_name = bau.format_static_matchannel_name(static_material_channel_name)
-    shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.rymat_shader_info
     for channel in shader_info.material_channels:
         static_channel_name = bau.format_static_matchannel_name(channel.name)
         if search_channel_name == static_channel_name:
@@ -279,8 +279,8 @@ def get_socket_subtype_enums(scene=None, context=None):
     items += [("NONE", "None", "None")]
 
     # Return an enum list of either float or vector node socket subtypes based on main node socket type.
-    selected_shader_channel_index = bpy.context.scene.matlayer_shader_channel_index
-    shader_info = bpy.context.scene.matlayer_shader_info
+    selected_shader_channel_index = bpy.context.scene.rymat_shader_channel_index
+    shader_info = bpy.context.scene.rymat_shader_info
     selected_shader_channel = shader_info.material_channels[selected_shader_channel_index]
     if selected_shader_channel:
         match selected_shader_channel.socket_type:
@@ -298,7 +298,7 @@ def apply_default_shader(self):
     # This function doesn't load from JSON file data because it's a constant backup shader setup
     # in the case the user JSON data is missing or damaged.
 
-    shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.rymat_shader_info
 
     # Ensure the default shader group node is in the blend file.
     shader_nodegroup_name = "MetallicRoughnessPBR"
@@ -319,7 +319,7 @@ def apply_default_shader(self):
     shader_info.group_node_name = "MetallicRoughnessPBR"
 
     # Reset the selected shader channel index.
-    bpy.context.scene.matlayer_shader_channel_index = 0
+    bpy.context.scene.rymat_shader_channel_index = 0
 
     # Set default material channels.
     shader_info.material_channels.clear()
@@ -392,15 +392,15 @@ def apply_default_shader(self):
 
     # Set the default selected material channel to be the first defined channel.
     if len(shader_info.material_channels) > 0:
-        bpy.context.scene.matlayer_layer_stack.selected_material_channel = shader_info.material_channels[0].name
+        bpy.context.scene.rymat_layer_stack.selected_material_channel = shader_info.material_channels[0].name
     
     debug_logging.log_status("Applied default shader settings.", self, type='INFO')
 
-class MATLAYER_shader_name(PropertyGroup):
+class RYMAT_shader_name(PropertyGroup):
     '''Shader name'''
     name: StringProperty()
 
-class MATLAYER_shader_material_channel(PropertyGroup):
+class RYMAT_shader_material_channel(PropertyGroup):
     '''Properties for a shader material channel.'''
     name: StringProperty(
         name="Shader Channel Name",
@@ -455,22 +455,22 @@ class MATLAYER_shader_material_channel(PropertyGroup):
         items=LAYER_BLEND_MODES
     )
 
-class MATLAYER_shader_unlayered_property(PropertyGroup):
+class RYMAT_shader_unlayered_property(PropertyGroup):
     '''Global property for a shader.'''
     name: StringProperty(
         default='New Unlayered Material Property'
     )
 
-class MATLAYER_shader_info(PropertyGroup):
+class RYMAT_shader_info(PropertyGroup):
     shader_node_group: PointerProperty(
         type=bpy.types.NodeTree,
         name="Shader Node",
         description="The group node used as the shader node used when creating materials with this add-on"
     )
-    material_channels: CollectionProperty(type=MATLAYER_shader_material_channel)
+    material_channels: CollectionProperty(type=RYMAT_shader_material_channel)
 
-class MATLAYER_OT_set_shader(Operator):
-    bl_idname = "matlayer.set_shader"
+class RYMAT_OT_set_shader(Operator):
+    bl_idname = "rymat.set_shader"
     bl_label = "Set Shader"
     bl_description = "Reads json shader info data to apply the shader node to use for material lighting calculations when materials are edited with this add-on"
     bl_options = {'REGISTER', 'UNDO'}
@@ -485,19 +485,19 @@ class MATLAYER_OT_set_shader(Operator):
         set_shader(self.shader_name)
         return {'FINISHED'}
 
-class MATLAYER_OT_new_shader(Operator):
-    bl_idname = "matlayer.new_shader"
+class RYMAT_OT_new_shader(Operator):
+    bl_idname = "rymat.new_shader"
     bl_label = "New Shader"
     bl_description = "Clears shader data in the shader tab so you can define properties for a new shader"
 
     def execute(self, context):
-        shader_info = bpy.context.scene.matlayer_shader_info
+        shader_info = bpy.context.scene.rymat_shader_info
         shader_info.shader_node_group = None
         shader_info.material_channels.clear()
         return {'FINISHED'}
 
-class MATLAYER_OT_save_shader(Operator):
-    bl_idname = "matlayer.save_shader"
+class RYMAT_OT_save_shader(Operator):
+    bl_idname = "rymat.save_shader"
     bl_label = "Save Shader"
     bl_description = "Saves the shader to json data. If the shader group node already exists in json data, the shader data will be overwritten"
 
@@ -513,7 +513,7 @@ class MATLAYER_OT_save_shader(Operator):
             return
 
         # Check if the shader exists in json data already.
-        shader_info = bpy.context.scene.matlayer_shader_info
+        shader_info = bpy.context.scene.rymat_shader_info
         shader_group_node = shader_info.shader_node_group
         jdata = read_json_shader_data()
         shader_exists = False
@@ -569,8 +569,8 @@ class MATLAYER_OT_save_shader(Operator):
         update_shader_list()
         return {'FINISHED'}
     
-class MATLAYER_OT_delete_shader(Operator):
-    bl_idname = "matlayer.delete_shader"
+class RYMAT_OT_delete_shader(Operator):
+    bl_idname = "rymat.delete_shader"
     bl_label = "Delete Shader"
     bl_description = "Deletes the shader from json data"
 
@@ -581,7 +581,7 @@ class MATLAYER_OT_delete_shader(Operator):
     def execute(self, context):
 
         # Read the shader json data.
-        shader_info = bpy.context.scene.matlayer_shader_info
+        shader_info = bpy.context.scene.rymat_shader_info
 
         # Remove the shader from the json data if it exists.
         if shader_info.shader_node_group:
@@ -601,39 +601,39 @@ class MATLAYER_OT_delete_shader(Operator):
 
         return {'FINISHED'}
     
-class MATLAYER_OT_add_shader_channel(Operator):
-    bl_idname = "matlayer.add_shader_channel"
+class RYMAT_OT_add_shader_channel(Operator):
+    bl_idname = "rymat.add_shader_channel"
     bl_label = "Add Shader Channel"
     bl_description = "Adds a shader channel to the shader info"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        shader_info = bpy.context.scene.matlayer_shader_info
+        shader_info = bpy.context.scene.rymat_shader_info
         shader_info.material_channels.add()
-        bpy.context.scene.matlayer_shader_channel_index = len(shader_info.material_channels) - 1
+        bpy.context.scene.rymat_shader_channel_index = len(shader_info.material_channels) - 1
         return {'FINISHED'}
     
-class MATLAYER_OT_delete_shader_channel(Operator):
-    bl_idname = "matlayer.delete_shader_channel"
+class RYMAT_OT_delete_shader_channel(Operator):
+    bl_idname = "rymat.delete_shader_channel"
     bl_label = "Delete Shader Channel"
     bl_description = "Deletes a shader channel from the shader info"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        shader_info = bpy.context.scene.matlayer_shader_info
-        selected_shader_index = bpy.context.scene.matlayer_shader_channel_index
+        shader_info = bpy.context.scene.rymat_shader_info
+        selected_shader_index = bpy.context.scene.rymat_shader_channel_index
         shader_info.material_channels.remove(selected_shader_index)
-        bpy.context.scene.matlayer_shader_channel_index = min(max(0, selected_shader_index - 1), len(shader_info.material_channels) - 1)
+        bpy.context.scene.rymat_shader_channel_index = min(max(0, selected_shader_index - 1), len(shader_info.material_channels) - 1)
         return {'FINISHED'}
 
-class MATLAYER_OT_create_shader_from_nodetree(Operator):
-    bl_idname = "matlayer.create_shader_from_nodetree"
+class RYMAT_OT_create_shader_from_nodetree(Operator):
+    bl_idname = "rymat.create_shader_from_nodetree"
     bl_label = "Create Shader From Nodetree"
     bl_description = "Automatically fills in shader info using the selected group node"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        shader_info = bpy.context.scene.matlayer_shader_info
+        shader_info = bpy.context.scene.rymat_shader_info
 
         # Verify the shader group node exists in the blend file.
         if not shader_info.shader_node_group:
@@ -681,14 +681,14 @@ class MATLAYER_OT_create_shader_from_nodetree(Operator):
                         shader_channel.default_blend_mode = 'MIX'
 
         # Reset shader indicies.
-        bpy.context.scene.matlayer_shader_channel_index = 0
-        bpy.context.scene.matlayer_selected_global_shader_property_index = 0
+        bpy.context.scene.rymat_shader_channel_index = 0
+        bpy.context.scene.rymat_selected_global_shader_property_index = 0
 
         debug_logging.log_status("Created shader from selected group node.", self, type='INFO')
         return {'FINISHED'}
 
-class MATLAYER_OT_apply_default_shader(Operator):
-    bl_idname = "matlayer.apply_default_shader"
+class RYMAT_OT_apply_default_shader(Operator):
+    bl_idname = "rymat.apply_default_shader"
     bl_label = "Apply Default Shader"
     bl_description = "Applies a default shader group node and shader setup"
     bl_options = {'REGISTER', 'UNDO'}

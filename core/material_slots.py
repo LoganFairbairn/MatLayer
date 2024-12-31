@@ -5,8 +5,8 @@ import bpy
 from bpy.types import Operator
 from ..core import material_layers
 
-class MATLAYER_OT_add_material_slot(Operator):
-    bl_idname = "matlayer.add_material_slot"
+class RYMAT_OT_add_material_slot(Operator):
+    bl_idname = "rymat.add_material_slot"
     bl_label = "Add Material Slot"
     bl_description = "Adds a new material slot, and updates the layer stack user interface"
     bl_options = {'REGISTER', 'UNDO'}
@@ -20,8 +20,8 @@ class MATLAYER_OT_add_material_slot(Operator):
         material_layers.refresh_layer_stack()
         return {'FINISHED'}
     
-class MATLAYER_OT_remove_material_slot(Operator):
-    bl_idname = "matlayer.remove_material_slot"
+class RYMAT_OT_remove_material_slot(Operator):
+    bl_idname = "rymat.remove_material_slot"
     bl_label = "Remove Material Slot"
     bl_description = "Removes the selected material slot, and updates the layer stack user interface"
     bl_options = {'REGISTER', 'UNDO'}
@@ -35,8 +35,8 @@ class MATLAYER_OT_remove_material_slot(Operator):
         material_layers.refresh_layer_stack()
         return {'FINISHED'}
     
-class MATLAYER_OT_move_material_slot_up(Operator):
-    bl_idname = "matlayer.move_material_slot_up"
+class RYMAT_OT_move_material_slot_up(Operator):
+    bl_idname = "rymat.move_material_slot_up"
     bl_label = "Move Material Slot Up"
     bl_description = "Moves the selected material slot up, and updates the layer stack user interface"
     bl_options = {'REGISTER', 'UNDO'}
@@ -50,8 +50,8 @@ class MATLAYER_OT_move_material_slot_up(Operator):
         material_layers.refresh_layer_stack()
         return {'FINISHED'}
     
-class MATLAYER_OT_move_material_slot_down(Operator):
-    bl_idname = "matlayer.move_material_slot_down"
+class RYMAT_OT_move_material_slot_down(Operator):
+    bl_idname = "rymat.move_material_slot_down"
     bl_label = "Move Material Slot Down"
     bl_description = "Moves the selected material slot down, and updates the layer stack user interface"
     bl_options = {'REGISTER', 'UNDO'}

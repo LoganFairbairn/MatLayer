@@ -59,8 +59,8 @@ def update_layer_index(self, context):
     layer_masks.refresh_mask_slots()
 
     # Select the image for texture painting.
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    selected_material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
+    selected_material_channel = bpy.context.scene.rymat_layer_stack.selected_material_channel
     value_node = get_material_layer_node('VALUE', selected_layer_index, selected_material_channel)
     if value_node:
         if value_node.bl_static_type == 'TEX_IMAGE':
@@ -71,7 +71,7 @@ def update_layer_index(self, context):
         if active_object.active_material:
 
             # Hide all decal objects excluding the one for this layer (if this layer is a decal layer).
-            material_layers = bpy.context.scene.matlayer_layers
+            material_layers = bpy.context.scene.rymat_layers
             for i in range(0, len(material_layers)):
                 decal_coordinates_node = get_material_layer_node('DECAL_COORDINATES', i)
                 if decal_coordinates_node:
@@ -84,11 +84,11 @@ def update_layer_index(self, context):
 def sync_triplanar_nodes():
     '''Updates the image texture used in triplanar texture nodes to match the image being used in the first triplanar node.'''
     # Sync triplanar texture samples for all material channels.
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
     if projection_node:
-        if projection_node.node_tree.name == 'ML_TriplanarProjection' or projection_node.node_tree.name == 'ML_TriplanarHexGridProjection':
-            shader_info = bpy.context.scene.matlayer_shader_info
+        if projection_node.node_tree.name == 'RY_TriplanarProjection' or projection_node.node_tree.name == 'RY_TriplanarHexGridProjection':
+            shader_info = bpy.context.scene.rymat_shader_info
             for channel in shader_info.material_channels:
                 value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=1)
                 if value_node:
@@ -102,10 +102,10 @@ def sync_triplanar_nodes():
                                     texture_sample_node.interpolation = value_node.interpolation
 
     # Sync triplanar texture samples for masks.
-    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+    selected_mask_index = bpy.context.scene.rymat_mask_stack.selected_index
     mask_projection_node = layer_masks.get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
     if mask_projection_node:
-        if mask_projection_node.node_tree.name == 'ML_TriplanarProjection':
+        if mask_projection_node.node_tree.name == 'RY_TriplanarProjection':
             texture_sample_1 = layer_masks.get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=1)
             if texture_sample_1:
                 texture_sample_2 = layer_masks.get_mask_node('TEXTURE', selected_layer_index, selected_mask_index, node_number=2)
@@ -128,9 +128,9 @@ def sync_triplanar_nodes():
 
 def link_custom_group_nodes():
     '''Links custom group nodes.'''
-    shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.rymat_shader_info
     for channel in shader_info.material_channels:
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
         value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name)
         if value_node:
             if len(value_node.outputs) > 0:
@@ -352,7 +352,7 @@ def get_isolate_node():
         isolate_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
         isolate_node.name = 'ISOLATE_NODE'
         isolate_node.label = isolate_node.name
-        isolate_node.node_tree = bau.append_group_node("ML_IsolateNode", never_auto_delete=True)
+        isolate_node.node_tree = bau.append_group_node("RY_IsolateNode", never_auto_delete=True)
         isolate_node.location = [0.0, 200.0]
         isolate_node.width = 250.0
     return isolate_node
@@ -367,17 +367,17 @@ def delete_isolate_node():
         active_material.node_tree.nodes.remove(isolate_node)
 
     # Deletes the isolation node from blend data.
-    isolate_node_tree = bpy.data.node_groups.get("ML_IsolateNode")
+    isolate_node_tree = bpy.data.node_groups.get("RY_IsolateNode")
     if isolate_node_tree:
         bpy.data.node_groups.remove(isolate_node_tree, do_unlink=True, do_id_user=True, do_ui_user=True)
 
 def get_layer_type():
     '''Determines the type of the selected layer based on the projection node tree.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
     if projection_node:
         match projection_node.node_tree.name:
-            case 'ML_DecalProjection':
+            case 'RY_DecalProjection':
                 return 'DECAL'
             case _:
                 return 'NORMAL'
@@ -387,8 +387,8 @@ def get_layer_type():
 
 def add_material_layer_slot():
     '''Adds a new slot to the material layer stack, and returns the index of the new layer slot.'''
-    layers = bpy.context.scene.matlayer_layers
-    layer_stack = bpy.context.scene.matlayer_layer_stack
+    layers = bpy.context.scene.rymat_layers
+    layer_stack = bpy.context.scene.rymat_layer_stack
 
     layer_slot = layers.add()
 
@@ -400,22 +400,22 @@ def add_material_layer_slot():
     layer_slot.name = unique_random_slot_id
 
     # If there is no layer selected, move the layer to the top of the stack.
-    if bpy.context.scene.matlayer_layer_stack.selected_layer_index < 0:
+    if bpy.context.scene.rymat_layer_stack.selected_layer_index < 0:
         move_index = len(layers) - 1
         move_to_index = 0
         layers.move(move_index, move_to_index)
         layer_stack.layer_index = move_to_index
-        bpy.context.scene.matlayer_layer_stack.selected_layer_index = len(layers) - 1
+        bpy.context.scene.rymat_layer_stack.selected_layer_index = len(layers) - 1
 
     # Moves the new layer above the currently selected layer and selects it.
     else: 
         move_index = len(layers) - 1
-        move_to_index = max(0, min(bpy.context.scene.matlayer_layer_stack.selected_layer_index + 1, len(layers) - 1))
+        move_to_index = max(0, min(bpy.context.scene.rymat_layer_stack.selected_layer_index + 1, len(layers) - 1))
         layers.move(move_index, move_to_index)
         layer_stack.layer_index = move_to_index
-        bpy.context.scene.matlayer_layer_stack.selected_layer_index = max(0, min(bpy.context.scene.matlayer_layer_stack.selected_layer_index + 1, len(layers) - 1))
+        bpy.context.scene.rymat_layer_stack.selected_layer_index = max(0, min(bpy.context.scene.rymat_layer_stack.selected_layer_index + 1, len(layers) - 1))
 
-    return bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    return bpy.context.scene.rymat_layer_stack.selected_layer_index
 
 def create_default_material_setup():
     '''Creates a default material setup using the selected shader group node defined in the add-on shader tab.'''
@@ -425,7 +425,7 @@ def create_default_material_setup():
     if default_material:
         blank_node_tree = default_material.node_tree
         if blank_node_tree:
-            shader_info = bpy.context.scene.matlayer_shader_info
+            shader_info = bpy.context.scene.rymat_shader_info
             shader_node = blank_node_tree.nodes.get('SHADER_NODE')
             
             # Replace the shader node in the blank material setup.
@@ -481,7 +481,7 @@ def add_material_channel_nodes(material_channel_name, node_tree, layer_type, sel
     channel_frame_node.label = static_channel_name
 
     # Ensure the specified material channel exists in the shader.
-    shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.rymat_shader_info
     static_shader_channel_list = shaders.get_static_shader_channel_list()
     if static_channel_name not in static_shader_channel_list:
         debug_logging.log("Shader channel {0} doesn't exist, not adding nodes.".format(material_channel_name))
@@ -491,7 +491,7 @@ def add_material_channel_nodes(material_channel_name, node_tree, layer_type, sel
     # value, or color nodes because the default ranges and socket types can only be specified for group nodes.
     # Create default group nodes to represent each material channel.
     channel = shader_info.material_channels.get(material_channel_name)
-    default_value_group_node_name = "ML_Default{0}".format(material_channel_name.replace(' ', ''))
+    default_value_group_node_name = "RY_Default{0}".format(material_channel_name.replace(' ', ''))
     default_value_group_node = bpy.data.node_groups.get(default_value_group_node_name)
     if not default_value_group_node:
         default_value_group_node = bpy.data.node_groups.new(default_value_group_node_name, type='ShaderNodeTree')
@@ -618,10 +618,10 @@ def add_material_channel_nodes(material_channel_name, node_tree, layer_type, sel
         normal_rotation_fix_node.location[1] = -500
         normal_rotation_fix_node.parent = channel_frame_node
         normal_rotation_fix_node.width = 300
-        normal_rotation_fix_node.node_tree = bau.append_group_node('ML_FixNormalRotation')
+        normal_rotation_fix_node.node_tree = bau.append_group_node('RY_FixNormalRotation')
 
         mix_node = node_tree.nodes.new('ShaderNodeGroup')
-        mix_node.node_tree = bau.append_group_node('ML_ReorientedNormalMapMix')
+        mix_node.node_tree = bau.append_group_node('RY_ReorientedNormalMapMix')
         node_tree.links.new(mix_node_reroute.outputs[0], mix_node.inputs[1])
         node_tree.links.new(value_node.outputs[0], mix_node.inputs[2])
         node_tree.links.new(mix_node.outputs[0], group_output_node.inputs.get(material_channel_name))
@@ -666,7 +666,7 @@ def add_material_channel_nodes(material_channel_name, node_tree, layer_type, sel
 
 def delete_material_channel_nodes(material_channel_name):
     '''Deletes nodes for the specified material channel.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     layer_node_tree = get_material_layer_node("LAYER", selected_layer_index, material_channel_name).node_tree
 
     # Delete all layer nodes.
@@ -713,7 +713,7 @@ def delete_material_channel_nodes(material_channel_name):
 
 def organize_material_channel_frames(node_tree):
     '''Organizes all material channel frames for the selected layer.'''
-    shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.rymat_shader_info
     frame_x = -1000
     frame_y = -500
     frame_spacing = 1000
@@ -736,7 +736,7 @@ def create_new_layer_node(layer_type):
     new_node_group = bpy.data.node_groups.new(new_layer_node_name, type='ShaderNodeTree')
 
     # Add inputs and outputs to the group node for all shader channels.
-    shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.rymat_shader_info
     for channel in shader_info.material_channels:
         input_socket = new_node_group.interface.new_socket(
             name=channel.name, 
@@ -812,7 +812,7 @@ def create_new_layer_node(layer_type):
     projection_node.width = 300
     match layer_type:
         case 'DECAL':
-            projection_node.node_tree = bau.append_group_node('ML_DecalProjection')
+            projection_node.node_tree = bau.append_group_node('RY_DecalProjection')
             decal_coord_node = new_node_group.nodes.new('ShaderNodeTexCoord')
             decal_coord_node.name = 'DECAL_COORDINATES'
             decal_coord_node.label = decal_coord_node.name
@@ -832,7 +832,7 @@ def create_new_layer_node(layer_type):
             new_node_group.links.new(decal_coord_node.outputs[3], projection_node.inputs[0])
             new_node_group.links.new(projection_node.outputs.get('LinearMask'), linear_decal_mask_blend_node.inputs[1])
         case _:
-            projection_node.node_tree = bau.append_group_node('ML_UVProjection')
+            projection_node.node_tree = bau.append_group_node('RY_UVProjection')
 
     # Add material nodes for all active material channels.
     for channel in shader_info.material_channels:
@@ -965,7 +965,7 @@ def add_material_layer(layer_type, self):
         case 'IMAGE':
             # Toggle off all material channels excluding base color.
             base_color_socket_name = shaders.get_shader_channel_socket_name('BASE_COLOR')
-            shader_info = bpy.context.scene.matlayer_shader_info
+            shader_info = bpy.context.scene.rymat_shader_info
             for channel in shader_info.material_channels:
                 if channel.name != base_color_socket_name:
                     mix_node = get_material_layer_node('MIX', new_layer_slot_index, channel.name)
@@ -1001,7 +1001,7 @@ def add_material_layer(layer_type, self):
             debug_logging.log("Added image layer.")
 
     # Switch to the layer UI tab after creating a new layer.
-    bpy.context.scene.matlayer_material_property_tabs = 'MATERIAL_CHANNELS'
+    bpy.context.scene.rymat_material_property_tabs = 'MATERIAL_CHANNELS'
 
 def duplicate_layer(original_layer_index, self):
     '''Duplicates the material layer at the provided layer index.'''
@@ -1051,7 +1051,7 @@ def duplicate_layer(original_layer_index, self):
                     new_decal_coordinate_node.object = duplicated_decal_object
 
     # Clear the mask stack from the new layer.
-    masks = bpy.context.scene.matlayer_masks
+    masks = bpy.context.scene.rymat_masks
     masks.clear()
 
     # Duplicate mask node trees and add them as group nodes to the active material.
@@ -1087,8 +1087,8 @@ def delete_layer(self):
     if bau.verify_material_operation_context(self) == False:
         return {'FINISHED'}
     
-    layers = bpy.context.scene.matlayer_layers
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    layers = bpy.context.scene.rymat_layers
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     active_material = bpy.context.active_object.active_material
 
     # For decal layers, delete the accociated empty object if one exists.
@@ -1123,7 +1123,7 @@ def delete_layer(self):
 
     # Remove the layer slot and reset the selected layer index.
     layers.remove(selected_layer_index)
-    bpy.context.scene.matlayer_layer_stack.selected_layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
+    bpy.context.scene.rymat_layer_stack.selected_layer_index = max(min(selected_layer_index - 1, len(layers) - 1), 0)
 
     debug_logging.log("Deleted material layer.")
 
@@ -1135,9 +1135,9 @@ def move_layer(direction, self):
     match direction:
         case 'UP':
             # Swap the layer index for all layer nodes in this layer with the layer above it (if one exists).
-            layers = bpy.context.scene.matlayer_layers
+            layers = bpy.context.scene.rymat_layers
             layer_count = len(layers)
-            selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+            selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
             if not selected_layer_index < layer_count - 1:
                 debug_logging.log_status("Can't move layer up. No layers exist above the selected layer.", self, type='INFO')
                 return
@@ -1177,12 +1177,12 @@ def move_layer(direction, self):
                 mask_node.name = layer_masks.format_mask_name(selected_layer_index + 1, i)
                 mask_node.node_tree.name = mask_node.name
 
-            bpy.context.scene.matlayer_layer_stack.selected_layer_index = selected_layer_index + 1
+            bpy.context.scene.rymat_layer_stack.selected_layer_index = selected_layer_index + 1
 
         case 'DOWN':
             # Swap the layer index for all nodes in this layer with the layer below it (if one exists).
-            layers = bpy.context.scene.matlayer_layers
-            selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+            layers = bpy.context.scene.rymat_layers
+            selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
             if not selected_layer_index - 1 >= 0:
                 debug_logging.log_status("Can't move layer down. No layers exist below the selected layer.", self, type='INFO')
                 return
@@ -1218,7 +1218,7 @@ def move_layer(direction, self):
                 mask_node.name = layer_masks.format_mask_name(selected_layer_index - 1, i)
                 mask_node.node_tree.name = mask_node.name
 
-            bpy.context.scene.matlayer_layer_stack.selected_layer_index = selected_layer_index - 1
+            bpy.context.scene.rymat_layer_stack.selected_layer_index = selected_layer_index - 1
 
         case _:
             debug_logging.log_status("Invalid direction provided for moving a material layer.", self, 'ERROR')
@@ -1287,9 +1287,9 @@ def organize_layer_group_nodes():
 def refresh_layer_stack(reason="", scene=None):
     '''Clears, and then reads the active material, to sync the number of layers in the user interface with the number of layers that exist within the material node tree.'''
     if scene:
-        layers = scene.matlayer_layers
+        layers = scene.rymat_layers
     else:
-        layers = bpy.context.scene.matlayer_layers
+        layers = bpy.context.scene.rymat_layers
     
     # Clear all layers.
     layers.clear()
@@ -1303,9 +1303,9 @@ def refresh_layer_stack(reason="", scene=None):
             add_material_layer_slot()
 
         # Reset the layer index if it's out of range.
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
         if selected_layer_index > len(layers) - 1 or selected_layer_index < 0:
-            bpy.context.scene.matlayer_layer_stack.selected_layer_index = 0
+            bpy.context.scene.rymat_layer_stack.selected_layer_index = 0
 
     if reason != "":
         debug_logging.log("Refreshed layer stack due to: " + reason, sub_process=True)
@@ -1316,7 +1316,7 @@ def link_layer_group_nodes(self):
     if bau.verify_material_operation_context(self) == False:
         return
 
-    shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.rymat_shader_info
     active_material = bpy.context.active_object.active_material
     node_tree = active_material.node_tree
 
@@ -1395,7 +1395,7 @@ def reindex_layer_nodes(change_made, affected_layer_index):
     match change_made:
         case 'ADDED_LAYER':
             # Increase the layer index for all layer group nodes, their node trees, and their masks that exist above the affected layer.
-            layer_count = len(bpy.context.scene.matlayer_layers)
+            layer_count = len(bpy.context.scene.rymat_layers)
             for i in range(layer_count, affected_layer_index, -1):
                 layer_node = get_material_layer_node('LAYER', i - 1)
                 if layer_node:
@@ -1418,7 +1418,7 @@ def reindex_layer_nodes(change_made, affected_layer_index):
 
         case 'DELETED_LAYER':
             # Reduce the layer index for all layer group nodes, their nodes trees, and their masks that exist above the affected layer.
-            layer_count = len(bpy.context.scene.matlayer_layers)
+            layer_count = len(bpy.context.scene.rymat_layers)
             for i in range(affected_layer_index + 1, layer_count):
                 layer_node = get_material_layer_node('LAYER', i)
                 layer_node.name = str(int(layer_node.name) - 1)
@@ -1437,7 +1437,7 @@ def reindex_layer_nodes(change_made, affected_layer_index):
 def apply_mesh_maps():
     '''Searches for all mesh map texture nodes in the node tree and applies mesh maps if they exist.'''
     # Apply baked mesh maps to all group nodes used as masks for all material layers.
-    layers = bpy.context.scene.matlayer_layers
+    layers = bpy.context.scene.rymat_layers
     for layer_index in range(0, len(layers)):
         mask_count = layer_masks.count_masks(layer_index)
         for mask_index in range(0, mask_count):
@@ -1452,7 +1452,7 @@ def apply_mesh_maps():
 
 def relink_material_channel(relink_material_channel_name="", original_output_channel='', unlink_projection=False):
     '''Relinks projection nodes to material channels based on the current projection node tree being used.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     layer_node_tree = get_layer_node_tree(selected_layer_index)
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
     group_input_node = get_material_layer_node('GROUP_INPUT', selected_layer_index)
@@ -1463,7 +1463,7 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
 
     # Relink projection for all material channels unless a specific material channel is specified.
     static_matchannel_name = bau.format_static_matchannel_name(relink_material_channel_name)
-    shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.rymat_shader_info
     for channel in shader_info.material_channels:
 
         # If the material channel is using a blur filter, connect the projection and blur node.
@@ -1472,7 +1472,7 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
         if blur_node:
             projection_output_node = blur_node
             match projection_node.node_tree.name:
-                case 'ML_TriplanarProjection':
+                case 'RY_TriplanarProjection':
                     layer_node_tree.links.new(projection_node.outputs.get('X'), blur_node.inputs.get('X'))
                     layer_node_tree.links.new(projection_node.outputs.get('Y'), blur_node.inputs.get('Y'))
                     layer_node_tree.links.new(projection_node.outputs.get('Z'), blur_node.inputs.get('Z'))
@@ -1489,7 +1489,7 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
 
             # Relink the material channel projection node tree name...
             match projection_node.node_tree.name:
-                case 'ML_TriplanarProjection':
+                case 'RY_TriplanarProjection':
                     value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=1)
                     triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, channel.name)
 
@@ -1520,7 +1520,7 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
                             if value_node.inputs.get(input) and projection_node.outputs.get(input):
                                 layer_node_tree.links.new(projection_node.outputs.get(input), value_node.inputs.get(input))
 
-                case 'ML_TriplanarHexGridProjection':
+                case 'RY_TriplanarHexGridProjection':
                     value_node = get_material_layer_node('VALUE', selected_layer_index, channel.name, node_number=1)
                     triplanar_blend_node = get_material_layer_node('TRIPLANAR_BLEND', selected_layer_index, channel.name)
 
@@ -1592,14 +1592,14 @@ def relink_material_channel(relink_material_channel_name="", original_output_cha
 
                         case 'GROUP':
                             if value_node.bl_static_type == 'GROUP':
-                                if not value_node.node_tree.name.startswith("ML_Default"):
+                                if not value_node.node_tree.name.startswith("RY_Default"):
                                     layer_node_tree.links.new(projection_node.outputs[0], value_node.inputs[0])
 
             set_material_channel_crgba_output(channel.name, original_output_channel, selected_layer_index)
 
 def delete_value_nodes(material_channel_name, selected_layer_index, layer_node_tree):
     '''Deletes nodes used for triplanar texture sampling and blending for the specified material channel.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     layer_node_tree = get_layer_node_tree(selected_layer_index)
 
     # The max texture sample nodes that can exist is 9, for triplanar hex grid projection.
@@ -1616,7 +1616,7 @@ def delete_value_nodes(material_channel_name, selected_layer_index, layer_node_t
 
 def set_matchannel_projection(material_channel_name, projection_method, set_texture_node=False):
     '''Changes the projection nodes for the specified material channel to match the specified projection method.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     layer_node_tree = get_layer_node_tree(selected_layer_index)
     value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name, 1)
     static_channel_name = bau.format_static_matchannel_name(material_channel_name)
@@ -1628,9 +1628,9 @@ def set_matchannel_projection(material_channel_name, projection_method, set_text
         bau.unlink_node(blur_node, layer_node_tree, unlink_inputs=True, unlink_outputs=True)
         match projection_method:
             case 'TRIPLANAR':
-                blur_node.node_tree = bau.append_group_node('ML_TriplanarBlur')
+                blur_node.node_tree = bau.append_group_node('RY_TriplanarBlur')
             case _:
-                blur_node.node_tree = bau.append_group_node('ML_ProjectionBlur')
+                blur_node.node_tree = bau.append_group_node('RY_ProjectionBlur')
 
     # Texture nodes are the only nodes that require a specific projection node setup, ignore other node types.
     # If set_texture_node is true, the material channel value node will be replaced with a texture node, regardless of it's original node type.
@@ -1673,16 +1673,16 @@ def set_matchannel_projection(material_channel_name, projection_method, set_text
             case 'TRIPLANAR':
                 triplanar_blend_node = layer_node_tree.nodes.new('ShaderNodeGroup')
                 if static_channel_name == 'NORMAL':
-                    triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarNormalsBlend")
+                    triplanar_blend_node.node_tree = bau.append_group_node("RY_TriplanarNormalsBlend")
                 else:
-                    triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarBlend")
+                    triplanar_blend_node.node_tree = bau.append_group_node("RY_TriplanarBlend")
 
             case 'TRIPLANAR_HEX_GRID':
                 triplanar_blend_node = layer_node_tree.nodes.new('ShaderNodeGroup')
                 if static_channel_name == 'NORMAL':
-                    triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarHexGridBlend")
+                    triplanar_blend_node.node_tree = bau.append_group_node("RY_TriplanarHexGridBlend")
                 else:
-                    triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarHexGridBlend")
+                    triplanar_blend_node.node_tree = bau.append_group_node("RY_TriplanarHexGridBlend")
 
         if triplanar_blend_node:
             triplanar_blend_node.name = format_material_channel_node_name(static_channel_name, 'TRIPLANAR_BLEND')
@@ -1697,7 +1697,7 @@ def set_matchannel_projection(material_channel_name, projection_method, set_text
 
 def replace_material_channel_node(material_channel_name, node_type):
     '''Replaces the existing material channel node with a new node of the given type.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     layer_node_tree = get_layer_node_tree(selected_layer_index)
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
     value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
@@ -1725,7 +1725,7 @@ def replace_material_channel_node(material_channel_name, node_type):
 
             # TODO: IMPORTANT! If the default group node doesn't exist, create one!
             # Apply the default group node for the specified channel.
-            default_node_tree_name = "ML_Default{0}".format(node_socket_name.replace(' ', ''))
+            default_node_tree_name = "RY_Default{0}".format(node_socket_name.replace(' ', ''))
             default_node_tree = bpy.data.node_groups.get(default_node_tree_name)
             new_node.node_tree = default_node_tree
 
@@ -1739,16 +1739,16 @@ def replace_material_channel_node(material_channel_name, node_type):
         # Apply projection to texture nodes based on the projection group node name.
         case 'TEXTURE':
             match projection_node.node_tree.name:
-                case 'ML_UVProjection':
+                case 'RY_UVProjection':
                     set_matchannel_projection(static_matchannel_name, 'UV', set_texture_node=True)
 
-                case 'ML_TriplanarProjection':
+                case 'RY_TriplanarProjection':
                     set_matchannel_projection(static_matchannel_name, 'TRIPLANAR', set_texture_node=True)
 
-                case 'ML_TriplanarHexGridProjection':
+                case 'RY_TriplanarHexGridProjection':
                     set_matchannel_projection(static_matchannel_name, 'TRIPLANAR_HEX_GRID', set_texture_node=True)
 
-                case 'ML_DecalProjection':
+                case 'RY_DecalProjection':
                     set_matchannel_projection(static_matchannel_name, 'DECAL', set_texture_node=True)
 
 def set_layer_projection(projection_mode, self):
@@ -1756,7 +1756,7 @@ def set_layer_projection(projection_mode, self):
     if bau.verify_material_operation_context(self) == False:
         return
 
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
 
     # If the projection node is somehow missing, throw an error and abort.
@@ -1769,24 +1769,24 @@ def set_layer_projection(projection_mode, self):
     update_nodes = False
     match projection_mode:
         case 'UV':
-            if projection_node.node_tree.name != "ML_UVProjection":
-                projection_node.node_tree = bau.append_group_node("ML_UVProjection")
+            if projection_node.node_tree.name != "RY_UVProjection":
+                projection_node.node_tree = bau.append_group_node("RY_UVProjection")
                 update_nodes = True
 
         case 'TRIPLANAR':
-            if projection_node.node_tree.name != "ML_TriplanarProjection":
-                projection_node.node_tree = bau.append_group_node("ML_TriplanarProjection")
+            if projection_node.node_tree.name != "RY_TriplanarProjection":
+                projection_node.node_tree = bau.append_group_node("RY_TriplanarProjection")
                 update_nodes = True
 
         case 'TRIPLANAR_HEX_GRID':
-            if projection_node.node_tree.name != "ML_TriplanarHexGridProjection":
-                projection_node.node_tree = bau.append_group_node("ML_TriplanarHexGridProjection")
+            if projection_node.node_tree.name != "RY_TriplanarHexGridProjection":
+                projection_node.node_tree = bau.append_group_node("RY_TriplanarHexGridProjection")
                 update_nodes = True
 
     # Set the projection nodes for all channels if a node update is required.
     if update_nodes:
         layer_node = get_material_layer_node('LAYER', selected_layer_index)
-        shader_info = bpy.context.scene.matlayer_shader_info
+        shader_info = bpy.context.scene.rymat_shader_info
         for channel in shader_info.material_channels:
             channel_nodes_exist = check_channel_nodes_exist(channel.name, layer_node.node_tree)
             if channel_nodes_exist:
@@ -1797,7 +1797,7 @@ def set_layer_projection(projection_mode, self):
 
 def get_material_channel_crgba_output(material_channel_name):
     '''Returns which Color / RGBA channel output is used for the specified material channel.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     filter_node = get_material_layer_node('FILTER', selected_layer_index, material_channel_name)
 
     output_channel = ''
@@ -1840,7 +1840,7 @@ def get_material_channel_output_node(material_channel_name, layer_index):
     projection_node = get_material_layer_node('PROJECTION', layer_index)
     value_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
     channel_output_node = None
-    if projection_node.node_tree.name == 'ML_TriplanarProjection' or projection_node.node_tree.name == 'ML_TriplanarHexGridProjection':
+    if projection_node.node_tree.name == 'RY_TriplanarProjection' or projection_node.node_tree.name == 'RY_TriplanarHexGridProjection':
         if value_node.bl_static_type == 'TEX_IMAGE':
             channel_output_node = get_material_layer_node('TRIPLANAR_BLEND', layer_index, material_channel_name)
         else:
@@ -1864,7 +1864,7 @@ def set_material_channel_crgba_output(material_channel_name, crgba_output, layer
     projection_node = get_material_layer_node('PROJECTION', layer_index)
     value_node = get_material_layer_node('VALUE', layer_index, material_channel_name)
     channel_output_node = None
-    if projection_node.node_tree.name == 'ML_TriplanarProjection' or projection_node.node_tree.name == 'ML_TriplanarHexGridProjection':
+    if projection_node.node_tree.name == 'RY_TriplanarProjection' or projection_node.node_tree.name == 'RY_TriplanarHexGridProjection':
         if value_node.bl_static_type == 'TEX_IMAGE':
             channel_output_node = get_material_layer_node('TRIPLANAR_BLEND', layer_index, material_channel_name)
         else:
@@ -1965,7 +1965,7 @@ def show_layer():
     active_node_tree.links.new(principled_bsdf.outputs[0], material_output.inputs[0])
 
 def toggle_image_alpha_blending(material_channel_name):
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     image_alpha_node = get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
     if image_alpha_node.mute:
         image_alpha_node.mute = False
@@ -1976,7 +1976,7 @@ def get_layer_blending_mode(layer_index, material_channel_name=''):
     '''Returns the current blending mode for the layer at the specified index.'''
     # If there is no specified material channel, use the current selected on from the layer stack.
     if material_channel_name == '':
-        material_channel_name = bpy.context.scene.matlayer_layer_stack.selected_material_channel
+        material_channel_name = bpy.context.scene.rymat_layer_stack.selected_material_channel
 
     mix_node = get_material_layer_node('MIX', layer_index, material_channel_name)
     match mix_node.bl_static_type:
@@ -1984,10 +1984,10 @@ def get_layer_blending_mode(layer_index, material_channel_name=''):
             return mix_node.blend_type
         
         case 'GROUP':
-            if mix_node.node_tree.name == 'ML_WhiteoutNormalMapMix':
+            if mix_node.node_tree.name == 'RY_WhiteoutNormalMapMix':
                 return 'NORMAL_MAP_COMBINE'
             
-            if mix_node.node_tree.name == 'ML_ReorientedNormalMapMix':
+            if mix_node.node_tree.name == 'RY_ReorientedNormalMapMix':
                 return 'NORMAL_MAP_DETAIL'
     return 'ERROR'
 
@@ -2011,9 +2011,9 @@ def set_layer_blending_mode(layer_index, blending_mode, material_channel_name='C
         else:
             mix_node = original_mix_node
         if blending_mode == 'NORMAL_MAP_COMBINE':
-            mix_node.node_tree = bau.append_group_node('ML_WhiteoutNormalMapMix')
+            mix_node.node_tree = bau.append_group_node('RY_WhiteoutNormalMapMix')
         elif blending_mode == 'NORMAL_MAP_DETAIL':
-            mix_node.node_tree = bau.append_group_node('ML_ReorientedNormalMapMix')
+            mix_node.node_tree = bau.append_group_node('RY_ReorientedNormalMapMix')
 
     # For setting layer blending modes already available through Blender's mix node,
     # Ensure the layers mix node is using Blender's mix RGB node then set the blending type.
@@ -2056,7 +2056,7 @@ def add_bake_texture_nodes():
     '''Adds a bake texture node to all materials in all material slots on the active object.'''
 
     # Adding a placeholder image to the bake image nodes stops Blender from throwing annoying and incorrect 'no active image' warnings when baking'.
-    placeholder_image = bau.create_data_image("ML_Placeholder", image_width=32, image_height=32)
+    placeholder_image = bau.create_data_image("RY_Placeholder", image_width=32, image_height=32)
 
     active_object = bpy.context.active_object
     for material_slot in active_object.material_slots:
@@ -2081,7 +2081,7 @@ def add_bake_texture_nodes():
 
 def remove_bake_texture_nodes():
     '''Removes image texture nodes for baking from all materials in all material slots on the active object.'''
-    placeholder_image = bpy.data.images.get('ML_Placeholder')
+    placeholder_image = bpy.data.images.get('RY_Placeholder')
     if placeholder_image:
         bpy.data.images.remove(placeholder_image)
 
@@ -2155,7 +2155,7 @@ def get_merge_bake_node():
         merge_bake_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
         merge_bake_node.name = 'MERGE_BAKE_NODE'
         merge_bake_node.label = merge_bake_node.name
-        merge_bake_node.node_tree = bau.append_group_node("ML_MergeBake", never_auto_delete=True)
+        merge_bake_node.node_tree = bau.append_group_node("RY_MergeBake", never_auto_delete=True)
         merge_bake_node.location = [0.0, 200.0]
         merge_bake_node.width = 250.0
     return merge_bake_node
@@ -2170,14 +2170,14 @@ def delete_merge_bake_node():
         active_material.node_tree.nodes.remove(merge_bake_node)
 
     # Deletes the merge bake node from blend data.
-    merge_bake_node_tree = bpy.data.node_groups.get("ML_MergeBake")
+    merge_bake_node_tree = bpy.data.node_groups.get("RY_MergeBake")
     if merge_bake_node_tree:
         bpy.data.node_groups.remove(merge_bake_node_tree, do_unlink=True, do_id_user=True, do_ui_user=True)
 
 def merge_bake_material_channel(material_channel_name):
     '''Triggers a bake for the specified material channel to convert it pixel data.'''
     
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     active_material = bpy.context.active_object.active_material
     selected_layer_node = get_material_layer_node('LAYER', selected_layer_index)
     below_layer_node = get_material_layer_node('LAYER', selected_layer_index - 1)
@@ -2267,12 +2267,12 @@ def relink_shader_node():
 #----------------------------- OPERATORS -----------------------------#
 
 
-class MATLAYER_layer_stack(PropertyGroup):
+class RYMAT_layer_stack(PropertyGroup):
     '''Properties for the layer stack.'''
     selected_layer_index: IntProperty(default=-1, description="Selected material layer", update=update_layer_index)
     selected_material_channel: StringProperty(name="Material Channel", description="The currently selected material channel", default='NONE')
 
-class MATLAYER_layers(PropertyGroup):
+class RYMAT_layers(PropertyGroup):
     # Storing properties in the layer slot data can potentially cause many errors and often more code -
     # - Properties stored in the layer slots must be read from the material node tree when a new active material is selected.
     # - Properties stored in the layer slots must be updated first in the interface, then trigger callback functions to update their associated properties in material nodes.
@@ -2280,8 +2280,8 @@ class MATLAYER_layers(PropertyGroup):
     # A placeholder property is kept here so the UI still has a property group to reference to draw the UIList.
     placeholder_property: IntProperty()
 
-class MATLAYER_OT_add_material_channel_nodes(Operator):
-    bl_idname = "matlayer.add_material_channel_nodes"
+class RYMAT_OT_add_material_channel_nodes(Operator):
+    bl_idname = "rymat.add_material_channel_nodes"
     bl_label = "Add Material Channel Nodes"
     bl_description = "Adds framed material channel nodes for the specified material channel"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2293,15 +2293,15 @@ class MATLAYER_OT_add_material_channel_nodes(Operator):
         return context.active_object
 
     def execute(self, context):
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
         layer_node = get_material_layer_node('LAYER', selected_layer_index)
         layer_type = get_layer_type()
         add_material_channel_nodes(self.material_channel_name, layer_node.node_tree, layer_type, self)
         organize_material_channel_frames(layer_node.node_tree)
         return {'FINISHED'}
 
-class MATLAYER_OT_delete_material_channel_nodes(Operator):
-    bl_idname = "matlayer.delete_material_channel_nodes"
+class RYMAT_OT_delete_material_channel_nodes(Operator):
+    bl_idname = "rymat.delete_material_channel_nodes"
     bl_label = "Delete Material Channel Nodes"
     bl_description = "Deletes all nodes for the specified material channel"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2314,13 +2314,13 @@ class MATLAYER_OT_delete_material_channel_nodes(Operator):
 
     def execute(self, context):
         delete_material_channel_nodes(self.material_channel_name)
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
         layer_node = get_material_layer_node('LAYER', selected_layer_index)
         organize_material_channel_frames(layer_node.node_tree)
         return {'FINISHED'}
 
-class MATLAYER_OT_add_material_layer(Operator):
-    bl_idname = "matlayer.add_material_layer"
+class RYMAT_OT_add_material_layer(Operator):
+    bl_idname = "rymat.add_material_layer"
     bl_label = "Add Material Layer"
     bl_description = "Adds a material layer to the active material"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2334,8 +2334,8 @@ class MATLAYER_OT_add_material_layer(Operator):
         add_material_layer('NORMAL', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_add_decal_material_layer(Operator):
-    bl_idname = "matlayer.add_decal_material_layer"
+class RYMAT_OT_add_decal_material_layer(Operator):
+    bl_idname = "rymat.add_decal_material_layer"
     bl_label = "Add Decal Layer"
     bl_description = "Adds a non-destructive layer designed specifically for placing decals (stickers / text). Control the position and scale of the decal using the layers associated decal (empty) object"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2349,8 +2349,8 @@ class MATLAYER_OT_add_decal_material_layer(Operator):
         add_material_layer('DECAL', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_add_image_layer(Operator):
-    bl_idname = "matlayer.add_image_layer"
+class RYMAT_OT_add_image_layer(Operator):
+    bl_idname = "rymat.add_image_layer"
     bl_label = "Add Image Layer"
     bl_description = "Adds a new layer setup that uses only the base color channel. A new image is automatically added to the base color channel. The shader must have a base color channel to add image layers"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2364,8 +2364,8 @@ class MATLAYER_OT_add_image_layer(Operator):
         add_material_layer('IMAGE', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_duplicate_layer(Operator):
-    bl_idname = "matlayer.duplicate_layer"
+class RYMAT_OT_duplicate_layer(Operator):
+    bl_idname = "rymat.duplicate_layer"
     bl_label = "Duplicate Layer"
     bl_description = "Duplicates the selected layer"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2376,12 +2376,12 @@ class MATLAYER_OT_duplicate_layer(Operator):
         return bau.verify_addon_active_material(context)
 
     def execute(self, context):
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
         duplicate_layer(selected_layer_index, self)
         return {'FINISHED'}
 
-class MATLAYER_OT_delete_layer(Operator):
-    bl_idname = "matlayer.delete_layer"
+class RYMAT_OT_delete_layer(Operator):
+    bl_idname = "rymat.delete_layer"
     bl_label = "Delete Layer"
     bl_description = "Deletes the selected material layer from the active material"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2395,8 +2395,8 @@ class MATLAYER_OT_delete_layer(Operator):
         delete_layer(self)
         return {'FINISHED'}
 
-class MATLAYER_OT_move_material_layer_up(Operator):
-    bl_idname = "matlayer.move_material_layer_up"
+class RYMAT_OT_move_material_layer_up(Operator):
+    bl_idname = "rymat.move_material_layer_up"
     bl_label = "Move Layer Up"
     bl_description = "Moves the material layer up on the layer stack"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2412,8 +2412,8 @@ class MATLAYER_OT_move_material_layer_up(Operator):
         move_layer('UP', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_move_material_layer_down(Operator):
-    bl_idname = "matlayer.move_material_layer_down"
+class RYMAT_OT_move_material_layer_down(Operator):
+    bl_idname = "rymat.move_material_layer_down"
     bl_label = "Move Layer Down"
     bl_description = "Moves the material layer down on the layer stack"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2429,8 +2429,8 @@ class MATLAYER_OT_move_material_layer_down(Operator):
         move_layer('DOWN', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_toggle_material_channel_preview(Operator):
-    bl_idname = "matlayer.toggle_material_channel_preview"
+class RYMAT_OT_toggle_material_channel_preview(Operator):
+    bl_idname = "rymat.toggle_material_channel_preview"
     bl_label = "Toggle Material Channel Preview"
     bl_description = "Toggle on / off a preview for the selected material channel"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2445,8 +2445,8 @@ class MATLAYER_OT_toggle_material_channel_preview(Operator):
     def execute(self, context):
         return {'FINISHED'}
 
-class MATLAYER_OT_toggle_hide_layer(Operator):
-    bl_idname = "matlayer.toggle_hide_layer"
+class RYMAT_OT_toggle_hide_layer(Operator):
+    bl_idname = "rymat.toggle_hide_layer"
     bl_label = "Toggle Hide Layer"
     bl_description = "Hides / Unhides the layer by muting / unmuting the layer group node and triggering a relink of group nodes"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2469,8 +2469,8 @@ class MATLAYER_OT_toggle_hide_layer(Operator):
         link_layer_group_nodes(self)
         return {'FINISHED'}
 
-class MATLAYER_OT_set_layer_projection(Operator):
-    bl_idname = "matlayer.set_layer_projection"
+class RYMAT_OT_set_layer_projection(Operator):
+    bl_idname = "rymat.set_layer_projection"
     bl_label = "Set Layer Projection"
     bl_description = "Sets the projection mode for the layer to UV projection, which uses the UV layout of the object to project textures used on this material layer"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2486,8 +2486,8 @@ class MATLAYER_OT_set_layer_projection(Operator):
         set_layer_projection(self.projection_method, self)
         return {'FINISHED'}
 
-class MATLAYER_OT_change_material_channel_value_node(Operator):
-    bl_idname = "matlayer.change_material_channel_value_node"
+class RYMAT_OT_change_material_channel_value_node(Operator):
+    bl_idname = "rymat.change_material_channel_value_node"
     bl_label = "Change Material Channel Node"
     bl_description = "Changes value node representing the provided layer material channel"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2504,8 +2504,8 @@ class MATLAYER_OT_change_material_channel_value_node(Operator):
         replace_material_channel_node(self.material_channel_name, node_type=self.node_type)
         return {'FINISHED'}
 
-class MATLAYER_OT_isolate_material_channel(Operator):
-    bl_idname = "matlayer.isolate_material_channel"
+class RYMAT_OT_isolate_material_channel(Operator):
+    bl_idname = "rymat.isolate_material_channel"
     bl_label = "Isolate Material Channel"
     bl_description = "Isolates the selected material channel. Select a material layer to de-isolate"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2513,18 +2513,18 @@ class MATLAYER_OT_isolate_material_channel(Operator):
     # Disable when there is no active object, or layers.
     @ classmethod
     def poll(cls, context):
-        if len(context.scene.matlayer_layers) < 1:
+        if len(context.scene.rymat_layers) < 1:
             return False
         else:
             return bau.verify_addon_active_material(context)
 
     def execute(self, context):
-        selected_material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
+        selected_material_channel = bpy.context.scene.rymat_layer_stack.selected_material_channel
         isolate_material_channel(selected_material_channel)
         return {'FINISHED'}
 
-class MATLAYER_OT_show_compiled_material(Operator):
-    bl_idname = "matlayer.show_compiled_material"
+class RYMAT_OT_show_compiled_material(Operator):
+    bl_idname = "rymat.show_compiled_material"
     bl_label = "Show Compiled Material"
     bl_description = "Shows the full compiled material"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2532,7 +2532,7 @@ class MATLAYER_OT_show_compiled_material(Operator):
     # Disable when there is no active object, or layers.
     @ classmethod
     def poll(cls, context):
-        if len(context.scene.matlayer_layers) < 1:
+        if len(context.scene.rymat_layers) < 1:
             return False
         else:
             return bau.verify_addon_active_material(context)
@@ -2541,8 +2541,8 @@ class MATLAYER_OT_show_compiled_material(Operator):
         show_layer()
         return {'FINISHED'}    
 
-class MATLAYER_OT_toggle_image_alpha_blending(Operator):
-    bl_idname = "matlayer.toggle_image_alpha_blending"
+class RYMAT_OT_toggle_image_alpha_blending(Operator):
+    bl_idname = "rymat.toggle_image_alpha_blending"
     bl_label = "Toggle Image Alpha Blending"
     bl_description = "Toggles blending the alpha channel of the image node into the layers opacity. Off by default for better shader compilation and viewport performance"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2557,20 +2557,20 @@ class MATLAYER_OT_toggle_image_alpha_blending(Operator):
         toggle_image_alpha_blending(self.material_channel_name)
         return {'FINISHED'}
 
-class MATLAYER_OT_set_material_channel(Operator):
-    bl_idname = "matlayer.set_material_channel"
+class RYMAT_OT_set_material_channel(Operator):
+    bl_idname = "rymat.set_material_channel"
     bl_label = "Set Material Channel"
     bl_description = "Sets the material channel being edited in the layer stack"
 
     material_channel_name: StringProperty(default="NONE")
 
     def execute(self, context):
-        bpy.context.scene.matlayer_layer_stack.selected_material_channel = self.material_channel_name
+        bpy.context.scene.rymat_layer_stack.selected_material_channel = self.material_channel_name
         debug_logging.log("Selected material channel set to: {0}".format(self.material_channel_name))
         return {'FINISHED'}
 
-class MATLAYER_OT_set_matchannel_crgba_output(Operator):
-    bl_idname = "matlayer.set_material_channel_crgba_output"
+class RYMAT_OT_set_matchannel_crgba_output(Operator):
+    bl_idname = "rymat.set_material_channel_crgba_output"
     bl_label = "Set Material Channel Output Channel"
     bl_description = "Sets the material channel to use the specified output channel"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2583,12 +2583,12 @@ class MATLAYER_OT_set_matchannel_crgba_output(Operator):
         return context.active_object
 
     def execute(self, context):
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
         set_material_channel_crgba_output(self.material_channel_name, self.output_channel_name, selected_layer_index)
         return {'FINISHED'}
 
-class MATLAYER_OT_set_layer_blending_mode(Operator):
-    bl_idname = "matlayer.set_layer_blending_mode"
+class RYMAT_OT_set_layer_blending_mode(Operator):
+    bl_idname = "rymat.set_layer_blending_mode"
     bl_label = "Set Layer Blending Mode"
     bl_description = "Sets the blending mode for the layer at the specified index"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2601,13 +2601,13 @@ class MATLAYER_OT_set_layer_blending_mode(Operator):
         return context.active_object
 
     def execute(self, context):
-        material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
+        material_channel = bpy.context.scene.rymat_layer_stack.selected_material_channel
         set_layer_blending_mode(self.layer_index, self.blending_mode, material_channel)
         link_layer_group_nodes(self)
         return {'FINISHED'}
 
-class MATLAYER_OT_merge_with_layer_below(Operator):
-    bl_idname = "matlayer.merge_with_layer_below"
+class RYMAT_OT_merge_with_layer_below(Operator):
+    bl_idname = "rymat.merge_with_layer_below"
     bl_label = "Merge With Layer Below"
     bl_description = "Merges the selected layer with the layer below it by converting all material channels to images through a baking operation"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2659,7 +2659,7 @@ class MATLAYER_OT_merge_with_layer_below(Operator):
 
     def execute(self, context):
         # If there is no layer below the selected one to merge with, abort.
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
         if selected_layer_index - 1 < 0:
             debug_logging.log_status("No layer below to merge with.", self, type='INFO')
             return {'FINISHED'}
@@ -2679,7 +2679,7 @@ class MATLAYER_OT_merge_with_layer_below(Operator):
         bpy.context.space_data.shading.type = 'MATERIAL'
 
         # Create a list of active material channels that need to be baked.
-        shader_info = bpy.context.scene.matlayer_shader_info
+        shader_info = bpy.context.scene.rymat_shader_info
         self._active_material_channels = []
         for material_channel in shader_info.material_channels:
             layer_node_tree = get_layer_node_tree(selected_layer_index)
@@ -2753,7 +2753,7 @@ class MATLAYER_OT_merge_with_layer_below(Operator):
             wm.event_timer_remove(self._timer)
 
         # Store the selected layer name.
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
         selected_layer_node = get_material_layer_node('LAYER', selected_layer_index)
         layer_name = selected_layer_node.label
 
@@ -2763,7 +2763,7 @@ class MATLAYER_OT_merge_with_layer_below(Operator):
 
         # Make a new layer and set the selected layers name.
         add_material_layer('NORMAL', self)
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
         selected_layer_node = get_material_layer_node('LAYER', selected_layer_index)
         selected_layer_node.label = layer_name
 
@@ -2794,8 +2794,8 @@ class MATLAYER_OT_merge_with_layer_below(Operator):
         show_layer()
 
         # Select the image in the selected material channel for painting.
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-        selected_material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
+        selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
+        selected_material_channel = bpy.context.scene.rymat_layer_stack.selected_material_channel
         value_node = get_material_layer_node('VALUE', selected_layer_index, selected_material_channel)
         if value_node:
             if value_node.bl_static_type == 'TEX_IMAGE':

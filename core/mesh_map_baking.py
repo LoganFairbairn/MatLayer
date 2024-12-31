@@ -19,10 +19,10 @@ MESH_MAP_MATERIAL_NAMES = (
 )
 
 MESH_MAP_GROUP_NAMES = (
-    "ML_AmbientOcclusion",
-    "ML_Curvature",
-    "ML_Thickness",
-    "ML_WorldSpaceNormals"
+    "RY_AmbientOcclusion",
+    "RY_Curvature",
+    "RY_Thickness",
+    "RY_WorldSpaceNormals"
 )
 
 MESH_MAP_TYPES = (
@@ -66,34 +66,34 @@ MESH_MAP_CAGE_MODE = [
 
 def update_occlusion_samples(self, context):
     '''Updates the occlusion samples setting in the active material'''
-    baking_settings = bpy.context.scene.matlayer_baking_settings
+    baking_settings = bpy.context.scene.rymat_baking_settings
     node = get_meshmap_node('AMBIENT_OCCLUSION')
     if node:
         node.samples = baking_settings.occlusion_samples
 
 def update_occlusion_distance(self, context):
     '''Updates the occlusion distance setting in the active material'''
-    baking_settings = bpy.context.scene.matlayer_baking_settings
+    baking_settings = bpy.context.scene.rymat_baking_settings
     node = get_meshmap_node('AMBIENT_OCCLUSION')
     if node:
         node.inputs.get('Distance').default_value = baking_settings.occlusion_distance
 
 def update_occlusion_intensity(self, context):
     '''Updates the occlusion contrast setting in the active material.'''
-    baking_settings = bpy.context.scene.matlayer_baking_settings
+    baking_settings = bpy.context.scene.rymat_baking_settings
     node = get_meshmap_node('AMBIENT_OCCLUSION_INTENSITY')
     if node:
         node.inputs[1].default_value = baking_settings.occlusion_intensity
 
 def update_local_occlusion(self, context):
     '''Updates the local occlusion setting in the active material.'''
-    baking_settings = bpy.context.scene.matlayer_baking_settings
+    baking_settings = bpy.context.scene.rymat_baking_settings
     node = get_meshmap_node('AMBIENT_OCCLUSION')
     if node:
         node.only_local = baking_settings.local_occlusion
 
 def update_bevel_radius(self, context):
-    baking_settings = bpy.context.scene.matlayer_baking_settings
+    baking_settings = bpy.context.scene.rymat_baking_settings
     node = get_meshmap_node('BEVEL')
     if node:
         if baking_settings.relative_to_bounding_box:
@@ -103,25 +103,25 @@ def update_bevel_radius(self, context):
             node.inputs[0].default_value = baking_settings.bevel_radius
 
 def update_bevel_samples(self, context):
-    baking_settings = bpy.context.scene.matlayer_baking_settings
+    baking_settings = bpy.context.scene.rymat_baking_settings
     node = get_meshmap_node('BEVEL')
     if node:
         node.samples = baking_settings.bevel_samples
 
 def update_thickness_distance(self, context):
-    baking_settings = bpy.context.scene.matlayer_baking_settings
+    baking_settings = bpy.context.scene.rymat_baking_settings
     node = get_meshmap_node('THICKNESS')
     if node:
         node.inputs[1].default_value = baking_settings.thickness_distance
 
 def update_local_thickness(self, context):
-    baking_settings = bpy.context.scene.matlayer_baking_settings
+    baking_settings = bpy.context.scene.rymat_baking_settings
     node = get_meshmap_node('THICKNESS')
     if node:
         node.only_local = baking_settings.local_thickness
 
 def update_thickness_samples(self, context):
-    baking_settings = bpy.context.scene.matlayer_baking_settings
+    baking_settings = bpy.context.scene.rymat_baking_settings
     node = get_meshmap_node('THICKNESS')
     if node:
         node.samples = baking_settings.thickness_samples
@@ -210,8 +210,8 @@ def create_bake_image(mesh_map_type, object_name, baking_settings):
         delete_existing=True
     )
 
-    matlayer_mesh_map_folder = blender_addon_utils.get_texture_folder_path(folder='MESH_MAPS')
-    mesh_map_image.filepath = "{0}/{1}.{2}".format(matlayer_mesh_map_folder, mesh_map_image.name, 'png')
+    rymat_mesh_map_folder = blender_addon_utils.get_texture_folder_path(folder='MESH_MAPS')
+    mesh_map_image.filepath = "{0}/{1}.{2}".format(rymat_mesh_map_folder, mesh_map_image.name, 'png')
     mesh_map_image.file_format = 'PNG'
     mesh_map_image.colorspace_settings.name = 'Non-Color'
     mesh_map_image.use_fake_user = True
@@ -261,28 +261,28 @@ def apply_mesh_map_quality(baking_settings):
 
 def bake_mesh_map(mesh_map_type, object_name, self):
     '''Applies a premade baking material to the active object and starts baking. Returns true if baking was successful.'''
-    baking_settings = bpy.context.scene.matlayer_baking_settings
+    baking_settings = bpy.context.scene.rymat_baking_settings
 
     # Append a premade material for baking the specified mesh map type.
     match mesh_map_type:
         case 'AMBIENT_OCCLUSION':
             temp_bake_material = blender_addon_utils.append_material('BakeAmbientOcclusion')
-            self._mesh_map_group_node_name = "ML_AmbientOcclusion"
+            self._mesh_map_group_node_name = "RY_AmbientOcclusion"
 
         case 'CURVATURE':
             temp_bake_material = blender_addon_utils.append_material('BakeCurvature')
-            self._mesh_map_group_node_name = "ML_Curvature"
+            self._mesh_map_group_node_name = "RY_Curvature"
 
         case 'THICKNESS':
             temp_bake_material = blender_addon_utils.append_material('BakeThickness')
-            self._mesh_map_group_node_name = "ML_Thickness"
+            self._mesh_map_group_node_name = "RY_Thickness"
 
         case 'NORMALS':
             temp_bake_material = blender_addon_utils.append_material('BakeNormals')
 
         case 'WORLD_SPACE_NORMALS':
             temp_bake_material = blender_addon_utils.append_material('BakeWorldSpaceNormals')
-            self._mesh_map_group_node_name = "ML_WorldSpaceNormals"
+            self._mesh_map_group_node_name = "RY_WorldSpaceNormals"
 
     self._temp_bake_material_name = temp_bake_material.name
 
@@ -369,7 +369,7 @@ def delete_meshmap(meshmap_type, self):
 
 def get_batch_bake_mesh_maps():
     '''Returns a list of mesh maps checked for inclusion in the batch baking process.'''
-    baking_settings = bpy.context.scene.matlayer_baking_settings
+    baking_settings = bpy.context.scene.rymat_baking_settings
     mesh_maps_to_bake = []
 
     if baking_settings.bake_ambient_occlusion:
@@ -486,14 +486,14 @@ def delete_baking_cage(self):
 #----------------------------- OPERATORS AND PROPERTIES -----------------------------#
 
 
-class MATLAYER_mesh_map_anti_aliasing(PropertyGroup):
+class RYMAT_mesh_map_anti_aliasing(PropertyGroup):
     normals_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="Normal Map Anti Aliasing", description="Anti aliasing for output normal maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='NO_AA')
     ambient_occlusion_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="Ambient Occlusion Anti Aliasing", description="Anti aliasing for output ambient occlusion maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='NO_AA')
     curvature_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="Curvature Anti Aliasing", description="Anti aliasing for output curvature maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='NO_AA')
     thickness_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="Thickness Anti Aliasing", description="Anti aliasing for output thickness maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='NO_AA')
     world_space_normals_anti_aliasing: EnumProperty(items=MESH_MAP_ANTI_ALIASING, name="World Space Normals Anti Aliasing", description="Anti aliasing for output world space normal maps. Higher values creates softer, less pixelated edges around geometry data from the high poly mesh that's baked into the texture. This value multiplies the initial bake resolution before being scaled down to the target resolution effectively applying anti-aliasing, but also increasing bake time", default='NO_AA')
 
-class MATLAYER_baking_settings(bpy.types.PropertyGroup):
+class RYMAT_baking_settings(bpy.types.PropertyGroup):
     high_poly_object: PointerProperty(
         type=bpy.types.Object, 
         name="High Poly Object", 
@@ -501,7 +501,7 @@ class MATLAYER_baking_settings(bpy.types.PropertyGroup):
     )
 
     mesh_map_anti_aliasing: PointerProperty(
-        type=MATLAYER_mesh_map_anti_aliasing, 
+        type=RYMAT_mesh_map_anti_aliasing, 
         name="Mesh Map Anti Aliasing"
     )
 
@@ -662,8 +662,8 @@ class MATLAYER_baking_settings(bpy.types.PropertyGroup):
         update=update_local_thickness
     )
 
-class MATLAYER_OT_batch_bake(Operator):
-    bl_idname = "matlayer.batch_bake"
+class RYMAT_OT_batch_bake(Operator):
+    bl_idname = "rymat.batch_bake"
     bl_label = "Batch Bake"
     bl_description = "Bakes all checked mesh texture maps in succession. Note that this function can take a few minutes, especially on slower computers, or when using CPU for rendering. Textures are created at the defined texture set resolution"
 
@@ -697,7 +697,7 @@ class MATLAYER_OT_batch_bake(Operator):
                 mesh_map_image = bpy.data.images.get(mesh_map_name)
                 if mesh_map_image:
                     # Scale baked textures down to apply anti-aliasing.
-                    baking_settings = bpy.context.scene.matlayer_baking_settings
+                    baking_settings = bpy.context.scene.rymat_baking_settings
                     match getattr(baking_settings.mesh_map_anti_aliasing, mesh_map_type.lower() + "_anti_aliasing", '1X'):
                         case '2X':
                             mesh_map_image.scale(int(mesh_map_image.size[0] * 0.5), int(mesh_map_image.size[1] * 0.5))
@@ -791,7 +791,7 @@ class MATLAYER_OT_batch_bake(Operator):
             debug_logging.log_status("No mesh maps checked for baking.", self, type='INFO')
             return {'FINISHED'}
 
-        baking_settings = bpy.context.scene.matlayer_baking_settings
+        baking_settings = bpy.context.scene.rymat_baking_settings
         low_poly_object = bpy.context.active_object
         high_poly_object = baking_settings.high_poly_object
 
@@ -874,7 +874,7 @@ class MATLAYER_OT_batch_bake(Operator):
             wm.event_timer_remove(self._timer)
 
         # High the high poly object, and re-exclude layer collections the high poly object belongs to.
-        high_poly_object = bpy.context.scene.matlayer_baking_settings.high_poly_object
+        high_poly_object = bpy.context.scene.rymat_baking_settings.high_poly_object
         if high_poly_object:
             high_poly_object.hide_set(True)
             high_poly_object.hide_render = True
@@ -906,7 +906,7 @@ class MATLAYER_OT_batch_bake(Operator):
             wm.event_timer_remove(self._timer)
 
         # High the high poly object, and re-exclude layer collections the high poly object belongs to.
-        high_poly_object = bpy.context.scene.matlayer_baking_settings.high_poly_object
+        high_poly_object = bpy.context.scene.rymat_baking_settings.high_poly_object
         if high_poly_object:
             high_poly_object.hide_set(True)
             high_poly_object.hide_render = True
@@ -942,8 +942,8 @@ class MATLAYER_OT_batch_bake(Operator):
         total_bake_time = end_bake_time - self._start_bake_time
         debug_logging.log_status("Baking mesh map(s) completed, total bake time: {0} seconds.".format(round(total_bake_time), 1), self, 'INFO')
 
-class MATLAYER_OT_set_mesh_map_folder(Operator):
-    bl_idname = "matlayer.set_mesh_map_folder"
+class RYMAT_OT_set_mesh_map_folder(Operator):
+    bl_idname = "rymat.set_mesh_map_folder"
     bl_label = "Set Mesh Maps Folder"
     bl_description = "Opens a file explorer to select the folder where baked mesh maps are externally saved"
     bl_options = {'REGISTER'}
@@ -960,7 +960,7 @@ class MATLAYER_OT_set_mesh_map_folder(Operator):
         if not os.path.isdir(self.directory):
             debug_logging.log_status("Invalid directory.", self, type='INFO')
         else:
-            context.scene.matlayer_mesh_map_folder = self.directory
+            context.scene.rymat_mesh_map_folder = self.directory
             debug_logging.log_status("Export folder set to: {0}".format(self.directory), self, type='INFO')
         return {'FINISHED'}
 
@@ -968,8 +968,8 @@ class MATLAYER_OT_set_mesh_map_folder(Operator):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-class MATLAYER_OT_open_mesh_map_folder(Operator):
-    bl_idname = "matlayer.open_mesh_map_folder"
+class RYMAT_OT_open_mesh_map_folder(Operator):
+    bl_idname = "rymat.open_mesh_map_folder"
     bl_label = "Open Mesh Map Folder"
     bl_description = "Opens the folder in your systems file explorer where mesh map images will be saved after baking"
 
@@ -979,12 +979,12 @@ class MATLAYER_OT_open_mesh_map_folder(Operator):
         return context.active_object
 
     def execute(self, context):
-        matlayer_mesh_map_folder_path = blender_addon_utils.get_texture_folder_path(folder='MESH_MAPS')
-        blender_addon_utils.open_folder(matlayer_mesh_map_folder_path, self)
+        rymat_mesh_map_folder_path = blender_addon_utils.get_texture_folder_path(folder='MESH_MAPS')
+        blender_addon_utils.open_folder(rymat_mesh_map_folder_path, self)
         return {'FINISHED'}
 
-class MATLAYER_OT_preview_mesh_map(Operator):
-    bl_idname = "matlayer.preview_mesh_map"
+class RYMAT_OT_preview_mesh_map(Operator):
+    bl_idname = "rymat.preview_mesh_map"
     bl_label = "Preview Mesh Map"
     bl_description = "Replaces all material slots on the selected (active) object with a material used for baking the specified mesh map, then applies viewport and render settings to make the preview visible"
 
@@ -1059,8 +1059,8 @@ class MATLAYER_OT_preview_mesh_map(Operator):
 
         return {'FINISHED'}
 
-class MATLAYER_OT_disable_mesh_map_preview(Operator):
-    bl_idname = "matlayer.disable_mesh_map_preview"
+class RYMAT_OT_disable_mesh_map_preview(Operator):
+    bl_idname = "rymat.disable_mesh_map_preview"
     bl_label = "Disable Mesh Map Preview"
     bl_description = "Reapplies the previously selected render engine and all of the active objects materials that were in use before the mesh map preview was toggled on"
 
@@ -1108,8 +1108,8 @@ class MATLAYER_OT_disable_mesh_map_preview(Operator):
         debug_logging.log_status("Disabled mesh map preview.", self, type='INFO')
         return {'FINISHED'}
 
-class MATLAYER_OT_delete_mesh_map(Operator):
-    bl_idname = "matlayer.delete_mesh_map"
+class RYMAT_OT_delete_mesh_map(Operator):
+    bl_idname = "rymat.delete_mesh_map"
     bl_label = "Delete Mesh Map"
     bl_description = "Deletes the specified mesh map from the blend files data for the active object if one exists"
 
@@ -1123,8 +1123,8 @@ class MATLAYER_OT_delete_mesh_map(Operator):
         delete_meshmap(self.mesh_map_name, self)
         return {'FINISHED'}
 
-class MATLAYER_OT_create_baking_cage(Operator):
-    bl_idname = "matlayer.create_baking_cage"
+class RYMAT_OT_create_baking_cage(Operator):
+    bl_idname = "rymat.create_baking_cage"
     bl_label = "Create Baking Cage"
     bl_description = "Creates a duplicate of the selected object, scaled slightly up to act as a cage object for baking high to low poly mesh map textures"
 
@@ -1136,8 +1136,8 @@ class MATLAYER_OT_create_baking_cage(Operator):
         create_baking_cage(self)
         return {'FINISHED'}
     
-class MATLAYER_OT_delete_baking_cage(Operator):
-    bl_idname = "matlayer.delete_baking_cage"
+class RYMAT_OT_delete_baking_cage(Operator):
+    bl_idname = "rymat.delete_baking_cage"
     bl_label = "Delete Baking Cage"
     bl_description = "Deletes the selected baking cage, or the bake cage for the selected object if one exists"
 

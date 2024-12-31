@@ -75,7 +75,7 @@ FILTER_INFO = {
         "node_label": "Cheap Contrast",
         "main_input_socket": 0,
         "main_output_socket": 0,
-        "custom_node_group": "ML_CheapContrast",
+        "custom_node_group": "RY_CheapContrast",
         "ui_sockets": [1]
     },
     "NORMAL_INTENSITY": {
@@ -83,7 +83,7 @@ FILTER_INFO = {
         "node_label": "Normal Intensity",
         "main_input_socket": 0,
         "main_output_socket": 0,
-        "custom_node_group": "ML_AdjustNormalIntensity",
+        "custom_node_group": "RY_AdjustNormalIntensity",
         "ui_sockets": [1]
     }
 }
@@ -95,7 +95,7 @@ def format_filter_name(material_channel_name, filter_index):
 
 def count_filter_nodes(material_channel_name):
     '''Returns the total count of the number of filter nodes for the specified material channel.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
     filter_count = 0
     filter_exists = True
@@ -121,9 +121,9 @@ def get_filter_type(filter_node):
     '''Returns the static type name for the provided filter node.'''
     if filter_node.bl_static_type == 'GROUP':
         match filter_node.node_tree.name:
-            case 'ML_CheapContrast':
+            case 'RY_CheapContrast':
                 return 'CHEAP_CONTRAST'
-            case 'ML_AdjustNormalIntensity':
+            case 'RY_AdjustNormalIntensity':
                 return 'NORMAL_INTENSITY'
             case _:
                 debug_logging.log("Can't determing filter node type for filter node.")
@@ -140,7 +140,7 @@ def relink_filter_nodes(material_channel_name):
 
     # Cycle through all existing filters and link all of them to each other.
     else:
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
         layer_node_tree = material_layers.get_layer_node_tree(selected_layer_index)
         for i in range(1, filter_count):
             filter_one = get_filter_node(material_channel_name, i)
@@ -166,10 +166,10 @@ def add_material_channel_blur(layer_index, layer_node, material_channel_name, se
     # If no blur node exists, append one based on the layer projection.
     projection_node = material_layers.get_material_layer_node('PROJECTION', layer_index)
     match projection_node.node_tree.name:
-        case 'ML_TriplanarProjection':
-            blur_node_tree = bau.append_group_node('ML_TriplanarBlur')
+        case 'RY_TriplanarProjection':
+            blur_node_tree = bau.append_group_node('RY_TriplanarBlur')
         case _:
-            blur_node_tree = bau.append_group_node('ML_ProjectionBlur')
+            blur_node_tree = bau.append_group_node('RY_ProjectionBlur')
 
     new_blur_node = layer_node.node_tree.nodes.new('ShaderNodeGroup')
     new_blur_node.name = blur_node_name
@@ -202,7 +202,7 @@ def add_material_filter(self, material_channel_name, filter_type):
         return
     
     # Add the filter node of the specified type to the node tree.
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
 
     # For blur filters, perform special setup steps.
@@ -234,9 +234,9 @@ def add_material_filter(self, material_channel_name, filter_type):
     filter_node_tree = None
     match filter_type:
         case 'CHEAP_CONTRAST':
-            filter_node_tree = bau.append_group_node('ML_CheapContrast')
+            filter_node_tree = bau.append_group_node('RY_CheapContrast')
         case 'NORMAL_INTENSITY':
-            filter_node_tree = bau.append_group_node('ML_AdjustNormalIntensity')
+            filter_node_tree = bau.append_group_node('RY_AdjustNormalIntensity')
     if filter_node_tree != None:
         new_filter_node.node_tree = filter_node_tree
 
@@ -253,7 +253,7 @@ def add_material_filter(self, material_channel_name, filter_type):
 
 def delete_material_filter(material_channel_name, filter_index, filter_type):
     '''Deletes the material filter node with the specified index.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
 
     # Perform special steps to delete blur filters.
@@ -293,7 +293,7 @@ def delete_material_filter(material_channel_name, filter_index, filter_type):
 
 def get_filter_node(material_channel_name, filter_index):
     '''Returns the filter with the specified index.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
     filter_node_name = format_filter_name(material_channel_name, filter_index)
     return layer_node.node_tree.nodes.get(filter_node_name)
@@ -319,9 +319,9 @@ def organize_filter_nodes(material_channel_name):
         filter_index += 1
         filter_node = get_filter_node(material_channel_name, filter_index)
 
-class MATLAYER_OT_add_material_filter(Operator):
+class RYMAT_OT_add_material_filter(Operator):
     bl_label = "Add Material Filter"
-    bl_idname = "matlayer.add_material_filter"
+    bl_idname = "rymat.add_material_filter"
     bl_description = "Adds a filter of the specified type to the specified material channel"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -337,9 +337,9 @@ class MATLAYER_OT_add_material_filter(Operator):
         add_material_filter(self, self.material_channel, self.filter_type)
         return {'FINISHED'}
   
-class MATLAYER_OT_delete_material_filter(Operator):
+class RYMAT_OT_delete_material_filter(Operator):
     bl_label = "Delete Material Filter"
-    bl_idname = "matlayer.delete_material_filter"
+    bl_idname = "rymat.delete_material_filter"
     bl_description = "Deletes the specified material filter"
     bl_options = {'REGISTER', 'UNDO'}
 

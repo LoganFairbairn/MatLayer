@@ -21,12 +21,12 @@ TEXTURE_SET_RESOLUTIONS = [
 ]
 
 def update_match_image_resolution(self, context):
-    texture_set_settings = context.scene.matlayer_texture_set_settings
+    texture_set_settings = context.scene.rymat_texture_set_settings
     if texture_set_settings.match_image_resolution:
         texture_set_settings.image_height = texture_set_settings.image_width
 
 def update_image_width(self, context):
-    texture_set_settings = context.scene.matlayer_texture_set_settings
+    texture_set_settings = context.scene.rymat_texture_set_settings
     if texture_set_settings.match_image_resolution:
         if texture_set_settings.image_height != texture_set_settings.image_width:
             texture_set_settings.image_height = texture_set_settings.image_width
@@ -35,7 +35,7 @@ def update_image_width(self, context):
 
 def get_texture_width():
     '''Returns a numeric value based on the enum for texture width.'''
-    match bpy.context.scene.matlayer_texture_set_settings.image_width:
+    match bpy.context.scene.rymat_texture_set_settings.image_width:
         case 'THIRTY_TWO':
             return 32
         case 'SIXTY_FOUR':
@@ -57,7 +57,7 @@ def get_texture_width():
 
 def get_texture_height():
     '''Returns a numeric value based on the enum for texture height.'''
-    match bpy.context.scene.matlayer_texture_set_settings.image_height:
+    match bpy.context.scene.rymat_texture_set_settings.image_height:
         case 'THIRTY_TWO':
             return 32
         case 'SIXTY_FOUR':
@@ -101,7 +101,7 @@ def get_material_channel_active(channel_name):
     # If the channel toggle node exists, and isn't muted, return true.
     return True
 
-class MATLAYER_texture_set_settings(PropertyGroup):
+class RYMAT_texture_set_settings(PropertyGroup):
     image_width: EnumProperty(
         items=TEXTURE_SET_RESOLUTIONS, 
         name="Image Width", 
@@ -120,8 +120,8 @@ class MATLAYER_texture_set_settings(PropertyGroup):
     layer_folder: StringProperty(default="", description="Path to folder location where layer images are saved", name="Image Layer Folder Path")
     match_image_resolution: BoolProperty(name="Match Image Resolution", description="When toggled on, the image width and height will be matched", default=True, update=update_match_image_resolution)
 
-class MATLAYER_OT_set_raw_texture_folder(Operator):
-    bl_idname = "matlayer.set_raw_texture_folder"
+class RYMAT_OT_set_raw_texture_folder(Operator):
+    bl_idname = "rymat.set_raw_texture_folder"
     bl_label = "Set Raw Texture Folder Path"
     bl_description = "Opens a file explorer to select the folder path where raw textures are externally saved. A raw texture is any image used in the material editing process inside this add-on that isn't a texture being exported"
     bl_options = {'REGISTER'}
@@ -138,7 +138,7 @@ class MATLAYER_OT_set_raw_texture_folder(Operator):
         if not os.path.isdir(self.directory):
             debug_logging.log_status("Invalid directory.", self, type='INFO')
         else:
-            context.scene.matlayer_raw_textures_folder = self.directory
+            context.scene.rymat_raw_textures_folder = self.directory
             debug_logging.log_status("Raw texture folder set to: {0}".format(self.directory), self, type='INFO')
         return {'FINISHED'}
 
@@ -146,8 +146,8 @@ class MATLAYER_OT_set_raw_texture_folder(Operator):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
     
-class MATLAYER_OT_open_raw_texture_folder(Operator):
-    bl_idname = "matlayer.open_raw_texture_folder"
+class RYMAT_OT_open_raw_texture_folder(Operator):
+    bl_idname = "rymat.open_raw_texture_folder"
     bl_label = "Open Raw Texture Folder"
     bl_description = "Opens the folder in your systems file explorer where raw textures will be saved. Raw textures are considered any image that's used in the material editing process, that's not a mesh map, or a completed texture being exported"
 

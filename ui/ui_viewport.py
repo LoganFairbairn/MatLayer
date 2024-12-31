@@ -20,7 +20,7 @@ def draw_viewport_setting_ui(self, context):
     row.prop(bpy.context.scene.view_settings, "view_transform", text="")
 
     # Draw HDRI Settings
-    hdri_node_tree = bpy.data.node_groups.get('ML_HDRI')
+    hdri_node_tree = bpy.data.node_groups.get('RY_HDRI')
     if hdri_node_tree:
         hdri_texture_node = hdri_node_tree.nodes.get('HDRI_TEXTURE')
         if hdri_texture_node:
@@ -58,4 +58,4 @@ def draw_viewport_setting_ui(self, context):
     else:
         row = layout.row()
         row.scale_y = 1.5
-        row.operator("matlayer.append_hdri_world", text="Append HDRI World")
+        row.operator("rymat.append_hdri_world", text="Append HDRI World")

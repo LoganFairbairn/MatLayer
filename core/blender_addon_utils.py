@@ -99,23 +99,23 @@ def duplicate_node_group(node_group_name):
 def append_default_node_groups():
     '''Appends default nodes used by this add-on to the current blend file. Appending node groups in an initial batch helps avoid appending duplicates of node groups.'''
     append_group_node("PrincipledBSDF", never_auto_delete=True)
-    append_group_node("ML_TriplanarNormalsBlend", never_auto_delete=True)
-    append_group_node("ML_LayerBlur", never_auto_delete=True)
-    append_group_node("ML_TriplanarBlur", never_auto_delete=True)
-    append_group_node("ML_TriplanarLayerBlur", never_auto_delete=True)
-    append_group_node("ML_UVProjection", never_auto_delete=True)
-    append_group_node("ML_TriplanarProjection", never_auto_delete=True)
-    append_group_node("ML_TriplanarNormalFix", never_auto_delete=True)
-    append_group_node("ML_WorldToTangentSpace", never_auto_delete=True)
-    append_group_node("ML_TriplanarBlend", never_auto_delete=True)
-    append_group_node("ML_ImageMask", never_auto_delete=True)
-    append_group_node("ML_EdgeWear", never_auto_delete=True)
-    append_group_node("ML_NoiseBlur", never_auto_delete=True)
-    append_group_node("ML_NormalAndHeightMix", never_auto_delete=True)
-    append_group_node("ML_AdjustNormalIntensity", never_auto_delete=True)
-    append_group_node("ML_FixNormalRotation", never_auto_delete=True)
-    append_group_node("ML_OffsetRotationScale", never_auto_delete=True)
-    append_group_node("ML_CheapContrast", never_auto_delete=True)
+    append_group_node("RY_TriplanarNormalsBlend", never_auto_delete=True)
+    append_group_node("RY_LayerBlur", never_auto_delete=True)
+    append_group_node("RY_TriplanarBlur", never_auto_delete=True)
+    append_group_node("RY_TriplanarLayerBlur", never_auto_delete=True)
+    append_group_node("RY_UVProjection", never_auto_delete=True)
+    append_group_node("RY_TriplanarProjection", never_auto_delete=True)
+    append_group_node("RY_TriplanarNormalFix", never_auto_delete=True)
+    append_group_node("RY_WorldToTangentSpace", never_auto_delete=True)
+    append_group_node("RY_TriplanarBlend", never_auto_delete=True)
+    append_group_node("RY_ImageMask", never_auto_delete=True)
+    append_group_node("RY_EdgeWear", never_auto_delete=True)
+    append_group_node("RY_NoiseBlur", never_auto_delete=True)
+    append_group_node("RY_NormalAndHeightMix", never_auto_delete=True)
+    append_group_node("RY_AdjustNormalIntensity", never_auto_delete=True)
+    append_group_node("RY_FixNormalRotation", never_auto_delete=True)
+    append_group_node("RY_OffsetRotationScale", never_auto_delete=True)
+    append_group_node("RY_CheapContrast", never_auto_delete=True)
 
 def cleanse_duplicated_node_groups(old_node_groups, cleanse_node_groups=True, cleanse_materials=True):
     '''Replaces and removes all duplicated node groups within blender that were appended from sub-node groups.'''
@@ -374,15 +374,15 @@ def get_texture_folder_path(folder='RAW_TEXTURES'):
     '''Returns the file path for the folder where raw textures used in material editing are stored.'''
     match folder:
         case 'EXPORT_TEXTURES':
-            custom_folder = bpy.context.scene.matlayer_export_folder
+            custom_folder = bpy.context.scene.rymat_export_folder
             default_path = os.path.join(bpy.path.abspath("//"), "Textures")
         
         case 'MESH_MAPS':
-            custom_folder = bpy.context.scene.matlayer_mesh_map_folder
+            custom_folder = bpy.context.scene.rymat_mesh_map_folder
             default_path = os.path.join(bpy.path.abspath("//"), "Mesh Maps")
             
         case 'RAW_TEXTURES':
-            custom_folder = bpy.context.scene.matlayer_raw_textures_folder
+            custom_folder = bpy.context.scene.rymat_raw_textures_folder
             default_path = os.path.join(bpy.path.abspath("//"), "Raw Textures")
 
         case _:
@@ -655,8 +655,8 @@ def print_aligned_text(layout, aligned_text, alignment='LEFT'):
     row.alignment = alignment
     row.label(text=aligned_text)
 
-class MATLAYER_OT_save_all_textures(Operator):
-    bl_idname = "matlayer.save_all_textures"
+class RYMAT_OT_save_all_textures(Operator):
+    bl_idname = "rymat.save_all_textures"
     bl_label = "Save All Textures"
     bl_description = "Saves all image textures in the blend file by packing them into the blend file, or saving them to the users disk"
 

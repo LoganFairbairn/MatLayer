@@ -1,25 +1,25 @@
-# MatLayer
+# RyMat
 
-MatLayer is a free and open-source libre add-on that drastically speeds up and simplifies the material editing workflow by providing a wrapper user interface for Blender's vanilla material nodes. You can use MatLayer to make optimized, professional quality materials and textures for game engines, VRChat, still renders, movies and more.
+RyMat is a free and open-source libre add-on that drastically speeds up and simplifies the material editing workflow by providing a wrapper user interface for Blender's vanilla material nodes. You can use RyMat to make optimized, professional quality materials and textures for game engines, VRChat, still renders, movies and more.
 
-I've invested over 2000 hours over the past 3 years to designing, programming, researching, testing and making assets for MatLayer so there will be a great, free 3D material editing solution available, and everyone will have the freedom to create.
+I've invested over 2000 hours over the past 3 years to designing, programming, researching, testing and making assets for RyMat so there will be a great, free 3D material editing solution available, and everyone will have the freedom to create.
 
-Get the latest release here: https://github.com/LoganFairbairn/matlayer/releases
+Get the latest release here: https://github.com/LoganFairbairn/rymat/releases
 
 Cheers!
 
 ## Features
 
 - PBR material layer stack user interface.
-![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/LayeredMaterialBall.png?raw=true)
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/rymat/main/promo/LayeredMaterialBall.png?raw=true)
 
 - One-click mesh map baking for high poly to low poly normals, ambient occlusion, curvature, thickness, and world space normals.
-![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/MaterialBall_MeshMapBakes.png?raw=true)
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/rymat/main/promo/MaterialBall_MeshMapBakes.png?raw=true)
 
 - One-click texture exporting for common formats and software.
-![alt text](https://raw.githubusercontent.com/LoganFairbairn/matlayer/main/promo/ExportingWithChannelPacking.png?raw=true)
+![alt text](https://raw.githubusercontent.com/LoganFairbairn/rymat/main/promo/ExportingWithChannelPacking.png?raw=true)
 
-- Appendable workspace ideal for material editing with MatLayer.
+- Appendable workspace ideal for material editing with RyMat.
 - Fast texture set importing.
 - Triplanar projection.
 - The ability to merge materials with automatic mesh map application (a.k.a smart materials).
@@ -47,16 +47,16 @@ Cheers!
 
 ## Tips
 
-- Only edit materials made with MatLayer through the add-on interface. MatLayer materials are created using strict formatting to allow them to be read into the interface properly, editing the nodes manually will cause errors. If you need custom materials or effects, you can add custom group nodes into the material channels through the interface.
+- Only edit materials made with RyMat through the add-on interface. RyMat materials are created using strict formatting to allow them to be read into the interface properly, editing the nodes manually will cause errors. If you need custom materials or effects, you can add custom group nodes into the material channels through the interface.
 - Most user interface elements have detailed tooltips when you hover your mouse over them.
 
 ## FAQ
 
-Q: Why should I use MatLayer over other material solutions?
-- MatLayer is 100% free.
+Q: Why should I use RyMat over other material solutions?
+- RyMat is 100% free.
 - You can keep your workflow within Blender.
 - You support free and open-source software.
-- You can mod MatLayer to improve your workflow with Python scripting.
+- You can mod RyMat to improve your workflow with Python scripting.
 - Your privacy is important to you, this add-on has no telemetry.
 
 ## System Requirements

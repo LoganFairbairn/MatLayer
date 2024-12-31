@@ -342,7 +342,7 @@ NORMAL_BAKE_CHANNELS = [
 
 def format_baked_material_channel_name(material_name, material_channel_name):
     '''Properly formats the baked material channel name.'''
-    return "ML_{0}_{1}".format(material_name.replace('_', ''), material_channel_name.capitalize())
+    return "RY_{0}_{1}".format(material_name.replace('_', ''), material_channel_name.capitalize())
 
 def enumerate_color_channel(color_channel):
     '''Returns an interger value for the provided color channel.'''
@@ -469,7 +469,7 @@ def invert_image(image, invert_r = False, invert_g = False, invert_b = False, in
 
 def channel_pack_textures(texture_set_name):
     '''Creates channel packed textures using pre-baked textures.'''
-    texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
+    texture_export_settings = bpy.context.scene.rymat_texture_export_settings
     active_object = bpy.context.active_object
 
     # Cycle through all defined export textures and channel pack them.
@@ -569,7 +569,7 @@ def channel_pack_textures(texture_set_name):
 
     # Delete temp material channel bake images, they are no longer needed because they are packed into new textures now.
     '''
-    shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.rymat_shader_info
     for channel in shader_info.material_channels:
         temp_material_channel_image_name = format_baked_material_channel_name(texture_set_name, channel.name )
         temp_material_channel_image = bpy.data.images.get(temp_material_channel_image_name)
@@ -591,7 +591,7 @@ def get_bake_node():
         bake_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
         bake_node.name = 'BAKE_NODE'
         bake_node.label = bake_node.name
-        bake_node.node_tree = bau.append_group_node("ML_BakeNode", never_auto_delete=True)
+        bake_node.node_tree = bau.append_group_node("RY_BakeNode", never_auto_delete=True)
         bake_node.location = [0.0, 200.0]
         bake_node.width = 250.0
     return bake_node
@@ -606,7 +606,7 @@ def delete_bake_node():
         active_material.node_tree.nodes.remove(bake_node)
 
     # Deletes the bake node from blend data.
-    bake_node_tree = bpy.data.node_groups.get("ML_BakeNode")
+    bake_node_tree = bpy.data.node_groups.get("RY_BakeNode")
     if bake_node_tree:
         bpy.data.node_groups.remove(bake_node_tree, do_unlink=True, do_id_user=True, do_ui_user=True)
 
@@ -623,7 +623,7 @@ def format_export_image_name(texture_name_format):
 
 def get_texture_channel_bake_list():
     '''Returns a list of material channels required to be baked as defined in the texture export settings.'''
-    texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
+    texture_export_settings = bpy.context.scene.rymat_texture_export_settings
     material_channels_to_bake = []
     for export_texture in texture_export_settings.export_textures:
         for key in export_texture.pack_textures.__annotations__.keys():
@@ -646,7 +646,7 @@ def get_texture_channel_bake_list():
 def set_export_template(export_preset_name):
     '''Applies the export template settings stored in the specified export template from the export template json file.'''
     # TODO: BPY context isn't available here if this is called on scene load.
-    texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
+    texture_export_settings = bpy.context.scene.rymat_texture_export_settings
     jdata = read_export_template_data()
     export_templates = jdata['export_templates']
     for template in export_templates:
@@ -787,7 +787,7 @@ def add_bake_texture_nodes():
     '''Adds a bake texture node to all materials in all material slots on the active object.'''
 
     # Adding a placeholder image to the bake image nodes stops Blender from throwing annoying and incorrect 'no active image' warnings when baking'.
-    placeholder_image = bau.create_data_image("ML_Placeholder", image_width=32, image_height=32)
+    placeholder_image = bau.create_data_image("RY_Placeholder", image_width=32, image_height=32)
 
     active_object = bpy.context.active_object
     for material_slot in active_object.material_slots:
@@ -812,7 +812,7 @@ def add_bake_texture_nodes():
 
 def remove_bake_texture_nodes():
     '''Removes image texture nodes for baking from all materials in all material slots on the active object.'''
-    placeholder_image = bpy.data.images.get('ML_Placeholder')
+    placeholder_image = bpy.data.images.get('RY_Placeholder')
     if placeholder_image:
         bpy.data.images.remove(placeholder_image)
 
@@ -839,7 +839,7 @@ def read_export_template_data():
         with open(templates_json_path,"w") as f:
             json.dump(default_json_file, f)
         
-        texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
+        texture_export_settings = bpy.context.scene.rymat_texture_export_settings
         texture_export_settings.export_preset_name = "PBR Metallic Roughness"
         read_export_template_names()
 
@@ -859,7 +859,7 @@ def read_export_template_names():
     jdata = json.load(json_file)
     json_file.close()
     export_templates = jdata['export_templates']
-    cached_template_names = bpy.context.scene.matlayer_export_templates
+    cached_template_names = bpy.context.scene.rymat_export_templates
     cached_template_names.clear()
     for template in export_templates:
         cached_template = cached_template_names.add()
@@ -874,7 +874,7 @@ def get_shader_channel_enum_items(scene=None, context=None):
     items += [("NONE", "None", "None")]
 
     # Add an ENUM option for all shader channels.
-    shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.rymat_shader_info
     for channel in shader_info.material_channels:
         items += [(
             bau.format_static_matchannel_name(channel.name),
@@ -888,42 +888,42 @@ def get_shader_channel_enum_items(scene=None, context=None):
 #----------------------------- EXPORT OPERATORS -----------------------------#
 
 
-class MATLAYER_pack_textures(PropertyGroup):
+class RYMAT_pack_textures(PropertyGroup):
     r_texture: EnumProperty(items=get_shader_channel_enum_items, name='R Texture')
     g_texture: EnumProperty(items=get_shader_channel_enum_items, name='G Texture')
     b_texture: EnumProperty(items=get_shader_channel_enum_items, name='B Texture')
     a_texture: EnumProperty(items=get_shader_channel_enum_items, name='A Texture')
 
-class MATLAYER_RGBA_pack_channels(PropertyGroup):
+class RYMAT_RGBA_pack_channels(PropertyGroup):
     r_color_channel: EnumProperty(items=RGBA_PACKING_CHANNELS, default='R', name="R")
     g_color_channel: EnumProperty(items=RGBA_PACKING_CHANNELS, default='G', name="G")
     b_color_channel: EnumProperty(items=RGBA_PACKING_CHANNELS, default='B', name="B")
     a_color_channel: EnumProperty(items=RGBA_PACKING_CHANNELS, default='A', name="A")
 
-class MATLAYER_texture_export_settings(PropertyGroup):
+class RYMAT_texture_export_settings(PropertyGroup):
     '''Settings that define how a texture is exported from this add-on.'''
     name_format: StringProperty(name="Name Format", default="T_/MaterialName_C", description="Name format for the texture. You can add trigger words that will be automatically replaced upon export to name formats including: '/MaterialName', '/MeshName' ")
     image_format: EnumProperty(items=TEXTURE_EXPORT_FORMAT, default='PNG')
     bit_depth: EnumProperty(items=BIT_DEPTH, default='EIGHT')
     colorspace: EnumProperty(items=IMAGE_COLORSPACE_SETTINGS, default='SRGB')
-    pack_textures: PointerProperty(type=MATLAYER_pack_textures, name="Pack Textures")
-    input_rgba_channels: PointerProperty(type=MATLAYER_RGBA_pack_channels, name="Input Pack Channels")
-    output_rgba_channels: PointerProperty(type=MATLAYER_RGBA_pack_channels, name="Output Pack Channels")
+    pack_textures: PointerProperty(type=RYMAT_pack_textures, name="Pack Textures")
+    input_rgba_channels: PointerProperty(type=RYMAT_RGBA_pack_channels, name="Input Pack Channels")
+    output_rgba_channels: PointerProperty(type=RYMAT_RGBA_pack_channels, name="Output Pack Channels")
 
-class MATLAYER_texture_set_export_settings(PropertyGroup):
+class RYMAT_texture_set_export_settings(PropertyGroup):
     '''Settings that define how textures are exported from this add-on.'''
     export_preset_name: StringProperty(name="Export Preset Name", default="PBR Metallic Roughness")
-    export_textures: CollectionProperty(type=MATLAYER_texture_export_settings)
+    export_textures: CollectionProperty(type=RYMAT_texture_export_settings)
     roughness_mode: EnumProperty(name="Roughness Mode", items=ROUGHNESS_MODE, default='ROUGHNESS')
     normal_map_mode: EnumProperty(name="Normal Map Mode", items=NORMAL_MAP_MODE, default='OPEN_GL')
     export_mode: EnumProperty(name="Export Active Material", items=EXPORT_MODE, description="Exports only the active material using the defined export settings", default='SINGLE_TEXTURE_SET')
     samples: IntProperty(name="Samples", default=1024, description="Sample count for baking export textures. Higher counts result in exported textures being less noisy, but exporting textures will take longer")
 
-class MATLAYER_export_template_names(PropertyGroup):
+class RYMAT_export_template_names(PropertyGroup):
     name: bpy.props.StringProperty()
 
-class MATLAYER_OT_export(Operator):
-    bl_idname = "matlayer.export"
+class RYMAT_OT_export(Operator):
+    bl_idname = "rymat.export"
     bl_label = "Export"
     bl_description = "Bakes material channels to textures, packs RGBA channels then saves all textures to the defined folder"
 
@@ -959,7 +959,7 @@ class MATLAYER_OT_export(Operator):
                         debug_logging.log("Baked - (texture channel - active material): {0} - {1}".format(self._bake_image_name, bpy.context.active_object.active_material.name))
                 
                 # Start baking the next material channel.
-                texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
+                texture_export_settings = bpy.context.scene.rymat_texture_export_settings
                 if self._texture_channel_index < len(self._texture_channels_to_bake) - 1:
                     self._texture_channel_index += 1
                     self._bake_image_name = ""
@@ -1042,7 +1042,7 @@ class MATLAYER_OT_export(Operator):
         self._texture_channels_to_bake = get_texture_channel_bake_list()
 
         # Get the number of materials to bake and export.
-        texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
+        texture_export_settings = bpy.context.scene.rymat_texture_export_settings
         match texture_export_settings.export_mode:
             case 'ONLY_ACTIVE_MATERIAL':
                 debug_logging.log("Starting exporting for only the active material...")
@@ -1087,7 +1087,7 @@ class MATLAYER_OT_export(Operator):
         self._original_render_engine_name = bpy.context.scene.render.engine
 
         # Apply baking settings for exporting textures.
-        baking_settings = bpy.context.scene.matlayer_baking_settings
+        baking_settings = bpy.context.scene.rymat_baking_settings
         bpy.context.scene.render.bake.margin = baking_settings.uv_padding
         bpy.context.scene.render.bake.use_selected_to_active = False
         bpy.context.scene.cycles.samples = texture_export_settings.samples
@@ -1133,8 +1133,8 @@ class MATLAYER_OT_export(Operator):
         total_bake_time = end_bake_time - self._start_bake_time
         debug_logging.log_status("Exporting texture(s) completed, total bake time: {0} seconds.".format(round(total_bake_time), 1), self, 'INFO')
 
-class MATLAYER_OT_set_export_template(Operator):
-    bl_idname = "matlayer.set_export_template"
+class RYMAT_OT_set_export_template(Operator):
+    bl_idname = "rymat.set_export_template"
     bl_label = "Set Export Preset"
     bl_description = "Sets an export template"
 
@@ -1144,13 +1144,13 @@ class MATLAYER_OT_set_export_template(Operator):
         set_export_template(self.export_preset_name)
         return {'FINISHED'}
 
-class MATLAYER_OT_save_export_template(Operator):
-    bl_idname = "matlayer.save_export_template"
+class RYMAT_OT_save_export_template(Operator):
+    bl_idname = "rymat.save_export_template"
     bl_label = "Save Export Preset"
     bl_description = "Saves the current export template. If a template with the same name already exists, it will be overwritten"
     
     def execute(self, context):
-        texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
+        texture_export_settings = bpy.context.scene.rymat_texture_export_settings
 
         # Check if the export template json file exists.
         jdata = read_export_template_data()
@@ -1210,13 +1210,13 @@ class MATLAYER_OT_save_export_template(Operator):
         read_export_template_names()        
         return {'FINISHED'}
 
-class MATLAYER_OT_delete_export_template(Operator):
-    bl_idname = "matlayer.delete_export_template"
+class RYMAT_OT_delete_export_template(Operator):
+    bl_idname = "rymat.delete_export_template"
     bl_label = "Delete Export Preset"
     bl_description = "Deletes the currently selected export template from the json file if it exists"
     
     def execute(self, context):
-        texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
+        texture_export_settings = bpy.context.scene.rymat_texture_export_settings
 
         # Read the existing export templates from the json data.
         jdata = read_export_template_data()
@@ -1239,8 +1239,8 @@ class MATLAYER_OT_delete_export_template(Operator):
 
         return {'FINISHED'}
 
-class MATLAYER_OT_refresh_export_template_list(Operator):
-    bl_idname = "matlayer.refresh_export_template_list"
+class RYMAT_OT_refresh_export_template_list(Operator):
+    bl_idname = "rymat.refresh_export_template_list"
     bl_label = "Refresh Export Preset List"
     bl_description = "Updates the list of export templates by reading the export template json file"
     
@@ -1249,30 +1249,30 @@ class MATLAYER_OT_refresh_export_template_list(Operator):
         read_export_template_names()
         return {'FINISHED'}
 
-class MATLAYER_OT_add_export_texture(Operator):
-    bl_idname = "matlayer.add_export_texture"
+class RYMAT_OT_add_export_texture(Operator):
+    bl_idname = "rymat.add_export_texture"
     bl_label = "Add Export Texture"
     bl_description = "Adds an additional texture to the export texture list"
     
     def execute(self, context):
-        texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
+        texture_export_settings = bpy.context.scene.rymat_texture_export_settings
         texture_export_settings.export_textures.add()
         return {'FINISHED'}
 
-class MATLAYER_OT_remove_export_texture(Operator):
-    bl_idname = "matlayer.remove_export_texture"
+class RYMAT_OT_remove_export_texture(Operator):
+    bl_idname = "rymat.remove_export_texture"
     bl_label = "Remove Export Texture"
     bl_description = "Removes the related texture from the export texture list"
 
     export_texture_index: IntProperty(default=0)
     
     def execute(self, context):
-        texture_export_settings = bpy.context.scene.matlayer_texture_export_settings
+        texture_export_settings = bpy.context.scene.rymat_texture_export_settings
         texture_export_settings.export_textures.remove(self.export_texture_index)
         return {'FINISHED'}
 
-class MATLAYER_OT_set_export_folder(Operator):
-    bl_idname = "matlayer.set_export_folder"
+class RYMAT_OT_set_export_folder(Operator):
+    bl_idname = "rymat.set_export_folder"
     bl_label = "Set Export Folder"
     bl_description = "Opens a file explorer to select the folder where exported textures are saved"
     bl_options = {'REGISTER'}
@@ -1289,7 +1289,7 @@ class MATLAYER_OT_set_export_folder(Operator):
         if not os.path.isdir(self.directory):
             debug_logging.log_status("Invalid directory.", self, type='INFO')
         else:
-            context.scene.matlayer_export_folder = self.directory
+            context.scene.rymat_export_folder = self.directory
             debug_logging.log_status("Export folder set to: {0}".format(self.directory), self, type='INFO')
         return {'FINISHED'}
 
@@ -1297,8 +1297,8 @@ class MATLAYER_OT_set_export_folder(Operator):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-class MATLAYER_OT_open_export_folder(Operator):
-    bl_idname = "matlayer.open_export_folder"
+class RYMAT_OT_open_export_folder(Operator):
+    bl_idname = "rymat.open_export_folder"
     bl_label = "Open Export Folder"
     bl_description = "Opens the folder containing exported textures in your systems file explorer"
 
@@ -1308,18 +1308,18 @@ class MATLAYER_OT_open_export_folder(Operator):
         return context.active_object
 
     def execute(self, context):
-        matlayer_export_folder_path = bau.get_texture_folder_path(folder='EXPORT_TEXTURES')
-        bau.open_folder(matlayer_export_folder_path, self)
+        rymat_export_folder_path = bau.get_texture_folder_path(folder='EXPORT_TEXTURES')
+        bau.open_folder(rymat_export_folder_path, self)
         return {'FINISHED'}
 
 class ExportTemplateMenu(Menu):
-    bl_idname = "MATLAYER_MT_export_preset_menu"
+    bl_idname = "RYMAT_MT_export_preset_menu"
     bl_label = "Export Preset Menu"
     bl_description = "Contains options to set a specific export template"
 
     def draw(self, context):
         layout = self.layout
-        cached_template_names = bpy.context.scene.matlayer_export_templates
+        cached_template_names = bpy.context.scene.rymat_export_templates
         for template in cached_template_names:
-            op = layout.operator("matlayer.set_export_template", text=template.name)
+            op = layout.operator("rymat.set_export_template", text=template.name)
             op.export_preset_name = template.name

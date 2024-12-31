@@ -24,10 +24,10 @@ MATERIAL_LAYER_PROPERTY_TABS = [
 
 # User interface labels for group nodes.
 GROUP_NODE_UI_LABELS = {
-    "ML_UVProjection": "UV",
-    "ML_TriplanarProjection": "Triplanar",
-    "ML_TriplanarHexGridProjection": "Triplanar Hex Grid",
-    "ML_DecalProjection": "Decal Projection"
+    "RY_UVProjection": "UV",
+    "RY_TriplanarProjection": "Triplanar",
+    "RY_TriplanarHexGridProjection": "Triplanar Hex Grid",
+    "RY_DecalProjection": "Decal Projection"
 }
 
 def draw_edit_layers_ui(self, context):
@@ -46,7 +46,7 @@ def draw_edit_layers_ui(self, context):
         return
     
     # Draw user interface for when a shader node group is not defined.
-    shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.rymat_shader_info
     if shader_info.shader_node_group == None:
         bau.print_aligned_text(layout, "No Shader Group Node", alignment='CENTER')
         bau.print_aligned_text(layout, "Define a shader group node to edit layers.", alignment='CENTER')
@@ -55,10 +55,10 @@ def draw_edit_layers_ui(self, context):
         row = layout.row()
         row.alignment = 'CENTER'
         column = row.column()
-        column.operator("matlayer.apply_default_shader")
+        column.operator("rymat.apply_default_shader")
 
         # Draw a button to open shader settings.
-        column.prop_enum(context.scene.matlayer_panel_properties, "sections", 'SECTION_SHADER_SETTINGS', text="Open Shader Settings")
+        column.prop_enum(context.scene.rymat_panel_properties, "sections", 'SECTION_SHADER_SETTINGS', text="Open Shader Settings")
         return
 
     # Print info for when there is no active material.
@@ -112,7 +112,7 @@ def draw_value_node_properties(layout, material_channel_name, layer_node_tree, s
             # Draw a custom sub-menu for image utility operators.
             row.context_pointer_set("node_tree", layer_node_tree)
             row.context_pointer_set("node", value_node)
-            row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+            row.menu("RYMAT_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
             # Draw the image texture name so users can change it if an image is linked.
             if value_node.image:
@@ -128,7 +128,7 @@ def draw_value_node_properties(layout, material_channel_name, layer_node_tree, s
             mix_image_alpha_node = material_layers.get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
             if mix_image_alpha_node:
                 operator = row.operator(
-                    "matlayer.toggle_image_alpha_blending", 
+                    "rymat.toggle_image_alpha_blending", 
                     text=str(not mix_image_alpha_node.mute),
                     depress=not mix_image_alpha_node.mute
                 )
@@ -142,7 +142,7 @@ def draw_value_node_properties(layout, material_channel_name, layer_node_tree, s
             output_channel_name = material_layers.get_material_channel_crgba_output(material_channel_name)
             if len(output_channel_name) > 0:
                 output_channel_name = bau.capitalize_by_space(output_channel_name)
-                row.menu("MATLAYER_MT_material_channel_output_sub_menu", text=output_channel_name)
+                row.menu("RYMAT_MT_material_channel_output_sub_menu", text=output_channel_name)
 
             # Draw texture interpolation.
             row = first_column.row()
@@ -170,7 +170,7 @@ def draw_material_filter_name(layout, material_channel_name, filter_index, filte
     row.label(text="Filter " + str(filter_index))
     row = second_column.row()
     row.prop(filter_node, "label", text="")
-    op = row.operator("matlayer.delete_material_filter", text="", icon="TRASH")
+    op = row.operator("rymat.delete_material_filter", text="", icon="TRASH")
     op.filter_index = filter_index
     op.material_channel = material_channel_name
     op.filter_type = 'NORMAL'
@@ -190,7 +190,7 @@ def draw_filter_properties(layout, material_channel_name, selected_layer_index):
         row.label(text="Blur Amount")
         row = second_column.row()
         row.prop(blur_node.inputs.get('Blur Amount'), "default_value", slider=True, text="")
-        op = row.operator("matlayer.delete_material_filter", text="", icon="TRASH")
+        op = row.operator("rymat.delete_material_filter", text="", icon="TRASH")
         op.material_channel = material_channel_name
         op.filter_type = 'BLUR'
 
@@ -232,7 +232,7 @@ def draw_filter_properties(layout, material_channel_name, selected_layer_index):
 
 def draw_material_channel_properties(layout):
     '''Draws properties for all active material channels on selected material layer.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     layout.separator()
 
     # Use a two column layout so the user interface aligns better.
@@ -244,14 +244,14 @@ def draw_material_channel_properties(layout):
     row = first_column.row()
     row.label(text="CHANNELS")
     row = second_column.row()
-    row.menu("MATLAYER_MT_add_material_channel_sub_menu", text="Add Channel", icon='ADD')
+    row.menu("RYMAT_MT_add_material_channel_sub_menu", text="Add Channel", icon='ADD')
 
     # Avoid drawing material channel properties for invalid layers.
     if material_layers.get_material_layer_node('LAYER', selected_layer_index) == None:
         return
     
     # Draw properties for all active material channels.
-    shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.rymat_shader_info
     for channel in shader_info.material_channels:
 
         # Do not draw properties for globally inactive material channels.
@@ -277,8 +277,8 @@ def draw_material_channel_properties(layout):
                 row = second_column.row()
                 row.alignment = 'RIGHT'
                 row.context_pointer_set("mix_node", mix_node)
-                row.menu('MATLAYER_MT_material_channel_value_node_sub_menu', text="", icon='NODE')
-                operator = row.operator("matlayer.delete_material_channel_nodes", text="", icon='X')
+                row.menu('RYMAT_MT_material_channel_value_node_sub_menu', text="", icon='NODE')
+                operator = row.operator("rymat.delete_material_channel_nodes", text="", icon='X')
                 operator.material_channel_name = channel.name
 
                 draw_value_node_properties(layout, channel.name, layer_node_tree, selected_layer_index, value_node, mix_node)
@@ -286,7 +286,7 @@ def draw_material_channel_properties(layout):
 
 def draw_layer_projection(layout):
     '''Draws layer projection settings.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
 
     # Only draw layer projection if a projection node exists.
     projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
@@ -303,11 +303,11 @@ def draw_layer_projection(layout):
     row.label(text="Method")
     row = second_column.row()
     projection_method_dropdown_label = GROUP_NODE_UI_LABELS[projection_node.node_tree.name]
-    row.menu('MATLAYER_MT_layer_projection_submenu', text=projection_method_dropdown_label)
+    row.menu('RYMAT_MT_layer_projection_submenu', text=projection_method_dropdown_label)
 
     # Draw adjustment settings for the selected projection method.
     match projection_node.node_tree.name:
-        case 'ML_DecalProjection':
+        case 'RY_DecalProjection':
             row = layout.row()
             row.alignment = 'CENTER'
             row.label(text="USING DECAL PROJECTION")
@@ -338,7 +338,7 @@ def draw_unlayered_shader_properties(layout):
     if not shader_node:
         return
 
-    shader_info = bpy.context.scene.matlayer_shader_info
+    shader_info = bpy.context.scene.rymat_shader_info
     for input in shader_node.inputs:
         if input.name not in shader_info.material_channels:
             row = first_column.row()
@@ -363,7 +363,7 @@ def draw_image_texture_property(layout, node_tree, texture_node):
         row.prop(image, "use_fake_user", text="")
     row.context_pointer_set("node_tree", node_tree)
     row.context_pointer_set("node", texture_node)
-    row.menu("MATLAYER_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+    row.menu("RYMAT_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
     row = first_column.row()
     row.label(text="Interpolation")
@@ -403,7 +403,7 @@ def draw_mask_properties(layout, mask_node, mask_type, selected_layer_index, sel
         row.label(text="Channel")
         row = second_column.row()
         row.menu(
-            "MATLAYER_MT_mask_channel_sub_menu", 
+            "RYMAT_MT_mask_channel_sub_menu", 
             text=bau.capitalize_by_space(mask_crgba_channel_name)
         )
 
@@ -420,8 +420,8 @@ def draw_mask_projection(layout):
     row.separator()
 
     # If no mask projection node exists, abort drawing properties for it.
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
+    selected_mask_index = bpy.context.scene.rymat_mask_stack.selected_index
     mask_projection_node = layer_masks.get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
     if not mask_projection_node:
         return
@@ -431,7 +431,7 @@ def draw_mask_projection(layout):
     row.label(text="PROJECTION")
     row = layout.row()
     projection_method_dropdown_label = GROUP_NODE_UI_LABELS[mask_projection_node.node_tree.name]
-    row.menu('MATLAYER_MT_mask_projection_sub_menu', text=projection_method_dropdown_label)
+    row.menu('RYMAT_MT_mask_projection_sub_menu', text=projection_method_dropdown_label)
 
     # Use a two column layout for neatness.
     split = layout.split(factor=STANDARD_UI_SPLIT)
@@ -479,26 +479,26 @@ def draw_masks_tab(layout):
     row = layout.row(align=True)
     row.scale_x = 10
     row.scale_y = 2
-    row.operator("matlayer.add_layer_mask_menu", icon="ADD", text="")
-    row.operator("matlayer.move_layer_mask_up", icon="TRIA_UP", text="")
-    row.operator("matlayer.move_layer_mask_down", icon="TRIA_DOWN", text="")
-    row.operator("matlayer.duplicate_layer_mask", icon="DUPLICATE", text="")
-    row.operator("matlayer.delete_layer_mask", icon="TRASH", text="")
+    row.operator("rymat.add_layer_mask_menu", icon="ADD", text="")
+    row.operator("rymat.move_layer_mask_up", icon="TRIA_UP", text="")
+    row.operator("rymat.move_layer_mask_down", icon="TRIA_DOWN", text="")
+    row.operator("rymat.duplicate_layer_mask", icon="DUPLICATE", text="")
+    row.operator("rymat.delete_layer_mask", icon="TRASH", text="")
     row = layout.row(align=True)
     row.template_list(
-        "MATLAYER_UL_mask_list", 
+        "RYMAT_UL_mask_list", 
         "Masks", 
         bpy.context.scene, 
-        "matlayer_masks", 
-        bpy.context.scene.matlayer_mask_stack, 
+        "rymat_masks", 
+        bpy.context.scene.rymat_mask_stack, 
         "selected_index", 
         sort_reverse=True
     )
     row.scale_y = 2
 
     # Draw properties for the selected mask.
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
+    selected_mask_index = bpy.context.scene.rymat_mask_stack.selected_index
     mask_node = layer_masks.get_mask_node('MASK', selected_layer_index, selected_mask_index)
     mask_type = layer_masks.get_mask_type(selected_layer_index, selected_mask_index)
     if mask_node:
@@ -510,18 +510,18 @@ def draw_masks_tab(layout):
 
 class MaterialSelectorPanel(Panel):
     bl_label = "Material Selector"
-    bl_idname = "MATLAYER_PT_material_selector_panel"
+    bl_idname = "RYMAT_PT_material_selector_panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = "MatLayer"
+    bl_category = "RyMat"
 
     # Only draw this panel when the edit materials section is selected.
     @ classmethod
     def poll(cls, context):
-        return context.scene.matlayer_panel_properties.sections == 'SECTION_EDIT_MATERIALS'
+        return context.scene.rymat_panel_properties.sections == 'SECTION_EDIT_MATERIALS'
 
     def draw(self, context):
-        panel_properties = context.scene.matlayer_panel_properties
+        panel_properties = context.scene.rymat_panel_properties
         if not panel_properties.sections == 'SECTION_EDIT_MATERIALS':
             return
         
@@ -558,10 +558,10 @@ class MaterialSelectorPanel(Panel):
         second_column = split.column(align=True)
         second_column.scale_x = 0.1
         first_column.template_list("MATERIAL_UL_matslots", "Layers", bpy.context.active_object, "material_slots", bpy.context.active_object, "active_material_index")
-        second_column.operator("matlayer.add_material_slot", text="", icon='ADD')
-        second_column.operator("matlayer.remove_material_slot", text="-")
-        second_column.operator("matlayer.move_material_slot_up", text="", icon='TRIA_UP')
-        second_column.operator("matlayer.move_material_slot_down", text="", icon='TRIA_DOWN')
+        second_column.operator("rymat.add_material_slot", text="", icon='ADD')
+        second_column.operator("rymat.remove_material_slot", text="-")
+        second_column.operator("rymat.move_material_slot_up", text="", icon='TRIA_UP')
+        second_column.operator("rymat.move_material_slot_down", text="", icon='TRIA_DOWN')
         second_column.operator("object.material_slot_assign", text="", icon='MATERIAL_DATA')
         second_column.operator("object.material_slot_select", text="", icon='SELECT_SET')
         
@@ -573,66 +573,66 @@ class MaterialSelectorPanel(Panel):
         col = first_column.column()
         if bpy.context.active_object:
             col.prop(bpy.context.active_object, "active_material", text="")
-            col.prop(bpy.context.scene, "matlayer_merge_material", text="")
+            col.prop(bpy.context.scene, "rymat_merge_material", text="")
             col = second_column.column()
             col.scale_y = 2.0
-            col.operator("matlayer.merge_materials", text="Merge")
+            col.operator("rymat.merge_materials", text="Merge")
         '''
 
 class LayerStackPanel(Panel):
     bl_label = "Layer Stack"
-    bl_idname = "MATLAYER_PT_layer_stack_panel"
+    bl_idname = "RYMAT_PT_layer_stack_panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = "MatLayer"
+    bl_category = "RyMat"
 
     # Only draw this panel when the edit materials section is selected.
     @ classmethod
     def poll(cls, context):
-        return context.scene.matlayer_panel_properties.sections == 'SECTION_EDIT_MATERIALS'
+        return context.scene.rymat_panel_properties.sections == 'SECTION_EDIT_MATERIALS'
 
     def draw(self, context):
-        panel_properties = context.scene.matlayer_panel_properties
+        panel_properties = context.scene.rymat_panel_properties
         if panel_properties.sections == 'SECTION_EDIT_MATERIALS':
             layout = self.layout
 
             # Draw the selected material channel.
             row = layout.row(align=True)
-            selected_material_channel = bpy.context.scene.matlayer_layer_stack.selected_material_channel
-            row.menu("MATLAYER_MT_material_channel_sub_menu", text=selected_material_channel)
-            row.operator("matlayer.isolate_material_channel", text="", icon='MATERIAL')
-            row.operator("matlayer.show_compiled_material", text="", icon='SHADING_RENDERED')
+            selected_material_channel = bpy.context.scene.rymat_layer_stack.selected_material_channel
+            row.menu("RYMAT_MT_material_channel_sub_menu", text=selected_material_channel)
+            row.operator("rymat.isolate_material_channel", text="", icon='MATERIAL')
+            row.operator("rymat.show_compiled_material", text="", icon='SHADING_RENDERED')
 
             # Draw layer operations.
             row = layout.row(align=True)
             row.scale_y = 2.0
             row.scale_x = 10
-            row.operator("matlayer.add_material_layer_menu", icon='ADD', text="")
-            row.operator("matlayer.merge_with_layer_below", icon='TRIA_DOWN_BAR', text="")
-            row.operator("matlayer.move_material_layer_up", icon='TRIA_UP', text="")
-            row.operator("matlayer.move_material_layer_down", icon='TRIA_DOWN', text="")
-            row.operator("matlayer.duplicate_layer", icon='DUPLICATE', text="")
-            row.operator("matlayer.delete_layer", icon='TRASH', text="")
+            row.operator("rymat.add_material_layer_menu", icon='ADD', text="")
+            row.operator("rymat.merge_with_layer_below", icon='TRIA_DOWN_BAR', text="")
+            row.operator("rymat.move_material_layer_up", icon='TRIA_UP', text="")
+            row.operator("rymat.move_material_layer_down", icon='TRIA_DOWN', text="")
+            row.operator("rymat.duplicate_layer", icon='DUPLICATE', text="")
+            row.operator("rymat.delete_layer", icon='TRASH', text="")
 
             # Draw the layer stack.
             row = layout.row(align=True)
-            row.template_list("MATLAYER_UL_layer_list", "Layers", bpy.context.scene, "matlayer_layers", bpy.context.scene.matlayer_layer_stack, "selected_layer_index", sort_reverse=True)
+            row.template_list("RYMAT_UL_layer_list", "Layers", bpy.context.scene, "rymat_layers", bpy.context.scene.rymat_layer_stack, "selected_layer_index", sort_reverse=True)
             row.scale_y = 2
 
 class MaterialPropertiesPanel(Panel):
     bl_label = "Material Properties"
-    bl_idname = "MATLAYER_PT_material_properties_panel"
+    bl_idname = "RYMAT_PT_material_properties_panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = "MatLayer"
+    bl_category = "RyMat"
 
     # Only draw this panel when the edit materials section is selected.
     @ classmethod
     def poll(cls, context):
-        return context.scene.matlayer_panel_properties.sections == 'SECTION_EDIT_MATERIALS'
+        return context.scene.rymat_panel_properties.sections == 'SECTION_EDIT_MATERIALS'
 
     def draw(self, context):
-        panel_properties = context.scene.matlayer_panel_properties
+        panel_properties = context.scene.rymat_panel_properties
         if panel_properties.sections == 'SECTION_EDIT_MATERIALS':
             layout = self.layout
 
@@ -641,11 +641,11 @@ class MaterialPropertiesPanel(Panel):
             if layer_count > 0:
                 row = layout.row(align=True)
                 row.scale_y = 1.5
-                row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MATERIAL_CHANNELS', text="CHANNELS")
-                row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'PROJECTION', text="PROJECTION")
-                row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'MASKS', text="MASKS")
-                row.prop_enum(bpy.context.scene, "matlayer_material_property_tabs", 'UNLAYERED', text="UNLAYERED")
-                match bpy.context.scene.matlayer_material_property_tabs:
+                row.prop_enum(bpy.context.scene, "rymat_material_property_tabs", 'MATERIAL_CHANNELS', text="CHANNELS")
+                row.prop_enum(bpy.context.scene, "rymat_material_property_tabs", 'PROJECTION', text="PROJECTION")
+                row.prop_enum(bpy.context.scene, "rymat_material_property_tabs", 'MASKS', text="MASKS")
+                row.prop_enum(bpy.context.scene, "rymat_material_property_tabs", 'UNLAYERED', text="UNLAYERED")
+                match bpy.context.scene.rymat_material_property_tabs:
                     case 'MATERIAL_CHANNELS':
                         draw_material_channel_properties(layout)
                     case 'MASKS':
@@ -657,9 +657,9 @@ class MaterialPropertiesPanel(Panel):
             else:
                 bau.print_aligned_text(layout, "No Layer Selected", alignment='CENTER')
 
-class MATLAYER_OT_add_material_layer_menu(Operator):
+class RYMAT_OT_add_material_layer_menu(Operator):
     bl_label = ""
-    bl_idname = "matlayer.add_material_layer_menu"
+    bl_idname = "rymat.add_material_layer_menu"
     bl_description = "Opens a menu of material layer types that can be added to the active material"
 
     # Runs when the add layer button in the popup is clicked.
@@ -679,13 +679,13 @@ class MATLAYER_OT_add_material_layer_menu(Operator):
         split = layout.split()
         col = split.column(align=True)
         col.scale_y = 1.4
-        col.operator("matlayer.add_material_layer", text="Material")
-        col.operator("matlayer.add_image_layer", text="Image")
-        col.operator("matlayer.add_decal_material_layer", text="Decal")
+        col.operator("rymat.add_material_layer", text="Material")
+        col.operator("rymat.add_image_layer", text="Image")
+        col.operator("rymat.add_decal_material_layer", text="Decal")
 
-class MATLAYER_OT_add_layer_mask_menu(Operator):
+class RYMAT_OT_add_layer_mask_menu(Operator):
     bl_label = "Add Mask"
-    bl_idname = "matlayer.add_layer_mask_menu"
+    bl_idname = "rymat.add_layer_mask_menu"
 
     # Runs when the add layer button in the popup is clicked.
     def execute(self, context):
@@ -704,47 +704,47 @@ class MATLAYER_OT_add_layer_mask_menu(Operator):
         row = layout.row(align=True)
         col = row.column(align=True)
         col.scale_y = 1.4
-        col.operator("matlayer.add_empty_layer_mask", text="Empty Image")
-        col.operator("matlayer.add_black_layer_mask", text="Black Image")
-        col.operator("matlayer.add_white_layer_mask", text="White Image")
-        col.operator("matlayer.add_linear_gradient_mask", text="Linear Gradient")
+        col.operator("rymat.add_empty_layer_mask", text="Empty Image")
+        col.operator("rymat.add_black_layer_mask", text="Black Image")
+        col.operator("rymat.add_white_layer_mask", text="White Image")
+        col.operator("rymat.add_linear_gradient_mask", text="Linear Gradient")
 
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
         projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
-        if projection_node.node_tree.name == 'ML_DecalProjection':
-            col.operator("matlayer.add_decal_mask", text="Decal")
+        if projection_node.node_tree.name == 'RY_DecalProjection':
+            col.operator("rymat.add_decal_mask", text="Decal")
         
-        col.operator("matlayer.add_grunge_mask", text="Grunge")
-        col.operator("matlayer.add_edge_wear_mask", text="Edge Wear")
-        col.operator("matlayer.add_ambient_occlusion_mask", text="Ambient Occlusion")
-        col.operator("matlayer.add_curvature_mask", text="Curvature")
-        col.operator("matlayer.add_thickness_mask", text="Thickness")
-        col.operator("matlayer.add_world_space_normals_mask", text="World Space Normals")
+        col.operator("rymat.add_grunge_mask", text="Grunge")
+        col.operator("rymat.add_edge_wear_mask", text="Edge Wear")
+        col.operator("rymat.add_ambient_occlusion_mask", text="Ambient Occlusion")
+        col.operator("rymat.add_curvature_mask", text="Curvature")
+        col.operator("rymat.add_thickness_mask", text="Thickness")
+        col.operator("rymat.add_world_space_normals_mask", text="World Space Normals")
 
 class AddMaterialChannelSubMenu(Menu):
-    bl_idname = "MATLAYER_MT_add_material_channel_sub_menu"
+    bl_idname = "RYMAT_MT_add_material_channel_sub_menu"
     bl_label = "Add Material Channel Sub Menu"
 
     def draw(self, context):
         layout = self.layout
-        shader_info = bpy.context.scene.matlayer_shader_info
+        shader_info = bpy.context.scene.rymat_shader_info
         for channel in shader_info.material_channels:
-            operator = layout.operator("matlayer.add_material_channel_nodes", text=channel.name)
+            operator = layout.operator("rymat.add_material_channel_nodes", text=channel.name)
             operator.material_channel_name = channel.name
 
 class MaterialChannelSubMenu(Menu):
-    bl_idname = "MATLAYER_MT_material_channel_sub_menu"
+    bl_idname = "RYMAT_MT_material_channel_sub_menu"
     bl_label = "Material Channel Sub Menu"
 
     def draw(self, context):
         layout = self.layout
-        shader_info = bpy.context.scene.matlayer_shader_info
+        shader_info = bpy.context.scene.rymat_shader_info
         for channel in shader_info.material_channels:
-            operator = layout.operator("matlayer.set_material_channel", text=channel.name)
+            operator = layout.operator("rymat.set_material_channel", text=channel.name)
             operator.material_channel_name = channel.name
 
 class ImageUtilitySubMenu(Menu):
-    bl_idname = "MATLAYER_MT_image_utility_sub_menu"
+    bl_idname = "RYMAT_MT_image_utility_sub_menu"
     bl_label = "Image Utility Sub Menu"
 
     def draw(self, context):
@@ -752,62 +752,62 @@ class ImageUtilitySubMenu(Menu):
         if context.node and context.node_tree:
             material_channel_name = context.node.name.split('_')[0]
 
-            operator = layout.operator("matlayer.add_texture_node_image", icon='ADD', text="Add New Image")
+            operator = layout.operator("rymat.add_texture_node_image", icon='ADD', text="Add New Image")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
             operator.material_channel_name = material_channel_name
 
-            operator = layout.operator("matlayer.import_texture_node_image", icon='IMPORT', text="Import Image")
+            operator = layout.operator("rymat.import_texture_node_image", icon='IMPORT', text="Import Image")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
             operator.material_channel_name = material_channel_name
 
-            operator = layout.operator("matlayer.edit_texture_node_image_externally", icon='TPAINT_HLT', text="Edit Image Externally")
+            operator = layout.operator("rymat.edit_texture_node_image_externally", icon='TPAINT_HLT', text="Edit Image Externally")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
             
-            operator = layout.operator("matlayer.image_edit_uvs", icon='UV', text="Externally Image Edit UVs")
+            operator = layout.operator("rymat.image_edit_uvs", icon='UV', text="Externally Image Edit UVs")
 
-            operator = layout.operator("matlayer.reload_texture_node_image", icon='FILE_REFRESH', text="Reload Image")
+            operator = layout.operator("rymat.reload_texture_node_image", icon='FILE_REFRESH', text="Reload Image")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
 
-            operator = layout.operator("matlayer.duplicate_texture_node_image", icon='DUPLICATE', text="Duplicate Image")
+            operator = layout.operator("rymat.duplicate_texture_node_image", icon='DUPLICATE', text="Duplicate Image")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
 
-            operator = layout.operator("matlayer.delete_texture_node_image", icon='TRASH', text="Delete Image")
+            operator = layout.operator("rymat.delete_texture_node_image", icon='TRASH', text="Delete Image")
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
 
 class LayerProjectionModeSubMenu(Menu):
-    bl_idname = "MATLAYER_MT_layer_projection_submenu"
+    bl_idname = "RYMAT_MT_layer_projection_submenu"
     bl_label = "Layer Projection Sub Menu"
 
     def draw(self, context):
         layout = self.layout
-        op = layout.operator("matlayer.set_layer_projection", text="UV")
+        op = layout.operator("rymat.set_layer_projection", text="UV")
         op.projection_method = 'UV'
-        op = layout.operator("matlayer.set_layer_projection", text="Triplanar")
+        op = layout.operator("rymat.set_layer_projection", text="Triplanar")
         op.projection_method = 'TRIPLANAR'
 
         # Experimental anti-repetition projection method.
         addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
         if addon_preferences.experimental_features:
-            op = layout.operator("matlayer.set_layer_projection", text="Triplanar Hex Grid")
+            op = layout.operator("rymat.set_layer_projection", text="Triplanar Hex Grid")
             op.projection_method = 'TRIPLANAR_HEX_GRID'
 
 class MaskProjectionModeSubMenu(Menu):
-    bl_idname = "MATLAYER_MT_mask_projection_sub_menu"
+    bl_idname = "RYMAT_MT_mask_projection_sub_menu"
     bl_label = "Mask Projection Sub Menu"
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("matlayer.set_mask_projection_uv", text="UV")
-        layout.operator("matlayer.set_mask_projection_triplanar", text="Triplanar")
+        layout.operator("rymat.set_mask_projection_uv", text="UV")
+        layout.operator("rymat.set_mask_projection_triplanar", text="Triplanar")
 
 class MaterialChannelValueNodeSubMenu(Menu):
-    bl_idname = "MATLAYER_MT_material_channel_value_node_sub_menu"
+    bl_idname = "RYMAT_MT_material_channel_value_node_sub_menu"
     bl_label = "Material Channel Value Node Sub Menu"
 
     def draw(self, context):
@@ -817,82 +817,82 @@ class MaterialChannelValueNodeSubMenu(Menu):
         # Get the material channel name from the mix node being drawn.
         material_channel_name = context.mix_node.name.replace('-MIX', '')
 
-        operator = layout.operator("matlayer.change_material_channel_value_node", text="Use Group Node", icon='NODETREE')
+        operator = layout.operator("rymat.change_material_channel_value_node", text="Use Group Node", icon='NODETREE')
         operator.material_channel_name = material_channel_name
         operator.node_type = 'GROUP'
 
-        operator = layout.operator("matlayer.change_material_channel_value_node", text="Use Texture", icon='IMAGE_DATA')
+        operator = layout.operator("rymat.change_material_channel_value_node", text="Use Texture", icon='IMAGE_DATA')
         operator.material_channel_name = material_channel_name
         operator.node_type = 'TEXTURE'
 
         # Draw operators to add available material filters.
-        op = layout.operator("matlayer.add_material_filter", text="Add Blur", icon='FILTER')
+        op = layout.operator("rymat.add_material_filter", text="Add Blur", icon='FILTER')
         op.material_channel = material_channel_name
         op.filter_type = 'BLUR'
-        op = layout.operator("matlayer.add_material_filter", text="Add HSV Filter", icon='FILTER')
+        op = layout.operator("rymat.add_material_filter", text="Add HSV Filter", icon='FILTER')
         op.material_channel = material_channel_name
         op.filter_type = 'HUE_SAT'
-        op = layout.operator("matlayer.add_material_filter", text="Add Invert Filter", icon='FILTER')
+        op = layout.operator("rymat.add_material_filter", text="Add Invert Filter", icon='FILTER')
         op.material_channel = material_channel_name
         op.filter_type = 'INVERT'
-        op = layout.operator("matlayer.add_material_filter", text="Add Brightness / Contrast Filter", icon='FILTER')
+        op = layout.operator("rymat.add_material_filter", text="Add Brightness / Contrast Filter", icon='FILTER')
         op.material_channel = material_channel_name
         op.filter_type = 'BRIGHTCONTRAST'
-        op = layout.operator("matlayer.add_material_filter", text="Add Gamma Filter", icon='FILTER')
+        op = layout.operator("rymat.add_material_filter", text="Add Gamma Filter", icon='FILTER')
         op.material_channel = material_channel_name
         op.filter_type = 'GAMMA'
-        op = layout.operator("matlayer.add_material_filter", text="Add RGB Curves Fitler", icon='FILTER')
+        op = layout.operator("rymat.add_material_filter", text="Add RGB Curves Fitler", icon='FILTER')
         op.material_channel = material_channel_name
         op.filter_type = 'CURVE_RGB'
-        op = layout.operator("matlayer.add_material_filter", text="Add RGB to BW Fitler", icon='FILTER')
+        op = layout.operator("rymat.add_material_filter", text="Add RGB to BW Fitler", icon='FILTER')
         op.material_channel = material_channel_name
         op.filter_type = 'RGBTOBW'
-        op = layout.operator("matlayer.add_material_filter", text="Add Color Ramp Fitler", icon='FILTER')
+        op = layout.operator("rymat.add_material_filter", text="Add Color Ramp Fitler", icon='FILTER')
         op.material_channel = material_channel_name
         op.filter_type = 'VALTORGB'
-        op = layout.operator("matlayer.add_material_filter", text="Add Cheap Contrast Filter", icon='FILTER')
+        op = layout.operator("rymat.add_material_filter", text="Add Cheap Contrast Filter", icon='FILTER')
         op.material_channel = material_channel_name
         op.filter_type = 'CHEAP_CONTRAST'
-        op = layout.operator("matlayer.add_material_filter", text="Add Normal Intensity Filter", icon='FILTER')
+        op = layout.operator("rymat.add_material_filter", text="Add Normal Intensity Filter", icon='FILTER')
         op.material_channel = material_channel_name
         op.filter_type = 'NORMAL_INTENSITY'
 
 class MaskChannelSubMenu(Menu):
-    bl_idname = "MATLAYER_MT_mask_channel_sub_menu"
+    bl_idname = "RYMAT_MT_mask_channel_sub_menu"
     bl_label = "Mask Channel Sub Menu"
 
     def draw(self, context):
         layout = self.layout
-        operator = layout.operator("matlayer.set_mask_crgba_channel", text="Color")
+        operator = layout.operator("rymat.set_mask_crgba_channel", text="Color")
         operator.channel_name = 'COLOR'
-        operator = layout.operator("matlayer.set_mask_crgba_channel", text="Alpha")
+        operator = layout.operator("rymat.set_mask_crgba_channel", text="Alpha")
         operator.channel_name = 'ALPHA'
-        operator = layout.operator("matlayer.set_mask_crgba_channel", text="Red")
+        operator = layout.operator("rymat.set_mask_crgba_channel", text="Red")
         operator.channel_name = 'RED'
-        operator = layout.operator("matlayer.set_mask_crgba_channel", text="Green")
+        operator = layout.operator("rymat.set_mask_crgba_channel", text="Green")
         operator.channel_name = 'GREEN'
-        operator = layout.operator("matlayer.set_mask_crgba_channel", text="Blue")
+        operator = layout.operator("rymat.set_mask_crgba_channel", text="Blue")
         operator.channel_name = 'BLUE'
 
 class MaterialChannelOutputSubMenu(Menu):
-    bl_idname = "MATLAYER_MT_material_channel_output_sub_menu"
+    bl_idname = "RYMAT_MT_material_channel_output_sub_menu"
     bl_label = "Material Channel Output Sub Menu"
 
     def draw(self, context):
         material_channel_name = context.mix_node.name.replace('-MIX', '')
         layout = self.layout
-        operator = layout.operator("matlayer.set_material_channel_crgba_output", text="Color")
+        operator = layout.operator("rymat.set_material_channel_crgba_output", text="Color")
         operator.output_channel_name = 'COLOR'
         operator.material_channel_name = material_channel_name
-        operator = layout.operator("matlayer.set_material_channel_crgba_output", text="Alpha")
+        operator = layout.operator("rymat.set_material_channel_crgba_output", text="Alpha")
         operator.output_channel_name = 'ALPHA'
         operator.material_channel_name = material_channel_name
-        operator = layout.operator("matlayer.set_material_channel_crgba_output", text="Red")
+        operator = layout.operator("rymat.set_material_channel_crgba_output", text="Red")
         operator.output_channel_name = 'RED'
         operator.material_channel_name = material_channel_name
-        operator = layout.operator("matlayer.set_material_channel_crgba_output", text="Green")
+        operator = layout.operator("rymat.set_material_channel_crgba_output", text="Green")
         operator.output_channel_name = 'GREEN'
         operator.material_channel_name = material_channel_name
-        operator = layout.operator("matlayer.set_material_channel_crgba_output", text="Blue")
+        operator = layout.operator("rymat.set_material_channel_crgba_output", text="Blue")
         operator.output_channel_name = 'BLUE'
         operator.material_channel_name = material_channel_name

@@ -86,8 +86,8 @@ MATERIAL_CHANNEL_ABBREVIATIONS = {
     "ao": 'AMBIENT_OCCLUSION'
 }
 
-class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
-    bl_idname = "matlayer.import_texture_set"
+class RYMAT_OT_import_texture_set(Operator, ImportHelper):
+    bl_idname = "rymat.import_texture_set"
     bl_label = "Import Texture Set"
     bl_description = "Imports multiple selected textures into material channels by parsing selected file names. Images with naming conventions that don't accurately identify the material channel they belong to will not import properly"
     bl_options = {'REGISTER', 'UNDO'}
@@ -151,7 +151,7 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                     return 'ERROR'
 
         # Get some information about the layer user later in the function.
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
         layer_type = material_layers.get_layer_type()
         layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
         
@@ -289,12 +289,12 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
                     # Place the image into a material nodes based on texture projection and inferred material channel name.
                     projection_node = material_layers.get_material_layer_node('PROJECTION', selected_layer_index)
                     match projection_node.node_tree.name:
-                        case 'ML_UVProjection':
+                        case 'RY_UVProjection':
                             value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, channel)
                             if value_node.bl_static_type == 'TEX_IMAGE':
                                 value_node.image = imported_image
 
-                        case 'ML_TriplanarProjection':
+                        case 'RY_TriplanarProjection':
                             for i in range(0, 3):
                                 value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, channel, node_number=i + 1)
                                 if value_node.bl_static_type == 'TEX_IMAGE':
@@ -336,8 +336,8 @@ class MATLAYER_OT_import_texture_set(Operator, ImportHelper):
 
         return {'FINISHED'}
     
-class MATLAYER_OT_merge_materials(Operator):
-    bl_idname = "matlayer.merge_materials"
+class RYMAT_OT_merge_materials(Operator):
+    bl_idname = "rymat.merge_materials"
     bl_label = "Merge Materials"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Merges all layers from the selected material into the active material. Any mesh map textures in the merged material will be replaced by the mesh maps on the active object"
@@ -346,7 +346,7 @@ class MATLAYER_OT_merge_materials(Operator):
         if bau.verify_material_operation_context(self) == False:
             return {'FINISHED'}
 
-        merge_material = bpy.context.scene.matlayer_merge_material
+        merge_material = bpy.context.scene.rymat_merge_material
         if merge_material:
             layer_count = material_layers.count_layers(merge_material)
             if (layer_count) <= 0:
@@ -377,7 +377,7 @@ class MATLAYER_OT_merge_materials(Operator):
                                 layer_masks.organize_mask_nodes()
 
                         # Clear the mask stack from the new layer.
-                        masks = bpy.context.scene.matlayer_masks
+                        masks = bpy.context.scene.rymat_masks
                         masks.clear()
 
                         # Duplicate all masks associated with that layer.
@@ -400,7 +400,7 @@ class MATLAYER_OT_merge_materials(Operator):
                         layer_masks.link_mask_nodes(new_layer_slot_index)
                         layer_masks.organize_mask_nodes()
 
-            bpy.context.scene.matlayer_merge_material = None
+            bpy.context.scene.rymat_merge_material = None
             debug_logging.log_status("Merged materials.", self, type='INFO')
 
         else:

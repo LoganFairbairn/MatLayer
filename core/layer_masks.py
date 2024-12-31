@@ -9,8 +9,8 @@ from ..core import debug_logging
 
 def update_selected_mask_index(self, context):
     '''Updates properties when the selected mask slot is changed.'''
-    selected_layer_index = context.scene.matlayer_layer_stack.selected_layer_index
-    selected_mask_index = context.scene.matlayer_mask_stack.selected_index
+    selected_layer_index = context.scene.rymat_layer_stack.selected_layer_index
+    selected_mask_index = context.scene.rymat_mask_stack.selected_index
     mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
     if mask_texture_node:
         bau.set_texture_paint_image(mask_texture_node.image)
@@ -211,8 +211,8 @@ def count_masks(layer_index, material_name=""):
 
 def add_mask_slot():
     '''Adds a new mask slot to the mask stack.'''
-    masks = bpy.context.scene.matlayer_masks
-    mask_stack = bpy.context.scene.matlayer_mask_stack
+    masks = bpy.context.scene.rymat_masks
+    mask_stack = bpy.context.scene.rymat_mask_stack
 
     mask_slot = masks.add()
 
@@ -224,22 +224,22 @@ def add_mask_slot():
     mask_slot.name = unique_random_slot_id
 
     # If there is no layer selected, move the layer to the top of the stack.
-    if bpy.context.scene.matlayer_mask_stack.selected_index < 0:
+    if bpy.context.scene.rymat_mask_stack.selected_index < 0:
         move_index = len(masks) - 1
         move_to_index = 0
         masks.move(move_index, move_to_index)
         mask_stack.layer_index = move_to_index
-        bpy.context.scene.matlayer_mask_stack.selected_index = len(masks) - 1
+        bpy.context.scene.rymat_mask_stack.selected_index = len(masks) - 1
 
     # Moves the new layer above the currently selected layer and selects it.
     else: 
         move_index = len(masks) - 1
-        move_to_index = max(0, min(bpy.context.scene.matlayer_mask_stack.selected_index + 1, len(masks) - 1))
+        move_to_index = max(0, min(bpy.context.scene.rymat_mask_stack.selected_index + 1, len(masks) - 1))
         masks.move(move_index, move_to_index)
         mask_stack.layer_index = move_to_index
-        bpy.context.scene.matlayer_mask_stack.selected_index = max(0, min(bpy.context.scene.matlayer_mask_stack.selected_index + 1, len(masks) - 1))
+        bpy.context.scene.rymat_mask_stack.selected_index = max(0, min(bpy.context.scene.rymat_mask_stack.selected_index + 1, len(masks) - 1))
 
-    return bpy.context.scene.matlayer_mask_stack.selected_index
+    return bpy.context.scene.rymat_mask_stack.selected_index
 
 def add_layer_mask(type, self):
     '''Adds a mask of the specified type to the selected material layer.'''
@@ -247,14 +247,14 @@ def add_layer_mask(type, self):
     if bau.verify_material_operation_context(self) == False:
         return
 
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     new_mask_slot_index = add_mask_slot()
     active_material = bpy.context.active_object.active_material
     
     new_mask_group_node = None
     match type:
         case 'EMPTY':
-            default_node_group = bau.append_group_node("ML_ImageMask", never_auto_delete=True)
+            default_node_group = bau.append_group_node("RY_ImageMask", never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -268,7 +268,7 @@ def add_layer_mask(type, self):
             debug_logging.log("Added empty layer mask.")
                 
         case 'BLACK':
-            default_node_group = bau.append_group_node("ML_ImageMask", never_auto_delete=True)
+            default_node_group = bau.append_group_node("RY_ImageMask", never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -301,7 +301,7 @@ def add_layer_mask(type, self):
             debug_logging.log("Added black layer mask.")
 
         case 'WHITE':
-            default_node_group = bau.append_group_node("ML_ImageMask", never_auto_delete=True)
+            default_node_group = bau.append_group_node("RY_ImageMask", never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -334,7 +334,7 @@ def add_layer_mask(type, self):
             debug_logging.log("Added white layer mask.")
 
         case 'LINEAR_GRADIENT':
-            default_node_group = bau.append_group_node("ML_LinearGradient", never_auto_delete=True)
+            default_node_group = bau.append_group_node("RY_LinearGradient", never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -348,7 +348,7 @@ def add_layer_mask(type, self):
             debug_logging.log("Added a linear gradient mask.")
 
         case 'DECAL':
-            default_node_group = bau.append_group_node("ML_DecalMask", never_auto_delete=True)
+            default_node_group = bau.append_group_node("RY_DecalMask", never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -370,7 +370,7 @@ def add_layer_mask(type, self):
             debug_logging.log("Added a decal mask.")
 
         case 'GRUNGE':
-            default_node_group = bau.append_group_node("ML_Grunge", never_auto_delete=True)
+            default_node_group = bau.append_group_node("RY_Grunge", never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -392,7 +392,7 @@ def add_layer_mask(type, self):
             debug_logging.log("Added a grunge mask.") 
 
         case 'EDGE_WEAR':
-            default_node_group = bau.append_group_node("ML_EdgeWear", never_auto_delete=True)
+            default_node_group = bau.append_group_node("RY_EdgeWear", never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
             new_mask_group_node = active_material.node_tree.nodes.new('ShaderNodeGroup')
@@ -418,7 +418,7 @@ def add_layer_mask(type, self):
             mesh_map_mask_name = type.replace('_', ' ')
             mesh_map_mask_name = bau.capitalize_by_space(mesh_map_mask_name)
             mesh_map_mask_name = mesh_map_mask_name.replace(' ', '')
-            mesh_map_mask_name = "ML_{0}Mask".format(mesh_map_mask_name)
+            mesh_map_mask_name = "RY_{0}Mask".format(mesh_map_mask_name)
             default_node_group = bau.append_group_node(mesh_map_mask_name, never_auto_delete=True)
             default_node_group.name = format_mask_name(selected_layer_index, new_mask_slot_index) + "~"
 
@@ -450,11 +450,11 @@ def duplicate_mask(self, mask_index=-1):
     
     # Duplicate the selected mask index if a mask index to duplicate is not specified.
     if mask_index == -1:
-        mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+        mask_index = bpy.context.scene.rymat_mask_stack.selected_index
 
     # Duplicate the mask node, mask node tree and add it to the mask stack then link mask blurring if required.
     active_material = bpy.context.active_object.active_material
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
     mask_node = get_mask_node('MASK', selected_layer_index, mask_index)
     mask_node_tree = get_mask_node_tree(selected_layer_index, mask_index)
     if mask_node_tree:
@@ -481,9 +481,9 @@ def delete_layer_mask(self):
     if bau.verify_material_operation_context(self) == False:
         return
 
-    masks = bpy.context.scene.matlayer_masks
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+    masks = bpy.context.scene.rymat_masks
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
+    selected_mask_index = bpy.context.scene.rymat_mask_stack.selected_index
     active_material = bpy.context.active_object.active_material
 
     # Remove the mask node and it's node tree.
@@ -500,7 +500,7 @@ def delete_layer_mask(self):
 
     # Remove the mask slot and reset the mask index.
     masks.remove(selected_mask_index)
-    bpy.context.scene.matlayer_mask_stack.selected_index = max(min(selected_mask_index - 1, len(masks) - 1), 0)
+    bpy.context.scene.rymat_mask_stack.selected_index = max(min(selected_mask_index - 1, len(masks) - 1), 0)
     debug_logging.log("Deleted layer mask.")
 
 def move_mask(direction, self):
@@ -508,13 +508,13 @@ def move_mask(direction, self):
     if bau.verify_material_operation_context(self) == False:
         return
 
-    masks = bpy.context.scene.matlayer_masks
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+    masks = bpy.context.scene.rymat_masks
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
 
     match direction:
         case 'UP':
             # Swap the mask node and node tree index for the selected mask node with the mask above it (if one exists).
-            selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+            selected_mask_index = bpy.context.scene.rymat_mask_stack.selected_index
 
             if selected_mask_index < len(masks) - 1:
                 mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
@@ -528,13 +528,13 @@ def move_mask(direction, self):
                 mask_node.name = format_mask_name(selected_layer_index, selected_mask_index + 1)
                 mask_node.node_tree.name = mask_node.name
 
-                bpy.context.scene.matlayer_mask_stack.selected_index = selected_mask_index + 1
+                bpy.context.scene.rymat_mask_stack.selected_index = selected_mask_index + 1
 
                 debug_logging.log("Moved mask up on the mask stack.")
 
         case 'DOWN':
             # Swap the mask node and node tree index for the selected mask node with the mask below it (if one exists).
-            selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+            selected_mask_index = bpy.context.scene.rymat_mask_stack.selected_index
 
             if selected_mask_index - 1 >= 0:
                 mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
@@ -548,7 +548,7 @@ def move_mask(direction, self):
                 mask_node.name = format_mask_name(selected_layer_index, selected_mask_index - 1)
                 mask_node.node_tree.name = mask_node.name
 
-                bpy.context.scene.matlayer_mask_stack.selected_index = selected_mask_index - 1
+                bpy.context.scene.rymat_mask_stack.selected_index = selected_mask_index - 1
 
                 debug_logging.log("Moved mask down on the mask stack.")
 
@@ -560,7 +560,7 @@ def reindex_masks(change_made, layer_index, affected_mask_index):
     match change_made:
         case 'ADDED_MASK':
             # Increase the layer index for all layer group nodes and their node trees that exist above the affected layer.
-            total_masks = len(bpy.context.scene.matlayer_masks)
+            total_masks = len(bpy.context.scene.rymat_masks)
             for i in range(total_masks, affected_mask_index, -1):
                 mask_node = get_mask_node('MASK', layer_index, i - 1)
                 if mask_node:
@@ -578,7 +578,7 @@ def reindex_masks(change_made, layer_index, affected_mask_index):
 
         case 'DELETED_MASK':
             # Reduce the layer index for all layer group nodes and their nodes trees that exist above the affected layer.
-            mask_count = len(bpy.context.scene.matlayer_masks)
+            mask_count = len(bpy.context.scene.rymat_masks)
             for i in range(affected_mask_index + 1, mask_count):
                 mask_node = get_mask_node('MASK', layer_index, i)
                 mask_index = parse_mask_index(mask_node.name)
@@ -652,8 +652,8 @@ def refresh_mask_slots():
     '''Refreshes the number of mask slots in the mask stack by counting the number of mask nodes in the active materials node tree.'''
     active_object = bpy.context.active_object
     if active_object:
-        masks = bpy.context.scene.matlayer_masks
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+        masks = bpy.context.scene.rymat_masks
+        selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
         masks.clear()
         mask_count = count_masks(selected_layer_index)
         for i in range(0, mask_count):
@@ -672,8 +672,8 @@ def refresh_mask_slots():
 
 def relink_image_mask_projection(original_output_channel):
     '''Relinks projection nodes based on the projection mode for image masks.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
+    selected_mask_index = bpy.context.scene.rymat_mask_stack.selected_index
     mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
     projection_node = get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
     blur_node = get_mask_node('BLUR', selected_layer_index, selected_mask_index)
@@ -703,7 +703,7 @@ def relink_image_mask_projection(original_output_channel):
     # Link mask nodes based on the mask projection mode.
     mask_links = mask_node.node_tree.links
     match projection_node.node_tree.name:
-        case "ML_UVProjection":
+        case "RY_UVProjection":
             mask_links.new(projection_output_node.outputs[0], texture_node.inputs[0])
             mask_links.new(texture_node.outputs[0], filter_node.inputs[0])
             mask_links.new(filter_node.outputs[0], mix_node.inputs[7])
@@ -713,7 +713,7 @@ def relink_image_mask_projection(original_output_channel):
                 mask_links.new(group_input_node.outputs.get('Blur'), blur_node.inputs.get('Blur Amount'))
                 mask_links.new(projection_node.outputs[0], blur_node.inputs[2])
 
-        case "ML_TriplanarProjection":
+        case "RY_TriplanarProjection":
             triplanar_blend_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
 
             for i in range(0, 3):
@@ -733,7 +733,7 @@ def relink_image_mask_projection(original_output_channel):
                 mask_node.node_tree.links.new(projection_node.outputs.get('Y'), blur_node.inputs.get('Y'))
                 mask_node.node_tree.links.new(projection_node.outputs.get('Z'), blur_node.inputs.get('Z'))
 
-        case "ML_DecalProjection":
+        case "RY_DecalProjection":
             mask_node.node_tree.links.new(projection_node.outputs[0], blur_node.inputs[0])
             mask_node.node_tree.links.new(projection_output_node.outputs[0], texture_node.inputs[0])
             mask_node.node_tree.links.new(texture_node.outputs[0], filter_node.inputs[0])
@@ -748,15 +748,15 @@ def relink_image_mask_projection(original_output_channel):
 
 def set_mask_projection_mode(projection_mode):
     '''Sets the projection mode of the mask. Only image masks can have their projection mode swapped.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
+    selected_mask_index = bpy.context.scene.rymat_mask_stack.selected_index
     match projection_mode:
         case 'UV':
             mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
             projection_node = get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
 
             # If the projection being used is already UV, abort.
-            if projection_node.node_tree.name == 'ML_UVProjection':
+            if projection_node.node_tree.name == 'RY_UVProjection':
                 return
 
             # Replace triplanar mask node setup.
@@ -781,10 +781,10 @@ def set_mask_projection_mode(projection_mode):
                 new_mask_texture_node.image = original_texture_node_image
 
             # Set the projection and blur nodes to use triplanar setups.
-            projection_node.node_tree = bau.append_group_node('ML_UVProjection')
+            projection_node.node_tree = bau.append_group_node('RY_UVProjection')
             blur_node = get_mask_node('BLUR', selected_layer_index, selected_mask_index)
             if blur_node:
-                blur_node.node_tree = bau.append_group_node('ML_ProjectionBlur')
+                blur_node.node_tree = bau.append_group_node('RY_ProjectionBlur')
                 blur_node.hide = True
 
         case 'TRIPLANAR':
@@ -792,7 +792,7 @@ def set_mask_projection_mode(projection_mode):
             projection_node = get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
 
             # If the projection being used is already triplanar, abort.
-            if projection_node.node_tree.name == 'ML_TriplanarProjection':
+            if projection_node.node_tree.name == 'RY_TriplanarProjection':
                 return
             
             # Replace the UV mask texture node setup with a triplanar texture node setup.
@@ -817,7 +817,7 @@ def set_mask_projection_mode(projection_mode):
 
                 # Add a triplanar blending node.
                 triplanar_blend_node = mask_node.node_tree.nodes.new('ShaderNodeGroup')
-                triplanar_blend_node.node_tree = bau.append_group_node("ML_TriplanarBlend")
+                triplanar_blend_node.node_tree = bau.append_group_node("RY_TriplanarBlend")
                 triplanar_blend_node.name = "TRIPLANAR_BLEND"
                 triplanar_blend_node.label = triplanar_blend_node.name
                 triplanar_blend_node.width = 200
@@ -825,15 +825,15 @@ def set_mask_projection_mode(projection_mode):
                 triplanar_blend_node.location = (location_x, location_y)
 
             # Set the projection and blur nodes to use triplanar setups.
-            projection_node.node_tree = bau.append_group_node('ML_TriplanarProjection')
+            projection_node.node_tree = bau.append_group_node('RY_TriplanarProjection')
             blur_node = get_mask_node('BLUR', selected_layer_index, selected_mask_index)
             if blur_node:
-                blur_node.node_tree = bau.append_group_node('ML_TriplanarBlur')
+                blur_node.node_tree = bau.append_group_node('RY_TriplanarBlur')
                 blur_node.hide = True
 
 def get_mask_crgba_channel():
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
+    selected_mask_index = bpy.context.scene.rymat_mask_stack.selected_index
     filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
     output_channel = ''
     if filter_node:
@@ -844,8 +844,8 @@ def get_mask_crgba_channel():
 
 def set_mask_crgba_channel(output_channel):
     '''Sets the CRGBA output channel for the selected mask.'''
-    selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-    selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+    selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
+    selected_mask_index = bpy.context.scene.rymat_mask_stack.selected_index
 
     mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
     filter_node = get_mask_node('FILTER', selected_layer_index, selected_mask_index)
@@ -864,7 +864,7 @@ def set_mask_crgba_channel(output_channel):
             mask_texture_node = get_mask_node('TEXTURE', selected_layer_index, selected_mask_index)
             mask_projection_node = get_mask_node('PROJECTION', selected_layer_index, selected_mask_index)
             match mask_projection_node.node_tree.name:
-                case 'ML_TriplanarProjection':
+                case 'RY_TriplanarProjection':
                     output_node = get_mask_node('TRIPLANAR_BLEND', selected_layer_index, selected_mask_index)
                 case _:
                     output_node = mask_texture_node
@@ -910,15 +910,15 @@ def set_mask_crgba_channel(output_channel):
 #----------------------------- OPERATORS -----------------------------#
 
 
-class MATLAYER_mask_stack(PropertyGroup):
+class RYMAT_mask_stack(PropertyGroup):
     '''Properties for the layer stack.'''
     selected_index: IntProperty(default=-1, description="Selected material filter index", update=update_selected_mask_index)
 
-class MATLAYER_masks(PropertyGroup):
+class RYMAT_masks(PropertyGroup):
     hidden: BoolProperty(name="Hidden", description="Show if the layer is hidden")
     sync_projection_scale: BoolProperty(name="Sync Projection Scale", description="When enabled Y and Z projection (if the projection mode has a z projection) will be synced with the X projection", default=True)
 
-class MATLAYER_UL_mask_list(bpy.types.UIList):
+class RYMAT_UL_mask_list(bpy.types.UIList):
     '''Draws the mask stack.'''
 
     def draw_item(self, context, layout, data, item, icon, active_data, index):
@@ -929,9 +929,9 @@ class MATLAYER_UL_mask_list(bpy.types.UIList):
             row = layout.row(align=True)
 
             # Draw a toggle to show / hide masks.
-            masks = bpy.context.scene.matlayer_masks
+            masks = bpy.context.scene.rymat_masks
             item_index = masks.find(item.name)
-            selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
+            selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
             mask_node = get_mask_node('MASK', selected_layer_index, item_index)
             row = layout.row(align=True)
             row.ui_units_x = 1
@@ -943,7 +943,7 @@ class MATLAYER_UL_mask_list(bpy.types.UIList):
             # Draw a toggle to isolate a mask.
             row = layout.row(align=True)
             row.ui_units_x = 1
-            operator = row.operator("matlayer.isolate_mask", text="", icon='MOD_MASK', emboss=False)
+            operator = row.operator("rymat.isolate_mask", text="", icon='MOD_MASK', emboss=False)
             operator.mask_index = item_index
 
             # Draw the mask name.
@@ -965,9 +965,9 @@ class MATLAYER_UL_mask_list(bpy.types.UIList):
                 col.prop(mask_mix_node.inputs[0], "default_value", text="", emboss=True)
                 col.prop(mask_mix_node, "blend_type", text="")
 
-class MATLAYER_OT_add_empty_layer_mask(Operator):
+class RYMAT_OT_add_empty_layer_mask(Operator):
     bl_label = "Add Empty Layer Mask"
-    bl_idname = "matlayer.add_empty_layer_mask"
+    bl_idname = "rymat.add_empty_layer_mask"
     bl_description = "Adds an default image based node group mask with to the selected material layer and fills the image slot with a no image"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -980,9 +980,9 @@ class MATLAYER_OT_add_empty_layer_mask(Operator):
         add_layer_mask('EMPTY', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_add_black_layer_mask(Operator):
+class RYMAT_OT_add_black_layer_mask(Operator):
     bl_label = "Add Black Layer Mask"
-    bl_idname = "matlayer.add_black_layer_mask"
+    bl_idname = "rymat.add_black_layer_mask"
     bl_description = "Adds an default image based node group mask with to the selected material layer and fills the image slot with a black image"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -995,9 +995,9 @@ class MATLAYER_OT_add_black_layer_mask(Operator):
         add_layer_mask('BLACK', self)
         return {'FINISHED'}
     
-class MATLAYER_OT_add_white_layer_mask(Operator):
+class RYMAT_OT_add_white_layer_mask(Operator):
     bl_label = "Add White Layer Mask"
-    bl_idname = "matlayer.add_white_layer_mask"
+    bl_idname = "rymat.add_white_layer_mask"
     bl_description = "Adds an default image based node group mask with to the selected material layer and fills the image slot with a white image"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1010,9 +1010,9 @@ class MATLAYER_OT_add_white_layer_mask(Operator):
         add_layer_mask('WHITE', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_add_linear_gradient_mask(Operator):
+class RYMAT_OT_add_linear_gradient_mask(Operator):
     bl_label = "Add Linear Gradient Mask"
-    bl_idname = "matlayer.add_linear_gradient_mask"
+    bl_idname = "rymat.add_linear_gradient_mask"
     bl_description = "Adds a non-destructive linear gradient mask to the selected material layer"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1025,9 +1025,9 @@ class MATLAYER_OT_add_linear_gradient_mask(Operator):
         add_layer_mask('LINEAR_GRADIENT', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_add_grunge_mask(Operator):
+class RYMAT_OT_add_grunge_mask(Operator):
     bl_label = "Add Grunge Mask"
-    bl_idname = "matlayer.add_grunge_mask"
+    bl_idname = "rymat.add_grunge_mask"
     bl_description = "Adds a mask that simulates grunge / dirt to the selected material layer"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1040,9 +1040,9 @@ class MATLAYER_OT_add_grunge_mask(Operator):
         add_layer_mask('GRUNGE', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_add_edge_wear_mask(Operator):
+class RYMAT_OT_add_edge_wear_mask(Operator):
     bl_label = "Add Edge Wear Mask"
-    bl_idname = "matlayer.add_edge_wear_mask"
+    bl_idname = "rymat.add_edge_wear_mask"
     bl_description = "Adds a mask that simulates edge wear to the selected material layer"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1055,9 +1055,9 @@ class MATLAYER_OT_add_edge_wear_mask(Operator):
         add_layer_mask('EDGE_WEAR', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_add_decal_mask(Operator):
+class RYMAT_OT_add_decal_mask(Operator):
     bl_label = "Add Decal Mask"
-    bl_idname = "matlayer.add_decal_mask"
+    bl_idname = "rymat.add_decal_mask"
     bl_description = "Adds a mask with decal projection to the selected material layer"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1070,9 +1070,9 @@ class MATLAYER_OT_add_decal_mask(Operator):
         add_layer_mask('DECAL', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_add_ambient_occlusion_mask(Operator):
+class RYMAT_OT_add_ambient_occlusion_mask(Operator):
     bl_label = "Add Ambient Occlusion Mask"
-    bl_idname = "matlayer.add_ambient_occlusion_mask"
+    bl_idname = "rymat.add_ambient_occlusion_mask"
     bl_description = "Adds an image mask that will auto-fill the image with the ambient occlusion mesh map for the active object if one exists"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1085,9 +1085,9 @@ class MATLAYER_OT_add_ambient_occlusion_mask(Operator):
         add_layer_mask('AMBIENT_OCCLUSION', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_add_curvature_mask(Operator):
+class RYMAT_OT_add_curvature_mask(Operator):
     bl_label = "Add Curvature Mask"
-    bl_idname = "matlayer.add_curvature_mask"
+    bl_idname = "rymat.add_curvature_mask"
     bl_description = "Adds an image mask that will auto-fill the image with the curvature mesh map for the active object if one exists"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1100,9 +1100,9 @@ class MATLAYER_OT_add_curvature_mask(Operator):
         add_layer_mask('CURVATURE', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_add_thickness_mask(Operator):
+class RYMAT_OT_add_thickness_mask(Operator):
     bl_label = "Add Thickness Mask"
-    bl_idname = "matlayer.add_thickness_mask"
+    bl_idname = "rymat.add_thickness_mask"
     bl_description = "Adds an image mask that will auto-fill the image with the thickness mesh map for the active object if one exists"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1115,9 +1115,9 @@ class MATLAYER_OT_add_thickness_mask(Operator):
         add_layer_mask('THICKNESS', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_add_world_space_normals_mask(Operator):
+class RYMAT_OT_add_world_space_normals_mask(Operator):
     bl_label = "Add World Space Normals Mask"
-    bl_idname = "matlayer.add_world_space_normals_mask"
+    bl_idname = "rymat.add_world_space_normals_mask"
     bl_description = "Adds an image mask that will auto-fill the image with the world space normals mesh map for the active object if one exists"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1130,9 +1130,9 @@ class MATLAYER_OT_add_world_space_normals_mask(Operator):
         add_layer_mask('WORLD_SPACE_NORMALS', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_move_layer_mask_up(Operator):
+class RYMAT_OT_move_layer_mask_up(Operator):
     bl_label = "Move Layer Mask Up"
-    bl_idname = "matlayer.move_layer_mask_up"
+    bl_idname = "rymat.move_layer_mask_up"
     bl_description = "Moves the selected layer mask up on the mask stack"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1145,9 +1145,9 @@ class MATLAYER_OT_move_layer_mask_up(Operator):
         move_mask('UP', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_move_layer_mask_down(Operator):
+class RYMAT_OT_move_layer_mask_down(Operator):
     bl_label = "Move Layer Mask Down"
-    bl_idname = "matlayer.move_layer_mask_down"
+    bl_idname = "rymat.move_layer_mask_down"
     bl_description = "Moves the selected layer mask down on the mask stack"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1160,9 +1160,9 @@ class MATLAYER_OT_move_layer_mask_down(Operator):
         move_mask('DOWN', self)
         return {'FINISHED'}
 
-class MATLAYER_OT_duplicate_layer_mask(Operator):
+class RYMAT_OT_duplicate_layer_mask(Operator):
     bl_label = "Duplicate Layer Mask"
-    bl_idname = "matlayer.duplicate_layer_mask"
+    bl_idname = "rymat.duplicate_layer_mask"
     bl_description = "Duplicates the selected mask"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1175,9 +1175,9 @@ class MATLAYER_OT_duplicate_layer_mask(Operator):
         duplicate_mask(self)
         return {'FINISHED'}
 
-class MATLAYER_OT_delete_layer_mask(Operator):
+class RYMAT_OT_delete_layer_mask(Operator):
     bl_label = "Delete Layer Mask"
-    bl_idname = "matlayer.delete_layer_mask"
+    bl_idname = "rymat.delete_layer_mask"
     bl_description = "Deletes the selected mask from the selected material layer"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1190,9 +1190,9 @@ class MATLAYER_OT_delete_layer_mask(Operator):
         delete_layer_mask(self)
         return {'FINISHED'}
 
-class MATLAYER_OT_set_mask_projection_uv(Operator):
+class RYMAT_OT_set_mask_projection_uv(Operator):
     bl_label = "Set Mask Projection UV"
-    bl_idname = "matlayer.set_mask_projection_uv"
+    bl_idname = "rymat.set_mask_projection_uv"
     bl_description = "Sets the projection mode for the selected mask to UV projection, which uses the UV layout of the object to project textures used on this material layer"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1207,9 +1207,9 @@ class MATLAYER_OT_set_mask_projection_uv(Operator):
         relink_image_mask_projection(original_output_channel)
         return {'FINISHED'}
 
-class MATLAYER_OT_set_mask_projection_triplanar(Operator):
+class RYMAT_OT_set_mask_projection_triplanar(Operator):
     bl_label = "Set Mask Projection Triplanar"
-    bl_idname = "matlayer.set_mask_projection_triplanar"
+    bl_idname = "rymat.set_mask_projection_triplanar"
     bl_description = "Sets the projection mode for the mask to triplanar projection which projects the textures onto the object from each axis. This projection method can be used to apply materials to objects without needing to manually blend seams"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1224,9 +1224,9 @@ class MATLAYER_OT_set_mask_projection_triplanar(Operator):
         relink_image_mask_projection(original_output_channel)
         return {'FINISHED'}
 
-class MATLAYER_OT_set_mask_crgba_channel(Operator):
+class RYMAT_OT_set_mask_crgba_channel(Operator):
     bl_label = "Set Mask Output Channel"
-    bl_idname = "matlayer.set_mask_crgba_channel"
+    bl_idname = "rymat.set_mask_crgba_channel"
     bl_description = "Sets the channel used for the mask to the specified value. This allows for the use of RGBA channel packed masks, and using image transparency as a mask"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1241,9 +1241,9 @@ class MATLAYER_OT_set_mask_crgba_channel(Operator):
         set_mask_crgba_channel(self.channel_name)
         return {'FINISHED'}
 
-class MATLAYER_OT_isolate_mask(Operator):
+class RYMAT_OT_isolate_mask(Operator):
     bl_label = "Isolate Mask"
-    bl_idname = "matlayer.isolate_mask"
+    bl_idname = "rymat.isolate_mask"
     bl_description = "Isolates the specified mask"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1257,8 +1257,8 @@ class MATLAYER_OT_isolate_mask(Operator):
         if bau.verify_material_operation_context(self) == False:
             return
 
-        selected_layer_index = bpy.context.scene.matlayer_layer_stack.selected_layer_index
-        selected_mask_index = bpy.context.scene.matlayer_mask_stack.selected_index
+        selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
+        selected_mask_index = bpy.context.scene.rymat_mask_stack.selected_index
         active_node_tree = bpy.context.active_object.active_material.node_tree
 
         mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)

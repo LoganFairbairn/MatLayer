@@ -76,7 +76,7 @@ def on_active_material_index_changed():
 
         if active_object.active_material:
             if active_object.active_material.name != bpy.types.Scene.previous_active_material_name:
-                bpy.context.scene.matlayer_layer_stack.selected_layer_index = 0
+                bpy.context.scene.rymat_layer_stack.selected_layer_index = 0
                 material_layers.refresh_layer_stack()
                 sub_to_active_material_index(active_object)
                 sub_to_active_material_name(active_object)
@@ -85,7 +85,7 @@ def on_active_material_index_changed():
 
         else:
             if bpy.types.Scene.previous_active_material_name != "":
-                bpy.context.scene.matlayer_layer_stack.selected_layer_index = 0
+                bpy.context.scene.rymat_layer_stack.selected_layer_index = 0
                 material_layers.refresh_layer_stack()
                 sub_to_active_material_index(active_object)
                 sub_to_active_material_name(active_object)
