@@ -487,6 +487,7 @@ def draw_mask_mesh_maps(layout, selected_layer_index, selected_mask_index):
                 row.prop(mesh_map_texture_node.image, "name", text="")
             else:
                 row.label(text="Not Baked")
+                row.operator("rymat.batch_bake", text="Bake")
 
 def draw_masks_tab(layout):
     row = layout.row(align=True)
