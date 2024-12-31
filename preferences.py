@@ -2,9 +2,14 @@
 
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import BoolProperty, IntProperty
+from bpy.props import BoolProperty, IntProperty, EnumProperty
 
 ADDON_NAME = __package__
+
+DEFAULT_TEXTURE_SAVE_METHODS = [
+    ("PACK", "Pack", "Textures will be packed into the blend file by default"),
+    ("SAVE_EXTERNALLY", "Save Externally", "Textures will be saved to the raw texture folder by default")
+]
 
 class AddonPreferences(AddonPreferences):
     bl_idname = ADDON_NAME
@@ -19,6 +24,11 @@ class AddonPreferences(AddonPreferences):
         name="Experimental Features",
         description="If on, experiemental features will be shown in the add-ons user interface",
         default=False
+    )
+
+    default_texture_save_method: EnumProperty(
+        items=DEFAULT_TEXTURE_SAVE_METHODS,
+        default='PACK'
     )
 
     save_imported_textures: BoolProperty(

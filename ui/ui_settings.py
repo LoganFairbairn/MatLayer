@@ -47,6 +47,11 @@ def draw_texture_setting_ui(layout):
 
     # Draw other texture management settings.
     row = first_column.row()
+    row.label(text="Default Save Method")
+    row = second_column.row(align=True)
+    row.prop(addon_preferences, "default_texture_save_method", text="")
+
+    row = first_column.row()
     row.label(text="Thirty Two Bit Textures")
     row = second_column.row()
     row.prop(addon_preferences, "thirty_two_bit", text="")
