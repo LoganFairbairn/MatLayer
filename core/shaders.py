@@ -64,6 +64,31 @@ NODE_SOCKET_VECTOR_SUBTYPES = [
     ("XYZ", "XYZ", "XYZ")
 ]
 
+# Valid default image colorspace options.
+IMAGE_COLORSPACES = [
+    ('ACES2065-1', "ACES2065-1", "ACES2065-1"),
+    ('ACEScg', "ACEScg", "ACEScg"),
+    ('AgX Base Display P3', "AgX Base Display P3", "AgX Base Display P3"),
+    ('AgX Base Rec.1886', "AgX Base Rec.1886", "AgX Base Rec.1886"),
+    ('AgX Base Rec.2020', "AgX Base Rec.2020", "AgX Base Rec.2020"),
+    ('AgX Base sRGB', "AgX Base sRGB", "AgX Base sRGB"),
+    ('AgX Log', "AgX Log", "AgX Log"),
+    ('Display P3', "Display P3", "Display P3"),
+    ('Filmic Log', "Filmic Log", "Filmic Log"),
+    ('Filmic sRGB', "Filmic sRGB", "Filmic sRGB"),
+    ('Khronos PBR Neutral sRGB', "Khronos PBR Neutral sRGB", "Khronos PBR Neutral sRGB"),
+    ('Linear CIE-XYZ D65', "Linear CIE-XYZ D65", "Linear CIE-XYZ D65"),
+    ('Linear CIE-XYZ E', "Linear CIE-XYZ E", "Linear CIE-XYZ E"),
+    ('Linear DCI-P3 D65', "Linear DCI-P3 D65", "Linear DCI-P3 D65"),
+    ('Linear FilmLight E-Gamut', "Linear FilmLight E-Gamut", "Linear FilmLight E-Gamut"),
+    ('Linear Rec.2020', "Linear Rec.2020", "Linear Rec.2020"),
+    ('Linear Rec.709', "Linear Rec.709", "Linear Rec.709"),
+    ('Non-Color', "Non-Color", "Non-Color"),
+    ('Rec.1886', "Rec.1886", "Rec.1886"),
+    ('Rec.2020', "Rec.2020", "Rec.2020"),
+    ('sRGB', "sRGB", "sRGB")
+]
+
 # Internal backup template for the shader json file.
 DEFAULT_SHADER_JSON = {
     "shaders": [
@@ -148,6 +173,7 @@ def set_shader(shader_name):
                 channel.socket_type = shader_material_channel['socket_type']
                 channel.socket_subtype = shader_material_channel['socket_subtype']
                 channel.default_blend_mode = shader_material_channel['default_blend_mode']
+                channel.default_colorspace = shader_material_channel['default_colorspace']
 
                 match channel.socket_type:
                     case 'NodeSocketFloat':
@@ -331,6 +357,7 @@ def apply_default_shader(self):
     channel.socket_float_min = 0
     channel.socket_float_max = 1
     channel.default_blend_mode = "MIX"
+    channel.default_colorspace = 'Linear Rec.709'
 
     channel = shader_info.material_channels.add()
     channel.name = "Metallic"
@@ -341,6 +368,7 @@ def apply_default_shader(self):
     channel.socket_float_min = 0
     channel.socket_float_max = 1
     channel.default_blend_mode = "MIX"
+    channel.default_colorspace = 'Non-Color'
 
     channel = shader_info.material_channels.add()
     channel.name = "Roughness"
@@ -351,6 +379,7 @@ def apply_default_shader(self):
     channel.socket_float_min = 0
     channel.socket_float_max = 1
     channel.default_blend_mode = "MIX"
+    channel.default_colorspace = 'Non-Color'
 
     channel = shader_info.material_channels.add()
     channel.name = "Alpha"
@@ -361,6 +390,7 @@ def apply_default_shader(self):
     channel.socket_float_min = 0
     channel.socket_float_max = 1
     channel.default_blend_mode = "MIX"
+    channel.default_colorspace = 'Non-Color'
 
     channel = shader_info.material_channels.add()
     channel.name = "Normal"
@@ -370,6 +400,7 @@ def apply_default_shader(self):
     channel.socket_float_min = 0
     channel.socket_float_max = 1
     channel.default_blend_mode = "NORMAL_MAP_COMBINE"
+    channel.default_colorspace = 'Non-Color'
 
     channel = shader_info.material_channels.add()
     channel.name = "Height"
@@ -380,6 +411,7 @@ def apply_default_shader(self):
     channel.socket_float_min = -1.0
     channel.socket_float_max = 1.0
     channel.default_blend_mode = "ADD"
+    channel.default_colorspace = 'Non-Color'
 
     channel = shader_info.material_channels.add()
     channel.name = "Emission"
@@ -389,6 +421,7 @@ def apply_default_shader(self):
     channel.socket_float_min = 0.0
     channel.socket_float_max = 1.0
     channel.default_blend_mode = "MIX"
+    channel.default_colorspace = 'Linear Rec.709'
 
     # Set the default selected material channel to be the first defined channel.
     if len(shader_info.material_channels) > 0:
@@ -453,6 +486,12 @@ class RYMAT_shader_material_channel(PropertyGroup):
         description="The default blend mode for the shader channel",
         default='MIX',
         items=LAYER_BLEND_MODES
+    )
+    default_colorspace: EnumProperty(
+        items=IMAGE_COLORSPACES,
+        name="Default Image Colorspace",
+        description="The colorspace images will be assigned when they are imported into the material channel",
+        default='Linear Rec.709'
     )
 
 class RYMAT_shader_unlayered_property(PropertyGroup):
@@ -551,6 +590,7 @@ class RYMAT_OT_save_shader(Operator):
                     new_channel['socket_max'] = 1
 
             new_channel['default_blend_mode'] = channel.default_blend_mode
+            new_channel['default_colorspace'] = channel.default_colorspace
             new_shader_info['material_channels'].append(new_channel)
         
         # If the shader already existed, overwrite the existing shader settings in the json file.

@@ -174,6 +174,11 @@ def draw_shader_setting_ui(layout):
         row = second_column.row()
         row.prop(selected_shader_channel, "default_blend_mode", text="")
 
+        row = first_column.row()
+        row.label(text="Default Colorspace")
+        row = second_column.row()
+        row.prop(selected_shader_channel, "default_colorspace", text="")
+
 class ShaderSubMenu(Menu):
     bl_idname = "RYMAT_MT_shader_sub_menu"
     bl_label = "Shader Sub Menu"
