@@ -487,74 +487,24 @@ def add_material_channel_nodes(material_channel_name, node_tree, layer_type, sel
         debug_logging.log("Shader channel {0} doesn't exist, not adding nodes.".format(material_channel_name))
         return
 
-    # We use group nodes to represent default float, color and vector values for material channels instead of 
-    # value, or color nodes because the default ranges and socket types can only be specified for group nodes.
-    # Create default group nodes to represent each material channel.
+    # Add a value node based on the socket type to represent flat default values for this material channel.
     channel = shader_info.material_channels.get(material_channel_name)
-    default_value_group_node_name = "RY_Default{0}".format(material_channel_name.replace(' ', ''))
-    default_value_group_node = bpy.data.node_groups.get(default_value_group_node_name)
-    if not default_value_group_node:
-        default_value_group_node = bpy.data.node_groups.new(default_value_group_node_name, type='ShaderNodeTree')
-    
-        input_socket = default_value_group_node.interface.new_socket(
-            name=channel.name,
-            description=channel.name,
-            in_out='INPUT',
-            socket_type=channel.socket_type
-        )
-
-        output_socket = default_value_group_node.interface.new_socket(
-            name=channel.name,
-            description=channel.name,
-            in_out='OUTPUT',
-            socket_type=channel.socket_type
-        )
-
-        match channel.socket_type:
-            case 'NodeSocketFloat':
-                input_socket.default_value = channel.socket_float_default
-                input_socket.min_value = channel.socket_float_min
-                input_socket.max_value = channel.socket_float_max
-                output_socket.default_value = channel.socket_float_default
-                output_socket.min_value = channel.socket_float_min
-                output_socket.max_value = channel.socket_float_max
-                input_socket.subtype = channel.socket_subtype
-
-            case 'NodeSocketColor':
-                input_socket.default_value = (channel.socket_color_default[0], channel.socket_color_default[1], channel.socket_color_default[2], 1)
-                output_socket.default_value = (channel.socket_color_default[0], channel.socket_color_default[1], channel.socket_color_default[2], 1)
-
-            case 'NodeSocketVector':
-                input_socket.default_value = channel.socket_vector_default
-                input_socket.default_value = channel.socket_vector_default
-
-        # Add input and output nodes so the material channel can pass through the node.
-        group_input_node = default_value_group_node.nodes.new('NodeGroupInput')
-        group_input_node.name = 'GROUP_INPUT'
-        group_input_node.label = group_input_node.name
-        group_input_node.location[0] = -1000
-        group_input_node.location[1] = 0
-        group_input_node.width = 300
-
-        group_output_node = default_value_group_node.nodes.new('NodeGroupOutput')
-        group_output_node.name = 'GROUP_OUTPUT'
-        group_output_node.label = group_output_node.name
-        group_output_node.location[0] = 0
-        group_output_node.location[1] = 0
-        group_output_node.width = 300
-
-        # Link the input and output nodes.
-        default_value_group_node.links.new(group_input_node.outputs[0], group_output_node.inputs[0])
-
-    # Add a value node to represent this material channel.
-    value_node = node_tree.nodes.new('ShaderNodeGroup')
+    match channel.socket_type:
+        case 'NodeSocketFloat':
+            value_node = node_tree.nodes.new('ShaderNodeValue')
+            value_node.outputs[0].default_value = channel.socket_float_default
+        case 'NodeSocketColor':
+            value_node = node_tree.nodes.new('ShaderNodeRGB')
+            value_node.outputs[0].default_value = [*channel.socket_color_default[:3], 1]
+        case 'NodeSocketVector':
+            value_node = node_tree.nodes.new('ShaderNodeRGB')
+            value_node.outputs[0].default_value = [*channel.socket_vector_default[:3], 1]
     value_node.name = format_material_channel_node_name(static_channel_name, 'VALUE', node_index=1)
     value_node.label = value_node.name
     value_node.location[0] = -1000
     value_node.location[1] = -400
     value_node.parent = channel_frame_node
     value_node.width = 300
-    value_node.node_tree = default_value_group_node
 
     # Add the mix image alpha node.
     image_alpha_node = node_tree.nodes.new('ShaderNodeMath')
@@ -1702,18 +1652,31 @@ def replace_material_channel_node(material_channel_name, node_type):
     projection_node = get_material_layer_node('PROJECTION', selected_layer_index)
     value_node = get_material_layer_node('VALUE', selected_layer_index, material_channel_name)
     static_matchannel_name = bau.format_static_matchannel_name(material_channel_name)
-    node_socket_name = shaders.get_shader_channel_socket_name(material_channel_name)
 
     match node_type:
-        case 'GROUP':
+        case 'VALUE':
             value_node.parent = None
             original_node_location = value_node.location.copy()
 
             # Remove the old nodes.
             delete_value_nodes(static_matchannel_name, selected_layer_index, layer_node_tree)
 
-            # Replace the material channel value nodes with a group node.
-            new_node = layer_node_tree.nodes.new('ShaderNodeGroup')
+            # Replace the material channel value nodes with a new value or color node
+            # based on the shader socket type.
+            shader_info = bpy.context.scene.rymat_shader_info
+            node_socket_name = shaders.get_shader_channel_socket_name(material_channel_name)
+            channel = shader_info.material_channels.get(node_socket_name)
+            match channel.socket_type:
+                case 'NodeSocketFloat':
+                    new_node = layer_node_tree.nodes.new('ShaderNodeValue')
+                    new_node.outputs[0].default_value = channel.socket_float_default
+                case 'NodeSocketColor':
+                    new_node = layer_node_tree.nodes.new('ShaderNodeRGB')
+                    new_node.outputs[0].default_value = [*channel.socket_color_default[:3], 1]
+                case 'NodeSocketVector':
+                    new_node = layer_node_tree.nodes.new('ShaderNodeRGB')
+                    new_node.outputs[0].default_value = [*channel.socket_vector_default[:3], 1]
+            
             new_node.name = format_material_channel_node_name(static_matchannel_name, "VALUE", node_index=1)
             new_node.label = new_node.name
             new_node.width = 300
@@ -1723,13 +1686,7 @@ def replace_material_channel_node(material_channel_name, node_type):
             frame = layer_node_tree.nodes.get(static_matchannel_name)
             new_node.parent = frame
 
-            # TODO: IMPORTANT! If the default group node doesn't exist, create one!
-            # Apply the default group node for the specified channel.
-            default_node_tree_name = "RY_Default{0}".format(node_socket_name.replace(' ', ''))
-            default_node_tree = bpy.data.node_groups.get(default_node_tree_name)
-            new_node.node_tree = default_node_tree
-
-            # Link the new group node.
+            # Link the new node.
             mix_node = get_material_layer_node('MIX', selected_layer_index, static_matchannel_name)
             if mix_node.bl_static_type == 'GROUP':
                 layer_node_tree.links.new(new_node.outputs[0], mix_node.inputs[2])

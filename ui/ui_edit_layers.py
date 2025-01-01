@@ -155,6 +155,18 @@ def draw_value_node_properties(layout, material_channel_name, layer_node_tree, s
     second_column = split.column(align=True)
 
     match value_node.bl_static_type:
+        case 'RGB':
+            row = first_column.row()
+            row.label(text="Color")
+            row = second_column.row(align=True)
+            row.prop(value_node.outputs[0], "default_value", text="")
+
+        case 'VALUE':
+            row = first_column.row()
+            row.label(text="Color")
+            row = second_column.row(align=True)
+            row.prop(value_node.outputs[0], "default_value", text="")
+
         case 'GROUP':
             row = first_column.row()
             row.label(text="Node Tree")
@@ -858,11 +870,11 @@ class MaterialChannelValueNodeSubMenu(Menu):
         # Get the material channel name from the mix node being drawn.
         material_channel_name = context.mix_node.name.replace('-MIX', '')
 
-        operator = layout.operator("rymat.change_material_channel_value_node", text="Use Group Node", icon='NODETREE')
+        operator = layout.operator("rymat.change_material_channel_value_node", text="Use Value Node", icon='NONE')
         operator.material_channel_name = material_channel_name
-        operator.node_type = 'GROUP'
+        operator.node_type = 'VALUE'
 
-        operator = layout.operator("rymat.change_material_channel_value_node", text="Use Texture", icon='IMAGE_DATA')
+        operator = layout.operator("rymat.change_material_channel_value_node", text="Use Texture", icon='NONE')
         operator.material_channel_name = material_channel_name
         operator.node_type = 'TEXTURE'
 
