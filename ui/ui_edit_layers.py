@@ -536,11 +536,7 @@ class MaterialSelectorPanel(Panel):
     def poll(cls, context):
         return context.scene.rymat_panel_properties.sections == 'SECTION_EDIT_MATERIALS'
 
-    def draw(self, context):
-        panel_properties = context.scene.rymat_panel_properties
-        if not panel_properties.sections == 'SECTION_EDIT_MATERIALS':
-            return
-        
+    def draw(self, context):        
         layout = self.layout
         active_object = bpy.context.active_object
         if not active_object:
@@ -610,40 +606,38 @@ class LayerStackPanel(Panel):
         return context.scene.rymat_panel_properties.sections == 'SECTION_EDIT_MATERIALS'
 
     def draw(self, context):
-        panel_properties = context.scene.rymat_panel_properties
-        if panel_properties.sections == 'SECTION_EDIT_MATERIALS':
-            layout = self.layout
+        layout = self.layout
 
-            # Draw the selected material channel.
-            row = layout.row()
-            selected_material_channel = bpy.context.scene.rymat_layer_stack.selected_material_channel
-            row.menu("RYMAT_MT_material_channel_sub_menu", text=selected_material_channel)
+        # Draw the selected material channel.
+        row = layout.row()
+        selected_material_channel = bpy.context.scene.rymat_layer_stack.selected_material_channel
+        row.menu("RYMAT_MT_material_channel_sub_menu", text=selected_material_channel)
 
-            # Draw layer operations.
-            row = layout.row(align=True)
-            row.scale_y = 1.5
-            row.scale_x = 10
-            row.operator("rymat.add_material_layer_menu", icon='ADD', text="")
-            row.operator("rymat.import_texture_set", icon='IMPORT', text="")
-            row.operator("rymat.move_material_layer_up", icon='TRIA_UP', text="")
-            row.operator("rymat.move_material_layer_down", icon='TRIA_DOWN', text="")
-            row.operator("rymat.duplicate_layer", icon='DUPLICATE', text="")
-            row.operator("rymat.merge_with_layer_below", icon='TRIA_DOWN_BAR', text="")
-            row.operator("rymat.delete_layer", icon='TRASH', text="")
-            row.operator("rymat.isolate_material_channel", text="", icon='MATERIAL')
-            row.operator("rymat.show_compiled_material", text="", icon='SHADING_RENDERED')
+        # Draw layer operations.
+        row = layout.row(align=True)
+        row.scale_y = 1.5
+        row.scale_x = 10
+        row.operator("rymat.add_material_layer_menu", icon='ADD', text="")
+        row.operator("rymat.import_texture_set", icon='IMPORT', text="")
+        row.operator("rymat.move_material_layer_up", icon='TRIA_UP', text="")
+        row.operator("rymat.move_material_layer_down", icon='TRIA_DOWN', text="")
+        row.operator("rymat.duplicate_layer", icon='DUPLICATE', text="")
+        row.operator("rymat.merge_with_layer_below", icon='TRIA_DOWN_BAR', text="")
+        row.operator("rymat.delete_layer", icon='TRASH', text="")
+        row.operator("rymat.isolate_material_channel", text="", icon='MATERIAL')
+        row.operator("rymat.show_compiled_material", text="", icon='SHADING_RENDERED')
 
-            # Draw the layer stack.
-            row = layout.row(align=True)
-            row.template_list(
-                "RYMAT_UL_layer_list", 
-                "Layers", 
-                bpy.context.scene, 
-                "rymat_layers", 
-                bpy.context.scene.rymat_layer_stack, 
-                "selected_layer_index", 
-                sort_reverse=True
-            )
+        # Draw the layer stack.
+        row = layout.row(align=True)
+        row.template_list(
+            "RYMAT_UL_layer_list", 
+            "Layers", 
+            bpy.context.scene, 
+            "rymat_layers", 
+            bpy.context.scene.rymat_layer_stack, 
+            "selected_layer_index", 
+            sort_reverse=True
+        )
 
 class ColorPalettePanel(Panel):
     bl_label = "Color Palette"
@@ -681,30 +675,28 @@ class MaterialPropertiesPanel(Panel):
         return context.scene.rymat_panel_properties.sections == 'SECTION_EDIT_MATERIALS'
 
     def draw(self, context):
-        panel_properties = context.scene.rymat_panel_properties
-        if panel_properties.sections == 'SECTION_EDIT_MATERIALS':
-            layout = self.layout
+        layout = self.layout
 
-            # Draw properties for the selected material layer.
-            layer_count = material_layers.count_layers()
-            if layer_count > 0:
-                row = layout.row(align=True)
-                row.scale_y = 1.5
-                row.prop_enum(bpy.context.scene, "rymat_material_property_tabs", 'MATERIAL_CHANNELS', text="CHANNELS")
-                row.prop_enum(bpy.context.scene, "rymat_material_property_tabs", 'PROJECTION', text="PROJECTION")
-                row.prop_enum(bpy.context.scene, "rymat_material_property_tabs", 'MASKS', text="MASKS")
-                row.prop_enum(bpy.context.scene, "rymat_material_property_tabs", 'UNLAYERED', text="UNLAYERED")
-                match bpy.context.scene.rymat_material_property_tabs:
-                    case 'MATERIAL_CHANNELS':
-                        draw_material_channel_properties(layout)
-                    case 'MASKS':
-                        draw_masks_tab(layout)
-                    case 'PROJECTION':
-                        draw_layer_projection(layout)
-                    case 'UNLAYERED':
-                        draw_unlayered_shader_properties(layout)
-            else:
-                bau.print_aligned_text(layout, "No Layer Selected", alignment='CENTER')
+        # Draw properties for the selected material layer.
+        layer_count = material_layers.count_layers()
+        if layer_count > 0:
+            row = layout.row(align=True)
+            row.scale_y = 1.5
+            row.prop_enum(bpy.context.scene, "rymat_material_property_tabs", 'MATERIAL_CHANNELS', text="CHANNELS")
+            row.prop_enum(bpy.context.scene, "rymat_material_property_tabs", 'PROJECTION', text="PROJECTION")
+            row.prop_enum(bpy.context.scene, "rymat_material_property_tabs", 'MASKS', text="MASKS")
+            row.prop_enum(bpy.context.scene, "rymat_material_property_tabs", 'UNLAYERED', text="UNLAYERED")
+            match bpy.context.scene.rymat_material_property_tabs:
+                case 'MATERIAL_CHANNELS':
+                    draw_material_channel_properties(layout)
+                case 'MASKS':
+                    draw_masks_tab(layout)
+                case 'PROJECTION':
+                    draw_layer_projection(layout)
+                case 'UNLAYERED':
+                    draw_unlayered_shader_properties(layout)
+        else:
+            bau.print_aligned_text(layout, "No Layer Selected", alignment='CENTER')
 
 class RYMAT_OT_add_material_layer_menu(Operator):
     bl_label = ""
