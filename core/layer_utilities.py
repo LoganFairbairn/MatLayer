@@ -313,7 +313,7 @@ class RYMAT_OT_import_texture_set(Operator, ImportHelper):
                     selected_image_file = True
 
                 # Update the imported images colorspace based on it's detected material channel.
-                image_utilities.set_image_colorspace_by_material_channel(imported_image, detected_material_channel)
+                image_utilities.set_default_image_colorspace(imported_image, detected_material_channel)
 
                 # Print a warning about using DirectX normal maps for users if it's suspected they are using one.
                 if detected_material_channel == 'NORMAL':

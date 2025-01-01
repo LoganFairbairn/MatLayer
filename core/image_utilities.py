@@ -7,6 +7,7 @@ from bpy_extras.io_utils import ImportHelper
 from ..core import texture_set_settings as tss
 from ..core import debug_logging
 from ..core import blender_addon_utils as bau
+from ..core import shaders
 from .. import preferences
 import random
 import os
@@ -16,36 +17,19 @@ def get_random_image_id():
     '''Generates a random image id number.'''
     return str(random.randrange(10000,99999))
 
-# TODO: Deprecate this, use default colorspace defined in shader channels instead.
-def set_image_colorspace_by_material_channel(image, material_channel_name):
+def set_default_image_colorspace(image, material_channel_name):
     '''Correctly sets an image's colorspace based on the provided material channel for use within Blender.'''
-    match material_channel_name:
-        case 'COLOR':
-            image.colorspace_settings.name = 'sRGB'
-
-        case 'BASE_COLOR':
-            image.colorspace_settings.name = 'sRGB'
-
-        case 'METALLIC':
-            image.colorspace_settings.name = 'Non-Color'
-
-        case 'ROUGHNESS':
-            image.colorspace_settings.name = 'Non-Color'
-
-        case 'NORMAL':
-            image.colorspace_settings.name = 'Non-Color'
-
-        case 'HEIGHT':
-            image.colorspace_settings.name = 'Non-Color'
-    
-        case 'EMISSION':
-            image.colorspace_settings.name = 'sRGB'
-
-        case 'SCATTERING':
-            image.colorspace_settings.name = 'sRGB'
-
-        case 'CHANNEL_PACKED':
-            image.colorspace_settings.name = 'sRGB'
+    shader_info = bpy.context.scene.rymat_shader_info
+    channel_socket_name = shaders.get_shader_channel_socket_name(material_channel_name)
+    material_channel = shader_info.material_channels.get(channel_socket_name)
+    if material_channel:
+        image.colorspace_settings.name = material_channel.default_colorspace
+    else:
+        debug_logging.log(
+            "Failed to set default image colorspace, no material channel {0}".format(material_channel_name),
+            message_type='ERROR',
+            sub_process=False
+        )
 
 def check_for_directx(filename):
     if "NormalDX" in filename or "NDX" in filename:
@@ -157,7 +141,7 @@ class RYMAT_OT_add_texture_node_image(Operator):
     
         # If a material channel is defined, set the color space.
         if self.material_channel_name != "":
-            set_image_colorspace_by_material_channel(new_image, self.material_channel_name)
+            set_default_image_colorspace(new_image, self.material_channel_name)
 
         # Save the imported image to an external folder next to the blend file.
         image = bpy.data.images[image_name]
@@ -215,7 +199,7 @@ class RYMAT_OT_import_texture_node_image(Operator, ImportHelper):
                 
         # If a material channel is defined, set the color space.
         if self.material_channel_name != "":
-            set_image_colorspace_by_material_channel(image, self.material_channel_name)
+            set_default_image_colorspace(image, self.material_channel_name)
 
         # Print a warning about using DirectX normal maps for users if it's detected they are using one.
         if check_for_directx(image_name) and self.material_channel_name == 'NORMAL':
