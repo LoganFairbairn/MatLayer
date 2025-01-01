@@ -600,9 +600,32 @@ class MaterialSelectorPanel(Panel):
             col.operator("rymat.merge_materials", text="Merge")
         '''
 
-class LayerStackPanel(Panel):
-    bl_label = "Layer Stack"
-    bl_idname = "RYMAT_PT_layer_stack_panel"
+class ColorPalettePanel(Panel):
+    bl_label = "Color Palette"
+    bl_idname = "RYMAT_PT_color_palette"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "RyMat"
+
+    # Only draw this panel when the edit materials section is selected.
+    @ classmethod
+    def poll(cls, context):
+        return context.scene.rymat_panel_properties.sections == 'SECTION_EDIT_MATERIALS'
+
+    def draw(self, context):
+        layout = self.layout
+        tool_settings = context.tool_settings
+        row = layout.row(align=True)
+        if tool_settings.image_paint.palette:
+            row.template_ID(tool_settings.image_paint, "palette")
+            layout.template_palette(tool_settings.image_paint, "palette", color=True)
+        else:
+            row.template_ID(tool_settings.image_paint, "palette")
+            row.operator("palette.new", text="New Palette")
+
+class MaterialPropertiesPanel(Panel):
+    bl_label = "Material Properties"
+    bl_idname = "RYMAT_PT_material_properties_panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "RyMat"
@@ -645,44 +668,6 @@ class LayerStackPanel(Panel):
             "selected_layer_index", 
             sort_reverse=True
         )
-
-class ColorPalettePanel(Panel):
-    bl_label = "Color Palette"
-    bl_idname = "RYMAT_PT_color_palette"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "RyMat"
-
-    # Only draw this panel when the edit materials section is selected.
-    @ classmethod
-    def poll(cls, context):
-        return context.scene.rymat_panel_properties.sections == 'SECTION_EDIT_MATERIALS'
-
-    def draw(self, context):
-        layout = self.layout
-        tool_settings = context.tool_settings
-        row = layout.row(align=True)
-        if tool_settings.image_paint.palette:
-            row.template_ID(tool_settings.image_paint, "palette")
-            layout.template_palette(tool_settings.image_paint, "palette", color=True)
-        else:
-            row.template_ID(tool_settings.image_paint, "palette")
-            row.operator("palette.new", text="New Palette")
-
-class MaterialPropertiesPanel(Panel):
-    bl_label = "Material Properties"
-    bl_idname = "RYMAT_PT_material_properties_panel"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "RyMat"
-
-    # Only draw this panel when the edit materials section is selected.
-    @ classmethod
-    def poll(cls, context):
-        return context.scene.rymat_panel_properties.sections == 'SECTION_EDIT_MATERIALS'
-
-    def draw(self, context):
-        layout = self.layout
 
         # Draw properties for the selected material layer.
         layer_count = material_layers.count_layers()
