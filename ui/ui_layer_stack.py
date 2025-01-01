@@ -4,6 +4,7 @@ import bpy
 from bpy.types import Menu
 import bpy.utils.previews       # Imported for loading texture previews as icons.
 from ..core import material_layers
+from ..core import layer_masks
 from ..core import blender_addon_utils
 
 class LayerBlendingModeSubMenu(Menu):
@@ -128,6 +129,11 @@ class RYMAT_UL_layer_list(bpy.types.UIList):
             else:
                 operator = row.operator("rymat.toggle_hide_layer", text="", emboss=False, icon='HIDE_ON')
                 operator.layer_index = item_index
+
+            # If the layer is masked, draw a mask icon.
+            mask_node = layer_masks.get_mask_node('MASK', item_index, 0)
+            if mask_node:
+                row.label(text="", icon='MOD_MASK')
 
             # Draw the layer name.
             row.prop(layer_node, "label", text="", emboss=False)
