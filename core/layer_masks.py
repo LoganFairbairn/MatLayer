@@ -1243,7 +1243,7 @@ class RYMAT_OT_isolate_mask(Operator):
     bl_description = "Isolates the specified mask"
     bl_options = {'REGISTER', 'UNDO'}
 
-    mask_index: IntProperty(default=-1)
+    mask_index: IntProperty(default=-1, options={'HIDDEN'})
 
     @ classmethod
     def poll(cls, context):
@@ -1251,16 +1251,21 @@ class RYMAT_OT_isolate_mask(Operator):
 
     def execute(self, context):
         if bau.verify_material_operation_context(self) == False:
-            return
+            return {'FINISHED'}
 
         selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
         selected_mask_index = bpy.context.scene.rymat_mask_stack.selected_index
-        active_node_tree = bpy.context.active_object.active_material.node_tree
-
         mask_node = get_mask_node('MASK', selected_layer_index, selected_mask_index)
+
+        # If there is no mask node, abort.
+        if not mask_node:
+            debug_logging.log_status("No mask to isolate.", self, type='INFO')
+            return {'FINISHED'}
+        
+        # Isolate the mask.
+        active_node_tree = bpy.context.active_object.active_material.node_tree
         isolate_node = material_layers.get_isolate_node()
         material_output = active_node_tree.nodes.get('MATERIAL_OUTPUT')
-
         active_node_tree.links.new(mask_node.outputs[0], isolate_node.inputs[0])
         active_node_tree.links.new(isolate_node.outputs[0], material_output.inputs[0])
 
