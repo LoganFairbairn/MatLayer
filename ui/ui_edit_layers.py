@@ -72,7 +72,7 @@ def draw_image_texture_property(layout, node_tree, texture_node, texture_display
         operator = row.operator("rymat.add_texture_node_image", text="Add New Image", icon='NONE')
         operator.node_tree_name = node_tree.name
         operator.node_name = texture_node.name
-        operator.material_channel_name = texture_node.name.split('_')[0]
+        operator.material_channel_name = texture_node.name.split('-')[0]
 
     # Draw the custom image utility sub-menu for this add-on.
     row.context_pointer_set("node_tree", node_tree)
@@ -799,7 +799,7 @@ class ImageUtilitySubMenu(Menu):
     def draw(self, context):
         layout = self.layout
         if context.node and context.node_tree:
-            material_channel_name = context.node.name.split('_')[0]
+            material_channel_name = context.node.name.split('-')[0]
 
             operator = layout.operator("rymat.add_texture_node_image", text="Add New Image", icon='NONE')
             operator.node_tree_name = context.node_tree.name
