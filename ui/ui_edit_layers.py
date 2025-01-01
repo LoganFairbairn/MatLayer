@@ -658,15 +658,15 @@ class ColorPalettePanel(Panel):
         return context.scene.rymat_panel_properties.sections == 'SECTION_EDIT_MATERIALS'
 
     def draw(self, context):
-        panel_properties = context.scene.rymat_panel_properties
-        if panel_properties.sections == 'SECTION_EDIT_MATERIALS':
-            layout = self.layout
-
-            tool_settings = context.tool_settings
-            if tool_settings.image_paint.palette:
-                row = layout.row(align=True)
-                row.template_ID(tool_settings.image_paint, "palette")
-                layout.template_palette(tool_settings.image_paint, "palette", color=True)
+        layout = self.layout
+        tool_settings = context.tool_settings
+        row = layout.row(align=True)
+        if tool_settings.image_paint.palette:
+            row.template_ID(tool_settings.image_paint, "palette")
+            layout.template_palette(tool_settings.image_paint, "palette", color=True)
+        else:
+            row.template_ID(tool_settings.image_paint, "palette")
+            row.operator("palette.new", text="New Palette")
 
 class MaterialPropertiesPanel(Panel):
     bl_label = "Material Properties"
