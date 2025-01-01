@@ -5,7 +5,6 @@ import bpy
 from bpy.types import PropertyGroup, Operator
 from bpy.props import BoolProperty, StringProperty, EnumProperty
 from ..core import blender_addon_utils as bau
-from ..core import material_layers
 from ..core import debug_logging
 
 # Available texture resolutions for texture sets.
@@ -76,30 +75,6 @@ def get_texture_height():
             return 4096
         case _:
             return 10
-
-def get_material_channel_active(channel_name):
-    '''Returns if the material channel is active in the active materials texture set.'''
-
-    # Return false if there is no active object.
-    active_object = bpy.context.active_object
-    if not active_object:
-        return False
-    
-    # Return false if there is no active material.
-    active_material = active_object.active_material
-    if not active_material:
-        return False
-
-    # If the channel toggle node doesn't exist, or is muted, the channel isn't active.
-    static_channel_name = bau.format_static_matchannel_name(channel_name)
-    channel_toggle_node_name = "GLOBAL_{0}_TOGGLE".format(static_channel_name)
-    channel_toggle_node = active_material.node_tree.nodes.get(channel_toggle_node_name)
-    if channel_toggle_node:
-        if channel_toggle_node.mute:
-            return False
-
-    # If the channel toggle node exists, and isn't muted, return true.
-    return True
 
 class RYMAT_texture_set_settings(PropertyGroup):
     image_width: EnumProperty(

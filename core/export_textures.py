@@ -702,9 +702,8 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
 
     # Skip baking for inactive material channels.
     if material_channel_name not in output_channels:
-        if not tss.get_material_channel_active(material_channel_name):
-            debug_logging.log("Skipped baking for disabled material channel: {channel_name}.".format(channel_name=material_channel_name))
-            return ""
+        debug_logging.log("Skipped baking for disabled material channel: {channel_name}.".format(channel_name=material_channel_name))
+        return ""
     
     # Assign normal map image background color the default RGB color for 'UP' in Blender.
     if material_channel_name == 'NORMAL':

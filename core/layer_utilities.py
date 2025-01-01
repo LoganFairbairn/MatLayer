@@ -250,7 +250,7 @@ class RYMAT_OT_import_texture_set(Operator, ImportHelper):
                                     # If the active material isn't using the specular material channel, the material channel abbreviated with 'S'
                                     # is more likely 'Smoothness', instead of 'Specular'. Swap the packed channel to Roughness and invert the filter
                                     # to convert the smoothness into roughness.
-                                    if packed_channel == 'SPECULAR' and tss.get_material_channel_active('SPECULAR') == False:
+                                    if packed_channel == 'SPECULAR':
                                         packed_channel = 'ROUGHNESS'
 
                                         invert_r = False

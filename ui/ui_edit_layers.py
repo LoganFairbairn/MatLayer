@@ -303,10 +303,6 @@ def draw_material_channel_properties(layout):
     shader_info = bpy.context.scene.rymat_shader_info
     for channel in shader_info.material_channels:
 
-        # Do not draw properties for globally inactive material channels.
-        if not tss.get_material_channel_active(channel.name):
-            continue
-
         # Draw properties for all active material channels.
         layer_node_tree = material_layers.get_layer_node_tree(selected_layer_index)
         mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, channel.name)

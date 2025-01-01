@@ -1321,10 +1321,6 @@ def link_layer_group_nodes(self):
             
             for channel in shader_info.material_channels:
 
-                # Only connect active material channels.
-                if not tss.get_material_channel_active(channel.name):
-                    continue
-
                 output_socket = last_layer_node.outputs.get(channel.name)
                 input_socket = shader_node.inputs.get(channel.name)
                 if output_socket and input_socket:
