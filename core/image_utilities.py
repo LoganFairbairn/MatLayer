@@ -3,19 +3,20 @@
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty
-from bpy_extras.io_utils import ImportHelper        # For importing images.
+from bpy_extras.io_utils import ImportHelper
 from ..core import texture_set_settings as tss
 from ..core import debug_logging
 from ..core import blender_addon_utils as bau
 from .. import preferences
 import random
-import os                                           # For saving layer images.
+import os
 import shutil
 
 def get_random_image_id():
     '''Generates a random image id number.'''
     return str(random.randrange(10000,99999))
 
+# TODO: Deprecate this, use default colorspace defined in shader channels instead.
 def set_image_colorspace_by_material_channel(image, material_channel_name):
     '''Correctly sets an image's colorspace based on the provided material channel for use within Blender.'''
     match material_channel_name:
@@ -223,59 +224,6 @@ class RYMAT_OT_import_texture_node_image(Operator, ImportHelper):
         # Copy the imported image to a folder next to the blend file (if save imported textures is on in the settings).
         save_raw_image(self.filepath, image.name)
         return {'FINISHED'}
-
-class RYMAT_OT_rename_texture_node_image(Operator):
-    bl_idname = "rymat.rename_texture_node_image"
-    bl_label = "Rename Texture Node Image"
-    bl_description = "Renames the image texture"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    new_image_name: StringProperty(default='')
-    node_tree_name: StringProperty(default="")
-    node_name: StringProperty(default="")
-    material_channel_name: StringProperty(default="")
-
-    def execute(self, context):
-
-        # Get the image texture from the provided node group.
-        node_group = bpy.data.node_groups.get(self.node_tree_name)
-        if not node_group:
-            debug_logging.log_status("Can't rename image texture node, node group invalid.", self)
-            return {'FINISHED'}
-        
-        texture_node = node_group.nodes.get(self.node_name)
-        if not texture_node:
-            debug_logging.log_status("Can't rename image texture node, texture node invalid.", self)
-            return {'FINISHED'}
-        
-        # Rename the image texture.
-        texture_node.image.name = self.new_image_name
-
-        return {'FINISHED'}
-    
-    def invoke(self, context, event):
-        # Get the image texture from the provided node group.
-        node_group = bpy.data.node_groups.get(self.node_tree_name)
-        if not node_group:
-            debug_logging.log_status("Can't rename image texture node, node group invalid.", self)
-            return {'FINISHED'}
-        
-        texture_node = node_group.nodes.get(self.node_name)
-        if not texture_node:
-            debug_logging.log_status("Can't rename image texture node, texture node invalid.", self)
-            return {'FINISHED'}
-        
-        # Pre-fill the new name with the current image name.
-        image = texture_node.image
-        if image:
-            self.new_image_name = image.name
-            
-        return context.window_manager.invoke_props_dialog(self)
-    
-    # Draw the pop-up menu manually to avoid showing texture node properties.
-    def draw(self, context):
-        layout = self.layout
-        layout.prop(self, "new_image_name", text="")
 
 class RYMAT_OT_edit_texture_node_image_externally(Operator):
     bl_idname = "rymat.edit_texture_node_image_externally"

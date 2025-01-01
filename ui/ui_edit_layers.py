@@ -50,6 +50,52 @@ def update_material_properties_tab(self, context):
             if mask_texture_node:
                 bau.set_texture_paint_image(mask_texture_node.image)
 
+def draw_image_texture_property(layout, node_tree, texture_node, texture_display_name=""):
+    '''Draws an image texture property with this add-ons image utility sub-menu.'''
+
+    # Draw the label.
+    split = layout.split(factor=STANDARD_UI_SPLIT)
+    first_column = split.column()
+    second_column = split.column()
+    row = first_column.row()
+    if texture_display_name == "":
+        texture_display_name = texture_node.label.replace('_', ' ')
+        texture_display_name = blender_addon_utils.capitalize_by_space(texture_display_name)
+    row.label(text=texture_display_name)
+
+    # Draw the image property as an ID template.
+    row = second_column.row(align=True)
+    row.template_ID(texture_node, "image")
+
+    # If there is no image linked to the texture node, draw an operator to create a new image.
+    if not texture_node.image:
+        operator = row.operator("rymat.add_texture_node_image", text="Add New Image", icon='NONE')
+        operator.node_tree_name = node_tree.name
+        operator.node_name = texture_node.name
+        operator.material_channel_name = texture_node.name.split('_')[0]
+
+    # Draw the custom image utility sub-menu for this add-on.
+    row.context_pointer_set("node_tree", node_tree)
+    row.context_pointer_set("node", texture_node)
+    row.menu("RYMAT_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+
+    # Draw other important image properties if an image is linked to the texture node.
+    if texture_node.image:
+        row = first_column.row()
+        row.label(text="Interpolation")
+        row = second_column.row()
+        row.prop(texture_node, "interpolation", text="")
+
+        row = first_column.row()
+        row.label(text="Color Space")
+        row = second_column.row()
+        row.prop(texture_node.image.colorspace_settings, "name", text="")
+
+        row = first_column.row()
+        row.label(text="Alpha Mode")
+        row = second_column.row()
+        row.prop(texture_node.image, "alpha_mode", text="")
+
 def draw_edit_layers_ui(self, context):
     '''Draws the layer section user interface to the add-on side panel.'''
     layout = self.layout
@@ -121,19 +167,15 @@ def draw_value_node_properties(layout, material_channel_name, layer_node_tree, s
                 row.prop(input, "default_value", text="")
         
         case 'TEX_IMAGE':
-            row = first_column.row()
-            row.label(text="Image")
-            row = second_column.row(align=True)
-            row.prop(value_node, "image", text="")
-            image = value_node.image
-            if image:
-                row.prop(image, "use_fake_user", text="")
 
-            # Draw a custom sub-menu for image utility operators.
-            row.context_pointer_set("node_tree", layer_node_tree)
-            row.context_pointer_set("node", value_node)
-            row.menu("RYMAT_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
+            # Draw the image texture property.
+            draw_image_texture_property(layout, layer_node_tree, value_node, texture_display_name="Image")
             
+            # Use a two column layout.
+            split = layout.split(factor=STANDARD_UI_SPLIT)
+            first_column = split.column()
+            second_column = split.column()
+
             # Draw a toggle for image alpha blending.
             row = first_column.row()
             row.label(text="Blend Image Alpha")
@@ -147,33 +189,15 @@ def draw_value_node_properties(layout, material_channel_name, layer_node_tree, s
                 )
                 operator.material_channel_name = material_channel_name
 
-            # Draw CRGB channel output options (mainly for channel packing).
+            # Draw CRGB channel output options.
             row = first_column.row()
-            row.label(text="Output")
+            row.label(text="CRGBA Output")
             row = second_column.row()
             row.context_pointer_set("mix_node", mix_node)
             output_channel_name = material_layers.get_material_channel_crgba_output(material_channel_name)
             if len(output_channel_name) > 0:
                 output_channel_name = bau.capitalize_by_space(output_channel_name)
                 row.menu("RYMAT_MT_material_channel_output_sub_menu", text=output_channel_name)
-
-            # Draw texture interpolation.
-            row = first_column.row()
-            row.label(text="Interpolation")
-            row = second_column.row()
-            row.prop(value_node, "interpolation", text="")
-
-            # Draw texture color-space and alpha settings.
-            if value_node.image:
-                row = first_column.row()
-                row.label(text="Color Space")
-                row = second_column.row()
-                row.prop(value_node.image.colorspace_settings, "name", text="")
-
-                row = first_column.row()
-                row.label(text="Alpha Mode")
-                row = second_column.row()
-                row.prop(value_node.image, "alpha_mode", text="")
 
 def draw_material_filter_name(layout, material_channel_name, filter_index, filter_node):
     split = layout.split(factor=STANDARD_UI_SPLIT)
@@ -358,30 +382,6 @@ def draw_unlayered_shader_properties(layout):
             row.label(text=input.name)
             row = second_column.row()
             row.prop(input, "default_value", text="")
-
-def draw_image_texture_property(layout, node_tree, texture_node):
-    '''Draws an image texture property with this add-ons image utility sub-menu.'''
-    split = layout.split(factor=STANDARD_UI_SPLIT)
-    first_column = split.column()
-    second_column = split.column()
-    row = first_column.row()
-    texture_display_name = texture_node.label.replace('_', ' ')
-    texture_display_name = blender_addon_utils.capitalize_by_space(texture_display_name)
-    row.label(text=texture_display_name)
-
-    row = second_column.row(align=True)
-    row.prop(texture_node, "image", text="")
-    image = texture_node.image
-    if image:
-        row.prop(image, "use_fake_user", text="")
-    row.context_pointer_set("node_tree", node_tree)
-    row.context_pointer_set("node", texture_node)
-    row.menu("RYMAT_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
-
-    row = first_column.row()
-    row.label(text="Interpolation")
-    row = second_column.row()
-    row.prop(texture_node, "interpolation", text="")
 
 def draw_mask_properties(layout, mask_node, mask_type, selected_layer_index, selected_mask_index):
     '''Draws group node properties for the selected mask.'''
@@ -807,11 +807,6 @@ class ImageUtilitySubMenu(Menu):
             operator.material_channel_name = material_channel_name
 
             operator = layout.operator("rymat.import_texture_node_image", text="Import Image", icon='NONE')
-            operator.node_tree_name = context.node_tree.name
-            operator.node_name = context.node.name
-            operator.material_channel_name = material_channel_name
-
-            operator = layout.operator("rymat.rename_texture_node_image", text="Rename Image", icon='NONE')
             operator.node_tree_name = context.node_tree.name
             operator.node_name = context.node.name
             operator.material_channel_name = material_channel_name
