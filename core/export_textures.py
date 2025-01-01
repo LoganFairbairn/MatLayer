@@ -158,7 +158,7 @@ default_export_template_json = {
 }
 
 default_json_file = {
-  "export_templates": [
+  "texture_export_presets": [
     {
       "name": "PBR Metallic Roughness",
       "roughness_map_mode": "ROUGHNESS",
@@ -648,8 +648,8 @@ def set_export_template(export_preset_name):
     # TODO: BPY context isn't available here if this is called on scene load.
     texture_export_settings = bpy.context.scene.rymat_texture_export_settings
     jdata = read_export_template_data()
-    export_templates = jdata['export_templates']
-    for template in export_templates:
+    texture_export_presets = jdata['texture_export_presets']
+    for template in texture_export_presets:
         if template['name'] == export_preset_name:
             texture_export_settings.export_preset_name = template['name']
             texture_export_settings.roughness_mode = template['roughness_map_mode']
@@ -830,7 +830,7 @@ def read_export_template_data():
         os.mkdir(template_folder_path)
 
     # If the export template doesn't exist, create a new default one.
-    templates_json_path = os.path.join(template_folder_path, "export_templates.json")
+    templates_json_path = os.path.join(template_folder_path, "texture_export_presets.json")
     if os.path.exists(templates_json_path):
         json_file = open(templates_json_path, "r")
         jdata = json.load(json_file)
@@ -847,21 +847,21 @@ def read_export_template_data():
 
 def save_export_template_data(json_data):
     '''Saves the specified json data to the export template file.'''
-    templates_path = str(Path(resource_path('USER')) / "scripts/addons" / ADDON_NAME / "json_data" / "export_templates.json")
+    templates_path = str(Path(resource_path('USER')) / "scripts/addons" / ADDON_NAME / "json_data" / "texture_export_presets.json")
     json_file = open(templates_path, "w")
     json.dump(json_data, json_file)
     json_file.close()
     
 def read_export_template_names():
     '''Reads all of the export template names from the json file into Blender memory.'''
-    templates_path = str(Path(resource_path('USER')) / "scripts/addons" / ADDON_NAME / "json_data" / "export_templates.json")
+    templates_path = str(Path(resource_path('USER')) / "scripts/addons" / ADDON_NAME / "json_data" / "texture_export_presets.json")
     json_file = open(templates_path, "r")
     jdata = json.load(json_file)
     json_file.close()
-    export_templates = jdata['export_templates']
-    cached_template_names = bpy.context.scene.rymat_export_templates
+    texture_export_presets = jdata['texture_export_presets']
+    cached_template_names = bpy.context.scene.rymat_texture_export_presets
     cached_template_names.clear()
-    for template in export_templates:
+    for template in texture_export_presets:
         cached_template = cached_template_names.add()
         cached_template.name = template['name']
     debug_logging.log("Updated export templates.")
@@ -1156,8 +1156,8 @@ class RYMAT_OT_save_export_template(Operator):
         jdata = read_export_template_data()
         template_existed = False
         new_export_template = None
-        export_templates = jdata['export_templates']
-        for template in export_templates:
+        texture_export_presets = jdata['texture_export_presets']
+        for template in texture_export_presets:
             if template['name'] == texture_export_settings.export_preset_name:
                 new_export_template = template
                 template_existed = True
@@ -1202,7 +1202,7 @@ class RYMAT_OT_save_export_template(Operator):
             debug_logging.log_status("Export template settings updated.", self, type='INFO')
             save_export_template_data(jdata)
         else:
-            jdata['export_templates'].append(new_export_template)
+            jdata['texture_export_presets'].append(new_export_template)
             debug_logging.log_status("New custom export template created.", self, type='INFO')
             save_export_template_data(jdata)
 
@@ -1222,11 +1222,11 @@ class RYMAT_OT_delete_export_template(Operator):
         jdata = read_export_template_data()
 
         # Delete the template if it exists in the json data.
-        export_templates = jdata['export_templates']
-        for template in export_templates:
+        texture_export_presets = jdata['texture_export_presets']
+        for template in texture_export_presets:
             if template['name'] == texture_export_settings.export_preset_name:
                 template_name = template['name']
-                export_templates.remove(template)
+                texture_export_presets.remove(template)
                 debug_logging.log_status("Deleted template: {0}".format(template_name), self, type='INFO')
                 break
         
@@ -1234,8 +1234,8 @@ class RYMAT_OT_delete_export_template(Operator):
         read_export_template_names()            # Update the cached template names.
 
         # Apply a different export template.
-        if len(export_templates) > 0:
-            set_export_template(export_templates[0]['name'])
+        if len(texture_export_presets) > 0:
+            set_export_template(texture_export_presets[0]['name'])
 
         return {'FINISHED'}
 
@@ -1319,7 +1319,7 @@ class ExportTemplateMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        cached_template_names = bpy.context.scene.rymat_export_templates
+        cached_template_names = bpy.context.scene.rymat_texture_export_presets
         for template in cached_template_names:
             op = layout.operator("rymat.set_export_template", text=template.name)
             op.export_preset_name = template.name

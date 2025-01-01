@@ -332,7 +332,7 @@ def register():
     # Other Properties
     bpy.types.Scene.rymat_texture_set_settings = PointerProperty(type=RYMAT_texture_set_settings)
     bpy.types.Scene.rymat_baking_settings = PointerProperty(type=RYMAT_baking_settings)
-    bpy.types.Scene.rymat_export_templates = CollectionProperty(type=RYMAT_export_template_names)
+    bpy.types.Scene.rymat_texture_export_presets = CollectionProperty(type=RYMAT_export_template_names)
     bpy.types.Scene.pause_auto_updates = BoolProperty(default=False)
     bpy.types.Scene.previous_active_material_name = StringProperty(default="")
     bpy.types.Scene.previous_object_name = StringProperty(default="")
