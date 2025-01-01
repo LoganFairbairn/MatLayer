@@ -50,12 +50,13 @@ class FileSubMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("rymat.save_all_textures", text="Save All Textures", icon='NONE')
-        layout.operator("rymat.append_default_workspace", text="Append Default Workspace", icon='NONE')
-        layout.operator("rymat.append_material_ball", text="Append Material Ball", icon='NONE')
-        layout.operator("rymat.export", text="Export Textures", icon='NONE')
-        layout.operator("rymat.export_uvs", text="Export UV Map", icon='NONE')
+        layout.operator("rymat.save_all_textures", text="Save All Textures", icon='FILE_TICK')
+        panel_properties = context.scene.rymat_panel_properties
+        layout.prop_enum(panel_properties, "sections", 'SECTION_EXPORT_TEXTURES', text="Export Textures", icon='EXPORT')
+        layout.operator("rymat.export_uvs", text="Export UV Map", icon='UV_DATA')
         layout.operator("rymat.remove_unused_textures", text="Remove Unused Textures", icon='NONE')
+        layout.operator("rymat.append_default_workspace", text="Append Default Workspace", icon='WORKSPACE')
+        layout.operator("rymat.append_material_ball", text="Append Material Ball", icon='MATSHADERBALL')
         layout.operator("rymat.apply_default_shader", text="Apply Default Shader", icon='NONE')
 
 class EditSubMenu(Menu):
@@ -70,7 +71,6 @@ class EditSubMenu(Menu):
         layout.prop_enum(panel_properties, "sections", 'SECTION_TEXTURE_SETTINGS', text="Texture Settings")
         layout.prop_enum(panel_properties, "sections", 'SECTION_SHADER_SETTINGS', text="Shader Settings", icon='MATSHADERBALL')
         layout.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS', text="Viewport Settings")
-        layout.prop_enum(panel_properties, "sections", 'SECTION_EXPORT_TEXTURES', text="Export Texture Settings", icon='EXPORT')
         layout.operator("rymat.add_black_outlines", text="Add Black Outlines")
         layout.operator("rymat.remove_outlines", text="Remove Black Outlines")
 
