@@ -659,7 +659,8 @@ def delete_material_channel_nodes(material_channel_name):
     # Link the input and output nodes so the material channel value is passed through the layer.
     input_node = get_material_layer_node('GROUP_INPUT', selected_layer_index, material_channel_name)
     output_node = get_material_layer_node('GROUP_OUTPUT', selected_layer_index, material_channel_name)
-    layer_node_tree.links.new(input_node.outputs.get(material_channel_name),output_node.inputs.get(material_channel_name))
+    channel_socket_name = shaders.get_shader_channel_socket_name(material_channel_name)
+    layer_node_tree.links.new(input_node.outputs.get(channel_socket_name),output_node.inputs.get(channel_socket_name))
 
 def organize_material_channel_frames(node_tree):
     '''Organizes all material channel frames for the selected layer.'''
@@ -2497,7 +2498,7 @@ class RYMAT_OT_show_compiled_material(Operator):
 class RYMAT_OT_toggle_image_alpha_blending(Operator):
     bl_idname = "rymat.toggle_image_alpha_blending"
     bl_label = "Toggle Image Alpha Blending"
-    bl_description = "Toggles blending the alpha channel of the image node into the layers opacity. Off by default for better shader compilation and viewport performance"
+    bl_description = "Toggles blending the alpha channel of the image node into the layers opacity"
     bl_options = {'REGISTER', 'UNDO'}
 
     material_channel_name: StringProperty(default='COLOR')

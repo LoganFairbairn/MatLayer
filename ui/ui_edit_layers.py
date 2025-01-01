@@ -147,69 +147,92 @@ def draw_edit_layers_ui(self, context):
         return
 
 def draw_value_node_properties(layout, material_channel_name, layer_node_tree, selected_layer_index, value_node, mix_node):
-    '''Draws properties for the provided value node.'''
+    '''Draws properties for the provided material channel value node.'''
 
-    # Use a two column layout.
+    # Use a three column layout.
     split = layout.split(factor=STANDARD_UI_SPLIT)
     first_column = split.column(align=True)
     second_column = split.column(align=True)
 
+    split = second_column.split(factor=0.9)
+    first_sub_column = split.column()
+    second_sub_column = split.column()
+
+    # Draw the name of the material channel.
+    row = first_column.row()
+    row.label(text=material_channel_name)
+    
     match value_node.bl_static_type:
         case 'RGB':
-            row = first_column.row()
-            row.label(text="Color")
-            row = second_column.row(align=True)
+            row = first_sub_column.row(align=True)
             row.prop(value_node.outputs[0], "default_value", text="")
 
         case 'VALUE':
-            row = first_column.row()
-            row.label(text="Color")
-            row = second_column.row(align=True)
+            row = first_sub_column.row(align=True)
             row.prop(value_node.outputs[0], "default_value", text="")
-
-        case 'GROUP':
-            row = first_column.row()
-            row.label(text="Node Tree")
-            row = second_column.row(align=True)
-            row.prop(value_node, "node_tree", text="")
-            for input in value_node.inputs:
-                row = first_column.row()
-                row.label(text=input.name)
-                row = second_column.row()
-                row.prop(input, "default_value", text="")
         
         case 'TEX_IMAGE':
+            # Draw the image property as an ID template.
+            row = first_sub_column.row(align=True)
+            row.template_ID(value_node, "image")
 
-            # Draw the image texture property.
-            draw_image_texture_property(layout, layer_node_tree, value_node, texture_display_name="Image")
-            
-            # Use a two column layout.
-            split = layout.split(factor=STANDARD_UI_SPLIT)
-            first_column = split.column()
-            second_column = split.column()
+            # If there is no image linked to the texture node, draw an operator to create a new image.
+            if not value_node.image:
+                operator = row.operator("rymat.add_texture_node_image", text="Add New Image", icon='NONE')
+                operator.node_tree_name = layer_node_tree.name
+                operator.node_name = value_node.name
+                operator.material_channel_name = value_node.name.split('-')[0]
 
-            # Draw a toggle for image alpha blending.
-            row = first_column.row()
-            row.label(text="Blend Image Alpha")
-            row = second_column.row()
-            mix_image_alpha_node = material_layers.get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
-            if mix_image_alpha_node:
-                operator = row.operator(
-                    "rymat.toggle_image_alpha_blending", 
-                    text=str(not mix_image_alpha_node.mute),
-                    depress=not mix_image_alpha_node.mute
-                )
-                operator.material_channel_name = material_channel_name
+            # Draw the custom image utility sub-menu for this add-on.
+            row.context_pointer_set("node_tree", layer_node_tree)
+            row.context_pointer_set("node", value_node)
+            row.menu("RYMAT_MT_image_utility_sub_menu", text="", icon='DOWNARROW_HLT')
 
-            # Draw CRGB channel output options.
-            row = first_column.row()
-            row.label(text="CRGBA Output")
-            row = second_column.row()
-            row.context_pointer_set("mix_node", mix_node)
-            output_channel_name = material_layers.get_material_channel_crgba_output(material_channel_name)
-            if len(output_channel_name) > 0:
-                output_channel_name = bau.capitalize_by_space(output_channel_name)
-                row.menu("RYMAT_MT_material_channel_output_sub_menu", text=output_channel_name)
+            # Draw other important image properties.
+            if value_node.image:
+                row = first_column.row()
+                row.label(text="Interpolation")
+                row = second_column.row()
+                row.prop(value_node, "interpolation", text="")
+
+                row = first_column.row()
+                row.label(text="Color Space")
+                row = second_column.row()
+                row.prop(value_node.image.colorspace_settings, "name", text="")
+
+                row = first_column.row()
+                row.label(text="Alpha Mode")
+                row = second_column.row()
+                row.prop(value_node.image, "alpha_mode", text="")
+
+                # Draw a toggle for image alpha blending.
+                row = first_column.row()
+                row.label(text="Blend Image Alpha")
+                row = second_column.row()
+                mix_image_alpha_node = material_layers.get_material_layer_node('MIX_IMAGE_ALPHA', selected_layer_index, material_channel_name)
+                if mix_image_alpha_node:
+                    operator = row.operator(
+                        "rymat.toggle_image_alpha_blending", 
+                        text=str(not mix_image_alpha_node.mute),
+                        depress=not mix_image_alpha_node.mute
+                    )
+                    operator.material_channel_name = material_channel_name
+
+                # Draw CRGB channel output options.
+                row = first_column.row()
+                row.label(text="CRGBA Output")
+                row = second_column.row()
+                row.context_pointer_set("mix_node", mix_node)
+                output_channel_name = material_layers.get_material_channel_crgba_output(material_channel_name)
+                if len(output_channel_name) > 0:
+                    output_channel_name = bau.capitalize_by_space(output_channel_name)
+                    row.menu("RYMAT_MT_material_channel_output_sub_menu", text=output_channel_name)
+
+    # Draw a sub-menu for editing the material channel.
+    row = second_sub_column.row(align=True)
+    row.alignment = 'RIGHT'
+    row.context_pointer_set("mix_node", mix_node)
+    row.menu('RYMAT_MT_material_channel_value_node_sub_menu', text="", icon='NODE')
 
 def draw_material_filter_name(layout, material_channel_name, filter_index, filter_node):
     split = layout.split(factor=STANDARD_UI_SPLIT)
@@ -229,12 +252,12 @@ def draw_filter_properties(layout, material_channel_name, selected_layer_index):
     layer_node = material_layers.get_material_layer_node('LAYER', selected_layer_index)
     static_channel_name = bau.format_static_matchannel_name(material_channel_name)
 
-    # Draw properties specifically for blur filters.
-    split = layout.split(factor=STANDARD_UI_SPLIT)
-    first_column = split.column(align=True)
-    second_column = split.column(align=True)
+    # Draw properties unique blur filters.
     blur_node = material_layers.get_material_layer_node('BLUR', selected_layer_index, material_channel_name)
     if blur_node:
+        split = layout.split(factor=STANDARD_UI_SPLIT)
+        first_column = split.column(align=True)
+        second_column = split.column(align=True)
         row = first_column.row()
         row.label(text="Blur Amount")
         row = second_column.row()
@@ -248,6 +271,10 @@ def draw_filter_properties(layout, material_channel_name, selected_layer_index):
     filter_node_name = static_channel_name + "_FILTER_" + str(filter_index)
     filter_node = layer_node.node_tree.nodes.get(filter_node_name)
     while filter_node:
+        split = layout.split(factor=STANDARD_UI_SPLIT)
+        first_column = split.column(align=True)
+        second_column = split.column(align=True)
+
         filter_type = material_filters.get_filter_type(filter_node)
         ui_sockets = material_filters.get_filter_info(filter_type, "ui_sockets")
 
@@ -282,18 +309,8 @@ def draw_filter_properties(layout, material_channel_name, selected_layer_index):
 def draw_material_channel_properties(layout):
     '''Draws properties for all active material channels on selected material layer.'''
     selected_layer_index = bpy.context.scene.rymat_layer_stack.selected_layer_index
-    layout.separator()
 
-    # Use a two column layout so the user interface aligns better.
-    split = layout.split(factor=STANDARD_UI_SPLIT)
-    first_column = split.column()
-    second_column = split.column()
-
-    # Draw material channels add menu.
-    row = first_column.row()
-    row.label(text="CHANNELS")
-    row = second_column.row()
-    row.menu("RYMAT_MT_add_material_channel_sub_menu", text="Add Channel", icon='ADD')
+    layout.menu("RYMAT_MT_add_material_channel_sub_menu", text="Add Channel", icon='ADD')
 
     # Avoid drawing material channel properties for invalid layers.
     if material_layers.get_material_layer_node('LAYER', selected_layer_index) == None:
@@ -302,30 +319,12 @@ def draw_material_channel_properties(layout):
     # Draw properties for all active material channels.
     shader_info = bpy.context.scene.rymat_shader_info
     for channel in shader_info.material_channels:
-
-        # Draw properties for all active material channels.
         layer_node_tree = material_layers.get_layer_node_tree(selected_layer_index)
         mix_node = material_layers.get_material_layer_node('MIX', selected_layer_index, channel.name)
         value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, channel.name)
         if value_node and mix_node:
             if not mix_node.mute:
                 layout.separator()
-
-                # Use a three column layout.
-                split = layout.split(factor=STANDARD_UI_SPLIT)
-                first_column = split.column(align=True)
-                second_column = split.column(align=True)
-                
-                # Draw the channel name and operators for editing the material channel.
-                row = first_column.row()
-                row.label(text="{0}".format(channel.name.upper()))
-                row = second_column.row()
-                row.alignment = 'RIGHT'
-                row.context_pointer_set("mix_node", mix_node)
-                row.menu('RYMAT_MT_material_channel_value_node_sub_menu', text="", icon='NODE')
-                operator = row.operator("rymat.delete_material_channel_nodes", text="", icon='X')
-                operator.material_channel_name = channel.name
-
                 draw_value_node_properties(layout, channel.name, layer_node_tree, selected_layer_index, value_node, mix_node)
                 draw_filter_properties(layout, channel.name, selected_layer_index)
 
@@ -905,6 +904,10 @@ class MaterialChannelValueNodeSubMenu(Menu):
         op = layout.operator("rymat.add_material_filter", text="Add Normal Intensity Filter", icon='FILTER')
         op.material_channel = material_channel_name
         op.filter_type = 'NORMAL_INTENSITY'
+
+        # Draw an operator to delete the material channel nodes from the layer.
+        operator = layout.operator("rymat.delete_material_channel_nodes", text="Delete Material Channel", icon='TRASH')
+        operator.material_channel_name = material_channel_name
 
 class MaskChannelSubMenu(Menu):
     bl_idname = "RYMAT_MT_mask_channel_sub_menu"
