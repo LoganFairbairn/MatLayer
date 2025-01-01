@@ -50,7 +50,7 @@ from .core.export_textures import RYMAT_pack_textures, RYMAT_RGBA_pack_channels,
 # Utilities
 from .core.image_utilities import RYMAT_OT_save_all_textures, RYMAT_OT_add_texture_node_image, RYMAT_OT_import_texture_node_image, RYMAT_OT_edit_texture_node_image_externally, RYMAT_OT_export_uvs, RYMAT_OT_reload_texture_node_image, RYMAT_OT_duplicate_texture_node_image, RYMAT_OT_delete_texture_node_image, RYMAT_OT_image_edit_uvs, auto_save_images
 from .core.layer_utilities import RYMAT_OT_import_texture_set, RYMAT_OT_merge_materials
-from .core.utility_operations import RYMAT_OT_append_default_workspace, RYMAT_OT_set_decal_layer_snapping, RYMAT_OT_append_hdri_world, RYMAT_OT_remove_unused_raw_textures, RYMAT_OT_append_material_ball, RYMAT_OT_add_black_outlines, RYMAT_OT_remove_outlines
+from .core.utility_operations import RYMAT_OT_append_default_workspace, RYMAT_OT_set_decal_layer_snapping, RYMAT_OT_append_hdri_world, RYMAT_OT_append_material_ball, RYMAT_OT_add_black_outlines, RYMAT_OT_remove_outlines
 
 # User Interface
 from .ui.ui_edit_layers import RYMAT_OT_add_material_layer_menu, RYMAT_OT_add_layer_mask_menu, AddMaterialChannelSubMenu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MaterialSelectorPanel, MaterialPropertiesPanel, ColorPalettePanel, MATERIAL_LAYER_PROPERTY_TABS, update_material_properties_tab
@@ -203,7 +203,6 @@ classes = (
     RYMAT_OT_append_default_workspace,
     RYMAT_OT_set_decal_layer_snapping,
     RYMAT_OT_append_hdri_world,
-    RYMAT_OT_remove_unused_raw_textures,
     RYMAT_OT_append_material_ball,
     RYMAT_OT_add_black_outlines,
     RYMAT_OT_remove_outlines,

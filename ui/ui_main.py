@@ -54,7 +54,6 @@ class FileSubMenu(Menu):
         panel_properties = context.scene.rymat_panel_properties
         layout.prop_enum(panel_properties, "sections", 'SECTION_EXPORT_TEXTURES', text="Export Textures", icon='EXPORT')
         layout.operator("rymat.export_uvs", text="Export UV Map", icon='UV_DATA')
-        layout.operator("rymat.remove_unused_textures", text="Remove Unused Textures", icon='NONE')
         layout.operator("rymat.append_default_workspace", text="Append Default Workspace", icon='WORKSPACE')
         layout.operator("rymat.append_material_ball", text="Append Material Ball", icon='MATSHADERBALL')
         layout.operator("rymat.apply_default_shader", text="Apply Default Shader", icon='NONE')
