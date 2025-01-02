@@ -658,7 +658,9 @@ class MaterialPropertiesPanel(Panel):
         row.operator("rymat.move_material_layer_up", icon='TRIA_UP', text="")
         row.operator("rymat.move_material_layer_down", icon='TRIA_DOWN', text="")
         row.operator("rymat.duplicate_layer", icon='DUPLICATE', text="")
-        row.operator("rymat.merge_with_layer_below", icon='TRIA_DOWN_BAR', text="")
+        addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+        if addon_preferences.experimental_features:
+            row.operator("rymat.merge_with_layer_below", icon='TRIA_DOWN_BAR', text="")
         row.operator("rymat.isolate_material_channel", text="", icon='MATERIAL')
         row.operator("rymat.show_compiled_material", text="", icon='SHADING_RENDERED')
         row.operator("rymat.delete_layer", icon='TRASH', text="")
