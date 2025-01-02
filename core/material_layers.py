@@ -2563,7 +2563,7 @@ class RYMAT_OT_set_layer_blending_mode(Operator):
 class RYMAT_OT_merge_with_layer_below(Operator):
     bl_idname = "rymat.merge_with_layer_below"
     bl_label = "Merge With Layer Below"
-    bl_description = "Merges the selected layer with the layer below it by converting all material channels to images through a baking operation"
+    bl_description = "Merges the selected layer with the layer below it by converting all material channels to images through a baking operation. This operator can take a while for merging complex layers with multiple material channels"
     bl_options = {'REGISTER', 'UNDO'}
 
     _timer = None
