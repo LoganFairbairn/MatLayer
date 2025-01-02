@@ -226,21 +226,54 @@ class RYMAT_OT_edit_texture_node_image_externally(Operator):
 
         node_group = bpy.data.node_groups.get(self.node_tree_name)
         if not node_group:
-            debug_logging.log_status("Provided node group does not exist in Blenders data when attempting to import a texture to a texture node.", self)
+            debug_logging.log_status(
+                "Provided node group does not exist in Blenders data when attempting to import a texture to a texture node.", 
+                self, 
+                type='ERROR'
+            )
             return {'FINISHED'}
 
         if self.node_name == "":
-            debug_logging.log_status("Provided texture node name is blank when attempting to import a texture to a texture node.", self)
+            debug_logging.log_status(
+                "Provided texture node name is blank when attempting to import a texture to a texture node.", 
+                self, 
+                type='ERROR'
+            )
             return {'FINISHED'}
         
         texture_node = node_group.nodes.get(self.node_name)
         if not texture_node:
-            debug_logging.log_status("Can't find the specified texture node when attempting to import a texture to a texture node.", self)
+            debug_logging.log_status(
+                "Can't find the specified texture node when attempting to import a texture to a texture node.", 
+                self, 
+                type='ERROR'
+            )
             return {'FINISHED'}
 
+        if bau.check_blend_saved() == False:
+            debug_logging.log_status(
+                "Please save your blend file to use this operator.", 
+                self, 
+                type='ERROR'
+            )
+            return {'FINISHED'}
+
+        # If the image is packed, unpack it and save it to the raw texture folder.
+        if texture_node.image.packed_file:
+            bau.save_image(
+                texture_node.image,
+                file_format='PNG',
+                image_category='RAW_TEXTURE',
+                colorspace='sRGB'
+            )
+
         # Save the image if it needs saving.
-        if texture_node.image.is_dirty:
+        elif texture_node.image.is_dirty:
             texture_node.image.save()
+        
+        # Abort the operation if the image still has no data loaded into blend memory.
+        if not texture_node.image.has_data:
+            return {'FINISHED'}
 
         # Select and then export the image to the external image editing software.
         bau.set_texture_paint_image(texture_node.image)

@@ -14,6 +14,12 @@ from ..core import texture_set_settings as tss
 from ..core import debug_logging
 from .. import preferences
 
+def check_blend_saved():
+    if bpy.path.abspath("//") == "":
+        return False
+    else:
+        return True
+
 def format_static_matchannel_name(channel_name):
     '''Formats the given material channel name to be used as node names and labels in the material node graph (replaces underscores and spaces with dashes and capitalizes the channel name).'''
 
