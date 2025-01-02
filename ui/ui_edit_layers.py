@@ -504,9 +504,9 @@ def draw_masks_tab(layout):
     row.operator("rymat.move_layer_mask_up", icon="TRIA_UP", text="")
     row.operator("rymat.move_layer_mask_down", icon="TRIA_DOWN", text="")
     row.operator("rymat.duplicate_layer_mask", icon="DUPLICATE", text="")
-    row.operator("rymat.delete_layer_mask", icon="TRASH", text="")
     row.operator("rymat.isolate_mask", text="", icon='MATERIAL')
     row.operator("rymat.show_compiled_material", text="", icon='SHADING_RENDERED')
+    row.operator("rymat.delete_layer_mask", icon="TRASH", text="")
 
     row = layout.row(align=True)
     row.template_list(
@@ -653,9 +653,9 @@ class MaterialPropertiesPanel(Panel):
         row.operator("rymat.move_material_layer_down", icon='TRIA_DOWN', text="")
         row.operator("rymat.duplicate_layer", icon='DUPLICATE', text="")
         row.operator("rymat.merge_with_layer_below", icon='TRIA_DOWN_BAR', text="")
-        row.operator("rymat.delete_layer", icon='TRASH', text="")
         row.operator("rymat.isolate_material_channel", text="", icon='MATERIAL')
         row.operator("rymat.show_compiled_material", text="", icon='SHADING_RENDERED')
+        row.operator("rymat.delete_layer", icon='TRASH', text="")
 
         # Draw the layer stack.
         row = layout.row(align=True)
