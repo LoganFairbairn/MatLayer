@@ -90,7 +90,7 @@ class RYMAT_panel_properties(bpy.types.PropertyGroup):
     )
 
 class RYMAT_PT_Panel(bpy.types.Panel):
-    bl_label = "RyMat 3.0.0"
+    bl_label = "RyMat 1.0.0"
     bl_idname = "RYMAT_PT_main_panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -102,6 +102,15 @@ class RYMAT_PT_Panel(bpy.types.Panel):
 
         # Draw a dropdown menu bar containing options for editing main parts of this add-on.
         draw_addon_dropdown_menu_bar(layout)
+
+        # Draw a 
+        panel_properties = context.scene.rymat_panel_properties
+        row = layout.row()
+        layout.prop_enum(panel_properties, "sections", 'SECTION_EDIT_MATERIALS', text="Materials")
+        layout.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS", text="Mesh Maps")
+        layout.prop_enum(panel_properties, "sections", 'SECTION_TEXTURE_SETTINGS', text="Texture Settings")
+        layout.prop_enum(panel_properties, "sections", 'SECTION_SHADER_SETTINGS', text="", icon='MATSHADERBALL')
+        layout.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS', text="", icon='VIEW3D')
 
         # Draw user interface based on the selected section.
         match panel_properties.sections:
