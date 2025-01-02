@@ -1226,7 +1226,7 @@ class RYMAT_OT_set_mask_crgba_channel(Operator):
     bl_description = "Sets the channel used for the mask to the specified value. This allows for the use of RGBA channel packed masks, and using image transparency as a mask"
     bl_options = {'REGISTER', 'UNDO'}
 
-    channel_name: StringProperty(default='COLOR')
+    channel_name: StringProperty(default='COLOR', options={'HIDDEN'})
 
     # Disable when there is no active object.
     @ classmethod

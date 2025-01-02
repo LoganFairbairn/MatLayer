@@ -2240,7 +2240,7 @@ class RYMAT_OT_add_material_channel_nodes(Operator):
     bl_description = "Adds framed material channel nodes for the specified material channel"
     bl_options = {'REGISTER', 'UNDO'}
 
-    material_channel_name: StringProperty(default="ERROR")
+    material_channel_name: StringProperty(default="ERROR", options={'HIDDEN'})
 
     @ classmethod
     def poll(cls, context):
@@ -2260,7 +2260,7 @@ class RYMAT_OT_delete_material_channel_nodes(Operator):
     bl_description = "Deletes all nodes for the specified material channel"
     bl_options = {'REGISTER', 'UNDO'}
 
-    material_channel_name: StringProperty(default="ERROR")
+    material_channel_name: StringProperty(default="ERROR", options={'HIDDEN'})
     
     @ classmethod
     def poll(cls, context):
@@ -2355,7 +2355,7 @@ class RYMAT_OT_move_material_layer_up(Operator):
     bl_description = "Moves the material layer up on the layer stack"
     bl_options = {'REGISTER', 'UNDO'}
 
-    direction: StringProperty(default='UP')
+    direction: StringProperty(default='UP', options={'HIDDEN'})
 
     # Disable when there is no active object.
     @ classmethod
@@ -2372,7 +2372,7 @@ class RYMAT_OT_move_material_layer_down(Operator):
     bl_description = "Moves the material layer down on the layer stack"
     bl_options = {'REGISTER', 'UNDO'}
 
-    direction: StringProperty(default='UP')
+    direction: StringProperty(default='UP', options={'HIDDEN'})
 
     # Disable when there is no active object.
     @ classmethod
@@ -2389,7 +2389,7 @@ class RYMAT_OT_toggle_material_channel_preview(Operator):
     bl_description = "Toggle on / off a preview for the selected material channel"
     bl_options = {'REGISTER', 'UNDO'}
 
-    direction: StringProperty(default='UP')
+    direction: StringProperty(default='UP', options={'HIDDEN'})
 
     # Disable when there is no active object.
     @ classmethod
@@ -2405,7 +2405,7 @@ class RYMAT_OT_toggle_hide_layer(Operator):
     bl_description = "Hides / Unhides the layer by muting / unmuting the layer group node and triggering a relink of group nodes"
     bl_options = {'REGISTER', 'UNDO'}
 
-    layer_index: IntProperty(default=-1)
+    layer_index: IntProperty(default=-1, options={'HIDDEN'})
 
     # Disable when there is no active object.
     @ classmethod
@@ -2429,7 +2429,7 @@ class RYMAT_OT_set_layer_projection(Operator):
     bl_description = "Sets the projection mode for the layer to UV projection, which uses the UV layout of the object to project textures used on this material layer"
     bl_options = {'REGISTER', 'UNDO'}
 
-    projection_method: StringProperty(default='UV')
+    projection_method: StringProperty(default='UV', options={'HIDDEN'})
 
     # Disable when there is no active object.
     @ classmethod
@@ -2446,8 +2446,8 @@ class RYMAT_OT_change_material_channel_value_node(Operator):
     bl_description = "Changes value node representing the provided layer material channel"
     bl_options = {'REGISTER', 'UNDO'}
 
-    material_channel_name: StringProperty(default='COLOR')
-    node_type: StringProperty(default='GROUP')
+    material_channel_name: StringProperty(default='COLOR', options={'HIDDEN'})
+    node_type: StringProperty(default='GROUP', options={'HIDDEN'})
 
     # Disable when there is no active object.
     @ classmethod
@@ -2501,7 +2501,7 @@ class RYMAT_OT_toggle_image_alpha_blending(Operator):
     bl_description = "Toggles blending the alpha channel of the image node into the layers opacity"
     bl_options = {'REGISTER', 'UNDO'}
 
-    material_channel_name: StringProperty(default='COLOR')
+    material_channel_name: StringProperty(default='COLOR', options={'HIDDEN'})
 
     @ classmethod
     def poll(cls, context):
@@ -2516,7 +2516,7 @@ class RYMAT_OT_set_material_channel(Operator):
     bl_label = "Set Material Channel"
     bl_description = "Sets the material channel being edited in the layer stack"
 
-    material_channel_name: StringProperty(default="NONE")
+    material_channel_name: StringProperty(default="NONE", options={'HIDDEN'})
 
     def execute(self, context):
         bpy.context.scene.rymat_layer_stack.selected_material_channel = self.material_channel_name
@@ -2529,8 +2529,8 @@ class RYMAT_OT_set_matchannel_crgba_output(Operator):
     bl_description = "Sets the material channel to use the specified output channel"
     bl_options = {'REGISTER', 'UNDO'}
 
-    output_channel_name: StringProperty(default='COLOR')
-    material_channel_name: StringProperty(default='COLOR')
+    output_channel_name: StringProperty(default='COLOR', options={'HIDDEN'})
+    material_channel_name: StringProperty(default='COLOR', options={'HIDDEN'})
 
     @ classmethod
     def poll(cls, context):
@@ -2547,8 +2547,8 @@ class RYMAT_OT_set_layer_blending_mode(Operator):
     bl_description = "Sets the blending mode for the layer at the specified index"
     bl_options = {'REGISTER', 'UNDO'}
 
-    layer_index: IntProperty(default=-1)
-    blending_mode: StringProperty(default='MIX')
+    layer_index: IntProperty(default=-1, options={'HIDDEN'})
+    blending_mode: StringProperty(default='MIX', options={'HIDDEN'})
 
     @ classmethod
     def poll(cls, context):
