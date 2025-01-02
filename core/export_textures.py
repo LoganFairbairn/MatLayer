@@ -877,7 +877,7 @@ class RYMAT_texture_set_export_settings(PropertyGroup):
     roughness_mode: EnumProperty(name="Roughness Mode", items=ROUGHNESS_MODE, default='ROUGHNESS')
     normal_map_mode: EnumProperty(name="Normal Map Mode", items=NORMAL_MAP_MODE, default='OPEN_GL')
     export_mode: EnumProperty(name="Export Active Material", items=EXPORT_MODE, description="Exports only the active material using the defined export settings", default='SINGLE_TEXTURE_SET')
-    samples: IntProperty(name="Samples", default=1024, description="Sample count for baking export textures. Higher counts result in exported textures being less noisy, but exporting textures will take longer")
+    samples: IntProperty(name="Samples", default=32, description="Sample count for baking export textures. Higher counts result in exported textures that are baked from materials that rely on sampling (blurred materials, procedural materials) being less noisy.")
 
 class RYMAT_export_template_names(PropertyGroup):
     name: bpy.props.StringProperty()
