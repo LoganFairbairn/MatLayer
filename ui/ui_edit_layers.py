@@ -324,7 +324,7 @@ def draw_material_channel_properties(layout):
         value_node = material_layers.get_material_layer_node('VALUE', selected_layer_index, channel.name)
         if value_node and mix_node:
             if not mix_node.mute:
-                layout.separator()
+                layout.separator(type='LINE')
                 draw_value_node_properties(layout, channel.name, layer_node_tree, selected_layer_index, value_node, mix_node)
                 draw_filter_properties(layout, channel.name, selected_layer_index)
 

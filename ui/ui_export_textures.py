@@ -132,7 +132,7 @@ def draw_export_textures_ui(self, context):
     # Draw channel packing textures.
     for i, texture in enumerate(texture_export_settings.export_textures):
         row = layout.row()
-        layout.separator()
+        layout.separator(type='LINE')
         split = layout.split(factor=0.4)
         first_column = split.column()
         second_column = split.column()
