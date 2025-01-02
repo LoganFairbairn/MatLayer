@@ -548,6 +548,35 @@ class MaterialSelectorPanel(Panel):
         active_object = bpy.context.active_object
         if not active_object:
             return
+        
+        # Use a two column layout.
+        split = layout.split(factor=0.925)
+        first_column = split.column()
+        second_column = split.column()
+
+        # Draw the material slots list.
+        col = first_column.column()
+        col.template_list(
+            "MATERIAL_UL_matslots",
+            "",
+            active_object,
+            "material_slots",
+            active_object,
+            "active_material_index",
+            rows=4
+        )
+
+        # Draw operators to edit material slots.
+        col = second_column.column(align=True)
+        col.operator("rymat.add_material_slot", text="", icon='ADD')
+        col.operator("rymat.remove_material_slot", text="", icon='REMOVE')
+
+        col = second_column.column(align=True)
+        col.separator()
+
+        col = second_column.column(align=True)
+        col.operator("rymat.move_material_slot_up", text="", icon='TRIA_UP')
+        col.operator("rymat.move_material_slot_down", text="", icon='TRIA_DOWN')
 
         # Draw the active material.
         split = layout.split(factor=STANDARD_UI_SPLIT)
@@ -556,7 +585,11 @@ class MaterialSelectorPanel(Panel):
         row = first_column.row()
         row.label(text="Active Material")
         row = second_column.row()
-        row.prop(bpy.context.active_object, "active_material", text="")
+        row.template_ID(
+            bpy.context.active_object, 
+            "active_material", 
+            new="rymat.add_material_layer"
+        )
 
         # Draw the shader node detected the active material.
         active_material = bpy.context.active_object.active_material
@@ -572,37 +605,6 @@ class MaterialSelectorPanel(Panel):
                 row.label(text="NONE")
         else:
             row.label(text="NONE")
-
-        # Draw material slots on the active object.
-        split = layout.split(factor=0.925)
-        first_column = split.column(align=True)
-        second_column = split.column(align=True)
-        second_column.scale_x = 0.1
-        first_column.template_list("MATERIAL_UL_matslots", "Layers", bpy.context.active_object, "material_slots", bpy.context.active_object, "active_material_index")
-        second_column.operator("rymat.add_material_slot", text="", icon='ADD')
-        second_column.operator("rymat.remove_material_slot", text="-")
-        second_column.operator("rymat.move_material_slot_up", text="", icon='TRIA_UP')
-        second_column.operator("rymat.move_material_slot_down", text="", icon='TRIA_DOWN')
-
-        if bpy.context.object.mode == 'EDIT':
-            row = layout.row(align=True)
-            row.operator("object.material_slot_assign", text="Assign", icon='NONE')
-            row.operator("object.material_slot_select", text="Select", icon='NONE')
-            row.operator("object.material_slot_deselect", text="Deselect", icon='NONE')
-        
-        # TODO: Deprecate this if drag 'n drop material merging is implemented.
-        '''
-        split = layout.split(factor=0.70)
-        first_column = split.column()
-        second_column = split.column()
-        col = first_column.column()
-        if bpy.context.active_object:
-            col.prop(bpy.context.active_object, "active_material", text="")
-            col.prop(bpy.context.scene, "rymat_merge_material", text="")
-            col = second_column.column()
-            col.scale_y = 2.0
-            col.operator("rymat.merge_materials", text="Merge")
-        '''
 
 class ColorPalettePanel(Panel):
     bl_label = "Color Palette"
