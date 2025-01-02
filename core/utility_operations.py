@@ -42,7 +42,7 @@ class RYMAT_OT_append_default_workspace(Operator):
             new_library.name = "RyMat Default Assets"
             new_library.path = str(USER / "scripts/addons" / ADDON / "blend")
 
-        self.report({'INFO'}, "Appended workspace (check the workspaces / user interface layouts at the top of your screen).")
+        self.report({'INFO'}, "Appended default workspace.")
 
         return {'FINISHED'}
 
