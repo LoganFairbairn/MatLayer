@@ -99,7 +99,7 @@ class RYMAT_OT_save_all_textures(Operator):
     bl_description = "Saves all unsaved image textures in the blend file (using default save method in texture settings)"
 
     def execute(self, context):
-        save_all_textures(self)
+        save_all_textures()
         debug_logging.log_status("Saved all images.", self, type='INFO')
         return {'FINISHED'}
 
@@ -137,7 +137,14 @@ class RYMAT_OT_add_texture_node_image(Operator):
         addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
         image_width = tss.get_texture_width()
         image_height = tss.get_texture_height()
-        new_image = bau.create_image(image_name, image_width, image_height, alpha_channel=True, thirty_two_bit=addon_preferences.thirty_two_bit)
+        new_image = bau.create_image(
+            image_name, 
+            image_width, 
+            image_height,
+            base_color=[0.0, 0.0, 0.0, 0.0],
+            alpha_channel=True, 
+            thirty_two_bit=addon_preferences.thirty_two_bit
+        )
     
         # If a material channel is defined, set the color space.
         if self.material_channel_name != "":
@@ -148,8 +155,11 @@ class RYMAT_OT_add_texture_node_image(Operator):
         if image:
             bau.save_image(image, file_format='PNG', image_category='RAW_TEXTURE', colorspace='sRGB')
 
-        texture_node.image = new_image                                              # Add the new image to the image node.
-        bpy.context.scene.tool_settings.image_paint.canvas = texture_node.image     # Select the new texture for painting.
+        # Add the new image to the image node.
+        texture_node.image = new_image
+
+        # Select the new texture for painting.
+        bau.set_texture_paint_image(new_image)
         
         return {'FINISHED'}
 
