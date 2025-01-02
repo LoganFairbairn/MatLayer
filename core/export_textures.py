@@ -545,14 +545,12 @@ def channel_pack_textures(texture_set_name):
         )
 
     # Delete temp material channel bake images, they are no longer needed because they are packed into new textures now.
-    '''
     shader_info = bpy.context.scene.rymat_shader_info
     for channel in shader_info.material_channels:
         temp_material_channel_image_name = format_baked_material_channel_name(texture_set_name, channel.name )
         temp_material_channel_image = bpy.data.images.get(temp_material_channel_image_name)
         if temp_material_channel_image:
             bpy.data.images.remove(temp_material_channel_image)
-    '''
 
     debug_logging.log("Channel packed textures.")
 
