@@ -644,15 +644,15 @@ class MaterialPropertiesPanel(Panel):
     def draw(self, context):
         layout = self.layout
 
-        # Draw the selected material channel.
-        row = layout.row()
-        selected_material_channel = bpy.context.scene.rymat_layer_stack.selected_material_channel
-        row.menu("RYMAT_MT_material_channel_sub_menu", text=selected_material_channel)
+        # Use a two column layout.
+        split = layout.split(factor=0.5)
+        first_column = split.column()
+        second_column = split.column()
 
         # Draw layer operations.
-        row = layout.row(align=True)
-        row.scale_y = 1.5
+        row = first_column.row(align=True)
         row.scale_x = 10
+        row.scale_y = 1.5
         row.operator("rymat.add_material_layer_menu", icon='ADD', text="")
         row.operator("rymat.import_texture_set", icon='IMPORT', text="")
         row.operator("rymat.move_material_layer_up", icon='TRIA_UP', text="")
@@ -664,6 +664,12 @@ class MaterialPropertiesPanel(Panel):
         row.operator("rymat.isolate_material_channel", text="", icon='MATERIAL')
         row.operator("rymat.show_compiled_material", text="", icon='SHADING_RENDERED')
         row.operator("rymat.delete_layer", icon='TRASH', text="")
+
+        # Draw the selected material channel.
+        row = second_column.row()
+        row.scale_y = 1.5
+        selected_material_channel = bpy.context.scene.rymat_layer_stack.selected_material_channel
+        row.menu("RYMAT_MT_material_channel_sub_menu", text=selected_material_channel)
 
         # Draw the layer stack.
         row = layout.row(align=True)
