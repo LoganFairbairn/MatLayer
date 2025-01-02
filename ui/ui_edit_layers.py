@@ -864,11 +864,11 @@ class MaterialChannelValueNodeSubMenu(Menu):
         # Get the material channel name from the mix node being drawn.
         material_channel_name = context.mix_node.name.replace('-MIX', '')
 
-        operator = layout.operator("rymat.change_material_channel_value_node", text="Use Value Node", icon='NONE')
+        operator = layout.operator("rymat.change_material_channel_value_node", text="Use Value Node", icon='SHADING_SOLID')
         operator.material_channel_name = material_channel_name
         operator.node_type = 'VALUE'
 
-        operator = layout.operator("rymat.change_material_channel_value_node", text="Use Texture", icon='NONE')
+        operator = layout.operator("rymat.change_material_channel_value_node", text="Use Texture", icon='IMAGE_DATA')
         operator.material_channel_name = material_channel_name
         operator.node_type = 'TEXTURE'
 
