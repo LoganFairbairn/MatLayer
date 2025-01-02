@@ -59,6 +59,24 @@ def save_raw_image(original_image_path, original_image_name):
             debug_logging.log("Imported image copied to the raw texture folder.")
         debug_logging.log("Imported image already exists within the raw texture folder.")
 
+def save_all_textures():
+    '''Saves all unsaved image textures in the blend file (using default save method in texture settings)'''
+    addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
+
+    # If the default save method is pack,
+    # pack all images in the blend file that have no filepath, and unsaved data.
+    if addon_preferences.default_texture_save_method == 'PACK':
+        for image in bpy.data.images:
+            if image.filepath == '' and image.is_dirty and image.has_data:
+                image.pack()
+
+    # If the default save method if saving externally, trigger a save
+    # for all images that have a defined filepath and unsaved data..
+    else:
+        for image in bpy.data.images:
+            if image.filepath == '' and image.is_dirty and image.has_data:
+                image.save()
+    
 def auto_save_images():
     '''Auto-saves all images in the blend file that are dirty and have defined paths.'''
     addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
@@ -66,11 +84,8 @@ def auto_save_images():
 
         # To avoid errors with saving and baking textures at the same time, only run auto-save when there is no baking in progress.
         if not bpy.app.is_job_running('OBJECT_BAKE'):
-            for image in bpy.data.images:
-                if image.is_dirty:
-                    if image.filepath:
-                        image.save()
-            debug_logging.log("Auto saved all images.", message_type='INFO', sub_process=False)
+            save_all_textures()
+            debug_logging.log("Auto-saved all images.", message_type='INFO', sub_process=False)
 
         # Return the time until the auto-save should be called again.
         return addon_preferences.image_auto_save_interval
@@ -84,22 +99,7 @@ class RYMAT_OT_save_all_textures(Operator):
     bl_description = "Saves all unsaved image textures in the blend file (using default save method in texture settings)"
 
     def execute(self, context):
-        addon_preferences = bpy.context.preferences.addons[preferences.ADDON_NAME].preferences
-
-        # If the default save method is pack,
-        # pack all images in the blend file that have no filepath, and unsaved data.
-        if addon_preferences.default_texture_save_method == 'PACK':
-            for image in bpy.data.images:
-                if image.filepath == '' and image.is_dirty and image.has_data:
-                    image.pack()
-
-        # If the default save method if saving externally, trigger a save
-        # for all images that have a defined filepath and unsaved data..
-        else:
-            for image in bpy.data.images:
-                if image.filepath == '' and image.is_dirty and image.has_data:
-                    image.save()
-
+        save_all_textures(self)
         debug_logging.log_status("Saved all images.", self, type='INFO')
         return {'FINISHED'}
 
