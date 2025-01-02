@@ -583,8 +583,12 @@ class MaterialSelectorPanel(Panel):
         second_column.operator("rymat.remove_material_slot", text="-")
         second_column.operator("rymat.move_material_slot_up", text="", icon='TRIA_UP')
         second_column.operator("rymat.move_material_slot_down", text="", icon='TRIA_DOWN')
-        second_column.operator("object.material_slot_assign", text="", icon='MATERIAL_DATA')
-        second_column.operator("object.material_slot_select", text="", icon='SELECT_SET')
+
+        if bpy.context.object.mode == 'EDIT':
+            row = layout.row(align=True)
+            row.operator("object.material_slot_assign", text="Assign", icon='NONE')
+            row.operator("object.material_slot_select", text="Select", icon='NONE')
+            row.operator("object.material_slot_deselect", text="Deselect", icon='NONE')
         
         # TODO: Deprecate this if drag 'n drop material merging is implemented.
         '''
