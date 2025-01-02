@@ -10,12 +10,6 @@ from . import ui_viewport
 from ..core import export_textures
 from ..core import shaders
 
-def check_blend_saved():
-    if bpy.path.abspath("//") == "":
-        return False
-    else:
-        return True
-
 def update_main_ui_tabs(self, context):
     '''Callback function for updating data when the main user interface tab is changed.'''
 
