@@ -56,7 +56,7 @@ from .core.utility_operations import RYMAT_OT_append_default_workspace, RYMAT_OT
 from .ui.ui_edit_layers import RYMAT_OT_add_material_layer_menu, RYMAT_OT_add_layer_mask_menu, AddMaterialChannelSubMenu, MaterialChannelSubMenu, ImageUtilitySubMenu, LayerProjectionModeSubMenu, MaskProjectionModeSubMenu, MaterialChannelValueNodeSubMenu, MaskChannelSubMenu, MaterialChannelOutputSubMenu, MaterialSelectorPanel, MaterialPropertiesPanel, ColorPalettePanel, MATERIAL_LAYER_PROPERTY_TABS, update_material_properties_tab
 from .ui.ui_settings import ShaderSubMenu, RYMAT_UL_shader_channel_list, RYMAT_UL_global_shader_property_list
 from .ui.ui_layer_stack import RYMAT_UL_layer_list, LayerBlendingModeSubMenu
-from .ui.ui_main import FileSubMenu, EditSubMenu, HelpSubMenu, RYMAT_panel_properties, RYMAT_PT_Panel
+from .ui.ui_main import MiscSubMenu, RYMAT_panel_properties, RYMAT_PT_Panel
 
 # Subscription Update Handler
 from .core.subscription_update_handler import on_active_material_changed, on_active_object_changed, on_active_object_name_changed, on_active_material_index_changed, on_active_material_name_changed
@@ -208,9 +208,7 @@ classes = (
     RYMAT_OT_remove_outlines,
 
     # User Interface
-    FileSubMenu,
-    EditSubMenu,
-    HelpSubMenu,
+    MiscSubMenu,
     ShaderSubMenu,
     RYMAT_UL_shader_channel_list,
     RYMAT_UL_global_shader_property_list,

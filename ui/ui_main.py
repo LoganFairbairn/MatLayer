@@ -10,7 +10,7 @@ from . import ui_viewport
 from ..core import export_textures
 from ..core import shaders
 
-def update_main_ui_tabs(self, context):
+def update_main_ui_sections(self, context):
     '''Callback function for updating data when the main user interface tab is changed.'''
 
     # Read json data for available shaders when the shader tab is selected.
@@ -21,59 +21,20 @@ def update_main_ui_tabs(self, context):
     if context.scene.rymat_panel_properties.sections == 'SECTION_EXPORT_TEXTURES':
         export_textures.read_export_template_names()
 
-def draw_addon_dropdown_menu_bar(layout):
-    '''Draws a dropdown menu bar for this add-on.'''
-    
-    split = layout.split(factor=0.3)
-    first_column = split.column()
-    second_column = split.column()
-    
-    panel_properties = bpy.context.scene.rymat_panel_properties
-    row = first_column.row()
-    row.prop_enum(panel_properties, "sections", 'SECTION_EDIT_MATERIALS', text="EDIT MATERIALS", icon='NONE')
-
-    row = second_column.row(align=True)
-    row.alignment = 'LEFT'
-    row.menu("RYMAT_MT_file_sub_menu", text="File")
-    row.menu("RYMAT_MT_edit_sub_menu", text="Edit")
-    row.menu("RYMAT_MT_help_sub_menu", text="Help")
-
-class FileSubMenu(Menu):
-    bl_idname = "RYMAT_MT_file_sub_menu"
-    bl_label = "File Sub Menu"
+class MiscSubMenu(Menu):
+    bl_idname = "RYMAT_MT_misc_sub_menu"
+    bl_label = "Main Sub Menu"
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("rymat.save_all_textures", text="Save All Textures", icon='FILE_TICK')
-        panel_properties = context.scene.rymat_panel_properties
-        layout.prop_enum(panel_properties, "sections", 'SECTION_EXPORT_TEXTURES', text="Export Textures", icon='EXPORT')
-        layout.operator("rymat.export_uvs", text="Export UV Map", icon='UV_DATA')
-        layout.operator("rymat.append_default_workspace", text="Append Default Workspace", icon='WORKSPACE')
-        layout.operator("rymat.append_material_ball", text="Append Material Ball", icon='MATSHADERBALL')
+        # May not need this, users could use externally edit UVs instead.
+        #layout.operator("rymat.export_uvs", text="Export UV Map", icon='NONE')
+        layout.operator("rymat.append_default_workspace", text="Append Default Workspace", icon='NONE')
+        layout.operator("rymat.append_material_ball", text="Append Material Ball", icon='NONE')
         layout.operator("rymat.apply_default_shader", text="Apply Default Shader", icon='NONE')
-
-class EditSubMenu(Menu):
-    bl_idname = "RYMAT_MT_edit_sub_menu"
-    bl_label = "Edit Sub Menu"
-
-    def draw(self, context):
-        layout = self.layout
-        panel_properties = context.scene.rymat_panel_properties
-        layout.prop_enum(panel_properties, "sections", 'SECTION_EDIT_MATERIALS', text="Materials")
-        layout.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS", text="Mesh Maps")
-        layout.prop_enum(panel_properties, "sections", 'SECTION_TEXTURE_SETTINGS', text="Texture Settings")
-        layout.prop_enum(panel_properties, "sections", 'SECTION_SHADER_SETTINGS', text="Shader Settings", icon='MATSHADERBALL')
-        layout.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS', text="Viewport Settings")
-        layout.operator("rymat.add_black_outlines", text="Add Black Outlines")
-        layout.operator("rymat.remove_outlines", text="Remove Black Outlines")
-
-class HelpSubMenu(Menu):
-    bl_idname = "RYMAT_MT_help_sub_menu"
-    bl_label = "Help Sub Menu"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("wm.url_open", text="Documentation", icon='HELP').url = "https://loganfairbairn.github.io/rymat_documentation.html"
+        layout.operator("rymat.add_black_outlines", text="Add Black Outlines", icon='NONE')
+        layout.operator("rymat.remove_outlines", text="Remove Black Outlines", icon='NONE')
+        layout.operator("wm.url_open", text="Documentation", icon='NONE').url = "https://loganfairbairn.github.io/rymat_documentation.html"
 
 class RYMAT_panel_properties(bpy.types.PropertyGroup):
     sections: bpy.props.EnumProperty(
@@ -86,7 +47,7 @@ class RYMAT_panel_properties(bpy.types.PropertyGroup):
         name="RyMat Sections",
         description="Current rymat category",
         default='SECTION_EDIT_MATERIALS',
-        update=update_main_ui_tabs
+        update=update_main_ui_sections
     )
 
 class RYMAT_PT_Panel(bpy.types.Panel):
@@ -100,17 +61,40 @@ class RYMAT_PT_Panel(bpy.types.Panel):
         layout = self.layout
         panel_properties = context.scene.rymat_panel_properties
 
-        # Draw a dropdown menu bar containing options for editing main parts of this add-on.
-        draw_addon_dropdown_menu_bar(layout)
+        # Split the UI into a two column layout.
+        split = layout.split(factor=0.9)
+        first_column = split.column()
+        second_column = split.column()
 
-        # Draw a 
         panel_properties = context.scene.rymat_panel_properties
-        row = layout.row()
-        layout.prop_enum(panel_properties, "sections", 'SECTION_EDIT_MATERIALS', text="Materials")
-        layout.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS", text="Mesh Maps")
-        layout.prop_enum(panel_properties, "sections", 'SECTION_TEXTURE_SETTINGS', text="Texture Settings")
-        layout.prop_enum(panel_properties, "sections", 'SECTION_SHADER_SETTINGS', text="", icon='MATSHADERBALL')
-        layout.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS', text="", icon='VIEW3D')
+
+        split = first_column.split(factor=0.1)
+        first_sub_column = split.column()
+        second_sub_column = split.column()
+
+        # Draw an operator to save all textures in the blend file.
+        row = first_sub_column.row()
+        row.scale_x = 10
+        row.scale_y = 1.5
+        row.operator("rymat.save_all_textures", text="", icon='FILE_TICK')
+        
+        # Draw a top bar with tabs for accessing different menus of the add-on.
+        row = second_sub_column.row(align=True)
+        row.scale_x = 10
+        row.scale_y = 1.5
+        row.prop_enum(panel_properties, "sections", 'SECTION_EDIT_MATERIALS', text="", icon='MATERIAL')
+        row.prop_enum(panel_properties, "sections", "SECTION_MESH_MAPS", text="", icon='FACE_MAPS')
+        row.prop_enum(panel_properties, "sections", 'SECTION_TEXTURE_SETTINGS', text="", icon='TEXTURE')
+        row.prop_enum(panel_properties, "sections", 'SECTION_EXPORT_TEXTURES', text="", icon='EXPORT')
+        row.prop_enum(panel_properties, "sections", 'SECTION_SHADER_SETTINGS', text="", icon='MATSHADERBALL')
+        row.prop_enum(panel_properties, "sections", 'SECTION_VIEWPORT_SETTINGS', text="", icon='VIEW3D')
+
+        # Draw a sub-menu for misc operators.
+        row = second_column.row(align=True)
+        row.ui_units_x = 10
+        row.scale_x = 10
+        row.scale_y = 1.5
+        row.menu("RYMAT_MT_misc_sub_menu", text="", icon='TOOL_SETTINGS')
 
         # Draw user interface based on the selected section.
         match panel_properties.sections:
