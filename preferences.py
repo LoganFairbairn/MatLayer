@@ -39,7 +39,7 @@ class AddonPreferences(AddonPreferences):
 
     auto_save_images: BoolProperty(
         name="Auto Save Images",
-        default=False,
+        default=True,
         description="(Requires Blender Restart) - If on, all images in the blend file that have defined paths, and require saving will be auto-saved at the defined interval."
     )
 
