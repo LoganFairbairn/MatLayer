@@ -389,13 +389,13 @@ def channel_pack(pack_textures, input_packing, output_packing, image_name_format
             # Skip 4 elements using extended slice because there are 4 elements in each pixel (RGBA).
             image.pixels.foreach_get(source_pixels)
             output_pixels[output_packing[channel_index]::4] = source_pixels[input_packing[channel_index]::4]
-            
+        
+        # If 'None' is used as a pack texture, fill the pixels with a default value.
+        # RGB channels are default 0.0.
+        # Alpha channels are default 1.0.
         else:
-            # If an alpha image is not provided, alpha is 1.0.
             if channel_index == 3:
                 output_pixels[channel_index::4] = 1.0
-
-            # If an image other than alpha is not provided, channel is 0.0.
             else:
                 output_pixels[channel_index::4] = 0.0
         
@@ -412,7 +412,7 @@ def channel_pack(pack_textures, input_packing, output_packing, image_name_format
         case 'THIRTY_TWO':
             use_thirty_two_bit = True
 
-    # Create an image using the packed pixels and save them to the disk.
+    # Create an image using the packed pixels.
     image_name = format_export_image_name(image_name_format)
     packed_image = bau.create_data_image(
         image_name,
@@ -431,7 +431,7 @@ def channel_pack(pack_textures, input_packing, output_packing, image_name_format
         case 'NON_COLOR':
             packed_image.colorspace_settings.name = 'Non-Color'
 
-    # Define a file format, filepath and then save the channel packed image.
+    # Define a file format, filepath and fill the image pixels with the packed pixel data.
     file_extension = bau.get_image_file_extension(file_format)
     export_path = bau.get_texture_folder_path(folder='EXPORT_TEXTURES')
     packed_image.file_format = file_format
@@ -446,6 +446,8 @@ def channel_pack(pack_textures, input_packing, output_packing, image_name_format
             output_colorspace = 'sRGB'
         case 'NON_COLOR':
             output_colorspace = 'Non-Color'
+
+    # Save the packed image.
     bau.save_image(packed_image, file_format, 'EXPORT_TEXTURE', colorspace=output_colorspace)
 
     return packed_image
@@ -469,10 +471,9 @@ def invert_image(image, invert_r = False, invert_g = False, invert_b = False, in
 
 def channel_pack_textures(texture_set_name):
     '''Creates channel packed textures using pre-baked textures.'''
-    texture_export_settings = bpy.context.scene.rymat_texture_export_settings
-    active_object = bpy.context.active_object
 
     # Cycle through all defined export textures and channel pack them.
+    texture_export_settings = bpy.context.scene.rymat_texture_export_settings
     for export_texture in texture_export_settings.export_textures:
 
         # Compile an array of baked images that will be used in channel packing based on the defined input texture...
@@ -482,31 +483,6 @@ def channel_pack_textures(texture_set_name):
             texture_channel = getattr(export_texture.pack_textures, key)
 
             match texture_channel:
-                case 'AMBIENT_OCCLUSION':
-                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'AMBIENT_OCCLUSION')
-                    image = bpy.data.images.get(meshmap_name)
-                    input_images.append(image)
-
-                case 'CURVATURE':
-                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'CURVATURE')
-                    image = bpy.data.images.get(meshmap_name)
-                    input_images.append(image)
-
-                case 'THICKNESS':
-                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'THICKNESS')
-                    image = bpy.data.images.get(meshmap_name)
-                    input_images.append(image)
-
-                case 'BASE_NORMALS':
-                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'NORMAL')
-                    image = bpy.data.images.get(meshmap_name)
-                    input_images.append(image)
-
-                case 'WORLD_SPACE_NORMALS':
-                    meshmap_name = mesh_map_baking.get_meshmap_name(active_object.name, 'WORLD_SPACE_NORMALS')
-                    image = bpy.data.images.get(meshmap_name)
-                    input_images.append(image)
-
                 case 'ROUGHNESS':
                     image_name = format_baked_material_channel_name(texture_set_name, texture_channel)
                     image = bpy.data.images.get(image_name)
@@ -525,6 +501,7 @@ def channel_pack_textures(texture_set_name):
                     if texture_export_settings.normal_map_mode == 'DIRECTX':
                         invert_image(image, False, True, False, False)
 
+                # TODO: Can this be hit ever?
                 case 'NORMAL_HEIGHT':
                     image_name = format_baked_material_channel_name(texture_set_name, 'NORMAL')
                     image = bpy.data.images.get(image_name)
@@ -645,7 +622,6 @@ def get_texture_channel_bake_list():
 
 def set_export_template(export_preset_name):
     '''Applies the export template settings stored in the specified export template from the export template json file.'''
-    # TODO: BPY context isn't available here if this is called on scene load.
     texture_export_settings = bpy.context.scene.rymat_texture_export_settings
     jdata = read_export_template_data()
     texture_export_presets = jdata['texture_export_presets']
@@ -689,20 +665,6 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     static_channel_list = shaders.get_static_shader_channel_list()
     if material_channel_name not in static_channel_list:
         debug_logging.log("Can't bake invalid material channel: {0}".format(material_channel_name))
-        return ""
-
-    # Get a list of output channels the shader can bake from.
-    output_channels = []
-    active_material = bpy.context.active_object.active_material
-    shader_node = active_material.node_tree.nodes.get('SHADER_NODE')
-    if shader_node:
-        for i in range(1, len(shader_node.outputs)):
-            static_channel = bau.format_static_matchannel_name(shader_node.outputs[i].name)
-            output_channels.append(static_channel)
-
-    # Skip baking for inactive material channels.
-    if material_channel_name not in output_channels:
-        debug_logging.log("Skipped baking for disabled material channel: {channel_name}.".format(channel_name=material_channel_name))
         return ""
     
     # Assign normal map image background color the default RGB color for 'UP' in Blender.
@@ -752,8 +714,7 @@ def bake_material_channel(material_channel_name, single_texture_set=False):
     image_node.select = True
     material_nodes.active = image_node
     bau.set_texture_paint_image(export_image)
-
-    # TODO: Link alpha for transparency baking here!
+    
     # Link to a bake node.
     active_node_tree = bpy.context.active_object.active_material.node_tree
     bake_node = get_bake_node()
