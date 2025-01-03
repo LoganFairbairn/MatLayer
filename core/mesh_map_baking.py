@@ -9,6 +9,7 @@ from ..core import material_layers
 from ..core import blender_addon_utils
 from ..core import debug_logging
 from ..core import texture_set_settings as tss
+from ..core import image_utilities
 
 MESH_MAP_MATERIAL_NAMES = (
     "BakeNormals",
@@ -754,25 +755,38 @@ class RYMAT_OT_batch_bake(Operator):
         folder_valid = blender_addon_utils.verify_folder(mesh_map_folder)
         if not folder_valid:
             debug_logging.log_status("Define a valid mesh map folder before baking, or reset the folder path to 'Default'.", self, type='ERROR')
-            return {'FINISHED'}
+            return {'CANCELLED'}
 
-        # Save the blend file to help users avoid losing work if Blender crashes while baking.
+        # The blend file must be saved so this operator has a user defined filepath to
+        # save the blend and textures later on.
+        if not blender_addon_utils.check_blend_saved():
+            debug_logging.log_status(
+                "To avoid losing data due to a potential crash, please save your blend file before baking mesh maps.",
+                self,
+                type='WARNING'
+            )
+            return {'CANCELLED'}
+
+        # To help users avoid losing data to crashes that can occur when baking in Blender,
+        # save the blend file, and all textures before starting a bake.
         bpy.ops.wm.save_mainfile()
+        image_utilities.save_all_textures()
 
         # Remove lingering mesh map assets if they exist.
         clean_mesh_map_assets()
 
-        # Set the viewport shading mode to 'Material' (helps bake materials slightly faster while still being able to preview material changes).
+        # Set the viewport shading mode to 'Material' 
+        # this helps bake materials slightly faster while still being able to preview material changes.
         bpy.context.space_data.shading.type = 'MATERIAL'
 
         # Verify the active object can be baked to.
         if blender_addon_utils.verify_bake_object(self) == False:
-            return {'FINISHED'}
+            return {'CANCELLED'}
 
         # To avoid errors don't start baking if there is already a bake job running.
         if bpy.app.is_job_running('OBJECT_BAKE') == True:
-            debug_logging.log_status("Bake job already in process, cancel or wait until the bake is finished before starting another.", self)
-            return {'FINISHED'}
+            debug_logging.log_status("Bake job already in process.", self)
+            return {'CANCELLED'}
         
         # Pause auto-updates for this add-on while baking.
         bpy.context.scene.pause_auto_updates = True
